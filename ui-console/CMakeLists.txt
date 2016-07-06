@@ -33,9 +33,10 @@ set(SOURCE_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 
 ######### IDE Folders #######################
-source_group("ui-console")
 ### Folder include
-source_group("ui-console\\include" FILES ${HEADER_UI_CONSOLE_ROOT})
+source_group("include" FILES ${HEADER_UI_CONSOLE_ROOT})
+### Folder src
+source_group("src" FILES ${SOURCE_UI_CONSOLE_ROOT})
 #############################################
 
 

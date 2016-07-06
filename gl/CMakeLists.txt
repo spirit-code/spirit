@@ -43,13 +43,12 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 #############################################
 
 ######### IDE Folders #######################
-source_group("gl")
 ### Folder include
-source_group("gl\\include" FILES ${HEADER_GL_ROOT})
+source_group("include" FILES ${HEADER_GL_ROOT})
 ### Folder src
-source_group("gl\\src" FILES  ${SOURCE_GL_ROOT})
+source_group("src" FILES  ${SOURCE_GL_ROOT})
 ### Folder shaders
-source_group("gl\\shaders" FILES  ${PROJECT_SOURCE_DIR}/shaders/vertex.shader ${PROJECT_SOURCE_DIR}/shaders/fragment.shader)
+source_group("shaders" FILES  ${PROJECT_SOURCE_DIR}/shaders/vertex.shader ${PROJECT_SOURCE_DIR}/shaders/fragment.shader)
 #############################################
 
 

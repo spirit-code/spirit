@@ -48,17 +48,16 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 #############################################
 
 ######### IDE Folders #######################
-source_group("core")
 ### Folder include
-source_group("core\\include" FILES ${HEADER_CORE_ROOT})
-source_group("core\\include\\data" FILES ${HEADER_CORE_DATA})
-source_group("core\\include\\engine" FILES ${HEADER_CORE_ENGINE})
-source_group("core\\include\\utility" FILES ${HEADER_CORE_UTILITY})
+source_group("include" FILES ${HEADER_CORE_ROOT})
+source_group("include\\data" FILES ${HEADER_CORE_DATA})
+source_group("include\\engine" FILES ${HEADER_CORE_ENGINE})
+source_group("include\\utility" FILES ${HEADER_CORE_UTILITY})
 ### Folder src
-source_group("core\\src" FILES  ${SOURCE_CORE_ROOT}) #${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-source_group("core\\src\\data" FILES ${SOURCE_CORE_DATA})
-source_group("core\\src\\engine" FILES ${SOURCE_CORE_ENGINE})
-source_group("core\\src\\utility" FILES ${SOURCE_CORE_UTILITY})
+source_group("src" FILES  ${SOURCE_CORE_ROOT}) #${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+source_group("src\\data" FILES ${SOURCE_CORE_DATA})
+source_group("src\\engine" FILES ${SOURCE_CORE_ENGINE})
+source_group("src\\utility" FILES ${SOURCE_CORE_UTILITY})
 #############################################
 
 

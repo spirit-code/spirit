@@ -80,12 +80,10 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(${PROJECT_SOURCE_DIR}/ui)
 ### Folder include
-source_group("ui-qt")
-source_group("ui-qt\\include" FILES ${HEADER_UI_QT_ROOT})
+source_group("include" FILES ${HEADER_UI_QT_ROOT})
 ### Folder src
-source_group("ui-qt")
-source_group("ui-qt\\src" FILES ${SOURCE_UI_QT_ROOT})
-source_group("ui-qt\\ui" FILES ${UI_FILES})
+source_group("src" FILES ${SOURCE_UI_QT_ROOT})
+source_group("ui" FILES ${UI_FILES})
 ###########################
 
 
