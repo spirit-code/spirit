@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <!-- <file>src/visualisation/gl/shaders/fragment.shader</file> -->
+        <!-- <file>src/visualisation/gl/shaders/vertex.shader</file> -->
+        <file>logo.jpg</file>
+    </qresource>
+</RCC>

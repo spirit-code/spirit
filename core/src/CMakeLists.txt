@@ -1,0 +1,24 @@
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/data)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/engine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/utility)
+
+set(SOURCE_CORE_ROOT
+	${SOURCE_CORE_ROOT}
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt  # unfortunately this won't work
+	PARENT_SCOPE
+)
+
+set(SOURCE_CORE_DATA
+    ${SOURCE_CORE_DATA}
+    PARENT_SCOPE
+)
+
+set(SOURCE_CORE_ENGINE
+    ${SOURCE_CORE_ENGINE}
+    PARENT_SCOPE
+)
+
+set(SOURCE_CORE_UTILITY
+    ${SOURCE_CORE_UTILITY}
+    PARENT_SCOPE
+)

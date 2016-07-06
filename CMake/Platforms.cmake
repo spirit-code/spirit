@@ -1,0 +1,8 @@
+if (APPLE)
+	MESSAGE( STATUS ">> We are on Apple" )
+	# set(OS_BUNDLE MACOSX_BUNDLE)
+elseif (UNIX)
+    MESSAGE( STATUS ">> We are on UNIX" )
+elseif (WIN32)
+	MESSAGE( STATUS ">> We are on Win32" )
+endif()
