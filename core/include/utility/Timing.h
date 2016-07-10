@@ -8,6 +8,7 @@
 
 // Use the System Clock (Wall Time) to handle Timing
 using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace Utility
 {

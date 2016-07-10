@@ -8,8 +8,6 @@
 #include "Optimizer.h"
 #include "IO.h"
 
-#include "Solver_LLG.h"
-#include "Solver_GNEB.h"
 #include "Logging.h"
 #include "Timing.h"
 #include "Threading.h"
@@ -62,7 +60,7 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 		this->pushButton_PlayPause->setText("Pause");
 		//std::thread(Engine::SIB::Iterate, s, 2000000, 5000).detach();
 	}
-	
+
 	/*
     // Create Widgets
     createWidgets(s);
@@ -71,7 +69,6 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
     createActions();
     //createMenus();    // these fail for some reason... maybe add resource stuff later on
     //createToolBars(); // these fail for some reason... maybe add resource stuff later on
-    createStatusBar();
 
     connect(textEdit->document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
 
@@ -79,11 +76,19 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
     setUnifiedTitleAndToolBarOnMac(true);//*/
     
 
+	// Set up Update Timers
+	m_timer = new QTimer(this);
+	//m_timer_plots = new QTimer(this);
+	//m_timer_spins = new QTimer(this);
+
+
 	// Buttons
 	connect(this->lineEdit_Save_E, SIGNAL(returnPressed()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_Save_E, SIGNAL(clicked()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_StopAll, SIGNAL(clicked()), this, SLOT(stopallPressed()));
+	//connect(this->pushButton_StopAll, SIGNAL(clicked()), this, SLOT(createStatusBar()));
 	connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(playpausePressed()));
+	//connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(createStatusBar()));
 	connect(this->pushButton_PreviousImage, SIGNAL(clicked()), this, SLOT(previousImagePressed()));
 	connect(this->pushButton_NextImage, SIGNAL(clicked()), this, SLOT(nextImagePressed()));
     connect(this->pushButton_Reset, SIGNAL(clicked()), this, SLOT(resetPressed()));
@@ -116,29 +121,32 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
+	// Status Bar
+	this->m_Label_FPS = new QLabel;
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	this->m_Label_FPS->setText("FPS: 0");
+	this->createStatusBar();
+	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
 
-    // Event Filter
-    //this->installEventFilter(this);
-	//this->statusBar->showMessage(tr("Ready"));
-	//statusBar()->showMessage(tr("Ready"));
-
-
-	// Set up Update Timer for Plots
-	//m_timer_plots = new QTimer(this);
+	// Plots Widget
 	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
-	//m_timer_plots->start(100);
 
-	// Set up Update Timer for Spin Visualisation
-	//m_timer_spins = new QTimer(this);
-	////connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+	// Spins Widget
 	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
+	
+
+	// Event Filter
+	//this->installEventFilter(this);
+
+	// Start Timers
+	m_timer->start(200);
+	//m_timer_plots->start(100);
 	//m_timer_spins->start(100);
+	//m_timer_debug->start(100);
 
-	// Set up Update Timer
-	//m_timer_debug = new QTimer(this);
-	//connect(m_timer_debug, &QTimer::timeout, this->debugWidget, &DebugWidget::update);
-	//m_timer_debug->start(200);
 
+
+	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
 }
 
 
@@ -332,13 +340,19 @@ void MainWindow::stopallPressed()
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
 	
 	c->iteration_allowed = false;
+	for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
+	{
+		this->gneb_solvers.erase(c);
+	}
 
 	for (int i = 0; i < c->noi; ++i)
 	{
 		c->images[i]->iteration_allowed = false;
+		this->llg_solvers.erase(c->images[i]);
 	}
 
 	this->pushButton_PlayPause->setText("Play");
+	this->createStatusBar();
 }
 
 void MainWindow::playpausePressed()
@@ -373,11 +387,14 @@ void MainWindow::playpausePressed()
 			this->pushButton_PlayPause->setText("Play");
 			s->iteration_allowed = false;
 			c->iteration_allowed = false;
+			this->gneb_solvers.erase(c);
+			this->llg_solvers.erase(s);
 		}
 		else
 		{
 			this->pushButton_PlayPause->setText("Pause");
-			if (Utility::Threading::llg_threads[s].joinable()) {
+			if (Utility::Threading::llg_threads[s].joinable())
+			{
 				s->iteration_allowed = false;
 				Utility::Threading::llg_threads[s].join();
 			}
@@ -385,6 +402,7 @@ void MainWindow::playpausePressed()
 			c->iteration_allowed = false;
             auto g = new Engine::Solver_LLG(this->c, optim);
 			Utility::Threading::llg_threads[s] = std::thread(&Engine::Solver_LLG::Iterate, g, 2000000, 5000);
+			this->llg_solvers[s] = g;
 		}
 	}
 	else if (this->comboBox_Solver->currentText() == "GNEB")
@@ -395,8 +413,10 @@ void MainWindow::playpausePressed()
 			for (int i = 0; i < c->noi; ++i)
 			{
 				c->images[i]->iteration_allowed = false;
+				this->llg_solvers.erase(c->images[i]);
 			}
 			c->iteration_allowed = false;
+			this->gneb_solvers.erase(c);
 		}
 		else
 		{
@@ -412,12 +432,14 @@ void MainWindow::playpausePressed()
 			c->iteration_allowed = true;
             auto g = new Engine::Solver_GNEB(this->c, optim);
 			Utility::Threading::gneb_threads[c] = std::thread(&Engine::Solver_GNEB::Iterate, g, 2000000, 5000);
+			this->gneb_solvers[c] = g;
 		}
 	}
 	else if (this->comboBox_Solver->currentText() == "MMF")
 	{
 		Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, std::string("MMF selected, but not yet implemented! Not doing anything..."));
 	}
+	this->createStatusBar();
 }
 
 
@@ -525,6 +547,69 @@ void MainWindow::view_toggleSettings()
 {
 	if (this->dockWidget_Settings->isVisible()) this->dockWidget_Settings->hide();
 	else this->dockWidget_Settings->show();
+}
+
+
+void MainWindow::createStatusBar()
+{
+	// Remove previous IPS labels
+	for (unsigned int i = 0; i < this->m_Labels_IPS.size(); ++i)
+	{
+		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
+	}
+
+	// Get Solvers' IPS
+	auto v_ips = this->getIterationsPerSecond();
+
+	//// Create IPS Labels and add them to the statusBar
+	this->m_Labels_IPS = std::vector<QLabel*>();
+	for (unsigned int i = 0; i < v_ips.size(); ++i)
+	{
+		this->m_Labels_IPS.push_back(new QLabel);
+		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
+		this->m_Labels_IPS[i]->setText("IPS: 0");
+	}
+
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
+	this->m_Label_FPS = new QLabel;
+	this->m_Label_FPS->setText("FPS: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+}
+
+
+void MainWindow::updateStatusBar()
+{
+	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
+	auto v_ips = this->getIterationsPerSecond();
+	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
+	{
+		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
+	}
+}
+
+std::vector<double> MainWindow::getIterationsPerSecond()
+{
+	std::vector<double> ret;
+
+	if (this->c->iteration_allowed)
+	{
+		for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
+		{
+			ret.push_back(this->gneb_solvers[c]->getIterationsPerSecond());
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < this->llg_solvers.size(); ++i)
+		{
+			if (c->images[i]->iteration_allowed)
+			{
+				ret.push_back(this->llg_solvers[c->images[i]]->getIterationsPerSecond());
+			}
+		}
+	}
+
+	return ret;
 }
 
 void MainWindow::about()
@@ -755,6 +840,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }*/
 }
+
+
 /*
 void MainWindow::newFile()
 {
@@ -937,10 +1024,7 @@ void MainWindow::createToolBars()
     editToolBar->addAction(pasteAct);
 }
 
-void MainWindow::createStatusBar()
-{
-    statusBar()->showMessage(tr("Ready"));
-}
+
 
 void MainWindow::readSettings()
 {

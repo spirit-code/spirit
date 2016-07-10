@@ -30,6 +30,14 @@ Spin_Widget::Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *pa
 	this->timer_ = new QTimer(this);
 	this->connect(this->timer_, SIGNAL(timeout()), this, SLOT(on_timer()));
 	this->timer_->start(10);
+
+	this->t_frames.push_back(system_clock::now());
+	this->t_frames.push_back(system_clock::now());
+	this->t_frames.push_back(system_clock::now());
+	this->t_frames.push_back(system_clock::now());
+	this->t_frames.push_back(system_clock::now());
+	this->t_frames.push_back(system_clock::now());
+	this->fps = 0;
 }
 
 
@@ -52,6 +60,10 @@ void Spin_Widget::resizeGL(int width, int height)
 void Spin_Widget::paintGL()
 {
 	gl_spins->draw();
+
+	// Update frame times
+	this->t_frames.pop_front();
+	this->t_frames.push_back(system_clock::now());
 }
 
 void Spin_Widget::on_timer()
@@ -164,6 +176,17 @@ void Spin_Widget::SetCameraToZ()
 	//camera->SetPosition(s->geometry->center[0], s->geometry->center[1], CAMERA_DISTANCE);
 	//camera->SetViewUp(0, 1, 0);
 	//if (PARALLEL_PROJECTION) camera->SetParallelScale(PARALLEL_SCALE);
+}
+
+double Spin_Widget::getFramesPerSecond()
+{
+	double l_fps = 0.0;
+	for (int i = 0; i < t_frames.size()-1; ++i)
+	{
+		l_fps += Utility::Timing::SecondsPassed(t_frames[i+1], t_frames[i]);
+	}
+	this->fps = 1.0 / (l_fps / (t_frames.size() - 1));
+	return this->fps;
 }
 
 /*******************************************************************************

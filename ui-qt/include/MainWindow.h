@@ -13,6 +13,9 @@
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 
+#include "Solver_LLG.h"
+#include "Solver_GNEB.h"
+
 class QAction;
 class QMenu;
 class QPlainTextEdit;
@@ -66,10 +69,12 @@ private:
     /*void createWidgets(Spin_System * s);
     void createActions();
     void createMenus();
-    void createToolBars();
-    void createStatusBar();*/
+    void createToolBars();*/
     void readSettings();
     void writeSettings();
+	void createStatusBar();
+	void updateStatusBar();
+	std::vector<double> getIterationsPerSecond();
     /*bool maybeSave();
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
@@ -92,6 +97,15 @@ private:
 	QTimer * m_timer_spins;
 	QTimer * m_timer_plots;
 	QTimer * m_timer_debug;
+	QTimer * m_timer;
+
+	// Status Bar labels
+	std::vector<QLabel*> m_Labels_IPS;
+	QLabel * m_Label_FPS;
+
+	// Image/Chain - Solver maps
+	std::map<std::shared_ptr<Data::Spin_System>, Engine::Solver_LLG*> llg_solvers;
+	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Solver_GNEB*> gneb_solvers;
 
 };
 

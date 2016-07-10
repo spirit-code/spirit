@@ -50,6 +50,10 @@ namespace Engine
 			// Do one single Iteration
 			this->Iteration();
 
+			// Recalculate FPS
+			this->t_iterations.pop_front();
+			this->t_iterations.push_back(system_clock::now());
+
 			// Log Output every log_steps steps
 			if (0 == fmod(i, log_steps))
 			{

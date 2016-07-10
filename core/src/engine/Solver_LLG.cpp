@@ -51,10 +51,16 @@ namespace Engine
         auto t_start = system_clock::now();
         auto t_current = system_clock::now();
         auto t_last = system_clock::now();
+
         for (i = 0; i < n && s->iteration_allowed && !this->force_call->IsConverged() && !this->StopFilePresent(); ++i) {
             // Do one single Iteration
             this->Iteration();
 
+			// Recalculate FPS
+			this->t_iterations.pop_front();
+			this->t_iterations.push_back(system_clock::now());
+
+			// Periodical output
             if (0 == fmod(i, log_steps)) {
                 step += 1;
                 s->UpdateEnergy();

@@ -8,6 +8,7 @@
 #include <QOpenGLFunctions>
 
 #include <memory>
+#include <deque>
 
 #include "gl_spins.h"
 
@@ -25,6 +26,7 @@ public:
 	void resizeGL(int w, int h);
 	void paintGL();
     void mouseMoveEvent(QMouseEvent *event);
+	double getFramesPerSecond();
 
 	void SetCameraToDefault();
 	void SetCameraToX();
@@ -58,6 +60,8 @@ private:
 	void printVersionInformation();
     void Update_Projection_Matrix(int width, int height);
 	int m_frame;
+	double fps;
+	std::deque<std::chrono::time_point<std::chrono::system_clock>> t_frames;
 
 };
 

@@ -13,6 +13,8 @@
 #include "Optimizer_QM.h"
 #include "Timing.h"
 
+#include <deque>
+
 namespace Engine
 {
 	/*
@@ -27,6 +29,15 @@ namespace Engine
 			this->c = c;
 			this->optimizer = optimizer;
 			this->starttime = Utility::Timing::CurrentDateTime();
+
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->t_iterations.push_back(system_clock::now());
+			this->ips = 0;
 		}
 
 		// Iterate for n iterations
@@ -45,6 +56,17 @@ namespace Engine
 			throw Utility::Exception::Not_Implemented;
 		}
 
+		double getIterationsPerSecond()
+		{
+			double l_ips = 0.0;
+			for (unsigned int i = 0; i < t_iterations.size() - 1; ++i)
+			{
+				l_ips += Utility::Timing::SecondsPassed(t_iterations[i+1], t_iterations[i]);
+			}
+			this->ips = 1.0 / (l_ips / (t_iterations.size() - 1));
+			return this->ips;
+		}
+
 	protected:
 		// The Image Chain on which this Solver operates
 		std::shared_ptr<Data::Spin_System_Chain> c;
@@ -60,6 +82,10 @@ namespace Engine
 
 		// The time at which this Solver's Iterate() was last called
 		std::string starttime;
+
+		// Timings and Iterations per Second
+		double ips;
+		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
 
 		// Save the current Step's Data
 		virtual void Save_Step(int image, int iteration, std::string suffix)
