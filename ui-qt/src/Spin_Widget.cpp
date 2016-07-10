@@ -183,7 +183,7 @@ double Spin_Widget::getFramesPerSecond()
 	double l_fps = 0.0;
 	for (int i = 0; i < t_frames.size()-1; ++i)
 	{
-		l_fps += Utility::Timing::SecondsPassed(t_frames[i+1], t_frames[i]);
+		l_fps += Utility::Timing::SecondsPassed(t_frames[i], t_frames[i+1]);
 	}
 	this->fps = 1.0 / (l_fps / (t_frames.size() - 1));
 	return this->fps;

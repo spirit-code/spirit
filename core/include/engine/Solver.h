@@ -61,7 +61,7 @@ namespace Engine
 			double l_ips = 0.0;
 			for (unsigned int i = 0; i < t_iterations.size() - 1; ++i)
 			{
-				l_ips += Utility::Timing::SecondsPassed(t_iterations[i+1], t_iterations[i]);
+				l_ips += Utility::Timing::SecondsPassed(t_iterations[i], t_iterations[i+1]);
 			}
 			this->ips = 1.0 / (l_ips / (t_iterations.size() - 1));
 			return this->ips;

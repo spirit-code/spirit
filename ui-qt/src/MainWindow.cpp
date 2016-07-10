@@ -122,9 +122,19 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
 	// Status Bar
+	//		FPS
 	this->m_Label_FPS = new QLabel;
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
 	this->m_Label_FPS->setText("FPS: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	//		NOS
+	this->m_Label_NOS = new QLabel;
+	this->m_Label_NOS->setText("NOS: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
+	//		NOI
+	this->m_Label_NOI = new QLabel;
+	this->m_Label_NOI->setText("NOI: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
+	//		Initialisations & connect
 	this->createStatusBar();
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
 
@@ -561,19 +571,32 @@ void MainWindow::createStatusBar()
 	// Get Solvers' IPS
 	auto v_ips = this->getIterationsPerSecond();
 
-	//// Create IPS Labels and add them to the statusBar
+	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>();
 	for (unsigned int i = 0; i < v_ips.size(); ++i)
 	{
 		this->m_Labels_IPS.push_back(new QLabel);
-		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
 		this->m_Labels_IPS[i]->setText("IPS: 0");
+		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
 	}
 
+	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
 	this->m_Label_FPS = new QLabel;
 	this->m_Label_FPS->setText("FPS: 0");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+
+	//		NOS
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
+	this->m_Label_NOS = new QLabel;
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(this->c->images[c->active_image]->nos));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
+
+	//		NOI
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
+	this->m_Label_NOI = new QLabel;
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(this->c->noi));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 }
 
 

@@ -100,8 +100,10 @@ private:
 	QTimer * m_timer;
 
 	// Status Bar labels
-	std::vector<QLabel*> m_Labels_IPS;
+	QLabel * m_Label_NOI;
+	QLabel * m_Label_NOS;
 	QLabel * m_Label_FPS;
+	std::vector<QLabel*> m_Labels_IPS;
 
 	// Image/Chain - Solver maps
 	std::map<std::shared_ptr<Data::Spin_System>, Engine::Solver_LLG*> llg_solvers;
