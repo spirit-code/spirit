@@ -451,7 +451,12 @@ void SettingsWidget::create_Skyrmion()
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
 	bool experimental = checkBox_sky_experimental->isChecked();
-	std::vector<double> pos = { lineEdit_sky_posx->text().toDouble(), lineEdit_sky_posy->text().toDouble(), lineEdit_sky_posz->text().toDouble() };
+	std::vector<double> pos =
+	{ 
+		lineEdit_sky_posx->text().toDouble() + s->geometry->center[0],
+		lineEdit_sky_posy->text().toDouble() + s->geometry->center[1],
+		lineEdit_sky_posz->text().toDouble() + s->geometry->center[2]
+	};
 	double rad = lineEdit_sky_rad->text().toDouble();
 	Utility::Configurations::Skyrmion(*s, pos, rad, speed, phase, upDown, achiral, rl, experimental);
 	print_Energies_to_console();
@@ -492,6 +497,7 @@ void SettingsWidget::set_hamiltonian_iso()
 		this->set_dmi(this->s);
 		this->set_aniso(this->s);
 		this->set_spc(this->s);
+		this->set_exchange(this->s);
 		this->set_bqe(this->s);
 		this->set_fourspin(this->s);
 		this->set_temper(this->s);
@@ -741,8 +747,8 @@ void SettingsWidget::set_spc(std::shared_ptr<Data::Spin_System> s)
 	try {
 		Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
 	}
-	catch (int ex) {
-		if (ex == 99) {
+	catch (Utility::Exception ex) {
+		if (ex == Utility::Exception::Division_by_zero) {
 			s->llg_parameters->stt_polarisation_normal[0] = 0.0;
 			s->llg_parameters->stt_polarisation_normal[1] = 0.0;
 			s->llg_parameters->stt_polarisation_normal[2] = 1.0;

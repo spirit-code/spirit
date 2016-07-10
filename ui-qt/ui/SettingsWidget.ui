@@ -55,8 +55,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>601</height>
+            <width>715</width>
+            <height>612</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1120,8 +1120,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>601</height>
+            <width>715</width>
+            <height>612</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1355,8 +1355,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>547</height>
+            <width>715</width>
+            <height>565</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2006,12 +2006,275 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>547</height>
+            <width>715</width>
+            <height>565</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
-           <item row="2" column="0">
+           <item row="9" column="1">
+            <layout class="QGridLayout" name="gridLayout_50">
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="lineEdit_sttz_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_sttx_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_stty_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <spacer name="horizontalSpacer_34">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="9" column="0">
+            <layout class="QGridLayout" name="gridLayout_48">
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_34">
+               <property name="text">
+                <string>Polarisation (x,y,z)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <spacer name="horizontalSpacer_37">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="11" column="1">
+            <layout class="QGridLayout" name="gridLayout_45">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_T_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer_33">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="6" column="1">
+            <layout class="QGridLayout" name="gridLayout_42">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_ani_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer_29">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="7" column="0">
+            <layout class="QGridLayout" name="gridLayout_46">
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_21">
+               <property name="text">
+                <string>Direction (x,y,z)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <spacer name="horizontalSpacer_36">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="8" column="1">
+            <layout class="QGridLayout" name="gridLayout_43">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_stt_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer_30">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="7" column="1">
+            <layout class="QGridLayout" name="gridLayout_47">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_anix_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_aniy_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="lineEdit_aniz_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <spacer name="horizontalSpacer_35">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="2">
+            <spacer name="horizontalSpacer_31">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="1">
+            <layout class="QGridLayout" name="gridLayout_36">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_extH_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_27">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="5" column="0">
             <layout class="QGridLayout" name="gridLayout_40">
              <item row="0" column="1">
               <widget class="QLabel" name="label_25">
@@ -2051,47 +2314,7 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="2">
-            <spacer name="horizontalSpacer_31">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="1">
-            <layout class="QGridLayout" name="gridLayout_36">
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_extH_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_27">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="1">
+           <item row="5" column="1">
             <layout class="QGridLayout" name="gridLayout_32">
              <item row="1" column="2">
               <widget class="QLineEdit" name="lineEdit_extHy_aniso">
@@ -2148,7 +2371,7 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="0">
+           <item row="3" column="0">
             <widget class="QCheckBox" name="checkBox_extH_aniso">
              <property name="text">
               <string>External Field</string>
@@ -2161,7 +2384,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
+           <item row="12" column="1">
             <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -2174,24 +2397,45 @@
              </property>
             </spacer>
            </item>
-           <item row="3" column="0">
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>Anisotropy</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
             <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
              <property name="text">
               <string>Periodical a</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="1" column="0">
             <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
              <property name="text">
               <string>Periodical b</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="8" column="0">
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>Spin Torque</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
             <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
              <property name="text">
               <string>Periodical c</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="QCheckBox" name="checkBox_3">
+             <property name="text">
+              <string>Temperature</string>
              </property>
             </widget>
            </item>
@@ -2216,8 +2460,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>601</height>
+            <width>715</width>
+            <height>612</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2505,8 +2749,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>707</width>
-            <height>601</height>
+            <width>715</width>
+            <height>612</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -2521,139 +2765,276 @@
              <property name="title">
               <string>Widget Settings</string>
              </property>
-             <widget class="QComboBox" name="comboBox_VisualisationSource">
-              <property name="geometry">
-               <rect>
-                <x>130</x>
-                <y>60</y>
-                <width>121</width>
-                <height>22</height>
-               </rect>
-              </property>
-              <property name="currentText">
-               <string>Spins</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Spins</string>
-               </property>
+             <layout class="QGridLayout" name="gridLayout_49">
+              <item row="0" column="6">
+               <spacer name="horizontalSpacer_38">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
-              <item>
-               <property name="text">
-                <string>Effective Field</string>
-               </property>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_36">
+                <property name="text">
+                 <string>z filter</string>
+                </property>
+               </widget>
               </item>
-              <item>
-               <property name="text">
-                <string>External Magnetic Field</string>
-               </property>
+              <item row="1" column="5">
+               <widget class="QComboBox" name="comboBox">
+                <item>
+                 <property name="text">
+                  <string>Arrows</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Surface</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Sphere</string>
+                 </property>
+                </item>
+               </widget>
               </item>
-             </widget>
-             <widget class="QLabel" name="label_22">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>60</y>
-                <width>111</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>What to visualise:</string>
-              </property>
-             </widget>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>What to visualise:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="5">
+               <widget class="QComboBox" name="comboBox_VisualisationSource">
+                <property name="currentText">
+                 <string>Spins</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Spins</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Effective Field</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>External Magnetic Field</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_35">
+                <property name="text">
+                 <string>Render Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="5">
+               <layout class="QGridLayout" name="gridLayout_51">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSlider" name="horizontalSlider_4">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox">
-             <property name="minimumSize">
+            <spacer name="verticalSpacer_13">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
               <size>
-               <width>200</width>
-               <height>120</height>
+               <width>20</width>
+               <height>30</height>
               </size>
              </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_9">
              <property name="title">
-              <string>Plane cut</string>
+              <string>Sphere</string>
              </property>
-             <widget class="QSlider" name="horizontalSlider">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>20</y>
-                <width>160</width>
-                <height>22</height>
-               </rect>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-             <widget class="QSlider" name="horizontalSlider_2">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>50</y>
-                <width>160</width>
-                <height>22</height>
-               </rect>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-             <widget class="QSlider" name="horizontalSlider_3">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>80</y>
-                <width>160</width>
-                <height>22</height>
-               </rect>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_5">
-              <property name="geometry">
-               <rect>
-                <x>30</x>
-                <y>20</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>X</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_6">
-              <property name="geometry">
-               <rect>
-                <x>30</x>
-                <y>50</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Y</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_7">
-              <property name="geometry">
-               <rect>
-                <x>30</x>
-                <y>80</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Z</string>
-              </property>
-             </widget>
+             <layout class="QGridLayout" name="gridLayout_55">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_4">
+                <property name="text">
+                 <string>Render</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>Position</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_5">
+                <item>
+                 <property name="text">
+                  <string>Top Left</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Bottom Left</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Top Right</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Bottom Right</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <spacer name="horizontalSpacer_41">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_14">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_10">
+             <property name="title">
+              <string>Coordinate Cross</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_54">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>Position</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_5">
+                <property name="text">
+                 <string>Render</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_4">
+                <item>
+                 <property name="text">
+                  <string>Top Left</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Bottom Left</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Top Right</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Bottom Right</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <spacer name="horizontalSpacer_42">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_2">
@@ -2666,7 +3047,156 @@
              <property name="title">
               <string>Color Map</string>
              </property>
+             <layout class="QGridLayout" name="gridLayout_52">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_37">
+                <property name="text">
+                 <string>Map</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_38">
+                <property name="text">
+                 <string>Shift</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <spacer name="horizontalSpacer_39">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="horizontalSlider_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="comboBox_2">
+                <item>
+                 <property name="text">
+                  <string>Hue-Saturation-Value</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Red-Blue</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_12">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="minimumSize">
+              <size>
+               <width>200</width>
+               <height>120</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Plane cut</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_53">
+              <item row="1" column="1" colspan="2">
+               <widget class="QSlider" name="horizontalSlider_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Z</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>X</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1" colspan="2">
+               <widget class="QSlider" name="horizontalSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_40">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="1" colspan="2">
+               <widget class="QSlider" name="horizontalSlider_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -2750,7 +3280,6 @@
   <tabstop>comboBox_VisualisationSource</tabstop>
   <tabstop>horizontalSlider</tabstop>
   <tabstop>horizontalSlider_2</tabstop>
-  <tabstop>horizontalSlider_3</tabstop>
   <tabstop>scrollArea_3</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>scrollArea_5</tabstop>
