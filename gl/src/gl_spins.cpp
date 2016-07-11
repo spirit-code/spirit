@@ -241,7 +241,7 @@ void GLSpins::camera_updated() {
 
 void GLSpins::update_projection_matrix(int width, int height) {
     // Projection matrix : 45° Field of View, width:height ratio, display range : 0.1 unit <-> 100 units
-    projection_matrix = glm::perspective(45.0f, ((float) width) / height, 0.1f, 100.0f);
+    projection_matrix = glm::perspective(45.0f, ((float) width) / height, 0.1f, 10000.0f);
     // Our ModelViewProjection : multiplication of our 3 matrices
     mvp_matrix = projection_matrix * mv_matrix; // Remember, matrix multiplication is the other way around
 

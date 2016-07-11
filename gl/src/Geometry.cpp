@@ -20,10 +20,10 @@ void Generate_Cylinder(std::vector<GLfloat> & vertex_data, std::vector<GLfloat> 
 {
 
     // Parameters
-    unsigned int resolution = 7;
-    float length = 1.0;
-    float radius = 0.1;
-    float zTop = 0.25; // Cylinder length/2 - Cone length/2
+    unsigned int resolution = 20;
+    float length = 0.7;
+    float radius = 0.125;
+    float zTop = 0.05; // Cylinder length/2 - Cone length/2
     float zBase = zTop-length;
 
     auto vertex_offset = vertex_data.size();
@@ -86,10 +86,10 @@ void Generate_Cylinder(std::vector<GLfloat> & vertex_data, std::vector<GLfloat> 
 void Generate_Cone(std::vector<GLfloat> & vertex_data, std::vector<GLfloat> & normal_data)
 {
     // Parameters
-    unsigned int resolution = 7;
-    float length = 0.5;
-    float radius = 0.2;
-    float zBase = 0.25; // Cylinder length/2 - Cone length/2
+    unsigned int resolution = 20;
+    float length = 0.6;
+    float radius = 0.25;
+    float zBase = 0.05; // Cylinder length/2 - Cone length/2
     float zTop = zBase+length;
     auto vertices = std::vector<glm::vec3>(0);
     auto indices = std::vector<glm::vec3>(0);
