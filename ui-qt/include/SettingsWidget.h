@@ -18,7 +18,6 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 
 
 private:
-	void ReadExchange();
 	// Setup Input Validators
 	void Setup_Input_Validators();
 	// Setup Slots

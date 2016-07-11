@@ -550,14 +550,14 @@ void MainWindow::createStatusBar()
 	for (unsigned int i = 0; i < v_ips.size(); ++i)
 	{
 		this->m_Labels_IPS.push_back(new QLabel);
-		this->m_Labels_IPS[i]->setText("IPS: 0");
+		this->m_Labels_IPS[i]->setText("IPS [-]: -");
 		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
 	}
 
 	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
 	this->m_Label_FPS = new QLabel;
-	this->m_Label_FPS->setText("FPS: 0");
+	this->m_Label_FPS->setText("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
 
 	//		NOS
@@ -580,7 +580,7 @@ void MainWindow::updateStatusBar()
 	auto v_ips = this->getIterationsPerSecond();
 	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
 	{
-		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
+		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i+1) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
 	}
 }
 

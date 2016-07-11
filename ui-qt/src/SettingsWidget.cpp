@@ -64,167 +64,6 @@ void SettingsWidget::update()
 }
 
 
-void SettingsWidget::SelectTab(int index)
-{
-	this->tabWidget_Settings->setCurrentIndex(index);
-}
-
-
-
-
-void SettingsWidget::homogeneousTransitionPressed()
-{
-	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt()-1;
-	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt()-1;
-	
-	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= this->c->noi)
-	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
-	}
-	if (idx_1 < 0 || idx_1 >= this->c->noi)
-	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
-	}
-	if (idx_1 == idx_2)
-	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Indices are equal in homogeneous transtion! Aborting...");
-		return;
-	}
-	if (idx_2 < idx_1)
-	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
-		return;
-	}
-
-	//// Do the transition
-	//int n_images = idx_2 - idx_1 + 1;
-	//int nos = this->c->images[idx_1]->nos;
-	//auto images = std::vector<std::vector<double>&>();// (n_images, std::vector<double>(3 * nos, 0.0));	// [n_images][3nos]
-	//for (int i = idx_1; i <= idx_2; ++i)
-	//{
-	//	images.push_back(this->c->images[i]->spins);
-	//}
-	Utility::Configuration_Chain::Homogeneous_Rotation(c, idx_1, idx_2);
-	//Utility::Configuration_Chain::Homogeneous_Rotation(c, s1->spins, s4->spins);
-}
-
-
-
-void SettingsWidget::Load_Parameters_Contents()
-{
-	// LLG Damping
-	this->lineEdit_Damping->setText(QString::number(s->llg_parameters->damping));
-	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt));
-	// GNEB Spring Constant
-	this->lineEdit_gneb_springconstant->setText(QString::number(this->c->gneb_parameters->spring_constant));
-	// Normal/Climbing/Falling image radioButtons
-	this->radioButton_Normal->setChecked(!(this->c->climbing_image[this->c->active_image] || this->c->falling_image[this->c->active_image]));
-	this->radioButton_ClimbingImage->setChecked(this->c->climbing_image[this->c->active_image]);
-	this->radioButton_FallingImage->setChecked(this->c->falling_image[this->c->active_image]);
-}
-
-
-void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
-{
-	//		Read Parameters from Spin System
-
-	// Periodical boundary conditions
-	this->checkBox_iso_periodical_a->setChecked(s->hamiltonian->boundary_conditions[0]);
-	this->checkBox_iso_periodical_b->setChecked(s->hamiltonian->boundary_conditions[1]);
-	this->checkBox_iso_periodical_c->setChecked(s->hamiltonian->boundary_conditions[2]);
-
-	// external field
-	if (s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		this->lineEdit_muSpin->setText(QString::number(ham->mu_s));
-		this->lineEdit_extH->setText(QString::number(ham->external_field_magnitude / Utility::Vectormath::MuB() / ham->mu_s));
-		this->lineEdit_extHx->setText(QString::number(ham->external_field_normal[0]));
-		this->lineEdit_extHy->setText(QString::number(ham->external_field_normal[1]));
-		this->lineEdit_extHz->setText(QString::number(ham->external_field_normal[2]));
-		this->checkBox_extH->setChecked(true);
-	}
-	else if (!s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-	}
-	// exchange interaction - connect this shiat
-	ReadExchange();
-
-	// DMI
-	if (s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		this->lineEdit_dmi->setText(QString::number(ham->dij));
-		this->checkBox_dmi->setChecked(true);
-	}
-	else if (!s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-	}
-	// anisotropy
-	if (s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		this->lineEdit_aniso->setText(QString::number(ham->anisotropy_magnitude));
-		this->lineEdit_anisox->setText(QString::number(ham->anisotropy_normal[0]));
-		this->lineEdit_anisoy->setText(QString::number(ham->anisotropy_normal[1]));
-		this->lineEdit_anisoz->setText(QString::number(ham->anisotropy_normal[2]));
-		this->checkBox_aniso->setChecked(true);
-	}
-	else if (!s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-	}
-	// spin polarized current (does not really belong to interactions)
-	this->lineEdit_spin_torque->setText(QString::number(s->llg_parameters->stt_magnitude));
-	this->lineEdit_spin_torquex->setText(QString::number(s->llg_parameters->stt_polarisation_normal[0]));
-	this->lineEdit_spin_torquey->setText(QString::number(s->llg_parameters->stt_polarisation_normal[1]));
-	this->lineEdit_spin_torquez->setText(QString::number(s->llg_parameters->stt_polarisation_normal[2]));
-	this->checkBox_spin_torque->setChecked(true);
-	// BQE
-	if (s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		this->lineEdit_bqe->setText(QString::number(ham->bij));
-		this->checkBox_bqe->setChecked(true);
-	}
-	else if (!s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-	}
-	// FourSpin
-	if (s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		this->lineEdit_fourspin->setText(QString::number(ham->kijkl));
-		this->checkBox_fourspin->setChecked(true);
-	}
-	else if (!s->is_isotropic)
-	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-	}
-	// Temperature (does not really belong to interactions)
-	this->lineEdit_temper->setText(QString::number(s->llg_parameters->temperature));
-}
-
-
-
-void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
-{
-	// B-field
-	// Anisotropy
-	// DMI strength
-	// mu_s
-	// Periodical boundary conditions
-	this->checkBox_aniso_periodical_a->setChecked(s->hamiltonian->boundary_conditions[0]);
-	this->checkBox_aniso_periodical_b->setChecked(s->hamiltonian->boundary_conditions[1]);
-	this->checkBox_aniso_periodical_c->setChecked(s->hamiltonian->boundary_conditions[2]);
-}
-
 
 
 // -----------------------------------------------------------------------------------
@@ -270,7 +109,7 @@ void SettingsWidget::create_Skyrmion()
 	bool rl = checkBox_sky_RL->isChecked();
 	bool experimental = checkBox_sky_experimental->isChecked();
 	std::vector<double> pos =
-	{ 
+	{
 		lineEdit_sky_posx->text().toDouble() + s->geometry->center[0],
 		lineEdit_sky_posy->text().toDouble() + s->geometry->center[1],
 		lineEdit_sky_posz->text().toDouble() + s->geometry->center[2]
@@ -305,245 +144,183 @@ void SettingsWidget::domainWallPressed()
 	print_Energies_to_console();
 }
 
+void SettingsWidget::homogeneousTransitionPressed()
+{
+	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt() - 1;
+	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
+
+	// Check the validity of the indices
+	if (idx_1 < 0 || idx_1 >= this->c->noi)
+	{
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
+		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+	}
+	if (idx_1 < 0 || idx_1 >= this->c->noi)
+	{
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
+		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+	}
+	if (idx_1 == idx_2)
+	{
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Indices are equal in homogeneous transtion! Aborting...");
+		return;
+	}
+	if (idx_2 < idx_1)
+	{
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
+		return;
+	}
+
+	// Do the transition
+	Utility::Configuration_Chain::Homogeneous_Rotation(c, idx_1, idx_2);
+}
+
+
+// -----------------------------------------------------------------------------------
+// --------------------- Load Contents -----------------------------------------------
+// -----------------------------------------------------------------------------------
+
+
+void SettingsWidget::Load_Parameters_Contents()
+{
+	// LLG Damping
+	this->lineEdit_Damping->setText(QString::number(s->llg_parameters->damping));
+	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt));
+
+	// GNEB Spring Constant
+	this->lineEdit_gneb_springconstant->setText(QString::number(this->c->gneb_parameters->spring_constant));
+
+	// Normal/Climbing/Falling image radioButtons
+	this->radioButton_Normal->setChecked(!(this->c->climbing_image[this->c->active_image] || this->c->falling_image[this->c->active_image]));
+	this->radioButton_ClimbingImage->setChecked(this->c->climbing_image[this->c->active_image]);
+	this->radioButton_FallingImage->setChecked(this->c->falling_image[this->c->active_image]);
+}
+
+
+void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
+{
+	auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+
+	// Boundary conditions
+	this->checkBox_iso_periodical_a->setChecked(ham->boundary_conditions[0]);
+	this->checkBox_iso_periodical_b->setChecked(ham->boundary_conditions[1]);
+	this->checkBox_iso_periodical_c->setChecked(ham->boundary_conditions[2]);
+
+	// mu_s
+	this->lineEdit_muSpin->setText(QString::number(ham->mu_s));
+
+	// External magnetic field
+	this->lineEdit_extH->setText(QString::number(ham->external_field_magnitude / Utility::Vectormath::MuB() / ham->mu_s));
+	this->lineEdit_extHx->setText(QString::number(ham->external_field_normal[0]));
+	this->lineEdit_extHy->setText(QString::number(ham->external_field_normal[1]));
+	this->lineEdit_extHz->setText(QString::number(ham->external_field_normal[2]));
+	if (ham->external_field_magnitude > 0.0) this->checkBox_extH->setChecked(true);
+	
+	// Exchange interaction
+	if (ham->n_neigh_shells > 0) {
+		lineEdit_exchange1->setText(QString::number(ham->jij[0]));
+		lineEdit_exchange1->setEnabled(true);
+	}
+	else { lineEdit_exchange1->hide(); }
+	if (ham->n_neigh_shells > 1) {
+		lineEdit_exchange2->setText(QString::number(ham->jij[1]));
+		lineEdit_exchange2->setEnabled(true);
+	}
+	else { lineEdit_exchange2->hide(); }
+	if (ham->n_neigh_shells > 2) {
+		lineEdit_exchange3->setText(QString::number(ham->jij[2]));
+		lineEdit_exchange3->setEnabled(true);
+	}
+	else { lineEdit_exchange3->hide(); }
+	if (ham->n_neigh_shells > 3) {
+		lineEdit_exchange4->setText(QString::number(ham->jij[3]));
+		lineEdit_exchange4->setEnabled(true);
+	}
+	else { lineEdit_exchange4->hide(); }
+	if (ham->n_neigh_shells > 4) {
+		lineEdit_exchange5->setText(QString::number(ham->jij[4]));
+		lineEdit_exchange5->setEnabled(true);
+	}
+	else { lineEdit_exchange5->hide(); }
+	checkBox_exchange->setChecked(true);
+
+	// DMI
+	this->lineEdit_dmi->setText(QString::number(ham->dij));
+	if (ham->dij > 0.0) this->checkBox_dmi->setChecked(true);
+
+	// Anisotropy
+	this->lineEdit_aniso->setText(QString::number(ham->anisotropy_magnitude));
+	this->lineEdit_anisox->setText(QString::number(ham->anisotropy_normal[0]));
+	this->lineEdit_anisoy->setText(QString::number(ham->anisotropy_normal[1]));
+	this->lineEdit_anisoz->setText(QString::number(ham->anisotropy_normal[2]));
+	if (ham->anisotropy_magnitude > 0.0) this->checkBox_aniso->setChecked(true);
+
+	// Spin polarized current (does not really belong to interactions)
+	this->lineEdit_spin_torque->setText(QString::number(s->llg_parameters->stt_magnitude));
+	this->lineEdit_spin_torquex->setText(QString::number(s->llg_parameters->stt_polarisation_normal[0]));
+	this->lineEdit_spin_torquey->setText(QString::number(s->llg_parameters->stt_polarisation_normal[1]));
+	this->lineEdit_spin_torquez->setText(QString::number(s->llg_parameters->stt_polarisation_normal[2]));
+	if (s->llg_parameters->stt_magnitude > 0.0) this->checkBox_spin_torque->setChecked(true);
+
+	// BQE
+	this->lineEdit_bqe->setText(QString::number(ham->bij));
+	if (ham->bij > 0.0) this->checkBox_bqe->setChecked(true);
+
+	// FourSpin
+	this->lineEdit_fourspin->setText(QString::number(ham->kijkl));
+	if (ham->kijkl > 0.0) this->checkBox_fourspin->setChecked(true);
+
+	// Temperature (does not really belong to interactions)
+	this->lineEdit_temper->setText(QString::number(s->llg_parameters->temperature));
+	if (s->llg_parameters->temperature > 0.0) this->checkBox_Temperature->setChecked(true);
+}
+
+
+
+void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
+{
+	auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
+
+	// Boundary conditions
+	this->checkBox_aniso_periodical_a->setChecked(s->hamiltonian->boundary_conditions[0]);
+	this->checkBox_aniso_periodical_b->setChecked(s->hamiltonian->boundary_conditions[1]);
+	this->checkBox_aniso_periodical_c->setChecked(s->hamiltonian->boundary_conditions[2]);
+
+	// mu_s
+	this->lineEdit_muSpin_aniso->setText(QString::number(ham->mu_s[0]));
+
+	// External magnetic field
+	this->lineEdit_extH_aniso->setText(QString::number(ham->external_field_magnitude[0] / Utility::Vectormath::MuB() / ham->mu_s[0]));
+	this->lineEdit_extHx_aniso->setText(QString::number(ham->external_field_normal[0][0]));
+	this->lineEdit_extHy_aniso->setText(QString::number(ham->external_field_normal[1][0]));
+	this->lineEdit_extHz_aniso->setText(QString::number(ham->external_field_normal[2][0]));
+	if (ham->external_field_magnitude[0] > 0.0) this->checkBox_extH_aniso->setChecked(true);
+
+	// Anisotropy
+	this->lineEdit_ani_aniso->setText(QString::number(ham->anisotropy_magnitude[0]));
+	this->lineEdit_anix_aniso->setText(QString::number(ham->anisotropy_normal[0][0]));
+	this->lineEdit_aniy_aniso->setText(QString::number(ham->anisotropy_normal[1][0]));
+	this->lineEdit_aniz_aniso->setText(QString::number(ham->anisotropy_normal[2][0]));
+	if (ham->anisotropy_magnitude[0] > 0.0) this->checkBox_ani_aniso->setChecked(true);
+
+	// Spin polarised current
+	this->lineEdit_stt_aniso->setText(QString::number(s->llg_parameters->stt_magnitude));
+	this->lineEdit_sttx_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[0]));
+	this->lineEdit_stty_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[1]));
+	this->lineEdit_sttz_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[2]));
+	if (s->llg_parameters->stt_magnitude > 0.0) this->checkBox_stt_aniso->setChecked(true);
+
+	// Temperature
+	this->lineEdit_T_aniso->setText(QString::number(s->llg_parameters->temperature));
+	if (s->llg_parameters->temperature > 0.0) this->checkBox_T_aniso->setChecked(true);
+}
+
+
 
 // -----------------------------------------------------------------------------------
 // --------------------- Setters for Hamiltonians and Parameters ---------------------
 // -----------------------------------------------------------------------------------
 
-void SettingsWidget::set_hamiltonian_iso()
-{
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
-	{
-		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		// mu_s
-		ham->mu_s = lineEdit_muSpin->text().toDouble();
-		// External magnetic field
-		if (this->checkBox_extH->isChecked()) {
-			ham->external_field_magnitude = this->lineEdit_extH->text().toDouble()*  ham->mu_s * Utility::Vectormath::MuB();
-		}
-		else {
-			ham->external_field_magnitude = 0.0;
-		}
-		ham->external_field_normal[0] = lineEdit_extHx->text().toDouble();
-		ham->external_field_normal[1] = lineEdit_extHy->text().toDouble();
-		ham->external_field_normal[2] = lineEdit_extHz->text().toDouble();
-		try {
-			Utility::Vectormath::Normalize(ham->external_field_normal);
-		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
-				ham->external_field_normal[0] = 0.0;
-				ham->external_field_normal[1] = 0.0;
-				ham->external_field_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_extHx->setText(QString::number(0.0));
-				lineEdit_extHy->setText(QString::number(0.0));
-				lineEdit_extHz->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		// DMI
-		if (this->checkBox_dmi->isChecked()) ham->dij = this->lineEdit_dmi->text().toDouble();
-		else ham->dij = 0.0;
-		// Anisotropy
-		if (this->checkBox_aniso->isChecked()) ham->anisotropy_magnitude = this->lineEdit_aniso->text().toDouble();
-		else ham->anisotropy_magnitude = 0.0;
-		ham->anisotropy_normal[0] = lineEdit_anisox->text().toDouble();
-		ham->anisotropy_normal[1] = lineEdit_anisoy->text().toDouble();
-		ham->anisotropy_normal[2] = lineEdit_anisoz->text().toDouble();
-		try {
-			Utility::Vectormath::Normalize(ham->anisotropy_normal);
-		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
-				ham->anisotropy_normal[0] = 0.0;
-				ham->anisotropy_normal[1] = 0.0;
-				ham->anisotropy_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_anisox->setText(QString::number(0.0));
-				lineEdit_anisoy->setText(QString::number(0.0));
-				lineEdit_anisoz->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		// Exchange
-		if (checkBox_exchange->isChecked())
-		{
-			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
-			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
-			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
-			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
-			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
-		}
-		else {
-			for (int i = 0; i < ham->n_neigh_shells; ++i) {
-				ham->jij[i] = 0.0;
-			}
-		}
-		// BQE
-		if (this->checkBox_bqe->isChecked()) ham->bij = this->lineEdit_bqe->text().toDouble();
-		else ham->bij = 0.0;
-		// FSC
-		if (this->checkBox_fourspin->isChecked()) ham->kijkl = this->lineEdit_fourspin->text().toDouble();
-		else ham->kijkl = 0.0;
-		// Boundary conditions
-		s->hamiltonian->boundary_conditions[0] = this->checkBox_iso_periodical_a->isChecked();
-		s->hamiltonian->boundary_conditions[1] = this->checkBox_iso_periodical_b->isChecked();
-		s->hamiltonian->boundary_conditions[2] = this->checkBox_iso_periodical_c->isChecked();
-
-		// These belong in Parameters, not Hamiltonian
-		// Spin polarised current
-		if (this->checkBox_spin_torque->isChecked()) {
-			s->llg_parameters->stt_magnitude = this->lineEdit_spin_torque->text().toDouble();
-		}
-		else {
-			this->s->llg_parameters->stt_magnitude = 0.0;
-		}
-		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_spin_torquex->text().toDouble();
-		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_spin_torquey->text().toDouble();
-		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_spin_torquez->text().toDouble();
-		try {
-			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
-		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
-				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
-				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
-				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_spin_torquex->setText(QString::number(0.0));
-				lineEdit_spin_torquey->setText(QString::number(0.0));
-				lineEdit_spin_torquez->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		// Temperature
-		s->llg_parameters->temperature = this->lineEdit_temper->text().toDouble();
-	};
-
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
-	{
-		apply(this->s);
-	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (auto sys : this->c->images)
-		{
-			apply(sys);
-		}
-	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
-	{
-		for (auto sys : this->c->images)
-		{
-			apply(sys);
-		}
-	}
-}
-
-void SettingsWidget::set_hamiltonian_aniso()
-{
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
-	{
-		std::vector<double> temp(3);
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
-		// mu_s
-		for (auto mu_s : ham->mu_s) mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
-		// External magnetic field
-		if (this->checkBox_extH_aniso->isChecked()) {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
-				ham->external_field_magnitude[iatom] = this->lineEdit_extH_aniso->text().toDouble()*  ham->mu_s[iatom] * Utility::Vectormath::MuB();
-			}
-		}
-		else {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
-				ham->external_field_magnitude[iatom] = 0.0;
-			}
-		}
-		temp[0] = lineEdit_extHx_aniso->text().toDouble();
-		temp[1] = lineEdit_extHy_aniso->text().toDouble();
-		temp[2] = lineEdit_extHz_aniso->text().toDouble();
-		try {
-			Utility::Vectormath::Normalize(temp);
-		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
-				temp[0] = 0.0;
-				temp[1] = 0.0;
-				temp[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_extHx_aniso->setText(QString::number(0.0));
-				lineEdit_extHy_aniso->setText(QString::number(0.0));
-				lineEdit_extHz_aniso->setText(QString::number(1.0));
-				this->set_hamiltonian_aniso();
-			}
-			else { throw(ex); }
-		}
-		for (int iatom = 0; iatom < s->nos; ++iatom) {
-			ham->external_field_normal[0][iatom] = temp[0];
-			ham->external_field_normal[1][iatom] = temp[1];
-			ham->external_field_normal[2][iatom] = temp[2];
-		}
-		
-		// Anisotropy
-		//...
-		// Boundary conditions
-		s->hamiltonian->boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
-		s->hamiltonian->boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
-		s->hamiltonian->boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
-
-		// TODO: Make these anisotropic for Anisotropic Hamiltonian
-		//		 or move them to Parameters...
-		// Spin polarised current
-		if (this->checkBox_spin_torque->isChecked()) {
-			s->llg_parameters->stt_magnitude = this->lineEdit_spin_torque->text().toDouble();
-		}
-		else {
-			this->s->llg_parameters->stt_magnitude = 0.0;
-		}
-		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_spin_torquex->text().toDouble();
-		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_spin_torquey->text().toDouble();
-		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_spin_torquez->text().toDouble();
-		try {
-			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
-		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
-				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
-				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
-				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_spin_torquex->setText(QString::number(0.0));
-				lineEdit_spin_torquey->setText(QString::number(0.0));
-				lineEdit_spin_torquez->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		// Temperature
-		s->llg_parameters->temperature = this->lineEdit_temper->text().toDouble();
-	};
-
-	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
-	{
-		apply(this->s);
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (auto sys : this->c->images)
-		{
-			apply(sys);
-		}
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
-	{
-		for (auto sys : this->c->images)
-		{
-			apply(sys);
-		}
-	}
-}
 
 void SettingsWidget::set_parameters()
 {
@@ -582,56 +359,299 @@ void SettingsWidget::set_parameters()
 }
 
 
-// -----------------------------------------------------------------------------------
-// --------------------- Specific Setters --------------------------------------------
-// -----------------------------------------------------------------------------------
-
-
-// Reads the Exchange jij values of s into the GUI depending on the number of shells,
-//		enables/hides the appropriate fields and connects the slots
-void SettingsWidget::ReadExchange()
+void SettingsWidget::set_hamiltonian_iso()
 {
-	if (s->is_isotropic)
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
 	{
 		auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-		if (ham->n_neigh_shells > 0) {
-			lineEdit_exchange1->setText(QString::number(ham->jij[0]));
-			lineEdit_exchange1->setEnabled(true);
+
+		// Boundary conditions
+		s->hamiltonian->boundary_conditions[0] = this->checkBox_iso_periodical_a->isChecked();
+		s->hamiltonian->boundary_conditions[1] = this->checkBox_iso_periodical_b->isChecked();
+		s->hamiltonian->boundary_conditions[2] = this->checkBox_iso_periodical_c->isChecked();
+
+		// mu_s
+		ham->mu_s = lineEdit_muSpin->text().toDouble();
+
+		// External magnetic field
+		//		magnitude
+		if (this->checkBox_extH->isChecked())
+			ham->external_field_magnitude = this->lineEdit_extH->text().toDouble()*  ham->mu_s * Utility::Vectormath::MuB();
+		else ham->external_field_magnitude = 0.0;
+		//		normal
+		ham->external_field_normal[0] = lineEdit_extHx->text().toDouble();
+		ham->external_field_normal[1] = lineEdit_extHy->text().toDouble();
+		ham->external_field_normal[2] = lineEdit_extHz->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(ham->external_field_normal);
 		}
-		else { lineEdit_exchange1->hide(); }
-		if (ham->n_neigh_shells > 1) {
-			lineEdit_exchange2->setText(QString::number(ham->jij[1]));
-			lineEdit_exchange2->setEnabled(true);
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				ham->external_field_normal[0] = 0.0;
+				ham->external_field_normal[1] = 0.0;
+				ham->external_field_normal[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_extHx->setText(QString::number(0.0));
+				lineEdit_extHy->setText(QString::number(0.0));
+				lineEdit_extHz->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
 		}
-		else { lineEdit_exchange2->hide(); }
-		if (ham->n_neigh_shells > 2) {
-			lineEdit_exchange3->setText(QString::number(ham->jij[2]));
-			lineEdit_exchange3->setEnabled(true);
+
+		// DMI
+		if (this->checkBox_dmi->isChecked()) ham->dij = this->lineEdit_dmi->text().toDouble();
+		else ham->dij = 0.0;
+
+		// Anisotropy
+		//		magnitude
+		if (this->checkBox_aniso->isChecked()) ham->anisotropy_magnitude = this->lineEdit_aniso->text().toDouble();
+		else ham->anisotropy_magnitude = 0.0;
+		//		normal
+		ham->anisotropy_normal[0] = lineEdit_anisox->text().toDouble();
+		ham->anisotropy_normal[1] = lineEdit_anisoy->text().toDouble();
+		ham->anisotropy_normal[2] = lineEdit_anisoz->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(ham->anisotropy_normal);
 		}
-		else { lineEdit_exchange3->hide(); }
-		if (ham->n_neigh_shells > 3) {
-			lineEdit_exchange4->setText(QString::number(ham->jij[3]));
-			lineEdit_exchange4->setEnabled(true);
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				ham->anisotropy_normal[0] = 0.0;
+				ham->anisotropy_normal[1] = 0.0;
+				ham->anisotropy_normal[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_anisox->setText(QString::number(0.0));
+				lineEdit_anisoy->setText(QString::number(0.0));
+				lineEdit_anisoz->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
 		}
-		else { lineEdit_exchange4->hide(); }
-		if (ham->n_neigh_shells > 4) {
-			lineEdit_exchange5->setText(QString::number(ham->jij[4]));
-			lineEdit_exchange5->setEnabled(true);
+
+		// Exchange
+		if (checkBox_exchange->isChecked())
+		{
+			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
+			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
+			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
+			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
+			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
 		}
-		else { lineEdit_exchange5->hide(); }
-		checkBox_exchange->setChecked(true);
-	}
-	else if (!s->is_isotropic)
+		else {
+			for (int i = 0; i < ham->n_neigh_shells; ++i) {
+				ham->jij[i] = 0.0;
+			}
+		}
+
+		// BQE
+		if (this->checkBox_bqe->isChecked()) ham->bij = this->lineEdit_bqe->text().toDouble();
+		else ham->bij = 0.0;
+
+		// FSC
+		if (this->checkBox_fourspin->isChecked()) ham->kijkl = this->lineEdit_fourspin->text().toDouble();
+		else ham->kijkl = 0.0;
+
+		// These belong in Parameters, not Hamiltonian
+		// Spin polarised current
+		if (this->checkBox_spin_torque->isChecked()) {
+			s->llg_parameters->stt_magnitude = this->lineEdit_spin_torque->text().toDouble();
+		}
+		else {
+			this->s->llg_parameters->stt_magnitude = 0.0;
+		}
+		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_spin_torquex->text().toDouble();
+		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_spin_torquey->text().toDouble();
+		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_spin_torquez->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
+		}
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
+				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
+				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_spin_torquex->setText(QString::number(0.0));
+				lineEdit_spin_torquey->setText(QString::number(0.0));
+				lineEdit_spin_torquez->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
+		}
+
+		// Temperature
+		s->llg_parameters->temperature = this->lineEdit_temper->text().toDouble();
+	};
+
+	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
 	{
-		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
+		apply(this->s);
 	}
-	int x = 0;
+	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (auto sys : this->c->images)
+		{
+			apply(sys);
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	{
+		for (auto sys : this->c->images)
+		{
+			apply(sys);
+		}
+	}
 }
+
+void SettingsWidget::set_hamiltonian_aniso()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
+	{
+		std::vector<double> temp(3);
+		auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
+
+		// Boundary conditions
+		s->hamiltonian->boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
+		s->hamiltonian->boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
+		s->hamiltonian->boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
+
+		// mu_s
+		for (auto mu_s : ham->mu_s) mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
+
+		// External magnetic field
+		//		magnitude
+		if (this->checkBox_extH_aniso->isChecked()) {
+			for (int iatom = 0; iatom < s->nos; ++iatom) {
+				ham->external_field_magnitude[iatom] = this->lineEdit_extH_aniso->text().toDouble() * ham->mu_s[iatom] * Utility::Vectormath::MuB();
+			}
+		}
+		else {
+			for (int iatom = 0; iatom < s->nos; ++iatom) {
+				ham->external_field_magnitude[iatom] = 0.0;
+			}
+		}
+		//		normal
+		temp[0] = lineEdit_extHx_aniso->text().toDouble();
+		temp[1] = lineEdit_extHy_aniso->text().toDouble();
+		temp[2] = lineEdit_extHz_aniso->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(temp);
+		}
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				temp[0] = 0.0;
+				temp[1] = 0.0;
+				temp[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_extHx_aniso->setText(QString::number(0.0));
+				lineEdit_extHy_aniso->setText(QString::number(0.0));
+				lineEdit_extHz_aniso->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
+		}
+		for (int iatom = 0; iatom < s->nos; ++iatom) {
+			ham->external_field_normal[0][iatom] = temp[0];
+			ham->external_field_normal[1][iatom] = temp[1];
+			ham->external_field_normal[2][iatom] = temp[2];
+		}
+		
+		// Anisotropy
+		//		magnitude
+		if (this->checkBox_ani_aniso->isChecked()) {
+			for (int iatom = 0; iatom < s->nos; ++iatom) {
+				ham->anisotropy_magnitude[iatom] = this->lineEdit_ani_aniso->text().toDouble();
+			}
+		}
+		else {
+			for (int iatom = 0; iatom < s->nos; ++iatom) {
+				ham->anisotropy_magnitude[iatom] = 0.0;
+			}
+		}
+		//		normal
+		temp[0] = lineEdit_anix_aniso->text().toDouble();
+		temp[1] = lineEdit_aniy_aniso->text().toDouble();
+		temp[2] = lineEdit_aniz_aniso->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(temp);
+		}
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				temp[0] = 0.0;
+				temp[1] = 0.0;
+				temp[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "ani_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_anix_aniso->setText(QString::number(0.0));
+				lineEdit_aniy_aniso->setText(QString::number(0.0));
+				lineEdit_aniz_aniso->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
+		}
+		for (int iatom = 0; iatom < s->nos; ++iatom) {
+			ham->anisotropy_normal[0][iatom] = temp[0];
+			ham->anisotropy_normal[1][iatom] = temp[1];
+			ham->anisotropy_normal[2][iatom] = temp[2];
+		}
+
+		// TODO: Make these anisotropic for Anisotropic Hamiltonian
+		//		 or move them to Parameters...
+		// Spin polarised current
+		if (this->checkBox_stt_aniso->isChecked())
+			s->llg_parameters->stt_magnitude = this->lineEdit_stt_aniso->text().toDouble();
+		else this->s->llg_parameters->stt_magnitude = 0.0;
+		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_sttx_aniso->text().toDouble();
+		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_stty_aniso->text().toDouble();
+		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_sttz_aniso->text().toDouble();
+		try {
+			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
+		}
+		catch (Utility::Exception ex) {
+			if (ex == Utility::Exception::Division_by_zero) {
+				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
+				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
+				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_spin_torquex->setText(QString::number(0.0));
+				lineEdit_spin_torquey->setText(QString::number(0.0));
+				lineEdit_spin_torquez->setText(QString::number(1.0));
+			}
+			else { throw(ex); }
+		}
+
+		// Temperature
+		s->llg_parameters->temperature = this->lineEdit_T_aniso->text().toDouble();
+	};
+
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(this->s);
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (auto sys : this->c->images)
+		{
+			apply(sys);
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (auto sys : this->c->images)
+		{
+			apply(sys);
+		}
+	}
+}
+
 
 
 // -----------------------------------------------------------------------------------
 // --------------------- Utilities ---------------------------------------------------
 // -----------------------------------------------------------------------------------
+
+
+void SettingsWidget::SelectTab(int index)
+{
+	this->tabWidget_Settings->setCurrentIndex(index);
+}
+
 
 void SettingsWidget::print_Energies_to_console()
 {
@@ -653,12 +673,13 @@ void SettingsWidget::print_Energies_to_console()
 
 void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 {
-	// Periodical boundary conditions
+	// Boundary conditions
 	connect(this->checkBox_iso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->checkBox_iso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->checkBox_iso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	// External Magnetic Field
+	// mu_s
 	connect(this->lineEdit_muSpin, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
+	// External Magnetic Field
 	connect(this->checkBox_extH, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_extH, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_extHx, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
@@ -680,18 +701,18 @@ void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 	connect(this->lineEdit_anisox, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_anisoy, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_anisoz, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	// Spin Torque (does not really belong to interactions)
-	connect(this->checkBox_spin_torque, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torque, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquex, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquey, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquez, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	// Biquadratic Exchange
 	connect(this->checkBox_bqe, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_bqe, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	// FourSpin Interaction
 	connect(this->checkBox_fourspin, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_fourspin, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
+	// Spin Torque (does not really belong to interactions)
+	connect(this->checkBox_spin_torque, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
+	connect(this->lineEdit_spin_torque, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
+	connect(this->lineEdit_spin_torquex, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
+	connect(this->lineEdit_spin_torquey, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
+	connect(this->lineEdit_spin_torquez, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	// Temperature (does not really belong to interactions)
 	connect(this->lineEdit_temper, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 
@@ -699,24 +720,33 @@ void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 
 void SettingsWidget::Setup_Hamiltonian_Anisotropic_Slots()
 {
+	// Boundary Conditions
+	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
 	// mu_s
 	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	// External Field
+	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	// Anisotropy
+	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	// Spin polarised current
+	connect(this->checkBox_stt_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->lineEdit_stt_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->lineEdit_sttx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->lineEdit_stty_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->lineEdit_sttz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
 	// Temperature
+	connect(this->checkBox_T_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
 	connect(this->lineEdit_T_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	// Boundary Conditions
-	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
 }
 
 void SettingsWidget::Setup_Parameters_Slots()

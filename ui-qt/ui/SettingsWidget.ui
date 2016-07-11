@@ -2398,7 +2398,7 @@
             </spacer>
            </item>
            <item row="6" column="0">
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="checkBox_ani_aniso">
              <property name="text">
               <string>Anisotropy</string>
              </property>
@@ -2419,7 +2419,7 @@
             </widget>
            </item>
            <item row="8" column="0">
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="checkBox_stt_aniso">
              <property name="text">
               <string>Spin Torque</string>
              </property>
@@ -2433,7 +2433,7 @@
             </widget>
            </item>
            <item row="11" column="0">
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="checkBox_T_aniso">
              <property name="text">
               <string>Temperature</string>
              </property>
