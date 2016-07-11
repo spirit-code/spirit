@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MonoSpin Web</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/css/bootstrap-slider.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div>
+  <main id="visualization-container">
+    <canvas id="webgl-canvas" width="300" height="300"></canvas>
+    <div id="webgl-controls"><i class="fa fa-play" aria-hidden="true" id="btn-play"></i><!--<span class="spacer-25"></span><i class="fa fa-rotate-right" aria-hidden="true"></i><i class="fa fa-arrows" aria-hidden="true"></i><i class="fa fa-ellipsis-h" aria-hidden="true" id="btn-extended-controls"></i>--></div>
+    <div id="webgl-extended-controls" class="hidden">
+      <div>Reset camera</div>
+      <div>Align camera along X axis</div>
+      <div>Align camera along Y axis</div>
+      <div>Align camera along Z axis</div>
+    </div>
+  </main>
+  <aside id="settings-container">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-configurations">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-configurations" aria-expanded="true" aria-controls="collapse-configurations">
+              Configurations
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-configurations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-configurations">
+          <div class="panel-body">
+
+            <h5>Basic Configuration</h5>
+            <div class="well well-sm">
+              <div class="text-center">
+                <div class="btn-group" role="group" aria-label="...">
+                  <button type="button" class="btn btn-default">Random</button>
+                  <button type="button" class="btn btn-default">Positive Z</button>
+                  <button type="button" class="btn btn-default">Negative Z</button>
+                </div>
+              </div>
+            </div>
+            <h5>Skyrmions</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-skyrmion-order" class="col-sm-3 control-label">Order: </label><div class="col-sm-9"><input type="text" id="input-skyrmion-order" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-skyrmion-phase" class="col-sm-3 control-label">Phase: </label><div class="col-sm-9"><input type="text" id="input-skyrmion-phase" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-skyrmion-radius" class="col-sm-3 control-label">Radius: </label><div class="col-sm-9"><input type="text" id="input-skyrmion-radius" class="form-control" value="5" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-skyrmion-positionx" class="col-sm-3 control-label">Position: </label><div class="col-sm-3"><input type="text" id="input-skyrmion-positionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-skyrmion-positiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-skyrmion-positionz" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="checkbox col-sm-6">
+                    <label>
+                      <input type="checkbox"> Up/Down
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-6">
+                    <label>
+                      <input type="checkbox"> R/L
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-6">
+                    <label>
+                      <input type="checkbox"> Achiral
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-6">
+                    <label>
+                      <input type="checkbox"> exp
+                    </label>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-block btn-default">Create Skyrmion</button>
+              </form>
+            </div>
+            <h5>Spin Spiral</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-spinspiral-axisx" class="col-sm-3 control-label">Axis: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-axisx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-spinspiral-axisy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-axisz" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-spinspiral-angle" class="col-sm-3 control-label">Angle: </label><div class="col-sm-9"><input type="text" id="input-spinspiral-angle" class="form-control" value="90" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option>Real Lattice</option><option>Reciprocal Real Lattice</option><option>Real Space</option></select></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-spinspiral-qx" class="col-sm-3 control-label">q: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-qx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-spinspiral-qy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-qz" class="form-control" value="0" /></div>
+                </div>
+                <button type="button" class="btn btn-block btn-default">Create Spin Spiral</button>
+              </form>
+            </div>
+            <h5>Domain Wall</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-domainwall-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-domainwall-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-domainwall-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-directionz" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-domainwall-borderx" class="col-sm-3 control-label">Border: </label><div class="col-sm-3"><input type="text" id="input-domainwall-borderx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-domainwall-bordery" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-borderz" class="form-control" value="0" /></div>
+                </div>
+                <button type="button" class="btn btn-block btn-default">Greater</button>
+                <button type="button" class="btn btn-block btn-default">Create Domain Wall</button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-transitions">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-transitions" aria-expanded="true" aria-controls="collapse-transitions">
+              Transitions
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-transitions" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-transitions">
+          <div class="panel-body">
+
+            <h5>Homogeneous</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-homogeneous-minstate" class="col-sm-4 control-label">Between</label><div class="col-sm-3"><input type="text" id="input-homogeneous-minstate" class="form-control" value="1" /></div>
+                  <label for="input-homogeneous-maxstate" class="col-sm-2 control-label">and </label><div class="col-sm-3"><input type="text" id="input-homogeneous-maxstate" class="form-control" value="7" /></div>
+                </div>
+                <button type="button" class="btn btn-block btn-default">Generate</button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-hamiltonian">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-hamiltonian" aria-expanded="true" aria-controls="collapse-hamiltonian">
+              Hamiltonian
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-hamiltonian" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-hamiltonian">
+          <div class="panel-body">
+
+
+            <form class="form-inline">
+              <div class="form-group">
+                <label for="select-hamiltonian-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-hamiltonian-applyto"><option>Current Image</option></select></div>
+              </div>
+            </form>
+
+            <h5>Current image interaction parameters</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked"> Periodical a
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked"> Periodical b
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox"> Periodical c
+                    </label>
+                  </div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">External Field
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-externalfield" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-externalfield" class="form-control" value="25" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-externalfield-muspin" class="col-sm-3 control-label">mu_spin: </label><div class="col-sm-9"><input type="text" id="input-externalfield-muspin" class="form-control" value="2" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-externalfield-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-externalfield-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-externalfield-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-externalfield-directionz" class="form-control" value="1" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">Exchange Magnitudes
+                  </label>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4 col-sm-offset-3"><input type="text" id="input-exchangemagnitudes1" class="form-control" value="10" /></div><div class="col-sm-4 col-sm-offset-1"><input type="text" id="input-exchangemagnitudes2" class="form-control" value="0" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">DMI Magnitude
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-dmi-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-dmi-magnitude" class="form-control" value="6" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">Anisotropy Magnitude
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-anisotropy-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-anisotropy-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-anisotropy-magnitude-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directionz" class="form-control" value="1" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">Spin Torque Magnitude
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-spintorque-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-spintorque-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-anisotropy-magnitude-directionx" class="col-sm-3 control-label">Polarization: </label><div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directionx" class="form-control" value="1" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directionz" class="form-control" value="0" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">BQE Magnitude
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-bqe-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-bqe-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" checked="checked">FourSpin Magnitude
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-fourspin-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-fourspin-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox">Temperature
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="input-temperature" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-temperature" class="form-control" value="0" /></div>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-parameters">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-parameters" aria-expanded="true" aria-controls="collapse-parameters">
+              Parameters
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-parameters" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-parameters">
+          <div class="panel-body">
+
+
+            <form class="form-inline">
+              <div class="form-group">
+                <label for="select-parameters-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-parameters-applyto"><option>Current Image</option></select></div>
+              </div>
+            </form>
+
+
+            <h5>LLM Parameters</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-llg-damping" class="col-sm-6 control-label">Damping: </label><div class="col-sm-6"><input type="text" id="input-llg-damping" class="form-control" value="0.3" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><input type="text" id="input-llg-timestep" class="form-control" value="0.001" /></div>
+                </div>
+              </form>
+            </div>
+            <h5>GNEB Parameters</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-gneb-springconst" class="col-sm-6 control-label">Spring constant: </label><div class="col-sm-6"><input type="text" id="input-gneb-springconst" class="form-control" value="0.001" /></div>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="input-gneb-radio" id="input-gneb-radio-normal" value="normal" checked="checked">
+                    Normal
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="input-gneb-radio" id="input-gneb-radio-climbing" value="climbing">
+                    Climbing image
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="input-gneb-radio" id="input-gneb-radio-falling" value="falling">
+                    Falling image
+                  </label>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-visualization">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-visualization" aria-expanded="true" aria-controls="collapse-visualization">
+              Visualization
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-visualization" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-visualization">
+          <div class="panel-body">
+
+            <h5>Renderers</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="select-rendermode" class="col-sm-6 control-label">Rendermode</label>
+                  <div class="col-sm-6">
+                    <select id="select-rendermode">
+                      <option value="ARROWS">Arrows</option>
+                      <option value="SURFACE">Surface</option>
+                      <option value="SPHERE">Sphere</option>
+                    </select>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked" id="input-show-coordinatesystem"> Show Coordinate System
+                    </label>
+                  </div>
+                  <label for="select-colormap" class="col-sm-6 control-label">Coordinate System Position</label>
+                  <div class="col-sm-6">
+                    <select id="select-coordinatesystemwidget-position">
+                      <option value="[0, 0.05, 0.2, 0.2]">Bottom left</option>
+                      <option value="[0.8, 0.05, 0.2, 0.2]">Bottom right</option>
+                      <option value="[0.8, 0.75, 0.2, 0.2]">Top right</option>
+                      <option value="[0, 0.75, 0.2, 0.2]" selected="selected">Top left</option>
+                    </select>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget-background"> Show Sphere as Background
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="select-colormap" class="col-sm-6 control-label">Spin Sphere Position</label>
+                  <div class="col-sm-6">
+                    <select id="select-spinspherewidget-position">
+                      <option value="[0, 0.05, 0.2, 0.2]" selected="selected">Bottom left</option>
+                      <option value="[0.8, 0.05, 0.2, 0.2]">Bottom right</option>
+                      <option value="[0.8, 0.75, 0.2, 0.2]">Top right</option>
+                      <option value="[0, 0.75, 0.2, 0.2]">Top left</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+              <form class="form">
+                <div class="form-group">
+                  <label for="input-zrange-filter" class="control-label">Spin Sphere Point Size</label>
+                  <div style="margin-left:20px;">
+                    <input id="input-spinspherewidget-pointsize" type="text" class="span2" style="padding:2em" value="" data-slider-min="1" data-slider-max="10" data-slider-step="1" data-slider-value="[1,1]" data-slider-ticks="[1, 5, 10]"/>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <h5>Colors</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="select-colormap" class="col-sm-3 control-label">Colormap</label>
+                  <div class="col-sm-9">
+                    <select id="select-colormap">
+                      <option value="hsv" selected="selected">Hue-Saturation-Value</option>
+                      <option value="hue">Hue</option>
+                      <option value="redblue">Red-Blue</option>
+                      <option value="red">Red</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="select-backgroundcolor" class="col-sm-6 control-label">Background</label>
+                  <div class="col-sm-6">
+                    <select id="select-backgroundcolor">
+                      <option value="black">Black</option>
+                      <option value="gray">Gray</option>
+                      <option value="white">White</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <h5>Filter</h5>
+            <div class="well well-sm">
+              <form class="form">
+                <div class="form-group">
+                  <label for="input-zrange-filter" class="control-label">Z range:</label>
+                  <div style="margin-left:20px;">
+                    <input id="input-zrange-filter" type="text" class="span2" style="padding:2em" value="" data-slider-min="-1" data-slider-max="1" data-slider-step="0.01" data-slider-value="[-1,1]" data-slider-ticks="[-1,0, 1]"/>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div id="div-load">Initializing MonoSpin simulation...</div>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/bootstrap-slider.min.js"></script>
+<script src="js/webglspins.js"></script>
+<script src="js/simulation.js"></script>
+<script src="js/ui.js"></script>
+
+</body>
+</html>

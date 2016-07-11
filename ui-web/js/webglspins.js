@@ -375,8 +375,23 @@ WebGLSpins._perspectiveProjectionMatrix = function(verticalFieldOfView, aspectRa
         [0, f, 0, 0],
         [0, 0, (zNear+zFar)/(zNear-zFar), 2*zFar*zNear/(zNear-zFar)],
         [0, 0, -1, 0]
-    ]
+    ];
 };
+
+WebGLSpins._orthographicProjectionMatrix = function(left, right, bottom, top, near, far) {
+  var sx = 2.0/(right-left);
+  var sy = 2.0/(top-bottom);
+  var sz = 2.0/(far-near);
+  var tx = (right+left)/(right-left);
+  var ty = (top+bottom)/(top-bottom);
+  var tz = (far+near)/(far-near);
+  return [
+        [sx, 0, 0, tx],
+        [0, sy, 0, ty],
+        [0, 0, sz, tz],
+        [0, 0, 0, 1]
+    ];
+}
 
 WebGLSpins._lookAtMatrix = function(cameraLocation, centerLocation, upVector) {
     var forwardVector = WebGLSpins._difference(centerLocation, cameraLocation);
@@ -937,8 +952,9 @@ WebGLSpins._SphereRenderer = function(webglspins) {
 
 WebGLSpins.renderers.SPHERE = WebGLSpins._SphereRenderer;
 
-WebGLSpins.defaultOptions.pointSize = 1.0;
+WebGLSpins.defaultOptions.pointSizeRange = [1.0, 1.0];
 WebGLSpins.defaultOptions.innerSphereRadius = 0.95;
+WebGLSpins.defaultOptions.useSphereFakePerspective = false;
 
 WebGLSpins._SphereRenderer.prototype.optionsHaveChanged = function(changedOptions) {
     var arrayContainsAny = function (array, values) {
@@ -991,15 +1007,19 @@ WebGLSpins._SphereRenderer.prototype.draw = function(width, height) {
 
     gl.useProgram(this._program);
 
-    var projectionMatrix = WebGLSpins._perspectiveProjectionMatrix(this._options.verticalFieldOfView, width / height, 0.1, 10000);
+    var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-width / height, width / height, -1, 1, 2, 0);
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uProjectionMatrix"), false, WebGLSpins._toFloat32Array(projectionMatrix));
     var modelviewMatrix = WebGLSpins._lookAtMatrix(WebGLSpins._normalize(WebGLSpins._difference(this._options.cameraLocation, this._options.centerLocation)), [0, 0, 0], this._options.upVector);
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
     gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), this._options.zRange[0], this._options.zRange[1]);
-    gl.uniform1f(gl.getUniformLocation(this._program, "uSinHalfVFoV"), Math.sin(this._options.verticalFieldOfView*0.5*Math.PI/180));
-    gl.uniform1f(gl.getUniformLocation(this._program, "uPointSize"), Math.floor(this._options.pointSize));
+    gl.uniform2f(gl.getUniformLocation(this._program, "uPointSizeRange"), Math.floor(this._options.pointSizeRange[0]), Math.floor(this._options.pointSizeRange[1]));
     gl.uniform1f(gl.getUniformLocation(this._program, "uAspectRatio"), width / height);
     gl.uniform1f(gl.getUniformLocation(this._program, "uInnerSphereRadius"), this._options.innerSphereRadius);
+    if (this._options.useSphereFakePerspective) {
+      gl.uniform1f(gl.getUniformLocation(this._program, "uUseFakePerspective"), 1.0);
+    } else {
+      gl.uniform1f(gl.getUniformLocation(this._program, "uUseFakePerspective"), 0.0);
+    }
 
     gl.disable(gl.CULL_FACE);
     gl.drawArrays(gl.POINTS, 0, this._numInstances);
@@ -1040,24 +1060,23 @@ WebGLSpins._SphereRenderer.prototype._updateShaderProgram = function() {
 
         uniform mat4 uProjectionMatrix;
         uniform mat4 uModelviewMatrix;
-        uniform float uSinHalfVFoV;
-        uniform float uPointSize;
+        uniform vec2 uPointSizeRange;
         uniform float uAspectRatio;
         uniform float uInnerSphereRadius;
+        uniform float uUseFakePerspective;
         attribute vec3 ivDirection;
         varying vec3 vfDirection;
 
         void main(void) {
           vfDirection = normalize(ivDirection);
-          vec4 position = uProjectionMatrix * (uModelviewMatrix * vec4(vfDirection*uSinHalfVFoV*0.99, 1.0));
-          vec4 rotatedPosition = uModelviewMatrix * vec4(vfDirection, 0.0);
-          vec3 screenPosition = vec3(position.x * uAspectRatio, position.y,  position.z)/position.w;
-          float l = length(screenPosition.xy);
-          if ((l <= uInnerSphereRadius) && (rotatedPosition.z < uSinHalfVFoV*0.99)) {
-            position = vec4(2.0, 2.0, 2.0, 1.0);
+          gl_Position = uProjectionMatrix * uModelviewMatrix * vec4(vfDirection*0.99, 1.0);
+          vec2 clipPosition = vec2(gl_Position.x * uAspectRatio, gl_Position.y);
+          float clipRadius = length(clipPosition);
+          float rotatedDirectionZ = dot(vec3(uModelviewMatrix[0][2], uModelviewMatrix[1][2], uModelviewMatrix[2][2]), vfDirection);
+          if ((clipRadius <= uInnerSphereRadius) && (rotatedDirectionZ < 0.0)) {
+            gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
           }
-          gl_Position = position;
-          gl_PointSize = uPointSize * abs(rotatedPosition.z);
+          gl_PointSize = uPointSizeRange.x + (uPointSizeRange.y-uPointSizeRange.x) * sqrt(max(0.0, 1.0-clipRadius*clipRadius)) * (5.0-uUseFakePerspective*gl_Position.z) / 5.0;
         }
         `, `
         #version 100
