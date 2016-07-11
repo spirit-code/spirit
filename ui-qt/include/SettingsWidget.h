@@ -32,8 +32,8 @@ private:
 	void Load_Hamiltonian_Anisotropic_Contents();
 	void Load_Parameters_Contents();
 	// Validator for Input into lineEdits
-	QRegularExpressionValidator * number_vali;
-	QRegularExpressionValidator * number_vali_unsigned;
+	QRegularExpressionValidator * number_validator;
+	QRegularExpressionValidator * number_validator_unsigned;
 
 private slots:
 	// Parameters
@@ -41,18 +41,6 @@ private slots:
 	// Configurations
 	void set_hamiltonian_iso();
 	void set_hamiltonian_aniso();
-	// Hamiltonian (isotropic)
-	void set_extB(std::shared_ptr<Data::Spin_System> ss);
-	void set_exchange(std::shared_ptr<Data::Spin_System> ss);
-	void set_dt(std::shared_ptr<Data::Spin_System> ss);
-	void set_dmi(std::shared_ptr<Data::Spin_System> ss);
-	void set_aniso(std::shared_ptr<Data::Spin_System> ss);
-	void set_spc(std::shared_ptr<Data::Spin_System> ss);
-	void set_bqe(std::shared_ptr<Data::Spin_System> ss);
-	void set_fourspin(std::shared_ptr<Data::Spin_System> ss);
-	void set_temper(std::shared_ptr<Data::Spin_System> ss);
-	// Hamiltonian (anisotropic)
-	void set_extB_Anisotropic(std::shared_ptr<Data::Spin_System> ss);
 	// Configurartions
 	void randomPressed();
 	void domainWallPressed();
@@ -63,12 +51,6 @@ private slots:
 	void create_SpinSpiral();
 	// Transitions
 	void homogeneousTransitionPressed();
-	// Parameters
-	void set_damping(std::shared_ptr<Data::Spin_System> ss);
-	void set_mu_spin(std::shared_ptr<Data::Spin_System> ss);
-	void set_spring_constant();
-	void set_climbing_falling();
-	void set_periodical(std::shared_ptr<Data::Spin_System> ss);
 	// Debug?
 	void print_Energies_to_console();
 

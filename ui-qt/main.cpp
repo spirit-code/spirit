@@ -44,7 +44,8 @@ int main(int argc, char ** argv)
 	try {
 		//--- Config Files
 		//std::string cfgfile = "input/markus-paper.cfg";
-		std::string cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+		//std::string cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+		std::string cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
 		//--- Read Log Levels
 		IO::Log_Levels_from_Config(cfgfile);
 		

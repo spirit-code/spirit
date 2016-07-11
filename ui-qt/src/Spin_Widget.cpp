@@ -181,7 +181,7 @@ void Spin_Widget::SetCameraToZ()
 double Spin_Widget::getFramesPerSecond()
 {
 	double l_fps = 0.0;
-	for (int i = 0; i < t_frames.size()-1; ++i)
+	for (int i = 0; i < (int)t_frames.size()-1; ++i)
 	{
 		l_fps += Utility::Timing::SecondsPassed(t_frames[i], t_frames[i+1]);
 	}

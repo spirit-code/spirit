@@ -100,8 +100,8 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	// Image number
 	// We use a regular expression (regex) to filter the input into the lineEdits
 	QRegularExpression re("[\\d]*");
-	QRegularExpressionValidator *number_vali = new QRegularExpressionValidator(re);
-	this->lineEdit_ImageNumber->setValidator(number_vali);
+	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
+	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
 
 	// File Menu
@@ -159,15 +159,6 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
 }
 
-
-//bool MainWindow::eventFilter(QObject *object, QEvent *event)
-//{
-//	if (object == lineEdit && event->type() == QEvent::FocusOut)
-//	{
-//		std::cout << "eventFilter" << std::endl;
-//	}
-//	return false; // Pass the event along (don't consume it)
-//}
 
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
@@ -231,27 +222,29 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		std::shared_ptr<Data::Spin_System> newImage;
 		switch (k->key())
 		{
-		case Qt::Key_Left:
-			if (image_clipboard.get())
-			{
-				s = image_clipboard;
-				this->c->Insert_Image_Before(this->c->active_image, image_clipboard);
-				//this->previousImagePressed();
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(c->active_image) + " from clipboard");
-			}
-			else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image before " + std::to_string(c->active_image) + " from clipboard but no image was found");
-			break;
+			// CTRL+Left - Paste image to left of current image
+			case Qt::Key_Left:
+				if (image_clipboard.get())
+				{
+					s = image_clipboard;
+					this->c->Insert_Image_Before(this->c->active_image, image_clipboard);
+					//this->previousImagePressed();
+					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(c->active_image) + " from clipboard");
+				}
+				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image before " + std::to_string(c->active_image) + " from clipboard but no image was found");
+				break;
 
-		case Qt::Key_Right:
-			if (image_clipboard.get())
-			{
-				s = image_clipboard;
-				this->c->Insert_Image_After(this->c->active_image, image_clipboard);
-				this->nextImagePressed();
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(c->active_image) + " from clipboard");
-			}
-			else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image after " + std::to_string(c->active_image) + " from clipboard but no image was found");
-			break;
+			// CTRL+Right - Paste image to right of current image
+			case Qt::Key_Right:
+				if (image_clipboard.get())
+				{
+					s = image_clipboard;
+					this->c->Insert_Image_After(this->c->active_image, image_clipboard);
+					this->nextImagePressed();
+					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(c->active_image) + " from clipboard");
+				}
+				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image after " + std::to_string(c->active_image) + " from clipboard but no image was found");
+				break;
 		}
 	}
 	
@@ -259,67 +252,68 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	else
 	switch (k->key())
 	{
+		// Escape: try to return focus to MainWindow
 		case Qt::Key_Escape:
 			this->setFocus();
 			break;
-
+		// Up: ...
 		case Qt::Key_Up:
 			break;
-
+		// Left: switch to image left of current image
 		case Qt::Key_Left:
 			this->previousImagePressed();
 			break;
-
+		// Left: switch to image left of current image
 		case Qt::Key_Right:
 			this->nextImagePressed();
 			break;
-
+		// Down: ...
 		case Qt::Key_Down:
 			break;
-
-		case Qt::Key_0:
-			break;
-
+		// Space: Play and Pause
 		case Qt::Key_Space:
 			this->playpausePressed();
 			break;
-
+		// F1: Show key bindings
 		case Qt::Key_F1:
 			this->keyBindings();
 			break;
-
+		// F2: Toggle settings widget
 		case Qt::Key_F2:
 			this->view_toggleSettings();
 			break;
-
+		// F3: Toggle Plots widget
 		case Qt::Key_F3:
 			this->view_togglePlots();
 			break;
-
+		// F2: Toggle debug widget
 		case Qt::Key_F4:
 			this->view_toggleDebug();
 			break;
-
+		// 0: ...
+		case Qt::Key_0:
+			break;
+		// 1: Select tab 1 of settings widget
 		case Qt::Key_1:
 			this->settingsWidget->SelectTab(0);
 			break;
-
+		// 2: Select tab 2 of settings widget 
 		case Qt::Key_2:
 			this->settingsWidget->SelectTab(1);
 			break;
-
+		// 3: Select tab 3 of settings widget
 		case Qt::Key_3:
 			this->settingsWidget->SelectTab(2);
 			break;
-
+		// 4: Select tab 4 of settings widget
 		case Qt::Key_4:
 			this->settingsWidget->SelectTab(3);
 			break;
-
+		// 5: Select tab 5 of settings widget
 		case Qt::Key_5:
 			this->settingsWidget->SelectTab(4);
 			break;
-
+		// Delete: Delete current image
 		case Qt::Key_Delete:
 			if (c->noi > 1)
 			{
@@ -471,16 +465,6 @@ void MainWindow::previousImagePressed()
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
-
-		/*this->spinWidget = new Spin_Widget(s);
-		this->settingsWidget = new SettingsWidget(s);
-		this->plotsWidget = new PlotsWidget(c);
-		this->debugWidget = new DebugWidget(s);
-
-		this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
-		this->dockWidget_Settings->setWidget(this->settingsWidget);
-		this->dockWidget_Plots->setWidget(this->plotsWidget);
-		this->dockWidget_Debug->setWidget(this->debugWidget);*/
 	}
 }
 
@@ -503,16 +487,6 @@ void MainWindow::nextImagePressed()
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
-
-		/*this->spinWidget = new Spin_Widget(s);
-		this->settingsWidget = new SettingsWidget(s);
-		this->plotsWidget = new PlotsWidget(c);
-		this->debugWidget = new DebugWidget(s);
-
-		this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
-		this->dockWidget_Settings->setWidget(this->settingsWidget);
-		this->dockWidget_Plots->setWidget(this->plotsWidget);
-		this->dockWidget_Debug->setWidget(this->debugWidget);*/
 	}
 }
 
@@ -829,20 +803,6 @@ void MainWindow::writeSettings()
 }
 
 
-/*bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-{ 
-    if (event->type() == QEvent::KeyPress)
-    {
-        if(obj == spins)
-        {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-            spins->keyPressEvent(keyEvent);
-        }
-    }
-    return QObject::eventFilter(obj, event);
-}*/
-
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 	c->iteration_allowed = false;
@@ -863,286 +823,3 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }*/
 }
-
-
-/*
-void MainWindow::newFile()
-{
-    if (maybeSave()) {
-        textEdit->clear();
-        setCurrentFile("");
-    }
-}
-
-void MainWindow::open()
-{
-    if (maybeSave()) {
-        QString fileName = QFileDialog::getOpenFileName(this);
-        if (!fileName.isEmpty())
-            loadFile(fileName);
-    }
-}
-
-bool MainWindow::save()
-{
-    if (curFile.isEmpty()) {
-        return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
-}
-
-bool MainWindow::saveAs()
-{
-    QFileDialog dialog(this);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    QStringList files;
-    if (dialog.exec())
-        files = dialog.selectedFiles();
-    else
-        return false;
-
-    return saveFile(files.at(0));
-}
-
-
-
-void MainWindow::documentWasModified()
-{
-    setWindowModified(textEdit->document()->isModified());
-}
-
-
-void MainWindow::createWidgets(Spin_System * s)
-{
-    // Create Widgets
-    textEdit = new QPlainTextEdit;
-    //spins = new SpinWidget(s);
-    spinWidget = new Spin_Widget(s);
-    disableGLHiDPI(spinWidget->winId()); // thanks to http://public.kitware.com/pipermail/vtkusers/2015-February/090117.html Retina displays on OS X have a bug due to some QT internals
-    
-    QPushButton *renderButton = new QPushButton(tr("Render"));
-    QPushButton *renderButton2 = new QPushButton(tr("Render2"));
-    
-    
-    
-    
-    // Set central widget with layout
-    QWidget *centralWidget = new QWidget();
-    QGridLayout *layout = new QGridLayout();
-    centralWidget->setLayout (layout);
-    setCentralWidget(centralWidget);
-    //setCentralWidget(spins);
-    //setCentralWidget(example);
-    
-
-    // Set layout
-    //layout->addWidget (spins, 0, 0, 1, 1);
-    layout->addWidget (spinWidget, 0, 0, 1, 1);
-    layout->addWidget (textEdit, 0, 1, 1, 1);
-    layout->addWidget (renderButton2, 1,1, 1, 1);
-    layout->addWidget (renderButton, 1, 0, 1, 1);
-}
-
-
-void MainWindow::createActions()
-{
-    // Key Presses
-    //connect(this, SIGNAL(keyPressEvent(QKeyEvent*)), spins, SLOT(keyPressEvent(QKeyEvent*)));
-    
-    
-    newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
-    newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
-    connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
-
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
-    openAct->setShortcuts(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open an existing file"));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-
-    saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
-    saveAct->setShortcuts(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-    saveAsAct = new QAction(tr("Save &As..."), this);
-    saveAsAct->setShortcuts(QKeySequence::SaveAs);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-
-    exitAct = new QAction(tr("E&xit"), this);
-    exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Exit the application"));
-    connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
-    cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
-    cutAct->setShortcuts(QKeySequence::Cut);
-    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
-                            "clipboard"));
-    connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
-
-    copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
-    copyAct->setShortcuts(QKeySequence::Copy);
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-                             "clipboard"));
-    connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
-
-    pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
-    pasteAct->setShortcuts(QKeySequence::Paste);
-    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
-                              "selection"));
-    connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
-
-    aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-
-    cutAct->setEnabled(false);
-    copyAct->setEnabled(false);
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            cutAct, SLOT(setEnabled(bool)));
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
-            
-}
-
-void MainWindow::createMenus()
-{
-    fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(newAct);
-    fileMenu->addAction(openAct);
-    fileMenu->addAction(saveAct);
-    fileMenu->addAction(saveAsAct);
-    fileMenu->addSeparator();
-    fileMenu->addAction(exitAct);
-
-    editMenu = menuBar()->addMenu(tr("&Edit"));
-    editMenu->addAction(cutAct);
-    editMenu->addAction(copyAct);
-    editMenu->addAction(pasteAct);
-
-    menuBar()->addSeparator();
-
-    helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
-}
-
-void MainWindow::createToolBars()
-{
-    fileToolBar = addToolBar(tr("File"));
-    fileToolBar->addAction(newAct);
-    fileToolBar->addAction(openAct);
-    fileToolBar->addAction(saveAct);
-
-    editToolBar = addToolBar(tr("Edit"));
-    editToolBar->addAction(cutAct);
-    editToolBar->addAction(copyAct);
-    editToolBar->addAction(pasteAct);
-}
-
-
-
-void MainWindow::readSettings()
-{
-    QSettings settings("QtProject", "Application Example");
-    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
-    resize(size);
-    move(pos);
-}
-
-void MainWindow::writeSettings()
-{
-    QSettings settings("QtProject", "Application Example");
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
-}
-
-bool MainWindow::maybeSave()
-{
-    if (textEdit->document()->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save)
-            return save();
-        else if (ret == QMessageBox::Cancel)
-            return false;
-    }
-    return true;
-}
-
-void MainWindow::loadFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return;
-    }
-
-    QTextStream in(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    textEdit->setPlainText(in.readAll());
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
-}
-
-bool MainWindow::saveFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    QTextStream out(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    out << textEdit->toPlainText();
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File saved"), 2000);
-    return true;
-}
-
-void MainWindow::setCurrentFile(const QString &fileName)
-{
-    curFile = fileName;
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
-
-    QString shownName = curFile;
-    if (curFile.isEmpty())
-        shownName = "untitled.txt";
-    setWindowFilePath(shownName);
-}
-
-QString MainWindow::strippedName(const QString &fullFileName)
-{
-    return QFileInfo(fullFileName).fileName();
-}*/
