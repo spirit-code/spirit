@@ -478,7 +478,10 @@ void SettingsWidget::set_hamiltonian_iso()
 		}
 
 		// Temperature
-		s->llg_parameters->temperature = this->lineEdit_temper->text().toDouble();
+		if (this->checkBox_Temperature->isChecked())
+			s->llg_parameters->temperature = this->lineEdit_temper->text().toDouble();
+		else
+			s->llg_parameters->temperature = 0.0;
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -609,15 +612,18 @@ void SettingsWidget::set_hamiltonian_aniso()
 				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
 				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
 				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_spin_torquex->setText(QString::number(0.0));
-				lineEdit_spin_torquey->setText(QString::number(0.0));
-				lineEdit_spin_torquez->setText(QString::number(1.0));
+				lineEdit_sttx_aniso->setText(QString::number(0.0));
+				lineEdit_stty_aniso->setText(QString::number(0.0));
+				lineEdit_sttz_aniso->setText(QString::number(1.0));
 			}
 			else { throw(ex); }
 		}
 
 		// Temperature
-		s->llg_parameters->temperature = this->lineEdit_T_aniso->text().toDouble();
+		if (this->checkBox_T_aniso->isChecked())
+			s->llg_parameters->temperature = this->lineEdit_T_aniso->text().toDouble();
+		else
+			s->llg_parameters->temperature = 0.0;
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
