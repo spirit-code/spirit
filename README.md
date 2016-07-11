@@ -15,11 +15,12 @@ Contents
 4. [Code Dependencies](#Dependencies)
 5. [Installation Instructions](#Installation)
 
+
 &nbsp;
  
 
 Introduction <a name="Introduction"></a>
-========================================
+----------------------------------------
 
 **Platform-independent** code with optional visualization, written in C++11.
 The build process is platform-independent as well, using CMake. 
@@ -33,11 +34,13 @@ This code has been developed as a flexible solution to various use-cases, includ
 
 More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/MonoSpin "Click me...").
 
+----------------------------------------
+
 &nbsp;
    
 
 User Interfaces <a name="UserInterfaces"></a>
-===================================================
+---------------------------------------------
 The code is separated into several folders, representing the 'core' physics code
 and the various user interfaces you may build.
 * **core**:        Core Physics code
@@ -54,20 +57,28 @@ Note that the current web interface is primarily meant for educational purposes.
 transpiled to JavaScript (which does not support threads) and is executed user-side, it is necessarily slower
 than the regular code.
 
+----------------------------------------
+
 &nbsp;
 
 
 Branches <a name="Branches"></a>
-===================================================
+--------------------------------
 We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-successful-git-branching-model/
 
->Release branch versions are tagged `x.x`, starting at `1.0`
+>Release (`master` branch) versions are tagged `x.x.x`, starting at `1.0.0`
+
+Download the latest stable version from https://github.com/PGI-1/monospin/releases
+
+The develop branch contains the latest updates, but is generally less consistently tested than the releases.
+
+----------------------------------------
 
 &nbsp;
 
 
 Code Dependencies <a name="Dependencies"></a>
-=============================================
+---------------------------------------------
 
 The Core does not have dependencies, except for C++11.
 Due to the modular CMake Project structure, when building only a specific UI,
@@ -107,12 +118,14 @@ Web
 In order to build the core.js JavaScript library, you need emscripten.
 Note we have not tested this process on different machines.
 
+----------------------------------------
+
 &nbsp;
 
 
 
 Installation Instructions <a name="Installation"></a>
-=====================================================
+-----------------------------------------------------
 
 >The following assumes you are in the MonoSpin root directory.
 
