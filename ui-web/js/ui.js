@@ -107,9 +107,9 @@ $(document).ready(function() {
 
   $("#input-spinspherewidget-pointsize").slider();
   function updateSpherePointSize() {
-    var pointSize = $("#input-spinspherewidget-pointsize").slider('getValue');
+    var pointSizeRange = $("#input-spinspherewidget-pointsize").slider('getValue');
     webglspins.updateOptions({
-      pointSize: pointSize
+      pointSizeRange: pointSizeRange
     });
   }
   $('#input-spinspherewidget-pointsize').on('change', function (e) {
@@ -123,6 +123,7 @@ $(document).ready(function() {
     var sim = new Simulation();
     function update(sim) {
       sim.performIteration();
+      $('#div-load').hide();
       if (isSimulating) {
         window.requestAnimationFrame(function () {
           update(sim)
