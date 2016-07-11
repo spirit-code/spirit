@@ -1,6 +1,7 @@
 MonoSpin
 ========
-**Modular Numerical Optimizations Spin Code**  
+**Modular Numerical Optimizations Spin Code**<br />
+The code is released under [MIT License](../master/LICENSE.txt).<br />
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/MonoSpin
 
 <!--
@@ -84,21 +85,18 @@ The Core does not have dependencies, except for C++11.
 Due to the modular CMake Project structure, when building only a specific UI,
 one does not need any libraries on which other projects depend.
 
-Core
-------------
+### Core
 * gcc >= 4.8.1 (C++11 stdlib)
 * cmake >= 2.8.12
 
-UI-QT
---------------------
+### UI-QT
 * QT >= 5.5
 
 In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
 
 Note that building QT can be a big pain, but usually it should work if you simply use their installers.
 
-GL
---------------------
+### GL
 * OpenGL Drivers >= 3.3
 * GLAD (pre-built)
 * (GR? -- maybe later)
@@ -111,8 +109,7 @@ To build GLAD, use the following:
 	make
 
 
-Web
------------------
+### Web
 * emscripten
 
 In order to build the core.js JavaScript library, you need emscripten.
@@ -142,8 +139,7 @@ Clear the build directory using
 	or
 	rm -rf build && mkdir build
 	
-Generate Build Files
---------------------
+### Generate Build Files
 `./cmake.sh` lets cmake generate makefiles for your system inside a 'build' folder.
 Simply call
 
@@ -154,8 +150,7 @@ Simply call
 When on pure **Windows** (no MSys etc), you can simply use the git bash to do this.
 When using MSys etc., CMake will create corresponding MSys makefiles.
 
-Building the Projects
----------------------
+### Building the Projects
 `./make.sh` executes the build and linking of the executable. Simply call
 
 	./make.sh
