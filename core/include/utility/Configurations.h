@@ -10,6 +10,8 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		// TODO: replace the Spin_System references with smart pointers??
+		
 		// orients all spins with x>pos into the direction of the v
 		void DomainWall(Data::Spin_System &s, const double pos[3], double v[3], const bool greater = true);
 

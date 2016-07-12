@@ -30,13 +30,14 @@ using namespace Utility;
 std::shared_ptr<Data::Spin_System_Chain> c;
 Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
 std::shared_ptr<Engine::Optimizer> optim;
+int active_image = 0;
 
 void init()
 {
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=============== MonoSpin Initialising ==============");
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= Version:  " + std::string(VERSION));
-	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision:" + std::string(VERSION_REVISION));
+	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision: " + std::string(VERSION_REVISION));
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
 
   //--- Read Log Levels
@@ -70,7 +71,8 @@ void init()
   optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
   
   // Allow iterations
-  c->images[0]->iteration_allowed = true;
+  c->active_image = active_image;
+  c->images[c->active_image]->iteration_allowed = true;
   c->iteration_allowed = false;
 
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
@@ -97,11 +99,13 @@ extern "C" double *test(int n)
   g->Iteration();
 
   // Return pointer to spins array
-  double * result = (double *)c->images[0]->spins.data();
+  double * result = (double *)c->images[c->active_image]->spins.data();
   return result;
 }
 
+// To test this as a regular executable
 int main(int argc, char ** argv)
 {
+  init();
   test(1);
 }
