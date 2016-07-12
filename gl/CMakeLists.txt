@@ -65,6 +65,14 @@ add_custom_target (shaders
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.shader
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/hsv.colormap.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/hsv.colormap.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/redblue.colormap.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/redblue.colormap.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     WORKING_DIR ${PROJECT_SOURCE_DIR})
 
 ### Custom target to create dependency on shaders, so that the custom command is executed

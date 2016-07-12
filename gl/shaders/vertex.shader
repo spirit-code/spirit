@@ -1,55 +1,44 @@
-#version 330 core
+#version 330
+uniform mat4 uProjectionMatrix;
+uniform mat4 uModelviewMatrix;
+uniform vec2 uZRange;
+in vec3 ivPosition;
+in vec3 ivNormal;
+in vec3 ivInstanceOffset;
+in vec3 ivInstanceDirection;
+out vec3 vfPosition;
+out vec3 vfNormal;
+out vec3 vfColor;
 
-// Input vertex data, different for all executions of this shader.
-in vec3 vertex_position_modelspace;
-in vec3 vertex_normal;
-in vec3 instance_offset;
-in vec3 instance_direction;
-
-// Output data ; will be interpolated for each fragment.
-out vec3 observer_direction_cameraspace;
-out vec3 fragment_normal;
-out vec3 fragment_direction;
-
-// Values that stay constant for the whole mesh.
-uniform mat4 mv_matrix;
-uniform mat4 mvp_matrix;
-
-mat3 rot_z_to(vec3 direction)
-{
-    // +z direction
-    if ( abs(direction.z - 1.0f) < 1.e-7f )
-    {
-        return mat3(1.0);
-    }
-    // -z direction
-    else if ( abs(direction.z + 1.0f) < 1.e-7f )
-    {
-        return mat3(-1.0);
-    }
-    else
-    {
-        vec3 e1 = normalize(cross(direction, vec3(0,0,1)));
-        vec3 e2 = normalize(cross(direction, e1));
-        return mat3(e1, e2, direction); 
-    }
+mat3 matrixFromDirection(vec3 direction) {
+  float c = direction.z;
+  float s = length(direction.xy);
+  float x = -direction.y / s;
+  float y = direction.x / s;
+  mat3 matrix;
+  matrix[0][0] = x*x*(1.0-c)+c;
+  matrix[0][1] = y*x*(1.0-c);
+  matrix[0][2] = -y*s;
+  matrix[1][0] = x*y*(1.0-c);
+  matrix[1][1] = y*y*(1.0-c)+c;
+  matrix[1][2] = x*s;
+  matrix[2][0] = y*s;
+  matrix[2][1] = -x*s;
+  matrix[2][2] = c;
+  return matrix;
 }
 
-void main()
-{
-    mat3 rotation = rot_z_to(instance_direction);
-    vec4 vertex_position_cameraspace;
+vec3 colormap(vec3 direction);
 
-    // Calculate observer direction vector; needed for shading in fragment shader
-    vertex_position_cameraspace = mv_matrix * vec4(rotation*vertex_position_modelspace + instance_offset, 1.0);
-    observer_direction_cameraspace = vec3(0, 0, 0) - vertex_position_cameraspace.xyz;
-
-    // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp_matrix * vec4(rotation*vertex_position_modelspace + instance_offset, 1);
-
-    // The normal of each vertex will be interpolated
-    // to produce the normal of each fragment
-    fragment_normal = rotation*vertex_normal;
-    fragment_direction = instance_direction;
+void main(void) {
+  vfColor = colormap(normalize(ivInstanceDirection));
+  mat3 instanceMatrix = matrixFromDirection(ivInstanceDirection);
+  vfNormal = (uModelviewMatrix * vec4(instanceMatrix*ivNormal, 0.0)).xyz;
+  vfPosition = (uModelviewMatrix * vec4(instanceMatrix*ivPosition+ivInstanceOffset, 1.0)).xyz;
+  if (ivInstanceDirection.z >= uZRange.x && ivInstanceDirection.z <= uZRange.y) {
+    gl_Position = uProjectionMatrix * vec4(vfPosition, 1.0);
+  } else {
+    gl_Position = vec4(2.0, 2.0, 2.0, 0.0);
+  }
 }
 
