@@ -21,14 +21,16 @@
 #include "IO.h"
 #include "Logging.h"
 
+#include "Interface_Globals.h"
 
 // Use Core Namespaces
 using namespace Data;
 using namespace Engine;
 using namespace Utility;
 
-std::shared_ptr<Data::Spin_System_Chain> c;
+
 Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
+std::shared_ptr<Data::Spin_System_Chain> c;
 std::shared_ptr<Engine::Optimizer> optim;
 int active_image = 0;
 

@@ -1,8 +1,10 @@
 #include "Configurations.h"
+#include "Interface_Globals.h"
+#include "Interface_Configurations.h"
 
 void DomainWall(const double pos[3], double v[3], bool greater)
 {
-    Utility::Configurations::DomainWall(*c->images[c->active_image], pos, greater);
+    Utility::Configurations::DomainWall(*c->images[c->active_image], pos, v, greater);
 }
 
 void Homogeneous(double v[3])
@@ -20,7 +22,7 @@ void MinusZ()
     Utility::Configurations::MinusZ(*c->images[c->active_image]);
 }
 
-void Random(bool external = false);
+void Random(bool external)
 {
     Utility::Configurations::Random(*c->images[c->active_image]);
 }
