@@ -9,6 +9,7 @@
 //#include <cmath>
 //#include <emscripten/emscripten.h>
 
+#include "Version.h"
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 #include "Configurations.h"
@@ -34,6 +35,8 @@ void init()
 {
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=============== MonoSpin Initialising ==============");
+	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= Version:  " + std::string(VERSION));
+	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision:" + std::string(VERSION_REVISION));
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
 
   //--- Read Log Levels

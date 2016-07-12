@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 project(MonoSpinCore)
 #############################################
 
+
 ######### Have the binary placed into the source head
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 # set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
@@ -15,8 +16,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #############################################
-set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+# set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated version.h
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+#############################################
+
+
+######### Generate Version.h ################
+set(VERSION_STRING "${META_VERSION}")
+set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
+configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/include/Version.h)
 #############################################
 
 
@@ -42,10 +50,12 @@ set(SOURCE_CORE_ENGINE)
 set(SOURCE_CORE_UTILITY)
 #############################################
 
+
 ######### Add Subdirectories
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 #############################################
+
 
 ######### IDE Folders #######################
 ### Folder include
@@ -63,9 +73,11 @@ source_group("src\\utility" FILES ${SOURCE_CORE_UTILITY})
 
 ######### Tell CMake to create the executable
 add_library( core STATIC
+	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
     ${HEADER_CORE_ENGINE}
 	${HEADER_CORE_UTILITY}
+	${SOURCE_CORE_ROOT}
 	${SOURCE_CORE_DATA}
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_UTILITY})
@@ -88,3 +100,4 @@ set(HEADER_CORE_UTILITY ${HEADER_CORE_UTILITY} PARENT_SCOPE)
 set(SOURCE_CORE_DATA    ${SOURCE_CORE_DATA} PARENT_SCOPE)
 set(SOURCE_CORE_ENGINE  ${SOURCE_CORE_ENGINE} PARENT_SCOPE)
 set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
+#############################################

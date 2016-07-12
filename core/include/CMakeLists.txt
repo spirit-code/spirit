@@ -4,6 +4,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/include/utility)
 
 set(HEADER_CORE_ROOT
 	${HEADER_CORE_ROOT}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Version.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt  # unfortunately this won't work with IDE folders...
 	PARENT_SCOPE
 )
