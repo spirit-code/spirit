@@ -34,14 +34,7 @@ Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNIN
 
 extern "C" State * createSimulation()
 {
-  
-  std::shared_ptr<Data::Spin_System_Chain> c;
-  std::shared_ptr<Engine::Optimizer> optim;
-  int active_image = 0;
-  State state_instance = {c, optim, active_image};
-  
   State *state = new State();
-  *state = state_instance;
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=============== MonoSpin Initialising ==============");
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= Version:  " + std::string(VERSION));

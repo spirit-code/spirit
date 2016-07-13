@@ -130,14 +130,87 @@ $(document).ready(function() {
   });
   updateSpherePointSize();
 
+  function updateHamiltonianMuSpin() {
+    var muspin = Number($('#input-externalfield-muspin').val());
+    var valid = true;
+    if (Number.isNaN(muspin)) {
+      valid = false;
+      $('#input-externalfield-muspin').parent().addClass('has-error');
+    } else {
+      $('#input-externalfield-muspin').parent().removeClass('has-error');
+    }
+    if (valid) {
+      window.currentSimulation.updateHamiltonianMuSpin(muspin);
+    }
+  }
+
+  function updateHamiltonianExternalField() {
+    if ($('#input-externalfield')[0].checked) {
+      var magnitude = Number($('#input-externalfield-magnitude').val());
+      var normalx = Number($('#input-externalfield-directionx').val());
+      var normaly = Number($('#input-externalfield-directiony').val());
+      var normalz = Number($('#input-externalfield-directionz').val());
+      var valid = true;
+      if (Number.isNaN(magnitude)) {
+        valid = false;
+        $('#input-externalfield-magnitude').parent().addClass('has-error');
+      } else {
+        $('#input-externalfield-magnitude').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalx)) {
+        valid = false;
+        $('#input-externalfield-directionx').parent().addClass('has-error');
+      } else {
+        $('#input-externalfield-directionx').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normaly)) {
+        valid = false;
+        $('#input-externalfield-directiony').parent().addClass('has-error');
+      } else {
+        $('#input-externalfield-directiony').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalz)) {
+        valid = false;
+        $('#input-externalfield-directionz').parent().addClass('has-error');
+      } else {
+        $('#input-externalfield-directionz').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianExternalField(magnitude, normalx, normaly, normalz);
+      }
+    } else {
+      window.currentSimulation.updateHamiltonianExternalField(0, 0, 0, 1);
+    }
+  }
+  $('#input-externalfield').on('change', function (e) {
+    updateHamiltonianExternalField();
+  });
+  $('#input-externalfield-muspin').on('change', function (e) {
+    updateHamiltonianMuSpin();
+  });
+  $('#input-externalfield-magnitude').on('change', function (e) {
+    updateHamiltonianExternalField();
+  });
+  $('#input-externalfield-directionx').on('change', function (e) {
+    updateHamiltonianExternalField();
+  });
+  $('#input-externalfield-directiony').on('change', function (e) {
+    updateHamiltonianExternalField();
+  });
+  $('#input-externalfield-directionz').on('change', function (e) {
+    updateHamiltonianExternalField();
+  });
+
   var isSimulating = false;
 
   Module.ready(function() {
     var sim = new Simulation();
     window.currentSimulation = sim;
+    sim.update();
+    updateHamiltonianExternalField();
+    $('#div-load').hide();
     function update(sim) {
       sim.performIteration();
-      $('#div-load').hide();
       if (isSimulating) {
         window.requestAnimationFrame(function () {
           update(sim)

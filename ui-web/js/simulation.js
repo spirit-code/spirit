@@ -38,7 +38,7 @@ Module.ready(function() {
         this._options = {};
         this._mergeOptions(options, defaultOptions);
         this._state = Module.createSimulation();
-    }
+    };
 
     Module.performIteration = Module.cwrap('performIteration', 'number', ['number']);
     Simulation.prototype.performIteration = function() {
@@ -80,21 +80,31 @@ Module.ready(function() {
         webglspins.updateSpins(spinPositions, spinDirections);
         var surfaceIndices = WebGLSpins.generateCartesianSurfaceIndices(NX, NY);
         webglspins.updateOptions({surfaceIndices: surfaceIndices});
-    }
+    };
 
     Module.PlusZ = Module.cwrap('PlusZ', null, ['number']);
     Simulation.prototype.setAllSpinsPlusZ = function() {
         Module.PlusZ(this._state);
         this.update();
-    }
+    };
     Module.MinusZ = Module.cwrap('MinusZ', null, ['number']);
     Simulation.prototype.setAllSpinsMinusZ = function() {
         Module.MinusZ(this._state);
         this.update();
-    }
+    };
     Module.Random = Module.cwrap('Random', null, ['number']);
     Simulation.prototype.setAllSpinsRandom = function() {
         Module.Random(this._state);
         this.update();
-    }
+    };
+    Module.Hamiltonian_Field = Module.cwrap('Hamiltonian_Field', null, ['number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianExternalField = function(magnitude, normal_x, normal_y, normal_z) {
+        Module.Hamiltonian_Field(this._state, magnitude, normal_x, normal_y, normal_z);
+        this.update();
+    };
+    Module.Hamiltonian_mu_s = Module.cwrap('Hamiltonian_mu_s', null, ['number', 'number']);
+    Simulation.prototype.updateHamiltonianMuSpin = function(mu_spin) {
+        Module.Hamiltonian_mu_s(this._state, mu_spin);
+        this.update();
+    };
 });
