@@ -4,9 +4,9 @@
 #include "Interface_Globals.h"
 #include "Interface_Hamiltonian.h"
 
-void Hamiltonian_Boundary_Conditions(bool periodical_a, bool periodical_b, bool periodical_c)
+void Hamiltonian_Boundary_Conditions(State *state, bool periodical_a, bool periodical_b, bool periodical_c)
 {
-    auto s = c->images[c->active_image];
+    auto s = state->c->images[state->c->active_image];
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Boundary conditions
@@ -15,16 +15,16 @@ void Hamiltonian_Boundary_Conditions(bool periodical_a, bool periodical_b, bool 
     s->hamiltonian->boundary_conditions[2] = periodical_c;
 }
 
-void Hamiltonian_mu_s(float mu_s)
+void Hamiltonian_mu_s(State *state, float mu_s)
 {
-    auto s = c->images[c->active_image];
+    auto s = state->c->images[state->c->active_image];
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
     ham->mu_s = mu_s;
 }
 
-void Hamiltonian_Field(float magnitude, float normal_x, float normal_y, float normal_z)
+void Hamiltonian_Field(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
 {
-    auto s = c->images[c->active_image];
+    auto s = state->c->images[state->c->active_image];
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     //		magnitude

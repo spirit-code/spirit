@@ -1,14 +1,14 @@
 #pragma once
 #ifndef INTERFACE_HAMILTONIAN_H
 #define INTERFACE_HAMILTONIAN_H
-
+struct State;
 // Sets the Hamiltonian_Isotropic's parameters
 
-extern "C" void Hamiltonian_Boundary_Conditions(bool a, bool b, bool c);
+extern "C" void Hamiltonian_Boundary_Conditions(State *state, bool a, bool b, bool c);
 
-extern "C" void Hamiltonian_mu_s(float mu_s);
+extern "C" void Hamiltonian_mu_s(State *state, float mu_s);
 
-extern "C" void Hamiltonian_Field(float magnitude, float normal_x, float normal_y, float normal_z);
+extern "C" void Hamiltonian_Field(State *state, float magnitude, float normal_x, float normal_y, float normal_z);
 
 extern "C" void Hamiltonian_Exchange(float mu_s);
 

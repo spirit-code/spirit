@@ -5,8 +5,11 @@
 #include "Spin_System_Chain.h"
 #include "Optimizer.h"
 
-extern std::shared_ptr<Data::Spin_System_Chain> c;
-extern std::shared_ptr<Engine::Optimizer> optim;
-extern int active_image;
+
+struct State {
+  std::shared_ptr<Data::Spin_System_Chain> c;
+  std::shared_ptr<Engine::Optimizer> optim;
+  int active_image;
+};
 
 #endif
