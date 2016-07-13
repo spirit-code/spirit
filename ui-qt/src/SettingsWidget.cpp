@@ -399,6 +399,21 @@ void SettingsWidget::set_hamiltonian_iso()
 			else { throw(ex); }
 		}
 
+		// Exchange
+		if (checkBox_exchange->isChecked())
+		{
+			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
+			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
+			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
+			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
+			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
+		}
+		else {
+			for (int i = 0; i < ham->n_neigh_shells; ++i) {
+				ham->jij[i] = 0.0;
+			}
+		}
+		
 		// DMI
 		if (this->checkBox_dmi->isChecked()) ham->dij = this->lineEdit_dmi->text().toDouble();
 		else ham->dij = 0.0;
@@ -425,21 +440,6 @@ void SettingsWidget::set_hamiltonian_iso()
 				lineEdit_anisoz->setText(QString::number(1.0));
 			}
 			else { throw(ex); }
-		}
-
-		// Exchange
-		if (checkBox_exchange->isChecked())
-		{
-			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
-			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
-			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
-			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
-			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
-		}
-		else {
-			for (int i = 0; i < ham->n_neigh_shells; ++i) {
-				ham->jij[i] = 0.0;
-			}
 		}
 
 		// BQE

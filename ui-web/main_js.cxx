@@ -21,7 +21,7 @@
 #include "IO.h"
 #include "Logging.h"
 
-#include "Interface_Globals.h"
+#include "Interface_State.h"
 
 // Use Core Namespaces
 using namespace Data;

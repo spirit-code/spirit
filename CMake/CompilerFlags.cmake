@@ -8,7 +8,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		MESSAGE( STATUS ">> Chose clang emcc compiler" )
 		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -Wno-warn-absolute-paths" )
 		set( INTERFACE_EXPORT_FUNCTIONS
-			 '_performIteration' '_getSpinDirections'  '_createSimulation' '_PlusZ' '_MinusZ' '_Random'
+			 '_performIteration' '_getSpinDirections'  '_createSimulation'
+			 '_DomainWall' '_Homogeneous' '_PlusZ' '_MinusZ' '_Random'  '_Skyrmion' '_SpinSpiral'
 			 '_Hamiltonian_Boundary_Conditions' '_Hamiltonian_mu_s' '_Hamiltonian_Field'
 			 '_Hamiltonian_Exchange' '_Hamiltonian_DMI' '_Hamiltonian_Anisotropy'
 			 '_Hamiltonian_STT' '_Hamiltonian_Temperature')

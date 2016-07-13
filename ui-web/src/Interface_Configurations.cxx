@@ -1,5 +1,5 @@
 #include "Configurations.h"
-#include "Interface_Globals.h"
+#include "Interface_State.h"
 #include "Interface_Configurations.h"
 
 void DomainWall(State *state, const double pos[3], double v[3], bool greater)
