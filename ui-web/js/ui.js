@@ -93,6 +93,19 @@ $(document).ready(function() {
   });
   updateRenderers();
 
+  $('#button-plusz').on('click', function(e) {
+    var sim = window.currentSimulation;
+    sim.setAllSpinsPlusZ();
+  });
+  $('#button-minusz').on('click', function(e) {
+    var sim = window.currentSimulation;
+    sim.setAllSpinsMinusZ();
+  });
+  $('#button-random').on('click', function(e) {
+    var sim = window.currentSimulation;
+    sim.setAllSpinsRandom();
+  });
+
   $("#input-zrange-filter").slider();
   function updateZRangeFilter() {
     var zRange = $("#input-zrange-filter").slider('getValue');
@@ -121,6 +134,7 @@ $(document).ready(function() {
 
   Module.ready(function() {
     var sim = new Simulation();
+    window.currentSimulation = sim;
     function update(sim) {
       sim.performIteration();
       $('#div-load').hide();
