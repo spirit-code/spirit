@@ -99,6 +99,22 @@ body, body > div{
   border-left:1px solid #BBBBBB;
 }
 
+#settings-container .col-sm-1,
+#settings-container .col-sm-2,
+#settings-container .col-sm-3,
+#settings-container .col-sm-4,
+#settings-container .col-sm-5,
+#settings-container .col-sm-6,
+#settings-container .col-sm-7,
+#settings-container .col-sm-8,
+#settings-container .col-sm-9,
+#settings-container .col-sm-10,
+#settings-container .col-sm-11,
+#settings-container .col-sm-12 {
+  padding-left:5px;
+  padding-right:5px;
+}
+
 @media (min-width: 768px) {
   body > div {
     flex-direction: row;

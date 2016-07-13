@@ -169,6 +169,9 @@ $(document).ready(function() {
       window.currentSimulation.updateHamiltonianMuSpin(muspin);
     }
   }
+  $('#input-externalfield-muspin').on('change', function (e) {
+    updateHamiltonianMuSpin();
+  });
 
   function updateHamiltonianExternalField() {
     if ($('#input-externalfield')[0].checked) {
@@ -211,9 +214,6 @@ $(document).ready(function() {
   $('#input-externalfield').on('change', function (e) {
     updateHamiltonianExternalField();
   });
-  $('#input-externalfield-muspin').on('change', function (e) {
-    updateHamiltonianMuSpin();
-  });
   $('#input-externalfield-magnitude').on('change', function (e) {
     updateHamiltonianExternalField();
   });
@@ -227,6 +227,85 @@ $(document).ready(function() {
     updateHamiltonianExternalField();
   });
 
+  function updateHamiltonianSpinTorque() {
+    if ($('#input-spintorque')[0].checked) {
+      var magnitude = Number($('#input-spintorque-magnitude').val());
+      var normalx = Number($('#input-spintorque-directionx').val());
+      var normaly = Number($('#input-spintorque-directiony').val());
+      var normalz = Number($('#input-spintorque-directionz').val());
+      var valid = true;
+      if (Number.isNaN(magnitude)) {
+        valid = false;
+        $('#input-spintorque-magnitude').parent().addClass('has-error');
+      } else {
+        $('#input-spintorque-magnitude').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalx)) {
+        valid = false;
+        $('#input-spintorque-directionx').parent().addClass('has-error');
+      } else {
+        $('#input-spintorque-directionx').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normaly)) {
+        valid = false;
+        $('#input-spintorque-directiony').parent().addClass('has-error');
+      } else {
+        $('#input-spintorque-directiony').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalz)) {
+        valid = false;
+        $('#input-spintorque-directionz').parent().addClass('has-error');
+      } else {
+        $('#input-spintorque-directionz').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianSpinTorque(magnitude, normalx, normaly, normalz);
+      }
+    } else {
+      window.currentSimulation.updateHamiltonianSpinTorque(0, 0, 0, 1);
+    }
+  }
+  $('#input-spintorque').on('change', function (e) {
+    updateHamiltonianSpinTorque();
+  });
+  $('#input-spintorque-magnitude').on('change', function (e) {
+    updateHamiltonianSpinTorque();
+  });
+  $('#input-spintorque-directionx').on('change', function (e) {
+    updateHamiltonianSpinTorque();
+  });
+  $('#input-spintorque-directiony').on('change', function (e) {
+    updateHamiltonianSpinTorque();
+  });
+  $('#input-spintorque-directionz').on('change', function (e) {
+    updateHamiltonianSpinTorque();
+  });
+
+  function updateHamiltonianTemperature() {
+    if ($('#input-temperature')[0].checked) {
+      var temperature = Number($('#input-temperature-value').val());
+      var valid = true;
+      if (Number.isNaN(temperature)) {
+        valid = false;
+        $('#input-temperature-value').parent().addClass('has-error');
+      } else {
+        $('#input-temperature-value').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianTemperature(temperature);
+      }
+    } else {
+        window.currentSimulation.updateHamiltonianTemperature(0);
+    }
+  }
+  $('#input-temperature').on('change', function (e) {
+    updateHamiltonianTemperature();
+  });
+  $('#input-temperature-value').on('change', function (e) {
+    updateHamiltonianTemperature();
+  });
+
+
   var isSimulating = false;
 
   Module.ready(function() {
@@ -236,6 +315,8 @@ $(document).ready(function() {
     updateHamiltonianBoundaryConditions();
     updateHamiltonianExternalField();
     updateHamiltonianMuSpin();
+    updateHamiltonianSpinTorque();
+    updateHamiltonianTemperature();
     $('#div-load').hide();
     function update(sim) {
       sim.performIteration();

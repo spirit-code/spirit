@@ -100,8 +100,8 @@ void Hamiltonian_STT(State *state, float magnitude, float normal_x, float normal
     s->llg_parameters->stt_magnitude = magnitude;
     // Normal
     s->llg_parameters->stt_polarisation_normal[0] = normal_x;
-    s->llg_parameters->stt_polarisation_normal[1] = normal_x;
-    s->llg_parameters->stt_polarisation_normal[2] = normal_x;
+    s->llg_parameters->stt_polarisation_normal[1] = normal_y;
+    s->llg_parameters->stt_polarisation_normal[2] = normal_z;
     try {
         Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
     }

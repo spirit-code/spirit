@@ -112,4 +112,14 @@ Module.ready(function() {
         Module.Hamiltonian_Boundary_Conditions(this._state, periodical_a, periodical_b, periodical_c);
         this.update();
     };
+    Module.Hamiltonian_Temperature = Module.cwrap('Hamiltonian_Temperature', null, ['number', 'number']);
+    Simulation.prototype.updateHamiltonianTemperature = function(temperature) {
+        Module.Hamiltonian_Temperature(this._state, temperature);
+        this.update();
+    };
+    Module.Hamiltonian_STT = Module.cwrap('Hamiltonian_STT', null, ['number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianSpinTorque = function(magnitude, normal_x, normal_y, normal_z) {
+        Module.Hamiltonian_STT(this._state, magnitude, normal_x, normal_y, normal_z);
+        this.update();
+    };
 });
