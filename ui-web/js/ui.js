@@ -29,9 +29,7 @@ $(document).ready(function() {
       colormapImplementation: WebGLSpins.colormapImplementations[colormap]
     });
   }
-  $('#select-colormap').on('change', function (e) {
-    updateColormap();
-  });
+  $('#select-colormap').on('change', updateColormap);
   updateColormap();
 
   function updateBackgroundColor() {
@@ -45,9 +43,7 @@ $(document).ready(function() {
       backgroundColor: colors[backgroundColor]
     });
   }
-  $('#select-backgroundcolor').on('change', function (e) {
-    updateBackgroundColor();
-  });
+  $('#select-backgroundcolor').on('change', updateBackgroundColor);
   updateBackgroundColor();
 
   function updateRenderers() {
@@ -73,24 +69,12 @@ $(document).ready(function() {
       innerSphereRadius: innerSphereRadius
     });
   }
-  $('#select-rendermode').on('change', function (e) {
-    updateRenderers();
-  });
-  $('#input-show-coordinatesystem').on('change', function (e) {
-    updateRenderers();
-  });
-  $('#select-coordinatesystemwidget-position').on('change', function (e) {
-    updateRenderers();
-  });
-  $('#input-show-spinspherewidget').on('change', function (e) {
-    updateRenderers();
-  });
-  $('#input-show-spinspherewidget-background').on('change', function (e) {
-    updateRenderers();
-  });
-  $('#select-spinspherewidget-position').on('change', function (e) {
-    updateRenderers();
-  });
+  $('#select-rendermode').on('change', updateRenderers);
+  $('#input-show-coordinatesystem').on('change', updateRenderers);
+  $('#select-coordinatesystemwidget-position').on('change', updateRenderers);
+  $('#input-show-spinspherewidget').on('change', updateRenderers);
+  $('#input-show-spinspherewidget-background').on('change', updateRenderers);
+  $('#select-spinspherewidget-position').on('change', updateRenderers);
   updateRenderers();
 
   $('#button-plusz').on('click', function(e) {
@@ -113,9 +97,7 @@ $(document).ready(function() {
       zRange: zRange
     });
   }
-  $('#input-zrange-filter').on('change', function (e) {
-    updateZRangeFilter();
-  });
+  $('#input-zrange-filter').on('change', updateZRangeFilter);
   updateZRangeFilter();
 
   $("#input-spinspherewidget-pointsize").slider();
@@ -125,9 +107,7 @@ $(document).ready(function() {
       pointSizeRange: pointSizeRange
     });
   }
-  $('#input-spinspherewidget-pointsize').on('change', function (e) {
-    updateSpherePointSize();
-  });
+  $('#input-spinspherewidget-pointsize').on('change', updateSpherePointSize);
   updateSpherePointSize();
 
   function updateHamiltonianBoundaryConditions() {
@@ -146,15 +126,9 @@ $(document).ready(function() {
       window.currentSimulation.updateHamiltonianBoundaryConditions(periodical_a, periodical_b, periodical_c);
   }
 
-  $('#input-periodical-a').on('change', function (e) {
-    updateHamiltonianBoundaryConditions();
-  });
-  $('#input-periodical-b').on('change', function (e) {
-    updateHamiltonianBoundaryConditions();
-  });
-  $('#input-periodical-c').on('change', function (e) {
-    updateHamiltonianBoundaryConditions();
-  });
+  $('#input-periodical-a').on('change', updateHamiltonianBoundaryConditions);
+  $('#input-periodical-b').on('change', updateHamiltonianBoundaryConditions);
+  $('#input-periodical-c').on('change', updateHamiltonianBoundaryConditions);
 
   function updateHamiltonianMuSpin() {
     var muspin = Number($('#input-externalfield-muspin').val());
@@ -169,9 +143,7 @@ $(document).ready(function() {
       window.currentSimulation.updateHamiltonianMuSpin(muspin);
     }
   }
-  $('#input-externalfield-muspin').on('change', function (e) {
-    updateHamiltonianMuSpin();
-  });
+  $('#input-externalfield-muspin').on('change', updateHamiltonianMuSpin);
 
   function updateHamiltonianExternalField() {
     if ($('#input-externalfield')[0].checked) {
@@ -211,21 +183,98 @@ $(document).ready(function() {
       window.currentSimulation.updateHamiltonianExternalField(0, 0, 0, 1);
     }
   }
-  $('#input-externalfield').on('change', function (e) {
-    updateHamiltonianExternalField();
-  });
-  $('#input-externalfield-magnitude').on('change', function (e) {
-    updateHamiltonianExternalField();
-  });
-  $('#input-externalfield-directionx').on('change', function (e) {
-    updateHamiltonianExternalField();
-  });
-  $('#input-externalfield-directiony').on('change', function (e) {
-    updateHamiltonianExternalField();
-  });
-  $('#input-externalfield-directionz').on('change', function (e) {
-    updateHamiltonianExternalField();
-  });
+  $('#input-externalfield').on('change', updateHamiltonianExternalField);
+  $('#input-externalfield-magnitude').on('change', updateHamiltonianExternalField);
+  $('#input-externalfield-directionx').on('change', updateHamiltonianExternalField);
+  $('#input-externalfield-directiony').on('change', updateHamiltonianExternalField);
+  $('#input-externalfield-directionz').on('change', updateHamiltonianExternalField);
+
+  function updateHamiltonianExchange() {
+    if ($('#input-exchange')[0].checked) {
+      var value1 = Number($('#input-exchangemagnitudes1').val());
+      var value2 = Number($('#input-exchangemagnitudes2').val());
+      var valid = true;
+      if (Number.isNaN(value1)) {
+        valid = false;
+        $('#input-exchangemagnitudes1').parent().addClass('has-error');
+      } else {
+        $('#input-exchangemagnitudes1').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(value2)) {
+        valid = false;
+        $('#input-exchangemagnitudes2').parent().addClass('has-error');
+      } else {
+        $('#input-exchangemagnitudes2').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianExchange([value1, value2]);
+      }
+    } else {
+      window.currentSimulation.updateHamiltonianExchange([0, 0]);
+    }
+  }
+  $('#input-exchange').on('change', updateHamiltonianExchange);
+  $('#input-exchangemagnitudes1').on('change', updateHamiltonianExchange);
+  $('#input-exchangemagnitudes2').on('change', updateHamiltonianExchange);
+
+  function updateHamiltonianDMI() {
+    var dij = Number($('#input-dmi-magnitude').val());
+    var valid = true;
+    if (Number.isNaN(dij)) {
+      valid = false;
+      $('#input-dmi-magnitude').parent().addClass('has-error');
+    } else {
+      $('#input-dmi-magnitude').parent().removeClass('has-error');
+    }
+    if (valid) {
+      window.currentSimulation.updateHamiltonianDMI(dij);
+    }
+  }
+  $('#input-dmi-magnitude').on('change', updateHamiltonianDMI);
+
+  function updateHamiltonianAnisotropy() {
+    if ($('#input-anisotropy')[0].checked) {
+      var magnitude = Number($('#input-anisotropy-magnitude').val());
+      var normalx = Number($('#input-anisotropy-directionx').val());
+      var normaly = Number($('#input-anisotropy-directiony').val());
+      var normalz = Number($('#input-anisotropy-directionz').val());
+      var valid = true;
+      if (Number.isNaN(magnitude)) {
+        valid = false;
+        $('#input-anisotropy-magnitude').parent().addClass('has-error');
+      } else {
+        $('#input-anisotropy-magnitude').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalx)) {
+        valid = false;
+        $('#input-anisotropy-directionx').parent().addClass('has-error');
+      } else {
+        $('#input-anisotropy-directionx').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normaly)) {
+        valid = false;
+        $('#input-anisotropy-directiony').parent().addClass('has-error');
+      } else {
+        $('#input-anisotropy-directiony').parent().removeClass('has-error');
+      }
+      if (Number.isNaN(normalz)) {
+        valid = false;
+        $('#input-anisotropy-directionz').parent().addClass('has-error');
+      } else {
+        $('#input-anisotropy-directionz').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianAnisotropy(magnitude, normalx, normaly, normalz);
+      }
+    } else {
+      window.currentSimulation.updateHamiltonianAnisotropy(0, 0, 0, 1);
+    }
+  }
+  $('#input-anisotropy').on('change', updateHamiltonianAnisotropy);
+  $('#input-anisotropy-magnitude').on('change', updateHamiltonianAnisotropy);
+  $('#input-anisotropy-directionx').on('change', updateHamiltonianAnisotropy);
+  $('#input-anisotropy-directiony').on('change', updateHamiltonianAnisotropy);
+  $('#input-anisotropy-directionz').on('change', updateHamiltonianAnisotropy);
 
   function updateHamiltonianSpinTorque() {
     if ($('#input-spintorque')[0].checked) {
@@ -265,21 +314,11 @@ $(document).ready(function() {
       window.currentSimulation.updateHamiltonianSpinTorque(0, 0, 0, 1);
     }
   }
-  $('#input-spintorque').on('change', function (e) {
-    updateHamiltonianSpinTorque();
-  });
-  $('#input-spintorque-magnitude').on('change', function (e) {
-    updateHamiltonianSpinTorque();
-  });
-  $('#input-spintorque-directionx').on('change', function (e) {
-    updateHamiltonianSpinTorque();
-  });
-  $('#input-spintorque-directiony').on('change', function (e) {
-    updateHamiltonianSpinTorque();
-  });
-  $('#input-spintorque-directionz').on('change', function (e) {
-    updateHamiltonianSpinTorque();
-  });
+  $('#input-spintorque').on('change', updateHamiltonianSpinTorque);
+  $('#input-spintorque-magnitude').on('change', updateHamiltonianSpinTorque);
+  $('#input-spintorque-directionx').on('change', updateHamiltonianSpinTorque);
+  $('#input-spintorque-directiony').on('change', updateHamiltonianSpinTorque);
+  $('#input-spintorque-directionz').on('change', updateHamiltonianSpinTorque);
 
   function updateHamiltonianTemperature() {
     if ($('#input-temperature')[0].checked) {
@@ -298,12 +337,8 @@ $(document).ready(function() {
         window.currentSimulation.updateHamiltonianTemperature(0);
     }
   }
-  $('#input-temperature').on('change', function (e) {
-    updateHamiltonianTemperature();
-  });
-  $('#input-temperature-value').on('change', function (e) {
-    updateHamiltonianTemperature();
-  });
+  $('#input-temperature').on('change', updateHamiltonianTemperature);
+  $('#input-temperature-value').on('change', updateHamiltonianTemperature);
 
 
   var isSimulating = false;
@@ -313,8 +348,11 @@ $(document).ready(function() {
     window.currentSimulation = sim;
     sim.update();
     updateHamiltonianBoundaryConditions();
-    updateHamiltonianExternalField();
     updateHamiltonianMuSpin();
+    updateHamiltonianExternalField();
+    updateHamiltonianExchange();
+    updateHamiltonianDMI();
+    updateHamiltonianAnisotropy();
     updateHamiltonianSpinTorque();
     updateHamiltonianTemperature();
     $('#div-load').hide();

@@ -99,6 +99,15 @@ body, body > div{
   border-left:1px solid #BBBBBB;
 }
 
+#settings-container .form-group {
+  padding-left:10px;
+  padding-right:10px;
+}
+#settings-container .form-control {
+  padding:6px;
+  text-align:center;
+}
+
 #settings-container .col-sm-1,
 #settings-container .col-sm-2,
 #settings-container .col-sm-3,
@@ -124,7 +133,7 @@ body, body > div{
     flex: 1;
   }
   #settings-container {
-    flex: 0 0 325px;
+    flex: 0 0 350px;
     overflow-y:scroll;
   }
   #settings-container > * {

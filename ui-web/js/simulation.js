@@ -82,44 +82,63 @@ Module.ready(function() {
         webglspins.updateOptions({surfaceIndices: surfaceIndices});
     };
 
-    Module.PlusZ = Module.cwrap('PlusZ', null, ['number']);
+    Module.Configuration_PlusZ = Module.cwrap('Configuration_PlusZ', null, ['number']);
     Simulation.prototype.setAllSpinsPlusZ = function() {
-        Module.PlusZ(this._state);
+        Module.Configuration_PlusZ(this._state);
         this.update();
     };
-    Module.MinusZ = Module.cwrap('MinusZ', null, ['number']);
+    Module.Configuration_MinusZ = Module.cwrap('Configuration_MinusZ', null, ['number']);
     Simulation.prototype.setAllSpinsMinusZ = function() {
-        Module.MinusZ(this._state);
+        Module.Configuration_MinusZ(this._state);
         this.update();
     };
-    Module.Random = Module.cwrap('Random', null, ['number']);
+    Module.Configuration_Random = Module.cwrap('Configuration_Random', null, ['number']);
     Simulation.prototype.setAllSpinsRandom = function() {
-        Module.Random(this._state);
+        Module.Configuration_Random(this._state);
         this.update();
     };
-    Module.Hamiltonian_Field = Module.cwrap('Hamiltonian_Field', null, ['number', 'number', 'number', 'number', 'number']);
-    Simulation.prototype.updateHamiltonianExternalField = function(magnitude, normal_x, normal_y, normal_z) {
-        Module.Hamiltonian_Field(this._state, magnitude, normal_x, normal_y, normal_z);
-        this.update();
-    };
-    Module.Hamiltonian_mu_s = Module.cwrap('Hamiltonian_mu_s', null, ['number', 'number']);
-    Simulation.prototype.updateHamiltonianMuSpin = function(mu_spin) {
-        Module.Hamiltonian_mu_s(this._state, mu_spin);
-        this.update();
-    };
-    Module.Hamiltonian_Boundary_Conditions = Module.cwrap('Hamiltonian_Boundary_Conditions', null, ['number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_Boundary_Conditions = Module.cwrap('Hamiltonian_Set_Boundary_Conditions', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianBoundaryConditions = function(periodical_a, periodical_b, periodical_c) {
-        Module.Hamiltonian_Boundary_Conditions(this._state, periodical_a, periodical_b, periodical_c);
+        Module.Hamiltonian_Set_Boundary_Conditions(this._state, periodical_a, periodical_b, periodical_c);
         this.update();
     };
-    Module.Hamiltonian_Temperature = Module.cwrap('Hamiltonian_Temperature', null, ['number', 'number']);
-    Simulation.prototype.updateHamiltonianTemperature = function(temperature) {
-        Module.Hamiltonian_Temperature(this._state, temperature);
+    Module.Hamiltonian_Set_mu_s = Module.cwrap('Hamiltonian_Set_mu_s', null, ['number', 'number']);
+    Simulation.prototype.updateHamiltonianMuSpin = function(mu_spin) {
+        Module.Hamiltonian_Set_mu_s(this._state, mu_spin);
         this.update();
     };
-    Module.Hamiltonian_STT = Module.cwrap('Hamiltonian_STT', null, ['number', 'number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_Field = Module.cwrap('Hamiltonian_Set_Field', null, ['number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianExternalField = function(magnitude, normal_x, normal_y, normal_z) {
+        Module.Hamiltonian_Set_Field(this._state, magnitude, normal_x, normal_y, normal_z);
+        this.update();
+    };
+    Module.Hamiltonian_Set_Exchange = Module.cwrap('Hamiltonian_Set_Exchange', null, ['number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianExchange = function(values) {
+        values = new Float32Array(values);
+        var values_ptr = Module._malloc(values.length * values.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(values, values_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Hamiltonian_Set_Exchange(this._state, values.length, values_ptr);
+        Module._free(values_ptr);
+        this.update();
+    };
+    Module.Hamiltonian_Set_DMI = Module.cwrap('Hamiltonian_Set_DMI', null, ['number', 'number']);
+    Simulation.prototype.updateHamiltonianDMI = function(dij) {
+        Module.Hamiltonian_Set_DMI(this._state, dij);
+        this.update();
+    };
+    Module.Hamiltonian_Set_Anisotropy = Module.cwrap('Hamiltonian_Set_Anisotropy', null, ['number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianAnisotropy = function(magnitude, normal_x, normal_y, normal_z) {
+        Module.Hamiltonian_Set_Anisotropy(this._state, magnitude, normal_x, normal_y, normal_z);
+        this.update();
+    };
+    Module.Hamiltonian_Set_STT = Module.cwrap('Hamiltonian_Set_STT', null, ['number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianSpinTorque = function(magnitude, normal_x, normal_y, normal_z) {
-        Module.Hamiltonian_STT(this._state, magnitude, normal_x, normal_y, normal_z);
+        Module.Hamiltonian_Set_STT(this._state, magnitude, normal_x, normal_y, normal_z);
+        this.update();
+    };
+    Module.Hamiltonian_Set_Temperature = Module.cwrap('Hamiltonian_Set_Temperature', null, ['number', 'number']);
+    Simulation.prototype.updateHamiltonianTemperature = function(temperature) {
+        Module.Hamiltonian_Set_Temperature(this._state, temperature);
         this.update();
     };
 });
