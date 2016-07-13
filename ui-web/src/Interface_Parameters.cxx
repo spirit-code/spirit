@@ -27,6 +27,12 @@ void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant)
     p->spring_constant = spring_constant;
 }
 
+void Parameters_Set_GNEB_Climbing_Falling(State *state, bool climbing, bool falling)
+{
+    state->c->climbing_image[state->c->active_image] = climbing;
+    state->c->falling_image[state->c->active_image] = falling;
+}
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -52,4 +58,10 @@ void Parameters_Get_GNEB_Spring_Constant(State *state, float * spring_constant)
 {
     auto p = state->c->gneb_parameters;
     *spring_constant = p->spring_constant;
+}
+
+void Parameters_Get_GNEB_Climbing_Falling(State *state, bool * climbing, bool * falling)
+{
+    *climbing = state->c->climbing_image[state->c->active_image];
+    *falling = state->c->falling_image[state->c->active_image];
 }

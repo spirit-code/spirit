@@ -19,8 +19,8 @@ extern "C" void Configuration_Random(State *state, bool external = false);
 
 // Points a sperical region of spins of radius r
 // into direction of vec at position pos
-extern "C" void Configuration_Skyrmion(State *state, std::vector<double> pos, double r, double speed, double order, bool upDown, bool achiral, bool rl, bool experimental);
+extern "C" void Configuration_Skyrmion(State *state, double pos[3], double r, double speed, double order, bool upDown, bool achiral, bool rl, bool experimental);
 // Spin Spiral
-extern "C" void Configuration_SpinSpiral(State *state, std::string direction_type, double q[3], double axis[3], double theta);
+extern "C" void Configuration_SpinSpiral(State *state, const char * direction_type, double q[3], double axis[3], double theta);
 
 #endif

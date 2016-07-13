@@ -3,6 +3,6 @@
 #define INTERFACE_GEOMETRY_H
 struct State;
 
-extern "C" void Geometry_Get_Bounds(State *state, float * xmin, float * xmax, float * ymin, float * ymax, float * zmin, float * zmax);
+extern "C" void Geometry_Get_Bounds(State *state, float * xmin, float * ymin, float * zmin, float * xmax, float * ymax, float * zmax);
 
 #endif

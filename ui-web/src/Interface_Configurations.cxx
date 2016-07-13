@@ -27,12 +27,14 @@ void Configuration_Random(State *state, bool external)
     Utility::Configurations::Random(*state->c->images[state->c->active_image]);
 }
 
-void Configuration_Skyrmion(State *state, std::vector<double> pos, double r, double speed, double order, bool upDown, bool achiral, bool rl, bool experimental)
+void Configuration_Skyrmion(State *state, double pos[3], double r, double speed, double order, bool upDown, bool achiral, bool rl, bool experimental)
 {
-    Utility::Configurations::Skyrmion(*state->c->images[state->c->active_image], pos, r, speed, order, upDown, achiral, rl, experimental);
+    std::vector<double> position = {pos[0], pos[1], pos[2]};
+    Utility::Configurations::Skyrmion(*state->c->images[state->c->active_image], position, r, speed, order, upDown, achiral, rl, experimental);
 }
 
-void Configuration_SpinSpiral(State *state, std::string direction_type, double q[3], double axis[3], double theta)
+void Configuration_SpinSpiral(State *state, const char * direction_type, double q[3], double axis[3], double theta)
 {
-    Utility::Configurations::SpinSpiral(*state->c->images[state->c->active_image], direction_type, q, axis, theta);
+    std::string dir_type(direction_type);
+    Utility::Configurations::SpinSpiral(*state->c->images[state->c->active_image], dir_type, q, axis, theta);
 }
