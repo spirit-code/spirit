@@ -107,4 +107,9 @@ Module.ready(function() {
         Module.Hamiltonian_mu_s(this._state, mu_spin);
         this.update();
     };
+    Module.Hamiltonian_Boundary_Conditions = Module.cwrap('Hamiltonian_Boundary_Conditions', null, ['number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianBoundaryConditions = function(periodical_a, periodical_b, periodical_c) {
+        Module.Hamiltonian_Boundary_Conditions(this._state, periodical_a, periodical_b, periodical_c);
+        this.update();
+    };
 });

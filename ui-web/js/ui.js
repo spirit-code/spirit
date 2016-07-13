@@ -130,6 +130,32 @@ $(document).ready(function() {
   });
   updateSpherePointSize();
 
+  function updateHamiltonianBoundaryConditions() {
+    var periodical_a = 0;
+    var periodical_b = 0;
+    var periodical_c = 0;
+    if ($('#input-periodical-a')[0].checked) {
+      periodical_a = 1;
+    }
+    if ($('#input-periodical-b')[0].checked) {
+      periodical_b = 1;
+    }
+    if ($('#input-periodical-c')[0].checked) {
+      periodical_c = 1;
+    }
+      window.currentSimulation.updateHamiltonianBoundaryConditions(periodical_a, periodical_b, periodical_c);
+  }
+
+  $('#input-periodical-a').on('change', function (e) {
+    updateHamiltonianBoundaryConditions();
+  });
+  $('#input-periodical-b').on('change', function (e) {
+    updateHamiltonianBoundaryConditions();
+  });
+  $('#input-periodical-c').on('change', function (e) {
+    updateHamiltonianBoundaryConditions();
+  });
+
   function updateHamiltonianMuSpin() {
     var muspin = Number($('#input-externalfield-muspin').val());
     var valid = true;
@@ -207,7 +233,9 @@ $(document).ready(function() {
     var sim = new Simulation();
     window.currentSimulation = sim;
     sim.update();
+    updateHamiltonianBoundaryConditions();
     updateHamiltonianExternalField();
+    updateHamiltonianMuSpin();
     $('#div-load').hide();
     function update(sim) {
       sim.performIteration();
