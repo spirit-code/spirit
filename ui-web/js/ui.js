@@ -90,6 +90,171 @@ $(document).ready(function() {
     sim.setAllSpinsRandom();
   });
 
+  $('#button-skyrmion-create').on('click', function(e) {
+    var order = Number($('#input-skyrmion-order').val());
+    var phase = Number($('#input-skyrmion-phase').val());
+    var radius = Number($('#input-skyrmion-radius').val());
+    var positionx = Number($('#input-skyrmion-positionx').val());
+    var positiony = Number($('#input-skyrmion-positiony').val());
+    var positionz = Number($('#input-skyrmion-positionz').val());
+    var updown = $('#input-skyrmion-updown')[0].checked;
+    var rl = $('#input-skyrmion-rl')[0].checked;
+    var achiral = $('#input-skyrmion-achiral')[0].checked;
+    var exp = $('#input-skyrmion-exp')[0].checked;
+    var valid = true;
+    if (Number.isNaN(order)) {
+      valid = false;
+      $('#input-skyrmion-order').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-order').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(phase)) {
+      valid = false;
+      $('#input-skyrmion-phase').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-phase').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(radius)) {
+      valid = false;
+      $('#input-skyrmion-radius').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-radius').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(positionx)) {
+      valid = false;
+      $('#input-skyrmion-positionx').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-positionx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(positiony)) {
+      valid = false;
+      $('#input-skyrmion-positiony').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-positiony').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(positionz)) {
+      valid = false;
+      $('#input-skyrmion-positionz').parent().addClass('has-error');
+    } else {
+      $('#input-skyrmion-positionz').parent().removeClass('has-error');
+    }
+    if (valid) {
+      var position = [positionx, positiony, positionz];
+      window.currentSimulation.createSkyrmion(order, phase, radius, position, updown, rl, achiral, exp);
+    }
+  });
+
+  $('#button-spinspiral-create').on('click', function(e) {
+    var qx = Number($('#input-spinspiral-qx').val());
+    var qy = Number($('#input-spinspiral-qy').val());
+    var qz = Number($('#input-spinspiral-qz').val());
+    var axisx = Number($('#input-spinspiral-axisx').val());
+    var axisy = Number($('#input-spinspiral-axisy').val());
+    var axisz = Number($('#input-spinspiral-axisz').val());
+    var angle = Number($('#input-spinspiral-angle').val());
+    var wrt = $("option:selected", $('#select-spinspiral-wrt'))[0].value;
+    var valid = true;
+    if (Number.isNaN(qx)) {
+      valid = false;
+      $('#input-domainwall-qx').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-qx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(qy)) {
+      valid = false;
+      $('#input-domainwall-qy').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-qy').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(qz)) {
+      valid = false;
+      $('#input-domainwall-qz').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-qz').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(axisx)) {
+      valid = false;
+      $('#input-domainwall-axisx').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-axisx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(axisy)) {
+      valid = false;
+      $('#input-domainwall-axisy').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-axisy').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(axisz)) {
+      valid = false;
+      $('#input-domainwall-axisz').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-axisz').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(angle)) {
+      valid = false;
+      $('#input-domainwall-angle').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-angle').parent().removeClass('has-error');
+    }
+    if (valid) {
+      var q = [qx, qy, qz];
+      var axis = [axisx, axisy, axisz];
+      window.currentSimulation.createSpinSpiral(wrt, q, axis, angle);
+    }
+  });
+
+  $('#button-domainwall-create').on('click', function(e) {
+    var borderx = Number($('#input-domainwall-borderx').val());
+    var bordery = Number($('#input-domainwall-bordery').val());
+    var borderz = Number($('#input-domainwall-borderz').val());
+    var directionx = Number($('#input-domainwall-directionx').val());
+    var directiony = Number($('#input-domainwall-directiony').val());
+    var directionz = Number($('#input-domainwall-directionz').val());
+    var greater = $('#input-domainwall-greater')[0].checked;
+    var valid = true;
+    if (Number.isNaN(borderx)) {
+      valid = false;
+      $('#input-domainwall-borderx').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-borderx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(bordery)) {
+      valid = false;
+      $('#input-domainwall-bordery').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-bordery').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(borderz)) {
+      valid = false;
+      $('#input-domainwall-borderz').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-borderz').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(directionx)) {
+      valid = false;
+      $('#input-domainwall-directionx').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-directionx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(directiony)) {
+      valid = false;
+      $('#input-domainwall-directiony').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-directiony').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(directionz)) {
+      valid = false;
+      $('#input-domainwall-directionz').parent().addClass('has-error');
+    } else {
+      $('#input-domainwall-directionz').parent().removeClass('has-error');
+    }
+    if (valid) {
+      var border = [borderx, bordery, borderz];
+      var direction = [directionx, directiony, directionz];
+      window.currentSimulation.createDomainWall(border, direction, greater);
+    }
+  });
+
   $("#input-zrange-filter").slider();
   function updateZRangeFilter() {
     var zRange = $("#input-zrange-filter").slider('getValue');

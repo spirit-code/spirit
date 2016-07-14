@@ -69,6 +69,14 @@ Module.ready(function() {
         var double_directions = Module.HEAPF64.subarray(result_ptr/8, result_ptr/8+N*3);
         var spinPositions = [];
         var spinDirections = [];
+        for (var i = 0; i < N*3; i++) {
+            if (-1 > spinDirections[i] || 1 < spinDirections[i]) {
+                alert(spinDirections[i]);
+            }
+            if (Number.isNaN(spinDirections[i])) {
+                alert("NaN!");
+            }
+        }
         for (var i = 0; i < N; i++) {
           var row = Math.floor(i/NX);
           var column = i % NX;
@@ -95,6 +103,41 @@ Module.ready(function() {
     Module.Configuration_Random = Module.cwrap('Configuration_Random', null, ['number']);
     Simulation.prototype.setAllSpinsRandom = function() {
         Module.Configuration_Random(this._state);
+        this.update();
+    };
+    Module.Configuration_Skyrmion = Module.cwrap('Configuration_Skyrmion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.createSkyrmion = function(order, phase, radius, position, updown, rl, achiral, exp) {
+        position = new Float64Array(position);
+        var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
+        Module.HEAPF64.set(position, position_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.Configuration_Skyrmion(this._state, position_ptr, radius, phase, order, updown, rl, achiral, exp);
+        Module._free(position_ptr);
+        this.update();
+    };
+    Module.Configuration_SpinSpiral = Module.cwrap('Configuration_SpinSpiral', null, ['number', 'string', 'number', 'number', 'number']);
+    Simulation.prototype.createSpinSpiral = function(direction_type, q, axis, theta) {
+        q = new Float64Array(q);
+        var q_ptr = Module._malloc(q.length * q.BYTES_PER_ELEMENT);
+        Module.HEAPF64.set(q, q_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        axis = new Float64Array(axis);
+        var axis_ptr = Module._malloc(axis.length * axis.BYTES_PER_ELEMENT);
+        Module.HEAPF64.set(axis, axis_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.Configuration_SpinSpiral(this._state, direction_type, q_ptr, axis_ptr, theta);
+        Module._free(q_ptr);
+        Module._free(axis_ptr);
+        this.update();
+    };
+    Module.Configuration_DomainWall = Module.cwrap('Configuration_DomainWall', null, ['number', 'number', 'number', 'number']);
+    Simulation.prototype.createDomainWall = function(position, direction, greater) {
+        position = new Float64Array(position);
+        var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
+        Module.HEAPF64.set(position, position_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        direction = new Float64Array(direction);
+        var direction_ptr = Module._malloc(direction.length * direction.BYTES_PER_ELEMENT);
+        Module.HEAPF64.set(direction, direction_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.Configuration_DomainWall(this._state, position_ptr, direction_ptr, greater);
+        Module._free(position_ptr);
+        Module._free(direction_ptr);
         this.update();
     };
     Module.Hamiltonian_Set_Boundary_Conditions = Module.cwrap('Hamiltonian_Set_Boundary_Conditions', null, ['number', 'number', 'number', 'number']);

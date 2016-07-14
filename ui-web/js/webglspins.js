@@ -581,8 +581,12 @@ WebGLSpins._ArrowRenderer.prototype._updateShaderProgram = function() {
         mat3 matrixFromDirection(vec3 direction) {
           float c = direction.z;
           float s = length(direction.xy);
-          float x = -direction.y / s;
-          float y = direction.x / s;
+          float x = 1.0;
+          float y = 0.0;
+          if (s > 0.0001) {
+            x = -direction.y / s;
+            y = direction.x / s;
+          }
           mat3 matrix;
           matrix[0][0] = x*x*(1.0-c)+c;
           matrix[0][1] = y*x*(1.0-c);

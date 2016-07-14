@@ -63,26 +63,26 @@
                 <div class="form-group">
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> Up/Down
+                      <input type="checkbox" id="input-skyrmion-updown"> up/down
                     </label>
                   </div>
-                  <div class="checkbox col-sm-6">
+                  <div class="checkbox col-sm-6" id="input-skyrmion-rl">
                     <label>
                       <input type="checkbox"> R/L
                     </label>
                   </div>
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> Achiral
+                      <input type="checkbox" id="input-skyrmion-achiral"> achiral
                     </label>
                   </div>
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> exp
+                      <input type="checkbox" id="input-skyrmion-exp"> experimental
                     </label>
                   </div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Create Skyrmion</button>
+                <button type="button" class="btn btn-block btn-default" id="button-skyrmion-create">Create Skyrmion</button>
               </form>
             </div>
             <h5>Spin Spiral</h5>
@@ -96,13 +96,13 @@
                   <label for="input-spinspiral-angle" class="col-sm-3 control-label">Angle: </label><div class="col-sm-9"><input type="text" id="input-spinspiral-angle" class="form-control" value="90" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option>Real Lattice</option><option>Reciprocal Real Lattice</option><option>Real Space</option></select></div>
+                  <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option value="Real Lattice">Real Lattice</option><option value="Reciprocal Lattice">Reciprocal Real Lattice</option><option value="Real Space">Real Space</option></select></div>
                 </div>
                 <div class="form-group">
                   <label for="input-spinspiral-qx" class="col-sm-3 control-label">q: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-qx" class="form-control" value="0" /></div>
                   <div class="col-sm-3"><input type="text" id="input-spinspiral-qy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-qz" class="form-control" value="0" /></div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Create Spin Spiral</button>
+                <button type="button" class="btn btn-block btn-default" id="button-spinspiral-create">Create Spin Spiral</button>
               </form>
             </div>
             <h5>Domain Wall</h5>
@@ -116,11 +116,17 @@
                   <label for="input-domainwall-borderx" class="col-sm-3 control-label">Border: </label><div class="col-sm-3"><input type="text" id="input-domainwall-borderx" class="form-control" value="0" /></div>
                   <div class="col-sm-3"><input type="text" id="input-domainwall-bordery" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-borderz" class="form-control" value="0" /></div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Greater</button>
-                <button type="button" class="btn btn-block btn-default">Create Domain Wall</button>
+                <div class="form-group">
+                  <div class="radio col-sm-6">
+                    <label><input type="radio" name="input-domain-wall-lessergreater">Lesser</label>
+                  </div>
+                  <div class="radio col-sm-6">
+                    <label><input type="radio" name="input-domain-wall-lessergreater" checked id="input-domainwall-greater">Greater</label>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-block btn-default" id="button-domainwall-create">Create Domain Wall</button>
               </form>
             </div>
-
           </div>
         </div>
       </div>

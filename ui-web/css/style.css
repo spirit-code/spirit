@@ -97,6 +97,8 @@ body, body > div{
 #settings-container {
   padding:0.5em;
   border-left:1px solid #BBBBBB;
+  overflow:auto;
+  max-height:100vh;
 }
 
 #settings-container .form-group {
