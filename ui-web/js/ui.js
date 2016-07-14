@@ -62,14 +62,14 @@ $(document).ready(function() {
       renderers.push([WebGLSpins.renderers.COORDINATESYSTEM, coordinateSystemWidgetPosition]);
     }
     var showSphereWidget = $('#input-show-spinspherewidget').is(':checked');
-    var showSphereWidgetBackground = $('#input-show-spinspherewidget-background').is(':checked');
     var innerSphereRadius = 0.95;
-    if (!showSphereWidgetBackground) {
-      innerSphereRadius = 0.0;
-    }
     if (showSphereWidget) {
       var sphereWidgetPosition = JSON.parse($("option:selected", $('#select-spinspherewidget-position'))[0].value);
-      renderers.push([WebGLSpins.renderers.SPHERE, sphereWidgetPosition]);
+      if (rendermode == 'SPHERE') {
+        renderers.push([WebGLSpins.renderers.SURFACE, sphereWidgetPosition]);
+      } else {
+        renderers.push([WebGLSpins.renderers.SPHERE, sphereWidgetPosition]);
+      }
     }
     webglspins.updateOptions({
       renderers: renderers,
@@ -80,7 +80,6 @@ $(document).ready(function() {
   $('#input-show-coordinatesystem').on('change', updateRenderers);
   $('#select-coordinatesystemwidget-position').on('change', updateRenderers);
   $('#input-show-spinspherewidget').on('change', updateRenderers);
-  $('#input-show-spinspherewidget-background').on('change', updateRenderers);
   $('#select-spinspherewidget-position').on('change', updateRenderers);
   updateRenderers();
 

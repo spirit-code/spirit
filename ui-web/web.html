@@ -301,7 +301,7 @@
                   <label for="input-llg-damping" class="col-sm-6 control-label">Damping: </label><div class="col-sm-6"><input type="text" id="input-llg-damping" class="form-control" value="0.3" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><input type="text" id="input-llg-timestep" class="form-control" value="0.001" /></div>
+                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><input type="text" id="input-llg-timestep" class="form-control" value="0.01" /></div>
                 </div>
               </form>
             </div>
@@ -379,17 +379,12 @@
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere
-                    </label>
-                  </div>
-                  <div class="checkbox col-sm-12">
-                    <label>
-                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget-background"> Show Sphere as Background
+                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere/Surface Miniview
                     </label>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="select-colormap" class="col-sm-6 control-label">Spin Sphere Position</label>
+                  <label for="select-colormap" class="col-sm-6 control-label">Miniview Position</label>
                   <div class="col-sm-6">
                     <select id="select-spinspherewidget-position">
                       <option value="[0, 0.05, 0.2, 0.2]" selected="selected">Bottom left</option>

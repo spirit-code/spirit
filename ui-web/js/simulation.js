@@ -118,7 +118,7 @@ Module.ready(function() {
         position = new Float64Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
         Module.HEAPF64.set(position, position_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
-        Module.Configuration_Skyrmion(this._state, position_ptr, radius, phase, order, updown, rl, achiral, exp);
+        Module.Configuration_Skyrmion(this._state, position_ptr, radius, order, phase, updown, achiral, rl, exp);
         Module._free(position_ptr);
         this.update();
     };
