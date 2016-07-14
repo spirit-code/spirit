@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  $('form').attr('onsubmit', 'return false;');
   webglspins = new WebGLSpins(document.getElementById("webgl-canvas"), {
     cameraLocation: [50, 50, 100],
     centerLocation: [50, 50, 0],
@@ -505,6 +506,59 @@ $(document).ready(function() {
   $('#input-temperature').on('change', updateHamiltonianTemperature);
   $('#input-temperature-value').on('change', updateHamiltonianTemperature);
 
+  function updateLLGDamping() {
+    var damping = Number($('#input-llg-damping').val());
+    var valid = true;
+    if (Number.isNaN(damping)) {
+      valid = false;
+      $('#input-llg-damping').parent().addClass('has-error');
+    } else {
+      $('#input-llg-damping').parent().removeClass('has-error');
+    }
+    if (valid) {
+      window.currentSimulation.updateLLGDamping(damping);
+    }
+  }
+  $('#input-llg-damping').on('change', updateLLGDamping);
+
+  function updateLLGTimeStep() {
+    var time_step = Number($('#input-llg-timestep').val());
+    var valid = true;
+    if (Number.isNaN(time_step)) {
+      valid = false;
+      $('#input-llg-timestep').parent().addClass('has-error');
+    } else {
+      $('#input-llg-timestep').parent().removeClass('has-error');
+    }
+    if (valid) {
+      window.currentSimulation.updateLLGTimeStep(time_step);
+    }
+  }
+  $('#input-llg-timestep').on('change', updateLLGTimeStep);
+
+  function updateGNEBSpringConstant() {
+    var spring_constant = Number($('#input-gneb-springconst').val());
+    var valid = true;
+    if (Number.isNaN(spring_constant)) {
+      valid = false;
+      $('#input-gneb-springconst').parent().addClass('has-error');
+    } else {
+      $('#input-gneb-springconst').parent().removeClass('has-error');
+    }
+    if (valid) {
+      window.currentSimulation.updateGNEBSpringConstant(spring_constant);
+    }
+  }
+  $('#input-gneb-springconst').on('change', updateGNEBSpringConstant);
+
+  function updateGNEBClimbingFalling() {
+    var climbing = $('#input-gneb-radio-climbing')[0].checked;
+    var falling = $('#input-gneb-radio-falling')[0].checked;
+    window.currentSimulation.updateGNEBClimbingFalling(climbing, falling);
+  }
+  $('#input-gneb-radio-normal').on('change', updateGNEBClimbingFalling);
+  $('#input-gneb-radio-climbing').on('change', updateGNEBClimbingFalling);
+  $('#input-gneb-radio-falling').on('change', updateGNEBClimbingFalling);
 
   var isSimulating = false;
 
@@ -520,6 +574,10 @@ $(document).ready(function() {
     updateHamiltonianAnisotropy();
     updateHamiltonianSpinTorque();
     updateHamiltonianTemperature();
+    updateLLGDamping();
+    updateLLGTimeStep();
+    updateGNEBSpringConstant();
+    updateGNEBClimbingFalling();
     $('#div-load').hide();
     function update(sim) {
       sim.performIteration();

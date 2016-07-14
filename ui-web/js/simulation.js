@@ -184,4 +184,24 @@ Module.ready(function() {
         Module.Hamiltonian_Set_Temperature(this._state, temperature);
         this.update();
     };
+    Module.Parameters_Set_LLG_Time_Step = Module.cwrap('Parameters_Set_LLG_Time_Step', null, ['number', 'number']);
+    Simulation.prototype.updateLLGTimeStep = function(time_step) {
+        Module.Parameters_Set_LLG_Time_Step(this._state, time_step);
+        this.update();
+    };
+    Module.Parameters_Set_LLG_Damping = Module.cwrap('Parameters_Set_LLG_Damping', null, ['number', 'number']);
+    Simulation.prototype.updateLLGDamping = function(damping) {
+        Module.Parameters_Set_LLG_Damping(this._state, damping);
+        this.update();
+    };
+    Module.Parameters_Set_GNEB_Spring_Constant = Module.cwrap('Parameters_Set_GNEB_Spring_Constant', null, ['number', 'number']);
+    Simulation.prototype.updateGNEBSpringConstant = function(spring_constant) {
+        Module.Parameters_Set_GNEB_Spring_Constant(this._state, spring_constant);
+        this.update();
+    };
+    Module.Parameters_Set_GNEB_Climbing_Falling = Module.cwrap('Parameters_Set_GNEB_Climbing_Falling', null, ['number', 'number', 'number']);
+    Simulation.prototype.updateGNEBClimbingFalling = function(climbing, falling) {
+        Module.Parameters_Set_GNEB_Climbing_Falling(this._state, climbing, falling);
+        this.update();
+    };
 });
