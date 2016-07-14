@@ -38,6 +38,7 @@ Module.ready(function() {
         this._options = {};
         this._mergeOptions(options, defaultOptions);
         this._state = Module.createSimulation();
+        this.showBoundingBox = true;
     };
 
     Module.performIteration = Module.cwrap('performIteration', 'number', ['number']);
@@ -87,7 +88,14 @@ Module.ready(function() {
         }
         webglspins.updateSpins(spinPositions, spinDirections);
         var surfaceIndices = WebGLSpins.generateCartesianSurfaceIndices(NX, NY);
-        webglspins.updateOptions({surfaceIndices: surfaceIndices});
+        var boundingBox = null;
+        if (this. showBoundingBox) {
+            boundingBox = this.getBoundingBox();
+        }
+        webglspins.updateOptions({
+            surfaceIndices: surfaceIndices,
+            boundingBox: boundingBox
+        });
     };
 
     Module.Configuration_PlusZ = Module.cwrap('Configuration_PlusZ', null, ['number']);
@@ -203,5 +211,24 @@ Module.ready(function() {
     Simulation.prototype.updateGNEBClimbingFalling = function(climbing, falling) {
         Module.Parameters_Set_GNEB_Climbing_Falling(this._state, climbing, falling);
         this.update();
+    };
+    Module.Geometry_Get_Bounds = Module.cwrap('Geometry_Get_Bounds', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.getBoundingBox = function() {
+        var bounding_box_ptr = Module._malloc(6*Module.HEAPF32.BYTES_PER_ELEMENT);
+        var xmin_ptr = bounding_box_ptr+0*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var xmax_ptr = bounding_box_ptr+1*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var ymin_ptr = bounding_box_ptr+2*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var ymax_ptr = bounding_box_ptr+3*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var zmin_ptr = bounding_box_ptr+4*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var zmax_ptr = bounding_box_ptr+5*Module.HEAPF32.BYTES_PER_ELEMENT;
+        Module.Geometry_Get_Bounds(this._state, xmin_ptr, ymin_ptr, zmin_ptr, xmax_ptr, ymax_ptr, zmax_ptr);
+        var xmin = Module.HEAPF32[xmin_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        var xmax = Module.HEAPF32[xmax_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        var ymin = Module.HEAPF32[ymin_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        var ymax = Module.HEAPF32[ymax_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        var zmin = Module.HEAPF32[zmin_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        var zmax = Module.HEAPF32[zmax_ptr/Module.HEAPF32.BYTES_PER_ELEMENT];
+        Module._free(bounding_box_ptr);
+        return [xmin, ymin, zmin, xmax, ymax, zmax];
     };
 });

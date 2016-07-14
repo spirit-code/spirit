@@ -40,8 +40,14 @@ $(document).ready(function() {
       'gray': [0.5, 0.5, 0.5],
       'black': [0.0, 0.0, 0.0]
     };
+    var boundingBoxColors = {
+      'white': [0.0, 0.0, 0.0],
+      'gray': [1.0, 1.0, 1.0],
+      'black': [1.0, 1.0, 1.0]
+    };
     webglspins.updateOptions({
-      backgroundColor: colors[backgroundColor]
+      backgroundColor: colors[backgroundColor],
+      boundingBoxColor: boundingBoxColors[backgroundColor]
     });
   }
   $('#select-backgroundcolor').on('change', updateBackgroundColor);
@@ -77,6 +83,14 @@ $(document).ready(function() {
   $('#input-show-spinspherewidget-background').on('change', updateRenderers);
   $('#select-spinspherewidget-position').on('change', updateRenderers);
   updateRenderers();
+
+  function updateShowBoundingBox() {
+    var showBoundingBox = $('#input-show-boundingbox')[0].checked;
+    window.currentSimulation.showBoundingBox = showBoundingBox;
+    window.currentSimulation.update();
+  }
+
+  $('#input-show-boundingbox').on('change', updateShowBoundingBox);
 
   $('#button-plusz').on('click', function(e) {
     var sim = window.currentSimulation;
@@ -566,6 +580,7 @@ $(document).ready(function() {
     var sim = new Simulation();
     window.currentSimulation = sim;
     sim.update();
+    updateShowBoundingBox();
     updateHamiltonianBoundaryConditions();
     updateHamiltonianMuSpin();
     updateHamiltonianExternalField();
