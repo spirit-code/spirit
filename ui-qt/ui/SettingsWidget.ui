@@ -38,7 +38,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_Settings_Configurations">
       <attribute name="title">
@@ -2628,7 +2628,7 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="4">
+              <item row="0" column="5">
                <spacer name="horizontalSpacer_25">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -2640,6 +2640,13 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="label_41">
+                <property name="text">
+                 <string>[ps]</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

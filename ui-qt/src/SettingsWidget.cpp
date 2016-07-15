@@ -185,7 +185,8 @@ void SettingsWidget::Load_Parameters_Contents()
 {
 	// LLG Damping
 	this->lineEdit_Damping->setText(QString::number(s->llg_parameters->damping));
-	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt));
+	// Converto to PicoSeconds
+	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt /std::pow(10, -12) * Utility::Vectormath::MuB()/1.760859644/std::pow(10, 11)));
 
 	// GNEB Spring Constant
 	this->lineEdit_gneb_springconstant->setText(QString::number(this->c->gneb_parameters->spring_constant));
@@ -327,8 +328,9 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
 	{
-		// Time step
-		s->llg_parameters->dt = this->lineEdit_dt->text().toDouble();
+		// Time step [ps]
+		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
+		s->llg_parameters->dt = this->lineEdit_dt->text().toDouble()*std::pow(10,-12)/Utility::Vectormath::MuB()*1.760859644*std::pow(10,11);
 		// Damping
 		s->llg_parameters->damping = this->lineEdit_Damping->text().toDouble();
 		// Spring Constant
