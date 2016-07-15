@@ -187,6 +187,12 @@ void SettingsWidget::Load_Parameters_Contents()
 	this->lineEdit_Damping->setText(QString::number(s->llg_parameters->damping));
 	// Converto to PicoSeconds
 	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt /std::pow(10, -12) * Utility::Vectormath::MuB()/1.760859644/std::pow(10, 11)));
+	// LLG Iteration Params
+	this->lineEdit_llg_n_iterations->setText(QString::number(s->llg_parameters->n_iterations));
+	this->lineEdit_llg_log_steps->setText(QString::number(s->llg_parameters->log_steps));
+	// GNEB Interation Params
+	this->lineEdit_gneb_n_iterations->setText(QString::number(c->gneb_parameters->n_iterations));
+	this->lineEdit_gneb_log_steps->setText(QString::number(c->gneb_parameters->log_steps));
 
 	// GNEB Spring Constant
 	this->lineEdit_gneb_springconstant->setText(QString::number(this->c->gneb_parameters->spring_constant));
@@ -333,6 +339,12 @@ void SettingsWidget::set_parameters()
 		s->llg_parameters->dt = this->lineEdit_dt->text().toDouble()*std::pow(10,-12)/Utility::Vectormath::MuB()*1.760859644*std::pow(10,11);
 		// Damping
 		s->llg_parameters->damping = this->lineEdit_Damping->text().toDouble();
+		// n iterations
+		s->llg_parameters->n_iterations = this->lineEdit_llg_n_iterations->text().toDouble();
+		c->gneb_parameters->n_iterations = this->lineEdit_gneb_n_iterations->text().toDouble();
+		// log steps
+		s->llg_parameters->log_steps = this->lineEdit_llg_log_steps->text().toDouble();
+		c->gneb_parameters->log_steps = this->lineEdit_gneb_log_steps->text().toDouble();
 		// Spring Constant
 		c->gneb_parameters->spring_constant = this->lineEdit_gneb_springconstant->text().toDouble();
 		// Climbing/Falling Image
@@ -762,6 +774,12 @@ void SettingsWidget::Setup_Parameters_Slots()
 	// LLG Damping
 	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	// LLG iteration params
+	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	// GNEB iteration params
+	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	// GNEB Spring Constant
 	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	// Normal/Climbing/Falling image radioButtons

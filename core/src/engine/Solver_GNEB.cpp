@@ -29,9 +29,11 @@ namespace Engine
 	}
 
 	// Iteratively apply the GNEB method to a Spin System Chain
-	void Solver_GNEB::Iterate(int n_iterations, int log_steps)
+	void Solver_GNEB::Iterate()
 	{
 		//========================= Init local vars ================================
+		int n_iterations = c->gneb_parameters->n_iterations;
+		int log_steps = c->gneb_parameters->log_steps;
 		int i, step = 0, n_log = n_iterations/log_steps;
 		this->starttime = Timing::CurrentDateTime();
 		std::string suffix = "";
@@ -76,7 +78,7 @@ namespace Engine
 		auto t_end = system_clock::now();
 
 		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "-------------- Finished GNEB Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " steps.");
+		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
 		if (this->force_call->IsConverged())
 			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    The transition has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
 		else

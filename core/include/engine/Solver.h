@@ -41,7 +41,7 @@ namespace Engine
 		}
 
 		// Iterate for n iterations
-		virtual void Iterate(int n_iterations, int log_steps)
+		virtual void Iterate()
 		{
 			// Not Implemented!
 			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Solver::Iterate() of the Solver base class!"));

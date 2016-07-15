@@ -58,7 +58,7 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	else
 	{
 		this->pushButton_PlayPause->setText("Pause");
-		//std::thread(Engine::SIB::Iterate, s, 2000000, 5000).detach();
+		//std::thread(Engine::SIB::Iterate, s).detach();
 	}
 
 	/*
@@ -405,7 +405,7 @@ void MainWindow::playpausePressed()
 			s->iteration_allowed = true;
 			c->iteration_allowed = false;
             auto g = new Engine::Solver_LLG(this->c, optim);
-			Utility::Threading::llg_threads[s] = std::thread(&Engine::Solver_LLG::Iterate, g, 2000000, 5000);
+			Utility::Threading::llg_threads[s] = std::thread(&Engine::Solver_LLG::Iterate, g);
 			this->llg_solvers[s] = g;
 		}
 	}
@@ -435,7 +435,7 @@ void MainWindow::playpausePressed()
 			}
 			c->iteration_allowed = true;
             auto g = new Engine::Solver_GNEB(this->c, optim);
-			Utility::Threading::gneb_threads[c] = std::thread(&Engine::Solver_GNEB::Iterate, g, 2000000, 5000);
+			Utility::Threading::gneb_threads[c] = std::thread(&Engine::Solver_GNEB::Iterate, g);
 			this->gneb_solvers[c] = g;
 		}
 	}

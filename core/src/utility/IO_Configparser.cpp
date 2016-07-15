@@ -266,6 +266,10 @@ namespace Utility
 			std::string output_folder = "";
 			// PRNG Seed
 			int seed = 0;
+			// number of iterations carried out when pressing "play" or calling "iterate"
+			int n_iterations=2E+6;
+			// after "log_steps"-iterations the current system is logged to file
+			int log_steps=5000;
 			// Temperature in K
 			double temperature = 0.0;
 			// Damping constant
@@ -290,6 +294,8 @@ namespace Utility
 
 					myfile.Read_Single(output_folder, "llg_output_folder");
 					myfile.Read_Single(seed, "llg_seed");
+					myfile.Read_Single(n_iterations, "llg_n_iterations");
+					myfile.Read_Single(log_steps, "llg_log_steps");
 					myfile.Read_Single(temperature, "llg_temperature");
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
@@ -309,7 +315,7 @@ namespace Utility
 				}// end catch
 			}
 			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "LLG_Parameters: Using default configuration!");
-			return std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal, force_convergence));
+			return std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal, force_convergence));
 		}// end LLG_Parameters_from_Config
 
 		std::unique_ptr<Data::Parameters_GNEB> GNEB_Parameters_from_Config(const std::string configFile)
@@ -321,6 +327,10 @@ namespace Utility
 			double spring_constant = 1.0;
 			// Force convergence parameter
 			double force_convergence = 10e-9;
+			// number of iterations carried out when pressing "play" or calling "iterate"
+			int n_iterations = 2E+6;
+			// after "log_steps"-iterations the current system is logged to file
+			int log_steps = 5000;
 			// Number of Energy Interpolation points
 			int n_E_interpolations = 10;
 			//------------------------------- Parser --------------------------------
@@ -333,6 +343,8 @@ namespace Utility
 					myfile.Read_Single(output_folder, "gneb_output_folder");
 					myfile.Read_Single(spring_constant, "gneb_spring_constant");
 					myfile.Read_Single(force_convergence, "gneb_force_convergence");
+					myfile.Read_Single(n_iterations, "gneb_n_iterations");
+					myfile.Read_Single(log_steps, "gneb_log_steps");
 					myfile.Read_Single(n_E_interpolations, "gneb_n_energy_interpolations");
 				}// end try
 				catch (Exception ex) {
@@ -344,7 +356,7 @@ namespace Utility
 				}// end catch
 			}
 			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "GNEB_Parameters: Using default configuration!");
-			return std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_E_interpolations));
+			return std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_iterations, log_steps, n_E_interpolations));
 		}// end LLG_Parameters_from_Config
 
 		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry)

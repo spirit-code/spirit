@@ -14,11 +14,16 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_GNEB(std::string output_folder, double spring_constant, double force_convergence, int n_E_interpolations);
+		Parameters_GNEB(std::string output_folder, double spring_constant, double force_convergence, int n_iterations, int log_steps, int n_E_interpolations);
 
 		// Strength of springs between images
 		double spring_constant;
 		
+		// number of iterations carried out when pressing "play" or calling "iterate"
+		int n_iterations;
+		// after "log_steps"-iterations the current system is logged to file
+		int log_steps;
+
 		// Number of Energy interpolations between Images
 		int n_E_interpolations;
 	};

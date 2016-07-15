@@ -106,7 +106,7 @@ int main(int argc, char ** argv)
 		auto solver = new Engine::Solver_LLG(c, optim);
 		// We could also do the following without using threads, but not without loss of generality
 		s1->iteration_allowed = true;
-		Utility::Threading::llg_threads[s1] = std::thread(&Engine::Solver_LLG::Iterate, solver, 20000, 2000);
+		Utility::Threading::llg_threads[s1] = std::thread(&Engine::Solver_LLG::Iterate, solver);
 		// To wait for started thread to finish, call:
 		Threading::llg_threads[s1].join();
 		//-------------------------------------------------------------------------------

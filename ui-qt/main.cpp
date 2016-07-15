@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
 		//--- Config Files
 		//std::string cfgfile = "input/markus-paper.cfg";
 		//std::string cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-		std::string cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+		std::string cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 		//--- Read Log Levels
 		IO::Log_Levels_from_Config(cfgfile);
 		
@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
 
 		//---------------------- set images' configurations -----------------------------
 		// Parameters
-		double dir[3] = { 0,0,1 };
+		double dir[3] = { 1,0,0 };
 		std::vector<double> pos = { 14.5, 14.5, 0 };
 		// Read Image from file
 		//Utility::IO::Read_Spin_Configuration(s1, spinsfile);
@@ -146,7 +146,7 @@ int main(int argc, char ** argv)
 		/*
 		auto solver_llg = new Engine::Solver_LLG(c);
 		s1->iteration_allowed = true;
-		Threading::llg_threads[s1] = std::thread(&Engine::Solver_LLG::Iterate, solver_llg, 200, 20);
+		Threading::llg_threads[s1] = std::thread(&Engine::Solver_LLG::Iterate, solver_llg);
 		// To wait for started thread to finish, call:
 		Threading::llg_threads[s1].join();
 		*/

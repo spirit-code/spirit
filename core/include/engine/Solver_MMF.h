@@ -17,7 +17,7 @@ namespace Engine
 
 		// Iteratively apply the MMF method to the Spin System Chain
 		// Output and console notification is generated every log_steps
-		void Iterate(int n_iterations, int log_steps = 2000);
+		void Iterate();
 
 		// Iterates the system one step with the semi-implicit midpoint solver method B
 		void Iteration();

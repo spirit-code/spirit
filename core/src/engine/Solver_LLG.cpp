@@ -34,10 +34,12 @@ namespace Engine
 		this->optimizer->Configure(systems, force_call);
 	}
     
-    void Solver_LLG::Iterate(int n, int log_steps)
+    void Solver_LLG::Iterate()
     {
 		//========================= Init local vars ================================
         auto s = c->images[c->active_image];
+		int n = s->llg_parameters->n_iterations;
+		int log_steps = s->llg_parameters->log_steps;
         int i, step = 0, image = c->active_image, n_log = n / log_steps;
 		this->starttime = Timing::CurrentDateTime();
 		std::string suffix = "_archive";
@@ -83,7 +85,7 @@ namespace Engine
         auto t_end = system_clock::now();
 		
 		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "-------------- Finished LLG Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n) + " steps.");
+		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n) + " iterations.");
         Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Total Energy:               " + std::to_string(s->E / s->nos));
 		if (this->force_call->IsConverged())
 			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    The configuration has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
