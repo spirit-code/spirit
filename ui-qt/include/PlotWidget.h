@@ -9,13 +9,15 @@
 
 #include "Spin_System_Chain.h"
 
+#include "grwidget.h"
 
-class PlotWidget : public QWidget	// We need a proper 2D plotting solution!!
+
+class PlotWidget : public GRWidget	// We need a proper 2D plotting solution!!
 {
 
 public:
 	PlotWidget(std::shared_ptr<Data::Spin_System_Chain> c);
-	void update();
+	void draw();
 
 private:
 	std::shared_ptr<Data::Spin_System_Chain> c;

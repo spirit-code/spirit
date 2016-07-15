@@ -74,7 +74,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${CORE_INCLUDE_DIRS}
 					${GLAD_INCLUDE_DIRS}
 					${GLM_INCLUDE_DIRS}
-					${GL_INCLUDE_DIRS})
+					${GL_INCLUDE_DIRS}
+					${GR_INCLUDE_DIRS}
+					${QTGR_INCLUDE_DIRS})
 ###########################
 
 
@@ -123,7 +125,7 @@ add_executable(${EXECUTABLE_NAME}
 
 
 ######### Link the libraries into the executable
-target_link_libraries(${EXECUTABLE_NAME} core gl Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(${EXECUTABLE_NAME} core gl ${QTGR_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
 ### OSX and Unix need libdl
 if (APPLE)
     target_link_libraries(${EXECUTABLE_NAME} dl) #  ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
