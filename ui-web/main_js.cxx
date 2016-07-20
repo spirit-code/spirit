@@ -21,22 +21,24 @@
 #include "IO.h"
 #include "Logging.h"
 
+#include "Interface_State.h"
 
 // Use Core Namespaces
 using namespace Data;
 using namespace Engine;
 using namespace Utility;
 
-std::shared_ptr<Data::Spin_System_Chain> c;
-Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
-std::shared_ptr<Engine::Optimizer> optim;
 
-void init()
+Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
+
+
+extern "C" State * createSimulation()
 {
+  State *state = new State();
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=============== MonoSpin Initialising ==============");
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= Version:  " + std::string(VERSION));
-	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision:" + std::string(VERSION_REVISION));
+	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision: " + std::string(VERSION_REVISION));
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
 
   //--- Read Log Levels
@@ -63,45 +65,38 @@ void init()
   // Create the chain
   auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
   sv.push_back(s1);
-  c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+  state->c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
   //-------------------------------------------------------------------------------
 
   // SIB optimizer
-  optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
+  state->optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
   
   // Allow iterations
-  c->images[0]->iteration_allowed = true;
-  c->iteration_allowed = false;
+  state->c->active_image = state->active_image;
+  state->c->images[state->c->active_image]->iteration_allowed = true;
+  state->c->iteration_allowed = false;
 
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=============== MonoSpin Initialised ================");
   Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+  return state;
+}
 
+extern "C" double *getSpinDirections(State *state)
+{
+  // Return pointer to spins array
+  double * result = (double *)state->c->images[state->c->active_image]->spins.data();
+  return result;
 }
   
-extern "C" double *test(int n)
+extern "C" double *performIteration(State *state)
 {
-  // If not yet initialized, call init
-  static bool is_init = false;
-  if (!is_init)
-  {
-    init();
-    is_init = true;
-  }
-  
   // New Solver
-  auto g = new Engine::Solver_LLG(c, optim);
+  auto g = new Engine::Solver_LLG(state->c, state->optim);
   
   // n Iterations
   // for (int i=0; i<n; ++i) g->Iteration();
   g->Iteration();
 
-  // Return pointer to spins array
-  double * result = (double *)c->images[0]->spins.data();
-  return result;
-}
-
-int main(int argc, char ** argv)
-{
-  test(1);
+  return getSpinDirections(state);
 }

@@ -38,9 +38,9 @@
             <div class="well well-sm">
               <div class="text-center">
                 <div class="btn-group" role="group" aria-label="...">
-                  <button type="button" class="btn btn-default">Random</button>
-                  <button type="button" class="btn btn-default">Positive Z</button>
-                  <button type="button" class="btn btn-default">Negative Z</button>
+                  <button type="button" class="btn btn-default" id="button-random">Random</button>
+                  <button type="button" class="btn btn-default" id="button-plusz">(0, 0, 1)</button>
+                  <button type="button" class="btn btn-default" id="button-minusz">(0, 0, -1)</button>
                 </div>
               </div>
             </div>
@@ -63,26 +63,26 @@
                 <div class="form-group">
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> Up/Down
+                      <input type="checkbox" id="input-skyrmion-updown"> up/down
                     </label>
                   </div>
-                  <div class="checkbox col-sm-6">
+                  <div class="checkbox col-sm-6" id="input-skyrmion-rl">
                     <label>
                       <input type="checkbox"> R/L
                     </label>
                   </div>
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> Achiral
+                      <input type="checkbox" id="input-skyrmion-achiral"> achiral
                     </label>
                   </div>
                   <div class="checkbox col-sm-6">
                     <label>
-                      <input type="checkbox"> exp
+                      <input type="checkbox" id="input-skyrmion-exp"> experimental
                     </label>
                   </div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Create Skyrmion</button>
+                <button type="button" class="btn btn-block btn-default" id="button-skyrmion-create">Create Skyrmion</button>
               </form>
             </div>
             <h5>Spin Spiral</h5>
@@ -96,13 +96,13 @@
                   <label for="input-spinspiral-angle" class="col-sm-3 control-label">Angle: </label><div class="col-sm-9"><input type="text" id="input-spinspiral-angle" class="form-control" value="90" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option>Real Lattice</option><option>Reciprocal Real Lattice</option><option>Real Space</option></select></div>
+                  <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option value="Real Lattice">Real Lattice</option><option value="Reciprocal Lattice">Reciprocal Real Lattice</option><option value="Real Space">Real Space</option></select></div>
                 </div>
                 <div class="form-group">
                   <label for="input-spinspiral-qx" class="col-sm-3 control-label">q: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-qx" class="form-control" value="0" /></div>
                   <div class="col-sm-3"><input type="text" id="input-spinspiral-qy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-qz" class="form-control" value="0" /></div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Create Spin Spiral</button>
+                <button type="button" class="btn btn-block btn-default" id="button-spinspiral-create">Create Spin Spiral</button>
               </form>
             </div>
             <h5>Domain Wall</h5>
@@ -116,11 +116,17 @@
                   <label for="input-domainwall-borderx" class="col-sm-3 control-label">Border: </label><div class="col-sm-3"><input type="text" id="input-domainwall-borderx" class="form-control" value="0" /></div>
                   <div class="col-sm-3"><input type="text" id="input-domainwall-bordery" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-borderz" class="form-control" value="0" /></div>
                 </div>
-                <button type="button" class="btn btn-block btn-default">Greater</button>
-                <button type="button" class="btn btn-block btn-default">Create Domain Wall</button>
+                <div class="form-group">
+                  <div class="radio col-sm-6">
+                    <label><input type="radio" name="input-domain-wall-lessergreater">Lesser</label>
+                  </div>
+                  <div class="radio col-sm-6">
+                    <label><input type="radio" name="input-domain-wall-lessergreater" checked id="input-domainwall-greater">Greater</label>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-block btn-default" id="button-domainwall-create">Create Domain Wall</button>
               </form>
             </div>
-
           </div>
         </div>
       </div>
@@ -173,98 +179,95 @@
                 <div class="form-group">
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked"> Periodical a
+                      <input type="checkbox" checked="checked" id="input-periodical-a"> Periodical a
                     </label>
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked"> Periodical b
+                      <input type="checkbox" checked="checked" id="input-periodical-b"> Periodical b
                     </label>
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox"> Periodical c
+                      <input type="checkbox" id="input-periodical-c"> Periodical c
                     </label>
                   </div>
                 </div>
+                <div class="form-group">
+                  <label for="input-externalfield-muspin" class="col-sm-10 control-label">mu_spin: </label><div class="col-sm-2"><input type="text" id="input-externalfield-muspin" class="form-control" value="2" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-6">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" checked="checked" id="input-externalfield">External Field
+                      </label>
+                    </div>
+                  </div>
+                  <label for="input-externalfield" class="col-sm-4 control-label">Magnitude</label><div class="col-sm-2"><input type="text" id="input-externalfield-magnitude" class="form-control" value="25" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-externalfield-directionx" class="col-sm-6 control-label">Direction: </label><div class="col-sm-2"><input type="text" id="input-externalfield-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-2"><input type="text" id="input-externalfield-directiony" class="form-control" value="0" /></div><div class="col-sm-2"><input type="text" id="input-externalfield-directionz" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" checked="checked" id="input-exchange">Exchange
+                      </label>
+                    </div>
+                  </div>
+                  <label for="input-dmi-magnitude" class="col-sm-4 control-label">Magnitudes</label>
+                  <div class="col-sm-2"><input type="text" id="input-exchangemagnitudes1" class="form-control" value="10" /></div><div class="col-sm-2"><input type="text" id="input-exchangemagnitudes2" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-6">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" checked="checked">DMI
+                      </label>
+                    </div>
+                  </div>
+                  <label for="input-dmi-magnitude" class="col-sm-4 control-label">Magnitude</label><div class="col-sm-2"><input type="text" id="input-dmi-magnitude" class="form-control" value="6" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-6">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" checked="checked" id="input-anisotropy">Anisotropy
+                      </label>
+                    </div>
+                  </div>
+                  <label for="input-anisotropy-magnitude" class="col-sm-4 control-label">Magnitude</label><div class="col-sm-2"><input type="text" id="input-anisotropy-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-anisotropy-directionx" class="col-sm-6 control-label">Direction: </label><div class="col-sm-2"><input type="text" id="input-anisotropy-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-2"><input type="text" id="input-anisotropy-directiony" class="form-control" value="0" /></div><div class="col-sm-2"><input type="text" id="input-anisotropy-directionz" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-6">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" checked="checked" id="input-spintorque">Spin Torque
+                      </label>
+                    </div>
+                  </div>
+                  <label for="input-spintorque-magnitude" class="col-sm-4 control-label">Magnitude:</label><div class="col-sm-2"><input type="text" id="input-spintorque-magnitude" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-spintorque-directionx" class="col-sm-6 control-label">Polarization: </label><div class="col-sm-2"><input type="text" id="input-spintorque-directionx" class="form-control" value="1" /></div>
+                  <div class="col-sm-2"><input type="text" id="input-spintorque-directiony" class="form-control" value="0" /></div><div class="col-sm-2"><input type="text" id="input-spintorque-directionz" class="form-control" value="0" /></div>
+                </div>
+                <div class="form-group">
+                <div class="col-sm-10">
                 <div class="checkbox">
                   <label>
-                    <input type="checkbox" checked="checked">External Field
+                    <input type="checkbox" id="input-temperature">Temperature
                   </label>
                 </div>
-                <div class="form-group">
-                  <label for="input-externalfield" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-externalfield" class="form-control" value="25" /></div>
                 </div>
-                <div class="form-group">
-                  <label for="input-externalfield-muspin" class="col-sm-3 control-label">mu_spin: </label><div class="col-sm-9"><input type="text" id="input-externalfield-muspin" class="form-control" value="2" /></div>
-                </div>
-                <div class="form-group">
-                  <label for="input-externalfield-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-externalfield-directionx" class="form-control" value="0" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-externalfield-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-externalfield-directionz" class="form-control" value="1" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">Exchange Magnitudes
-                  </label>
-                </div>
-                <div class="form-group">
-                  <div class="col-sm-4 col-sm-offset-3"><input type="text" id="input-exchangemagnitudes1" class="form-control" value="10" /></div><div class="col-sm-4 col-sm-offset-1"><input type="text" id="input-exchangemagnitudes2" class="form-control" value="0" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">DMI Magnitude
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-dmi-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-dmi-magnitude" class="form-control" value="6" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">Anisotropy Magnitude
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-anisotropy-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-anisotropy-magnitude" class="form-control" value="0" /></div>
-                </div>
-                <div class="form-group">
-                  <label for="input-anisotropy-magnitude-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directionx" class="form-control" value="0" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-anisotropy-magnitude-directionz" class="form-control" value="1" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">Spin Torque Magnitude
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-spintorque-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-spintorque-magnitude" class="form-control" value="0" /></div>
-                </div>
-                <div class="form-group">
-                  <label for="input-anisotropy-magnitude-directionx" class="col-sm-3 control-label">Polarization: </label><div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directionx" class="form-control" value="1" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spintorque-magnitude-directionz" class="form-control" value="0" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">BQE Magnitude
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-bqe-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-bqe-magnitude" class="form-control" value="0" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" checked="checked">FourSpin Magnitude
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-fourspin-magnitude" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-fourspin-magnitude" class="form-control" value="0" /></div>
-                </div>
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox">Temperature
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="input-temperature" class="col-sm-3 control-label"></label><div class="col-sm-9"><input type="text" id="input-temperature" class="form-control" value="0" /></div>
+                  <div class="col-sm-2"><input type="text" id="input-temperature-value" class="form-control" value="0" /></div>
                 </div>
               </form>
             </div>
@@ -298,7 +301,7 @@
                   <label for="input-llg-damping" class="col-sm-6 control-label">Damping: </label><div class="col-sm-6"><input type="text" id="input-llg-damping" class="form-control" value="0.3" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><input type="text" id="input-llg-timestep" class="form-control" value="0.001" /></div>
+                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><input type="text" id="input-llg-timestep" class="form-control" value="0.01" /></div>
                 </div>
               </form>
             </div>
@@ -357,6 +360,11 @@
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
+                      <input type="checkbox" checked="checked" id="input-show-boundingbox"> Show Bounding Box
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
                       <input type="checkbox" checked="checked" id="input-show-coordinatesystem"> Show Coordinate System
                     </label>
                   </div>
@@ -371,17 +379,12 @@
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere
-                    </label>
-                  </div>
-                  <div class="checkbox col-sm-12">
-                    <label>
-                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget-background"> Show Sphere as Background
+                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere/Surface Miniview
                     </label>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="select-colormap" class="col-sm-6 control-label">Spin Sphere Position</label>
+                  <label for="select-colormap" class="col-sm-6 control-label">Miniview Position</label>
                   <div class="col-sm-6">
                     <select id="select-spinspherewidget-position">
                       <option value="[0, 0.05, 0.2, 0.2]" selected="selected">Bottom left</option>
@@ -438,7 +441,6 @@
                 </div>
               </form>
             </div>
-
           </div>
         </div>
       </div>

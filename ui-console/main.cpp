@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Started =================");
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= Version:  " + std::string(VERSION));
-	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision:" + std::string(VERSION_REVISION));
+	Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision: " + std::string(VERSION_REVISION));
 	Log.Send(Log_Level::ALL, Log_Sender::ALL, "====================================================");
 
 	try {

@@ -43,6 +43,21 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 include_directories(${PROJECT_SOURCE_DIR}/include
 					${CORE_INCLUDE_DIRS})
 
+######### Declare File groups ###############
+### Header Gropus
+set(HEADER_UI_WEB_ROOT)
+### Source Groups
+set(SOURCE_UI_WEB_ROOT)
+#############################################
+
+
+######### Add Subdirectories
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(${PROJECT_SOURCE_DIR}/include)
+#############################################
+
+
+
 ### Create Core Interface
 # add_library( coreinterface STATIC main_js.cxx )
 
@@ -69,8 +84,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 # add_custom_target(corejs ALL DEPENDS core.js coreinterface)
 
 
-add_executable( corejs main_js.cxx )
+add_executable( corejs main_js.cxx
+				${HEADER_UI_WEB_ROOT}
+				${SOURCE_UI_WEB_ROOT})
+
 target_link_libraries( corejs core )
+
 set_target_properties( corejs PROPERTIES OUTPUT_NAME "core" )
 
 
