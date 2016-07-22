@@ -16,6 +16,8 @@
 #include "Solver_LLG.h"
 #include "Solver_GNEB.h"
 
+#include "Interface_State.h"
+
 class QAction;
 class QMenu;
 class QPlainTextEdit;
@@ -27,7 +29,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     Q_OBJECT
 
 public:
-    MainWindow(std::shared_ptr<Data::Spin_System_Chain> c);
+    MainWindow(State * state);
 	//bool eventFilter(QObject *object, QEvent *event);
 
 protected:

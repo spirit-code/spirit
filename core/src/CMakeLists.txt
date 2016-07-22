@@ -1,5 +1,6 @@
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/data)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/engine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/interface)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/utility)
 
 set(SOURCE_CORE_ROOT
@@ -15,6 +16,11 @@ set(SOURCE_CORE_DATA
 
 set(SOURCE_CORE_ENGINE
     ${SOURCE_CORE_ENGINE}
+    PARENT_SCOPE
+)
+
+set(SOURCE_CORE_INTERFACE
+    ${SOURCE_CORE_INTERFACE}
     PARENT_SCOPE
 )
 

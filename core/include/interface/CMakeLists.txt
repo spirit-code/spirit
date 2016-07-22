@@ -1,5 +1,5 @@
-set(HEADER_UI_WEB_ROOT
-	${HEADER_UI_WEB_ROOT}
+set(HEADER_CORE_INTERFACE
+	${HEADER_CORE_INTERFACE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_State.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Configurations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Hamiltonian.h

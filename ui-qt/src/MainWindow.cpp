@@ -14,9 +14,9 @@
 
 #include <thread>
 
-MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
+MainWindow::MainWindow(State * state)
 {
-	this->c = c;
+	this->c = state->c;
 	this->s = this->c->images[this->c->active_image];
 	this->spinWidget = new Spin_Widget(this->c);
 	//this->spinWidgetGL = new Spin_Widget_GL(s);
