@@ -20,10 +20,11 @@
 
 using Data::Spin_System;
 
-Spin_Widget::Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *parent) : QOpenGLWidget(parent)
+Spin_Widget::Spin_Widget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
-	this->c = c;
-	this->s = c->images[c->active_image];
+	this->state = state;
+	this->c = this->state->c;
+	this->s = this->state->active_image;
 
 	setFocusPolicy(Qt::StrongFocus);
 

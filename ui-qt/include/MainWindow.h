@@ -29,7 +29,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     Q_OBJECT
 
 public:
-    MainWindow(State * state);
+    MainWindow(std::shared_ptr<State> state);
 	//bool eventFilter(QObject *object, QEvent *event);
 
 protected:
@@ -84,6 +84,7 @@ private:
     QString strippedName(const QString &fullFileName);*/
     
     //SpinWidget *spins;
+	std::shared_ptr<State> state;
 	std::shared_ptr<Data::Spin_System> s;
 	std::shared_ptr<Data::Spin_System> image_clipboard;
 	std::shared_ptr<Data::Spin_System> localcopy_s;

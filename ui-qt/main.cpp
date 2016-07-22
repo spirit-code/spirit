@@ -23,6 +23,7 @@
 #include "Logging.h"
 #include "Threading.h"
 #include "Exception.h"
+#include "Signal.h"
 
 #include "Interface_State.h"
 
@@ -32,7 +33,7 @@ using namespace Engine;
 using namespace Utility;
 
 // Initialise Global Variables
-std::shared_ptr<Data::Spin_System_Chain> c;
+std::shared_ptr<State> state;
 Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
 std::map<std::shared_ptr<Data::Spin_System>, std::thread> Utility::Threading::llg_threads = std::map<std::shared_ptr<Data::Spin_System>, std::thread>();
 std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threading::gneb_threads = std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread>();
@@ -40,16 +41,16 @@ std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threadi
 // Main
 int main(int argc, char ** argv)
 {
+	// Register SigInt
+	signal(SIGINT, Signal::Handle_SigInt);
+	
 	//--- Config Files
 	//const char * cfgfile = "input/markus-paper.cfg";
 	//const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
 	const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 
 	//--- Initialise State
-	auto state = setupState(cfgfile);
-
-	//--- Read Log Levels
-	IO::Log_Levels_from_Config(cfgfile);
+	state = std::shared_ptr<State>(setupState(cfgfile));
 	
 	//---------------------- initialize spin_system_parts ---------------------------
 	std::string spinsfile = "input/anisotropic/achiral.txt";
@@ -99,9 +100,9 @@ int main(int argc, char ** argv)
 	sv.push_back(s5);
 	sv.push_back(s6);
 	sv.push_back(s7);
-	c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+	state->c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
 	// Create transition of images
-	Utility::Configuration_Chain::Homogeneous_Rotation(c, s1->spins, s7->spins);
+	Utility::Configuration_Chain::Homogeneous_Rotation(state->c, s1->spins, s7->spins);
 	//-------------------------------------------------------------------------------
 	
 	//------------------------ User Interface ---------------------------------------

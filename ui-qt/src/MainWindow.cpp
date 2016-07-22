@@ -14,19 +14,23 @@
 
 #include <thread>
 
-MainWindow::MainWindow(State * state)
+MainWindow::MainWindow(std::shared_ptr<State> state)
 {
-	this->c = state->c;
-	this->s = this->c->images[this->c->active_image];
-	this->spinWidget = new Spin_Widget(this->c);
+	// State
+	this->state = state;
+	this->c = this->state->c;
+	this->s = this->state->active_image;
+	// Widgets
+	this->spinWidget = new Spin_Widget(this->state);
 	//this->spinWidgetGL = new Spin_Widget_GL(s);
-	this->settingsWidget = new SettingsWidget(this->c);
-	this->plotsWidget = new PlotsWidget(this->c);
-	this->debugWidget = new DebugWidget(this->c);
+	this->settingsWidget = new SettingsWidget(this->state);
+	this->plotsWidget = new PlotsWidget(this->state);
+	this->debugWidget = new DebugWidget(this->state);
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
 
+	// Fix text size on OSX
     #ifdef Q_OS_MAC
         this->setStyleSheet("QWidget{font-size:10pt}");
     #else
