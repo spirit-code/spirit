@@ -29,8 +29,28 @@ ArrowSpinRenderer::~ArrowSpinRenderer() {
   glDisableVertexAttribArray(3);
 }
 
-void ArrowSpinRenderer::updateOptions() {
-  // TODO: implement updateOptions
+void ArrowSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  bool updateShader = false;
+  bool updateVertices = false;
+  for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
+    if (*it == ISpinRendererOptions::COLORMAP_IMPLEMENTATION) {
+      updateShader = true;
+    } else if (*it == ArrowSpinRendererOptions::CONE_RADIUS) {
+      updateVertices = true;
+    } else if (*it == ArrowSpinRendererOptions::CONE_HEIGHT) {
+      updateVertices = true;
+    } else if (*it == ArrowSpinRendererOptions::CYLINDER_RADIUS) {
+      updateVertices = true;
+    } else if (*it == ArrowSpinRendererOptions::CYLINDER_HEIGHT) {
+      updateVertices = true;
+    }
+  }
+  if (updateShader) {
+    _updateShaderProgram();
+  }
+  if (updateVertices) {
+    _updateVertexData();
+  }
 }
 
 void ArrowSpinRenderer::initGL() {
@@ -68,12 +88,16 @@ void ArrowSpinRenderer::initGL() {
 
 void ArrowSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                     const std::vector<glm::vec3>& directions) {
+  assert(!glGetError());
   glBindVertexArray(_vao);
   _numInstances = positions.size();
+  assert(!glGetError());
   glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STREAM_DRAW);
+  assert(!glGetError());
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
+  assert(!glGetError());
 }
 
 void ArrowSpinRenderer::draw(double aspectRatio) const {
@@ -83,11 +107,11 @@ void ArrowSpinRenderer::draw(double aspectRatio) const {
   glBindVertexArray(_vao);
   glUseProgram(_program);
   
-  glm::vec2 zRange = {-1, 1};
-  double verticalFieldOfView = 45;
-  glm::vec3 cameraPosition = {14.5, 14.5, 30};
-  glm::vec3 centerPosition {14.5, 14.5, 0};
-  glm::vec3 upVector = {0, 1, 0};
+  glm::vec2 zRange = _options.get<ISpinRendererOptions::Z_RANGE>();
+  double verticalFieldOfView = _options.get<ISpinRendererOptions::VERTICAL_FIELD_OF_VIEW>();
+  glm::vec3 cameraPosition = _options.get<ISpinRendererOptions::CAMERA_POSITION>();
+  glm::vec3 centerPosition = _options.get<ISpinRendererOptions::CENTER_POSITION>();
+  glm::vec3 upVector = _options.get<ISpinRendererOptions::UP_VECTOR>();
   
   glm::mat4 projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
   glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
@@ -106,10 +130,11 @@ void ArrowSpinRenderer::_updateShaderProgram() {
     glDeleteProgram(_program);
   }
   std::string vertexShaderSource =
-#include "vertex.txt"
-  + getColormapImplementation("hsv");
+#include "vertex.arrows.txt"
+  ;
+  vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
   std::string fragmentShaderSource =
-#include "fragment.txt"
+#include "fragment.arrows.txt"
   ;
   GLuint program = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition", "ivNormal", "ivInstanceOffset", "ivInstanceDirection"});
   if (program) {
@@ -118,11 +143,11 @@ void ArrowSpinRenderer::_updateShaderProgram() {
 }
 
 void ArrowSpinRenderer::_updateVertexData() {
-  unsigned int levelOfDetail = 20;
-  double coneHeight = 0.6;
-  double coneRadius = 0.25;
-  double cylinderHeight = 0.7;
-  double cylinderRadius = 0.125;
+  unsigned int levelOfDetail = _options.get<ArrowSpinRendererOptions::LEVEL_OF_DETAIL>();
+  double coneHeight = _options.get<ArrowSpinRendererOptions::CONE_HEIGHT>();
+  double coneRadius = _options.get<ArrowSpinRendererOptions::CONE_RADIUS>();
+  double cylinderHeight = _options.get<ArrowSpinRendererOptions::CYLINDER_HEIGHT>();
+  double cylinderRadius = _options.get<ArrowSpinRendererOptions::CYLINDER_RADIUS>();
   
   // Enforce valid range
   if (levelOfDetail < 3) {

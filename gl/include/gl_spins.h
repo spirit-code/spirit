@@ -1,6 +1,11 @@
 #ifndef GL_SPINS_H
 #define GL_SPINS_H
 
+#include <array>
+#include <chrono>
+#include <memory>
+#include <queue>
+
 #ifndef __gl_h_
 #include <glad/glad.h>
 #endif
@@ -12,39 +17,52 @@
 
 class ISpinRenderer;
 
+class FPSCounter {
+public:
+  void tick();
+  double getFramerate() const;
+private:
+  int _max_n = 60;
+  std::chrono::duration<double> _n_frame_duration = std::chrono::duration<double>::zero();
+  std::chrono::steady_clock::time_point _previous_frame_time_point;
+  std::queue<std::chrono::duration<double>> _frame_durations;
+};
+
+
 class GLSpins
 {
 public:
-    GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height);
-    ~GLSpins();
-
-    void rotate_model(float angle);
-    void camera_updated();
-    void update_projection_matrix(int width, int height);
-    void draw();
+  enum CameraMovementModes {
+    TRANSLATE,
+    ROTATE
+  };
+  
+  GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height);
+  ~GLSpins();
+  void draw();
   void update_spin_system(std::shared_ptr<Data::Spin_System> s);
 
-    Camera camera;
+  void mouseMove(const glm::vec2& position_before, const glm::vec2& position_after, CameraMovementModes mode);
+  void mouseScroll(const double& wheel_delta);
+  void setFramebufferSize(double width, double height);
+  double getFramerate() const;
 
 private:
-	std::shared_ptr<Data::Spin_System> s;
-  std::shared_ptr<ISpinRenderer> renderer;
-	GLuint nos;
-	glm::vec3 center;
-	glm::vec3 bounds_min;
-	glm::vec3 bounds_max;
-
+  std::shared_ptr<Data::Spin_System> s;
+  std::vector<std::pair<std::shared_ptr<ISpinRenderer>, std::array<double, 4>>> renderers;
+  GLuint nos;
+  glm::vec3 center;
+  glm::vec3 bounds_min;
+  glm::vec3 bounds_max;
+  Camera _camera;
+  FPSCounter _fps_counter;
+  double _width;
+  double _height;
   
-    glm::mat4 projection_matrix;
-    glm::mat4 model_matrix;
-    glm::mat4 mv_matrix;
-    glm::mat4 mvp_matrix;
-    glm::mat3 normal_mv_matrix;
-
-    // Light color
-    GLfloat light_color[3] = {1.0f, 1.0f, 1.0f};
-    // Light direction given in camera coordinates (coordinate system after applying model and view matrix)
-    GLfloat light_direction_cameraspace[3] = {-0.57735027f, 0.57735027f, 0.57735027f};
+  // Light color
+  GLfloat light_color[3] = {1.0f, 1.0f, 1.0f};
+  // Light direction given in camera coordinates (coordinate system after applying model and view matrix)
+  GLfloat light_direction_cameraspace[3] = {-0.57735027f, 0.57735027f, 0.57735027f};
 
 };
 

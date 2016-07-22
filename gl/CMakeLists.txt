@@ -58,12 +58,12 @@ source_group("shaders" FILES  ${PROJECT_SOURCE_DIR}/shaders/vertex.shader ${PROJ
 ### With this conversion we can read the .txt files into the code statically
 add_custom_target (shaders
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.shader
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.txt
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.arrows.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.arrows.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.shader
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.txt
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.arrows.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.arrows.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/hsv.colormap.shader
@@ -72,6 +72,30 @@ add_custom_target (shaders
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/redblue.colormap.shader
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/redblue.colormap.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.surface.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.surface.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.surface.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.surface.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.sphere_points.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.sphere_points.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.sphere_points.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.sphere_points.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.sphere_background.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.sphere_background.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.sphere_background.shader
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.sphere_background.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     WORKING_DIR ${PROJECT_SOURCE_DIR})
 
