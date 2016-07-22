@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- GL ------------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -51,9 +54,13 @@ source_group("src" FILES  ${SOURCE_GL_ROOT})
 source_group("shaders" FILES  ${PROJECT_SOURCE_DIR}/shaders/vertex.shader ${PROJECT_SOURCE_DIR}/shaders/fragment.shader)
 #############################################
 
+######### Tell CMake to create the executable
+add_library( gl STATIC
+    ${HEADER_GL_ROOT}
+    ${SOURCE_GL_ROOT})
+#############################################
 
-
-
+######### Create converted shader .txt files
 ### Convert .shader files to .txt files inside R"()"
 ### With this conversion we can read the .txt files into the code statically
 add_custom_target (shaders
@@ -66,20 +73,24 @@ add_custom_target (shaders
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     WORKING_DIR ${PROJECT_SOURCE_DIR})
-
-### Custom target to create dependency on shaders, so that the custom command is executed
-# add_custom_target(corejs ALL DEPENDS core.js coreinterface)
-
-######### Tell CMake to create the executable
-add_library( gl STATIC
-    ${HEADER_GL_ROOT}
-    ${SOURCE_GL_ROOT})
-#############################################
-
 add_dependencies(gl shaders)
+#############################################
 
 ######### Export
 set(GL_LIBRARIES    gl PARENT_SCOPE)
 set(GL_INCLUDE_DIRS ${GL_INCLUDE_DIRS} PARENT_SCOPE)
 set(HEADER_GL_ROOT  ${HEADER_GL_ROOT} PARENT_SCOPE)
 set(SOURCE_GL_ROOT  ${SOURCE_GL_ROOT} PARENT_SCOPE)
+#############################################
+
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+    MESSAGE( STATUS ">> Headers:                    " ${HEADER_GL_ROOT} )
+    MESSAGE( STATUS ">> Sources:                    " ${SOURCE_GL_ROOT} )
+endif ()
+#############################################
+
+
+MESSAGE( STATUS ">> --------------------- GL done -------------------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

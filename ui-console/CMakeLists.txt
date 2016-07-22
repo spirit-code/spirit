@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - Console --------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -74,3 +77,13 @@ if (WIN32)
 	configure_file(${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${EXECUTABLE_NAME}.vcxproj.user @ONLY)
 endif()
 #############################################
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+	MESSAGE( STATUS ">> Headers:                    " ${HEADER_UI_CONSOLE_ROOT} )
+	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_UI_CONSOLE_ROOT} )
+endif ()
+#############################################
+
+MESSAGE( STATUS ">> --------------------- UI - Console done ---------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

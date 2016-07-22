@@ -5,8 +5,12 @@ cmake_minimum_required(VERSION 2.8.11)
 
 ######### Build Flags #######################
 ### These decide which projects are built
-option( BUILD_UI_WEB  "Build the JavaScript library for the Web UI."             OFF )
-option( UI_USE_QT     "Build the QT User Interface instead of console version."  ON  )
+option( BUILD_UI_WEB   "Build the JavaScript library for the Web UI."              OFF )
+option( UI_USE_QT      "Build the QT User Interface instead of console version."   ON  )
+### Bundle option
+option( OSX_BUNDLE_APP "Bundle the executable with its dependencies into a .app."  OFF )
+### CMake Verbosity
+option( PRINT_SOURCES  "Print Headers and Sources from Cmake."                     OFF )
 #############################################
 
 
@@ -62,15 +66,12 @@ if(NOT BUILD_UI_WEB)
 	if (UI_USE_QT)
 		add_subdirectory(gl)
 		add_subdirectory(ui-qt)
-		MESSAGE(STATUS ">> Chose QT UI")
 	else()
 		add_subdirectory(ui-console)
-		MESSAGE(STATUS ">> Chose Console UI")
 	endif()
 endif()
 if(BUILD_UI_WEB)
 	add_subdirectory(ui-web)
-		MESSAGE(STATUS ">> Chose Web UI")
 endif()
 #############################################
 

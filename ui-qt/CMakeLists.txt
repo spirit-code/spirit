@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - QT -------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -39,19 +42,14 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ######### QT Path ########################
 if (WIN32)
-    MESSAGE(STATUS ">> Apparently we are on Windows... Please check the CMAKE_PREFIX_PATH")
+    MESSAGE(STATUS ">> We are on Windows... Please check the CMAKE_PREFIX_PATH")
 	set(CMAKE_PREFIX_PATH "C:/Qt/qt-5.5.1/qtbase/")
 elseif (APPLE)
-    MESSAGE(STATUS ">> Apparently we are on APPLE...")
     set(CMAKE_PREFIX_PATH "/usr/local/qt-5.5/")
 elseif (UNIX)
-    MESSAGE(STATUS ">> Apparently we are on UNIX...")
     set(CMAKE_PREFIX_PATH "/usr/local/qt-5.5/")
-else()
-    MESSAGE(STATUS ">> Apparently we are on neither on Windows nor UNIX...")
-	set(CMAKE_PREFIX_PATH "/usr/local/qt-5.5/")
 endif()
-MESSAGE( STATUS ">> CMAKE_PREFIX_PATH:               " ${CMAKE_PREFIX_PATH} )
+MESSAGE( STATUS ">> CMAKE_PREFIX_PATH:              " ${CMAKE_PREFIX_PATH} )
 ##########################################
 
 
@@ -145,3 +143,14 @@ if (WIN32)
 	configure_file(${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${EXECUTABLE_NAME}.vcxproj.user @ONLY)
 endif()
 #############################################
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+    MESSAGE( STATUS ">> Headers:                    " ${HEADER_UI_QT_ROOT} )
+    MESSAGE( STATUS ">> Sources:                    " ${SOURCE_UI_QT_ROOT} )
+    MESSAGE( STATUS ">> UI Files:                   " ${UI_SOURCE} )
+endif ()
+#############################################
+
+MESSAGE( STATUS ">> --------------------- UI - QT done --------------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

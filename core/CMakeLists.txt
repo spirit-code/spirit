@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- Core ----------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -101,3 +104,15 @@ set(SOURCE_CORE_DATA    ${SOURCE_CORE_DATA} PARENT_SCOPE)
 set(SOURCE_CORE_ENGINE  ${SOURCE_CORE_ENGINE} PARENT_SCOPE)
 set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
 #############################################
+
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+	MESSAGE( STATUS ">> Headers:                    " ${HEADER_CORE_ROOT} ${HEADER_CORE_DATA} ${HEADER_CORE_ENGINE} ${HEADER_CORE_UTILITY} )
+	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_CORE_ROOT} ${SOURCE_CORE_DATA} ${SOURCE_CORE_ENGINE} ${SOURCE_CORE_UTILITY} )
+endif ()
+#############################################
+
+
+MESSAGE( STATUS ">> --------------------- Core done ------------------------------------ <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

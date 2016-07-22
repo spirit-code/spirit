@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - Web ------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -97,3 +100,15 @@ set_target_properties( corejs PROPERTIES OUTPUT_NAME "core" )
 ### Non-transpile version
 # add_executable(corejs main_js.cxx)
 # target_link_libraries(corejs core)
+
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+	MESSAGE( STATUS ">> Headers:                    " ${HEADER_UI_WEB_ROOT} )
+	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_UI_WEB_ROOT} )
+endif ()
+#############################################
+
+
+MESSAGE( STATUS ">> --------------------- UI - Web done -------------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
