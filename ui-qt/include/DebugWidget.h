@@ -23,8 +23,6 @@ public:
 	void UpdateFromLog();
 
 	std::shared_ptr<State> state;
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
 
 private slots:
 	void AllPressed();

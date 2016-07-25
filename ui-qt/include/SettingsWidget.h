@@ -22,8 +22,6 @@ public:
 	void SelectTab(int index);
 
 	std::shared_ptr<State> state;
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
 	bool greater;
 
 private:

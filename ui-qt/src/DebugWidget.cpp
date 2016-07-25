@@ -6,8 +6,6 @@
 DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
-	this->c = this->state->active_chain;
-	this->s = this->state->active_image;
     
 	// Setup User Interface
     this->setupUi(this);
@@ -35,8 +33,6 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
 
 void DebugWidget::update()
 {
-	this->s = this->c->images[this->c->active_image];
-
 	// Update the list of log entries
 	if (n_log_entries < Utility::Log.n_entries)
 	{

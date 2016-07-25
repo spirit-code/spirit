@@ -15,7 +15,7 @@ namespace Data
 
 		int noi;	// Number of Images
 		std::vector<std::shared_ptr<Spin_System>> images;
-		int active_image;
+		int idx_active_image;
 
 		// Parameters for GNEB Iterations
 		std::shared_ptr<Data::Parameters_GNEB> gneb_parameters;

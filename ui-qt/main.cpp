@@ -100,7 +100,9 @@ int main(int argc, char ** argv)
 	sv.push_back(s5);
 	sv.push_back(s6);
 	sv.push_back(s7);
+	// TODO: use interface function
 	state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+	state->noi = sv.size();
 	// Create transition of images
 	Utility::Configuration_Chain::Homogeneous_Rotation(state->active_chain, s1->spins, s7->spins);
 	//-------------------------------------------------------------------------------

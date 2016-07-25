@@ -85,10 +85,8 @@ private:
     
     //SpinWidget *spins;
 	std::shared_ptr<State> state;
-	std::shared_ptr<Data::Spin_System> s;
 	std::shared_ptr<Data::Spin_System> image_clipboard;
 	std::shared_ptr<Data::Spin_System> localcopy_s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
     Spin_Widget *spinWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;

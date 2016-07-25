@@ -11,7 +11,7 @@ namespace Data
 		//this->gneb_parameters = gneb_parameters;
 
 		this->iteration_allowed = iteration_allowed;
-		this->active_image = 0;
+		this->idx_active_image = 0;
 
 		this->climbing_image = std::vector<bool>(this->noi, false);
 		this->falling_image = std::vector<bool>(this->noi, false);

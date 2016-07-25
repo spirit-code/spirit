@@ -87,7 +87,7 @@ void Spin_Widget::mouseMoveEvent(QMouseEvent *event)
 void Spin_Widget::update()
 {
 	// Update the pointer to our Data
-	this->s = c->images[c->active_image];
+	this->s = this->state->active_image;
 	this->gl_spins->update_spin_system(this->s);
 
 	// Update Keyboard and Mouse Input
