@@ -16,7 +16,7 @@
 SettingsWidget::SettingsWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
-	this->c = this->state->c;
+	this->c = this->state->active_chain;
 	this->s = this->state->active_image;
 
 	// Setup User Interface

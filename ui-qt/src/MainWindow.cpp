@@ -18,7 +18,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 {
 	// State
 	this->state = state;
-	this->c = this->state->c;
+	this->c = this->state->active_chain;
 	this->s = this->state->active_image;
 	// Widgets
 	this->spinWidget = new Spin_Widget(this->state);

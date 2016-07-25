@@ -46,8 +46,8 @@ int main(int argc, char ** argv)
 	
 	//--- Config Files
 	//const char * cfgfile = "input/markus-paper.cfg";
-	//const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
+	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 
 	//--- Initialise State
 	state = std::shared_ptr<State>(setupState(cfgfile));
@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
 
 	//---------------------- set images' configurations -----------------------------
 	// Parameters
-	double dir[3] = { 1,0,0 };
+	double dir[3] = { 0,0,1 };
 	std::vector<double> pos = { 14.5, 14.5, 0 };
 	// Read Image from file
 	//Utility::IO::Read_Spin_Configuration(s1, spinsfile);
@@ -100,9 +100,9 @@ int main(int argc, char ** argv)
 	sv.push_back(s5);
 	sv.push_back(s6);
 	sv.push_back(s7);
-	state->c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+	state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
 	// Create transition of images
-	Utility::Configuration_Chain::Homogeneous_Rotation(state->c, s1->spins, s7->spins);
+	Utility::Configuration_Chain::Homogeneous_Rotation(state->active_chain, s1->spins, s7->spins);
 	//-------------------------------------------------------------------------------
 	
 	//------------------------ User Interface ---------------------------------------

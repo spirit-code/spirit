@@ -48,7 +48,7 @@ extern "C" State * setupState(const char * config_file)
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
-        state->c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+        state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
         //-------------------------------------------------------------------------------
     }
 	catch (Exception ex)
@@ -70,7 +70,7 @@ extern "C" State * setupState(const char * config_file)
     // Info
     state->noc = 1;
     state->noi = 1;
-    state->nos = state->c->noi;
+    state->nos = state->active_image->nos;
 
     // Solvers
     state->solvers_llg = std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Solver_LLG>>(state->noi));

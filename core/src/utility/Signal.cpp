@@ -20,10 +20,10 @@ namespace Utility
         if (state != nullptr)
         {
             Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-            state->c->iteration_allowed = false;
+            state->active_chain->iteration_allowed = false;
             for (int i = 0; i < state->noi; ++i)
             {
-                state->c->images[i]->iteration_allowed = false;
+                state->active_chain->images[i]->iteration_allowed = false;
             }
             Log.Append_to_File();
         }

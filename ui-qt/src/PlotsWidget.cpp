@@ -6,7 +6,7 @@
 PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
-	this->c = this->state->c;
+	this->c = this->state->active_chain;
     
 	// Setup User Interface
     this->setupUi(this);

@@ -23,7 +23,7 @@ using Data::Spin_System;
 Spin_Widget::Spin_Widget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
 	this->state = state;
-	this->c = this->state->c;
+	this->c = this->state->active_chain;
 	this->s = this->state->active_image;
 
 	setFocusPolicy(Qt::StrongFocus);

@@ -10,7 +10,7 @@
 
 void Hamiltonian_Set_Boundary_Conditions(State *state, bool periodical_a, bool periodical_b, bool periodical_c)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     s->hamiltonian->boundary_conditions[0] = periodical_a;
@@ -20,14 +20,14 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, bool periodical_a, bool p
 
 void Hamiltonian_Set_mu_s(State *state, float mu_s)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
     ham->mu_s = mu_s;
 }
 
 void Hamiltonian_Set_Field(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
@@ -53,7 +53,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, float normal_x, float 
 
 void Hamiltonian_Set_Exchange(State *state, int n_shells, float* jij)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     for (int i=0; i<n_shells; ++i)
@@ -64,7 +64,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, float* jij)
 
 void Hamiltonian_Set_DMI(State *state, float dij)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     ham->dij = dij;
@@ -72,7 +72,7 @@ void Hamiltonian_Set_DMI(State *state, float dij)
 
 void Hamiltonian_Set_Anisotropy(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
@@ -97,7 +97,7 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, float normal_x, f
 
 void Hamiltonian_Set_STT(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
 
     // Magnitude
     s->llg_parameters->stt_magnitude = magnitude;
@@ -121,7 +121,7 @@ void Hamiltonian_Set_STT(State *state, float magnitude, float normal_x, float no
 
 void Hamiltonian_Set_Temperature(State *state, float T)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     s->llg_parameters->temperature = T;
 }
 
@@ -131,7 +131,7 @@ void Hamiltonian_Set_Temperature(State *state, float T)
 
 void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical_a, bool * periodical_b, bool * periodical_c)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     *periodical_a = s->hamiltonian->boundary_conditions[0];
@@ -141,14 +141,14 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical_a, bool
 
 void Hamiltonian_Get_mu_s(State *state, float * mu_s)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
     *mu_s = ham->mu_s;
 }
 
 void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
@@ -163,7 +163,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, fl
 // TODO: do this correctly...
 void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     *n_shells = ham->n_neigh_shells;
@@ -176,7 +176,7 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
 
 void Hamiltonian_Get_DMI(State *state, float * dij)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     *dij = ham->dij;
@@ -184,7 +184,7 @@ void Hamiltonian_Get_DMI(State *state, float * dij)
 
 void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
@@ -198,7 +198,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal_
 
 void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
 
     // Magnitude
     *magnitude = s->llg_parameters->stt_magnitude;
@@ -210,6 +210,6 @@ void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal_x, floa
 
 void Hamiltonian_Get_Temperature(State *state, float * T)
 {
-    auto s = state->c->images[state->c->active_image];
+    auto s = state->active_image;
     *T = s->llg_parameters->temperature;
 }

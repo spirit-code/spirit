@@ -13,21 +13,26 @@
 //    simulation's state available.
 struct State
 {
+    // TODO: new main data container Spin_System_Chain_Collection
+    //std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
+
     // Main data container: a chain of Spin_Systems
     //    this needs to be replaced by a collection of chains for MMF
-    std::shared_ptr<Data::Spin_System_Chain> c;
+    std::shared_ptr<Data::Spin_System_Chain> active_chain; // TODO: rename into active_chain
     // Currently active Image
     std::shared_ptr<Data::Spin_System> active_image;
+
     // Info
     int nos /*Number of Spins*/, noi /*Number of Images*/, noc /*Number of Chains*/;
     int idx_active_image, idx_active_chain;
+    
     // The solvers
     //    max. noi*noc LLG solvers
-    std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>> solvers_llg;
+    std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>> solvers_llg; // [noc][noi]
     //    max. noc GNEB solvers
-    std::vector<std::shared_ptr<Engine::Solver_GNEB>> solvers_gneb;
+    std::vector<std::shared_ptr<Engine::Solver_GNEB>> solvers_gneb; // [noc]
     //    max. noc MMF solvers
-    std::vector<std::shared_ptr<Engine::Solver_MMF>> solvers_mmf;
+    std::vector<std::shared_ptr<Engine::Solver_MMF>> solvers_mmf; // [noc]
 };
 
 // setupState
