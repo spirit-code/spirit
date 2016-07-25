@@ -40,20 +40,9 @@ namespace Data
 		// tangents to be accessed by e.g. solver
 		std::vector<std::vector<double>> tangents;
 
-		// Update E and Rx
-		void Update_Data();
-
-		// Add an image to the chain, before idx
-		void Insert_Image_Before(int idx, std::shared_ptr<Data::Spin_System> system);
-		// Add an image to the chain, after idx
-		void Insert_Image_After(int idx, std::shared_ptr<Data::Spin_System> system);
-		// Replace image at idx
-		void Replace_Image(int idx, std::shared_ptr<Data::Spin_System> system);
-		// Delete an image
-		void Delete_Image(int idx);
 
 	private:
-		void Setup_Initial_Data();
+	
 	};
 }
 #endif

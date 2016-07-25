@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INTERFACE_CONFIGURATIONS_H
-#define INTERFACE_CONFIGURATIONS_H
+#ifndef INTERFACE_CHAIN_H
+#define INTERFACE_CHAIN_H
 
 #include "Interface_State.h"
 
@@ -8,10 +8,15 @@
 extern "C" void Chain_next_Image(State * state);
 extern "C" void Chain_prev_Image(State * state);
 
-// TODO: Place these into Interface_Collection (Spin_System_Chain_Collection)
-// extern "C" void Collection_next_Chain(State * state);
-// extern "C" void Collection_prev_Chain(State * state);
+// Insert/Replace/Delete images
+extern "C" void Chain_Insert_Image_Before(State * state, Data::Spin_System & image);
+extern "C" void Chain_Insert_Image_After(State * state, Data::Spin_System & image);
+extern "C" void Chain_Replace_Image(State * state, Data::Spin_System & image);
+extern "C" void Chain_Delete_Image(State * state, int idx);
 
+// Update Data (primarily for plots)
+extern "C" void Chain_Update_Data(State * state);
+extern "C" void Chain_Setup_Data(State * state);
 
 // TODO: how to handle shared pointers and vectors??
 

@@ -12,6 +12,8 @@
 #include "Timing.h"
 #include "Threading.h"
 
+#include "Interface_Chain.h"
+
 #include <thread>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
@@ -191,8 +193,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
-			// TODO: Should use Interface function here
-			this->state->active_chain->Delete_Image(idx);
+			Chain_Delete_Image(state.get(), idx);
 
 			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Cut image " + std::to_string(state->idx_active_image) + " to clipboard");
 		}
@@ -212,10 +213,9 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 
 		if (image_clipboard.get())
 		{
-			// TODO: use interface function
-			state->active_image = image_clipboard;
-			// TODO: should use interface function
-			state->active_chain->Replace_Image(state->idx_active_image, image_clipboard);
+			Chain_Replace_Image(state.get(), *image_clipboard);
+			// Update the chain's data (primarily for the plot)
+			Chain_Update_Data(state.get());
 			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image " + std::to_string(state->idx_active_image) + " from clipboard");
 		}
 		else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image " + std::to_string(state->idx_active_image) + " from clipboard but no image was found");
@@ -231,9 +231,10 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Left:
 				if (image_clipboard.get())
 				{
-					state->active_image = image_clipboard;
-					// TODO: should use interface function
-					this->state->active_chain->Insert_Image_Before(state->idx_active_image, image_clipboard);
+					// Insert Image
+					Chain_Insert_Image_Before(state.get(), *image_clipboard);
+					// Update the chain's data (primarily for the plot)
+    				Chain_Update_Data(state.get());
 					//this->previousImagePressed();
 					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(state->idx_active_image) + " from clipboard");
 				}
@@ -244,9 +245,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Right:
 				if (image_clipboard.get())
 				{
-					state->active_image = image_clipboard;
-					// TODO: should use interface function
-					this->state->active_chain->Insert_Image_After(state->idx_active_image, image_clipboard);
+					// Insert Image
+					Chain_Insert_Image_After(state.get(), *image_clipboard);
+					// Update the chain's data (primarily for the plot)
+    				Chain_Update_Data(state.get());
+					// Switch to the inserted image
 					this->nextImagePressed();
 					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(state->idx_active_image) + " from clipboard");
 				}
@@ -336,8 +339,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				int idx = state->idx_active_image;
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
-				// TODO: should use interface function
-				this->state->active_chain->Delete_Image(idx);
+				Chain_Delete_Image(state.get(), idx);
 
 				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Deleted image " + std::to_string(state->idx_active_image));
 			}
@@ -372,7 +374,7 @@ void MainWindow::playpausePressed()
 	this->return_focus();
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: playpause"));
 
-	this->state->active_chain->Update_Data();
+	Chain_Update_Data(state.get());
 
 	std::shared_ptr<Engine::Optimizer> optim;
 	if (this->comboBox_Optimizer->currentText() == "SIB")
@@ -461,10 +463,7 @@ void MainWindow::previousImagePressed()
 	if (state->idx_active_image > 0)
 	{
 		// Change active image!
-		// TODO: use interface function
-		//Chain_prev_Image(this->state);
-		state->idx_active_image--;
-		state->active_image = state->active_chain->images[state->idx_active_image];
+		Chain_prev_Image(this->state.get());
 		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
 		// Update Play/Pause Button
 		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
@@ -484,10 +483,8 @@ void MainWindow::nextImagePressed()
 	this->return_focus();
 	if (state->idx_active_image < this->state->noi-1)
 	{
-		//Chain_next_Image(this->state);
 		// Change active image
-		state->idx_active_image++;
-		state->active_image = state->active_chain->images[state->idx_active_image];
+		Chain_next_Image(this->state.get());
 		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
 		// Update Play/Pause Button
 		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");

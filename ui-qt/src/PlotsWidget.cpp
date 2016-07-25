@@ -2,6 +2,7 @@
 
 #include "PlotsWidget.h"
 #include "PlotWidget.h"
+#include "Interface_Chain.h"
 
 PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 {
@@ -19,7 +20,7 @@ PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 
 void PlotsWidget::RefreshClicked()
 {
-	this->state->active_chain->Update_Data();
+	Chain_Update_Data(this->state.get());
 	this->energyPlot->update();
 }
 
