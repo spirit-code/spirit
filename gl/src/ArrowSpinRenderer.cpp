@@ -130,11 +130,11 @@ void ArrowSpinRenderer::_updateShaderProgram() {
     glDeleteProgram(_program);
   }
   std::string vertexShaderSource =
-#include "vertex.arrows.txt"
+#include "arrows.vert.txt"
   ;
   vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
   std::string fragmentShaderSource =
-#include "fragment.arrows.txt"
+#include "arrows.frag.txt"
   ;
   GLuint program = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition", "ivNormal", "ivInstanceOffset", "ivInstanceDirection"});
   if (program) {

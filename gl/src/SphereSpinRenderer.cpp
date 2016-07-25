@@ -28,7 +28,6 @@ SphereSpinRenderer::~SphereSpinRenderer() {
 
 void SphereSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
   bool updateShader = false;
-  bool updateIndices = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
     if (*it == ISpinRendererOptions::COLORMAP_IMPLEMENTATION) {
       updateShader = true;
@@ -138,11 +137,11 @@ void SphereSpinRenderer::_updateShaderProgram() {
       glDeleteProgram(_program1);
     }
     std::string vertexShaderSource =
-  #include "vertex.sphere_points.txt"
+  #include "sphere_points.vert.txt"
     ;
     vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
     std::string fragmentShaderSource =
-  #include "fragment.sphere_points.txt"
+  #include "sphere_points.frag.txt"
     ;
     fragmentShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
     GLuint program1 = createProgram(vertexShaderSource, fragmentShaderSource, {"ivDirection"});
@@ -155,10 +154,10 @@ void SphereSpinRenderer::_updateShaderProgram() {
       glDeleteProgram(_program2);
     }
     std::string vertexShaderSource =
-  #include "vertex.sphere_background.txt"
+  #include "sphere_background.vert.txt"
     ;
     std::string fragmentShaderSource =
-  #include "fragment.sphere_background.txt"
+  #include "sphere_background.frag.txt"
     ;
     GLuint program2 = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition"});
     if (program2) {

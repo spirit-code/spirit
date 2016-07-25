@@ -108,11 +108,11 @@ void SurfaceSpinRenderer::_updateShaderProgram() {
     glDeleteProgram(_program);
   }
   std::string vertexShaderSource =
-#include "vertex.surface.txt"
+#include "surface.vert.txt"
   ;
   vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
   std::string fragmentShaderSource =
-#include "fragment.surface.txt"
+#include "surface.frag.txt"
   ;
   fragmentShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
   GLuint program = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition", "ivDirection"});

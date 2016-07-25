@@ -17,6 +17,9 @@
 #include "ArrowSpinRenderer.h"
 #include "SurfaceSpinRenderer.h"
 #include "SphereSpinRenderer.h"
+#include "BoundingBoxRenderer.h"
+#include "CombinedSpinRenderer.h"
+#include "CoordinateSystemRenderer.h"
 #include "utilities.h"
 
 #ifndef M_PI
@@ -152,7 +155,10 @@ _camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0)
   }
   
   std::array<double, 4> viewport = {0, 0, 1, 1};
-  std::shared_ptr<ISpinRenderer> renderer = std::make_shared<SphereSpinRenderer>();
+  std::vector<std::shared_ptr<ISpinRenderer>> r = {
+    std::make_shared<ArrowSpinRenderer>(),
+    std::make_shared<BoundingBoxRenderer>()};
+  std::shared_ptr<ISpinRenderer> renderer = std::make_shared<CombinedSpinRenderer>(r);
   Options<ISpinRenderer> options;
   options.set<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
   options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(30, 30));
@@ -160,11 +166,16 @@ _camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0)
   renderer->updateOptions(options);
   renderer->updateSpins(translations, directions);
   renderers.push_back({renderer, viewport});
-  std::shared_ptr<ISpinRenderer> renderer2 = std::make_shared<ArrowSpinRenderer>();
+  std::shared_ptr<ISpinRenderer> renderer2 = std::make_shared<SphereSpinRenderer>();
   renderer2->initGL();
   renderer2->updateOptions(options);
   renderer2->updateSpins(translations, directions);
   renderers.push_back({renderer2, {0, 0, 0.2, 0.2}});
+  std::shared_ptr<ISpinRenderer> renderer3 = std::make_shared<CoordinateSystemRenderer>();
+  renderer3->initGL();
+  renderer3->updateOptions(options);
+  renderer3->updateSpins(translations, directions);
+  renderers.push_back({renderer3, {0, 0.8, 0.2, 0.2}});
 
     // Dark blue background
     //glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -199,6 +210,19 @@ void GLSpins::draw() {
   options.set<ISpinRendererOptions::CAMERA_POSITION>(_camera.cameraPosition());
   options.set<ISpinRendererOptions::CENTER_POSITION>(_camera.centerPosition());
   options.set<ISpinRendererOptions::UP_VECTOR>(_camera.upVector());
+  options.set<BoundingBoxRendererOptions::POSITION>({
+    {g->bounds_min[0], g->bounds_min[1], g->bounds_min[2]},
+    {g->bounds_max[0], g->bounds_max[1], g->bounds_max[2]}
+  });
+  options.set<CoordinateSystemRendererOptions::ORIGIN>({
+    g->center[0], g->center[1], g->center[2]
+  });
+  options.set<CoordinateSystemRendererOptions::AXIS_LENGTH>({
+    fmax(fabs(g->bounds_max[0]-g->center[0]), 1.0),
+    fmax(fabs(g->bounds_max[1]-g->center[1]), 1.0),
+    fmax(fabs(g->bounds_max[2]-g->center[2]), 1.0)
+  });
+  glClear(GL_COLOR_BUFFER_BIT);
   for (auto it = renderers.begin(); it != renderers.end(); it++) {
     auto renderer = it->first;
     auto viewport = it->second;

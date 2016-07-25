@@ -1,6 +1,7 @@
 #ifndef ARROWSPINRENDERER_H
 #define ARROWSPINRENDERER_H
 #include "ISpinRenderer.h"
+#include "BoundingBoxRenderer.h"
 
 class ArrowSpinRenderer : public ISpinRenderer {
 public:

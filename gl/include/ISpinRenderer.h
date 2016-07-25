@@ -2,13 +2,14 @@
 #define ISPINRENDERER_H
 #include <vector>
 #include <array>
+#include <string>
 #include "glm/glm.hpp"
 #include "options.h"
 
 class ISpinRenderer {
 public:
   virtual ~ISpinRenderer() {};
-  void updateOptions(const Options<ISpinRenderer>& options);
+  virtual void updateOptions(const Options<ISpinRenderer>& options);
   virtual void initGL() = 0;
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions) = 0;

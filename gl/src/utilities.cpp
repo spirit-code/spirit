@@ -69,11 +69,11 @@ GLuint createProgram(const std::string& vertexShaderSource,
 std::string getColormapImplementation(const std::string& colormapName) {
   if (colormapName == "hsv") {
     return
-#include "hsv.colormap.txt"
+#include "colormap.hsv.txt"
     ;
   } else if (colormapName == "redblue") {
     return
-#include "redblue.colormap.txt"
+#include "colormap.redblue.txt"
     ;
   } else {
     return "vec3 colormap(vec3 direction) {return vec3(1.0, 1.0, 1.0);}";
