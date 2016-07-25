@@ -20,7 +20,6 @@ public:
 	PlotsWidget(std::shared_ptr<State> state);
 
 	std::shared_ptr<State> state;
-	std::shared_ptr<Data::Spin_System_Chain> c;
     
     PlotWidget * energyPlot;
 

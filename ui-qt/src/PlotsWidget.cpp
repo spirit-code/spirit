@@ -6,12 +6,11 @@
 PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
-	this->c = this->state->active_chain;
     
 	// Setup User Interface
     this->setupUi(this);
 
-    this->energyPlot = new PlotWidget(this->c);
+    this->energyPlot = new PlotWidget(this->state);
 	this->gridLayout_Energy_Plots->addWidget(energyPlot, 0, 0, 1, 1);
 
 	connect(this->pushButton_Refresh, SIGNAL(clicked()), this, SLOT(RefreshClicked()));
@@ -20,7 +19,7 @@ PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 
 void PlotsWidget::RefreshClicked()
 {
-	this->c->Update_Data();
+	this->state->active_chain->Update_Data();
 	this->energyPlot->update();
 }
 
