@@ -1,25 +1,10 @@
-#include <iostream>
-#include <string>
-#include <thread>
-#include <memory>
-#include <map>
-
-#include "Version.h"
-#include "Geometry.h"
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
-#include "Configurations.h"
-#include "Configuration_Chain.h"
-
-#include "Solver_LLG.h"
-#include "Solver_GNEB.h"
-
-#include "IO.h"
-#include "Logging.h"
 #include "Threading.h"
-#include "Exception.h"
 #include "Signal.h"
+
 #include "Interface_State.h"
+#include "Interface_Chain.h"
+#include "Interface_Configurations.h"
+#include "Interface_Transitions.h"
 
 // Use Core Namespaces
 using namespace Data;
@@ -35,80 +20,59 @@ std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threadi
 // Main
 int main(int argc, char ** argv)
 {
-	// Register SigInt
+
+	//--- Register SigInt
 	signal(SIGINT, Signal::Handle_SigInt);
 	
+	//---------------------- file names ---------------------------------------------
 	//--- Config Files
-	//const char * cfgfile = "input/markus-paper.cfg";
+	// const char * cfgfile = "input/markus-paper.cfg";
 	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	//const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
-	//const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
-
+	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
+	//--- Data Files
+	// std::string spinsfile = "input/anisotropic/achiral.txt";
+	// std::string chainfile = "input/chain.txt";
+	//-------------------------------------------------------------------------------
+	
 	//--- Initialise State
 	state = std::shared_ptr<State>(setupState(cfgfile));
-
-	//---------------------- initialize spin_system_parts ---------------------------
-	std::string spinsfile = "input/anisotropic/achiral.txt";
-	//std::unique_ptr<Data::Debug_Parameters> debug = IO::Debug_Parameters_from_Config(cfgfile);
-	//std::unique_ptr<Data::Geometry> geom = IO::Geometry_from_Config(cfgfile);
-	//std::unique_ptr<Data::LLG_Parameters> llg = IO::LLG_Parameters_from_Config(cfgfile);
-	//std::unique_ptr<Data::Hamiltonian_Isotropic> ham_iso = IO::Hamiltonian_Isotropic_from_Config(cfgfile, *geom, *debug);	// sowas ist KOKOLORES !!! daf�r gibts shared_ptr...
-	//std::unique_ptr<Data::Hamiltonian_Anisotropic> ham_aniso = IO::Hamiltonian_Anisotropic_from_Config(cfgfile);
+//---------------------- initialize spin_systems --------------------------------
+	// Copy the system a few times
+	auto sc = Spin_System(*state->active_image);
+	for (int i=1; i<7; ++i)
+	{
+		Chain_Insert_Image_After(state.get(), sc);
+	}
 	//-------------------------------------------------------------------------------
-
-	//---------------------- initialize spin_systems --------------------------------
-	// Create a system according to Config
-	auto s1 = state->active_image;
-	// // Copy the system a few times
-	// auto s2 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	// auto s3 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	// auto s4 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	// auto s5 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	// auto s6 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	// auto s7 = std::shared_ptr<Spin_System>(new Spin_System(*s1));
-	//-------------------------------------------------------------------------------
-
-
-	//---------------------- set images' configurations -----------------------------
-	// // Parameters
-	// double dir[3] = { 0,0,1 };
-	// std::vector<double> pos = { 14.5, 14.5, 0 };
-	// // Read Image from file
-	// //Utility::IO::Read_Spin_Configuration(s1, spinsfile);
-	// // First image is homogeneous with a Skyrmion at pos
-	// Configurations::Homogeneous(*s1, dir);
-	// Configurations::Skyrmion(*s1, pos, 6.0, 1.0, -90.0, false, false, false, false);
-	// // Las image is homogeneous
-	// Configurations::Homogeneous(*s7, dir);
-	//-------------------------------------------------------------------------------
-
 	
 	//----------------------- spin_system_chain -------------------------------------
-	// Get parameters
-	auto params_gneb = std::shared_ptr<Parameters_GNEB>(IO::GNEB_Parameters_from_Config(cfgfile));
-	// Create the chain
-	auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
-	sv.push_back(s1);
-	// sv.push_back(s2);
-	// sv.push_back(s3);
-	// sv.push_back(s4);
-	// sv.push_back(s5);
-	// sv.push_back(s6);
-	// sv.push_back(s7);
-	state->c = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
-	// Create transition of images
-	// Utility::Configuration_Chain::Homogeneous_Rotation(c, s1->spins, s7->spins);
+	// Parameters
+	double dir[3] = { 0,0,1 };
+	double pos[3] = { 14.5, 14.5, 0 };
+
+	// Read Image from file
+	//Configuration_from_File(state.get(), spinsfile, 0);
+	// Read Chain from file
+	//Chain_from_File(state.get(), chainfile);
+
+	// First image is homogeneous with a Skyrmion at pos
+	Configuration_Homogeneous(state.get(), dir, 0);
+	Configuration_Skyrmion(state.get(), pos, 6.0, 1.0, -90.0, false, false, false, 0);
+	// Last image is homogeneous
+	Configuration_Homogeneous(state.get(), dir, state->noi-1);
+
+	// Create transition of images between first and last
+	Transition_Homogeneous(state.get(), 0, state->noi-1);
 	//-------------------------------------------------------------------------------
-	
 
 	//----------------------- LLG Iterations ----------------------------------------
 	auto optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
-	auto solver = new Engine::Solver_LLG(state->c, optim);
+	auto solver = new Engine::Solver_LLG(state->active_chain, optim);
 	// We could also do the following without using threads, but not without loss of generality
-	s1->iteration_allowed = true;
-	Utility::Threading::llg_threads[s1] = std::thread(&Engine::Solver_LLG::Iterate, solver);
+	state->active_image->iteration_allowed = true;
+	Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Solver_LLG::Iterate, solver);
 	// To wait for started thread to finish, call:
-	Threading::llg_threads[s1].join();
+	Threading::llg_threads[state->active_image].join();
 	//-------------------------------------------------------------------------------
 
 

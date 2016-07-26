@@ -12,10 +12,6 @@ namespace Utility
     // Handle interrupt by signal SIGINT
     void Signal::Handle_SigInt(int sig)
     {
-        //std::shared_ptr<Data::Spin_System_Chain> extern c;
-        // using Log_Level;
-        // using Log_Sender;
-
         // Have SIG_IGN (ignore) handle further SIGINTs from now
         signal(sig, SIG_IGN);
 

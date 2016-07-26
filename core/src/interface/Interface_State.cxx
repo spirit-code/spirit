@@ -17,8 +17,8 @@ extern "C" State * setupState(const char * config_file)
     // Log
     Log.Send(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
     Log.Send(Log_Level::ALL, Log_Sender::ALL,  "============ MonoSpin State Initialising ============");
-    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "================= Version:  " + std::string(VERSION));
-    Log.Send(Log_Level::INFO, Log_Sender::ALL, "================= Revision: " + std::string(VERSION_REVISION));
+    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "============     Version:  " + std::string(VERSION));
+    Log.Send(Log_Level::INFO, Log_Sender::ALL, "============     Revision: " + std::string(VERSION_REVISION));
     Log.Send(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
     
     try
@@ -80,6 +80,7 @@ extern "C" State * setupState(const char * config_file)
     // Log
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "============ MonoSpin State Initialised =============");
+    Log.Send(Log_Level::ALL, Log_Sender::ALL, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
     
     // Return

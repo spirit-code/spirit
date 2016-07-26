@@ -31,19 +31,20 @@ extern "C" void PlayPause(State *state)
     if (true)
     {
         // Test if already running
-        if (state->c->images[state->idx_active_image]->iteration_allowed || state->c->iteration_allowed)
+        if (state->active_image->iteration_allowed || state->active_chain->iteration_allowed)
         {
-        state->c->images[state->idx_active_image]->iteration_allowed = false;
+        state->active_image->iteration_allowed = false;
         }
         else
         {
             // Allow iterations
-            state->c->images[state->idx_active_image]->iteration_allowed = true;
-            state->c->iteration_allowed = false;
+            state->active_image->iteration_allowed = true;
+            state->active_chain->iteration_allowed = false;
             // SIB optimizer
             auto optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
+            auto solver = std::shared_ptr<Engine::Solver_LLG>(new Engine::Solver_LLG(state->active_chain, optim));
             // New Solver
-            state->solvers_llg[state->idx_active_chain][state->idx_active_image] = new Engine::Solver_LLG(state->c, optim);
+            state->solvers_llg[state->idx_active_chain][state->idx_active_image] = solver;
             // Iterate
             state->solvers_llg[state->idx_active_chain][state->idx_active_image]->Iterate();
         }
@@ -64,6 +65,6 @@ extern "C" void PlayPause(State *state)
 extern "C" double *getSpinDirections(State *state)
 {
     // Return pointer to spins array
-    double * result = (double *)state->c->images[state->c->active_image]->spins.data();
+    double * result = (double *)state->active_image->spins.data();
     return result;
 }

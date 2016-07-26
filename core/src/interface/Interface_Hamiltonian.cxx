@@ -160,7 +160,6 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, fl
     *normal_z = ham->external_field_normal[2];
 }
 
-// TODO: do this correctly...
 void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
 {
     auto s = state->active_image;
@@ -168,10 +167,11 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
 
     *n_shells = ham->n_neigh_shells;
 
-    // for (int i=0; i<*n_shells; ++i)
-    // {
-    //     jij[i] = ham->jij[i];
-    // }
+    // Note the array needs to be correctly allocated beforehand!
+    for (int i=0; i<*n_shells; ++i)
+    {
+        jij[i] = ham->jij[i];
+    }
 }
 
 void Hamiltonian_Get_DMI(State *state, float * dij)

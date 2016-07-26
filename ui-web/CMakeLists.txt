@@ -55,8 +55,8 @@ set(SOURCE_UI_WEB_ROOT)
 
 
 ######### Add Subdirectories
-add_subdirectory(${PROJECT_SOURCE_DIR}/src)
-add_subdirectory(${PROJECT_SOURCE_DIR}/include)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 #############################################
 
 
