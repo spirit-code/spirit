@@ -23,7 +23,7 @@ void Spin_Widget::teardownGL() {
 }
 
 void Spin_Widget::resizeGL(int width, int height) {
-	gl_spins->setFramebufferSize(width, height);
+  gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
   update();
 }
 
