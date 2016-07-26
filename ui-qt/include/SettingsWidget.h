@@ -8,7 +8,7 @@
 
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
-
+#include "Interface_State.h"
 
 #include "ui_SettingsWidget.h"
 
@@ -16,6 +16,13 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 {
     Q_OBJECT
 
+public:
+	SettingsWidget(std::shared_ptr<State> state);
+	void update();
+	void SelectTab(int index);
+
+	std::shared_ptr<State> state;
+	bool greater;
 
 private:
 	// Setup Input Validators
@@ -52,15 +59,6 @@ private slots:
 	void homogeneousTransitionPressed();
 	// Debug?
 	void print_Energies_to_console();
-
-public:
-	SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> s_i);
-	void update();
-	void SelectTab(int index);
-
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
-	bool greater;
 };
 
 #endif

@@ -1,43 +1,11 @@
 ﻿#include "Logging.h"
+#include "Interface_State.h"
 
 #include <string>
 #include <iostream>
 #include <ctime>
 #include <IO.h>
 #include <signal.h>
-
-// Handle interrupt by signal SIGINT
-void Handle_SigInt(int sig)
-{
-	std::shared_ptr<Data::Spin_System_Chain> extern c;
-	using Utility::Log_Level;
-	using Utility::Log_Sender;
-
-	// Have SIG_IGN (ignore) handle further SIGINTs from now
-	signal(sig, SIG_IGN);
-
-	// Check if the chain is initialized
-	if (c != nullptr)
-	{
-		Utility::Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-		c->iteration_allowed = false;
-		for (int i = 0; i < c->noi; ++i)
-		{
-			c->images[i]->iteration_allowed = false;
-		}
-		Utility::Log.Append_to_File();
-	}
-	// No iterations started, exit the program
-	else
-	{
-		Utility::Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
-		Utility::Log.Append_to_File();
-		exit(0);
-	}
-
-	// Have this function handle the signal again
-	signal(sig, Handle_SigInt);
-}
 
 namespace Utility
 {
@@ -75,7 +43,6 @@ namespace Utility
 	LoggingHandler::LoggingHandler(Log_Level print_level_i, Log_Level accept_level_i, std::string output_folder_i, std::string fileName_i) :
 		print_level(print_level_i), accept_level(accept_level_i), output_folder(output_folder_i), fileName(fileName_i), n_entries(0)
 	{
-		//signal(SIGINT, Handle_SigInt);
 	}
 
 	// Send a Log message without image index

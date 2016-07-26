@@ -16,6 +16,8 @@
 #include "Solver_LLG.h"
 #include "Solver_GNEB.h"
 
+#include "Interface_State.h"
+
 class QAction;
 class QMenu;
 class QPlainTextEdit;
@@ -27,7 +29,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     Q_OBJECT
 
 public:
-    MainWindow(std::shared_ptr<Data::Spin_System_Chain> c);
+    MainWindow(std::shared_ptr<State> state);
 	//bool eventFilter(QObject *object, QEvent *event);
 
 protected:
@@ -82,10 +84,7 @@ private:
     QString strippedName(const QString &fullFileName);*/
     
     //SpinWidget *spins;
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System> image_clipboard;
-	std::shared_ptr<Data::Spin_System> localcopy_s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
+	std::shared_ptr<State> state;
     Spin_Widget *spinWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;

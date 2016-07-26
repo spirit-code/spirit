@@ -3,7 +3,7 @@
 
 void Geometry_Get_Bounds(State *state, float * xmin, float * ymin, float * zmin, float * xmax, float * ymax, float * zmax)
 {
-    auto g = state->c->images[state->c->active_image]->geometry;
+    auto g = state->active_image->geometry;
     // Min
     *xmin = g->bounds_min[0];
     *ymin = g->bounds_min[1];

@@ -28,7 +28,7 @@ namespace Engine
 		// Solver child-class specific instructions
 		// currently only support a single image being iterated:
 		this->force_call = std::shared_ptr<Engine::Force>(new Force_LLG(this->c));
-		this->systems.push_back(c->images[c->active_image]);
+		this->systems.push_back(c->images[c->idx_active_image]);
 
 		// Configure the Optimizer
 		this->optimizer->Configure(systems, force_call);
@@ -37,10 +37,10 @@ namespace Engine
     void Solver_LLG::Iterate()
     {
 		//========================= Init local vars ================================
-        auto s = c->images[c->active_image];
+        auto s = c->images[c->idx_active_image];
 		int n = s->llg_parameters->n_iterations;
 		int log_steps = s->llg_parameters->log_steps;
-        int i, step = 0, image = c->active_image, n_log = n / log_steps;
+        int i, step = 0, image = c->idx_active_image, n_log = n / log_steps;
 		this->starttime = Timing::CurrentDateTime();
 		std::string suffix = "_archive";
         //------------------------ End Init ----------------------------------------
@@ -106,7 +106,7 @@ namespace Engine
     {
 		this->optimizer->Step();
 
-        if (this->c->images[this->c->active_image]->llg_parameters->renorm_sd) {
+        if (this->c->images[this->c->idx_active_image]->llg_parameters->renorm_sd) {
             try {
                 //Vectormath::Normalize(3, s->nos, s->spins);
             }

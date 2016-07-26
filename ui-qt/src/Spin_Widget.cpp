@@ -20,10 +20,9 @@
 
 using Data::Spin_System;
 
-Spin_Widget::Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *parent) : QOpenGLWidget(parent)
+Spin_Widget::Spin_Widget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
-	this->c = c;
-	this->s = c->images[c->active_image];
+	this->state = state;
 
 	setFocusPolicy(Qt::StrongFocus);
 
@@ -43,7 +42,7 @@ Spin_Widget::Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *pa
 
 void Spin_Widget::initializeGL()
 {
-	this->gl_spins = std::shared_ptr<GLSpins>(new GLSpins(s, width(), height()));
+	this->gl_spins = std::shared_ptr<GLSpins>(new GLSpins(this->state->active_image, width(), height()));
 }
 
 void Spin_Widget::teardownGL()
@@ -86,8 +85,7 @@ void Spin_Widget::mouseMoveEvent(QMouseEvent *event)
 void Spin_Widget::update()
 {
 	// Update the pointer to our Data
-	this->s = c->images[c->active_image];
-	this->gl_spins->update_spin_system(this->s);
+	this->gl_spins->update_spin_system(this->state->active_image);
 
 	// Update Keyboard and Mouse Input
 	UpdateInput();

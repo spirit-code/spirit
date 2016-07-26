@@ -37,9 +37,9 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ######### Declare File groups ###############
 ### Header Gropus
-set(HEADER_UI_CONSOLE_ROOT)
+set(HEADER_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/include/Signal.h ${CMAKE_CURRENT_SOURCE_DIR}/include/Threading.h)
 ### Source Groups
-set(SOURCE_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+set(SOURCE_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Signal.cpp)
 #############################################
 
 
