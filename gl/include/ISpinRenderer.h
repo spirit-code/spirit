@@ -6,10 +6,22 @@
 #include "glm/glm.hpp"
 #include "options.h"
 
+class GLSpins;
+
 class ISpinRenderer {
 public:
+  enum Option {
+    VERTICAL_FIELD_OF_VIEW=100,
+    BACKGROUND_COLOR,
+    COLORMAP_IMPLEMENTATION,
+    Z_RANGE,
+    CAMERA_POSITION,
+    CENTER_POSITION,
+    UP_VECTOR
+  };
+  
   virtual ~ISpinRenderer() {};
-  virtual void updateOptions(const Options<ISpinRenderer>& options);
+  virtual void updateOptions(const Options<GLSpins>& options);
   virtual void initGL() = 0;
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions) = 0;
@@ -17,38 +29,28 @@ public:
 
 protected:
   virtual void optionsHaveChanged(const std::vector<int>& changedOptions) = 0;
-  Options<ISpinRenderer> _options;
+  Options<GLSpins> _options;
 };
 
-inline void ISpinRenderer::updateOptions(const Options<ISpinRenderer>& options) {
+inline void ISpinRenderer::updateOptions(const Options<GLSpins>& options) {
   auto updatedOptions = _options.update(options);
   if (updatedOptions.size() > 0) {
     optionsHaveChanged(updatedOptions);
   }
 }
 
-enum ISpinRendererOptions {
-  VERTICAL_FIELD_OF_VIEW,
-  BACKGROUND_COLOR,
-  COLORMAP_IMPLEMENTATION,
-  Z_RANGE,
-  CAMERA_POSITION,
-  CENTER_POSITION,
-  UP_VECTOR
-};
-
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::VERTICAL_FIELD_OF_VIEW> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW> {
   double default_value = 45.0;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::BACKGROUND_COLOR> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::BACKGROUND_COLOR> {
  glm::vec3 default_value = {1.0, 1.0, 1.0};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::COLORMAP_IMPLEMENTATION> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION> {
   std::string default_value = "\
   vec3 colormap(vec3 direction) {\
     return vec3(1.0, 1.0, 1.0);\
@@ -57,22 +59,22 @@ struct Options<ISpinRenderer>::Option<ISpinRendererOptions::COLORMAP_IMPLEMENTAT
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::Z_RANGE> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::Z_RANGE> {
   glm::vec2 default_value = {-10, 10};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::CAMERA_POSITION> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::CAMERA_POSITION> {
   glm::vec3 default_value = {14.5, 14.5, 30};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::CENTER_POSITION> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::CENTER_POSITION> {
   glm::vec3 default_value = {14.5, 14.5, 0};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ISpinRendererOptions::UP_VECTOR> {
+struct Options<GLSpins>::Option<ISpinRenderer::Option::UP_VECTOR> {
   glm::vec3 default_value = {0, 1, 0};
 };
 

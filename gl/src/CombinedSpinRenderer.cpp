@@ -7,7 +7,7 @@ CombinedSpinRenderer::CombinedSpinRenderer(const std::vector<std::shared_ptr<ISp
 CombinedSpinRenderer::~CombinedSpinRenderer() {
 }
 
-void CombinedSpinRenderer::updateOptions(const Options<ISpinRenderer>& options) {
+void CombinedSpinRenderer::updateOptions(const Options<GLSpins>& options) {
   for (auto renderer : _renderers) {
     renderer->updateOptions(options);
   }

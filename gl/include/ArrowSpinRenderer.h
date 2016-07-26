@@ -30,7 +30,7 @@ private:
 };
 
 enum ArrowSpinRendererOptions {
-  CONE_RADIUS = 100,
+  CONE_RADIUS = 200,
   CONE_HEIGHT,
   CYLINDER_RADIUS,
   CYLINDER_HEIGHT,
@@ -38,27 +38,27 @@ enum ArrowSpinRendererOptions {
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ArrowSpinRendererOptions::CONE_RADIUS> {
+struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CONE_RADIUS> {
   double default_value = 0.25;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ArrowSpinRendererOptions::CONE_HEIGHT> {
+struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CONE_HEIGHT> {
   double default_value = 0.6;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ArrowSpinRendererOptions::CYLINDER_RADIUS> {
+struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CYLINDER_RADIUS> {
   double default_value = 0.125;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ArrowSpinRendererOptions::CYLINDER_HEIGHT> {
+struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CYLINDER_HEIGHT> {
   double default_value = 0.7;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<ArrowSpinRendererOptions::LEVEL_OF_DETAIL> {
+struct Options<GLSpins>::Option<ArrowSpinRendererOptions::LEVEL_OF_DETAIL> {
   unsigned int default_value = 20;
 };
 

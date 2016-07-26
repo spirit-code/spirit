@@ -29,12 +29,12 @@ enum CoordinateSystemRendererOptions {
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<CoordinateSystemRendererOptions::AXIS_LENGTH> {
+struct Options<GLSpins>::Option<CoordinateSystemRendererOptions::AXIS_LENGTH> {
   glm::vec3 default_value = {1.0, 1.0, 1.0};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<CoordinateSystemRendererOptions::ORIGIN> {
+struct Options<GLSpins>::Option<CoordinateSystemRendererOptions::ORIGIN> {
   glm::vec3 default_value = {0.0, 0.0, 0.0};
 };
 

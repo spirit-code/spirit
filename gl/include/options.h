@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <iostream>
 
 
 template<typename T>
@@ -12,6 +13,11 @@ private:
   struct Type;
   
 public:
+  Options();
+  
+  template<int index>
+  static Options withOption(typename Type<index>::type value);
+  
   template<int index>
   typename Type<index>::type get() const;
   
@@ -43,21 +49,18 @@ private:
   };
   
   std::unordered_map<int, std::shared_ptr<IStorableOption>> _options;
-  
-  template<typename U>
-  static inline const U& asConstRef(const U& value) {
-    return value;
-  }
 };
 
 template<typename T>
-std::vector<int> Options<T>::update(const Options<T> &other) {
-  std::vector<int> updatedOptions;
-  for (auto it = other._options.cbegin(); it != other._options.cend(); it++) {
-    _options[it->first] = it->second;
-    updatedOptions.push_back(it->first);
-  }
-  return updatedOptions;
+Options<T>::Options() {
+}
+
+template<typename T>
+template<int index>
+Options<T> Options<T>::withOption(typename Type<index>::type value) {
+  Options<T> options;
+  options.set<index>(value);
+  return options;
 }
 
 template<typename T>
@@ -68,7 +71,7 @@ typename Options<T>::template Type<index>::type Options<T>::get() const {
       return storableOption->_value;
     }
   }
-  return asConstRef(Option<index>().default_value);
+  return Option<index>().default_value;
 }
 
 template<typename T>
@@ -82,5 +85,15 @@ template<int index>
 void Options<T>::set(typename Type<index>::type value) {
   _options[index] = std::make_shared<StorableOption<index>>(value);
 }
-  
+
+template<typename T>
+std::vector<int> Options<T>::update(const Options<T> &other) {
+  std::vector<int> updatedOptions;
+  for (auto it = other._options.cbegin(); it != other._options.cend(); it++) {
+    _options[it->first] = it->second;
+    updatedOptions.push_back(it->first);
+  }
+  return updatedOptions;
+}
+
 #endif

@@ -27,23 +27,23 @@ private:
 };
 
 enum SphereSpinRendererOptions {
-  POINT_SIZE_RANGE = 300,
+  POINT_SIZE_RANGE = 400,
   INNER_SPHERE_RADIUS,
   USE_SPHERE_FAKE_PERSPECTIVE
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<SphereSpinRendererOptions::POINT_SIZE_RANGE> {
+struct Options<GLSpins>::Option<SphereSpinRendererOptions::POINT_SIZE_RANGE> {
   glm::vec2 default_value = {1.0, 4.0};
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<SphereSpinRendererOptions::INNER_SPHERE_RADIUS> {
+struct Options<GLSpins>::Option<SphereSpinRendererOptions::INNER_SPHERE_RADIUS> {
   double default_value = 0.95;
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<SphereSpinRendererOptions::USE_SPHERE_FAKE_PERSPECTIVE> {
+struct Options<GLSpins>::Option<SphereSpinRendererOptions::USE_SPHERE_FAKE_PERSPECTIVE> {
   bool default_value = true;
 };
 

@@ -29,11 +29,11 @@ private:
 };
 
 enum SurfaceSpinRendererOptions {
-  SURFACE_INDICES = 200
+  SURFACE_INDICES = 300
 };
 
 template<> template<>
-struct Options<ISpinRenderer>::Option<SurfaceSpinRendererOptions::SURFACE_INDICES> {
+struct Options<GLSpins>::Option<SurfaceSpinRendererOptions::SURFACE_INDICES> {
   std::vector<unsigned int> default_value;
 };
 

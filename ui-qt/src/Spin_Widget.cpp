@@ -52,15 +52,19 @@ void Spin_Widget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void Spin_Widget::SetCameraToDefault() {
+  gl_spins->setCameraToDefault();
 }
 
 void Spin_Widget::SetCameraToX() {
+  gl_spins->setCameraToX();
 }
 
 void Spin_Widget::SetCameraToY() {
+  gl_spins->setCameraToY();
 }
 
 void Spin_Widget::SetCameraToZ() {
+  gl_spins->setCameraToZ();
 }
 
 double Spin_Widget::getFramesPerSecond() const {

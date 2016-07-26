@@ -65,10 +65,10 @@ void BoundingBoxRenderer::draw(double aspectRatio) const {
   glUseProgram(_program);
   glBindVertexArray(_vao);
 
-  double verticalFieldOfView = _options.get<ISpinRendererOptions::VERTICAL_FIELD_OF_VIEW>();
-  glm::vec3 cameraPosition = _options.get<ISpinRendererOptions::CAMERA_POSITION>();
-  glm::vec3 centerPosition = _options.get<ISpinRendererOptions::CENTER_POSITION>();
-  glm::vec3 upVector = _options.get<ISpinRendererOptions::UP_VECTOR>();
+  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
+  glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
+  glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   auto color = _options.get<BoundingBoxRendererOptions::COLOR>();
 
   glm::mat4 projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);

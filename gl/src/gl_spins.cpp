@@ -27,23 +27,6 @@
 #endif // !M_PI
 
 
-void FPSCounter::tick() {
-  if (_previous_frame_time_point != std::chrono::steady_clock::time_point()) {
-    auto previous_duration = std::chrono::steady_clock::now() - _previous_frame_time_point;
-    _n_frame_duration += previous_duration;
-    _frame_durations.push(previous_duration);
-    while (_frame_durations.size() > _max_n) {
-      _n_frame_duration -= _frame_durations.front();
-      _frame_durations.pop();
-    }
-  }
-  _previous_frame_time_point = std::chrono::steady_clock::now();
-}
-
-double FPSCounter::getFramerate() const {
-  return _frame_durations.size() / _n_frame_duration.count();
-}
-
 double GLSpins::getFramerate() const {
   return _fps_counter.getFramerate();
 }
@@ -104,16 +87,32 @@ void GLSpins::setFramebufferSize(double width, double height) {
   _camera.setAspectRatio(width / height);
 }
 
-Camera::Camera(const glm::vec3& camera_position,
-               const glm::vec3& center_position,
-               const glm::vec3& up_vector,
-               const double& aspect_ratio) :
-_camera_position(camera_position),
-_center_position(center_position),
-_up_vector(up_vector),
-_aspect_ratio(aspect_ratio) {
+void GLSpins::setCameraToDefault() {
+  _camera.lookAt(glm::vec3(center.x, center.y, center.z+30.0),
+                 center,
+                 glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+void GLSpins::setCameraToX() {
+  float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
+  _camera.lookAt(glm::vec3(center.x+camera_distance, center.y, center.z),
+                 center,
+                 glm::vec3(0.0, 0.0, 1.0));
+}
+
+void GLSpins::setCameraToY() {
+  float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
+  _camera.lookAt(glm::vec3(center.x, center.y+camera_distance, center.z),
+                           center,
+                           glm::vec3(1.0, 0.0, 0.0));
+}
+
+void GLSpins::setCameraToZ() {
+  float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
+  _camera.lookAt(glm::vec3(center.x, center.y, center.z+camera_distance),
+                           center,
+                           glm::vec3(0.0, 1.0, 0.0));
+}
 
 
 GLSpins::GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height) :
@@ -129,7 +128,7 @@ _camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0)
 	bounds_min = glm::vec3(g->bounds_min[0], g->bounds_min[1], g->bounds_min[2]);
 	bounds_max = glm::vec3(g->bounds_max[0], g->bounds_max[1], g->bounds_max[2]);
 
-	this->_camera.lookAt(glm::vec3(center.x, center.y, 30.0f),
+	this->_camera.lookAt(glm::vec3(center.x, center.y, center.z+30.0f),
 						center,
 						glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -154,28 +153,12 @@ _camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0)
     directions[i] = glm::vec3(s->spins[i], s->spins[g->nos + i], s->spins[2*g->nos + i]);
   }
   
-  std::array<double, 4> viewport = {0, 0, 1, 1};
-  std::vector<std::shared_ptr<ISpinRenderer>> r = {
-    std::make_shared<ArrowSpinRenderer>(),
-    std::make_shared<BoundingBoxRenderer>()};
-  std::shared_ptr<ISpinRenderer> renderer = std::make_shared<CombinedSpinRenderer>(r);
-  Options<ISpinRenderer> options;
-  options.set<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
+  Options<GLSpins> options;
+  options.set<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
   options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(30, 30));
-  renderer->initGL();
-  renderer->updateOptions(options);
-  renderer->updateSpins(translations, directions);
-  renderers.push_back({renderer, viewport});
-  std::shared_ptr<ISpinRenderer> renderer2 = std::make_shared<SphereSpinRenderer>();
-  renderer2->initGL();
-  renderer2->updateOptions(options);
-  renderer2->updateSpins(translations, directions);
-  renderers.push_back({renderer2, {0, 0, 0.2, 0.2}});
-  std::shared_ptr<ISpinRenderer> renderer3 = std::make_shared<CoordinateSystemRenderer>();
-  renderer3->initGL();
-  renderer3->updateOptions(options);
-  renderer3->updateSpins(translations, directions);
-  renderers.push_back({renderer3, {0, 0.8, 0.2, 0.2}});
+  updateOptions(options);
+  
+  updateRenderers();
 
     // Dark blue background
     //glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -206,10 +189,10 @@ void GLSpins::draw() {
     directions[i] = glm::vec3(s->spins[i], s->spins[g->nos + i], s->spins[2*g->nos + i]);
   }
   
-  Options<ISpinRenderer> options;
-  options.set<ISpinRendererOptions::CAMERA_POSITION>(_camera.cameraPosition());
-  options.set<ISpinRendererOptions::CENTER_POSITION>(_camera.centerPosition());
-  options.set<ISpinRendererOptions::UP_VECTOR>(_camera.upVector());
+  Options<GLSpins> options;
+  options.set<ISpinRenderer::Option::CAMERA_POSITION>(_camera.cameraPosition());
+  options.set<ISpinRenderer::Option::CENTER_POSITION>(_camera.centerPosition());
+  options.set<ISpinRenderer::Option::UP_VECTOR>(_camera.upVector());
   options.set<BoundingBoxRendererOptions::POSITION>({
     {g->bounds_min[0], g->bounds_min[1], g->bounds_min[2]},
     {g->bounds_max[0], g->bounds_max[1], g->bounds_max[2]}
@@ -222,13 +205,14 @@ void GLSpins::draw() {
     fmax(fabs(g->bounds_max[1]-g->center[1]), 1.0),
     fmax(fabs(g->bounds_max[2]-g->center[2]), 1.0)
   });
+  updateOptions(options);
+  
   glClear(GL_COLOR_BUFFER_BIT);
-  for (auto it = renderers.begin(); it != renderers.end(); it++) {
-    auto renderer = it->first;
-    auto viewport = it->second;
+  for (auto it : _renderers) {
+    auto renderer = it.first;
+    auto viewport = it.second;
     // TODO: glViewport
     glViewport(viewport[0] * _width, viewport[1] * _height, viewport[2] * _width, viewport[3] * _height);
-    renderer->updateOptions(options);
     renderer->updateSpins(translations, directions);
     glClear(GL_DEPTH_BUFFER_BIT);
     renderer->draw(viewport[2]/viewport[3] * _camera.aspectRatio());
@@ -244,4 +228,106 @@ void GLSpins::update_spin_system(std::shared_ptr<Data::Spin_System> s)
 }
 
 GLSpins::~GLSpins() {
+}
+
+static std::array<double, 4> locationToViewport(GLSpins::WidgetLocation location) {
+  switch(location) {
+    case GLSpins::WidgetLocation::BOTTOM_LEFT:
+      return {0, 0, 0.2, 0.2};
+    case GLSpins::WidgetLocation::BOTTOM_RIGHT:
+      return {0.8, 0, 0.2, 0.2};
+    case GLSpins::WidgetLocation::TOP_LEFT:
+      return {0, 0.8, 0.2, 0.2};
+    case GLSpins::WidgetLocation::TOP_RIGHT:
+      return {0.8, 0.8, 0.2, 0.2};
+  }
+  return {0, 0, 1, 1};
+}
+
+void GLSpins::updateRenderers() {
+  bool show_bounding_box = options().get<GLSpins::Option::SHOW_BOUNDING_BOX>();
+  bool show_coordinate_system = options().get<GLSpins::Option::SHOW_COORDINATE_SYSTEM>();
+  bool show_miniview = options().get<GLSpins::Option::SHOW_MINIVIEW>();
+  GLSpins::VisualizationMode mode = options().get<GLSpins::Option::VISUALIZATION_MODE>();
+  GLSpins::WidgetLocation coordinate_system_location = options().get<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>();
+  GLSpins::WidgetLocation miniview_location = options().get<GLSpins::Option::MINIVIEW_LOCATION>();
+  _renderers.clear();
+  std::shared_ptr<ISpinRenderer> main_renderer;
+  switch (mode) {
+    case VisualizationMode::ARROWS:
+      main_renderer = std::make_shared<ArrowSpinRenderer>();
+      break;
+    case VisualizationMode::SURFACE:
+      main_renderer = std::make_shared<SurfaceSpinRenderer>();
+      break;
+    case VisualizationMode::SPHERE:
+      main_renderer = std::make_shared<SphereSpinRenderer>();
+      break;
+  }
+  if (show_bounding_box && mode != VisualizationMode::SPHERE) {
+    std::vector<std::shared_ptr<ISpinRenderer>> r = {
+      main_renderer,
+      std::make_shared<BoundingBoxRenderer>()
+    };
+    main_renderer = std::make_shared<CombinedSpinRenderer>(r);
+  }
+  _renderers.push_back({main_renderer, {0, 0, 1, 1}});
+  
+  if (show_coordinate_system) {
+    std::shared_ptr<ISpinRenderer> renderer = std::make_shared<CoordinateSystemRenderer>();
+    _renderers.push_back({renderer, locationToViewport(coordinate_system_location)});
+  }
+  if (show_miniview) {
+    std::shared_ptr<ISpinRenderer> renderer;
+    if (mode == VisualizationMode::SPHERE) {
+      renderer = std::make_shared<SurfaceSpinRenderer>();
+      if (show_bounding_box) {
+        std::vector<std::shared_ptr<ISpinRenderer>> r = {
+          renderer,
+          std::make_shared<BoundingBoxRenderer>()
+        };
+        renderer = std::make_shared<CombinedSpinRenderer>(r);
+      }
+    } else {
+      renderer = std::make_shared<SphereSpinRenderer>();
+    }
+    _renderers.push_back({renderer, locationToViewport(miniview_location)});
+  }
+
+  for (auto it : _renderers) {
+    auto renderer = it.first;
+    renderer->initGL();
+    renderer->updateOptions(options());
+  }
+}
+
+void GLSpins::updateOptions(const Options<GLSpins>& options) {
+  auto changedOptions = _options.update(options);
+  if (changedOptions.size() == 0) {
+    return;
+  }
+  optionsHaveChanged(changedOptions);
+  for (auto it : _renderers) {
+    auto renderer = it.first;
+    renderer->updateOptions(options);
+  }
+}
+
+void GLSpins::options(const Options<GLSpins>& options) {
+  _options = options;
+  updateOptions(Options<GLSpins>());
+}
+
+const Options<GLSpins>& GLSpins::options() const {
+  return _options;
+}
+
+void GLSpins::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  bool renderersChanged = false;
+  for (int option_id : changedOptions) {
+    
+  }
+  if (renderersChanged) {
+    updateRenderers();
+  }
 }

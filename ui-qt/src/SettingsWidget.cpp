@@ -49,6 +49,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 	this->Setup_Hamiltonian_Isotropic_Slots();
 	this->Setup_Hamiltonian_Anisotropic_Slots();
 	this->Setup_Parameters_Slots();
+  this->Setup_Visualization_Slots();
 }
 
 void SettingsWidget::update()
@@ -62,8 +63,6 @@ void SettingsWidget::update()
 	this->Load_Parameters_Contents();
 	// ToDo: Also update Debug etc!
 }
-
-
 
 
 // -----------------------------------------------------------------------------------
@@ -315,7 +314,14 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 	if (s->llg_parameters->temperature > 0.0) this->checkBox_T_aniso->setChecked(true);
 }
 
-
+void SettingsWidget::Load_Visualization_Contents() {
+//  bool bounding_box_is_enabled = glspins.boundingBoxIsEnabled();
+//  bool coordinate_system_widget_is_enabled = glspins.coordinateSystemWidgetIsEnabled();
+//  bool mini_visualization_widget_is_enabled = glspins.miniVisualizationWidgetIsEnabled();
+//  WidgetLocation coordinate_system_widget_location = glspins.coordinateSystemWidgetLocation();
+//  WidgetLocation mini_visualization_widget_location = glspins.miniVisualizationWidgetLocation();
+//  VisualizationMode visualization_mode = glspins.visualizationMode();
+}
 
 // -----------------------------------------------------------------------------------
 // --------------------- Setters for Hamiltonians and Parameters ---------------------
@@ -646,6 +652,10 @@ void SettingsWidget::set_hamiltonian_aniso()
 	}
 }
 
+void SettingsWidget::set_visualization()
+{
+  std::cerr << "!" << std::endl;
+}
 
 
 // -----------------------------------------------------------------------------------
@@ -816,6 +826,11 @@ void SettingsWidget::Setup_Transitions_Slots()
 	connect(this->lineEdit_Transition_Homogeneous_First, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->lineEdit_Transition_Homogeneous_Last, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
+}
+
+void SettingsWidget::Setup_Visualization_Slots()
+{
+  
 }
 
 void SettingsWidget::Setup_Input_Validators()

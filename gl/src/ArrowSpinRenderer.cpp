@@ -33,7 +33,7 @@ void ArrowSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOption
   bool updateShader = false;
   bool updateVertices = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
-    if (*it == ISpinRendererOptions::COLORMAP_IMPLEMENTATION) {
+    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
       updateShader = true;
     } else if (*it == ArrowSpinRendererOptions::CONE_RADIUS) {
       updateVertices = true;
@@ -107,11 +107,11 @@ void ArrowSpinRenderer::draw(double aspectRatio) const {
   glBindVertexArray(_vao);
   glUseProgram(_program);
   
-  glm::vec2 zRange = _options.get<ISpinRendererOptions::Z_RANGE>();
-  double verticalFieldOfView = _options.get<ISpinRendererOptions::VERTICAL_FIELD_OF_VIEW>();
-  glm::vec3 cameraPosition = _options.get<ISpinRendererOptions::CAMERA_POSITION>();
-  glm::vec3 centerPosition = _options.get<ISpinRendererOptions::CENTER_POSITION>();
-  glm::vec3 upVector = _options.get<ISpinRendererOptions::UP_VECTOR>();
+  glm::vec2 zRange = _options.get<ISpinRenderer::Option::Z_RANGE>();
+  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
+  glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
+  glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   
   glm::mat4 projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
   glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
@@ -132,7 +132,7 @@ void ArrowSpinRenderer::_updateShaderProgram() {
   std::string vertexShaderSource =
 #include "arrows.vert.txt"
   ;
-  vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
+  vertexShaderSource += _options.get<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>();
   std::string fragmentShaderSource =
 #include "arrows.frag.txt"
   ;

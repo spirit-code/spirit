@@ -79,3 +79,20 @@ std::string getColormapImplementation(const std::string& colormapName) {
     return "vec3 colormap(vec3 direction) {return vec3(1.0, 1.0, 1.0);}";
   }
 }
+
+void FPSCounter::tick() {
+  if (_previous_frame_time_point != std::chrono::steady_clock::time_point()) {
+    auto previous_duration = std::chrono::steady_clock::now() - _previous_frame_time_point;
+    _n_frame_duration += previous_duration;
+    _frame_durations.push(previous_duration);
+    while (_frame_durations.size() > _max_n) {
+      _n_frame_duration -= _frame_durations.front();
+      _frame_durations.pop();
+    }
+  }
+  _previous_frame_time_point = std::chrono::steady_clock::now();
+}
+
+double FPSCounter::getFramerate() const {
+  return _frame_durations.size() / _n_frame_duration.count();
+}

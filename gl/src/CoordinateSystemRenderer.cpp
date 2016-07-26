@@ -27,7 +27,7 @@ CoordinateSystemRenderer::~CoordinateSystemRenderer() {
 void CoordinateSystemRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
   bool updateShader = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
-    if (*it == ISpinRendererOptions::COLORMAP_IMPLEMENTATION) {
+    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
       updateShader = true;
     }
   }
@@ -66,10 +66,10 @@ void CoordinateSystemRenderer::draw(double aspectRatio) const {
   glUseProgram(_program);
   glBindVertexArray(_vao);
 
-  double verticalFieldOfView = _options.get<ISpinRendererOptions::VERTICAL_FIELD_OF_VIEW>();
-  glm::vec3 cameraPosition = _options.get<ISpinRendererOptions::CAMERA_POSITION>();
-  glm::vec3 centerPosition = _options.get<ISpinRendererOptions::CENTER_POSITION>();
-  glm::vec3 upVector = _options.get<ISpinRendererOptions::UP_VECTOR>();
+  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
+  glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
+  glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   auto origin = _options.get<CoordinateSystemRendererOptions::ORIGIN>();
   auto axis_length = _options.get<CoordinateSystemRendererOptions::AXIS_LENGTH>();
 
@@ -94,7 +94,7 @@ void CoordinateSystemRenderer::_updateShaderProgram() {
   std::string vertexShaderSource =
 #include "coordinatesystem.vert.txt"
   ;
-  vertexShaderSource += _options.get<ISpinRendererOptions::COLORMAP_IMPLEMENTATION>();
+  vertexShaderSource += _options.get<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>();
   std::string fragmentShaderSource =
 #include "coordinatesystem.frag.txt"
   ;

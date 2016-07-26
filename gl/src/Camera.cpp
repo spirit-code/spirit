@@ -3,6 +3,16 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+Camera::Camera(const glm::vec3& camera_position,
+               const glm::vec3& center_position,
+               const glm::vec3& up_vector,
+               const double& aspect_ratio) :
+_camera_position(camera_position),
+_center_position(center_position),
+_up_vector(up_vector),
+_aspect_ratio(aspect_ratio) {
+}
+
 void Camera::lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up) {
   _camera_position = eye;
   _center_position = center;
