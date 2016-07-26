@@ -65,6 +65,5 @@ extern "C" void PlayPause(State *state)
 extern "C" double *getSpinDirections(State *state)
 {
     // Return pointer to spins array
-    double * result = (double *)state->active_image->spins.data();
-    return result;
+    return (double *)state->active_image->spins.data();
 }

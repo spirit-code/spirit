@@ -21,6 +21,8 @@ struct State
     std::shared_ptr<Data::Spin_System_Chain> active_chain; // TODO: rename into active_chain
     // Currently active Image
     std::shared_ptr<Data::Spin_System> active_image;
+    // Spin System instance in clipboard
+    std::shared_ptr<Data::Spin_System> clipboard_image;
 
     // Info
     int nos /*Number of Spins*/, noi /*Number of Images*/, noc /*Number of Chains*/;

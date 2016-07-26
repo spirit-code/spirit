@@ -3,9 +3,9 @@
 #include "MainWindow.h"
 #include "PlotWidget.h"
 
-#include "Vectormath.h"
+// #include "Vectormath.h"
 #include "Configurations.h"
-#include "Optimizer.h"
+// #include "Optimizer.h"
 #include "IO.h"
 
 #include "Logging.h"
@@ -170,8 +170,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	if (k->matches(QKeySequence::Copy))
 	{
 		// Copy a Spin System
-		image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
-		Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Copied image " + std::to_string(state->idx_active_image) + " to clipboard");
+		Chain_Image_to_Clipboard(state.get());
+		// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
@@ -187,21 +187,19 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			}
 
 			// Cut a Spin System
-			image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
+			Chain_Image_to_Clipboard(state.get());
+			// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 
 			int idx = state->idx_active_image;
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
 			Chain_Delete_Image(state.get(), idx);
-
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Cut image " + std::to_string(state->idx_active_image) + " to clipboard");
 		}
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste a Spin System
-
 		state->active_image->iteration_allowed = false;
 		state->active_chain->iteration_allowed = false;
 		if (Utility::Threading::llg_threads[state->active_image].joinable()) {
@@ -211,49 +209,34 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			Utility::Threading::gneb_threads[state->active_chain].join();
 		}
 
-		if (image_clipboard.get())
-		{
-			Chain_Replace_Image(state.get(), *image_clipboard);
-			// Update the chain's data (primarily for the plot)
-			Chain_Update_Data(state.get());
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image " + std::to_string(state->idx_active_image) + " from clipboard");
-		}
-		else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image " + std::to_string(state->idx_active_image) + " from clipboard but no image was found");
+		Chain_Replace_Image(state.get());
+		// Update the chain's data (primarily for the plot)
+		Chain_Update_Data(state.get());
 	}
 
 	// Custom Key Sequences
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
-		std::shared_ptr<Data::Spin_System> newImage;
 		switch (k->key())
 		{
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
-				if (image_clipboard.get())
-				{
-					// Insert Image
-					Chain_Insert_Image_Before(state.get(), *image_clipboard);
-					// Update the chain's data (primarily for the plot)
-    				Chain_Update_Data(state.get());
-					//this->previousImagePressed();
-					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(state->idx_active_image) + " from clipboard");
-				}
-				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image before " + std::to_string(state->idx_active_image) + " from clipboard but no image was found");
+				// Insert Image
+				Chain_Insert_Image_Before(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Switch to the inserted image
+				//this->previousImagePressed();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
-				if (image_clipboard.get())
-				{
-					// Insert Image
-					Chain_Insert_Image_After(state.get(), *image_clipboard);
-					// Update the chain's data (primarily for the plot)
-    				Chain_Update_Data(state.get());
-					// Switch to the inserted image
-					this->nextImagePressed();
-					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(state->idx_active_image) + " from clipboard");
-				}
-				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image after " + std::to_string(state->idx_active_image) + " from clipboard but no image was found");
+				// Insert Image
+				Chain_Insert_Image_After(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Switch to the inserted image
+				this->nextImagePressed();
 				break;
 		}
 	}
@@ -767,9 +750,11 @@ void MainWindow::save_EPressed()
 void MainWindow::load_Configuration()
 {
 	int idx_img = state->idx_active_image;
-	// Read System
+	// Read Spin System from cfg
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
+		// TODO: use interface_system function
 		std::shared_ptr<Data::Spin_System> sys = Utility::IO::Spin_System_from_Config(string_q2std(fileName));
 		// Filter for unacceptable differences to other systems in the chain
 		bool acceptable = true;

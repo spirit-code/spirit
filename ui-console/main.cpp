@@ -38,10 +38,10 @@ int main(int argc, char ** argv)
 	state = std::shared_ptr<State>(setupState(cfgfile));
 //---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
-	auto sc = Spin_System(*state->active_image);
+	Chain_Image_to_Clipboard(state.get());
 	for (int i=1; i<7; ++i)
 	{
-		Chain_Insert_Image_After(state.get(), sc);
+		Chain_Insert_Image_After(state.get());
 	}
 	//-------------------------------------------------------------------------------
 	

@@ -9,9 +9,10 @@ extern "C" void Chain_next_Image(State * state, int idx_chain=-1);
 extern "C" void Chain_prev_Image(State * state, int idx_chain=-1);
 
 // Insert/Replace/Delete images
-extern "C" void Chain_Insert_Image_Before(State * state, Data::Spin_System & image, int idx_image=-1, int idx_chain=-1);
-extern "C" void Chain_Insert_Image_After(State * state, Data::Spin_System & image, int idx_image=-1, int idx_chain=-1);
-extern "C" void Chain_Replace_Image(State * state, Data::Spin_System & image, int idx_image=-1, int idx_chain=-1);
+extern "C" void Chain_Image_to_Clipboard(State * state, int idx_image=-1, int idx_chain=-1);
+extern "C" void Chain_Insert_Image_Before(State * state, int idx_image=-1, int idx_chain=-1);
+extern "C" void Chain_Insert_Image_After(State * state, int idx_image=-1, int idx_chain=-1);
+extern "C" void Chain_Replace_Image(State * state, int idx_image=-1, int idx_chain=-1);
 extern "C" void Chain_Delete_Image(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Update Data (primarily for plots)

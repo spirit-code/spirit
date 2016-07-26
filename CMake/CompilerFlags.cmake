@@ -3,10 +3,21 @@ MESSAGE( STATUS ">> --------------------- CompilerFlags.cmake ------------------
 ######## Set export functions for Web UI #############################
 ### Place all functions which should be exported by emcc into this list
 set( INTERFACE_EXPORT_FUNCTIONS
+		# State
+		'_setupState'
 		# main
-		'_performIteration' '_getSpinDirections'  '_createSimulation'
+		'_PlayPause' '_getSpinDirections'
+		# Chain
+		'_Chain_next_Image' '_Chain_prev_Image'
+		'_Chain_Image_to_Clipboard' '_Chain_Insert_Image_Before' '_Chain_Insert_Image_After' '_Chain_Replace_Image' '_Chain_Delete_Image'
+		'_Chain_Update_Data' '_Chain_Setup_Data'
+		# Collection
+		'_Collection_next_Chain' '_Collection_prev_Chain'
 		# Configurations
-		'_Configuration_DomainWall' '_Configuration_Homogeneous' '_Configuration_PlusZ' '_Configuration_MinusZ' '_Configuration_Random'  '_Configuration_Skyrmion' '_Configuration_SpinSpiral'
+		'_Configuration_DomainWall' '_Configuration_Homogeneous' '_Configuration_PlusZ' '_Configuration_MinusZ'
+		'_Configuration_Random' '_Configuration_Skyrmion' '_Configuration_SpinSpiral'
+		# Transitions
+		'_Transition_Homogeneous'
 		# Hamiltonian
 		'_Hamiltonian_Set_Boundary_Conditions' '_Hamiltonian_Set_mu_s' '_Hamiltonian_Set_Field' '_Hamiltonian_Set_Exchange' '_Hamiltonian_Set_DMI' '_Hamiltonian_Set_Anisotropy' '_Hamiltonian_Set_STT' '_Hamiltonian_Set_Temperature'
 		'_Hamiltonian_Get_Boundary_Conditions' '_Hamiltonian_Get_mu_s' '_Hamiltonian_Get_Field' '_Hamiltonian_Get_Exchange' '_Hamiltonian_Get_DMI' '_Hamiltonian_Get_Anisotropy' '_Hamiltonian_Get_STT' '_Hamiltonian_Get_Temperature'
