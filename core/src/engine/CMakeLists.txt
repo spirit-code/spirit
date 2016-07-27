@@ -5,6 +5,7 @@ set(SOURCE_CORE_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Force_GNEB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Heun.cpp

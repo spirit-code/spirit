@@ -14,7 +14,7 @@ namespace Engine
 		Semi-Implicit Method B (SIB) Optimizer:
 			The Spin System is optimized w.r.t. the force while following the physical LLG trajectory.
 			Note that this means this is not a direct optimizer and the system posesses "momentum".
-			Method taken from: Mentink et. al., Stable and fast semi-implicit integration of the stochastic Landau–Lifshitz equation, J. Phys.: Condens. Matter 22 (2010) 176001 (12pp)
+			Method taken from: Mentink et. al., Stable and fast semi-implicit integration of the stochastic Landauï¿½Lifshitz equation, J. Phys.: Condens. Matter 22 (2010) 176001 (12pp)
 	*/
 	class Optimizer_SIB : public Optimizer
 	{
@@ -23,7 +23,9 @@ namespace Engine
 		// One step in the optimization
 		void Step() override;
 		void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call) override;
-
+		// Optimizer name as string
+		std::string Name() override;
+		std::string Fullname() override;
     private:
 
 		// Temporary Spins arrays

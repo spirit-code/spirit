@@ -88,4 +88,8 @@ namespace Engine
 			*/
 		}
 	}
+
+    // Optimizer name as string
+    std::string Optimizer_Heun::Name() { return "CG"; }
+    std::string Optimizer_Heun::Fullname() { return "Conjugate Gradient"; }
 }

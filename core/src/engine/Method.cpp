@@ -57,4 +57,11 @@ namespace Engine
         std::ifstream f("STOP");
         return f.good();
     }
+
+    std::string Method::Name()
+    {
+        // Not Implemented!
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Name() of the Method base class!"));
+        return "--";
+    }
 }

@@ -17,4 +17,7 @@ namespace Engine
     {
         
     }
+
+    // Optimizer name as string
+    std::string Method_MMF::Name() { return "MMF"; }
 }

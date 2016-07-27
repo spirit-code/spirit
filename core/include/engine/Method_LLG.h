@@ -28,6 +28,9 @@ namespace Engine
 		// Iterates the system one step
 		void Iteration() override;
 
+		// Optimizer name as string
+		std::string Name() override;
+
 	private:
 		// Save the current Step's Data: spins and energy
 		void Save_Step(int image, int iteration, std::string suffix) override;

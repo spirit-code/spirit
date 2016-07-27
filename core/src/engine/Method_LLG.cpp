@@ -36,6 +36,7 @@ namespace Engine
     
     void Method_LLG::Iterate()
     {
+		auto sender = Utility::Log_Sender::LLG;
 		//========================= Init local vars ================================
         auto s = c->images[c->idx_active_image];
 		int n = s->llg_parameters->n_iterations;
@@ -45,10 +46,10 @@ namespace Engine
 		std::string suffix = "_archive";
         //------------------------ End Init ----------------------------------------
         //epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + (s->llg_parameters->damping * s->llg_parameters->damping))*s->llg_parameters->temperature);
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "-------------- Started LLG Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "Optimizer: SIB"); // Use Optimizer->Name for this print!
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "----------------------------------------------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Started " + this->Name() + " Simulation --------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
+		Log.Send(Utility::Log_Level::ALL, sender, "Optimizer: " + this->optimizer->Name());
+		Log.Send(Utility::Log_Level::ALL, sender, "----------------------------------------------------");
         
         auto t_start = system_clock::now();
         auto t_current = system_clock::now();
@@ -70,12 +71,12 @@ namespace Engine
 				t_last = t_current;
 				t_current = system_clock::now();
 
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "LLG Iteration step           " + std::to_string(step) + " / " + std::to_string(n_log));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "                           = " + std::to_string(i) + " / " + std::to_string(n));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Total Energy:            " + std::to_string(s->E / s->nos));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Maximum force component: " + std::to_string(this->force_call->maxAbsComponent));
+				Log.Send(Utility::Log_Level::ALL, sender, this->Name() + " Iteration step           " + std::to_string(step) + " / " + std::to_string(n_log));
+				Log.Send(Utility::Log_Level::ALL, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n));
+				Log.Send(Utility::Log_Level::ALL, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
+				Log.Send(Utility::Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
+				Log.Send(Utility::Log_Level::ALL, sender, "    Total Energy:            " + std::to_string(s->E / s->nos));
+				Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->force_call->maxAbsComponent));
 
 				Save_Step(image, i, suffix);
                 // temporarily removed
@@ -84,17 +85,17 @@ namespace Engine
         }// endif i
         auto t_end = system_clock::now();
 		
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "-------------- Finished LLG Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n) + " iterations.");
-        Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Total Energy:               " + std::to_string(s->E / s->nos));
+		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Finished " + this->Name() + " Simulation --------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n) + " iterations.");
+        Log.Send(Utility::Log_Level::ALL, sender, "    Total Energy:               " + std::to_string(s->E / s->nos));
 		if (this->force_call->IsConverged())
-			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    The configuration has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
+			Log.Send(Utility::Log_Level::ALL, sender, "    The configuration has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
         else
-            Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    Maximum force component:    " + std::to_string(this->force_call->maxAbsComponent));
+            Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->force_call->maxAbsComponent));
         if (this->StopFilePresent())
-            Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    A STOP file has been found.");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "    LLG Simulation ran for      " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::LLG, "-----------------------------------------------------");
+            Log.Send(Utility::Log_Level::ALL, sender, "    A STOP file has been found.");
+		Log.Send(Utility::Log_Level::ALL, sender, "    " + this->Name() + " Simulation ran for      " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		Log.Send(Utility::Log_Level::ALL, sender, "-----------------------------------------------------");
 
 		suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n)) + "_final";
 		Save_Step(image, i, suffix);
@@ -147,4 +148,7 @@ namespace Engine
 		// Save Log
 		Log.Append_to_File();
 	}
+
+	// Optimizer name as string
+    std::string Method_LLG::Name() { return "LLG"; }
 }

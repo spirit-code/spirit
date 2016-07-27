@@ -32,7 +32,11 @@ namespace Engine
 		// One Iteration
 		virtual void Iteration();
 
+		// Calculate current IPS
 		double getIterationsPerSecond();
+
+		// Optimizer name as string
+		virtual std::string Name();
 
 	protected:
 		// The Image Chain on which this Solver operates

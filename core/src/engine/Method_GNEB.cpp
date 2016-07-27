@@ -25,12 +25,13 @@ namespace Engine
 		this->systems = c->images;
 
 		// Configure the Optimizer
-		this->optimizer->Configure(systems, force_call);
+		this->optimizer->Configure(this->systems, this->force_call);
 	}
 
 	// Iteratively apply the GNEB method to a Spin System Chain
 	void Method_GNEB::Iterate()
 	{
+		auto sender = Utility::Log_Sender::GNEB;
 		//========================= Init local vars ================================
 		int n_iterations = c->gneb_parameters->n_iterations;
 		int log_steps = c->gneb_parameters->log_steps;
@@ -39,10 +40,10 @@ namespace Engine
 		std::string suffix = "";
 		//------------------------ End Init ----------------------------------------
 
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "-------------- Started GNEB Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "Optimizer: Heun");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "-----------------------------------------------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Started " + this->Name() + " Simulation --------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
+		Log.Send(Utility::Log_Level::ALL, sender, "Optimizer: " + this->optimizer->Name());
+		Log.Send(Utility::Log_Level::ALL, sender, "-----------------------------------------------------");
 
 		auto t_start = system_clock::now();
 		auto t_current = system_clock::now();
@@ -64,11 +65,11 @@ namespace Engine
 				t_last = t_current;
 				t_current = system_clock::now();
 
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "GNEB Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
-				Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    Maximum force component: " + std::to_string(this->force_call->maxAbsComponent));
+				Log.Send(Utility::Log_Level::ALL, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
+				Log.Send(Utility::Log_Level::ALL, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
+				Log.Send(Utility::Log_Level::ALL, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
+				Log.Send(Utility::Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
+				Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->force_call->maxAbsComponent));
 
 				Save_Step(0, i, suffix);
 
@@ -77,16 +78,16 @@ namespace Engine
 		}// endif i
 		auto t_end = system_clock::now();
 
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "-------------- Finished GNEB Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
+		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Finished " + this->Name() + " Simulation --------------");
+		Log.Send(Utility::Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
 		if (this->force_call->IsConverged())
-			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    The transition has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
+			Log.Send(Utility::Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
 		else
-			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    Maximum force component:    " + std::to_string(this->force_call->maxAbsComponent));
+			Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->force_call->maxAbsComponent));
 		if (this->StopFilePresent())
-			Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    A STOP file has been found.");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "    GNEB Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
-		Log.Send(Utility::Log_Level::ALL, Utility::Log_Sender::GNEB, "------------------------------------------------------");
+			Log.Send(Utility::Log_Level::ALL, sender, "    A STOP file has been found.");
+		Log.Send(Utility::Log_Level::ALL, sender, "    " + this->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		Log.Send(Utility::Log_Level::ALL, sender, "------------------------------------------------------");
 
 		//suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n_iterations)) + "_final";
 		suffix = "_final";
@@ -148,4 +149,7 @@ namespace Engine
 		// Save Log
 		Log.Append_to_File();
 	}
+
+	// Optimizer name as string
+    std::string Method_GNEB::Name() { return "GNEB"; }
 }

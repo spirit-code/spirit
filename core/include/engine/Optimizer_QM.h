@@ -13,6 +13,10 @@ namespace Engine
 	{
 	public:
 		void Step() override {};
+		
+		// Optimizer name as string
+		std::string Name() override;
+		std::string Fullname() override;
     };
 }
 

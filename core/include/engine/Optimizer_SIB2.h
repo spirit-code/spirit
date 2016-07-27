@@ -20,7 +20,9 @@ namespace Engine
 		// One step in the optimization
 		void Step() override;
 		void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call) override;
-
+		// Optimizer name as string
+		std::string Name() override;
+		std::string Fullname() override;
     private:
 
 		// Temporary Spins arrays

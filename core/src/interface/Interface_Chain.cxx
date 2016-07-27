@@ -94,6 +94,10 @@ extern "C" void Chain_Insert_Image_Before(State * state, int idx_image_i, int id
         state->active_image = state->active_chain->images[state->idx_active_image];
         // state->active_image = copy;
         // state->active_chain->idx_active_image = state->idx_active_image;
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
         Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Inserted image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
@@ -134,6 +138,10 @@ extern "C" void Chain_Insert_Image_After(State * state, int idx_image_i, int idx
         state->active_image = state->active_chain->images[state->idx_active_image];
         // state->active_image = copy;
         // state->active_chain->idx_active_image = state->idx_active_image;
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
         Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Inserted image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
@@ -188,6 +196,9 @@ extern "C" void Chain_Delete_Image(State * state, int idx_image_i, int idx_chain
 
     state->active_image = state->active_chain->images[state->idx_active_image];
     state->active_chain->idx_active_image = state->idx_active_image;
+
+    // Update array lengths
+    Chain_Setup_Data(state, idx_chain);
 
     Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Deleted image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ")");
 }

@@ -17,11 +17,13 @@ namespace Engine
 
 		// Iteratively apply the MMF method to the Spin System Chain
 		// Output and console notification is generated every log_steps
-		void Iterate();
+		void Iterate() override;
 
 		// Iterates the system one step
-		void Iteration();
+		void Iteration() override;
 
+		// Optimizer name as string
+		std::string Name() override;
 	};
 }
 

@@ -202,4 +202,8 @@ namespace Engine
 		}//enfor dim
 
 	}//end Gen_Xi
+
+    // Optimizer name as string
+    std::string Optimizer_SIB::Name() { return "SIB"; }
+    std::string Optimizer_SIB::Fullname() { return "Semi-implicit B"; }
 }
