@@ -18,7 +18,7 @@
 namespace Engine
 {
 	/*
-		Base Class for Solvers
+		Base Class for Methods
 	*/
 	class Method
 	{

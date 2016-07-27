@@ -337,15 +337,15 @@ void MainWindow::stopallPressed()
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
 	
 	state->active_chain->iteration_allowed = false;
-	for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
+	for (unsigned int i = 0; i < this->gneb_methods.size(); ++i)
 	{
-		this->gneb_solvers.erase(state->active_chain);
+		this->gneb_methods.erase(state->active_chain);
 	}
 
 	for (int i = 0; i < state->noi; ++i)
 	{
 		state->active_chain->images[i]->iteration_allowed = false;
-		this->llg_solvers.erase(state->active_chain->images[i]);
+		this->llg_methods.erase(state->active_chain->images[i]);
 	}
 
 	this->pushButton_PlayPause->setText("Play");
@@ -377,15 +377,15 @@ void MainWindow::playpausePressed()
 		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM());
 	}
 
-	if (this->comboBox_Solver->currentText() == "LLG")
+	if (this->comboBox_Method->currentText() == "LLG")
 	{
 		if (state->active_image->iteration_allowed)
 		{
 			this->pushButton_PlayPause->setText("Play");
 			state->active_image->iteration_allowed = false;
 			state->active_chain->iteration_allowed = false;
-			this->gneb_solvers.erase(state->active_chain);
-			this->llg_solvers.erase(state->active_image);
+			this->gneb_methods.erase(state->active_chain);
+			this->llg_methods.erase(state->active_image);
 		}
 		else
 		{
@@ -397,12 +397,12 @@ void MainWindow::playpausePressed()
 			}
 			state->active_image->iteration_allowed = true;
 			state->active_chain->iteration_allowed = false;
-            auto g = new Engine::Solver_LLG(this->state->active_chain, optim);
-			Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Solver_LLG::Iterate, g);
-			this->llg_solvers[state->active_image] = g;
+            auto g = new Engine::Method_LLG(this->state->active_chain, optim);
+			Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Method_LLG::Iterate, g);
+			this->llg_methods[state->active_image] = g;
 		}
 	}
-	else if (this->comboBox_Solver->currentText() == "GNEB")
+	else if (this->comboBox_Method->currentText() == "GNEB")
 	{
 		if (state->active_chain->iteration_allowed)
 		{
@@ -410,10 +410,10 @@ void MainWindow::playpausePressed()
 			for (int i = 0; i < state->noi; ++i)
 			{
 				state->active_chain->images[i]->iteration_allowed = false;
-				this->llg_solvers.erase(state->active_chain->images[i]);
+				this->llg_methods.erase(state->active_chain->images[i]);
 			}
 			state->active_chain->iteration_allowed = false;
-			this->gneb_solvers.erase(state->active_chain);
+			this->gneb_methods.erase(state->active_chain);
 		}
 		else
 		{
@@ -429,10 +429,10 @@ void MainWindow::playpausePressed()
 			state->active_chain->iteration_allowed = true;
             auto g = new Engine::Method_GNEB(this->state->active_chain, optim);
 			Utility::Threading::gneb_threads[state->active_chain] = std::thread(&Engine::Method_GNEB::Iterate, g);
-			this->gneb_solvers[state->active_chain] = g;
+			this->gneb_methods[state->active_chain] = g;
 		}
 	}
-	else if (this->comboBox_Solver->currentText() == "MMF")
+	else if (this->comboBox_Method->currentText() == "MMF")
 	{
 		Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, std::string("MMF selected, but not yet implemented! Not doing anything..."));
 	}
@@ -533,7 +533,7 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
 
-	// Get Solvers' IPS
+	// Get Methods' IPS
 	auto v_ips = this->getIterationsPerSecond();
 
 	// Create IPS Labels and add them to the statusBar
@@ -581,18 +581,18 @@ std::vector<double> MainWindow::getIterationsPerSecond()
 
 	if (this->state->active_chain->iteration_allowed)
 	{
-		for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
+		for (unsigned int i = 0; i < this->gneb_methods.size(); ++i)
 		{
-			ret.push_back(this->gneb_solvers[state->active_chain]->getIterationsPerSecond());
+			ret.push_back(this->gneb_methods[state->active_chain]->getIterationsPerSecond());
 		}
 	}
 	else
 	{
-		for (unsigned int i = 0; i < this->llg_solvers.size(); ++i)
+		for (unsigned int i = 0; i < this->llg_methods.size(); ++i)
 		{
 			if (state->active_chain->images[i]->iteration_allowed)
 			{
-				ret.push_back(this->llg_solvers[state->active_chain->images[i]]->getIterationsPerSecond());
+				ret.push_back(this->llg_methods[state->active_chain->images[i]]->getIterationsPerSecond());
 			}
 		}
 	}

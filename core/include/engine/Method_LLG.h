@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SOLVER_LLG_H
-#define SOLVER_LLG_H
+#ifndef METHOD_LLG_H
+#define METHOD_LLG_H
 
 #include "Method.h"
 #include "Spin_System.h"
@@ -12,17 +12,20 @@
 
 namespace Engine
 {
-	class Solver_LLG : public Method
+	/*
+		The Landau-Lifshitz-Gilbert (LLG) method
+	*/
+	class Method_LLG : public Method
 	{
 	public:
 		// replace this depedency on the system chain with a vector<Spin_System>
-        Solver_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim);
+        Method_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim);
         
         // Iteratively apply the GNEB method to the Spin System Chain
 		// Output and console notification is generated every log_steps
 		void Iterate() override;
 
-		// Iterates the system one step with the semi-implicit midpoint solver method B
+		// Iterates the system one step
 		void Iteration() override;
 
 	private:

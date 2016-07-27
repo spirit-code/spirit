@@ -10,6 +10,9 @@
 
 namespace Engine
 {
+	/*
+		The geodesic nudged elastic band (GNEB) method
+	*/
 	class Method_GNEB : public Method
 	{
 	public:
@@ -19,7 +22,7 @@ namespace Engine
 		// Output and console notification is generated every log_steps
 		void Iterate() override;
 
-		// Iterates the system one step with the semi-implicit midpoint solver method B
+		// Iterates the system one step
 		void Iteration() override;
 
 	private:

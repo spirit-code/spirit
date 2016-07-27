@@ -72,10 +72,10 @@ extern "C" State * setupState(const char * config_file)
     state->noi = 1;
     state->nos = state->active_image->nos;
 
-    // Solvers
-    state->solvers_llg = std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Solver_LLG>>(state->noi));
-    state->solvers_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noi);
-    state->solvers_mmf = std::vector<std::shared_ptr<Engine::Solver_MMF>>(state->noi);
+    // Methods
+    state->methods_llg = std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Method_LLG>>(state->noi));
+    state->methods_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noi);
+    state->methods_mmf = std::vector<std::shared_ptr<Engine::Method_MMF>>(state->noi);
 
     // Log
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");

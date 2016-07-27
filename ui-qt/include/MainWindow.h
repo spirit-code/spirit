@@ -13,8 +13,9 @@
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 
-#include "Solver_LLG.h"
+#include "Method_LLG.h"
 #include "Method_GNEB.h"
+#include "Method_MMF.h"
 
 #include "Interface_State.h"
 
@@ -104,9 +105,9 @@ private:
 	QLabel * m_Label_FPS;
 	std::vector<QLabel*> m_Labels_IPS;
 
-	// Image/Chain - Solver maps
-	std::map<std::shared_ptr<Data::Spin_System>, Engine::Solver_LLG*> llg_solvers;
-	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Method_GNEB*> gneb_solvers;
+	// Image/Chain - Method maps
+	std::map<std::shared_ptr<Data::Spin_System>, Engine::Method_LLG*> llg_methods;
+	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Method_GNEB*> gneb_methods;
 
 };
 

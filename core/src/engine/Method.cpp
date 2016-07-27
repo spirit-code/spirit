@@ -22,14 +22,14 @@ namespace Engine
     void Method::Iterate()
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Solver::Iterate() of the Solver base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Iterate() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
     void Method::Iteration()
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Solver::Iteration() of the Solver base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Iteration() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
@@ -48,7 +48,7 @@ namespace Engine
     void Method::Save_Step(int image, int iteration, std::string suffix)
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Solver::Save_Step() of the Solver base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Step() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 

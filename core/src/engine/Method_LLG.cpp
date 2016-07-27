@@ -1,5 +1,5 @@
 
-#include <Solver_LLG.h>
+#include "Method_LLG.h"
 
 #include "Force.h"
 #include "Force_LLG.h"
@@ -23,9 +23,9 @@ using namespace Utility;
 
 namespace Engine
 {
-    Solver_LLG::Solver_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
+    Method_LLG::Method_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
 	{
-		// Solver child-class specific instructions
+		// Method child-class specific instructions
 		// currently only support a single image being iterated:
 		this->force_call = std::shared_ptr<Engine::Force>(new Force_LLG(this->c));
 		this->systems.push_back(c->images[c->idx_active_image]);
@@ -34,7 +34,7 @@ namespace Engine
 		this->optimizer->Configure(systems, force_call);
 	}
     
-    void Solver_LLG::Iterate()
+    void Method_LLG::Iterate()
     {
 		//========================= Init local vars ================================
         auto s = c->images[c->idx_active_image];
@@ -102,7 +102,7 @@ namespace Engine
     }// end Iterate
     
     
-    void Solver_LLG::Iteration()
+    void Method_LLG::Iteration()
     {
 		this->optimizer->Step();
 
@@ -123,7 +123,7 @@ namespace Engine
         }//endif renorm_sd
     }
 	
-	void Solver_LLG::Save_Step(int image, int iteration, std::string suffix)
+	void Method_LLG::Save_Step(int image, int iteration, std::string suffix)
 	{
 		// Convert image to a formatted string
 		auto s_img = IO::int_to_formatted_string(image, 2);
