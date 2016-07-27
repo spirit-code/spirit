@@ -10,8 +10,9 @@ set(SOURCE_CORE_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Heun.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_CG.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_QM.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_LLG.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_GNEB.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_MMF.cpp
     PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
 )

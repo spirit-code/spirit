@@ -74,7 +74,7 @@ extern "C" State * setupState(const char * config_file)
 
     // Solvers
     state->solvers_llg = std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Solver_LLG>>(state->noi));
-    state->solvers_gneb = std::vector<std::shared_ptr<Engine::Solver_GNEB>>(state->noi);
+    state->solvers_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noi);
     state->solvers_mmf = std::vector<std::shared_ptr<Engine::Solver_MMF>>(state->noi);
 
     // Log

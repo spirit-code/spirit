@@ -2,7 +2,7 @@
 #ifndef SOLVER_LLG_H
 #define SOLVER_LLG_H
 
-#include "Solver.h"
+#include "Method.h"
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 #include "Optimizer.h"
@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	class Solver_LLG : public Solver
+	class Solver_LLG : public Method
 	{
 	public:
 		// replace this depedency on the system chain with a vector<Spin_System>

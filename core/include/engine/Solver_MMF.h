@@ -2,14 +2,14 @@
 #ifndef SOLVER_MMF_H
 #define SOLVER_MMF_H
 
-#include "Solver.h"
+#include "Method.h"
 
 namespace Engine
 {
 	/*
 		Solver for the Minimum Mode Following (MMF) method
 	*/
-	class Solver_MMF : public Solver
+	class Solver_MMF : public Method
 	{
 
 	public:

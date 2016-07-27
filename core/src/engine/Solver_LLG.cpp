@@ -23,7 +23,7 @@ using namespace Utility;
 
 namespace Engine
 {
-    Solver_LLG::Solver_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Solver(c, optim)
+    Solver_LLG::Solver_LLG(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
 	{
 		// Solver child-class specific instructions
 		// currently only support a single image being iterated:

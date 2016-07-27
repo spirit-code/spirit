@@ -5,7 +5,7 @@
 #include "Spin_System_Chain.h"
 #include "Optimizer.h"
 #include "Solver_LLG.h"
-#include "Solver_GNEB.h"
+#include "Method_GNEB.h"
 #include "Solver_MMF.h"
 
 //  State
@@ -32,7 +32,7 @@ struct State
     //    max. noi*noc LLG solvers
     std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>> solvers_llg; // [noc][noi]
     //    max. noc GNEB solvers
-    std::vector<std::shared_ptr<Engine::Solver_GNEB>> solvers_gneb; // [noc]
+    std::vector<std::shared_ptr<Engine::Method_GNEB>> solvers_gneb; // [noc]
     //    max. noc MMF solvers
     std::vector<std::shared_ptr<Engine::Solver_MMF>> solvers_mmf; // [noc]
 };

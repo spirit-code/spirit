@@ -10,7 +10,7 @@
 
 #include "Optimizer_Heun.h"
 #include "Optimizer_SIB.h"
-#include "Solver_GNEB.h"
+#include "Method_GNEB.h"
 #include "Vectormath.h"
 
 #include"Logging.h"
@@ -18,9 +18,9 @@ using namespace Utility;
 
 namespace Engine
 {
-    Solver_GNEB::Solver_GNEB(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Solver(c, optim)
+    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
 	{
-		// Solver child-class specific instructions
+		// Method child-class specific instructions
 		this->force_call = std::shared_ptr<Engine::Force>(new Force_GNEB(this->c));
 		this->systems = c->images;
 
@@ -29,7 +29,7 @@ namespace Engine
 	}
 
 	// Iteratively apply the GNEB method to a Spin System Chain
-	void Solver_GNEB::Iterate()
+	void Method_GNEB::Iterate()
 	{
 		//========================= Init local vars ================================
 		int n_iterations = c->gneb_parameters->n_iterations;
@@ -95,7 +95,7 @@ namespace Engine
 	}
 
 	// Apply one iteration of the GNEB method to a Spin System Chain
-	void Solver_GNEB::Iteration()
+	void Method_GNEB::Iteration()
 	{
 		int nos = c->images[0]->nos;
 
@@ -124,7 +124,7 @@ namespace Engine
 	}
 
 
-	void Solver_GNEB::Save_Step(int image, int iteration, std::string suffix)
+	void Method_GNEB::Save_Step(int image, int iteration, std::string suffix)
 	{
 		// always formatting to 6 digits may be problematic!
 		auto s_iter = IO::int_to_formatted_string(iteration, 6);

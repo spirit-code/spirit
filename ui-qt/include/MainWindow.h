@@ -14,7 +14,7 @@
 #include "Spin_System_Chain.h"
 
 #include "Solver_LLG.h"
-#include "Solver_GNEB.h"
+#include "Method_GNEB.h"
 
 #include "Interface_State.h"
 
@@ -106,7 +106,7 @@ private:
 
 	// Image/Chain - Solver maps
 	std::map<std::shared_ptr<Data::Spin_System>, Engine::Solver_LLG*> llg_solvers;
-	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Solver_GNEB*> gneb_solvers;
+	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Method_GNEB*> gneb_solvers;
 
 };
 

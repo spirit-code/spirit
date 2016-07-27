@@ -427,8 +427,8 @@ void MainWindow::playpausePressed()
 				Utility::Threading::gneb_threads[state->active_chain].join();
 			}
 			state->active_chain->iteration_allowed = true;
-            auto g = new Engine::Solver_GNEB(this->state->active_chain, optim);
-			Utility::Threading::gneb_threads[state->active_chain] = std::thread(&Engine::Solver_GNEB::Iterate, g);
+            auto g = new Engine::Method_GNEB(this->state->active_chain, optim);
+			Utility::Threading::gneb_threads[state->active_chain] = std::thread(&Engine::Method_GNEB::Iterate, g);
 			this->gneb_solvers[state->active_chain] = g;
 		}
 	}
