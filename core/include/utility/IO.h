@@ -30,6 +30,7 @@ namespace Utility
 		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_LLG> LLG_Parameters_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_GNEB> GNEB_Parameters_from_Config(const std::string configFile);
+		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 

@@ -36,17 +36,17 @@ namespace Utility
 	/////////////////////
 
 		/*
-			Build_Spins creates the orientation and position vectors for all spins from shape, basis and translations information
+			Build_Spins creates the orientation and position vectors for all spins from shape, basis and translations (nCells) information
 		*/
-		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nTa, const int nTb, const int nTc, const int nos_basic)
+		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nCa, const int nCb, const int nCc, const int nos_basic)
 		{
 			int i, j, k, s, pos, dim;
 			double build_array[3] = { 0 };
-			for (k = 0; k <= nTc; ++k) {
-				for (j = 0; j <= nTb; ++j) {
-					for (i = 0; i <= nTa; ++i) {
+			for (k = 0; k < nCc; ++k) {
+				for (j = 0; j < nCb; ++j) {
+					for (i = 0; i < nCa; ++i) {
 						for (s = 0; s < nos_basic; ++s) {
-							pos = k*(nTb + 1)*(nTa + 1)*nos_basic + j*(nTa + 1)*nos_basic + i*nos_basic + s;
+							pos = k*nCb*nCa*nos_basic + j*nCa*nos_basic + i*nos_basic + s;
 							Vectormath::Array_Array_Add(a, b, c, build_array, 3, i, j, k);
 							for (dim = 0; dim < 3; ++dim)
 							{
@@ -75,26 +75,26 @@ namespace Utility
 			}
 		};// end Build_Spins
 
-		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_translations, const int nos_basic)
+		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> & basis_atoms, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_cells, const int nos_basic)
 		{
 			double a[3] = { translation_vectors[0][0], translation_vectors[1][0], translation_vectors[2][0] };
 			double b[3] = { translation_vectors[0][1], translation_vectors[1][1], translation_vectors[2][1] };
 			double c[3] = { translation_vectors[0][2], translation_vectors[1][2], translation_vectors[2][2] };
 
-			int i, j, k, s, pos, dim, nos = nos_basic * (n_translations[0] + 1) * (n_translations[1] + 1) * (n_translations[2] + 1);
+			int i, j, k, s, pos, dim, nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
 			double build_array[3] = { 0 };
-			for (k = 0; k <= n_translations[2]; ++k) {
-				for (j = 0; j <= n_translations[1]; ++j) {
-					for (i = 0; i <= n_translations[0]; ++i) {
+			for (k = 0; k < n_cells[2]; ++k) {
+				for (j = 0; j < n_cells[1]; ++j) {
+					for (i = 0; i < n_cells[0]; ++i) {
 						for (s = 0; s < nos_basic; ++s) {
-							pos = k*(n_translations[1] + 1)*(n_translations[0] + 1)*nos_basic + j*(n_translations[0] + 1)*nos_basic + i*nos_basic + s;
+							pos = k*n_cells[1]*n_cells[0]*nos_basic + j*n_cells[0]*nos_basic + i*nos_basic + s;
 							Vectormath::Array_Array_Add(a, b, c, build_array, 3, i, j, k);
 							for (dim = 0; dim < 3; ++dim)
 							{
 								// paste initial spin orientations across the lattice translations
 								//spins[dim*nos + pos] = spins[dim*nos + s];
 								// calculate the spin positions
-								spin_pos[dim][pos] = spin_pos[dim][s] + build_array[dim];
+								spin_pos[dim][pos] = basis_atoms[dim][s] + build_array[dim];
 							}// endfor dim
 						}// endfor s
 					}// endfor k

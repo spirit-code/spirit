@@ -13,7 +13,7 @@ namespace Data
 	public:
 		// Constructor
 		Geometry(const std::vector<std::vector<double>> basis, const std::vector<std::vector<double>> translation_vectors, 
-			const std::vector<int> n_translations, const int n_spins_basic_domain, const std::vector<std::vector<double>> spin_pos);
+			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<std::vector<double>> spin_pos);
 		// Destructor
 		//~Geometry();
 
@@ -24,7 +24,7 @@ namespace Data
 		// Translation Vectors [dim][transl_vec]
 		const std::vector<std::vector<double>> translation_vectors;
 		// Number of Translations {nta, ntb, ntc}
-		const std::vector<int> n_translations;
+		const std::vector<int> n_cells;
 		// Number of spins per basic domain
 		const int n_spins_basic_domain;
 		const int nos;

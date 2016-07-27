@@ -270,12 +270,9 @@ namespace Utility
 
 					// Create all Pairs of this Kind through translation
 					int idx_i = 0, idx_j = 0;
-					int Na = geometry.n_translations[0] + 1;
-					int nTa = geometry.n_translations[0];
-					int Nb = geometry.n_translations[1] + 1;
-					int nTb = geometry.n_translations[1];
-					int Nc = geometry.n_translations[2] + 1;
-					int nTc = geometry.n_translations[2];
+					int Na = geometry.n_cells[0];
+					int Nb = geometry.n_cells[1];
+					int Nc = geometry.n_cells[2];
 					int N = geometry.n_spins_basic_domain;
 					int periods_a = 0, periods_b = 0, periods_c = 0;
 					for (int na = 0; na < Na; ++na)

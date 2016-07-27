@@ -193,7 +193,7 @@ namespace Engine
 		int i, j, k, imax = 10, jmax = 10, kmax = 10, shell;
 		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
 		if (!borderOnly) {
-			// Set the n_translations in which to fit this shell and determine MaxNumber_NInShell
+			// Set the n_cells in which to fit this shell and determine MaxNumber_NInShell
 			imax = 30; jmax = 30; kmax = 30;
 			Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::ALL, "Remember Maximum size of Dipole shell should fit into " + std::to_string(imax) + "x" + std::to_string(jmax) + "x" + std::to_string(kmax) + " translations. Neighbours.cpp line 178 to change this");
 		}
@@ -646,9 +646,9 @@ namespace Engine
 					{
 						if (!(ia == 0 && ib == 0 && ic == 0))
 						{
-							boundary_vectors[dim][temp] = geometry.translation_vectors[dim][0] * (geometry.n_translations[0] + 1.0)*ia
-														+ geometry.translation_vectors[dim][1] * (geometry.n_translations[1] + 1.0)*ib
-														+ geometry.translation_vectors[dim][2] * (geometry.n_translations[2] + 1.0)*ic;
+							boundary_vectors[dim][temp] = geometry.translation_vectors[dim][0] * geometry.n_cells[0] * ia
+														+ geometry.translation_vectors[dim][1] * geometry.n_cells[1] * ib
+														+ geometry.translation_vectors[dim][2] * geometry.n_cells[2] * ic;
 							temp++;
 						}
 					}
@@ -683,11 +683,11 @@ namespace Engine
 					
 				}
 				// Determine periodical boundaries
-				if (0 <= dot_a && dot_a <= geometry.n_translations[0]) periodical_a = false;
+				if (0 <= dot_a && dot_a < geometry.n_cells[0]) periodical_a = false;
 				else periodical_a = true;
-				if (0 <= dot_b && dot_b <= geometry.n_translations[1]) periodical_b = false;
+				if (0 <= dot_b && dot_b < geometry.n_cells[1]) periodical_b = false;
 				else periodical_b = true;
-				if (0 <= dot_c && dot_c <= geometry.n_translations[2]) periodical_c = false;
+				if (0 <= dot_c && dot_c < geometry.n_cells[2]) periodical_c = false;
 				else periodical_c = true;
 				// Determine periodicity (array index)
 				//		none

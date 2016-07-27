@@ -19,8 +19,8 @@ namespace Utility
 
 
 		// Builds the spins and spin_pos array according to nTa, nTb, nTc, nos_basic
-		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nTa, const int nTb, const int nTc, const int nos_basic);
-		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_translations, const int nos_basic);
+		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nCa, const int nCb, const int nCc, const int nos_basic);
+		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> & basis_atoms, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_cells, const int nos_basic);
 
 
 		//Multiplies a given 1-d array with a double skalar
