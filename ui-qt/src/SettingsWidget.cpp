@@ -5,18 +5,21 @@
 #include "SettingsWidget.h"
 
 #include "Vectormath.h"
-#include "Configurations.h"
-#include "Configuration_Chain.h"
+// #include "Configurations.h"
+// #include "Configuration_Chain.h"
+
+#include "Interface_Configurations.h"
+#include "Interface_Transitions.h"
+
 #include "Exception.h"
 #include <iostream>
 #include <memory>
 
 #include"Logging.h"
 
-SettingsWidget::SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
+SettingsWidget::SettingsWidget(std::shared_ptr<State> state)
 {
-	this->c = c;
-	this->s = c->images[c->active_image];
+	this->state = state;
 
 	// Setup User Interface
 	this->setupUi(this);
@@ -34,10 +37,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 	this->pushButton_GreaterLesser->setText("Greater");
 
 	// Setup Transitions Tab
-	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(this->c->noi));
+	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(this->state->noi));
 
 	// Setup Interactions Tab
-	if (this->s->is_isotropic) this->tabWidget_Settings->removeTab(3);
+	if (this->state->active_image->is_isotropic) this->tabWidget_Settings->removeTab(3);
 	else this->tabWidget_Settings->removeTab(2);
 
 	// Load information from Spin Systems
@@ -54,10 +57,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 
 void SettingsWidget::update()
 {
-	// Get active image
-	this->s = this->c->images[this->c->active_image];
 	// Load Hamiltonian Contents
-	if (this->s->is_isotropic) this->Load_Hamiltonian_Isotropic_Contents();
+	if (this->state->active_image->is_isotropic) this->Load_Hamiltonian_Isotropic_Contents();
 	else this->Load_Hamiltonian_Anisotropic_Contents();
 	// Load Parameters Contents
 	this->Load_Parameters_Contents();
@@ -72,17 +73,17 @@ void SettingsWidget::update()
 void SettingsWidget::randomPressed()
 {
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button Random");
-	Utility::Configurations::Random(*s);
+	Configuration_Random(this->state.get());
 	print_Energies_to_console();
 }
 void SettingsWidget::minusZ()
 {
-	Utility::Configurations::MinusZ(*s);
+	Configuration_MinusZ(this->state.get());
 	print_Energies_to_console();
 }
 void SettingsWidget::plusZ()
 {
-	Utility::Configurations::PlusZ(*s);
+	Configuration_PlusZ(this->state.get());
 	print_Energies_to_console();
 }
 
@@ -109,12 +110,12 @@ void SettingsWidget::create_Skyrmion()
 	bool experimental = checkBox_sky_experimental->isChecked();
 	std::vector<double> pos =
 	{
-		lineEdit_sky_posx->text().toDouble() + s->geometry->center[0],
-		lineEdit_sky_posy->text().toDouble() + s->geometry->center[1],
-		lineEdit_sky_posz->text().toDouble() + s->geometry->center[2]
+		lineEdit_sky_posx->text().toDouble() + state->active_image->geometry->center[0],
+		lineEdit_sky_posy->text().toDouble() + state->active_image->geometry->center[1],
+		lineEdit_sky_posz->text().toDouble() + state->active_image->geometry->center[2]
 	};
 	double rad = lineEdit_sky_rad->text().toDouble();
-	Utility::Configurations::Skyrmion(*s, pos, rad, speed, phase, upDown, achiral, rl, experimental);
+	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	print_Energies_to_console();
 }
 
@@ -124,13 +125,13 @@ void SettingsWidget::create_SpinSpiral()
 	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
 	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
 	double period = lineEdit_SS_period->text().toDouble();
-	std::string direction_type;
+	const char * direction_type;
 	// And now an ugly workaround because the QT people are too stupid to fix a Bug with QString::toStdString on Windows...
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
 	//Utility::Configurations::SpinSpiral(*s, axis, direction, direction_type, period);
-	Utility::Configurations::SpinSpiral(*s, direction_type, direction, axis, period);
+	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
 	print_Energies_to_console();
 }
 
@@ -139,7 +140,7 @@ void SettingsWidget::domainWallPressed()
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button DomainWall");
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
-	Utility::Configurations::DomainWall(*s, pos, vec, this->greater);
+	Configuration_DomainWall(this->state.get(), pos, vec, this->greater);
 	print_Energies_to_console();
 }
 
@@ -149,12 +150,12 @@ void SettingsWidget::homogeneousTransitionPressed()
 	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
 
 	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= this->c->noi)
+	if (idx_1 < 0 || idx_1 >= this->state->noi)
 	{
 		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
-	if (idx_1 < 0 || idx_1 >= this->c->noi)
+	if (idx_1 < 0 || idx_1 >= this->state->noi)
 	{
 		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
@@ -171,7 +172,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 	}
 
 	// Do the transition
-	Utility::Configuration_Chain::Homogeneous_Rotation(c, idx_1, idx_2);
+	Transition_Homogeneous(this->state.get(), idx_1, idx_2);
 }
 
 
@@ -183,22 +184,29 @@ void SettingsWidget::homogeneousTransitionPressed()
 void SettingsWidget::Load_Parameters_Contents()
 {
 	// LLG Damping
-	this->lineEdit_Damping->setText(QString::number(s->llg_parameters->damping));
-	this->lineEdit_dt->setText(QString::number(s->llg_parameters->dt));
+	this->lineEdit_Damping->setText(QString::number(state->active_image->llg_parameters->damping));
+	// Converto to PicoSeconds
+	this->lineEdit_dt->setText(QString::number(state->active_image->llg_parameters->dt /std::pow(10, -12) * Utility::Vectormath::MuB()/1.760859644/std::pow(10, 11)));
+	// LLG Iteration Params
+	this->lineEdit_llg_n_iterations->setText(QString::number(state->active_image->llg_parameters->n_iterations));
+	this->lineEdit_llg_log_steps->setText(QString::number(state->active_image->llg_parameters->log_steps));
+	// GNEB Interation Params
+	this->lineEdit_gneb_n_iterations->setText(QString::number(state->active_chain->gneb_parameters->n_iterations));
+	this->lineEdit_gneb_log_steps->setText(QString::number(state->active_chain->gneb_parameters->log_steps));
 
 	// GNEB Spring Constant
-	this->lineEdit_gneb_springconstant->setText(QString::number(this->c->gneb_parameters->spring_constant));
+	this->lineEdit_gneb_springconstant->setText(QString::number(this->state->active_chain->gneb_parameters->spring_constant));
 
 	// Normal/Climbing/Falling image radioButtons
-	this->radioButton_Normal->setChecked(!(this->c->climbing_image[this->c->active_image] || this->c->falling_image[this->c->active_image]));
-	this->radioButton_ClimbingImage->setChecked(this->c->climbing_image[this->c->active_image]);
-	this->radioButton_FallingImage->setChecked(this->c->falling_image[this->c->active_image]);
+	this->radioButton_Normal->setChecked(!(this->state->active_chain->climbing_image[this->state->idx_active_image] || this->state->active_chain->falling_image[this->state->idx_active_image]));
+	this->radioButton_ClimbingImage->setChecked(this->state->active_chain->climbing_image[this->state->idx_active_image]);
+	this->radioButton_FallingImage->setChecked(this->state->active_chain->falling_image[this->state->idx_active_image]);
 }
 
 
 void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 {
-	auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+	auto ham = (Engine::Hamiltonian_Isotropic*)state->active_image->hamiltonian.get();
 
 	// Boundary conditions
 	this->checkBox_iso_periodical_a->setChecked(ham->boundary_conditions[0]);
@@ -255,11 +263,11 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 	if (ham->anisotropy_magnitude > 0.0) this->checkBox_aniso->setChecked(true);
 
 	// Spin polarized current (does not really belong to interactions)
-	this->lineEdit_spin_torque->setText(QString::number(s->llg_parameters->stt_magnitude));
-	this->lineEdit_spin_torquex->setText(QString::number(s->llg_parameters->stt_polarisation_normal[0]));
-	this->lineEdit_spin_torquey->setText(QString::number(s->llg_parameters->stt_polarisation_normal[1]));
-	this->lineEdit_spin_torquez->setText(QString::number(s->llg_parameters->stt_polarisation_normal[2]));
-	if (s->llg_parameters->stt_magnitude > 0.0) this->checkBox_spin_torque->setChecked(true);
+	this->lineEdit_spin_torque->setText(QString::number(state->active_image->llg_parameters->stt_magnitude));
+	this->lineEdit_spin_torquex->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[0]));
+	this->lineEdit_spin_torquey->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[1]));
+	this->lineEdit_spin_torquez->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[2]));
+	if (state->active_image->llg_parameters->stt_magnitude > 0.0) this->checkBox_spin_torque->setChecked(true);
 
 	// BQE
 	this->lineEdit_bqe->setText(QString::number(ham->bij));
@@ -270,20 +278,20 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 	if (ham->kijkl > 0.0) this->checkBox_fourspin->setChecked(true);
 
 	// Temperature (does not really belong to interactions)
-	this->lineEdit_temper->setText(QString::number(s->llg_parameters->temperature));
-	if (s->llg_parameters->temperature > 0.0) this->checkBox_Temperature->setChecked(true);
+	this->lineEdit_temper->setText(QString::number(state->active_image->llg_parameters->temperature));
+	if (state->active_image->llg_parameters->temperature > 0.0) this->checkBox_Temperature->setChecked(true);
 }
 
 
 
 void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 {
-	auto ham = (Engine::Hamiltonian_Anisotropic*)s->hamiltonian.get();
+	auto ham = (Engine::Hamiltonian_Anisotropic*)state->active_image->hamiltonian.get();
 
 	// Boundary conditions
-	this->checkBox_aniso_periodical_a->setChecked(s->hamiltonian->boundary_conditions[0]);
-	this->checkBox_aniso_periodical_b->setChecked(s->hamiltonian->boundary_conditions[1]);
-	this->checkBox_aniso_periodical_c->setChecked(s->hamiltonian->boundary_conditions[2]);
+	this->checkBox_aniso_periodical_a->setChecked(state->active_image->hamiltonian->boundary_conditions[0]);
+	this->checkBox_aniso_periodical_b->setChecked(state->active_image->hamiltonian->boundary_conditions[1]);
+	this->checkBox_aniso_periodical_c->setChecked(state->active_image->hamiltonian->boundary_conditions[2]);
 
 	// mu_s
 	this->lineEdit_muSpin_aniso->setText(QString::number(ham->mu_s[0]));
@@ -303,15 +311,15 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 	if (ham->anisotropy_magnitude[0] > 0.0) this->checkBox_ani_aniso->setChecked(true);
 
 	// Spin polarised current
-	this->lineEdit_stt_aniso->setText(QString::number(s->llg_parameters->stt_magnitude));
-	this->lineEdit_sttx_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[0]));
-	this->lineEdit_stty_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[1]));
-	this->lineEdit_sttz_aniso->setText(QString::number(s->llg_parameters->stt_polarisation_normal[2]));
-	if (s->llg_parameters->stt_magnitude > 0.0) this->checkBox_stt_aniso->setChecked(true);
+	this->lineEdit_stt_aniso->setText(QString::number(state->active_image->llg_parameters->stt_magnitude));
+	this->lineEdit_sttx_aniso->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[0]));
+	this->lineEdit_stty_aniso->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[1]));
+	this->lineEdit_sttz_aniso->setText(QString::number(state->active_image->llg_parameters->stt_polarisation_normal[2]));
+	if (state->active_image->llg_parameters->stt_magnitude > 0.0) this->checkBox_stt_aniso->setChecked(true);
 
 	// Temperature
-	this->lineEdit_T_aniso->setText(QString::number(s->llg_parameters->temperature));
-	if (s->llg_parameters->temperature > 0.0) this->checkBox_T_aniso->setChecked(true);
+	this->lineEdit_T_aniso->setText(QString::number(state->active_image->llg_parameters->temperature));
+	if (state->active_image->llg_parameters->temperature > 0.0) this->checkBox_T_aniso->setChecked(true);
 }
 
 void SettingsWidget::Load_Visualization_Contents() {
@@ -333,31 +341,38 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](std::shared_ptr<Data::Spin_System> s) -> void
 	{
-		// Time step
-		s->llg_parameters->dt = this->lineEdit_dt->text().toDouble();
+		// Time step [ps]
+		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
+		s->llg_parameters->dt = this->lineEdit_dt->text().toDouble()*std::pow(10,-12)/Utility::Vectormath::MuB()*1.760859644*std::pow(10,11);
 		// Damping
 		s->llg_parameters->damping = this->lineEdit_Damping->text().toDouble();
+		// n iterations
+		s->llg_parameters->n_iterations = this->lineEdit_llg_n_iterations->text().toDouble();
+		state->active_chain->gneb_parameters->n_iterations = this->lineEdit_gneb_n_iterations->text().toDouble();
+		// log steps
+		s->llg_parameters->log_steps = this->lineEdit_llg_log_steps->text().toDouble();
+		state->active_chain->gneb_parameters->log_steps = this->lineEdit_gneb_log_steps->text().toDouble();\
 		// Spring Constant
-		c->gneb_parameters->spring_constant = this->lineEdit_gneb_springconstant->text().toDouble();
+		state->active_chain->gneb_parameters->spring_constant = this->lineEdit_gneb_springconstant->text().toDouble();
 		// Climbing/Falling Image
-		c->climbing_image[c->active_image] = this->radioButton_ClimbingImage->isChecked();
-		c->falling_image[c->active_image] = this->radioButton_FallingImage->isChecked();
+		state->active_chain->climbing_image[state->idx_active_image] = this->radioButton_ClimbingImage->isChecked();
+		state->active_chain->falling_image[state->idx_active_image] = this->radioButton_FallingImage->isChecked();
 	};
 
 	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
 	{
-		apply(this->s);
+		apply(this->state->active_image);
 	}
 	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
 	}
 	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
@@ -405,6 +420,21 @@ void SettingsWidget::set_hamiltonian_iso()
 			else { throw(ex); }
 		}
 
+		// Exchange
+		if (checkBox_exchange->isChecked())
+		{
+			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
+			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
+			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
+			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
+			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
+		}
+		else {
+			for (int i = 0; i < ham->n_neigh_shells; ++i) {
+				ham->jij[i] = 0.0;
+			}
+		}
+		
 		// DMI
 		if (this->checkBox_dmi->isChecked()) ham->dij = this->lineEdit_dmi->text().toDouble();
 		else ham->dij = 0.0;
@@ -433,21 +463,6 @@ void SettingsWidget::set_hamiltonian_iso()
 			else { throw(ex); }
 		}
 
-		// Exchange
-		if (checkBox_exchange->isChecked())
-		{
-			if (lineEdit_exchange1->isEnabled()) { ham->jij[0] = lineEdit_exchange1->text().toDouble(); }
-			if (lineEdit_exchange2->isEnabled()) { ham->jij[1] = lineEdit_exchange2->text().toDouble(); }
-			if (lineEdit_exchange3->isEnabled()) { ham->jij[2] = lineEdit_exchange3->text().toDouble(); }
-			if (lineEdit_exchange4->isEnabled()) { ham->jij[3] = lineEdit_exchange4->text().toDouble(); }
-			if (lineEdit_exchange5->isEnabled()) { ham->jij[4] = lineEdit_exchange5->text().toDouble(); }
-		}
-		else {
-			for (int i = 0; i < ham->n_neigh_shells; ++i) {
-				ham->jij[i] = 0.0;
-			}
-		}
-
 		// BQE
 		if (this->checkBox_bqe->isChecked()) ham->bij = this->lineEdit_bqe->text().toDouble();
 		else ham->bij = 0.0;
@@ -462,13 +477,13 @@ void SettingsWidget::set_hamiltonian_iso()
 			s->llg_parameters->stt_magnitude = this->lineEdit_spin_torque->text().toDouble();
 		}
 		else {
-			this->s->llg_parameters->stt_magnitude = 0.0;
+			this->state->active_image->llg_parameters->stt_magnitude = 0.0;
 		}
 		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_spin_torquex->text().toDouble();
 		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_spin_torquey->text().toDouble();
 		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_spin_torquez->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
+			Utility::Vectormath::Normalize(state->active_image->llg_parameters->stt_polarisation_normal);
 		}
 		catch (Utility::Exception ex) {
 			if (ex == Utility::Exception::Division_by_zero) {
@@ -492,18 +507,18 @@ void SettingsWidget::set_hamiltonian_iso()
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
 	{
-		apply(this->s);
+		apply(this->state->active_image);
 	}
 	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
@@ -529,12 +544,12 @@ void SettingsWidget::set_hamiltonian_aniso()
 		// External magnetic field
 		//		magnitude
 		if (this->checkBox_extH_aniso->isChecked()) {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
+			for (int iatom = 0; iatom < state->nos; ++iatom) {
 				ham->external_field_magnitude[iatom] = this->lineEdit_extH_aniso->text().toDouble() * ham->mu_s[iatom] * Utility::Vectormath::MuB();
 			}
 		}
 		else {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
+			for (int iatom = 0; iatom < state->nos; ++iatom) {
 				ham->external_field_magnitude[iatom] = 0.0;
 			}
 		}
@@ -557,7 +572,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 			}
 			else { throw(ex); }
 		}
-		for (int iatom = 0; iatom < s->nos; ++iatom) {
+		for (int iatom = 0; iatom < state->nos; ++iatom) {
 			ham->external_field_normal[0][iatom] = temp[0];
 			ham->external_field_normal[1][iatom] = temp[1];
 			ham->external_field_normal[2][iatom] = temp[2];
@@ -566,12 +581,12 @@ void SettingsWidget::set_hamiltonian_aniso()
 		// Anisotropy
 		//		magnitude
 		if (this->checkBox_ani_aniso->isChecked()) {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
+			for (int iatom = 0; iatom < state->nos; ++iatom) {
 				ham->anisotropy_magnitude[iatom] = this->lineEdit_ani_aniso->text().toDouble();
 			}
 		}
 		else {
-			for (int iatom = 0; iatom < s->nos; ++iatom) {
+			for (int iatom = 0; iatom < state->nos; ++iatom) {
 				ham->anisotropy_magnitude[iatom] = 0.0;
 			}
 		}
@@ -594,7 +609,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 			}
 			else { throw(ex); }
 		}
-		for (int iatom = 0; iatom < s->nos; ++iatom) {
+		for (int iatom = 0; iatom < state->nos; ++iatom) {
 			ham->anisotropy_normal[0][iatom] = temp[0];
 			ham->anisotropy_normal[1][iatom] = temp[1];
 			ham->anisotropy_normal[2][iatom] = temp[2];
@@ -605,12 +620,12 @@ void SettingsWidget::set_hamiltonian_aniso()
 		// Spin polarised current
 		if (this->checkBox_stt_aniso->isChecked())
 			s->llg_parameters->stt_magnitude = this->lineEdit_stt_aniso->text().toDouble();
-		else this->s->llg_parameters->stt_magnitude = 0.0;
+		else this->state->active_image->llg_parameters->stt_magnitude = 0.0;
 		s->llg_parameters->stt_polarisation_normal[0] = lineEdit_sttx_aniso->text().toDouble();
 		s->llg_parameters->stt_polarisation_normal[1] = lineEdit_stty_aniso->text().toDouble();
 		s->llg_parameters->stt_polarisation_normal[2] = lineEdit_sttz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
+			Utility::Vectormath::Normalize(state->active_image->llg_parameters->stt_polarisation_normal);
 		}
 		catch (Utility::Exception ex) {
 			if (ex == Utility::Exception::Division_by_zero) {
@@ -634,18 +649,18 @@ void SettingsWidget::set_hamiltonian_aniso()
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(this->s);
+		apply(this->state->active_image);
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (auto sys : this->c->images)
+		for (auto sys : this->state->active_chain->images)
 		{
 			apply(sys);
 		}
@@ -671,15 +686,15 @@ void SettingsWidget::SelectTab(int index)
 
 void SettingsWidget::print_Energies_to_console()
 {
-	s->UpdateEnergy();
-	std::cout << "E_tot = " << s->E / s->nos << "  ||| Zeeman = ";
-	std::cout << s->E_array[ENERGY_POS_ZEEMAN] / s->nos << "  | Aniso = "
-		<< s->E_array[ENERGY_POS_ANISOTROPY] / s->nos << "  | Exchange = "
-		<< s->E_array[ENERGY_POS_EXCHANGE] / s->nos << "  | DMI = "
-		<< s->E_array[ENERGY_POS_DMI] / s->nos << "  | BQC = "
-		<< s->E_array[ENERGY_POS_BQC] / s->nos << "  | FourSC = "
-		<< s->E_array[ENERGY_POS_FSC] / s->nos << "  | DD = "
-		<< s->E_array[ENERGY_POS_DD] / s->nos << std::endl;
+	state->active_image->UpdateEnergy();
+	std::cout << "E_tot = " << state->active_image->E / state->nos << "  ||| Zeeman = ";
+	std::cout << state->active_image->E_array[ENERGY_POS_ZEEMAN] / state->nos << "  | Aniso = "
+		<< state->active_image->E_array[ENERGY_POS_ANISOTROPY] / state->nos << "  | Exchange = "
+		<< state->active_image->E_array[ENERGY_POS_EXCHANGE] / state->nos << "  | DMI = "
+		<< state->active_image->E_array[ENERGY_POS_DMI] / state->nos << "  | BQC = "
+		<< state->active_image->E_array[ENERGY_POS_BQC] / state->nos << "  | FourSC = "
+		<< state->active_image->E_array[ENERGY_POS_FSC] / state->nos << "  | DD = "
+		<< state->active_image->E_array[ENERGY_POS_DD] / state->nos << std::endl;
 }
 
 
@@ -770,6 +785,12 @@ void SettingsWidget::Setup_Parameters_Slots()
 	// LLG Damping
 	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	// LLG iteration params
+	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	// GNEB iteration params
+	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	// GNEB Spring Constant
 	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	// Normal/Climbing/Falling image radioButtons

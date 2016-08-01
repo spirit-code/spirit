@@ -8,8 +8,10 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "GLSpins.h"
 #include "BoundingBoxRenderer.h"
 #include "utilities.h"
+
 
 BoundingBoxRenderer::BoundingBoxRenderer() {
   // TODO: initGL if possible
@@ -26,7 +28,9 @@ BoundingBoxRenderer::~BoundingBoxRenderer() {
 void BoundingBoxRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
   bool updateVertices = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
-    if (*it == BoundingBoxRendererOptions::POSITION) {
+    if (*it == GLSpins::Option::BOUNDING_BOX_MIN) {
+      updateVertices = true;
+    } else if (*it == GLSpins::Option::BOUNDING_BOX_MAX) {
       updateVertices = true;
     }
   }
@@ -86,8 +90,8 @@ void BoundingBoxRenderer::draw(double aspectRatio) const {
 void BoundingBoxRenderer::_updateVertexData() {
   glBindBuffer(GL_ARRAY_BUFFER, _vbo);
   auto color = _options.get<BoundingBoxRendererOptions::COLOR>();
-  auto min = _options.get<BoundingBoxRendererOptions::POSITION>().min;
-  auto max = _options.get<BoundingBoxRendererOptions::POSITION>().max;
+  auto min = _options.get<GLSpins::Option::BOUNDING_BOX_MIN>();
+  auto max = _options.get<GLSpins::Option::BOUNDING_BOX_MAX>();
   std::vector<GLfloat> vertices = {
     min[0], min[1], min[2],
     max[0], min[1], min[2],

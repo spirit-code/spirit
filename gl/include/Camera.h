@@ -7,6 +7,7 @@
 
 class Camera {
 public:
+  Camera();
   Camera(const glm::vec3& camera_position,
          const glm::vec3& center_position,
          const glm::vec3& up_vector,

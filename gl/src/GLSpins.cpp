@@ -11,8 +11,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include "Camera.h"
-#include "Geometry.h"
-#include "gl_spins.h"
+#include "GLSpins.h"
 #include "ISpinRenderer.h"
 #include "ArrowSpinRenderer.h"
 #include "SurfaceSpinRenderer.h"
@@ -26,6 +25,74 @@
 	#define M_PI 3.14159265358979323846
 #endif // !M_PI
 
+GLSpins::GLSpins() {
+  if (!gladLoadGL()) {
+    std::cerr << "Failed to initialize glad" << std::endl;
+  }
+
+  setCameraToDefault();
+
+  glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  
+  Options<GLSpins> options;
+  options.set<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
+  options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(30, 30));
+  updateOptions(options);
+  
+  updateRenderers();
+}
+
+GLSpins::~GLSpins() {
+}
+
+void GLSpins::updateSpins(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& directions) {
+  for (auto it : _renderers) {
+    auto renderer = it.first;
+    renderer->updateSpins(positions, directions);
+  }
+}
+
+void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max) {
+  Options<GLSpins> options;
+  options.set<GLSpins::Option::BOUNDING_BOX_MIN>(bounds_min);
+  options.set<GLSpins::Option::BOUNDING_BOX_MAX>(bounds_max);
+  options.set<GLSpins::Option::SYSTEM_CENTER>(center);
+  updateOptions(options);
+}
+
+void GLSpins::draw() {
+  // Clear the screen and the depth buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  Options<GLSpins> options;
+  options.set<ISpinRenderer::Option::CAMERA_POSITION>(_camera.cameraPosition());
+  options.set<ISpinRenderer::Option::CENTER_POSITION>(_camera.centerPosition());
+  options.set<ISpinRenderer::Option::UP_VECTOR>(_camera.upVector());
+  auto bounds_min = _options.get<GLSpins::Option::BOUNDING_BOX_MIN>();
+  auto bounds_max = _options.get<GLSpins::Option::BOUNDING_BOX_MAX>();
+  auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
+  options.set<CoordinateSystemRendererOptions::ORIGIN>(center);
+  options.set<CoordinateSystemRendererOptions::AXIS_LENGTH>({
+    fmax(fabs(bounds_max[0]-center[0]), 1.0),
+    fmax(fabs(bounds_max[1]-center[1]), 1.0),
+    fmax(fabs(bounds_max[2]-center[2]), 1.0)
+  });
+  updateOptions(options);
+  
+  glClear(GL_COLOR_BUFFER_BIT);
+  for (auto it : _renderers) {
+    auto renderer = it.first;
+    auto viewport = it.second;
+    glViewport(viewport[0] * _width, viewport[1] * _height, viewport[2] * _width, viewport[3] * _height);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    renderer->draw(viewport[2]/viewport[3] * _camera.aspectRatio());
+    assert(!glGetError());
+  }
+  _fps_counter.tick();
+  assert(!glGetError());
+}
 
 double GLSpins::getFramerate() const {
   return _fps_counter.getFramerate();
@@ -88,12 +155,14 @@ void GLSpins::setFramebufferSize(double width, double height) {
 }
 
 void GLSpins::setCameraToDefault() {
+  auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   _camera.lookAt(glm::vec3(center.x, center.y, center.z+30.0),
                  center,
                  glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void GLSpins::setCameraToX() {
+  auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
   _camera.lookAt(glm::vec3(center.x+camera_distance, center.y, center.z),
                  center,
@@ -101,133 +170,19 @@ void GLSpins::setCameraToX() {
 }
 
 void GLSpins::setCameraToY() {
+  auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
   _camera.lookAt(glm::vec3(center.x, center.y+camera_distance, center.z),
-                           center,
-                           glm::vec3(1.0, 0.0, 0.0));
+                 center,
+                 glm::vec3(1.0, 0.0, 0.0));
 }
 
 void GLSpins::setCameraToZ() {
+  auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
   _camera.lookAt(glm::vec3(center.x, center.y, center.z+camera_distance),
-                           center,
-                           glm::vec3(0.0, 1.0, 0.0));
-}
-
-
-GLSpins::GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height) :
-_camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0)
-{
-	// Copy Positions from geometry
-	this->s = s;
-	std::shared_ptr<Data::Geometry> g = s->geometry;
-	this->nos = g->nos;
-
-	// Copy Center and bounds
-	center = glm::vec3(g->center[0], g->center[1], g->center[2]);
-	bounds_min = glm::vec3(g->bounds_min[0], g->bounds_min[1], g->bounds_min[2]);
-	bounds_max = glm::vec3(g->bounds_max[0], g->bounds_max[1], g->bounds_max[2]);
-
-	this->_camera.lookAt(glm::vec3(center.x, center.y, center.z+30.0f),
-						center,
-						glm::vec3(0.0f, 1.0f, 0.0f));
-
-    // Initialize glad
-    if (!gladLoadGL()) {
-        std::cerr << "Failed to initialize glad" << std::endl;
-        // return 1;
-    }
-  
-  
-  // Spin positions
-  std::vector<glm::vec3> translations(nos);
-  for (unsigned int i = 0; i < nos; ++i)
-  {
-    translations[i] = glm::vec3(g->spin_pos[0][i], g->spin_pos[1][i], g->spin_pos[2][i]);
-  }
-  
-  // Spin orientations
-  std::vector<glm::vec3> directions(nos);
-  for (unsigned int i = 0; i < nos; ++i)
-  {
-    directions[i] = glm::vec3(s->spins[i], s->spins[g->nos + i], s->spins[2*g->nos + i]);
-  }
-  
-  Options<GLSpins> options;
-  options.set<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
-  options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(30, 30));
-  updateOptions(options);
-  
-  updateRenderers();
-
-    // Dark blue background
-    //glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-	// Dark gray background
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
-    glDepthFunc(GL_LESS);
-}
-
-void GLSpins::draw() {
-  // Clear the screen and the depth buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  std::shared_ptr<Data::Geometry> g = s->geometry;
-  // Spin positions
-  std::vector<glm::vec3> translations(nos);
-  for (unsigned int i = 0; i < nos; ++i)
-  {
-    translations[i] = glm::vec3(g->spin_pos[0][i], g->spin_pos[1][i], g->spin_pos[2][i]);
-  }
-  
-  // Spin orientations
-  std::vector<glm::vec3> directions(nos);
-  for (unsigned int i = 0; i < nos; ++i)
-  {
-    directions[i] = glm::vec3(s->spins[i], s->spins[g->nos + i], s->spins[2*g->nos + i]);
-  }
-  
-  Options<GLSpins> options;
-  options.set<ISpinRenderer::Option::CAMERA_POSITION>(_camera.cameraPosition());
-  options.set<ISpinRenderer::Option::CENTER_POSITION>(_camera.centerPosition());
-  options.set<ISpinRenderer::Option::UP_VECTOR>(_camera.upVector());
-  options.set<BoundingBoxRendererOptions::POSITION>({
-    {g->bounds_min[0], g->bounds_min[1], g->bounds_min[2]},
-    {g->bounds_max[0], g->bounds_max[1], g->bounds_max[2]}
-  });
-  options.set<CoordinateSystemRendererOptions::ORIGIN>({
-    g->center[0], g->center[1], g->center[2]
-  });
-  options.set<CoordinateSystemRendererOptions::AXIS_LENGTH>({
-    fmax(fabs(g->bounds_max[0]-g->center[0]), 1.0),
-    fmax(fabs(g->bounds_max[1]-g->center[1]), 1.0),
-    fmax(fabs(g->bounds_max[2]-g->center[2]), 1.0)
-  });
-  updateOptions(options);
-  
-  glClear(GL_COLOR_BUFFER_BIT);
-  for (auto it : _renderers) {
-    auto renderer = it.first;
-    auto viewport = it.second;
-    // TODO: glViewport
-    glViewport(viewport[0] * _width, viewport[1] * _height, viewport[2] * _width, viewport[3] * _height);
-    renderer->updateSpins(translations, directions);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    renderer->draw(viewport[2]/viewport[3] * _camera.aspectRatio());
-    assert(!glGetError());
-  }
-  _fps_counter.tick();
-  assert(!glGetError());
-}
-
-void GLSpins::update_spin_system(std::shared_ptr<Data::Spin_System> s)
-{
-	this->s = s;
-}
-
-GLSpins::~GLSpins() {
+                 center,
+                 glm::vec3(0.0, 1.0, 0.0));
 }
 
 static std::array<double, 4> locationToViewport(GLSpins::WidgetLocation location) {

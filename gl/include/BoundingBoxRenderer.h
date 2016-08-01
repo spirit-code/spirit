@@ -24,21 +24,12 @@ private:
 };
 
 enum BoundingBoxRendererOptions {
-  COLOR = 600,
-  POSITION
+  COLOR = 600
 };
 
 template<> template<>
 struct Options<GLSpins>::Option<BoundingBoxRendererOptions::COLOR> {
   glm::vec3 default_value = {1.0, 1.0, 1.0};
-};
-
-template<> template<>
-struct Options<GLSpins>::Option<BoundingBoxRendererOptions::POSITION> {
-  struct {
-    glm::vec3 min;
-    glm::vec3 max;
-  } default_value = {{-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}};
 };
 
 #endif

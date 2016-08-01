@@ -68,6 +68,8 @@ WebGLSpins.defaultOptions.centerLocation = [0, 0, 0];
 WebGLSpins.defaultOptions.upVector = [0, 1, 0];
 WebGLSpins.defaultOptions.backgroundColor = [0, 0, 0];
 WebGLSpins.defaultOptions.zRange = [-1, 1];
+WebGLSpins.defaultOptions.boundingBox = null;
+WebGLSpins.defaultOptions.boundingBoxColor = [1, 1, 1];
 
 WebGLSpins.prototype.updateOptions = function(options) {
     var changedOptions = [];
@@ -434,6 +436,7 @@ WebGLSpins._ArrowRenderer = function(webglspins) {
     this._instanceDirectionVbo = 0;
     this._numIndices = 0;
     this._numInstances = 0;
+    this._boundingBoxRenderer = new WebGLSpins._BoundingBoxRenderer(webglspins);
 
     if (webglspins._gl_initialized) {
         this.initGLContext();
@@ -468,6 +471,7 @@ WebGLSpins._ArrowRenderer.prototype.optionsHaveChanged = function(changedOptions
     if (arrayContainsAny(changedOptions, ['colormapImplementation'])) {
         this._updateShaderProgram();
     }
+    this._boundingBoxRenderer.optionsHaveChanged(changedOptions);
 };
 
 WebGLSpins._ArrowRenderer.prototype.updateSpins = function(instancePositionArray, instanceDirectionArray) {
@@ -477,6 +481,7 @@ WebGLSpins._ArrowRenderer.prototype.updateSpins = function(instancePositionArray
     gl.bufferData(gl.ARRAY_BUFFER, instancePositionArray, gl.STREAM_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._instanceDirectionVbo);
     gl.bufferData(gl.ARRAY_BUFFER, instanceDirectionArray, gl.STREAM_DRAW);
+    this._boundingBoxRenderer.updateSpins(instancePositionArray, instanceDirectionArray);
 };
 
 WebGLSpins._ArrowRenderer.prototype.draw = function(width, height) {
@@ -514,6 +519,7 @@ WebGLSpins._ArrowRenderer.prototype.draw = function(width, height) {
     gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), this._options.zRange[0], this._options.zRange[1]);
 
     gl.drawElementsInstanced(gl.TRIANGLES, this._numIndices, gl.UNSIGNED_SHORT, null, this._numInstances);
+    this._boundingBoxRenderer.draw(width, height);
 };
 
 WebGLSpins._ArrowRenderer.prototype.initGLContext = function() {
@@ -554,6 +560,7 @@ WebGLSpins._ArrowRenderer.prototype.initGLContext = function() {
 
     this._updateShaderProgram();
     this._updateVertexData();
+    this._boundingBoxRenderer.initGLContext();
 };
 
 WebGLSpins._ArrowRenderer.prototype._updateShaderProgram = function() {
@@ -581,8 +588,12 @@ WebGLSpins._ArrowRenderer.prototype._updateShaderProgram = function() {
         mat3 matrixFromDirection(vec3 direction) {
           float c = direction.z;
           float s = length(direction.xy);
-          float x = -direction.y / s;
-          float y = direction.x / s;
+          float x = 1.0;
+          float y = 0.0;
+          if (s > 0.0001) {
+            x = -direction.y / s;
+            y = direction.x / s;
+          }
           mat3 matrix;
           matrix[0][0] = x*x*(1.0-c)+c;
           matrix[0][1] = y*x*(1.0-c);
@@ -745,6 +756,7 @@ WebGLSpins._ArrowRenderer.prototype.cleanup = function() {
     gl.disableVertexAttribArray(1);
     gl.disableVertexAttribArray(2);
     gl.disableVertexAttribArray(3);
+    this._boundingBoxRenderer.cleanup();
 };
 
 // --------------------------- Surface Renderer -------------------------------
@@ -757,6 +769,7 @@ WebGLSpins._SurfaceRenderer = function(webglspins) {
     this._instancePositionVbo = 0;
     this._instanceDirectionVbo = 0;
     this._numIndices = 0;
+    this._boundingBoxRenderer = new WebGLSpins._BoundingBoxRenderer(webglspins);
     if (webglspins._gl_initialized) {
         this.initGLContext();
     }
@@ -784,6 +797,7 @@ WebGLSpins._SurfaceRenderer.prototype.optionsHaveChanged = function(changedOptio
     if (arrayContainsAny(changedOptions, ['colormapImplementation'])) {
         this._updateShaderProgram();
     }
+    this._boundingBoxRenderer.optionsHaveChanged(changedOptions);
 };
 
 WebGLSpins._SurfaceRenderer.prototype.updateSpins = function(instancePositionArray, instanceDirectionArray) {
@@ -793,6 +807,7 @@ WebGLSpins._SurfaceRenderer.prototype.updateSpins = function(instancePositionArr
     gl.bufferData(gl.ARRAY_BUFFER, instancePositionArray, gl.STREAM_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._instanceDirectionVbo);
     gl.bufferData(gl.ARRAY_BUFFER, instanceDirectionArray, gl.STREAM_DRAW);
+    this._boundingBoxRenderer.updateSpins(instancePositionArray, instanceDirectionArray);
 };
 
 WebGLSpins._SurfaceRenderer.prototype.draw = function(width, height) {
@@ -822,6 +837,8 @@ WebGLSpins._SurfaceRenderer.prototype.draw = function(width, height) {
     gl.disable(gl.CULL_FACE);
     gl.drawElements(gl.TRIANGLES, this._numIndices, gl.UNSIGNED_INT, null);
     gl.enable(gl.CULL_FACE);
+
+    this._boundingBoxRenderer.draw(width, height);
 };
 
 WebGLSpins._SurfaceRenderer.prototype.initGLContext = function() {
@@ -849,6 +866,7 @@ WebGLSpins._SurfaceRenderer.prototype.initGLContext = function() {
 
     this._updateShaderProgram();
     this._updateSurfaceIndices();
+    this._boundingBoxRenderer.initGLContext();
 };
 
 WebGLSpins._SurfaceRenderer.prototype._updateShaderProgram = function() {
@@ -918,6 +936,7 @@ WebGLSpins._SurfaceRenderer.prototype.cleanup = function() {
     gl.deleteProgram(this._program);
     gl.disableVertexAttribArray(0);
     gl.disableVertexAttribArray(1);
+    this._boundingBoxRenderer.cleanup();
 };
 
 WebGLSpins.generateCartesianSurfaceIndices = function(nx, ny) {
@@ -1255,6 +1274,136 @@ WebGLSpins._CoordinateSystemRenderer.prototype._updateShaderProgram = function()
 };
 
 WebGLSpins._CoordinateSystemRenderer.prototype.cleanup = function() {
+    var gl = this._webglspins._gl;
+    gl.deleteBuffer(this._lineVbo);
+    gl.deleteProgram(this._program);
+    gl.disableVertexAttribArray(0);
+};
+
+// -------------------------- Bounding Box Renderer ---------------------------
+
+WebGLSpins._BoundingBoxRenderer = function(webglspins) {
+    this._webglspins = webglspins;
+    this._options = webglspins._options;
+    this._program = null;
+    this._lineVbo = null;
+    this._gl_initialized = false;
+    if (webglspins._gl_initialized) {
+        this.initGLContext();
+    }
+};
+
+WebGLSpins._BoundingBoxRenderer.prototype.optionsHaveChanged = function(changedOptions) {};
+
+WebGLSpins._BoundingBoxRenderer.prototype.updateSpins = function(instancePositionArray, instanceDirectionArray) {};
+
+WebGLSpins._BoundingBoxRenderer.prototype.draw = function(width, height) {
+    var gl = this._webglspins._gl;
+
+    if (this._options.boundingBox == null) {
+      return;
+    }
+    var xmin = this._options.boundingBox[0];
+    var ymin = this._options.boundingBox[1];
+    var zmin = this._options.boundingBox[2];
+    var xmax = this._options.boundingBox[3];
+    var ymax = this._options.boundingBox[4];
+    var zmax = this._options.boundingBox[5];
+    var red = this._options.boundingBoxColor[0];
+    var green = this._options.boundingBoxColor[1];
+    var blue = this._options.boundingBoxColor[2];
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineVbo);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(0);
+
+    gl.useProgram(this._program);
+
+    var projectionMatrix = WebGLSpins._perspectiveProjectionMatrix(this._options.verticalFieldOfView, width / height, 0.1, 10000);
+    gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uProjectionMatrix"), false, WebGLSpins._toFloat32Array(projectionMatrix));
+    var modelviewMatrix = WebGLSpins._lookAtMatrix(this._options.cameraLocation, this._options.centerLocation, this._options.upVector);
+    gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
+    gl.uniform3f(gl.getUniformLocation(this._program, "uBoundingBoxMin"), xmin, ymin, zmin);
+    gl.uniform3f(gl.getUniformLocation(this._program, "uBoundingBoxMax"), xmax, ymax, zmax);
+    gl.uniform3f(gl.getUniformLocation(this._program, "uBoundingBoxColor"), red, green, blue);
+
+    gl.disable(gl.CULL_FACE);
+    gl.drawArrays(gl.LINES, 0, 24);
+    gl.enable(gl.CULL_FACE);
+};
+
+WebGLSpins._BoundingBoxRenderer.prototype.initGLContext = function() {
+    if (this._gl_initialized) return;
+    this._gl_initialized = true;
+    var gl = this._webglspins._gl;
+    this._lineVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        0, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 1, 0,
+        1, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 0, 0,
+        0, 0, 1,
+        1, 0, 1,
+        1, 0, 1,
+        1, 1, 1,
+        1, 1, 1,
+        0, 1, 1,
+        0, 1, 1,
+        0, 0, 1,
+        0, 0, 0,
+        0, 0, 1,
+        1, 0, 0,
+        1, 0, 1,
+        1, 1, 0,
+        1, 1, 1,
+        0, 1, 0,
+        0, 1, 1]), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(0);
+
+    this._updateShaderProgram();
+};
+
+WebGLSpins._BoundingBoxRenderer.prototype._updateShaderProgram = function() {
+    var gl = this._webglspins._gl;
+    if (this._program) {
+        gl.deleteProgram(this._program);
+    }
+
+    var program = WebGLSpins._createProgram(gl,
+        `
+        #version 100
+        precision highp float;
+
+        uniform mat4 uProjectionMatrix;
+        uniform mat4 uModelviewMatrix;
+        uniform vec3 uBoundingBoxMin;
+        uniform vec3 uBoundingBoxMax;
+        attribute vec3 ivPosition;
+
+        void main(void) {
+          gl_Position = uProjectionMatrix * uModelviewMatrix * vec4(ivPosition * (uBoundingBoxMax-uBoundingBoxMin)+uBoundingBoxMin, 1.0);
+        }
+        `, `
+        #version 100
+        precision highp float;
+        uniform vec3 uBoundingBoxColor;
+
+        void main(void) {
+          gl_FragColor = vec4(uBoundingBoxColor, 1.0);
+        }`,
+        ['ivPosition']
+    );
+    if (program == null) return;
+    this._program = program;
+};
+
+WebGLSpins._BoundingBoxRenderer.prototype.cleanup = function() {
     var gl = this._webglspins._gl;
     gl.deleteBuffer(this._lineVbo);
     gl.deleteProgram(this._program);

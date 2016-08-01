@@ -2,15 +2,16 @@
 
 #include "PlotsWidget.h"
 #include "PlotWidget.h"
+#include "Interface_Chain.h"
 
-PlotsWidget::PlotsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
+PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 {
-	this->c = c;
+	this->state = state;
     
 	// Setup User Interface
     this->setupUi(this);
 
-    this->energyPlot = new PlotWidget(c);
+    this->energyPlot = new PlotWidget(this->state);
 	this->gridLayout_Energy_Plots->addWidget(energyPlot, 0, 0, 1, 1);
 
 	connect(this->pushButton_Refresh, SIGNAL(clicked()), this, SLOT(RefreshClicked()));
@@ -19,7 +20,7 @@ PlotsWidget::PlotsWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 
 void PlotsWidget::RefreshClicked()
 {
-	this->c->Update_Data();
+	Chain_Update_Data(this->state.get());
 	this->energyPlot->update();
 }
 

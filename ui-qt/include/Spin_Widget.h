@@ -4,20 +4,18 @@
 
 
 #include <memory>
-
-#include <QTimer>
 #include <QOpenGLWidget>
 
-#include "gl_spins.h"
+#include "GLSpins.h"
 
-#include "Spin_System_Chain.h"
+class State;
 
 class Spin_Widget : public QOpenGLWidget
 {
   Q_OBJECT
   
 public:
-  Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *parent = 0);
+  Spin_Widget(std::shared_ptr<State> state, QWidget *parent = 0);
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
@@ -37,9 +35,9 @@ protected:
   void teardownGL();
   
 private:
-  std::shared_ptr<Data::Spin_System_Chain> c;
-  std::shared_ptr<Data::Spin_System> s;
+  std::shared_ptr<State> state;
   QPoint _previous_pos;
+  bool _reset_camera;
   
   // Visualisation
   std::shared_ptr<GLSpins> gl_spins;

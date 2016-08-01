@@ -4,6 +4,9 @@ MonoSpin
 The code is released under [MIT License](../master/LICENSE.txt).<br />
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/MonoSpin
 
+The Web interface is hosted by the PGI-1 institute at the Research Centre Jülich:
+http://iffwww.iff.kfa-juelich.de/pub/monospindemo/
+
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
 -->
@@ -89,13 +92,6 @@ one does not need any libraries on which other projects depend.
 * gcc >= 4.8.1 (C++11 stdlib)
 * cmake >= 2.8.12
 
-### UI-QT
-* QT >= 5.5
-
-In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
-
-Note that building QT can be a big pain, but usually it should work if you simply use their installers.
-
 ### GL
 * OpenGL Drivers >= 3.3
 * GLAD (pre-built)
@@ -108,8 +104,14 @@ To build GLAD, use the following:
 	cmake .
 	make
 
+### UI-QT
+* QT >= 5.5
 
-### Web
+In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
+
+Note that building QT can be a big pain, but usually it should work if you simply use their installers.
+
+### UI-Web
 * emscripten
 
 In order to build the core.js JavaScript library, you need emscripten.

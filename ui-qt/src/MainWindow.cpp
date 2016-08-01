@@ -3,30 +3,34 @@
 #include "MainWindow.h"
 #include "PlotWidget.h"
 
-#include "Vectormath.h"
+// #include "Vectormath.h"
 #include "Configurations.h"
-#include "Optimizer.h"
+// #include "Optimizer.h"
 #include "IO.h"
 
 #include "Logging.h"
 #include "Timing.h"
 #include "Threading.h"
 
+#include "Interface_Chain.h"
+
 #include <thread>
 
-MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
+MainWindow::MainWindow(std::shared_ptr<State> state)
 {
-	this->c = c;
-	this->s = this->c->images[this->c->active_image];
-	this->spinWidget = new Spin_Widget(this->c);
+	// State
+	this->state = state;
+	// Widgets
+	this->spinWidget = new Spin_Widget(this->state);
 	//this->spinWidgetGL = new Spin_Widget_GL(s);
-	this->settingsWidget = new SettingsWidget(this->c);
-	this->plotsWidget = new PlotsWidget(this->c);
-	this->debugWidget = new DebugWidget(this->c);
+	this->settingsWidget = new SettingsWidget(this->state);
+	this->plotsWidget = new PlotsWidget(this->state);
+	this->debugWidget = new DebugWidget(this->state);
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
 
+	// Fix text size on OSX
     #ifdef Q_OS_MAC
         this->setStyleSheet("QWidget{font-size:10pt}");
     #else
@@ -51,14 +55,14 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	this->dockWidget_Debug->setWidget(this->debugWidget);
 
 	// Read Iterate State form Spin System
-	if (s->iteration_allowed == false)
+	if (state->active_image->iteration_allowed == false)
 	{
 		this->pushButton_PlayPause->setText("Play");
 	}
 	else
 	{
 		this->pushButton_PlayPause->setText("Pause");
-		//std::thread(Engine::SIB::Iterate, s, 2000000, 5000).detach();
+		//std::thread(Engine::SIB::Iterate, s).detach();
 	}
 
 	/*
@@ -166,84 +170,73 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	if (k->matches(QKeySequence::Copy))
 	{
 		// Copy a Spin System
-		image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*s.get()));
-		Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Copied image " + std::to_string(c->active_image) + " to clipboard");
+		Chain_Image_to_Clipboard(state.get());
+		// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
-		if (c->noi > 1)
+		if (state->noi > 1)
 		{
-			s->iteration_allowed = false;
-			c->iteration_allowed = false;
-			if (Utility::Threading::llg_threads[s].joinable()) {
-				Utility::Threading::llg_threads[s].join();
+			state->active_image->iteration_allowed = false;
+			state->active_chain->iteration_allowed = false;
+			if (Utility::Threading::llg_threads[state->active_image].joinable()) {
+				Utility::Threading::llg_threads[state->active_image].join();
 			}
-			if (Utility::Threading::gneb_threads[c].joinable()) {
-				Utility::Threading::gneb_threads[c].join();
+			if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
+				Utility::Threading::gneb_threads[state->active_chain].join();
 			}
 
 			// Cut a Spin System
-			image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*s.get()));
+			Chain_Image_to_Clipboard(state.get());
+			// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 
-			int idx = c->active_image;
+			int idx = state->idx_active_image;
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
-			this->c->Delete_Image(idx);
-
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Cut image " + std::to_string(c->active_image) + " to clipboard");
+			Chain_Delete_Image(state.get(), idx);
 		}
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste a Spin System
+		state->active_image->iteration_allowed = false;
+		state->active_chain->iteration_allowed = false;
+		if (Utility::Threading::llg_threads[state->active_image].joinable()) {
+			Utility::Threading::llg_threads[state->active_image].join();
+		}
+		if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
+			Utility::Threading::gneb_threads[state->active_chain].join();
+		}
 
-		s->iteration_allowed = false;
-		c->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[s].joinable()) {
-			Utility::Threading::llg_threads[s].join();
-		}
-		if (Utility::Threading::gneb_threads[c].joinable()) {
-			Utility::Threading::gneb_threads[c].join();
-		}
-
-		if (image_clipboard.get())
-		{
-			s = image_clipboard;
-			c->Replace_Image(c->active_image, image_clipboard);
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image " + std::to_string(c->active_image) + " from clipboard");
-		}
-		else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image " + std::to_string(c->active_image) + " from clipboard but no image was found");
+		Chain_Replace_Image(state.get());
+		// Update the chain's data (primarily for the plot)
+		Chain_Update_Data(state.get());
 	}
 
 	// Custom Key Sequences
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
-		std::shared_ptr<Data::Spin_System> newImage;
 		switch (k->key())
 		{
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
-				if (image_clipboard.get())
-				{
-					s = image_clipboard;
-					this->c->Insert_Image_Before(this->c->active_image, image_clipboard);
-					//this->previousImagePressed();
-					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(c->active_image) + " from clipboard");
-				}
-				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image before " + std::to_string(c->active_image) + " from clipboard but no image was found");
+				// Insert Image
+				Chain_Insert_Image_Before(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Switch to the inserted image
+				//this->previousImagePressed();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
-				if (image_clipboard.get())
-				{
-					s = image_clipboard;
-					this->c->Insert_Image_After(this->c->active_image, image_clipboard);
-					this->nextImagePressed();
-					Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(c->active_image) + " from clipboard");
-				}
-				else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image after " + std::to_string(c->active_image) + " from clipboard but no image was found");
+				// Insert Image
+				Chain_Insert_Image_After(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Switch to the inserted image
+				this->nextImagePressed();
 				break;
 		}
 	}
@@ -315,23 +308,23 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			break;
 		// Delete: Delete current image
 		case Qt::Key_Delete:
-			if (c->noi > 1)
+			if (state->noi > 1)
 			{
-				s->iteration_allowed = false;
-				c->iteration_allowed = false;
-				if (Utility::Threading::llg_threads[s].joinable()) {
-					Utility::Threading::llg_threads[s].join();
+				state->active_image->iteration_allowed = false;
+				state->active_chain->iteration_allowed = false;
+				if (Utility::Threading::llg_threads[state->active_image].joinable()) {
+					Utility::Threading::llg_threads[state->active_image].join();
 				}
-				if (Utility::Threading::gneb_threads[c].joinable()) {
-					Utility::Threading::gneb_threads[c].join();
+				if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
+					Utility::Threading::gneb_threads[state->active_chain].join();
 				}
 
-				int idx = c->active_image;
+				int idx = state->idx_active_image;
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
-				this->c->Delete_Image(idx);
+				Chain_Delete_Image(state.get(), idx);
 
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Deleted image " + std::to_string(c->active_image));
+				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Deleted image " + std::to_string(state->idx_active_image));
 			}
 			break;
 	}
@@ -343,16 +336,16 @@ void MainWindow::stopallPressed()
 	this->return_focus();
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
 	
-	c->iteration_allowed = false;
+	state->active_chain->iteration_allowed = false;
 	for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
 	{
-		this->gneb_solvers.erase(c);
+		this->gneb_solvers.erase(state->active_chain);
 	}
 
-	for (int i = 0; i < c->noi; ++i)
+	for (int i = 0; i < state->noi; ++i)
 	{
-		c->images[i]->iteration_allowed = false;
-		this->llg_solvers.erase(c->images[i]);
+		state->active_chain->images[i]->iteration_allowed = false;
+		this->llg_solvers.erase(state->active_chain->images[i]);
 	}
 
 	this->pushButton_PlayPause->setText("Play");
@@ -364,7 +357,7 @@ void MainWindow::playpausePressed()
 	this->return_focus();
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: playpause"));
 
-	this->c->Update_Data();
+	Chain_Update_Data(state.get());
 
 	std::shared_ptr<Engine::Optimizer> optim;
 	if (this->comboBox_Optimizer->currentText() == "SIB")
@@ -386,57 +379,57 @@ void MainWindow::playpausePressed()
 
 	if (this->comboBox_Solver->currentText() == "LLG")
 	{
-		if (s->iteration_allowed)
+		if (state->active_image->iteration_allowed)
 		{
 			this->pushButton_PlayPause->setText("Play");
-			s->iteration_allowed = false;
-			c->iteration_allowed = false;
-			this->gneb_solvers.erase(c);
-			this->llg_solvers.erase(s);
+			state->active_image->iteration_allowed = false;
+			state->active_chain->iteration_allowed = false;
+			this->gneb_solvers.erase(state->active_chain);
+			this->llg_solvers.erase(state->active_image);
 		}
 		else
 		{
 			this->pushButton_PlayPause->setText("Pause");
-			if (Utility::Threading::llg_threads[s].joinable())
+			if (Utility::Threading::llg_threads[state->active_image].joinable())
 			{
-				s->iteration_allowed = false;
-				Utility::Threading::llg_threads[s].join();
+				state->active_image->iteration_allowed = false;
+				Utility::Threading::llg_threads[state->active_image].join();
 			}
-			s->iteration_allowed = true;
-			c->iteration_allowed = false;
-            auto g = new Engine::Solver_LLG(this->c, optim);
-			Utility::Threading::llg_threads[s] = std::thread(&Engine::Solver_LLG::Iterate, g, 2000000, 5000);
-			this->llg_solvers[s] = g;
+			state->active_image->iteration_allowed = true;
+			state->active_chain->iteration_allowed = false;
+            auto g = new Engine::Solver_LLG(this->state->active_chain, optim);
+			Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Solver_LLG::Iterate, g);
+			this->llg_solvers[state->active_image] = g;
 		}
 	}
 	else if (this->comboBox_Solver->currentText() == "GNEB")
 	{
-		if (c->iteration_allowed)
+		if (state->active_chain->iteration_allowed)
 		{
 			this->pushButton_PlayPause->setText("Play");
-			for (int i = 0; i < c->noi; ++i)
+			for (int i = 0; i < state->noi; ++i)
 			{
-				c->images[i]->iteration_allowed = false;
-				this->llg_solvers.erase(c->images[i]);
+				state->active_chain->images[i]->iteration_allowed = false;
+				this->llg_solvers.erase(state->active_chain->images[i]);
 			}
-			c->iteration_allowed = false;
-			this->gneb_solvers.erase(c);
+			state->active_chain->iteration_allowed = false;
+			this->gneb_solvers.erase(state->active_chain);
 		}
 		else
 		{
 			this->pushButton_PlayPause->setText("Pause");
-			for (int i = 0; i < c->noi; ++i)
+			for (int i = 0; i < state->noi; ++i)
 			{
-				c->images[i]->iteration_allowed = false;
+				state->active_chain->images[i]->iteration_allowed = false;
 			}
-			if (Utility::Threading::gneb_threads[c].joinable()) {
-				c->iteration_allowed = false;
-				Utility::Threading::gneb_threads[c].join();
+			if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
+				state->active_chain->iteration_allowed = false;
+				Utility::Threading::gneb_threads[state->active_chain].join();
 			}
-			c->iteration_allowed = true;
-            auto g = new Engine::Solver_GNEB(this->c, optim);
-			Utility::Threading::gneb_threads[c] = std::thread(&Engine::Solver_GNEB::Iterate, g, 2000000, 5000);
-			this->gneb_solvers[c] = g;
+			state->active_chain->iteration_allowed = true;
+            auto g = new Engine::Solver_GNEB(this->state->active_chain, optim);
+			Utility::Threading::gneb_threads[state->active_chain] = std::thread(&Engine::Solver_GNEB::Iterate, g);
+			this->gneb_solvers[state->active_chain] = g;
 		}
 	}
 	else if (this->comboBox_Solver->currentText() == "MMF")
@@ -450,14 +443,13 @@ void MainWindow::playpausePressed()
 void MainWindow::previousImagePressed()
 {
 	this->return_focus();
-	if (this->c->active_image > 0)
+	if (state->idx_active_image > 0)
 	{
 		// Change active image!
-		c->active_image--;
-		this->lineEdit_ImageNumber->setText(QString::number(c->active_image+1));
-		this->s = c->images[c->active_image];
+		Chain_prev_Image(this->state.get());
+		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
 		// Update Play/Pause Button
-		if (this->s->iteration_allowed || this->c->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -472,14 +464,13 @@ void MainWindow::previousImagePressed()
 void MainWindow::nextImagePressed()
 {
 	this->return_focus();
-	if (this->c->active_image < this->c->noi-1)
+	if (state->idx_active_image < this->state->noi-1)
 	{
 		// Change active image
-		c->active_image++;
-		this->lineEdit_ImageNumber->setText(QString::number(c->active_image+1));
-		this->s = c->images[c->active_image];
+		Chain_next_Image(this->state.get());
+		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
 		// Update Play/Pause Button
-		if (this->s->iteration_allowed || this->c->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -563,13 +554,13 @@ void MainWindow::createStatusBar()
 	//		NOS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
 	this->m_Label_NOS = new QLabel;
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(this->c->images[c->active_image]->nos));
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(this->state->nos));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
 	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(this->c->noi));
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(this->state->noi));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 }
 
@@ -588,20 +579,20 @@ std::vector<double> MainWindow::getIterationsPerSecond()
 {
 	std::vector<double> ret;
 
-	if (this->c->iteration_allowed)
+	if (this->state->active_chain->iteration_allowed)
 	{
 		for (unsigned int i = 0; i < this->gneb_solvers.size(); ++i)
 		{
-			ret.push_back(this->gneb_solvers[c]->getIterationsPerSecond());
+			ret.push_back(this->gneb_solvers[state->active_chain]->getIterationsPerSecond());
 		}
 	}
 	else
 	{
 		for (unsigned int i = 0; i < this->llg_solvers.size(); ++i)
 		{
-			if (c->images[i]->iteration_allowed)
+			if (state->active_chain->images[i]->iteration_allowed)
 			{
-				ret.push_back(this->llg_solvers[c->images[i]]->getIterationsPerSecond());
+				ret.push_back(this->llg_solvers[state->active_chain->images[i]]->getIterationsPerSecond());
 			}
 		}
 	}
@@ -684,14 +675,14 @@ void MainWindow::save_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Spin Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Append_Spin_Configuration(this->s, 0, string_q2std(fileName));
+		Utility::IO::Append_Spin_Configuration(this->state->active_image, 0, string_q2std(fileName));
 	}
 }
 void MainWindow::load_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_Spin_Configuration(this->s, string_q2std(fileName));
+		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName));
 	}
 }
 
@@ -699,7 +690,7 @@ void MainWindow::save_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_SpinChain_Configuration(this->c, string_q2std(fileName));
+		Utility::IO::Save_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
 	}
 }
 
@@ -707,7 +698,7 @@ void MainWindow::load_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_SpinChain_Configuration(this->c, string_q2std(fileName));
+		Utility::IO::Read_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
 	}
 }
 
@@ -717,7 +708,7 @@ void MainWindow::save_Energies()
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_Energies(*c, 0, string_q2std(fileName));
+		Utility::IO::Save_Energies(*state->active_chain, 0, string_q2std(fileName));
 	}
 }
 
@@ -742,9 +733,9 @@ void MainWindow::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	Utility::IO::Save_Energies(*c, 0, fullName);
-	Utility::IO::Save_Energies_Spins(*c, fullNameSpins);
-	Utility::IO::Save_Energies_Interpolated(*c, fullNameInterpolated);
+	Utility::IO::Save_Energies(*state->active_chain, 0, fullName);
+	Utility::IO::Save_Energies_Spins(*state->active_chain, fullNameSpins);
+	Utility::IO::Save_Energies_Interpolated(*state->active_chain, fullNameInterpolated);
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");
@@ -758,23 +749,25 @@ void MainWindow::save_EPressed()
 
 void MainWindow::load_Configuration()
 {
-	int idx_img = c->active_image;
-	// Read System
+	int idx_img = state->idx_active_image;
+	// Read Spin System from cfg
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
+		// TODO: use interface_system function
 		std::shared_ptr<Data::Spin_System> sys = Utility::IO::Spin_System_from_Config(string_q2std(fileName));
 		// Filter for unacceptable differences to other systems in the chain
 		bool acceptable = true;
-		for (int i = 0; i < c->noi; ++i)
+		for (int i = 0; i < state->noi; ++i)
 		{
-			if (c->images[i]->nos != sys->nos) acceptable = false;
+			if (state->active_chain->images[i]->nos != sys->nos) acceptable = false;
 			// Currently the SettingsWidget does not support different images being isotropic AND anisotropic at the same time
-			if (c->images[i]->is_isotropic != sys->is_isotropic) acceptable = false;
+			if (state->active_chain->images[i]->is_isotropic != sys->is_isotropic) acceptable = false;
 		}
 		// Set current image
 		if (acceptable)
 		{
-			this->c->images[idx_img] = sys;
+			this->state->active_chain->images[idx_img] = sys;
 			Utility::Configurations::Random(*sys);
 		}
 		else QMessageBox::about(this, tr("About JuSpin"),
@@ -805,14 +798,14 @@ void MainWindow::writeSettings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	c->iteration_allowed = false;
-	if (Utility::Threading::gneb_threads[c].joinable()) Utility::Threading::gneb_threads[c].join();
-	for (int isystem = 0; isystem < (int)c->images.size(); ++isystem)
+	state->active_chain->iteration_allowed = false;
+	if (Utility::Threading::gneb_threads[state->active_chain].joinable()) Utility::Threading::gneb_threads[state->active_chain].join();
+	for (int isystem = 0; isystem < (int)state->active_chain->images.size(); ++isystem)
 	{
-		c->images[isystem]->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[c->images[isystem]].joinable())
+		state->active_chain->images[isystem]->iteration_allowed = false;
+		if (Utility::Threading::llg_threads[state->active_chain->images[isystem]].joinable())
 		{
-			Utility::Threading::llg_threads[c->images[isystem]].join();
+			Utility::Threading::llg_threads[state->active_chain->images[isystem]].join();
 		}	
 	}
 	

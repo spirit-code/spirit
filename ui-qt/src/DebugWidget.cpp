@@ -3,10 +3,9 @@
 #include "DebugWidget.h"
 #include "Logging.h"
 
-DebugWidget::DebugWidget(std::shared_ptr<Data::Spin_System_Chain> c)
+DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {
-	this->c = c;
-	this->s = c->images[c->active_image];
+	this->state = state;
     
 	// Setup User Interface
     this->setupUi(this);
@@ -34,8 +33,6 @@ DebugWidget::DebugWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 
 void DebugWidget::update()
 {
-	this->s = this->c->images[this->c->active_image];
-
 	// Update the list of log entries
 	if (n_log_entries < Utility::Log.n_entries)
 	{

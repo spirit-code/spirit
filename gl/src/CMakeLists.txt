@@ -1,7 +1,7 @@
 set(SOURCE_GL_ROOT
 	${SOURCE_GL_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gl_spins.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GLSpins.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ArrowSpinRenderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SurfaceSpinRenderer.cpp

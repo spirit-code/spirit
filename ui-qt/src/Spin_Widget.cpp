@@ -1,21 +1,20 @@
 #include "Spin_Widget.h"
 
-#include <QOpenGLWidget>
+#include <QTimer>
 #include <QMouseEvent>
+#include "Interface_Geometry.h"
+#include "Interface_State.h"
 
-#include "gl_spins.h"
-
-using Data::Spin_System;
-
-Spin_Widget::Spin_Widget(std::shared_ptr<Data::Spin_System_Chain> c, QWidget *parent) : QOpenGLWidget(parent) {
-	this->c = c;
-	this->s = c->images[c->active_image];
+Spin_Widget::Spin_Widget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
+{
+	this->state = state;
 
 	setFocusPolicy(Qt::StrongFocus);
 }
 
 void Spin_Widget::initializeGL() {
-	this->gl_spins = std::shared_ptr<GLSpins>(new GLSpins(s, width(), height()));
+	this->gl_spins = std::make_shared<GLSpins>();
+  _reset_camera = true;
 }
 
 void Spin_Widget::teardownGL() {
@@ -29,8 +28,32 @@ void Spin_Widget::resizeGL(int width, int height) {
 
 void Spin_Widget::paintGL() {
   // Update the pointer to our Data
-  this->s = c->images[c->active_image];
-  this->gl_spins->update_spin_system(this->s);
+  auto s = state->active_image;
+  
+  std::vector<glm::vec3> positions(s->geometry->nos);
+  for (unsigned int i = 0; i < s->geometry->nos; ++i)
+  {
+    positions[i] = glm::vec3(s->geometry->spin_pos[0][i], s->geometry->spin_pos[1][i], s->geometry->spin_pos[2][i]);
+  }
+  std::vector<glm::vec3> directions(s->geometry->nos);
+  for (unsigned int i = 0; i < s->geometry->nos; ++i)
+  {
+    directions[i] = glm::vec3(s->spins[i], s->spins[s->geometry->nos + i], s->spins[2*s->geometry->nos + i]);
+  }
+  gl_spins->updateSpins(positions, directions);
+  
+  glm::vec3 bounds_min;
+  glm::vec3 bounds_max;
+  Geometry_Get_Bounds(state.get(), &bounds_min.x, &bounds_min.y, &bounds_min.z, &bounds_max.x, &bounds_max.y, &bounds_max.z);
+  glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
+  std::cerr << "bounds min: " << bounds_min.x << bounds_min.y  << bounds_min.z << std::endl;
+  std::cerr << "bounds max: " << bounds_max.x << bounds_max.y  << bounds_max.z << std::endl;
+  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
+  if (_reset_camera) {
+    gl_spins->setCameraToDefault();
+    _reset_camera = false;
+  }
+  
   gl_spins->draw();
   QTimer::singleShot(1, this, SLOT(update()));
 }
