@@ -2,20 +2,20 @@
 
 namespace Engine
 {
-    Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
+    Method_MMF::Method_MMF(std::shared_ptr<Data::Parameters_MMF> parameters) : Method(parameters)
     {
 
     }
 
-    void Method_MMF::Iterate()
+    void Method_MMF::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
     {
-        
-    }
 
-    // Apply one iteration of the GNEB method to a Spin System Chain
-    void Method_MMF::Iteration()
+    }
+		
+    // Check if the Forces are converged
+    bool Method_MMF::Force_Converged()
     {
-        
+        return false;
     }
 
     // Optimizer name as string

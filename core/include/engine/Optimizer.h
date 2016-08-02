@@ -3,13 +3,15 @@
 #define OPTIMIZER_H
 
 #include "Spin_System.h"
-#include "Force.h"
+#include "Method.h"
+// #include "Parameters_Method.h"
+#include "Logging.h"
+
 #include <vector>
 #include <algorithm>
 #include <iterator>
 #include <string>
 
-#include "Logging.h"
 
 
 namespace Engine
@@ -23,25 +25,42 @@ namespace Engine
 	{
 	public:
 		// The Optimizer needs to be configured by the Solver after creation
-		virtual void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call);
+		Optimizer(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
 
-		// One step in the optimization
-		virtual void Step();
+		// One Iteration
+		virtual void Iteration();
+
+		// Iterate for method->parameters->n iterations
+		virtual void Iterate() final;
+
+		// Calculate a smooth but current IPS value
+		virtual double getIterationsPerSecond() final;
 
 		// Optimizer name as string
 		virtual std::string Name();
-		virtual std::string Fullname();
+		virtual std::string FullName();
 
 	protected:
 		// The Spin Systems which to optimize
 		std::vector<std::shared_ptr<Data::Spin_System>> systems;
 		// The Force instance with which to calculate the forces on configurations
-		std::shared_ptr<Engine::Force> force_call;
+		std::shared_ptr<Engine::Method> method;
 
 		// Number of Images
 		int noi;
 		// Number of Spins
 		int nos;
+
+		// The time at which this Solver's Iterate() was last called
+		std::string starttime;
+		// Timings and Iterations per Second
+		double ips;
+		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
+
+		// Check wether to continue iterating - stop file, convergence etc.
+		virtual bool ContinueIterating() final;
+		// Check if a stop file is present -> Stop the iterations
+		virtual bool StopFilePresent() final;
 
 		// The actual configurations of the Spin Systems
 		std::vector<std::vector<double>> configurations;

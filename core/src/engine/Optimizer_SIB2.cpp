@@ -6,15 +6,15 @@ using namespace Utility;
 
 namespace Engine
 {
-	void Optimizer_SIB2::Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call)
-	{
-		Optimizer::Configure(systems, force_call);
+	Optimizer_SIB2::Optimizer_SIB2(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
+        Optimizer(systems, method)
+    {
 		//this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		//if (systems.size() > 1) Log.Send(Log_Level::L_ERROR, Log_Sender::LLG, "THE OPTIMIZER_SIB2 CANNOT HANDLE MORE THAN 1 IMAGE CORRECTLY !!");
-	}
-
-	void Optimizer_SIB2::Step()
+    }
+	
+	void Optimizer_SIB2::Iteration()
 	{
 		std::shared_ptr<Data::Spin_System> s;
 		// This is probably quite inefficient?? CHECK IF THATS THE CASE!
@@ -49,7 +49,7 @@ namespace Engine
 			Cy = s->llg_parameters->stt_polarisation_normal[1] * s->llg_parameters->stt_magnitude;
 			Cz = s->llg_parameters->stt_polarisation_normal[2] * s->llg_parameters->stt_magnitude;
 
-			this->force_call->Calculate(configurations, force);
+			this->method->Calculate_Force(configurations, force);
 
 			for (int i = 0; i < s->nos; ++i)
 			{
@@ -91,7 +91,7 @@ namespace Engine
 				spins_temp[img][i + 2*s->nos] = 0.5*nz;
 			}
 
-			this->force_call->Calculate(configurations, force);
+			this->method->Calculate_Force(configurations, force);
 
 			for (int i = 0; i < s->nos; ++i)
 			{
@@ -152,5 +152,5 @@ namespace Engine
 
     // Optimizer name as string
     std::string Optimizer_SIB2::Name() { return "SIB2"; }
-    std::string Optimizer_SIB2::Fullname() { return "Semi-implicit B (2nd implementation)"; }
+    std::string Optimizer_SIB2::FullName() { return "Semi-implicit B (2nd implementation)"; }
 }

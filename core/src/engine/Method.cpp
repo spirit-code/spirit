@@ -1,49 +1,25 @@
 #include "Method.h"
+//#include "Manifoldmath.h"
+#include <algorithm>
 
 namespace Engine
 {
-    Method::Method(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optimizer)
+    Method::Method(std::shared_ptr<Data::Parameters_Method> parameters) : parameters(parameters)
     {
-        this->c = c;
-        this->optimizer = optimizer;
-        this->starttime = Utility::Timing::CurrentDateTime();
 
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->t_iterations.push_back(system_clock::now());
-        this->ips = 0;
     }
 
-    // Iterate for n iterations
-    void Method::Iterate()
+    void Method::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
     {
-        // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Iterate() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+
     }
 
-    void Method::Iteration()
+    bool Method::Force_Converged()
     {
-        // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        bool converged = false;
+        if ( this->force_maxAbsComponent < this->parameters->force_convergence ) converged = true;
+        return converged;
     }
-
-    double Method::getIterationsPerSecond()
-    {
-        double l_ips = 0.0;
-        for (unsigned int i = 0; i < t_iterations.size() - 1; ++i)
-        {
-            l_ips += Utility::Timing::SecondsPassed(t_iterations[i], t_iterations[i+1]);
-        }
-        this->ips = 1.0 / (l_ips / (t_iterations.size() - 1));
-        return this->ips;
-    }
-
 
     void Method::Save_Step(int image, int iteration, std::string suffix)
     {
@@ -52,10 +28,52 @@ namespace Engine
         throw Utility::Exception::Not_Implemented;
     }
 
-    bool Method::StopFilePresent()
+    void Method::Hook_Pre_Step()
     {
-        std::ifstream f("STOP");
-        return f.good();
+        // Not Implemented!
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Pre_Step() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    void Method::Hook_Post_Step()
+    {
+        // Not Implemented!
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Post_Step() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    // Return the maximum of absolute values of force components for an image
+    double  Method::Force_on_Image_MaxAbsComponent(std::vector<double> & image, std::vector<double> force)
+    {
+        int nos = image.size()/3;
+        // We project the force orthogonal to the SPIN
+        //Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
+        // Get the scalar product of the vectors
+        double v1v2 = 0.0;
+        int dim;
+        // Take out component in direction of v2
+        for (int i = 0; i < nos; ++i)
+        {
+            v1v2 = 0.0;
+            for (dim = 0; dim < 3; ++dim)
+            {
+                v1v2 += force[i + dim*nos] * image[i + dim*nos];
+            }
+            for (dim = 0; dim < 3; ++dim)
+            {
+                force[i + dim*nos] = force[i + dim*nos] - v1v2 * image[i + dim*nos];
+            }
+        }
+
+        // We want the Maximum of Absolute Values of all force components on all images
+        double absmax = 0;
+        // Find minimum and maximum values
+        auto minmax = std::minmax_element(force.begin(), force.end());
+        // Mamimum of absolute values
+        absmax = std::max(absmax, std::abs(*minmax.first));
+        absmax = std::max(absmax, std::abs(*minmax.second));
+        // Return
+        return absmax;
     }
 
     std::string Method::Name()

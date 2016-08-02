@@ -2,18 +2,12 @@
 #ifndef METHOD_H
 #define METHOD_H
 
-#include <fstream>
-
+#include "Parameters_Method.h"
 #include "Spin_System_Chain.h"
-#include "Optimizer.h"
-#include "Optimizer_SIB.h"
-#include "Optimizer_SIB2.h"
-#include "Optimizer_Heun.h"
-#include "Optimizer_CG.h"
-#include "Optimizer_QM.h"
 #include "Timing.h"
 
 #include <deque>
+#include <fstream>
 
 namespace Engine
 {
@@ -24,42 +18,36 @@ namespace Engine
 	{
 	public:
 		// Constructor to be used in derived classes
-		Method(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optimizer);
+		Method(std::shared_ptr<Data::Parameters_Method> parameters);
 
-		// Iterate for n iterations
-		virtual void Iterate();
+		// Calculate Forces onto Systems
+		virtual void Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces);
 
-		// One Iteration
-		virtual void Iteration();
+		// Check if the Forces are converged
+		virtual bool Force_Converged();
 
-		// Calculate current IPS
-		double getIterationsPerSecond();
+		// Maximum of the absolutes of all components of the force - needs to be updated at each calculation
+		double force_maxAbsComponent;
 
-		// Optimizer name as string
+		// Method name as string
 		virtual std::string Name();
-
-	protected:
-		// The Image Chain on which this Solver operates
-		std::shared_ptr<Data::Spin_System_Chain> c;
-
-		// The Images to operate on
-		std::vector<std::shared_ptr<Data::Spin_System>> systems;
-
-		// The Force corresponding to this solver
-		std::shared_ptr<Engine::Force> force_call;
-
-		// Optimizer to iterate on the image(s)
-		std::shared_ptr<Optimizer> optimizer;
-
-		// The time at which this Solver's Iterate() was last called
-		std::string starttime;
-
-		// Timings and Iterations per Second
-		double ips;
-		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
-
+		// TODO: Method name as enum
+		//Utility::Log_Sender SenderName;
+		
 		// Save the current Step's Data
 		virtual void Save_Step(int image, int iteration, std::string suffix);
+		// A hook into the Optimizer before an Iteration
+		virtual void Hook_Pre_Step();
+		// A hook into the Optimizer after an Iteration
+		virtual void Hook_Post_Step();
+
+		// This Method's Parameters
+		std::shared_ptr<Data::Parameters_Method> parameters; // TODO: It would be preferable to have these as protected
+	
+	protected:
+		virtual double Force_on_Image_MaxAbsComponent(std::vector<double> & image, std::vector<double> force) final;
+		// The Images to operate on
+		// std::vector<std::shared_ptr<Data::Spin_System>> systems;
 
 		//// Create the Force specific to the Solver
 		//virtual void Configure()
@@ -70,8 +58,6 @@ namespace Engine
 		//	//throw Utility::Exception::Not_Implemented;
 		//}
 
-		// Check if a stop file is present -> Stop the iterations
-		bool StopFilePresent();
 	};
 }
 

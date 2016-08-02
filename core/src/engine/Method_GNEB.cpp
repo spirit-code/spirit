@@ -1,8 +1,5 @@
-#include <iostream>
-#include <math.h>
+#include "Method_GNEB.h"
 
-#include "Force.h"
-#include "Force_GNEB.h"
 #include "Manifoldmath.h"
 #include "Cubic_Hermite_Spline.h"
 #include "IO.h"
@@ -10,141 +7,218 @@
 
 #include "Optimizer_Heun.h"
 #include "Optimizer_SIB.h"
-#include "Method_GNEB.h"
 #include "Vectormath.h"
 
 #include"Logging.h"
+
+#include <iostream>
+#include <math.h>
+
 using namespace Utility;
 
 namespace Engine
 {
-    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> c, std::shared_ptr<Optimizer> optim) : Method(c, optim)
+    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Parameters_GNEB> parameters) : Method(parameters)
 	{
 		// Method child-class specific instructions
-		this->force_call = std::shared_ptr<Engine::Force>(new Force_GNEB(this->c));
-		this->systems = c->images;
+		// this->force_call = std::shared_ptr<Engine::Force>(new Force_GNEB(this->c));
+		// this->systems = c->images;
 
 		// Configure the Optimizer
-		this->optimizer->Configure(this->systems, this->force_call);
+		// this->optimizer->Configure(this->systems, this->force_call);
 	}
 
-	// Iteratively apply the GNEB method to a Spin System Chain
-	void Method_GNEB::Iterate()
+	void Method_GNEB::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
 	{
-		auto sender = Utility::Log_Sender::GNEB;
-		//========================= Init local vars ================================
-		int n_iterations = c->gneb_parameters->n_iterations;
-		int log_steps = c->gneb_parameters->log_steps;
-		int i, step = 0, n_log = n_iterations/log_steps;
-		this->starttime = Timing::CurrentDateTime();
-		std::string suffix = "";
-		//------------------------ End Init ----------------------------------------
+		int noi = configurations.size();
+		int nos = configurations[0].size()/3;
+		// this->Force_Converged = false;
+		this->force_maxAbsComponent = 0;
 
-		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Started " + this->Name() + " Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, sender, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
-		Log.Send(Utility::Log_Level::ALL, sender, "Optimizer: " + this->optimizer->Name());
-		Log.Send(Utility::Log_Level::ALL, sender, "-----------------------------------------------------");
-
-		auto t_start = system_clock::now();
-		auto t_current = system_clock::now();
-		auto t_last = system_clock::now();
-		for (i = 0; i < n_iterations && c->iteration_allowed && !this->force_call->IsConverged() && !this->StopFilePresent(); ++i)
+		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
+		//		The Optimizer shuld respect this, but there is no way to enforce it.
+		// Get Energy and Effective Field of configurations
+		std::vector<double> energies(configurations.size());
+		for (int i = 0; i < noi; ++i)
 		{
-			// Do one single Iteration
-			this->Iteration();
+			// Calculate the Energy of the image (and store it in image)
+			// ----- energies[i] = this->c->images[i]->hamiltonian->Energy(configurations[i]);
+			
+			// NEED A NICER WAY OF DOING THIS ---- THE ENERGY ETC SHOULD NOT BE UPDATED HERE, SINCE THIS MIGHT BE CALLED
+			// TO CALCULATE INTERMEDIATE FORCES INSTEAD OF THE FORCES ON THE SPIN SYSTEMS
+			
+			// ----- this->c->images[i]->E = energies[i];
+			
+			// Calculate Effective Field
+			//c->images[i]->Effective_Field(configurations[i], beff);
+			// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
+			//Utility::Manifoldmath::Tangent(*c, i, t[i]);
+		}
 
-			// Recalculate FPS
-			this->t_iterations.pop_front();
-			this->t_iterations.push_back(system_clock::now());
+		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
+		// ----- Utility::Manifoldmath::Tangents(configurations, energies, this->c->tangents);
 
-			// Log Output every log_steps steps
-			if (0 == fmod(i, log_steps))
-			{
-				step += 1;
+		// Get the total force on the image chain
+		//auto force = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 
-				t_last = t_current;
-				t_current = system_clock::now();
+		// Forces
+		auto F_gradient = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		auto F_spring = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		//auto F_total = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		// Tangents
+		//auto t = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 
-				Log.Send(Utility::Log_Level::ALL, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
-				Log.Send(Utility::Log_Level::ALL, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
-				Log.Send(Utility::Log_Level::ALL, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
-				Log.Send(Utility::Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
-				Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->force_call->maxAbsComponent));
+		// Loop over images to calculate the total Effective Field on each Image
+		for (int img = 1; img < noi - 1; ++img)
+		{
+			// TODO: figure out how to handle the images in this case...
+			// // The gradient force (unprojected) is simply the effective field
+			// this->c->images[img]->hamiltonian->Effective_Field(configurations[img], F_gradient[img]);
+			// // NEED A NICER WAY OF DOING THIS:
+			// this->c->images[img]->effective_field = F_gradient[img];
 
-				Save_Step(0, i, suffix);
+			// // Calculate Force
+			// if (c->climbing_image[img])
+			// {
+			// 	// We reverse the component in tangent direction
+			// 	Utility::Manifoldmath::Project_Reverse(F_gradient[img], this->c->tangents[img]);
+			// 	// And Spring Force is zero
+			// 	forces[img] = F_gradient[img];
+			// }
+			// else if (c->falling_image[img])
+			// {
+			// 	// We project the gradient force orthogonal to the tangent
+			// 	// If anything, project orthogonal to the spins... idiot! But Heun already does that.
+			// 	//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
+			// 	// Spring Force is zero
+			// 	forces[img] = F_gradient[img];
+			// }
+			// else
+			// {
 
-				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
-			}// endif log_steps
-		}// endif i
-		auto t_end = system_clock::now();
+			// 	// We project the gradient force orthogonal to the SPIN
+			// 	//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
+			// 	// Get the scalar product of the vectors
+			// 	double v1v2 = 0.0;
+			// 	int dim;
+			// 	// Take out component in direction of v2
+			// 	for (int i = 0; i < nos; ++i)
+			// 	{
+			// 		v1v2 = 0.0;
+			// 		for (dim = 0; dim < 3; ++dim)
+			// 		{
+			// 			v1v2 += F_gradient[img][i+dim*nos] * configurations[img][i+dim*nos];
+			// 		}
+			// 		for (dim = 0; dim < 3; ++dim)
+			// 		{
+			// 			F_gradient[img][i + dim*nos] = F_gradient[img][i + dim*nos] - v1v2 * configurations[img][i + dim*nos];
+			// 		}
+			// 	}
 
-		Log.Send(Utility::Log_Level::ALL, sender, "-------------- Finished " + this->Name() + " Simulation --------------");
-		Log.Send(Utility::Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
-		if (this->force_call->IsConverged())
-			Log.Send(Utility::Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->force_call->maxAbsComponent));
-		else
-			Log.Send(Utility::Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->force_call->maxAbsComponent));
-		if (this->StopFilePresent())
-			Log.Send(Utility::Log_Level::ALL, sender, "    A STOP file has been found.");
-		Log.Send(Utility::Log_Level::ALL, sender, "    " + this->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
-		Log.Send(Utility::Log_Level::ALL, sender, "------------------------------------------------------");
 
-		//suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n_iterations)) + "_final";
-		suffix = "_final";
-		Save_Step(0, i, suffix);
-		//IO::Dump_to_File(output_strings, "spin_archieve.dat", c->images[0]->debug_parameters->output_notification, step);
+			// 	// We project the gradient force orthogonal to the TANGENT
+			// 	//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
+			// 	// Get the scalar product of the vectors
+			// 	v1v2 = 0.0;
+			// 	for (int i = 0; i < 3*nos; ++i)
+			// 	{
+			// 		v1v2 += F_gradient[img][i] * this->c->tangents[img][i];
+			// 	}
+			// 	// Take out component in direction of v2
+			// 	for (int i = 0; i < 3 * nos; ++i)
+			// 	{
+			// 		F_gradient[img][i] = F_gradient[img][i] - v1v2 * this->c->tangents[img][i];
+			// 	}
+
+
+			// 	// Calculate the spring force
+			// 	//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
+			// 	double d1, d2, d;
+			// 	d1 = Utility::Manifoldmath::Dist_Geodesic(configurations[img + 1], configurations[img]);
+			// 	d2 = Utility::Manifoldmath::Dist_Geodesic(configurations[img], configurations[img - 1]);
+			// 	d = this->c->gneb_parameters->spring_constant * (d1 - d2);
+			// 	for (unsigned int i = 0; i < F_spring[0].size(); ++i)
+			// 	{
+			// 		F_spring[img][i] = d * this->c->tangents[img][i];
+			// 	}
+
+			// 	// Calculate the total force
+			// 	for (int j = 0; j < 3 * nos; ++j)
+			// 	{
+			// 		forces[img][j] = F_gradient[img][j] + F_spring[img][j];
+			// 	}
+			// }// end if climbing
+		}// end for img=1..noi-1
+
+		// Check for convergence
+		for (int img = 1; img < noi - 1; ++img)
+		{
+			double fmax = this->Force_on_Image_MaxAbsComponent(configurations[img], forces[img]);
+			// TODO: how to handle convergence??
+			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
+			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+		}
+	}// end Calculate
+
+	bool Method_GNEB::Force_Converged()
+	{
+		// return this->isConverged;
+		return false;
 	}
+
 
 	// Apply one iteration of the GNEB method to a Spin System Chain
-	void Method_GNEB::Iteration()
+	void Method_GNEB::Hook_Post_Step()
 	{
-		int nos = c->images[0]->nos;
+		// TODO: whatever do we do here??
+		// int nos = c->images[0]->nos;
 
-		this->optimizer->Step();
+		// // this->optimizer->Step();
 
-		// Calculate and interpolate energies and store in the spin systems and spin system chain
-		std::vector<double> E(c->noi, 0);
-		std::vector<double> dE_dRx(c->noi, 0);
-		// Calculate the inclinations at the data points
-		for (int i = 0; i < c->noi; ++i)
-		{
-			// x
-			if (i > 0) c->Rx[i] = c->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(c->images[i - 1]->spins, c->images[i]->spins);
-			// y
-			E[i] = c->images[i]->E;
-			// dy/dx
-			for (int j = 0; j < 3 * nos; ++j)
-			{
-				dE_dRx[i] += c->images[i]->effective_field[j] * c->tangents[i][j];
-			}
-		}
-		// Actual Interpolation
-		std::vector<std::vector<double>> interp = Utility::Cubic_Hermite_Spline::Interpolate(c->Rx, E, dE_dRx, c->gneb_parameters->n_E_interpolations);
-		c->Rx_interpolated = interp[0];
-		c->E_interpolated = interp[1];
+		// // Calculate and interpolate energies and store in the spin systems and spin system chain
+		// std::vector<double> E(c->noi, 0);
+		// std::vector<double> dE_dRx(c->noi, 0);
+		// // Calculate the inclinations at the data points
+		// for (int i = 0; i < c->noi; ++i)
+		// {
+		// 	// x
+		// 	if (i > 0) c->Rx[i] = c->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(c->images[i - 1]->spins, c->images[i]->spins);
+		// 	// y
+		// 	E[i] = c->images[i]->E;
+		// 	// dy/dx
+		// 	for (int j = 0; j < 3 * nos; ++j)
+		// 	{
+		// 		dE_dRx[i] += c->images[i]->effective_field[j] * c->tangents[i][j];
+		// 	}
+		// }
+		// // Actual Interpolation
+		// std::vector<std::vector<double>> interp = Utility::Cubic_Hermite_Spline::Interpolate(c->Rx, E, dE_dRx, c->gneb_parameters->n_E_interpolations);
+		// c->Rx_interpolated = interp[0];
+		// c->E_interpolated = interp[1];
 	}
 
 
 	void Method_GNEB::Save_Step(int image, int iteration, std::string suffix)
 	{
-		// always formatting to 6 digits may be problematic!
-		auto s_iter = IO::int_to_formatted_string(iteration, 6);
+		// TODO: how to handle??
+		// // always formatting to 6 digits may be problematic!
+		// auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
-		// Save current Image Chain
-		auto imagesFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_Images_" + s_iter + suffix + ".txt";
-		Utility::IO::Save_SpinChain_Configuration(this->c, imagesFile);
+		// // Save current Image Chain
+		// auto imagesFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_Images_" + s_iter + suffix + ".txt";
+		// Utility::IO::Save_SpinChain_Configuration(this->c, imagesFile);
 
-		// Save current Energies with reaction coordinates
-		auto energiesFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_E_Images_" + s_iter + suffix + ".txt";
-		//		Check if Energy File exists and write Header if it doesn't
-		std::ifstream f(energiesFile);
-		if (!f.good()) Utility::IO::Write_Energy_Header(energiesFile);
-		//		Save
-		Utility::IO::Save_Energies(*this->c, iteration, energiesFile);
+		// // Save current Energies with reaction coordinates
+		// auto energiesFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_E_Images_" + s_iter + suffix + ".txt";
+		// //		Check if Energy File exists and write Header if it doesn't
+		// std::ifstream f(energiesFile);
+		// if (!f.good()) Utility::IO::Write_Energy_Header(energiesFile);
+		// //		Save
+		// Utility::IO::Save_Energies(*this->c, iteration, energiesFile);
 
-		// Save interpolated Energies
-		auto energiesInterpFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
-		Utility::IO::Save_Energies_Interpolated(*this->c, energiesInterpFile);
+		// // Save interpolated Energies
+		// auto energiesInterpFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
+		// Utility::IO::Save_Energies_Interpolated(*this->c, energiesInterpFile);
 
 		// Save Log
 		Log.Append_to_File();

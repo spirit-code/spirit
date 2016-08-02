@@ -6,7 +6,6 @@
 
 #include "Optimizer.h"
 #include "Spin_System_Chain.h"
-#include "Force.h"
 
 namespace Engine
 {
@@ -19,13 +18,14 @@ namespace Engine
 	{
 
 	public:
-		// One step in the optimization
-		void Step() override;
-		void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call) override;
+		Optimizer_Heun(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
 		
+		// One Iteration
+		void Iteration() override;
+
 		// Optimizer name as string
 		std::string Name() override;
-		std::string Fullname() override;
+		std::string FullName() override;
 
     private:
 		// Temporary Spins arrays
@@ -34,7 +34,7 @@ namespace Engine
 		// Virtual Heun Forces used in the Steps
 		std::vector<std::vector<double>> virtualforce;
 
-		// THE HEUN METHOD CAN BE REWRITTEN TO BE NICER:
+		// TODO: THE HEUN METHOD CAN BE REWRITTEN TO BE NICER:
 		//// Calculate the virtual Heun force to be used in the Steps
 		//void VirtualForce(const int nos, std::vector<double> & spins, std::vector<double> & beff, double dt, std::vector<double> & force);
 		//// First Part of one Optimization step

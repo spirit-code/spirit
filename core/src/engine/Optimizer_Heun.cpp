@@ -5,20 +5,19 @@
 
 namespace Engine
 {
-	void Optimizer_Heun::Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call)
-	{
-		Optimizer::Configure(systems, force_call);
-
+	Optimizer_Heun::Optimizer_Heun(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
+        Optimizer(systems, method)
+    {
 		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-	}
-    
-    void Optimizer_Heun::Step()
+    }
+
+    void Optimizer_Heun::Iteration()
     {
 		std::shared_ptr<Data::Spin_System> s;
 		
 		// Get the actual forces on the configurations
-		this->force_call->Calculate(configurations, force);
+		this->method->Calculate_Force(configurations, force);
 
 		int dim;
 		double dt, s2;
@@ -90,6 +89,6 @@ namespace Engine
 	}
 
     // Optimizer name as string
-    std::string Optimizer_Heun::Name() { return "CG"; }
-    std::string Optimizer_Heun::Fullname() { return "Conjugate Gradient"; }
+    std::string Optimizer_Heun::Name() { return "Heun"; }
+    std::string Optimizer_Heun::FullName() { return "Heun"; }
 }

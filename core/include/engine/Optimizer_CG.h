@@ -12,11 +12,14 @@ namespace Engine
 	class Optimizer_CG : public Optimizer
 	{
 	public:
-		void Step() override {};
+		Optimizer_CG(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+
+		// One Iteration
+		void Iteration() override;
 
 		// Optimizer name as string
 		std::string Name() override;
-		std::string Fullname() override;
+		std::string FullName() override;
     };
 }
 

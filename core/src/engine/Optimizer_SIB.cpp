@@ -1,4 +1,4 @@
-#include <Optimizer_SIB.h>
+#include "Optimizer_SIB.h"
 
 #include "Vectormath.h"
 
@@ -6,16 +6,16 @@ using namespace Utility;
 
 namespace Engine
 {
-	void Optimizer_SIB::Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call)
-	{
-		Optimizer::Configure(systems, force_call);
+	Optimizer_SIB::Optimizer_SIB(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
+        Optimizer(systems, method)
+    {
 		this->xi = std::vector<double>(3 * this->nos);
 		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-	}
+    }
 
-	void Optimizer_SIB::Step()
-	{
+    void Optimizer_SIB::Iteration()
+    {
 		std::shared_ptr<Data::Spin_System> s;
 		// This is probably quite inefficient?? CHECK IF THATS THE CASE!
 		for (int i = 0; i < this->noi; ++i)
@@ -33,7 +33,7 @@ namespace Engine
 		}
 
 		// First part of the step
-		this->force_call->Calculate(configurations, force);
+		this->method->Calculate_Force(configurations, force);
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = systems[i];
@@ -42,7 +42,7 @@ namespace Engine
 		}
 
 		// Second part of the step
-		this->force_call->Calculate(spins_temp, force); ////// I cannot see a difference if this step is included or not...
+		this->method->Calculate_Force(spins_temp, force); ////// I cannot see a difference if this step is included or not...
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = systems[i];
@@ -205,5 +205,5 @@ namespace Engine
 
     // Optimizer name as string
     std::string Optimizer_SIB::Name() { return "SIB"; }
-    std::string Optimizer_SIB::Fullname() { return "Semi-implicit B"; }
+    std::string Optimizer_SIB::FullName() { return "Semi-implicit B"; }
 }
