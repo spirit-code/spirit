@@ -234,7 +234,7 @@ namespace Engine
         	};
 		}
 		// Loop over all atoms
-		for (iatom = 0; iatom < geometry.nos; ++iatom)
+		for (iatom = 0; iatom < 1; ++iatom)//geometry.nos; ++iatom)
 		{
 			for (shell = 0; shell < n_shells; ++shell) max_temp[shell] = 0;
 			ipos[0] = geometry.spin_pos[0][iatom];
@@ -707,8 +707,26 @@ namespace Engine
 
 		int periodicity;
 		double dot_a, dot_b, dot_c;
+		double norm_ta=0, norm_tb=0, norm_tc=0;
+		double norm_ba=0, norm_bb=0, norm_bc=0;
 		bool periodical_a, periodical_b, periodical_c;
 
+		Log.Send(Log_Level::WARNING, Log_Sender::ALL, "DD Pairs are being calculated from Neighbours! This may produce bugs in non-orthogonal basis systems!");
+		
+		// Norm of basis and translation vectors
+		for (int dim = 0; dim < 3; ++dim)
+		{
+			norm_ba += pow(geometry.basis[dim][0], 2.0);
+			norm_bb += pow(geometry.basis[dim][1], 2.0);
+			norm_bc += pow(geometry.basis[dim][2], 2.0);
+			
+			norm_ta += pow(geometry.translation_vectors[dim][0], 2.0);
+			norm_tb += pow(geometry.translation_vectors[dim][1], 2.0);
+			norm_tc += pow(geometry.translation_vectors[dim][2], 2.0);
+		}
+		norm_ba = sqrt(norm_ba); norm_bb = sqrt(norm_bb); norm_bc = sqrt(norm_bc);
+		norm_ta = sqrt(norm_ta); norm_tb = sqrt(norm_tb); norm_tc = sqrt(norm_tc);
+		// ...
 		for (auto shell : dd_neighbours)
 		{
 			i_neigh = 0;
@@ -720,10 +738,9 @@ namespace Engine
 				// Dot products with basis vectors to determine if outside of boundaries
 				for (int dim = 0; dim < 3; ++dim)
 				{
-						dot_a += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][0];
-						dot_b += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][1];
-						dot_c += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][2];
-					
+						dot_a += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][0] / norm_ta / norm_ba;
+						dot_b += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][1] / norm_tb / norm_bb;
+						dot_c += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][2] / norm_tc / norm_bc;
 				}
 				// Determine periodical boundaries
 				if (0 <= dot_a && dot_a < geometry.n_cells[0]) periodical_a = false;
