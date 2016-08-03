@@ -6,7 +6,7 @@
 #include <memory>
 #include <map>
 
-#include "Spin_Widget.h"
+#include "SpinWidget.h"
 #include "SettingsWidget.h"
 #include "PlotsWidget.h"
 #include "DebugWidget.h"
@@ -85,7 +85,7 @@ private:
     
     //SpinWidget *spins;
 	std::shared_ptr<State> state;
-    Spin_Widget *spinWidget;
+  SpinWidget *spinWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;
 	DebugWidget * debugWidget;
