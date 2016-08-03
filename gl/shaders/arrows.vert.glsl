@@ -13,6 +13,9 @@ out vec3 vfColor;
 mat3 matrixFromDirection(vec3 direction) {
   float c = direction.z;
   float s = length(direction.xy);
+  if (s == 0.0) {
+    s = 1.0;
+  }
   float x = -direction.y / s;
   float y = direction.x / s;
   mat3 matrix;
