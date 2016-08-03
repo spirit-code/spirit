@@ -99,7 +99,6 @@ void SphereSpinRenderer::draw(double aspectRatio) const {
   
   
   glm::vec2 zRange = _options.get<ISpinRenderer::Option::Z_RANGE>();
-  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();

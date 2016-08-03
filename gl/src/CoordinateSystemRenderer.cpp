@@ -71,10 +71,18 @@ void CoordinateSystemRenderer::draw(double aspectRatio) const {
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   auto origin = _options.get<CoordinateSystemRendererOptions::ORIGIN>();
-  auto axis_length = _options.get<CoordinateSystemRendererOptions::AXIS_LENGTH>();
+  auto axis_length = glm::normalize(_options.get<CoordinateSystemRendererOptions::AXIS_LENGTH>());
 
-  glm::mat4 projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
-  glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
+  glm::mat4 projectionMatrix;
+  if (verticalFieldOfView > 0) {
+    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+  } else {
+    float camera_distance = 1;//glm::length(cameraPosition-centerPosition);
+    float leftRight = camera_distance * aspectRatio;
+    float bottomTop = camera_distance;
+    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, 0.1f, 10000.0f);
+  }
+  glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition)+centerPosition, centerPosition, upVector);
 
   glUniformMatrix4fv(glGetUniformLocation(_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projectionMatrix));
   glUniformMatrix4fv(glGetUniformLocation(_program, "uModelviewMatrix"), 1, false, glm::value_ptr(modelviewMatrix));

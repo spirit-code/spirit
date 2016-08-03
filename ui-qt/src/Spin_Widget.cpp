@@ -46,8 +46,6 @@ void Spin_Widget::paintGL() {
   glm::vec3 bounds_max;
   Geometry_Get_Bounds(state.get(), &bounds_min.x, &bounds_min.y, &bounds_min.z, &bounds_max.x, &bounds_max.y, &bounds_max.z);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
-  std::cerr << "bounds min: " << bounds_min.x << bounds_min.y  << bounds_min.z << std::endl;
-  std::cerr << "bounds max: " << bounds_max.x << bounds_max.y  << bounds_max.z << std::endl;
   gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
   if (_reset_camera) {
     gl_spins->setCameraToDefault();

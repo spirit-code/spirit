@@ -112,8 +112,16 @@ void ArrowSpinRenderer::draw(double aspectRatio) const {
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
-  
-  glm::mat4 projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+
+  glm::mat4 projectionMatrix;
+  if (verticalFieldOfView > 0) {
+    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+  } else {
+    float camera_distance = glm::length(cameraPosition-centerPosition);
+    float leftRight = camera_distance * aspectRatio;
+    float bottomTop = camera_distance;
+    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, 0.1f, 10000.0f);
+  }
   glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
   glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0);
   
