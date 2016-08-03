@@ -66,8 +66,8 @@ void SpinWidget::mousePressEvent(QMouseEvent *event) {
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event) {
   auto current_pos = event->pos();
-  auto position_before = glm::vec2(_previous_pos.x(), _previous_pos.y());
-  auto position_after = glm::vec2(current_pos.x(), current_pos.y());
+  auto position_before = glm::vec2(_previous_pos.x(), _previous_pos.y()) * (float)devicePixelRatio();
+  auto position_after = glm::vec2(current_pos.x(), current_pos.y()) * (float)devicePixelRatio();
   GLSpins::CameraMovementModes mode = GLSpins::CameraMovementModes::ROTATE;
   if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier) {
     mode = GLSpins::CameraMovementModes::TRANSLATE;
