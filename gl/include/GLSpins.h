@@ -40,6 +40,11 @@ public:
     COORDINATE_SYSTEM_LOCATION,
     VISUALIZATION_MODE
   };
+  enum Colormap {
+    HSV,
+    RED_BLUE,
+    OTHER
+  };
   
   GLSpins();
   ~GLSpins();

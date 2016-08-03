@@ -108,6 +108,12 @@ void ArrowSpinRenderer::draw(double aspectRatio) const {
   glUseProgram(_program);
   
   glm::vec2 zRange = _options.get<ISpinRenderer::Option::Z_RANGE>();
+  if (zRange.x <= -1) {
+    zRange.x = -2;
+  }
+  if (zRange.y >= 1) {
+    zRange.y = 2;
+  }
   double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();

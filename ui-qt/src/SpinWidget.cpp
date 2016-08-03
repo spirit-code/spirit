@@ -4,6 +4,9 @@
 #include <QMouseEvent>
 #include "Interface_Geometry.h"
 #include "Interface_State.h"
+#include "ISpinRenderer.h"
+#include "BoundingBoxRenderer.h"
+#include "utilities.h"
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -96,3 +99,121 @@ void SpinWidget::wheelEvent(QWheelEvent *event) {
   double wheel_delta = event->delta();
   gl_spins->mouseScroll(wheel_delta*0.1);
 }
+
+const Options<GLSpins>& SpinWidget::options() const {
+  if (gl_spins) {
+    return gl_spins->options();
+  }
+  return default_options;
+  
+}
+
+double SpinWidget::verticalFieldOfView() const {
+  return options().get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+}
+
+void SpinWidget::setVerticalFieldOfView(double vertical_field_of_view) {
+  auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
+  gl_spins->updateOptions(option);
+}
+
+glm::vec3 SpinWidget::backgroundColor() const {
+  return options().get<ISpinRenderer::Option::BACKGROUND_COLOR>();
+}
+
+void SpinWidget::setBackgroundColor(glm::vec3 background_color) {
+  auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::BACKGROUND_COLOR>(background_color);
+  gl_spins->updateOptions(option);
+}
+
+glm::vec3 SpinWidget::boundingBoxColor() const {
+  return options().get<BoundingBoxRenderer::Option::COLOR>();
+}
+
+void SpinWidget::setBoundingBoxColor(glm::vec3 bounding_box_color) {
+  auto option = Options<GLSpins>::withOption<BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
+  gl_spins->updateOptions(option);
+}
+
+bool SpinWidget::isMiniviewEnabled() const {
+  return options().get<GLSpins::Option::SHOW_MINIVIEW>();
+}
+
+void SpinWidget::enableMiniview(bool enabled) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_MINIVIEW>(enabled);
+  gl_spins->updateOptions(option);
+}
+
+bool SpinWidget::isCoordinateSystemEnabled() const {
+  return options().get<GLSpins::Option::SHOW_COORDINATE_SYSTEM>();
+}
+
+void SpinWidget::enableCoordinateSystem(bool enabled) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_COORDINATE_SYSTEM>(enabled);
+  gl_spins->updateOptions(option);
+}
+
+GLSpins::WidgetLocation SpinWidget::miniviewPosition() const {
+  return options().get<GLSpins::Option::MINIVIEW_LOCATION>();
+}
+
+void SpinWidget::setMiniviewPosition(GLSpins::WidgetLocation miniview_position) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::MINIVIEW_LOCATION>(miniview_position);
+  gl_spins->updateOptions(option);
+}
+
+GLSpins::WidgetLocation SpinWidget::coordinateSystemPosition() const {
+  return options().get<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>();
+}
+
+void SpinWidget::setCoordinateSystemPosition(GLSpins::WidgetLocation coordinatesystem_position) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>(coordinatesystem_position);
+  gl_spins->updateOptions(option);
+}
+
+GLSpins::VisualizationMode SpinWidget::visualizationMode() const {
+  return options().get<GLSpins::Option::VISUALIZATION_MODE>();
+}
+
+void SpinWidget::setVisualizationMode(GLSpins::VisualizationMode visualization_mode) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::VISUALIZATION_MODE>(visualization_mode);
+  gl_spins->updateOptions(option);
+}
+
+glm::vec2 SpinWidget::zRange() const {
+  return options().get<ISpinRenderer::Option::Z_RANGE>();
+}
+
+void SpinWidget::setZRange(glm::vec2 z_range) {
+  auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::Z_RANGE>(z_range);
+  gl_spins->updateOptions(option);
+}
+
+
+GLSpins::Colormap SpinWidget::colormap() const {
+  auto colormap_implementation = options().get<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>();
+  if (colormap_implementation == getColormapImplementation("hsv")) {
+    return GLSpins::Colormap::HSV;
+  } else if (colormap_implementation == getColormapImplementation("redblue")) {
+    return GLSpins::Colormap::RED_BLUE;
+  }
+  return GLSpins::Colormap::OTHER;
+}
+
+void SpinWidget::setColormap(GLSpins::Colormap colormap) {
+  std::string colormap_implementation = getColormapImplementation("hsv");
+  switch (colormap) {
+    case GLSpins::Colormap::HSV:
+      break;
+    case GLSpins::Colormap::RED_BLUE:
+      colormap_implementation = getColormapImplementation("redblue");
+      break;
+    case GLSpins::Colormap::OTHER:
+      break;
+    default:
+      break;
+  }
+  auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>(colormap_implementation);
+  gl_spins->updateOptions(option);
+}
+

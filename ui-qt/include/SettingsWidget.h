@@ -12,12 +12,14 @@
 
 #include "ui_SettingsWidget.h"
 
+class SpinWidget;
+
 class SettingsWidget : public QWidget, private Ui::SettingsWidget
 {
     Q_OBJECT
 
 public:
-	SettingsWidget(std::shared_ptr<State> state);
+	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
 	void update();
 	void SelectTab(int index);
 
@@ -42,6 +44,7 @@ private:
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;
 	QRegularExpressionValidator * number_validator_unsigned;
+  SpinWidget *_spinWidget;
 
 private slots:
 	// Parameters

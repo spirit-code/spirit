@@ -280,7 +280,16 @@ const Options<GLSpins>& GLSpins::options() const {
 void GLSpins::optionsHaveChanged(const std::vector<int>& changedOptions) {
   bool renderersChanged = false;
   for (int option_id : changedOptions) {
-    
+    switch (option_id) {
+      case GLSpins::Option::SHOW_MINIVIEW:
+      case GLSpins::Option::SHOW_COORDINATE_SYSTEM:
+      case GLSpins::Option::SHOW_BOUNDING_BOX:
+      case GLSpins::Option::MINIVIEW_LOCATION:
+      case GLSpins::Option::COORDINATE_SYSTEM_LOCATION:
+      case GLSpins::Option::VISUALIZATION_MODE:
+        renderersChanged = true;
+        break;
+    }
   }
   if (renderersChanged) {
     updateRenderers();

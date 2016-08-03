@@ -5,6 +5,10 @@
 
 class BoundingBoxRenderer : public ISpinRenderer {
 public:
+  enum Option {
+    COLOR = 600
+  };
+  
   BoundingBoxRenderer();
   virtual ~BoundingBoxRenderer();
   virtual void initGL();
@@ -23,12 +27,8 @@ private:
   GLuint _vbo = 0;
 };
 
-enum BoundingBoxRendererOptions {
-  COLOR = 600
-};
-
 template<> template<>
-struct Options<GLSpins>::Option<BoundingBoxRendererOptions::COLOR> {
+struct Options<GLSpins>::Option<BoundingBoxRenderer::Option::COLOR> {
   glm::vec3 default_value = {1.0, 1.0, 1.0};
 };
 

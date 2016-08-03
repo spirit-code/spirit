@@ -73,7 +73,7 @@ void BoundingBoxRenderer::draw(double aspectRatio) const {
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
-  auto color = _options.get<BoundingBoxRendererOptions::COLOR>();
+  auto color = _options.get<BoundingBoxRenderer::Option::COLOR>();
   
   glm::mat4 projectionMatrix;
   if (verticalFieldOfView > 0) {
@@ -97,7 +97,7 @@ void BoundingBoxRenderer::draw(double aspectRatio) const {
 
 void BoundingBoxRenderer::_updateVertexData() {
   glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-  auto color = _options.get<BoundingBoxRendererOptions::COLOR>();
+  auto color = _options.get<BoundingBoxRenderer::Option::COLOR>();
   auto min = _options.get<GLSpins::Option::BOUNDING_BOX_MIN>();
   auto max = _options.get<GLSpins::Option::BOUNDING_BOX_MAX>();
   std::vector<GLfloat> vertices = {

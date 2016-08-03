@@ -60,7 +60,7 @@ struct Options<GLSpins>::Option<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION> 
 
 template<> template<>
 struct Options<GLSpins>::Option<ISpinRenderer::Option::Z_RANGE> {
-  glm::vec2 default_value = {-10, 10};
+  glm::vec2 default_value = {-1, 1};
 };
 
 template<> template<>

@@ -2908,7 +2908,7 @@
                </widget>
               </item>
               <item row="1" column="5">
-               <widget class="QComboBox" name="comboBox">
+               <widget class="QComboBox" name="comboBox_visualizationMode">
                 <item>
                  <property name="text">
                   <string>Arrows</string>
@@ -2965,14 +2965,14 @@
               <item row="2" column="5">
                <layout class="QGridLayout" name="gridLayout_51">
                 <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_5">
+                 <widget class="QSlider" name="horizontalSlider_zRangeMin">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_4">
+                 <widget class="QSlider" name="horizontalSlider_zRangeMax">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -3002,13 +3002,13 @@
            <item>
             <widget class="QGroupBox" name="groupBox_9">
              <property name="title">
-              <string>Sphere</string>
+              <string>Miniview</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_55">
               <item row="0" column="0">
-               <widget class="QCheckBox" name="checkBox_4">
+               <widget class="QCheckBox" name="checkBox_showMiniView">
                 <property name="text">
-                 <string>Render</string>
+                 <string>Show</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -3023,7 +3023,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="comboBox_5">
+               <widget class="QComboBox" name="comboBox_miniViewPosition">
                 <item>
                  <property name="text">
                   <string>Top Left</string>
@@ -3092,9 +3092,9 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QCheckBox" name="checkBox_5">
+               <widget class="QCheckBox" name="checkBox_showCoordinateSystem">
                 <property name="text">
-                 <string>Render</string>
+                 <string>Show</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -3102,7 +3102,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="comboBox_4">
+               <widget class="QComboBox" name="comboBox_coordinateSystemPosition">
                 <item>
                  <property name="text">
                   <string>Top Left</string>
@@ -3204,7 +3204,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="comboBox_2">
+               <widget class="QComboBox" name="comboBox_colormap">
                 <item>
                  <property name="text">
                   <string>Hue-Saturation-Value</string>
