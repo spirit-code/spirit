@@ -124,7 +124,7 @@ namespace Utility
 							// Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
 							for (int i = 0; i < 3; ++i)
 							{
-								build_array[i] = basis[0][i] * basis_atoms[0][iatom] + basis[1][i] * basis_atoms[1][iatom] + basis[2][i] * basis_atoms[2][iatom];
+								build_array[i] = basis[i][0] * basis_atoms[0][iatom] + basis[i][1] * basis_atoms[1][iatom] + basis[i][2] * basis_atoms[2][iatom];
 							}
 							basis_atoms[0][iatom] = build_array[0]; basis_atoms[1][iatom] = build_array[1]; basis_atoms[2][iatom] = build_array[2];
 						}// endfor iatom
@@ -667,8 +667,10 @@ namespace Utility
 					std::vector<std::vector<std::vector<double>>> dd_normal;
 					// Dipole Dipole distance [nos][max_n]
 					std::vector<std::vector<double>> dd_distance;
+					// Create the DD neighbours
 					Engine::Neighbours::Create_Dipole_Neighbours(geometry, std::vector<bool>{ true, true, true }, dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-					Engine::Neighbours::DD_Pairs_from_Neighbours(geometry, dd_neigh, dd_neigh_pos, dd_distance, dd_normal, DD_indices, DD_magnitude, DD_normal);
+					// Get the DD pairs from the neighbours
+					Engine::Neighbours::Create_DD_Pairs_from_Neighbours(geometry, dd_neigh, dd_neigh_pos, dd_distance, dd_normal, DD_indices, DD_magnitude, DD_normal);
 
 				}// end try
 				catch (Exception ex) {
