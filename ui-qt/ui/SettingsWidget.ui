@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>676</height>
+    <width>1039</width>
+    <height>952</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -38,7 +38,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_Settings_Configurations">
       <attribute name="title">
@@ -55,8 +55,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>612</height>
+            <width>983</width>
+            <height>879</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1120,8 +1120,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>612</height>
+            <width>983</width>
+            <height>879</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1355,8 +1355,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>565</height>
+            <width>983</width>
+            <height>819</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2006,8 +2006,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>565</height>
+            <width>983</width>
+            <height>819</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2460,8 +2460,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>612</height>
+            <width>983</width>
+            <height>879</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2626,16 +2626,6 @@
                </size>
               </property>
              </widget>
-             <zorder>label_2</zorder>
-             <zorder>lineEdit_gneb_springconstant</zorder>
-             <zorder>radioButton_Normal</zorder>
-             <zorder>radioButton_ClimbingImage</zorder>
-             <zorder>radioButton_FallingImage</zorder>
-             <zorder>groupBox_4</zorder>
-             <zorder>label_44</zorder>
-             <zorder>lineEdit_gneb_n_iterations</zorder>
-             <zorder>label_45</zorder>
-             <zorder>lineEdit_gneb_log_steps</zorder>
             </widget>
            </item>
            <item row="4" column="0">
@@ -2870,8 +2860,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>715</width>
-            <height>612</height>
+            <width>983</width>
+            <height>879</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -2979,6 +2969,31 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="3" column="5">
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <widget class="QRadioButton" name="radioButton_perspectiveProjection">
+                  <property name="text">
+                   <string>perspective</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioButton_orthographicProjection">
+                  <property name="text">
+                   <string>orthographic</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>Projection</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

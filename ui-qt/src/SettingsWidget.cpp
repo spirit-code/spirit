@@ -429,6 +429,12 @@ void SettingsWidget::Load_Visualization_Contents() {
       break;
     }
   }
+  
+  if (_spinWidget->verticalFieldOfView() == 0) {
+    radioButton_orthographicProjection->setChecked(true);
+  } else {
+    radioButton_perspectiveProjection->setChecked(true);
+  }
 }
 
 // -----------------------------------------------------------------------------------
@@ -821,6 +827,12 @@ void SettingsWidget::set_visualization()
     colormap = GLSpins::Colormap::RED_BLUE;
   }
   _spinWidget->setColormap(colormap);
+  
+  if (radioButton_orthographicProjection->isChecked()) {
+    _spinWidget->setVerticalFieldOfView(0.0);
+  } else {
+    _spinWidget->setVerticalFieldOfView(45.0);
+  }
 }
 
 
@@ -1010,6 +1022,8 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
   connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
   connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
+  connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
