@@ -6,6 +6,7 @@
 #include "Interface_State.h"
 #include "ISpinRenderer.h"
 #include "BoundingBoxRenderer.h"
+#include "SphereSpinRenderer.h"
 #include "utilities.h"
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
@@ -153,6 +154,15 @@ void SpinWidget::enableCoordinateSystem(bool enabled) {
   gl_spins->updateOptions(option);
 }
 
+bool SpinWidget::isBoundingBoxEnabled() const {
+  return options().get<GLSpins::Option::SHOW_BOUNDING_BOX>();
+}
+
+void SpinWidget::enableBoundingBox(bool enabled) {
+  auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_BOUNDING_BOX>(enabled);
+  gl_spins->updateOptions(option);
+}
+
 GLSpins::WidgetLocation SpinWidget::miniviewPosition() const {
   return options().get<GLSpins::Option::MINIVIEW_LOCATION>();
 }
@@ -217,3 +227,11 @@ void SpinWidget::setColormap(GLSpins::Colormap colormap) {
   gl_spins->updateOptions(option);
 }
 
+glm::vec2 SpinWidget::spherePointSizeRange() const {
+  return options().get<SphereSpinRenderer::Option::POINT_SIZE_RANGE>();
+}
+
+void SpinWidget::setSpherePointSizeRange(glm::vec2 sphere_point_size_range) {
+  auto option = Options<GLSpins>::withOption<SphereSpinRenderer::Option::POINT_SIZE_RANGE>(sphere_point_size_range);
+  gl_spins->updateOptions(option);
+}

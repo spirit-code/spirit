@@ -36,6 +36,8 @@ public:
   void enableMiniview(bool enabled);
   bool isCoordinateSystemEnabled() const;
   void enableCoordinateSystem(bool enabled);
+  bool isBoundingBoxEnabled() const;
+  void enableBoundingBox(bool enabled);
   GLSpins::WidgetLocation miniviewPosition() const;
   void setMiniviewPosition(GLSpins::WidgetLocation miniview_position);
   GLSpins::WidgetLocation coordinateSystemPosition() const;
@@ -46,6 +48,8 @@ public:
   void setZRange(glm::vec2 z_range);
   GLSpins::Colormap colormap() const;
   void setColormap(GLSpins::Colormap colormap);
+  glm::vec2 spherePointSizeRange() const;
+  void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
   
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);

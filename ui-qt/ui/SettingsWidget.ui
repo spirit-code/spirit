@@ -2890,7 +2890,7 @@
                 </property>
                </spacer>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_36">
                 <property name="text">
                  <string>z filter</string>
@@ -2899,6 +2899,12 @@
               </item>
               <item row="1" column="5">
                <widget class="QComboBox" name="comboBox_visualizationMode">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
                 <item>
                  <property name="text">
                   <string>Arrows</string>
@@ -2925,6 +2931,12 @@
               </item>
               <item row="0" column="5">
                <widget class="QComboBox" name="comboBox_VisualisationSource">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
                 <property name="currentText">
                  <string>Spins</string>
                 </property>
@@ -2952,17 +2964,29 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="5">
+              <item row="3" column="5">
                <layout class="QGridLayout" name="gridLayout_51">
                 <item row="0" column="0">
                  <widget class="QSlider" name="horizontalSlider_zRangeMin">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
+                <item row="1" column="0">
                  <widget class="QSlider" name="horizontalSlider_zRangeMax">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -2970,10 +2994,16 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="5">
+              <item row="4" column="5">
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
                  <widget class="QRadioButton" name="radioButton_perspectiveProjection">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>perspective</string>
                   </property>
@@ -2981,6 +3011,12 @@
                 </item>
                 <item>
                  <widget class="QRadioButton" name="radioButton_orthographicProjection">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>orthographic</string>
                   </property>
@@ -2988,10 +3024,37 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_46">
                 <property name="text">
                  <string>Projection</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="5">
+               <widget class="QSlider" name="horizontalSlider_spherePointSize">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_47">
+                <property name="text">
+                 <string>Sphere Point Radius</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="5">
+               <widget class="QCheckBox" name="checkBox_showBoundingBox">
+                <property name="text">
+                 <string>Show Bounding Box</string>
                 </property>
                </widget>
               </item>
@@ -3181,20 +3244,13 @@
               </size>
              </property>
              <property name="title">
-              <string>Color Map</string>
+              <string>Colors</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_52">
               <item row="0" column="0">
                <widget class="QLabel" name="label_37">
                 <property name="text">
-                 <string>Map</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_38">
-                <property name="text">
-                 <string>Shift</string>
+                 <string>Colormap</string>
                 </property>
                </widget>
               </item>
@@ -3211,13 +3267,6 @@
                 </property>
                </spacer>
               </item>
-              <item row="1" column="1">
-               <widget class="QSlider" name="horizontalSlider_6">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="comboBox_colormap">
                 <item>
@@ -3228,6 +3277,32 @@
                 <item>
                  <property name="text">
                   <string>Z-Component: Red-Blue</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_38">
+                <property name="text">
+                 <string>Background Color</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_backgroundColor">
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gray</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
                  </property>
                 </item>
                </widget>

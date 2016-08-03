@@ -4,6 +4,12 @@
 
 class SphereSpinRenderer : public ISpinRenderer {
 public:
+  enum Option {
+    POINT_SIZE_RANGE = 400,
+    INNER_SPHERE_RADIUS,
+    USE_SPHERE_FAKE_PERSPECTIVE
+  };
+
   SphereSpinRenderer();
   virtual ~SphereSpinRenderer();
   virtual void initGL();
@@ -26,24 +32,18 @@ private:
   unsigned int _numInstances = 0;
 };
 
-enum SphereSpinRendererOptions {
-  POINT_SIZE_RANGE = 400,
-  INNER_SPHERE_RADIUS,
-  USE_SPHERE_FAKE_PERSPECTIVE
-};
-
 template<> template<>
-struct Options<GLSpins>::Option<SphereSpinRendererOptions::POINT_SIZE_RANGE> {
+struct Options<GLSpins>::Option<SphereSpinRenderer::Option::POINT_SIZE_RANGE> {
   glm::vec2 default_value = {1.0, 4.0};
 };
 
 template<> template<>
-struct Options<GLSpins>::Option<SphereSpinRendererOptions::INNER_SPHERE_RADIUS> {
+struct Options<GLSpins>::Option<SphereSpinRenderer::Option::INNER_SPHERE_RADIUS> {
   double default_value = 0.95;
 };
 
 template<> template<>
-struct Options<GLSpins>::Option<SphereSpinRendererOptions::USE_SPHERE_FAKE_PERSPECTIVE> {
+struct Options<GLSpins>::Option<SphereSpinRenderer::Option::USE_SPHERE_FAKE_PERSPECTIVE> {
   bool default_value = true;
 };
 

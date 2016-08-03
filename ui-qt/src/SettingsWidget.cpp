@@ -435,6 +435,24 @@ void SettingsWidget::Load_Visualization_Contents() {
   } else {
     radioButton_perspectiveProjection->setChecked(true);
   }
+  
+  horizontalSlider_spherePointSize->setRange(1, 10);
+  horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
+  
+  checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
+  
+  std::string background_color = "Black";
+  if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0)) {
+    background_color = "White";
+  } else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5)) {
+    background_color = "Gray";
+  }
+  for (int i = 0; i < comboBox_backgroundColor->count(); i++) {
+    if (comboBox_backgroundColor->itemText(i).toStdString() == background_color) {
+      comboBox_backgroundColor->setCurrentIndex(i);
+      break;
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------------
@@ -833,6 +851,22 @@ void SettingsWidget::set_visualization()
   } else {
     _spinWidget->setVerticalFieldOfView(45.0);
   }
+  
+  _spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
+  
+  _spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
+  
+  glm::vec3 background_color(0.0, 0.0, 0.0);
+  glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
+  if (comboBox_backgroundColor->currentText() == "White") {
+    background_color = glm::vec3(1.0, 1.0, 1.0);
+    bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
+  } else if (comboBox_backgroundColor->currentText() == "Gray") {
+    background_color = glm::vec3(0.5, 0.5, 0.5);
+    bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
+  }
+  _spinWidget->setBackgroundColor(background_color);
+  _spinWidget->setBoundingBoxColor(bounding_box_color);
 }
 
 
@@ -1017,6 +1051,7 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
   connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
+  connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
   connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
@@ -1024,6 +1059,8 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
   connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
+  connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()

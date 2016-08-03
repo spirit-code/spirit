@@ -46,7 +46,7 @@ struct Options<GLSpins>::Option<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW> {
 
 template<> template<>
 struct Options<GLSpins>::Option<ISpinRenderer::Option::BACKGROUND_COLOR> {
- glm::vec3 default_value = {1.0, 1.0, 1.0};
+ glm::vec3 default_value = {0.0, 0.0, 0.0};
 };
 
 template<> template<>

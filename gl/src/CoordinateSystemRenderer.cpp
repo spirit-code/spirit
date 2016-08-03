@@ -80,7 +80,7 @@ void CoordinateSystemRenderer::draw(double aspectRatio) const {
     float camera_distance = 1;//glm::length(cameraPosition-centerPosition);
     float leftRight = camera_distance * aspectRatio;
     float bottomTop = camera_distance;
-    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, 0.1f, 10000.0f);
+    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, -10000.0f, 10000.0f);
   }
   glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition)+centerPosition, centerPosition, upVector);
 

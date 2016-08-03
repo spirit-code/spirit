@@ -101,7 +101,7 @@ void SurfaceSpinRenderer::draw(double aspectRatio) const {
     float camera_distance = glm::length(cameraPosition-centerPosition);
     float leftRight = camera_distance * aspectRatio;
     float bottomTop = camera_distance;
-    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, 0.1f, 10000.0f);
+    projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, -10000.0f, 10000.0f);
   }
   glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
   glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0);

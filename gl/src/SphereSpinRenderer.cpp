@@ -73,7 +73,7 @@ void SphereSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
 }
 
 void SphereSpinRenderer::draw(double aspectRatio) const {
-  double innerSphereRadius = _options.get<SphereSpinRendererOptions::INNER_SPHERE_RADIUS>();
+  double innerSphereRadius = _options.get<SphereSpinRenderer::Option::INNER_SPHERE_RADIUS>();
   if (innerSphereRadius > 0.0) {
     if (innerSphereRadius > 0.99) {
       innerSphereRadius = 0.99;
@@ -108,7 +108,7 @@ void SphereSpinRenderer::draw(double aspectRatio) const {
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
-  glm::vec2 pointSizeRange = _options.get<SphereSpinRendererOptions::POINT_SIZE_RANGE>();
+  glm::vec2 pointSizeRange = _options.get<SphereSpinRenderer::Option::POINT_SIZE_RANGE>();
   
   glm::mat4 projectionMatrix = glm::ortho(-aspectRatio, aspectRatio, -1.0, 1.0, 2.0, 0.0);
   glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition), {0, 0, 0}, upVector);
@@ -122,7 +122,7 @@ void SphereSpinRenderer::draw(double aspectRatio) const {
   
   glUniform1f(glGetUniformLocation(_program1, "uAspectRatio"), aspectRatio);
   glUniform1f(glGetUniformLocation(_program1, "uInnerSphereRadius"), innerSphereRadius);
-  bool useSphereFakePerspective = _options.get<SphereSpinRendererOptions::USE_SPHERE_FAKE_PERSPECTIVE>();
+  bool useSphereFakePerspective = _options.get<SphereSpinRenderer::Option::USE_SPHERE_FAKE_PERSPECTIVE>();
   if (useSphereFakePerspective) {
     glUniform1f(glGetUniformLocation(_program1, "uUseFakePerspective"), 1.0);
   } else {

@@ -64,6 +64,8 @@ void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::
 
 void GLSpins::draw() {
   // Clear the screen and the depth buffer
+  auto background_color = _options.get<ISpinRenderer::Option::BACKGROUND_COLOR>();
+  glClearColor(background_color.x, background_color.y, background_color.z, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   Options<GLSpins> options;
