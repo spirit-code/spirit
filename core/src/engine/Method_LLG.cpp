@@ -62,6 +62,11 @@ namespace Engine
 							[](bool b) { return b; });*/
 	}
 
+	void Method_LLG::Hook_Pre_Step()
+    {
+
+	}
+
     void Method_LLG::Hook_Post_Step()
     {
 		// this->optimizer->Step();
@@ -83,6 +88,7 @@ namespace Engine
 
         // }//endif renorm_sd
     }
+
 	
 	void Method_LLG::Save_Step(int image, int iteration, std::string suffix)
 	{

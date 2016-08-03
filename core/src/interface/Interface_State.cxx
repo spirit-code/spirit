@@ -9,7 +9,7 @@
 
 using namespace Utility;
 
-extern "C" State * setupState(const char * config_file)
+State * setupState(const char * config_file)
 {
     // Create the State
     State *state = new State();
@@ -85,4 +85,31 @@ extern "C" State * setupState(const char * config_file)
     
     // Return
     return state;
+}
+
+void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
+{
+    // Chain
+    if (idx_chain < 0 || idx_chain == state->idx_active_chain)
+    {
+        chain = state->active_chain;
+        idx_chain = state->idx_active_chain;
+    }
+    else
+    {
+        chain = state->active_chain;
+        idx_chain = state->idx_active_chain;
+    }
+    
+    // Image
+    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image) )
+    {
+        image = state->active_image;
+        idx_image = state->idx_active_image;
+    }
+    else
+    {
+        image = chain->images[idx_image];
+        idx_image = idx_image;
+    }
 }

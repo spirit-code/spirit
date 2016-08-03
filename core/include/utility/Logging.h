@@ -16,6 +16,7 @@ namespace Utility
 		GNEB,
 		LLG,
 		MMF,
+		API,
 		GUI
 	};
 

@@ -166,8 +166,11 @@ namespace Engine
 		return false;
 	}
 
+	void Method_GNEB::Hook_Pre_Step()
+	{
 
-	// Apply one iteration of the GNEB method to a Spin System Chain
+	}
+
 	void Method_GNEB::Hook_Post_Step()
 	{
 		// TODO: whatever do we do here??

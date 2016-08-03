@@ -77,13 +77,12 @@ private:
     void writeSettings();
 	void createStatusBar();
 	void updateStatusBar();
-	std::vector<double> getIterationsPerSecond();
     /*bool maybeSave();
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);*/
-    
+
     //SpinWidget *spins;
 	std::shared_ptr<State> state;
     Spin_Widget *spinWidget;
@@ -106,8 +105,9 @@ private:
 	std::vector<QLabel*> m_Labels_IPS;
 
 	// Image/Chain - Method maps
-	std::map<std::shared_ptr<Data::Spin_System>, Engine::Method_LLG*> llg_methods;
-	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Method_GNEB*> gneb_methods;
+	std::vector<std::thread> threads_llg;
+	std::vector<std::thread> threads_gneb;
+	std::thread thread_mmf;
 
 };
 

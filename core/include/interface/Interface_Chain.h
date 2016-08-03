@@ -1,8 +1,11 @@
 #pragma once
 #ifndef INTERFACE_CHAIN_H
 #define INTERFACE_CHAIN_H
+struct State;
 
-#include "Interface_State.h"
+// Info
+extern "C" int Chain_Get_Index(State * state);
+extern "C" int Chain_Get_NOI(State * state);
 
 // Move between images (change active_image)
 extern "C" void Chain_next_Image(State * state, int idx_chain=-1);
