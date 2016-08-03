@@ -53,8 +53,9 @@ namespace Engine
 
         // Log message
 		Log.Send(Log_Level::ALL, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
-		Log.Send(Log_Level::ALL, sender, "Iterating with stepsize of " + std::to_string(log_steps) + " iterations per step");
-		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->Name());
+		Log.Send(Log_Level::ALL, sender, "Going to iterate " + std::to_string(n_log) + " steps");
+        Log.Send(Log_Level::ALL, sender, "            with " + std::to_string(log_steps) + " iterations per step");
+		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log.Send(Log_Level::ALL, sender, "-----------------------------------------------------");
 
         // Start Timings

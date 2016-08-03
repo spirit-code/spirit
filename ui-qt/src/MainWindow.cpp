@@ -8,13 +8,31 @@
 // #include "Optimizer.h"
 #include "IO.h"
 
+#include "Optimizer_SIB.h"
+#include "Optimizer_Heun.h"
+#include "Optimizer_CG.h"
+#include "Optimizer_QM.h"
+
 #include "Logging.h"
 #include "Timing.h"
-#include "Threading.h"
 
+#include "Interface_System.h"
 #include "Interface_Chain.h"
+#include "Interface_Collection.h"
+#include "Interface_Simulation.h"
 
 #include <thread>
+
+/*
+	Converts a QString to an std::string.
+	This function is needed sometimes due to weird behaviour of QString::toStdString().
+*/
+std::string string_q2std(QString qs)
+{
+	auto bytearray = qs.toLatin1();
+	const char *c_fileName = bytearray.data();
+	return std::string(c_fileName);
+}
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
@@ -26,6 +44,11 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->settingsWidget = new SettingsWidget(this->state);
 	this->plotsWidget = new PlotsWidget(this->state);
 	this->debugWidget = new DebugWidget(this->state);
+
+	// Create threads
+	threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
+	threads_gneb = std::vector<std::thread>(Collection_Get_NOC(this->state.get()));
+	//threads_mmf
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
@@ -177,13 +200,21 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		if (state->noi > 1)
 		{
-			state->active_image->iteration_allowed = false;
-			state->active_chain->iteration_allowed = false;
-			if (Utility::Threading::llg_threads[state->active_image].joinable()) {
-				Utility::Threading::llg_threads[state->active_image].join();
-			}
-			if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
-				Utility::Threading::gneb_threads[state->active_chain].join();
+			if ( Simulation_Running_LLG(this->state.get())  ||
+				 Simulation_Running_GNEB(this->state.get()) ||
+				 Simulation_Running_MMF(this->state.get()) )
+			{
+				auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+				auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+				// Running, so we stop it
+				Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+				// Join the thread of the stopped simulation
+				if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
+				else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+				else if (thread_mmf.joinable()) thread_mmf.join();
+				// New button text
+				this->pushButton_PlayPause->setText("Play");
 			}
 
 			// Cut a Spin System
@@ -200,13 +231,21 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste a Spin System
-		state->active_image->iteration_allowed = false;
-		state->active_chain->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[state->active_image].joinable()) {
-			Utility::Threading::llg_threads[state->active_image].join();
-		}
-		if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
-			Utility::Threading::gneb_threads[state->active_chain].join();
+		if ( Simulation_Running_LLG(this->state.get())  ||
+			 Simulation_Running_GNEB(this->state.get()) ||
+			 Simulation_Running_MMF(this->state.get()) )
+		{
+			auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+			auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+			// Running, so we stop it
+			Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+			// Join the thread of the stopped simulation
+			if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
+			else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+			else if (thread_mmf.joinable()) thread_mmf.join();
+			// New button text
+			this->pushButton_PlayPause->setText("Play");
 		}
 
 		Chain_Replace_Image(state.get());
@@ -310,13 +349,21 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		case Qt::Key_Delete:
 			if (state->noi > 1)
 			{
-				state->active_image->iteration_allowed = false;
-				state->active_chain->iteration_allowed = false;
-				if (Utility::Threading::llg_threads[state->active_image].joinable()) {
-					Utility::Threading::llg_threads[state->active_image].join();
-				}
-				if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
-					Utility::Threading::gneb_threads[state->active_chain].join();
+				if ( Simulation_Running_LLG(this->state.get())  ||
+					 Simulation_Running_GNEB(this->state.get()) ||
+					 Simulation_Running_MMF(this->state.get()) )
+				{
+					auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+					auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+					// Running, so we stop it
+					Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+					// Join the thread of the stopped simulation
+					if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
+					else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+					else if (thread_mmf.joinable()) thread_mmf.join();
+					// New button text
+					this->pushButton_PlayPause->setText("Play");
 				}
 
 				int idx = state->idx_active_image;
@@ -336,17 +383,17 @@ void MainWindow::stopallPressed()
 	this->return_focus();
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
 	
-	state->active_chain->iteration_allowed = false;
-	for (unsigned int i = 0; i < this->gneb_methods.size(); ++i)
-	{
-		this->gneb_methods.erase(state->active_chain);
-	}
+	Simulation_Stop_All(state.get());
 
-	for (int i = 0; i < state->noi; ++i)
+	for (unsigned int i=0; i<threads_llg.size(); ++i)
 	{
-		state->active_chain->images[i]->iteration_allowed = false;
-		this->llg_methods.erase(state->active_chain->images[i]);
+		if (threads_llg[i].joinable()) threads_llg[i].join();
 	}
+	for (unsigned int i=0; i<threads_gneb.size(); ++i)
+	{
+		if (threads_gneb[i].joinable()) threads_gneb[i].join();
+	}
+	if (thread_mmf.joinable()) thread_mmf.join();
 
 	this->pushButton_PlayPause->setText("Play");
 	this->createStatusBar();
@@ -357,85 +404,45 @@ void MainWindow::playpausePressed()
 	this->return_focus();
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: playpause"));
 
-	Chain_Update_Data(state.get());
+	Chain_Update_Data(this->state.get());
 
-	std::shared_ptr<Engine::Optimizer> optim;
-	if (this->comboBox_Optimizer->currentText() == "SIB")
+	auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+	auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+	if ( Simulation_Running_LLG(this->state.get())  ||
+		 Simulation_Running_GNEB(this->state.get()) ||
+		 Simulation_Running_MMF(this->state.get()) )
 	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
+		// Running, so we stop it
+		Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+		// Join the thread of the stopped simulation
+		if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
+		else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+		else if (thread_mmf.joinable()) thread_mmf.join();
+		// New button text
+		this->pushButton_PlayPause->setText("Play");
 	}
-	else if (this->comboBox_Optimizer->currentText() == "Heun")
+	else
 	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun());
-	}
-	else if (this->comboBox_Optimizer->currentText() == "CG")
-	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG());
-	}
-	else if (this->comboBox_Optimizer->currentText() == "QM")
-	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM());
+		// Not running, so we start it
+		if (this->comboBox_Method->currentText() == "LLG")
+		{
+			this->threads_llg[state->idx_active_image] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1);
+		}
+		else if (this->comboBox_Method->currentText() == "GNEB")
+		{
+			this->threads_gneb[state->idx_active_chain] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1);
+		}
+		else if (this->comboBox_Method->currentText() == "MMF")
+		{
+
+		}
+		// New button text
+		this->pushButton_PlayPause->setText("Pause");
 	}
 
-	if (this->comboBox_Method->currentText() == "LLG")
-	{
-		if (state->active_image->iteration_allowed)
-		{
-			this->pushButton_PlayPause->setText("Play");
-			state->active_image->iteration_allowed = false;
-			state->active_chain->iteration_allowed = false;
-			this->gneb_methods.erase(state->active_chain);
-			this->llg_methods.erase(state->active_image);
-		}
-		else
-		{
-			this->pushButton_PlayPause->setText("Pause");
-			if (Utility::Threading::llg_threads[state->active_image].joinable())
-			{
-				state->active_image->iteration_allowed = false;
-				Utility::Threading::llg_threads[state->active_image].join();
-			}
-			state->active_image->iteration_allowed = true;
-			state->active_chain->iteration_allowed = false;
-            auto g = new Engine::Method_LLG(this->state->active_chain, optim);
-			Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Method_LLG::Iterate, g);
-			this->llg_methods[state->active_image] = g;
-		}
-	}
-	else if (this->comboBox_Method->currentText() == "GNEB")
-	{
-		if (state->active_chain->iteration_allowed)
-		{
-			this->pushButton_PlayPause->setText("Play");
-			for (int i = 0; i < state->noi; ++i)
-			{
-				state->active_chain->images[i]->iteration_allowed = false;
-				this->llg_methods.erase(state->active_chain->images[i]);
-			}
-			state->active_chain->iteration_allowed = false;
-			this->gneb_methods.erase(state->active_chain);
-		}
-		else
-		{
-			this->pushButton_PlayPause->setText("Pause");
-			for (int i = 0; i < state->noi; ++i)
-			{
-				state->active_chain->images[i]->iteration_allowed = false;
-			}
-			if (Utility::Threading::gneb_threads[state->active_chain].joinable()) {
-				state->active_chain->iteration_allowed = false;
-				Utility::Threading::gneb_threads[state->active_chain].join();
-			}
-			state->active_chain->iteration_allowed = true;
-            auto g = new Engine::Method_GNEB(this->state->active_chain, optim);
-			Utility::Threading::gneb_threads[state->active_chain] = std::thread(&Engine::Method_GNEB::Iterate, g);
-			this->gneb_methods[state->active_chain] = g;
-		}
-	}
-	else if (this->comboBox_Method->currentText() == "MMF")
-	{
-		Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, std::string("MMF selected, but not yet implemented! Not doing anything..."));
-	}
 	this->createStatusBar();
 }
 
@@ -534,7 +541,7 @@ void MainWindow::createStatusBar()
 	}
 
 	// Get Methods' IPS
-	auto v_ips = this->getIterationsPerSecond();
+	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>();
@@ -568,37 +575,13 @@ void MainWindow::createStatusBar()
 void MainWindow::updateStatusBar()
 {
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
-	auto v_ips = this->getIterationsPerSecond();
+	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
 	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
 	{
 		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i+1) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
 	}
 }
 
-std::vector<double> MainWindow::getIterationsPerSecond()
-{
-	std::vector<double> ret;
-
-	if (this->state->active_chain->iteration_allowed)
-	{
-		for (unsigned int i = 0; i < this->gneb_methods.size(); ++i)
-		{
-			ret.push_back(this->gneb_methods[state->active_chain]->getIterationsPerSecond());
-		}
-	}
-	else
-	{
-		for (unsigned int i = 0; i < this->llg_methods.size(); ++i)
-		{
-			if (state->active_chain->images[i]->iteration_allowed)
-			{
-				ret.push_back(this->llg_methods[state->active_chain->images[i]]->getIterationsPerSecond());
-			}
-		}
-	}
-
-	return ret;
-}
 
 void MainWindow::about()
 {
@@ -660,16 +643,6 @@ void MainWindow::return_focus()
 }
 
 
-/*
-	Converts a QString to an std::string.
-	This function is needed sometimes due to weird behaviour of QString::toStdString().
-*/
-std::string string_q2std(QString qs)
-{
-	auto bytearray = qs.toLatin1();
-	const char *c_fileName = bytearray.data();
-	return std::string(c_fileName);
-}
 
 void MainWindow::save_Spin_Configuration()
 {
@@ -798,16 +771,7 @@ void MainWindow::writeSettings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	state->active_chain->iteration_allowed = false;
-	if (Utility::Threading::gneb_threads[state->active_chain].joinable()) Utility::Threading::gneb_threads[state->active_chain].join();
-	for (int isystem = 0; isystem < (int)state->active_chain->images.size(); ++isystem)
-	{
-		state->active_chain->images[isystem]->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[state->active_chain->images[isystem]].joinable())
-		{
-			Utility::Threading::llg_threads[state->active_chain->images[isystem]].join();
-		}	
-	}
+	this->stopallPressed();
 	
     //if (maybeSave()) {
         writeSettings();

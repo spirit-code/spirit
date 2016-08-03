@@ -1,31 +1,15 @@
 #include "Interface_Chain.h"
+#include "Interface_State.h"
 #include "Manifoldmath.h"
 
-void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
+extern "C" int Chain_Get_Index(State * state)
 {
-    // Chain
-    if (idx_chain < 0 || idx_chain == state->idx_active_chain)
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
-    else
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
-    
-    // Image
-    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image) )
-    {
-        image = state->active_image;
-        idx_image = state->idx_active_image;
-    }
-    else
-    {
-        image = chain->images[idx_image];
-        idx_image = idx_image;
-    }
+    return state->idx_active_chain;
+}
+
+extern "C" int Chain_Get_NOI(State * state)
+{
+    return state->active_chain->noi;
 }
 
 extern "C" void Chain_next_Image(State * state, int idx_chain_i)
@@ -67,7 +51,7 @@ extern "C" void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx
     // Copy the image to clipboard
     state->clipboard_image = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*image));
     
-    Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Copied image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") to clipboard");
+    Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::API, "Copied image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") to clipboard");
 }
 
 extern "C" void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
@@ -98,11 +82,11 @@ extern "C" void Chain_Insert_Image_Before(State * state, int idx_image_i, int id
         // Update array lengths
         Chain_Setup_Data(state, idx_chain);
 
-        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Inserted image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
+        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::API, "Inserted image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
     {
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, "Tried to insert image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to insert image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 
@@ -142,11 +126,11 @@ extern "C" void Chain_Insert_Image_After(State * state, int idx_image_i, int idx
         // Update array lengths
         Chain_Setup_Data(state, idx_chain);
 
-        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Inserted image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
+        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::API, "Inserted image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
     {
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, "Tried to insert image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to insert image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 
@@ -171,11 +155,11 @@ extern "C" void Chain_Replace_Image(State * state, int idx_image_i, int idx_chai
         state->active_image = state->active_chain->images[state->idx_active_image];
         // state->active_image = copy;
         // state->active_chain->idx_active_image = state->idx_active_image;
-        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Replaced image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
+        Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::API, "Replaced image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
     {
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 
@@ -200,7 +184,7 @@ extern "C" void Chain_Delete_Image(State * state, int idx_image_i, int idx_chain
     // Update array lengths
     Chain_Setup_Data(state, idx_chain);
 
-    Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::ALL, "Deleted image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ")");
+    Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::API, "Deleted image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ")");
 }
 
 extern "C" void Chain_Update_Data(State * state, int idx_chain_i)
