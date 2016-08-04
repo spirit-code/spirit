@@ -16,10 +16,12 @@
 #include <memory>
 
 #include"Logging.h"
+#include "SpinWidget.h"
 
-SettingsWidget::SettingsWidget(std::shared_ptr<State> state)
+SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
 {
 	this->state = state;
+  _spinWidget = spinWidget;
 
 	// Setup User Interface
 	this->setupUi(this);
@@ -52,6 +54,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state)
 	this->Setup_Hamiltonian_Isotropic_Slots();
 	this->Setup_Hamiltonian_Anisotropic_Slots();
 	this->Setup_Parameters_Slots();
+  this->Setup_Visualization_Slots();
 }
 
 void SettingsWidget::update()
@@ -62,9 +65,8 @@ void SettingsWidget::update()
 	// Load Parameters Contents
 	this->Load_Parameters_Contents();
 	// ToDo: Also update Debug etc!
+  this->Load_Visualization_Contents();
 }
-
-
 
 
 // -----------------------------------------------------------------------------------
@@ -323,7 +325,135 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 	if (state->active_image->llg_parameters->temperature > 0.0) this->checkBox_T_aniso->setChecked(true);
 }
 
-
+void SettingsWidget::Load_Visualization_Contents() {
+  std::string visualization_mode;
+  switch (_spinWidget->visualizationMode()) {
+    case GLSpins::VisualizationMode::SPHERE:
+      visualization_mode = "Sphere";
+      break;
+    case GLSpins::VisualizationMode::SURFACE:
+      visualization_mode = "Surface";
+      break;
+    default:
+      visualization_mode = "Arrows";
+      break;
+  }
+  for (int i = 0; i < comboBox_visualizationMode->count(); i++) {
+    if (comboBox_visualizationMode->itemText(i).toStdString() == visualization_mode) {
+      comboBox_visualizationMode->setCurrentIndex(i);
+      break;
+    }
+  }
+  
+  std::string miniview_position;
+  switch (_spinWidget->miniviewPosition()) {
+    case GLSpins::WidgetLocation::TOP_LEFT:
+      miniview_position = "Top Left";
+      break;
+    case GLSpins::WidgetLocation::BOTTOM_LEFT:
+      miniview_position = "Bottom Left";
+      break;
+    case GLSpins::WidgetLocation::TOP_RIGHT:
+      miniview_position = "Top Right";
+      break;
+    default:
+      miniview_position = "Bottom Right";
+      break;
+  }
+  for (int i = 0; i < comboBox_miniViewPosition->count(); i++) {
+    if (comboBox_miniViewPosition->itemText(i).toStdString() == miniview_position) {
+      comboBox_miniViewPosition->setCurrentIndex(i);
+      break;
+    }
+  }
+  std::string coordinatesystem_position;
+  switch (_spinWidget->coordinateSystemPosition()) {
+    case GLSpins::WidgetLocation::TOP_LEFT:
+      coordinatesystem_position = "Top Left";
+      break;
+    case GLSpins::WidgetLocation::BOTTOM_LEFT:
+      coordinatesystem_position = "Bottom Left";
+      break;
+    case GLSpins::WidgetLocation::TOP_RIGHT:
+      coordinatesystem_position = "Top Right";
+      break;
+    default:
+      coordinatesystem_position = "Bottom Right";
+      break;
+  }
+  for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++) {
+    if (comboBox_coordinateSystemPosition->itemText(i).toStdString() == coordinatesystem_position) {
+      comboBox_coordinateSystemPosition->setCurrentIndex(i);
+      break;
+    }
+  }
+  checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+  checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+  
+  auto z_range = _spinWidget->zRange();
+  if (z_range.x < -1) {
+    z_range.x = -1;
+  }
+  if (z_range.x > 1) {
+    z_range.x = 1;
+  }
+  if (z_range.y < -1) {
+    z_range.y = -1;
+  }
+  if (z_range.y > 1) {
+    z_range.y = 1;
+  }
+  horizontalSlider_zRangeMin->setInvertedAppearance(true);
+  horizontalSlider_zRangeMin->setRange(-100, 100);
+  horizontalSlider_zRangeMin->setValue((int)(-z_range.x * 100));
+  horizontalSlider_zRangeMax->setRange(-100, 100);
+  horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
+  horizontalSlider_zRangeMin->setTracking(true);
+  horizontalSlider_zRangeMax->setTracking(true);
+  
+  std::string colormap = "Hue-Saturation-Value";
+  switch (_spinWidget->colormap()) {
+    case GLSpins::Colormap::HSV:
+      break;
+    case GLSpins::Colormap::RED_BLUE:
+      colormap = "Z-Component: Red-Blue";
+      break;
+    case GLSpins::Colormap::OTHER:
+      break;
+    default:
+      break;
+  }
+  for (int i = 0; i < comboBox_colormap->count(); i++) {
+    if (comboBox_colormap->itemText(i).toStdString() == colormap) {
+      comboBox_colormap->setCurrentIndex(i);
+      break;
+    }
+  }
+  
+  if (_spinWidget->verticalFieldOfView() == 0) {
+    radioButton_orthographicProjection->setChecked(true);
+  } else {
+    radioButton_perspectiveProjection->setChecked(true);
+  }
+  
+  horizontalSlider_spherePointSize->setRange(1, 10);
+  horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
+  
+  checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
+  
+  std::string background_color = "Black";
+  if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0)) {
+    background_color = "White";
+  } else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5)) {
+    background_color = "Gray";
+  }
+  for (int i = 0; i < comboBox_backgroundColor->count(); i++) {
+    if (comboBox_backgroundColor->itemText(i).toStdString() == background_color) {
+      comboBox_backgroundColor->setCurrentIndex(i);
+      break;
+    }
+  }
+}
 
 // -----------------------------------------------------------------------------------
 // --------------------- Setters for Hamiltonians and Parameters ---------------------
@@ -661,6 +791,83 @@ void SettingsWidget::set_hamiltonian_aniso()
 	}
 }
 
+void SettingsWidget::set_visualization()
+{
+  GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
+  if (comboBox_visualizationMode->currentText() == "Surface") {
+    visualization_mode = GLSpins::VisualizationMode::SURFACE;
+  } else if (comboBox_visualizationMode->currentText() == "Sphere") {
+    visualization_mode = GLSpins::VisualizationMode::SPHERE;
+  }
+  _spinWidget->setVisualizationMode(visualization_mode);
+  
+  _spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
+  _spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
+  GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
+  if (comboBox_miniViewPosition->currentText() == "Top Left") {
+    miniview_position = GLSpins::WidgetLocation::TOP_LEFT;
+  } else if (comboBox_miniViewPosition->currentText() == "Bottom Left") {
+    miniview_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
+  } else if (comboBox_miniViewPosition->currentText() == "Top Right") {
+    miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
+  }
+  GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
+  if (comboBox_coordinateSystemPosition->currentText() == "Top Left") {
+    coordinatesystem_position = GLSpins::WidgetLocation::TOP_LEFT;
+  } else if (comboBox_coordinateSystemPosition->currentText() == "Bottom Left") {
+    coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
+  } else if (comboBox_coordinateSystemPosition->currentText() == "Top Right") {
+    coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
+  }
+  _spinWidget->setMiniviewPosition(miniview_position);
+  _spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
+  
+  
+  float z_range_min = -horizontalSlider_zRangeMin->value()/100.0;
+  float z_range_max = horizontalSlider_zRangeMax->value()/100.0;
+  if (z_range_min > z_range_max) {
+    float t = z_range_min;
+    z_range_min = z_range_max;
+    z_range_max = t;
+  }
+  horizontalSlider_zRangeMin->blockSignals(true);
+  horizontalSlider_zRangeMax->blockSignals(true);
+  horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
+  horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
+  horizontalSlider_zRangeMin->blockSignals(false);
+  horizontalSlider_zRangeMax->blockSignals(false);
+  
+  glm::vec2 z_range(z_range_min, z_range_max);
+  _spinWidget->setZRange(z_range);
+  
+  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+  if (comboBox_colormap->currentText() == "Z-Component: Red-Blue") {
+    colormap = GLSpins::Colormap::RED_BLUE;
+  }
+  _spinWidget->setColormap(colormap);
+  
+  if (radioButton_orthographicProjection->isChecked()) {
+    _spinWidget->setVerticalFieldOfView(0.0);
+  } else {
+    _spinWidget->setVerticalFieldOfView(45.0);
+  }
+  
+  _spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
+  
+  _spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
+  
+  glm::vec3 background_color(0.0, 0.0, 0.0);
+  glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
+  if (comboBox_backgroundColor->currentText() == "White") {
+    background_color = glm::vec3(1.0, 1.0, 1.0);
+    bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
+  } else if (comboBox_backgroundColor->currentText() == "Gray") {
+    background_color = glm::vec3(0.5, 0.5, 0.5);
+    bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
+  }
+  _spinWidget->setBackgroundColor(background_color);
+  _spinWidget->setBoundingBoxColor(bounding_box_color);
+}
 
 
 // -----------------------------------------------------------------------------------
@@ -837,6 +1044,23 @@ void SettingsWidget::Setup_Transitions_Slots()
 	connect(this->lineEdit_Transition_Homogeneous_First, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->lineEdit_Transition_Homogeneous_Last, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
+}
+
+void SettingsWidget::Setup_Visualization_Slots()
+{
+  connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
+  connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
+  connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
+  connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+  connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
+  connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
+  connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()

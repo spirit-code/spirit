@@ -21,9 +21,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// State
 	this->state = state;
 	// Widgets
-	this->spinWidget = new Spin_Widget(this->state);
+	this->spinWidget = new SpinWidget(this->state);
 	//this->spinWidgetGL = new Spin_Widget_GL(s);
-	this->settingsWidget = new SettingsWidget(this->state);
+	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
 	this->plotsWidget = new PlotsWidget(this->state);
 	this->debugWidget = new DebugWidget(this->state);
 

@@ -1,61 +1,43 @@
 #include "Camera.h"
 
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-void Camera::translate(const glm::vec3 &dt) {
-    glm::mat4 translation_matrix(glm::translate(glm::mat4(1.0f), dt));
-    m_camera = translation_matrix * m_camera;
+Camera::Camera() : Camera(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 1.0) {
 }
 
-void Camera::rotate(const glm::mat4 &dr) {
-    // m_camera = dr * m_camera;
+Camera::Camera(const glm::vec3& camera_position,
+               const glm::vec3& center_position,
+               const glm::vec3& up_vector,
+               const double& aspect_ratio) :
+_camera_position(camera_position),
+_center_position(center_position),
+_up_vector(up_vector),
+_aspect_ratio(aspect_ratio) {
 }
 
-void Camera::rotate(float angle, const glm::vec3 &axis) {
-    m_camera = glm::translate(glm::rotate(glm::translate(glm::mat4(1.0f), -m_camera_focus), angle, axis), m_camera_focus) * m_camera;
+void Camera::lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up) {
+  _camera_position = eye;
+  _center_position = center;
+  _up_vector = up;
 }
 
-float Camera::z_func(float x, float y) {
-    float r_quad = x*x + y*y;
-    if(r_quad <= m_radius*m_radius / 2.0f) {
-        return sqrt(m_radius*m_radius - r_quad);
-    }
-    else {
-        return m_radius*m_radius / (2*sqrt(r_quad));
-    }
+void Camera::setAspectRatio(double aspect_ratio) {
+  _aspect_ratio = aspect_ratio;
 }
 
-void Camera::startTrackball(int px, int py) {
-    m_previous_normalized_position_2d = glm::vec2(m_screen_to_normalized_2d * glm::vec3(px, py, 1.0f));
+const glm::vec3& Camera::cameraPosition() const {
+  return _camera_position;
 }
 
-void Camera::updateTrackball(int px, int py) {
-    float x1, y1, z1;
-    float x2, y2, z2;
-    glm::vec2 current_normalized_pos_2d(m_screen_to_normalized_2d * glm::vec3(px, py, 1.0f));
-
-    if(glm::length(current_normalized_pos_2d - m_previous_normalized_position_2d) < 10e-8) {
-        return;
-    }
-
-    x1 = m_previous_normalized_position_2d[0];
-    y1 = m_previous_normalized_position_2d[1];
-    z1 = z_func(x1, y1);
-    x2 = current_normalized_pos_2d[0];
-    y2 = current_normalized_pos_2d[1];
-    z2 = z_func(x2, y2);
-
-    glm::vec3 v1 = glm::normalize(glm::vec3(x1, y1, z1));
-    glm::vec3 v2 = glm::normalize(glm::vec3(x2, y2, z2));
-    glm::vec3 axis = glm::normalize(glm::cross(v1, v2));
-    float angle = acosf(glm::dot(v1, v2));
-
-    m_previous_normalized_position_2d = current_normalized_pos_2d;
-
-    rotate(angle, axis);
+const glm::vec3& Camera::centerPosition() const {
+  return _center_position;
 }
 
-void Camera::setWindowSize(int window_width, int window_height) {
-    m_screen_to_normalized_2d = glm::mat3(2.0f / window_width, 0.0f, 0.0f,
-                                          0.0f, -2.0f / window_height, 0.0f,
-                                          -1.0f, 1.0f, 1.0f);
+const glm::vec3& Camera::upVector() const {
+  return _up_vector;
+}
+
+const double& Camera::aspectRatio() const {
+  return _aspect_ratio;
 }
