@@ -9,7 +9,7 @@
 
 #include "GLSpins.h"
 
-class State;
+struct State;
 
 class SpinWidget : public QOpenGLWidget
 {

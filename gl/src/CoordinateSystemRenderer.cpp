@@ -82,12 +82,12 @@ void CoordinateSystemRenderer::draw(double aspectRatio) const {
     float bottomTop = camera_distance;
     projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, -10000.0f, 10000.0f);
   }
-  glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition)+centerPosition, centerPosition, upVector);
+  glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition), glm::vec3(0.0, 0.0, 0.0), upVector);
 
   glUniformMatrix4fv(glGetUniformLocation(_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projectionMatrix));
   glUniformMatrix4fv(glGetUniformLocation(_program, "uModelviewMatrix"), 1, false, glm::value_ptr(modelviewMatrix));
-  glUniform3f(glGetUniformLocation(_program, "uOrigin"), origin[0], origin[1], origin[2]);
-  glUniform3f(glGetUniformLocation(_program, "uAxisLength"), axis_length[0], axis_length[1], axis_length[2]);
+  glUniform3f(glGetUniformLocation(_program, "uOrigin"), 0, 0, 0);
+  glUniform3f(glGetUniformLocation(_program, "uAxisLength"), 0.5, 0.5, 0.5);
 
   glDisable(GL_CULL_FACE);
   glDrawArrays(GL_LINES, 0, 6);
