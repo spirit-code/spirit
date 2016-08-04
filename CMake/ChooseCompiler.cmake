@@ -10,27 +10,35 @@ if (BUILD_UI_WEB)
 	SET(CMAKE_TOOLCHAIN_FILE Emscripten)
 ######################################################################
 
+
 ######## Otherwise we can choose freely ##############################
 else()
-	if (APPLE)
-		MESSAGE( STATUS ">> Choosing compiler:             Clang" )
-		# set(CMAKE_C_COMPILER /usr/local/gcc5/bin/gcc)
-		# set(CMAKE_CXX_COMPILER /usr/local/gcc5/bin/g++)
-	elseif (UNIX)
-		MESSAGE( STATUS ">> Choosing compiler:             gcc" )
+	if ( USER_COMPILER_C AND USER_COMPILER_CXX AND USER_PATH_COMPILER )
+		MESSAGE( STATUS ">> Choosing C compiler:           " ${USER_COMPILER_C})
+		MESSAGE( STATUS ">> Choosing CXX compiler:         " ${USER_COMPILER_CXX})
+		MESSAGE( STATUS ">> Compiler path:                 " ${USER_PATH_COMPILER})
+		if (APPLE OR UNIX)
+			set(CMAKE_C_COMPILER   ${USER_PATH_COMPILER}/${USER_COMPILER_C})
+			set(CMAKE_CXX_COMPILER ${USER_PATH_COMPILER}/${USER_COMPILER_CXX})
+		elseif (WIN32)
+			### By default we use VS
+			MESSAGE( STATUS ">> Choosing compiler:             MSVC" )
+			MESSAGE( STATUS ">> Choosing a different compiler is not yet implemented for Windows" )
+		endif()
+	elseif (UNIX AND NOT APPLE)
+		### Default values for IFF Cluster
+		MESSAGE( STATUS ">> Choosing C compiler:           gcc" )
+		MESSAGE( STATUS ">> Choosing CXX compiler:         g++" )
+		MESSAGE( STATUS ">> Compiler path:                 /usr/local/gcc/bin")
 		set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc)
 		set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++)
-	elseif (WIN32)
-		MESSAGE( STATUS ">> Choosing compiler:             MSVC" )
-		### By default we use VS
+	else()
+		MESSAGE( STATUS ">> Letting CMake choose the compilers..." )
 	endif()
 ######################################################################
 
 ######## The End #####################################################
 endif()
-### Print compiler info
-MESSAGE( STATUS ">> CMAKE_C_COMPILER:               " ${CMAKE_C_COMPILER} )
-MESSAGE( STATUS ">> CMAKE_CXX_COMPILER:             " ${CMAKE_CXX_COMPILER} )
 ######################################################################
 MESSAGE( STATUS ">> --------------------- ChooseCompiler.cmake done -------------------- <<" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

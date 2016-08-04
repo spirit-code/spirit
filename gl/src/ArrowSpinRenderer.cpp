@@ -11,6 +11,10 @@
 #include "ArrowSpinRenderer.h"
 #include "utilities.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 ArrowSpinRenderer::ArrowSpinRenderer() {
   // TODO: initGL if possible
   // TODO: updateSpins if possible

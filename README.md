@@ -129,11 +129,19 @@ Installation Instructions <a name="Installation"></a>
 >The following assumes you are in the MonoSpin root directory.
 
 Please be aware that our CMake scripts are written for our use cases and
-you may need to adapt some paths etc.
+you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
 
-In order to build a specific UI, set the corresponding switches in the
-root CMakeLists.txt.
+The **Options** you can set under *### Build Flags ###* are:
+* BUILD_UI_WEB - build the web interface instead of others
+* UI_USE_QT - build qt user interface instead of console version
+* OSX_BUNDLE_APP - not yet functional
+* PRINT_SOURCES - print all source files (for debugging)
 
+The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
+* USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
+* USER_PATH_COMPILER for the directory your compiler is located in
+* USER_PATH_QT for the path to your CMake installation
+Otherwise, the developers' defaults will be used or CMake will try to use it's defaults.
   
 Clear the build directory using
 

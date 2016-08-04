@@ -14,6 +14,16 @@ option( PRINT_SOURCES  "Print Headers and Sources from Cmake."                  
 #############################################
 
 
+######### User Paths ########################
+### Set these if you do not want cmake to choose your compiler
+# set( USER_COMPILER_C    "gcc" )
+# set( USER_COMPILER_CXX  "g++" )
+# set( USER_PATH_COMPILER "/usr/bin" )
+### Set this if you need cmake to find your QT installation
+# set( USER_PATH_QT       "~/QT/5.7" )
+#############################################
+
+
 ######### Paths #############################
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
@@ -50,6 +60,10 @@ set(META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VER
 include(ChooseCompiler)
 ### Project Name
 PROJECT(${META_PROJECT_NAME})
+### Print compiler info
+MESSAGE( STATUS ">> Please check the CMAKE_CXX_COMPILER to make sure it's the right one" )
+MESSAGE( STATUS ">> CMAKE_C_COMPILER:               " ${CMAKE_C_COMPILER} )
+MESSAGE( STATUS ">> CMAKE_CXX_COMPILER:             " ${CMAKE_CXX_COMPILER} )
 ### Platform-specific Flags
 include(Platforms)
 ### Compiler-specific Flags
