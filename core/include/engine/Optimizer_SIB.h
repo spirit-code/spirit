@@ -19,7 +19,7 @@ namespace Engine
 	{
 
 	public:
-		Optimizer_SIB(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+		Optimizer_SIB(std::shared_ptr<Engine::Method> method);
 		
 		// One step in the optimization
 		void Iteration() override;
@@ -30,7 +30,7 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<double>> spins_temp;
+		std::vector<std::shared_ptr<std::vector<double>>> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
 		std::vector<std::vector<double>> virtualforce;

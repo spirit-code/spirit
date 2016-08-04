@@ -7,26 +7,23 @@ using namespace Utility;
 
 namespace Engine
 {
-    Optimizer::Optimizer(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method)
+    Optimizer::Optimizer(std::shared_ptr<Engine::Method> method)
     {
-        this->systems = systems;
+        this->method = method;;
 
-        this->noi = systems.size();
-        this->nos = systems[0]->nos;
+        this->noi = this->method->systems.size();
+        this->nos = this->method->systems[0]->nos;
 
-        this->method = method;
-
-        // this->configurations = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));
-        // for (int i = 0; i < this->noi; ++i)
-        // {
-        //     this->configurations[i] = systems[i]->spins;
-        // }
-
-        // this->force = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos, 0));	// [noi][3*nos]
-
-        // this->force_call = force_call;
-        // // Calculate forces once, so that the Solver does not think it's converged
-        // this->force_call->Calculate(this->configurations, this->force);
+		this->n_iterations    = this->method->parameters->n_iterations;
+		this->log_steps       = this->method->parameters->log_steps;
+        this->n_log           = n_iterations/log_steps;
+        
+        // Create shared pointers to the method's systems' configurations
+	    this->configurations = std::vector<std::shared_ptr<std::vector<double>>>(noi);
+        for (int i=0; i<noi; ++i) this->configurations[i] = std::shared_ptr<std::vector<double>>(&this->method->systems[i]->spins);
+        
+        // Allocate force array
+        this->force = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos, 0));	// [noi][3*nos]
 
         // Setup Timings
         for (int i=0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
@@ -41,11 +38,9 @@ namespace Engine
         auto sender = Log_Sender::GNEB;
 
 		//------------------------ Init local vars ---------------------------------
-		int n_iterations    = this->method->parameters->n_iterations;
-		int log_steps       = this->method->parameters->log_steps;
 		this->starttime     = Timing::CurrentDateTime();
         //----
-		int i, step = 0, n_log = n_iterations/log_steps;
+		int i, step = 0;
         // TODO: How to get the right suffix?
 		std::string suffix = ""; // GNEB
 		// std::string suffix = "_archive"; // LLG
@@ -64,7 +59,7 @@ namespace Engine
 		auto t_last = system_clock::now();
 
         // Iteration loop
-		for (i = 0; i < n_iterations && this->ContinueIterating(); ++i)
+		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
 		{
             // Pre-Iteration hook
             this->method->Hook_Pre_Step();
@@ -91,7 +86,7 @@ namespace Engine
 				Log.Send(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
 				Log.Send(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
 
-				this->method->Save_Step(0, i, suffix);
+				this->method->Save_Step(i, false);
 
 				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
 			}// endif log_steps
@@ -116,7 +111,7 @@ namespace Engine
         // TODO: How to get the right suffix?
 		suffix = "_final"; // GNEB
         // suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n)) + "_final"; // LLG
-		this->method->Save_Step(0, i, suffix);
+		this->method->Save_Step(i, true);
 		//IO::Dump_to_File(output_strings, "spin_archieve.dat", c->images[0]->debug_parameters->output_notification, step);
     }
 
@@ -127,11 +122,6 @@ namespace Engine
         Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
     }
 
-
-    bool Optimizer::ContinueIterating()
-    {
-        return !this->method->Force_Converged() && !this->StopFilePresent(); // && c->iteration_allowed;
-    }
 
 
     double Optimizer::getIterationsPerSecond()

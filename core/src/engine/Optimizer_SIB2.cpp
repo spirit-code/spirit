@@ -6,8 +6,8 @@ using namespace Utility;
 
 namespace Engine
 {
-	Optimizer_SIB2::Optimizer_SIB2(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
-        Optimizer(systems, method)
+	Optimizer_SIB2::Optimizer_SIB2(std::shared_ptr<Engine::Method> method) :
+        Optimizer(method)
     {
 		//this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
@@ -17,16 +17,11 @@ namespace Engine
 	void Optimizer_SIB2::Iteration()
 	{
 		std::shared_ptr<Data::Spin_System> s;
-		// This is probably quite inefficient?? CHECK IF THATS THE CASE!
-		for (int i = 0; i < this->noi; ++i)
-		{
-			this->configurations[i] = systems[i]->spins;
-		}
 
 		// Random Numbers
 		for (int img = 0; img < this->noi; ++img)
 		{
-			s = systems[img];
+			s = method->systems[img];
 
 			double h = s->llg_parameters->dt;
 			double rh = std::sqrt(h);

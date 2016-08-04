@@ -25,7 +25,7 @@ namespace Engine
 	{
 	public:
 		// The Optimizer needs to be configured by the Solver after creation
-		Optimizer(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+		Optimizer(std::shared_ptr<Engine::Method> method);
 
 		// One Iteration
 		virtual void Iteration();
@@ -41,15 +41,24 @@ namespace Engine
 		virtual std::string FullName();
 
 	protected:
-		// The Spin Systems which to optimize
-		std::vector<std::shared_ptr<Data::Spin_System>> systems;
-		// The Force instance with which to calculate the forces on configurations
+		// The Method instance with which to calculate the forces on configurations
 		std::shared_ptr<Engine::Method> method;
 
 		// Number of Images
 		int noi;
 		// Number of Spins
 		int nos;
+		// Number of iterations
+		int n_iterations;
+		// Number of steps after which to save
+		int log_steps;
+		// Number of times to save
+		int n_log;
+
+		// Pointers to Configurations
+		std::vector<std::shared_ptr<std::vector<double>>> configurations;
+		// Actual Forces on the configurations
+		std::vector<std::vector<double>> force;
 
 		// The time at which this Solver's Iterate() was last called
 		std::string starttime;
@@ -57,15 +66,8 @@ namespace Engine
 		double ips;
 		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
 
-		// Check wether to continue iterating - stop file, convergence etc.
-		virtual bool ContinueIterating() final;
 		// Check if a stop file is present -> Stop the iterations
 		virtual bool StopFilePresent() final;
-
-		// The actual configurations of the Spin Systems
-		std::vector<std::vector<double>> configurations;
-		// Actual Forces on the configurations
-		std::vector<std::vector<double>> force;
 	};
 }
 #endif

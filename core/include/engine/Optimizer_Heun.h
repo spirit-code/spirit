@@ -18,7 +18,7 @@ namespace Engine
 	{
 
 	public:
-		Optimizer_Heun(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+		Optimizer_Heun(std::shared_ptr<Engine::Method> method);
 		
 		// One Iteration
 		void Iteration() override;

@@ -16,11 +16,10 @@ namespace Engine
 	{
 	public:
         // Constructor
-		Method_GNEB(std::shared_ptr<Data::Parameters_GNEB> parameters);
+		Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_img, int idx_chain);
     
-	//public override:
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -29,8 +28,9 @@ namespace Engine
 		std::string Name() override;
 
 	private:
+		std::shared_ptr<Data::Spin_System_Chain> chain;
 		// Save the current Step's Data: images and images' energies and reaction coordinates
-		void Save_Step(int image, int iteration, std::string suffix) override;
+		void Save_Step(int iteration, bool final) override;
 		// A hook into the Optimizer before an Iteration
 		void Hook_Pre_Step() override;
 		// A hook into the Optimizer after an Iteration

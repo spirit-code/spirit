@@ -53,13 +53,13 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
     	    systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, image);
             state->active_image->iteration_allowed = true;
-            method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(state->active_image->llg_parameters));
+            method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(state->active_image, state->idx_active_image, state->idx_active_image));
         }
         else if (method_type == "GNEB")
         {
             systems = chain->images;
     	    state->active_chain->iteration_allowed = true;
-            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(state->active_chain->gneb_parameters));
+            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(state->active_chain, state->idx_active_image, state->idx_active_image));
         }
         else if (method_type == "MMF")
         {
@@ -70,19 +70,19 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         // Determine the Optimizer
         if (optimizer_type == "SIB")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB(systems, method));
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB(method));
         }
         else if (optimizer_type == "Heun")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(systems, method));
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
         }
         else if (optimizer_type == "CG")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(systems, method));
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
         }
         else if (optimizer_type == "QM")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM(systems, method));
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM(method));
         }
 
         // TODO: how to add to list of optimizers?? how to remove when stopping??
@@ -95,6 +95,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 
 extern "C" void Simulation_Stop_All(State *state)
 {
+    state->active_image->iteration_allowed = false;
     state->active_chain->iteration_allowed = false;
 
     // TODO: loop over all chains

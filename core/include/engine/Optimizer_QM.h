@@ -12,7 +12,7 @@ namespace Engine
 	class Optimizer_QM : public Optimizer
 	{
 	public:
-		Optimizer_QM(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+		Optimizer_QM(std::shared_ptr<Engine::Method> method);
 
 		void Iteration() override;
 		

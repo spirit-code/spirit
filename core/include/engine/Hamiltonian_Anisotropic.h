@@ -28,7 +28,7 @@ namespace Engine
 			std::vector<bool> boundary_conditions
 		);
 		
-		void Effective_Field(std::vector<double> & spins, std::vector<double> & field) override;
+		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
 		double Energy(std::vector<double> & spins) override;
 		std::vector<double> Energy_Array(std::vector<double> & spins) override;
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
@@ -72,17 +72,17 @@ namespace Engine
 	private:
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
-		void Field_Zeeman(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculate the Anisotropy effective field of a single Spin
-		void Field_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculate the exchange interaction effective field of a Spin Pair
-		void Field_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & eff_field);
+		void Field_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & eff_field);
 		// Calculate the DMI effective field of a Spin Pair
-		void Field_DMI(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & eff_field);
+		void Field_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & eff_field);
 		// Calculate the BQC effective field of a Spin Pair
-		void Field_BQC(int nos, std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & eff_field);
+		void Field_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & eff_field);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DD(int nos, std::vector<double>& spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & eff_field);
+		void Field_DD(int nos, const std::vector<double>& spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & eff_field);
 
 		// ------------ Energy Functions ------------
 		// Calculate the Zeeman energy of a Spin System

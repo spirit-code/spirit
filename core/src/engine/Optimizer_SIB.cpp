@@ -6,47 +6,43 @@ using namespace Utility;
 
 namespace Engine
 {
-	Optimizer_SIB::Optimizer_SIB(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
-        Optimizer(systems, method)
+	Optimizer_SIB::Optimizer_SIB(std::shared_ptr<Engine::Method> method) :
+        Optimizer(method)
     {
 		this->xi = std::vector<double>(3 * this->nos);
 		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
+		
+		this->spins_temp = std::vector<std::shared_ptr<std::vector<double>>>(this->noi, std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * this->nos))); // [noi][3*nos]
     }
 
     void Optimizer_SIB::Iteration()
     {
 		std::shared_ptr<Data::Spin_System> s;
-		// This is probably quite inefficient?? CHECK IF THATS THE CASE!
-		for (int i = 0; i < this->noi; ++i)
-		{
-			this->configurations[i] = systems[i]->spins;
-		}
 
 		// Random Numbers
 		for (int i = 0; i < this->noi; ++i)
 		{
-			s = systems[i];
+			s = method->systems[i];
 			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature);
 			// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
 			this->Gen_Xi(*s, xi, epsilon);
 		}
 
 		// First part of the step
-		this->method->Calculate_Force(configurations, force);
+		this->method->Calculate_Force(this->configurations, force);
 		for (int i = 0; i < this->noi; ++i)
 		{
-			s = systems[i];
+			s = method->systems[i];
 			this->VirtualForce(s->nos, s->spins, *s->llg_parameters, force[i], xi, virtualforce[i]);
-			this->FirstStep(s->nos, s->spins, virtualforce[i], spins_temp[i]);
+			this->FirstStep(s->nos, s->spins, virtualforce[i], *spins_temp[i]);
 		}
 
 		// Second part of the step
-		this->method->Calculate_Force(spins_temp, force); ////// I cannot see a difference if this step is included or not...
+		this->method->Calculate_Force(this->spins_temp, force); ////// I cannot see a difference if this step is included or not...
 		for (int i = 0; i < this->noi; ++i)
 		{
-			s = systems[i];
-			this->VirtualForce(s->nos, spins_temp[i], *s->llg_parameters, force[i], xi, virtualforce[i]);
+			s = method->systems[i];
+			this->VirtualForce(s->nos, *spins_temp[i], *s->llg_parameters, force[i], xi, virtualforce[i]);
 			this->SecondStep(s->nos, virtualforce[i], s->spins);
 		}
 	}
@@ -54,7 +50,6 @@ namespace Engine
 
 	void Optimizer_SIB::VirtualForce(const int nos, std::vector<double> & spins, Data::Parameters_LLG & llg_params, std::vector<double> & beff,  std::vector<double> & xi, std::vector<double> & force)
 	{
-		// TODO: MOVE THIS SHIT UP - dont declare variables every iteration step
 		//========================= Init local vars ================================
 		int i, dim;
 		// deterministic variables

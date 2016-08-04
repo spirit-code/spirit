@@ -15,7 +15,7 @@ namespace Engine
 	class Optimizer_SIB2 : public Optimizer
 	{
 	public:
-		Optimizer_SIB2(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method);
+		Optimizer_SIB2(std::shared_ptr<Engine::Method> method);
 		
 		// One step in the optimization
 		void Iteration() override;

@@ -31,7 +31,7 @@ namespace Engine
 		Hamiltonian(std::vector<bool> boundary_conditions) : boundary_conditions(boundary_conditions) {};
 
 		// Calculate the Effective field of a spin configuration
-		virtual void Effective_Field(std::vector<double> & spins, std::vector<double> & field)
+		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
 		{
 			// Not Implemented!
 			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Hamiltonian::Effective_Field() of the Hamiltonian base class!"));

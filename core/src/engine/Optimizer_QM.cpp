@@ -3,8 +3,8 @@
 
 namespace Engine
 {
-    Optimizer_QM::Optimizer_QM(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Method> method) :
-        Optimizer(systems, method)
+    Optimizer_QM::Optimizer_QM(std::shared_ptr<Engine::Method> method) :
+        Optimizer(method)
     {
 
     }

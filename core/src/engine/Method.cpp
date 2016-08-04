@@ -4,12 +4,12 @@
 
 namespace Engine
 {
-    Method::Method(std::shared_ptr<Data::Parameters_Method> parameters) : parameters(parameters)
+    Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) : parameters(parameters)
     {
 
     }
 
-    void Method::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
+    void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
     {
 
     }
@@ -21,7 +21,12 @@ namespace Engine
         return converged;
     }
 
-    void Method::Save_Step(int image, int iteration, std::string suffix)
+    bool Method::ContinueIterating()
+    {
+        return this->systems[0]->iteration_allowed && !this->Force_Converged(); // && c->iteration_allowed;
+    }
+
+    void Method::Save_Step(int iteration, bool final)
     {
         // Not Implemented!
         Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Step() of the Method base class!"));
@@ -43,7 +48,7 @@ namespace Engine
     }
 
     // Return the maximum of absolute values of force components for an image
-    double  Method::Force_on_Image_MaxAbsComponent(std::vector<double> & image, std::vector<double> force)
+    double  Method::Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force)
     {
         int nos = image.size()/3;
         // We project the force orthogonal to the SPIN

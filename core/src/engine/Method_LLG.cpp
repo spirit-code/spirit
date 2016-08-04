@@ -21,8 +21,10 @@ using namespace Utility;
 
 namespace Engine
 {
-    Method_LLG::Method_LLG(std::shared_ptr<Data::Parameters_LLG> parameters) : Method(parameters)
+    Method_LLG::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
+		Method(system->llg_parameters, idx_img, idx_chain), system(system)
 	{
+		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		// // Method child-class specific instructions
 		// // currently only support a single image being iterated:
 		// this->force_call = std::shared_ptr<Engine::Force>(new Force_LLG(this->c));
@@ -33,25 +35,24 @@ namespace Engine
 	}
 
 
-	void Method_LLG::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
+	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
 	{
 		int noi = configurations.size();
-		int nos = configurations[0].size() / 3;
+		int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
 		this->force_maxAbsComponent = 0;
 
 		// TODO: override Force convergence stuff
-		// // Loop over images to calculate the total Effective Field on each Image
-		// for (int img = 0; img < noi; ++img)
-		// {
-		// 	// The gradient force (unprojected) is simply the effective field
-		// 	// TODO: how to get the hamiltonian of the corresponding system??
-		// 	// this->c->images[img]->hamiltonian->Effective_Field(configurations[img], forces[img]);
-		// 	// Check for convergence
-		// 	auto fmax = this->Force_on_Image_MaxAbsComponent(configurations[img], forces[img]);
-		// 	if (fmax < this->parameters->force_convergence) this->Force_Converged[img] = true;
-		// 	if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
-		// }
+		// Loop over images to calculate the total Effective Field on each Image
+		for (int img = 0; img < noi; ++img)
+		{
+			// The gradient force (unprojected) is simply the effective field
+			systems[img]->hamiltonian->Effective_Field(*configurations[img], forces[img]);
+			// Check for convergence
+			auto fmax = this->Force_on_Image_MaxAbsComponent(*configurations[img], forces[img]);
+			// if (fmax < this->parameters->force_convergence) this->Force_Converged[img] = true;
+			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+		}
 	}
 
 	bool Method_LLG::Force_Converged()
@@ -90,13 +91,13 @@ namespace Engine
     }
 
 	
-	void Method_LLG::Save_Step(int image, int iteration, std::string suffix)
+	void Method_LLG::Save_Step(int iteration, bool final)
 	{
 		// TODO: how to do this??
 		//		how to get the start time
 		// 		how to get the spin configurations
 		// Convert image to a formatted string
-		auto s_img = IO::int_to_formatted_string(image, 2);
+		auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 		auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
 		// Append Spin configuration to File

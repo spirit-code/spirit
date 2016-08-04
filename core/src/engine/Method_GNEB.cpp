@@ -18,8 +18,10 @@ using namespace Utility;
 
 namespace Engine
 {
-    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Parameters_GNEB> parameters) : Method(parameters)
+    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_img, int idx_chain) :
+		Method(chain->gneb_parameters, idx_img, idx_chain), chain(chain)
 	{
+		this->systems = chain->images;
 		// Method child-class specific instructions
 		// this->force_call = std::shared_ptr<Engine::Force>(new Force_GNEB(this->c));
 		// this->systems = c->images;
@@ -28,10 +30,10 @@ namespace Engine
 		// this->optimizer->Configure(this->systems, this->force_call);
 	}
 
-	void Method_GNEB::Calculate_Force(std::vector<std::vector<double>> configurations, std::vector<std::vector<double>> & forces)
+	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
 	{
 		int noi = configurations.size();
-		int nos = configurations[0].size()/3;
+		int nos = configurations[0]->size()/3;
 		// this->Force_Converged = false;
 		this->force_maxAbsComponent = 0;
 
@@ -153,7 +155,7 @@ namespace Engine
 		// Check for convergence
 		for (int img = 1; img < noi - 1; ++img)
 		{
-			double fmax = this->Force_on_Image_MaxAbsComponent(configurations[img], forces[img]);
+			double fmax = this->Force_on_Image_MaxAbsComponent(*configurations[img], forces[img]);
 			// TODO: how to handle convergence??
 			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
 			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
@@ -201,7 +203,7 @@ namespace Engine
 	}
 
 
-	void Method_GNEB::Save_Step(int image, int iteration, std::string suffix)
+	void Method_GNEB::Save_Step(int iteration, bool final)
 	{
 		// TODO: how to handle??
 		// // always formatting to 6 digits may be problematic!
