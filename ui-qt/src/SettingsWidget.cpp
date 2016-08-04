@@ -2,6 +2,7 @@
 //#include <QString>
 //#include <QtCore>
 
+#include "MainWindow.h"
 #include "SettingsWidget.h"
 
 #include "Vectormath.h"
@@ -54,7 +55,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->Setup_Hamiltonian_Isotropic_Slots();
 	this->Setup_Hamiltonian_Anisotropic_Slots();
 	this->Setup_Parameters_Slots();
-  this->Setup_Visualization_Slots();
+	this->Setup_Visualization_Slots();
 }
 
 void SettingsWidget::update()
@@ -65,7 +66,7 @@ void SettingsWidget::update()
 	// Load Parameters Contents
 	this->Load_Parameters_Contents();
 	// ToDo: Also update Debug etc!
-  this->Load_Visualization_Contents();
+	this->Load_Visualization_Contents();
 }
 
 
@@ -339,7 +340,7 @@ void SettingsWidget::Load_Visualization_Contents() {
       break;
   }
   for (int i = 0; i < comboBox_visualizationMode->count(); i++) {
-    if (comboBox_visualizationMode->itemText(i).toStdString() == visualization_mode) {
+    if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode) {
       comboBox_visualizationMode->setCurrentIndex(i);
       break;
     }
@@ -361,7 +362,7 @@ void SettingsWidget::Load_Visualization_Contents() {
       break;
   }
   for (int i = 0; i < comboBox_miniViewPosition->count(); i++) {
-    if (comboBox_miniViewPosition->itemText(i).toStdString() == miniview_position) {
+    if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position) {
       comboBox_miniViewPosition->setCurrentIndex(i);
       break;
     }
@@ -382,7 +383,7 @@ void SettingsWidget::Load_Visualization_Contents() {
       break;
   }
   for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++) {
-    if (comboBox_coordinateSystemPosition->itemText(i).toStdString() == coordinatesystem_position) {
+    if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position) {
       comboBox_coordinateSystemPosition->setCurrentIndex(i);
       break;
     }
@@ -424,7 +425,7 @@ void SettingsWidget::Load_Visualization_Contents() {
       break;
   }
   for (int i = 0; i < comboBox_colormap->count(); i++) {
-    if (comboBox_colormap->itemText(i).toStdString() == colormap) {
+    if (string_q2std(comboBox_colormap->itemText(i)) == colormap) {
       comboBox_colormap->setCurrentIndex(i);
       break;
     }
@@ -448,7 +449,7 @@ void SettingsWidget::Load_Visualization_Contents() {
     background_color = "Gray";
   }
   for (int i = 0; i < comboBox_backgroundColor->count(); i++) {
-    if (comboBox_backgroundColor->itemText(i).toStdString() == background_color) {
+    if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color) {
       comboBox_backgroundColor->setCurrentIndex(i);
       break;
     }

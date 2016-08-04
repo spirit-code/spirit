@@ -24,6 +24,8 @@ class QPlainTextEdit;
 
 #include "ui_MainWindow.h"
 
+std::string string_q2std(QString qs);
+
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
     Q_OBJECT
