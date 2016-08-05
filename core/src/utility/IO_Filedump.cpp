@@ -150,7 +150,7 @@ namespace Utility
 			auto E_tot_spins = std::vector<double>(nos, 0.0);
 			for (isystem = 0; isystem < noi; ++isystem) {
 				// Get Energies
-				Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(c.images[isystem]->spins);
+				Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(*c.images[isystem]->spins);
 				for (ispin = 0; ispin < nos; ++ispin)
 				{
 					for (iE = 0; iE < 7; ++iE)
@@ -222,7 +222,7 @@ namespace Utility
 
 			for (iatom = 0; iatom < s->nos; ++iatom) {
 				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-					s->spins[0 * s->nos + iatom], s->spins[1 * s->nos + iatom], s->spins[2 * s->nos + iatom]);
+					(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
 				output_to_file.append(buffer_string_conversion);
 			}
 			output_to_file.append("\n");
@@ -243,9 +243,10 @@ namespace Utility
 				snprintf(buffer_string_conversion, buffer_length, "\n Image No %3i", iimage);
 				output_to_file.append(buffer_string_conversion);
 				nos = c->images[iimage]->nos;
+				auto spins = *c->images[iimage]->spins;
 				for (iatom = 0; iatom < nos; ++iatom) {
 					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-						c->images[iimage]->spins[0 * nos + iatom], c->images[iimage]->spins[1 * nos + iatom], c->images[iimage]->spins[2 * nos + iatom]);
+						spins[0 * nos + iatom], spins[1 * nos + iatom], spins[2 * nos + iatom]);
 					output_to_file.append(buffer_string_conversion);
 				}
 			}

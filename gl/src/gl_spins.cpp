@@ -34,9 +34,10 @@ GLSpins::GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height)
 
 	// Spin orientations
 	std::vector<glm::vec3> directions(nos);
+    auto spins = *s->spins;
 	for (unsigned int i = 0; i < nos; ++i)
 	{
-		directions[i] = glm::vec3(s->spins[i], s->spins[g->nos + i], s->spins[2*g->nos + i]);
+		directions[i] = glm::vec3(spins[i], spins[g->nos + i], spins[2*g->nos + i]);
 	}
 
 	// Copy Center and bounds
@@ -265,9 +266,10 @@ void GLSpins::draw() {
 
 	// Update directions
 	std::vector<glm::vec3> directions(nos);
+    auto spins = *s->spins;
 	for (unsigned int i = 0; i < nos; ++i)
 	{
-		directions[i] = glm::vec3(s->spins[i], s->spins[nos + i], s->spins[2 * nos + i]);
+		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, instance_direction_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * nos, &directions[0], GL_STATIC_DRAW);

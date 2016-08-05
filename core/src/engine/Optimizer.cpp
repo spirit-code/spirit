@@ -20,7 +20,7 @@ namespace Engine
         
         // Create shared pointers to the method's systems' configurations
 	    this->configurations = std::vector<std::shared_ptr<std::vector<double>>>(noi);
-        for (int i=0; i<noi; ++i) this->configurations[i] = std::shared_ptr<std::vector<double>>(&this->method->systems[i]->spins);
+        for (int i=0; i<noi; ++i) this->configurations[i] = this->method->systems[i]->spins;
         
         // Allocate force array
         this->force = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos, 0));	// [noi][3*nos]

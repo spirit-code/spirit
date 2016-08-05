@@ -57,8 +57,9 @@ namespace Utility
 						//double x, y, z;
 						iss.clear();
 						iss.str(line);
+						auto spins = *s->spins;
 						//iss >> x >> y >> z;
-						iss >> s->spins[i] >> s->spins[1 * s->nos + i] >> s->spins[2 * s->nos + i];
+						iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
 						++i;
 					}// endif (# not found)
 					 // discard line if # is found
@@ -116,8 +117,9 @@ namespace Utility
 							{
 								iss.clear();
 								iss.str(line);
+								auto spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> c->images[iimage]->spins[i] >> c->images[iimage]->spins[1 * nos + i] >> c->images[iimage]->spins[2 * nos + i];
+								iss >> spins[i] >> spins[1 * nos + i] >> spins[2 * nos + i];
 							}
 							++i;
 						}//end else

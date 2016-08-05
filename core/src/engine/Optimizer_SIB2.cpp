@@ -48,7 +48,7 @@ namespace Engine
 
 			for (int i = 0; i < s->nos; ++i)
 			{
-				nx = s->spins[i]; ny = s->spins[i + s->nos]; nz = s->spins[i + 2 * s->nos];
+				nx = (*s->spins)[i]; ny = (*s->spins)[i + s->nos]; nz = (*s->spins)[i + 2 * s->nos];
 				Hx = force[img][i]; Hy = force[img][i + s->nos]; Hz = force[img][i + 2*s->nos];
 				Rx = R[i]; Ry = R[i + s->nos]; Rz = R[i + 2 * s->nos];
 
@@ -106,7 +106,7 @@ namespace Engine
 				Ay = Ay + 0.5*rh * D * (-Ry - alpha*(nz*Rx - nx*Rz));
 				Az = Az + 0.5*rh * D * (-Rz - alpha*(nx*Ry - ny*Rx));
 
-				nx = s->spins[i]; ny = s->spins[i + s->nos]; nz = s->spins[i + 2 * s->nos];
+				nx = (*s->spins)[i]; ny = (*s->spins)[i + s->nos]; nz = (*s->spins)[i + 2 * s->nos];
 
 				ax = nx + ny*Az - nz*Ay;
 				ay = ny + nz*Ax - nx*Az;
@@ -121,9 +121,9 @@ namespace Engine
 
 				detMi = 1.0 / (1.0 + Hx + Hy + Hz);
 
-				s->spins[i] = (ax*(1.0 + Hx) + ay*(Rz + Az) + az*(Ry - Ay)) * detMi;
-				s->spins[i + s->nos] = (ax*(Rz - Az) + ay*(1.0 + Hy) + az*(Rx + Ax)) * detMi;
-				s->spins[i + 2 * s->nos] = (ax*(Ry + Ay) + ay*(Rx - Ax) + az*(1.0 + Hz)) * detMi;
+				(*s->spins)[i] = (ax*(1.0 + Hx) + ay*(Rz + Az) + az*(Ry - Ay)) * detMi;
+				(*s->spins)[i + s->nos] = (ax*(Rz - Az) + ay*(1.0 + Hy) + az*(Rx + Ax)) * detMi;
+				(*s->spins)[i + 2 * s->nos] = (ax*(Ry + Ay) + ay*(Rx - Ax) + az*(1.0 + Hz)) * detMi;
 
 			}
 		}

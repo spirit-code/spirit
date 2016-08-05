@@ -33,8 +33,8 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->VirtualForce(s->nos, s->spins, *s->llg_parameters, force[i], xi, virtualforce[i]);
-			this->FirstStep(s->nos, s->spins, virtualforce[i], *spins_temp[i]);
+			this->VirtualForce(s->nos, *s->spins, *s->llg_parameters, force[i], xi, virtualforce[i]);
+			this->FirstStep(s->nos, *s->spins, virtualforce[i], *spins_temp[i]);
 		}
 
 		// Second part of the step
@@ -43,7 +43,7 @@ namespace Engine
 		{
 			s = method->systems[i];
 			this->VirtualForce(s->nos, *spins_temp[i], *s->llg_parameters, force[i], xi, virtualforce[i]);
-			this->SecondStep(s->nos, virtualforce[i], s->spins);
+			this->SecondStep(s->nos, virtualforce[i], *s->spins);
 		}
 	}
 

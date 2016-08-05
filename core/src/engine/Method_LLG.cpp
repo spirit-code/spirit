@@ -29,9 +29,6 @@ namespace Engine
 		// // currently only support a single image being iterated:
 		// this->force_call = std::shared_ptr<Engine::Force>(new Force_LLG(this->c));
 		// this->systems.push_back(c->images[c->idx_active_image]);
-
-		// // Configure the Optimizer
-		// this->optimizer->Configure(systems, force_call);
 	}
 
 
@@ -54,6 +51,7 @@ namespace Engine
 			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
 		}
 	}
+
 
 	bool Method_LLG::Force_Converged()
 	{

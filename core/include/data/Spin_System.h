@@ -35,7 +35,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::vector<double> spins;
+		std::shared_ptr<std::vector<double>> spins;
 		// Spin Hamiltonian
 		bool is_isotropic;
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
