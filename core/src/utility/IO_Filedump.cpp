@@ -74,8 +74,8 @@ namespace Utility
 			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
 			//------------------------ End Init ----------------------------------------
 
-			for (isystem = 0; isystem < (int)c.images.size(); ++isystem) {
-				c.images[isystem]->UpdateEnergy();
+			for (isystem = 0; isystem < (int)c.noi; ++isystem) {
+				// c.images[isystem]->UpdateEnergy(); // this should be done elsewhere...
 				if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
 				else { nd = 1; }
 				snprintf(buffer_string_conversion, buffer_length, "\n %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
@@ -263,12 +263,16 @@ namespace Utility
 			#ifdef USE_THREADS
 			// thread:      method       args  args    args   detatch thread
 			std::thread(String_to_File, text, name).detach();
+			#else
+			String_to_File(text, name);
 			#endif
 		}
 		void Dump_to_File(const std::vector<std::string> text, const std::string name, const int no)
 		{
 			#ifdef USE_THREADS
 			std::thread(Strings_to_File, text, name, no).detach();
+			#else
+			Strings_to_File(text, name, no);
 			#endif
 		}
 
