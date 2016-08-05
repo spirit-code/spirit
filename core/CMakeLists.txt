@@ -75,7 +75,7 @@ source_group("src\\utility" FILES ${SOURCE_CORE_UTILITY})
 #############################################
 
 
-######### Tell CMake to create the executable
+######### Tell CMake to create the static library
 add_library( core STATIC
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
@@ -87,6 +87,23 @@ add_library( core STATIC
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY})
+#############################################
+
+######### Tell CMake to create the shared library
+if( BUILD_UI_PYTHON )
+	MESSAGE( STATUS ">> Building shared library for Python" )
+	add_library( pycore SHARED
+		${HEADER_CORE_ROOT}
+		${HEADER_CORE_DATA}
+		${HEADER_CORE_ENGINE}
+		${HEADER_CORE_INTERFACE}
+		${HEADER_CORE_UTILITY}
+		${SOURCE_CORE_ROOT}
+		${SOURCE_CORE_DATA}
+		${SOURCE_CORE_ENGINE}
+		${SOURCE_CORE_INTERFACE}
+		${SOURCE_CORE_UTILITY})
+endif()
 #############################################
 
 
