@@ -76,7 +76,7 @@ void SettingsWidget::update()
 
 void SettingsWidget::randomPressed()
 {
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button Random");
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button Random");
 	Configuration_Random(this->state.get());
 	print_Energies_to_console();
 }
@@ -105,7 +105,7 @@ void SettingsWidget::greaterLesserToggle()
 
 void SettingsWidget::create_Skyrmion()
 {
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button createSkyrmion");
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button createSkyrmion");
 	double speed = lineEdit_sky_order->text().toDouble();
 	double phase = lineEdit_sky_phase->text().toDouble();
 	bool upDown = checkBox_sky_UpDown->isChecked();
@@ -125,7 +125,7 @@ void SettingsWidget::create_Skyrmion()
 
 void SettingsWidget::create_SpinSpiral()
 {
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button createSpinSpiral");
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button createSpinSpiral");
 	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
 	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
 	double period = lineEdit_SS_period->text().toDouble();
@@ -141,7 +141,7 @@ void SettingsWidget::create_SpinSpiral()
 
 void SettingsWidget::domainWallPressed()
 {
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, "button DomainWall");
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button DomainWall");
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->greater);
@@ -156,22 +156,22 @@ void SettingsWidget::homogeneousTransitionPressed()
 	// Check the validity of the indices
 	if (idx_1 < 0 || idx_1 >= this->state->noi)
 	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 < 0 || idx_1 >= this->state->noi)
 	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "First index for homogeneous transition is invalid! setting to 1...");
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 == idx_2)
 	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Indices are equal in homogeneous transtion! Aborting...");
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "Indices are equal in homogeneous transtion! Aborting...");
 		return;
 	}
 	if (idx_2 < idx_1)
 	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
 		return;
 	}
 
@@ -537,7 +537,7 @@ void SettingsWidget::set_hamiltonian_iso()
 				ham->external_field_normal[0] = 0.0;
 				ham->external_field_normal[1] = 0.0;
 				ham->external_field_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx->setText(QString::number(0.0));
 				lineEdit_extHy->setText(QString::number(0.0));
 				lineEdit_extHz->setText(QString::number(1.0));
@@ -580,7 +580,7 @@ void SettingsWidget::set_hamiltonian_iso()
 				ham->anisotropy_normal[0] = 0.0;
 				ham->anisotropy_normal[1] = 0.0;
 				ham->anisotropy_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anisox->setText(QString::number(0.0));
 				lineEdit_anisoy->setText(QString::number(0.0));
 				lineEdit_anisoz->setText(QString::number(1.0));
@@ -615,7 +615,7 @@ void SettingsWidget::set_hamiltonian_iso()
 				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
 				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
 				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_spin_torquex->setText(QString::number(0.0));
 				lineEdit_spin_torquey->setText(QString::number(0.0));
 				lineEdit_spin_torquez->setText(QString::number(1.0));
@@ -690,7 +690,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 				temp[0] = 0.0;
 				temp[1] = 0.0;
 				temp[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx_aniso->setText(QString::number(0.0));
 				lineEdit_extHy_aniso->setText(QString::number(0.0));
 				lineEdit_extHz_aniso->setText(QString::number(1.0));
@@ -727,7 +727,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 				temp[0] = 0.0;
 				temp[1] = 0.0;
 				temp[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "ani_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anix_aniso->setText(QString::number(0.0));
 				lineEdit_aniy_aniso->setText(QString::number(0.0));
 				lineEdit_aniz_aniso->setText(QString::number(1.0));
@@ -757,7 +757,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 				s->llg_parameters->stt_polarisation_normal[0] = 0.0;
 				s->llg_parameters->stt_polarisation_normal[1] = 0.0;
 				s->llg_parameters->stt_polarisation_normal[2] = 1.0;
-				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_sttx_aniso->setText(QString::number(0.0));
 				lineEdit_stty_aniso->setText(QString::number(0.0));
 				lineEdit_sttz_aniso->setText(QString::number(1.0));

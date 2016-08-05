@@ -9,7 +9,7 @@
 
 using namespace Utility;
 
-extern "C" State * setupState(const char * config_file)
+State * setupState(const char * config_file)
 {
     // Create the State
     State *state = new State();
@@ -72,10 +72,10 @@ extern "C" State * setupState(const char * config_file)
     state->noi = 1;
     state->nos = state->active_image->nos;
 
-    // Solvers
-    state->solvers_llg = std::vector<std::vector<std::shared_ptr<Engine::Solver_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Solver_LLG>>(state->noi));
-    state->solvers_gneb = std::vector<std::shared_ptr<Engine::Solver_GNEB>>(state->noi);
-    state->solvers_mmf = std::vector<std::shared_ptr<Engine::Solver_MMF>>(state->noi);
+    // Methods
+    state->methods_llg = std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Method_LLG>>(state->noi));
+    state->methods_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noi);
+    state->methods_mmf = std::vector<std::shared_ptr<Engine::Method_MMF>>(state->noi);
 
     // Log
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
@@ -85,4 +85,31 @@ extern "C" State * setupState(const char * config_file)
     
     // Return
     return state;
+}
+
+void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
+{
+    // Chain
+    if (idx_chain < 0 || idx_chain == state->idx_active_chain)
+    {
+        chain = state->active_chain;
+        idx_chain = state->idx_active_chain;
+    }
+    else
+    {
+        chain = state->active_chain;
+        idx_chain = state->idx_active_chain;
+    }
+    
+    // Image
+    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image) )
+    {
+        image = state->active_image;
+        idx_image = state->idx_active_image;
+    }
+    else
+    {
+        image = chain->images[idx_image];
+        idx_image = idx_image;
+    }
 }

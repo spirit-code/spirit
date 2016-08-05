@@ -16,7 +16,8 @@ namespace Utility
 		GNEB,
 		LLG,
 		MMF,
-		GUI
+		API,
+		UI
 	};
 
 	enum class Log_Level

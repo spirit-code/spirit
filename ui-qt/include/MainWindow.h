@@ -13,8 +13,9 @@
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 
-#include "Solver_LLG.h"
-#include "Solver_GNEB.h"
+#include "Method_LLG.h"
+#include "Method_GNEB.h"
+#include "Method_MMF.h"
 
 #include "Interface_State.h"
 
@@ -78,13 +79,12 @@ private:
     void writeSettings();
 	void createStatusBar();
 	void updateStatusBar();
-	std::vector<double> getIterationsPerSecond();
     /*bool maybeSave();
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);*/
-    
+
     //SpinWidget *spins;
 	std::shared_ptr<State> state;
   SpinWidget *spinWidget;
@@ -106,9 +106,10 @@ private:
 	QLabel * m_Label_FPS;
 	std::vector<QLabel*> m_Labels_IPS;
 
-	// Image/Chain - Solver maps
-	std::map<std::shared_ptr<Data::Spin_System>, Engine::Solver_LLG*> llg_solvers;
-	std::map<std::shared_ptr<Data::Spin_System_Chain>, Engine::Solver_GNEB*> gneb_solvers;
+	// Image/Chain - Method maps
+	std::vector<std::thread> threads_llg;
+	std::vector<std::thread> threads_gneb;
+	std::thread thread_mmf;
 
 };
 

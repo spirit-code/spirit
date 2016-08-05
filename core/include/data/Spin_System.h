@@ -35,9 +35,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::vector<double> spins;
-		// Is it allowed to iterate on this system?
-		bool iteration_allowed;
+		std::shared_ptr<std::vector<double>> spins;
 		// Spin Hamiltonian
 		bool is_isotropic;
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
@@ -45,6 +43,8 @@ namespace Data
 		std::shared_ptr<Geometry> geometry;
 		// Parameters for LLG Iterations (MC, SIB, ...)
 		std::shared_ptr<Parameters_LLG> llg_parameters;
+		// Is it allowed to iterate on this system?
+		bool iteration_allowed;
 
 		// Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
 		double E;

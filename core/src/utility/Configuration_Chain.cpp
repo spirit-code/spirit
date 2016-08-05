@@ -29,8 +29,8 @@ namespace Utility
 			{
 				for (int dim = 0; dim < 3; ++dim)
 				{
-					a[dim] = c->images[idx_1]->spins[i + dim*nos];
-					b[dim] = c->images[idx_2]->spins[i + dim*nos];
+					a[dim] = (*c->images[idx_1]->spins)[i + dim*nos];
+					b[dim] = (*c->images[idx_2]->spins)[i + dim*nos];
 				}
 
 				r = std::fmax(-1.0, std::fmin(1.0, Vectormath::Dot_Product(a, b)));
@@ -49,7 +49,7 @@ namespace Utility
 
 						for (int dim = 0; dim < 3; ++dim)
 						{
-							c->images[img]->spins[i + dim*nos] = temp[dim];
+							(*c->images[img]->spins)[i + dim*nos] = temp[dim];
 						}
 					}
 				}
@@ -60,7 +60,7 @@ namespace Utility
 					{
 						for (int dim = 0; dim < 3; ++dim)
 						{
-							c->images[img]->spins[i + dim*nos] = a[dim];
+							(*c->images[img]->spins)[i + dim*nos] = a[dim];
 						}
 					}
 				}
@@ -70,8 +70,8 @@ namespace Utility
 
 		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<double> A, std::vector<double> B)
 		{
-			c->images[0]->spins = A;
-			c->images[c->noi - 1]->spins = B;
+			(*c->images[0]->spins) = A;
+			(*c->images[c->noi - 1]->spins) = B;
 
 			int nos = c->images[0]->nos;
 
@@ -102,7 +102,7 @@ namespace Utility
 
 						for (int dim = 0; dim < 3; ++dim)
 						{
-							c->images[img]->spins[i + dim*nos] = temp[dim];
+							(*c->images[img]->spins)[i + dim*nos] = temp[dim];
 						}
 					}
 				}
@@ -113,7 +113,7 @@ namespace Utility
 					{
 						for (int dim = 0; dim < 3; ++dim)
 						{
-							c->images[img]->spins[i + dim*nos] = a[dim];
+							(*c->images[img]->spins)[i + dim*nos] = a[dim];
 						}
 					}
 				}

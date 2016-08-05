@@ -18,7 +18,7 @@ namespace Engine
 			double anisotropy_magnitude, std::vector<double> anisotropy_normal,
 			int n_neigh_shells, std::vector<double> jij, double dij, double bij, double kijkl, double dd_radius, Data::Geometry geometry);
 
-		void Effective_Field(std::vector<double> & spins, std::vector<double> & field) override;
+		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
 		double Energy(std::vector<double> & spins) override;
 		std::vector<double> Energy_Array(std::vector<double> & spins) override;
 		// Need to implement:
@@ -27,19 +27,19 @@ namespace Engine
 	//private:// these are currently needed by the to-be-removed Energy and Eff_Field
 		// -------------------- Effective Field Functions ------------------
 		// Calculates the Zeeman contribution to the effective field of spin ispin within system s
-		void Field_Zeeman(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the Exchange contribution to the effective field of spin ispin within system s
-		void Field_Exchange(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Exchange(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the Anisotropic contribution to the effective field of spin ispin within system s
-		void Field_Anisotropic(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Anisotropic(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the Biquadratic Coupling contribution to the effective field of spin ispin within system s
-		void Field_BQC(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_BQC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the 4-spin Coupling contribution to the effective field of spin ispin within system s
-		void Field_FourSC(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_FourSC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the Dzyaloshinskii-Moriya Interaction contribution to the effective field of spin ispin within system s
-		void Field_DM(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_DM(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DipoleDipole(int nos, std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_DipoleDipole(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 
 		// -------------------- Energy Functions ------------------
 		// calculates the Zeeman Energy of spin ispin within system s

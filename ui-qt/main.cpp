@@ -1,23 +1,16 @@
 #include "MainWindow.h"
 
-#include "Threading.h"
-// #include "Signal.h"
 
 #include "Interface_State.h"
 #include "Interface_Chain.h"
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
 
-// Use Core Namespaces
-using namespace Data;
-using namespace Engine;
+// Use Utility Namespace
 using namespace Utility;
 
 // Initialise Global Variables
-std::shared_ptr<State> state;
 Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
-std::map<std::shared_ptr<Data::Spin_System>, std::thread> Utility::Threading::llg_threads = std::map<std::shared_ptr<Data::Spin_System>, std::thread>();
-std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threading::gneb_threads = std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread>();
 
 // Main
 int main(int argc, char ** argv)
@@ -36,7 +29,7 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	state = std::shared_ptr<State>(setupState(cfgfile));
+	std::shared_ptr<State> state = std::shared_ptr<State>(setupState(cfgfile));
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
@@ -85,7 +78,7 @@ int main(int argc, char ** argv)
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	QSurfaceFormat::setDefaultFormat(format);
-	qDebug() << "surface format:" << format.majorVersion() << "." << format.minorVersion();
+	Log.Send(Log_Level::INFO, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
 
 	MainWindow window(state);
 	window.setWindowTitle(app.applicationName());

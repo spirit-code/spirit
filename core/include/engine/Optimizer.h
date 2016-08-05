@@ -3,13 +3,15 @@
 #define OPTIMIZER_H
 
 #include "Spin_System.h"
-#include "Force.h"
+#include "Method.h"
+// #include "Parameters_Method.h"
+#include "Logging.h"
+
 #include <vector>
 #include <algorithm>
 #include <iterator>
 #include <string>
 
-#include "Logging.h"
 
 
 namespace Engine
@@ -23,49 +25,49 @@ namespace Engine
 	{
 	public:
 		// The Optimizer needs to be configured by the Solver after creation
-		virtual void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call)
-		{
-			this->systems = systems;
+		Optimizer(std::shared_ptr<Engine::Method> method);
 
-			this->noi = systems.size();
-			this->nos = systems[0]->nos;
+		// One Iteration
+		virtual void Iteration();
 
-			this->configurations = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));
-			for (int i = 0; i < this->noi; ++i)
-			{
-				this->configurations[i] = systems[i]->spins;
-			}
+		// Iterate for method->parameters->n iterations
+		virtual void Iterate() final;
 
-			this->force = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos, 0));	// [noi][3*nos]
+		// Calculate a smooth but current IPS value
+		virtual double getIterationsPerSecond() final;
 
-			this->force_call = force_call;
-			// Calculate forces once, so that the Solver does not think it's converged
-			this->force_call->Calculate(this->configurations, this->force);
-		}
-
-		// One step in the optimization
-		virtual void Step()
-		{
-			// Not Implemented!
-			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
-		}
-
+		// Optimizer name as string
+		virtual std::string Name();
+		virtual std::string FullName();
 
 	protected:
-		// The Spin Systems which to optimize
-		std::vector<std::shared_ptr<Data::Spin_System>> systems;
-		// The Force instance with which to calculate the forces on configurations
-		std::shared_ptr<Engine::Force> force_call;
+		// The Method instance with which to calculate the forces on configurations
+		std::shared_ptr<Engine::Method> method;
 
 		// Number of Images
 		int noi;
 		// Number of Spins
 		int nos;
+		// Number of iterations
+		int n_iterations;
+		// Number of steps after which to save
+		int log_steps;
+		// Number of times to save
+		int n_log;
 
-		// The actual configurations of the Spin Systems
-		std::vector<std::vector<double>> configurations;
+		// Pointers to Configurations
+		std::vector<std::shared_ptr<std::vector<double>>> configurations;
 		// Actual Forces on the configurations
 		std::vector<std::vector<double>> force;
+
+		// The time at which this Solver's Iterate() was last called
+		std::string starttime;
+		// Timings and Iterations per Second
+		double ips;
+		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
+
+		// Check if a stop file is present -> Stop the iterations
+		virtual bool StopFilePresent() final;
 	};
 }
 #endif

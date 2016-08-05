@@ -33,6 +33,7 @@ void SpinWidget::resizeGL(int width, int height) {
 void SpinWidget::paintGL() {
   // Update the pointer to our Data
   auto s = state->active_image;
+  auto& spins = *s->spins;
   
   std::vector<glm::vec3> positions(s->geometry->nos);
   for (unsigned int i = 0; i < s->geometry->nos; ++i)
@@ -42,7 +43,7 @@ void SpinWidget::paintGL() {
   std::vector<glm::vec3> directions(s->geometry->nos);
   for (unsigned int i = 0; i < s->geometry->nos; ++i)
   {
-    directions[i] = glm::vec3(s->spins[i], s->spins[s->geometry->nos + i], s->spins[2*s->geometry->nos + i]);
+    directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
   }
   gl_spins->updateSpins(positions, directions);
   

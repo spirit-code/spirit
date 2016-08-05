@@ -5,12 +5,12 @@
 #include <random>
 #include <vector>
 
-#include "Parameters_Solver.h"
+#include "Parameters_Method.h"
 
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_LLG : public Parameters_Solver
+	class Parameters_LLG : public Parameters_Method
 	{
 	public:
 		// Constructor
@@ -23,11 +23,6 @@ namespace Data
 		std::uniform_real_distribution<double> distribution_real;
 		std::uniform_real_distribution<double> distribution_minus_plus_one;
 		std::uniform_int_distribution<int> distribution_int;
-
-		// number of iterations carried out when pressing "play" or calling "iterate"
-		int n_iterations;
-		// after "log_steps"-iterations the current system is logged to file
-		int log_steps;
 
 		// Temperature [K]
 		double temperature;
