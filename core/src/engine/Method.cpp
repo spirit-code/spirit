@@ -4,7 +4,8 @@
 
 namespace Engine
 {
-    Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) : parameters(parameters)
+    Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
+        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
         this->SenderName = Utility::Log_Sender::ALL;
     }
@@ -26,7 +27,7 @@ namespace Engine
         return this->systems[0]->iteration_allowed && !this->Force_Converged(); // && c->iteration_allowed;
     }
 
-    void Method::Save_Step(int iteration, bool final)
+    void Method::Save_Step(std::string starttime, int iteration, bool final)
     {
         // Not Implemented!
         Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Step() of the Method base class!"));

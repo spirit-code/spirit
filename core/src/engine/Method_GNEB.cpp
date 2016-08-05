@@ -217,7 +217,7 @@ namespace Engine
 	}
 
 
-	void Method_GNEB::Save_Step(int iteration, bool final)
+	void Method_GNEB::Save_Step(std::string starttime, int iteration, bool final)
 	{
 
 		// Get the file suffix

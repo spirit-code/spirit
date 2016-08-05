@@ -27,6 +27,9 @@ namespace Engine
 		// currently only support a single image being iterated:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
+
+		this->force_max = std::vector<double>(this->systems.size(), 0.0);
+		this->force_converged = std::vector<bool>(this->systems.size(), false);
 	}
 
 
@@ -47,16 +50,21 @@ namespace Engine
 			auto fmax = this->Force_on_Image_MaxAbsComponent(*configurations[img], forces[img]);
 			// if (fmax < this->parameters->force_convergence) this->Force_Converged[img] = true;
 			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+			if (fmax > this->force_max[img]) this->force_max[img] = fmax;
 		}
 	}
 
 
 	bool Method_LLG::Force_Converged()
 	{
-		return false;
-		/*return std::all_of(this->isConverged.begin(),
-							this->isConverged.end(),
-							[](bool b) { return b; });*/
+		for (int i=0; i<this->systems.size(); ++i)
+		{
+			if (force_max[0] < this->systems[0]->llg_parameters->force_convergence) this->force_converged[0] = true;	
+		}
+		
+		return std::all_of(this->force_converged.begin(),
+							this->force_converged.end(),
+							[](bool b) { return b; });
 	}
 
 	void Method_LLG::Hook_Pre_Step()
@@ -89,42 +97,35 @@ namespace Engine
     }
 
 	
-	void Method_LLG::Save_Step(int iteration, bool final)
+	void Method_LLG::Save_Step(std::string starttime, int iteration, bool final)
 	{
-		// TODO: how to do this??
-		//		how to get the start time
-		// 		how to get the spin configurations
-		// Convert image to a formatted string
+		// Convert indices to formatted strings
 		auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 		auto s_iter = IO::int_to_formatted_string(iteration, 6);
-
+		
 		std::string suffix = "";
-
+		
 		if (final)
 		{
-			// TODO: get formatted int
-			// suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n)) + "_final";
+			auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
+			suffix = s_fix;
 		}
-		else
-		{
-			std::string suffix = "_archive";
-		}
+		else suffix = "_archive";
 
 		// Append Spin configuration to File
-		// auto spinsFile = this->parameters->output_folder + "/" + this->starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-		// Utility::IO::Append_Spin_Configuration(this->c->images[image], iteration, spinsFile);
+		auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
+		Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsFile);
 
 		// Save Spin configuration to new File
-		// auto spinsIterFile = this->parameters->output_folder + "/" + this->starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-		// Utility::IO::Append_Spin_Configuration(this->c->images[image], iteration, spinsIterFile);
+		auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
+		Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsIterFile);
 
 		// Check if Energy File exists and write Header if it doesn't
-		// auto energyFile = this->parameters->output_folder + "/" + this->starttime + "_Energy_" + s_img + suffix + ".txt";
-		// std::ifstream f(energyFile);
-		// if (!f.good()) Utility::IO::Write_Energy_Header(energyFile);
-		
+		auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
+		std::ifstream f(energyFile);
+		if (!f.good()) Utility::IO::Write_Energy_Header(energyFile);
 		// Append Energy to File
-		// Utility::IO::Append_Energy(*(this->c->images[image]), iteration, energyFile);
+		Utility::IO::Append_Energy(*this->system, iteration, energyFile);
 
 		// Save Log
 		Log.Append_to_File();

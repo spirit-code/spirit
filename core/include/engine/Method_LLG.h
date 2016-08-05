@@ -31,14 +31,17 @@ namespace Engine
 		// Method name as string
 		std::string Name() override;
 
-	private:
-		std::shared_ptr<Data::Spin_System> system;
 		// Save the current Step's Data: spins and energy
-		void Save_Step(int iteration, bool final) override;
+		void Save_Step(std::string starttime, int iteration, bool final=false) override;
 		// A hook into the Optimizer before an Iteration
 		void Hook_Pre_Step() override;
 		// A hook into the Optimizer after an Iteration
 		void Hook_Post_Step() override;
+
+	private:
+		std::shared_ptr<Data::Spin_System> system;
+		std::vector<bool> force_converged;
+		std::vector<double> force_max;
     };
 }
 

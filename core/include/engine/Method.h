@@ -36,7 +36,7 @@ namespace Engine
 		Utility::Log_Sender SenderName;
 		
 		// Save the current Step's Data
-		virtual void Save_Step(int iteration, bool final);
+		virtual void Save_Step(std::string starttime, int iteration, bool final=false);
 		// A hook into the Optimizer before an Iteration
 		virtual void Hook_Pre_Step();
 		// A hook into the Optimizer after an Iteration

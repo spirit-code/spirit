@@ -29,6 +29,9 @@ namespace Engine
         for (int i=0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
         this->ips = 0;
         this->starttime = Timing::CurrentDateTime();
+
+        // Initial force calculation s.t. it does not seem to be already converged
+        this->method->Calculate_Force(this->configurations, this->force);
     }
 
     
@@ -61,7 +64,7 @@ namespace Engine
 			// Do one single Iteration
 			this->Iteration();
             // Post-Iteration hook
-            this->method->Hook_Pre_Step();
+            this->method->Hook_Post_Step();
 
 			// Recalculate FPS
 			this->t_iterations.pop_front();
@@ -81,7 +84,7 @@ namespace Engine
 				Log.Send(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
 				Log.Send(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
 
-				this->method->Save_Step(i, false);
+				this->method->Save_Step(this->starttime, i, false);
 
 				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
 			}// endif log_steps
@@ -105,7 +108,7 @@ namespace Engine
 		Log.Send(Log_Level::ALL, sender, "------------------------------------------------------");
 
         //---- Final save
-		this->method->Save_Step(i, true);
+		this->method->Save_Step(this->starttime, i, true);
     }
 
     
