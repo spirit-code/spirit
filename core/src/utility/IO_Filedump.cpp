@@ -243,7 +243,7 @@ namespace Utility
 				snprintf(buffer_string_conversion, buffer_length, "\n Image No %3i", iimage);
 				output_to_file.append(buffer_string_conversion);
 				nos = c->images[iimage]->nos;
-				auto spins = *c->images[iimage]->spins;
+				auto& spins = *c->images[iimage]->spins;
 				for (iatom = 0; iatom < nos; ++iatom) {
 					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
 						spins[0 * nos + iatom], spins[1 * nos + iatom], spins[2 * nos + iatom]);

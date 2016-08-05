@@ -6,7 +6,7 @@ namespace Engine
 {
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) : parameters(parameters)
     {
-
+        this->SenderName = Utility::Log_Sender::ALL;
     }
 
     void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)

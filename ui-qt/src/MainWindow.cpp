@@ -371,7 +371,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				//else this->nextImagePressed();
 				Chain_Delete_Image(state.get(), idx);
 
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Deleted image " + std::to_string(state->idx_active_image));
+				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::UI, "Deleted image " + std::to_string(state->idx_active_image));
 			}
 			break;
 	}
@@ -381,7 +381,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 void MainWindow::stopallPressed()
 {
 	this->return_focus();
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, std::string("Button: stopall"));
 	
 	Simulation_Stop_All(state.get());
 
@@ -402,7 +402,7 @@ void MainWindow::stopallPressed()
 void MainWindow::playpausePressed()
 {
 	this->return_focus();
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: playpause"));
+	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, std::string("Button: playpause"));
 
 	Chain_Update_Data(this->state.get());
 

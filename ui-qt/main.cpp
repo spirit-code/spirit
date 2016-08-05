@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	QSurfaceFormat::setDefaultFormat(format);
-	qDebug() << "surface format:" << format.majorVersion() << "." << format.minorVersion();
+	Log.Send(Log_Level::INFO, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
 
 	MainWindow window(state);
 	window.setWindowTitle(app.applicationName());

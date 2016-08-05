@@ -34,7 +34,7 @@ GLSpins::GLSpins(std::shared_ptr<Data::Spin_System> s, int width, int height)
 
 	// Spin orientations
 	std::vector<glm::vec3> directions(nos);
-    auto spins = *s->spins;
+    auto& spins = *s->spins;
 	for (unsigned int i = 0; i < nos; ++i)
 	{
 		directions[i] = glm::vec3(spins[i], spins[g->nos + i], spins[2*g->nos + i]);
@@ -266,7 +266,7 @@ void GLSpins::draw() {
 
 	// Update directions
 	std::vector<glm::vec3> directions(nos);
-    auto spins = *s->spins;
+    auto& spins = *s->spins;
 	for (unsigned int i = 0; i < nos; ++i)
 	{
 		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);

@@ -52,7 +52,7 @@ void DebugWidget::UpdateFromLog()
 		{
 			if ((entries[i].sender == Utility::Log_Sender::ALL) ||
 				(this->checkBox_IO->isChecked() && (entries[i].sender == Utility::Log_Sender::IO)) ||
-				(this->checkBox_GUI->isChecked() && (entries[i].sender == Utility::Log_Sender::GUI)) ||
+				(this->checkBox_GUI->isChecked() && (entries[i].sender == Utility::Log_Sender::UI)) ||
 				(this->checkBox_LLG->isChecked() && (entries[i].sender == Utility::Log_Sender::LLG)) ||
 				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Utility::Log_Sender::GNEB)) ||
 				(this->checkBox_MMF->isChecked() && (entries[i].sender == Utility::Log_Sender::MMF)))

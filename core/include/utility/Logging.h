@@ -17,7 +17,7 @@ namespace Utility
 		LLG,
 		MMF,
 		API,
-		GUI
+		UI
 	};
 
 	enum class Log_Level

@@ -22,6 +22,7 @@ namespace Engine
 		Method(chain->gneb_parameters, idx_img, idx_chain), chain(chain)
 	{
 		this->systems = chain->images;
+		this->SenderName = Utility::Log_Sender::GNEB;
 		// Method child-class specific instructions
 		// this->force_call = std::shared_ptr<Engine::Force>(new Force_GNEB(this->c));
 		// this->systems = c->images;
@@ -175,39 +176,59 @@ namespace Engine
 
 	void Method_GNEB::Hook_Post_Step()
 	{
-		// TODO: whatever do we do here??
-		// int nos = c->images[0]->nos;
+		// Update Images' Energies
+		for (int i = 0; i < chain->noi; ++i)
+		{
+			//Engine::Energy::Update(*chain->images[i]);
+			//chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
+			chain->images[i]->UpdateEnergy();
+			// if (i > 0) chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(chain->images[i - 1]->spins, state->active_chain->images[i]->spins);
+		}
 
-		// // this->optimizer->Step();
+		// Update Chain's reaction coordinates
+		for (int i = 1; i < chain->noi; ++i)
+		{
+			chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i - 1]->spins, *chain->images[i]->spins);
+		}
 
-		// // Calculate and interpolate energies and store in the spin systems and spin system chain
-		// std::vector<double> E(c->noi, 0);
-		// std::vector<double> dE_dRx(c->noi, 0);
-		// // Calculate the inclinations at the data points
-		// for (int i = 0; i < c->noi; ++i)
-		// {
-		// 	// x
-		// 	if (i > 0) c->Rx[i] = c->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(c->images[i - 1]->spins, c->images[i]->spins);
-		// 	// y
-		// 	E[i] = c->images[i]->E;
-		// 	// dy/dx
-		// 	for (int j = 0; j < 3 * nos; ++j)
-		// 	{
-		// 		dE_dRx[i] += c->images[i]->effective_field[j] * c->tangents[i][j];
-		// 	}
-		// }
-		// // Actual Interpolation
-		// std::vector<std::vector<double>> interp = Utility::Cubic_Hermite_Spline::Interpolate(c->Rx, E, dE_dRx, c->gneb_parameters->n_E_interpolations);
-		// c->Rx_interpolated = interp[0];
-		// c->E_interpolated = interp[1];
+		// TODO: UPDATE THE TANGENTS??
+		// ...
+
+		// Calculate the inclinations at the data points
+		std::vector<double> E(chain->noi, 0);
+		std::vector<double> dE_dRx(chain->noi, 0);
+		for (int i = 0; i < chain->noi; ++i)
+		{
+			// y array
+			E[i] = chain->images[i]->E;
+			// dy/dx
+			for (int j = 0; j < 3 * chain->images[i]->nos; ++j)
+			{
+				dE_dRx[i] += chain->images[i]->effective_field[j] * chain->tangents[i][j];
+			}
+		}
+
+		// Interpolate data points
+		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(chain->Rx, E, dE_dRx, chain->gneb_parameters->n_E_interpolations);
+
+		// Assign to chain
+		chain->Rx_interpolated = interp[0];
+		chain->E_interpolated  = interp[1];
 	}
 
 
 	void Method_GNEB::Save_Step(int iteration, bool final)
 	{
+
+		// Get the file suffix
+		std::string suffix = "";
+		if (final) suffix = "_final";
+		else suffix = "";
+
+		// always formatting to 6 digits may be problematic!
+		auto s_iter = IO::int_to_formatted_string(iteration, 6);
+
 		// TODO: how to handle??
-		// // always formatting to 6 digits may be problematic!
-		// auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
 		// // Save current Image Chain
 		// auto imagesFile = this->c->gneb_parameters->output_folder + "/" + this->starttime + "_Images_" + s_iter + suffix + ".txt";

@@ -34,31 +34,26 @@ namespace Engine
     
     void Optimizer::Iterate()
     {
-        // TODO: get this from Method
-        auto sender = Log_Sender::GNEB;
-
 		//------------------------ Init local vars ---------------------------------
-		this->starttime     = Timing::CurrentDateTime();
+		this->starttime = Timing::CurrentDateTime();
+        auto sender     = method->SenderName;
         //----
 		int i, step = 0;
-        // TODO: How to get the right suffix?
-		std::string suffix = ""; // GNEB
-		// std::string suffix = "_archive"; // LLG
 		//------------------------ End Init ----------------------------------------
 
-        // Log message
+        //---- Log messages
 		Log.Send(Log_Level::ALL, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
 		Log.Send(Log_Level::ALL, sender, "Going to iterate " + std::to_string(n_log) + " steps");
         Log.Send(Log_Level::ALL, sender, "            with " + std::to_string(log_steps) + " iterations per step");
 		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log.Send(Log_Level::ALL, sender, "-----------------------------------------------------");
 
-        // Start Timings
+        //---- Start Timings
 		auto t_start = system_clock::now();
 		auto t_current = system_clock::now();
 		auto t_last = system_clock::now();
 
-        // Iteration loop
+        //---- Iteration loop
 		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
 		{
             // Pre-Iteration hook
@@ -92,9 +87,10 @@ namespace Engine
 			}// endif log_steps
 		}// endif i
 
-        // End timing
+        //---- End timings
 		auto t_end = system_clock::now();
 
+        //---- Log messages
 		Log.Send(Log_Level::ALL, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------");
 		Log.Send(Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
 		if (this->method->Force_Converged())
@@ -108,11 +104,8 @@ namespace Engine
 		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log.Send(Log_Level::ALL, sender, "------------------------------------------------------");
 
-        // TODO: How to get the right suffix?
-		suffix = "_final"; // GNEB
-        // suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n)) + "_final"; // LLG
+        //---- Final save
 		this->method->Save_Step(i, true);
-		//IO::Dump_to_File(output_strings, "spin_archieve.dat", c->images[0]->debug_parameters->output_notification, step);
     }
 
     

@@ -38,7 +38,7 @@ namespace Utility
 			}
 
 			int dim, iatom, nos = s.nos;
-			auto spins = *s.spins;
+			auto& spins = *s.spins;
 
 			if (greater) {
 				for (dim = 0; dim < 3; ++dim) {
@@ -104,7 +104,7 @@ namespace Utility
 
 		void Random(Data::Spin_System & s, int no, std::mt19937 &prng)
 		{
-			auto spins = *s.spins;
+			auto& spins = *s.spins;
 			std::vector<double> v = { 0.0, 0.0, 0.0 };			// declare v= 0,0,0
 			while (true) {
 				for (int dim = 0; dim < 3; ++dim) {		// use spin_system's PRNG
@@ -125,7 +125,7 @@ namespace Utility
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
-			auto spins = *s.spins;
+			auto& spins = *s.spins;
 			// skaled to fit with 
 			double r_new = r;
 			if (experimental) { r_new = r*1.2; }
@@ -147,7 +147,7 @@ namespace Utility
 					spins[iatom] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
 				}
 			}
-			Utility::Vectormath::Normalize_3Nos(spins);
+			Utility::Vectormath::Normalize_3Nos(spins);	
 		}
 		// end Skyrmion
 
@@ -256,7 +256,7 @@ namespace Utility
 			}
 
 			// -------------------- Spin Spiral creation --------------------
-			auto spins = *s.spins;
+			auto& spins = *s.spins;
 			if (direction_type == "Real Lattice")
 			{
 				// NOTE this is not yet the correct function!!

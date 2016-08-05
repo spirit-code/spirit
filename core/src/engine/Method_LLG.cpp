@@ -24,11 +24,9 @@ namespace Engine
     Method_LLG::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
 		Method(system->llg_parameters, idx_img, idx_chain), system(system)
 	{
+		// currently only support a single image being iterated:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
-		// // Method child-class specific instructions
-		// // currently only support a single image being iterated:
-		// this->force_call = std::shared_ptr<Engine::Force>(new Force_LLG(this->c));
-		// this->systems.push_back(c->images[c->idx_active_image]);
+		this->SenderName = Utility::Log_Sender::LLG;
 	}
 
 
@@ -68,8 +66,10 @@ namespace Engine
 
     void Method_LLG::Hook_Post_Step()
     {
-		// this->optimizer->Step();
+		// Update the system's Energy
+		system->UpdateEnergy();
 
+		// TODO: renormalize spins??
 		// TODO: figure out specialization of members (Method_LLG should hold Parameters_LLG)
         // if (this->parameters->renorm_sd) {
         //     try {
@@ -97,6 +97,18 @@ namespace Engine
 		// Convert image to a formatted string
 		auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 		auto s_iter = IO::int_to_formatted_string(iteration, 6);
+
+		std::string suffix = "";
+
+		if (final)
+		{
+			// TODO: get formatted int
+			// suffix = "_" + IO::int_to_formatted_string(i, (int)log10(n)) + "_final";
+		}
+		else
+		{
+			std::string suffix = "_archive";
+		}
 
 		// Append Spin configuration to File
 		// auto spinsFile = this->parameters->output_folder + "/" + this->starttime + "_" + "Spins_" + s_img + suffix + ".txt";

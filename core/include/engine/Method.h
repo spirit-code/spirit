@@ -32,8 +32,8 @@ namespace Engine
 
 		// Method name as string
 		virtual std::string Name();
-		// TODO: Method name as enum
-		//Utility::Log_Sender SenderName;
+		// Method name as enum
+		Utility::Log_Sender SenderName;
 		
 		// Save the current Step's Data
 		virtual void Save_Step(int iteration, bool final);
