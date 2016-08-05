@@ -2,6 +2,8 @@
 #include "Interface_State.h"
 #include "Optimizer.h"
 #include "Optimizer_Heun.h"
+#include "Optimizer_SIB.h"
+#include "Optimizer_SIB2.h"
 #include "Optimizer_CG.h"
 #include "Optimizer_QM.h"
 #include "Method.h"
@@ -71,6 +73,10 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         if (optimizer_type == "SIB")
         {
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB(method));
+        }
+        else if (optimizer_type == "SIB2")
+        {
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB2(method));
         }
         else if (optimizer_type == "Heun")
         {

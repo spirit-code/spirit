@@ -27,14 +27,16 @@ namespace Engine
 		// Method name as string
 		std::string Name() override;
 
-	private:
-		std::shared_ptr<Data::Spin_System_Chain> chain;
 		// Save the current Step's Data: images and images' energies and reaction coordinates
 		void Save_Step(std::string starttime, int iteration, bool final=false) override;
 		// A hook into the Optimizer before an Iteration
 		void Hook_Pre_Step() override;
 		// A hook into the Optimizer after an Iteration
 		void Hook_Post_Step() override;
+		
+		bool Iterations_Allowed() override;
+	private:
+		std::shared_ptr<Data::Spin_System_Chain> chain;
     };
 }
 

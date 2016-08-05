@@ -24,7 +24,12 @@ namespace Engine
 
     bool Method::ContinueIterating()
     {
-        return this->systems[0]->iteration_allowed && !this->Force_Converged(); // && c->iteration_allowed;
+        return this->Iterations_Allowed() && !this->Force_Converged(); // && c->iteration_allowed;
+    }
+
+    bool Method::Iterations_Allowed()
+    {
+        return this->systems[0]->iteration_allowed;
     }
 
     void Method::Save_Step(std::string starttime, int iteration, bool final)

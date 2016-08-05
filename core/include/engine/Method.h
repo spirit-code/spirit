@@ -57,7 +57,7 @@ namespace Engine
 		int idx_chain;
 		// Calculate force_maxAbsComponent for a spin configuration
 		virtual double Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force) final;
-		
+		virtual bool Iterations_Allowed();
 	};
 }
 

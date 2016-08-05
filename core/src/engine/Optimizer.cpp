@@ -96,14 +96,15 @@ namespace Engine
         //---- Log messages
 		Log.Send(Log_Level::ALL, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------");
 		Log.Send(Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
-		if (this->method->Force_Converged())
+		Log.Send(Log_Level::ALL, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+        if (this->StopFilePresent())
+			Log.Send(Log_Level::ALL, sender, "    A STOP file has been found.");
+        else
+        Log.Send(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
+        if (this->method->Force_Converged())
 			Log.Send(Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent));
 		else
 			Log.Send(Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->method->force_maxAbsComponent));
-        Log.Send(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
-		if (this->StopFilePresent())
-			Log.Send(Log_Level::ALL, sender, "    A STOP file has been found.");
-		Log.Send(Log_Level::ALL, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
 		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log.Send(Log_Level::ALL, sender, "------------------------------------------------------");
 

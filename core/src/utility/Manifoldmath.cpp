@@ -9,13 +9,16 @@ namespace Utility
 		/*
 			Calculates the 'tangent' vectors, i.e.in crudest approximation the difference between an image and the neighbouring
 		*/
-		void Tangents(std::vector<std::vector<double>> & configurations, std::vector<double> energies, std::vector<std::vector<double>> & tangents)
+		void Tangents(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<double> energies, std::vector<std::vector<double>> & tangents)
 		{
 			int noi = configurations.size();
-			int nos = configurations[0].size()/3;
+			int nos = (*configurations[0]).size()/3;
 
 			for (int idx_img = 0; idx_img < noi; ++idx_img)
 			{
+				auto& image_plus  = *configurations[idx_img+1];
+				auto& image       = *configurations[idx_img];
+				auto& image_minus = *configurations[idx_img-1];
 				// First Image
 				if (idx_img == 0)
 				{
@@ -25,7 +28,7 @@ namespace Utility
 						int di = dim*nos;
 						for (int i = 0; i < nos; ++i)
 						{
-							tangents[idx_img][i + di] = configurations[idx_img+1][i + di] - configurations[idx_img][i + di];
+							tangents[idx_img][i + di] = image_plus[i + di] - image[i + di];
 						}
 					}
 				}
@@ -38,7 +41,7 @@ namespace Utility
 						int di = dim*nos;
 						for (int i = 0; i < nos; ++i)
 						{
-							tangents[idx_img][i + di] = configurations[idx_img][i + di] - configurations[idx_img-1][i + di];
+							tangents[idx_img][i + di] = image[i + di] - image_minus[i + di];
 						}
 					}
 				}
@@ -58,8 +61,8 @@ namespace Utility
 						int di = dim*nos;
 						for (int i = 0; i < nos; ++i)
 						{
-							t_plus[i + di] = configurations[idx_img+1][i + di] - configurations[idx_img][i + di];
-							t_minus[i + di] = configurations[idx_img][i + di] - configurations[idx_img-1][i + di];
+							t_plus[i + di] = image_plus[i + di] - image[i + di];
+							t_minus[i + di] = image[i + di] - image_minus[i + di];
 						}
 					}
 
@@ -147,14 +150,14 @@ namespace Utility
 					v1v2 = 0;
 					for (dim = 0; dim < 3; ++dim)
 					{
-						v1v2 += tangents[idx_img][i+dim*nos] * configurations[idx_img][i+dim*nos];
+						v1v2 += tangents[idx_img][i+dim*nos] * image[i+dim*nos];
 					}
 					// Take out component in direction of v2
 					for (int dim = 0; dim < 3; ++dim)
 					{
 						/*for (int i = 0; i < nos; ++i)
 						{*/
-							tangents[idx_img][i + dim*nos] = tangents[idx_img][i + dim*nos] - v1v2 * configurations[idx_img][i + dim*nos];
+							tangents[idx_img][i + dim*nos] = tangents[idx_img][i + dim*nos] - v1v2 * image[i + dim*nos];
 						//}
 					}
 				}

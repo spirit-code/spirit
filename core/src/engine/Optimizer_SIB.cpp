@@ -12,7 +12,8 @@ namespace Engine
 		this->xi = std::vector<double>(3 * this->nos);
 		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		
-		this->spins_temp = std::vector<std::shared_ptr<std::vector<double>>>(this->noi, std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * this->nos))); // [noi][3*nos]
+		this->spins_temp = std::vector<std::shared_ptr<std::vector<double>>>(this->noi);
+		for (int i=0; i<this->noi; ++i) spins_temp[i] = std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * this->nos)); // [noi][3*nos]
     }
 
     void Optimizer_SIB::Iteration()
@@ -29,7 +30,7 @@ namespace Engine
 		}
 
 		// First part of the step
-		this->method->Calculate_Force(this->configurations, force);
+		this->method->Calculate_Force(configurations, force);
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
