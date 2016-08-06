@@ -5,15 +5,17 @@ import sys
 sys.path.insert(0, interface_dir)
 
 ### Import core library
-import interface.core as core
+from core import state
+from core import simulation
 
 
-# cfgfile = "input/markus-paper.cfg";
-cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-# cfgfile = "input/daniel-master-thesis-isotropic.cfg";
+
+# cfgfile = "input/markus-paper.cfg"
+cfgfile = "input/gideon-master-thesis-isotropic.cfg"
+# cfgfile = "input/daniel-master-thesis-isotropic.cfg"
 
 ### Get a State pointer
-state = core.setupState(cfgfile)
+p_state = state.setup(cfgfile)
 
 
 ### ...
@@ -45,8 +47,8 @@ state = core.setupState(cfgfile)
 # Transition_Homogeneous(state.get(), 0, state->noi-1);
 
 
-### ...
-# Simulation_PlayPause(state)
+### Run a LLG simulation
+simulation.PlayPause(p_state, "LLG", "SIB", -1, -1)
 
 ### ...
 # // Finish

@@ -10,10 +10,6 @@ _core = ctypes.CDLL(core_dir + '/libcore.so')
 _setupState = _core.setupState
 _setupState.argtypes = [ctypes.c_char_p]
 _setupState.restype = ctypes.c_void_p
-def setupState(configfile):
+def setup(configfile):
     global _core
-    # n = len(configfile)
-    # array_type = ctypes.c_char_p * n
-    # result = _core.setupState(ctypes.c_char_p(configfile))
-    # return state(result)
     return _core.setupState(ctypes.c_char_p(configfile))
