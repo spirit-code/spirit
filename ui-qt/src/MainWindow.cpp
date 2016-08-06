@@ -406,8 +406,14 @@ void MainWindow::playpausePressed()
 
 	Chain_Update_Data(this->state.get());
 
-	auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
-	auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+	auto qs_method = this->comboBox_Method->currentText();
+	auto qs_optimizer = this->comboBox_Optimizer->currentText();
+	
+	auto s_method = string_q2std(qs_method);
+	auto s_optimizer = string_q2std(qs_optimizer);
+	
+	auto c_method = s_method.c_str();
+	auto c_optimizer = s_optimizer.c_str();
 
 	if ( Simulation_Running_LLG(this->state.get())  ||
 		 Simulation_Running_GNEB(this->state.get()) ||

@@ -9,7 +9,7 @@ namespace Engine
 {
     Optimizer::Optimizer(std::shared_ptr<Engine::Method> method)
     {
-        this->method = method;;
+        this->method = method;
 
         this->noi = this->method->systems.size();
         this->nos = this->method->systems[0]->nos;
