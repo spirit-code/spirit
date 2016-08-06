@@ -7,6 +7,8 @@
 #include <IO.h>
 #include <signal.h>
 
+Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
+
 namespace Utility
 {
 	LogEntry::LogEntry(system_clock::time_point t, Log_Sender s, Log_Level l, int i, std::string m) :
