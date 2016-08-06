@@ -10,7 +10,7 @@ public:
   virtual void initGL();
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions);
-  virtual void draw(double aspectRatio) const;
+  virtual void draw(float aspectRatio) const;
   
 protected:
   virtual void optionsHaveChanged(const std::vector<int>& changedOptions);
@@ -39,22 +39,22 @@ enum ArrowSpinRendererOptions {
 
 template<> template<>
 struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CONE_RADIUS> {
-  double default_value = 0.25;
+  float default_value = 0.25f;
 };
 
 template<> template<>
 struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CONE_HEIGHT> {
-  double default_value = 0.6;
+  float default_value = 0.6f;
 };
 
 template<> template<>
 struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CYLINDER_RADIUS> {
-  double default_value = 0.125;
+  float default_value = 0.125f;
 };
 
 template<> template<>
 struct Options<GLSpins>::Option<ArrowSpinRendererOptions::CYLINDER_HEIGHT> {
-  double default_value = 0.7;
+  float default_value = 0.7f;
 };
 
 template<> template<>

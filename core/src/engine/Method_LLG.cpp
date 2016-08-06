@@ -57,7 +57,7 @@ namespace Engine
 
 	bool Method_LLG::Force_Converged()
 	{
-		for (int i=0; i<this->systems.size(); ++i)
+		for (unsigned int i=0; i<this->systems.size(); ++i)
 		{
 			if (force_max[0] < this->systems[0]->llg_parameters->force_convergence) this->force_converged[0] = true;	
 		}

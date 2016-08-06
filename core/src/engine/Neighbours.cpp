@@ -197,10 +197,10 @@ namespace Engine
 		std::vector<double> jpos = { 0.0, 0.0, 0.0 };
 		double dist;
 		unsigned int bvector, number_b_vectors = boundary_vectors[0].size();
-		int iatom, jatom, jspin, shell;
+		int iatom, jatom, shell;
 		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
 
-		int i, j, k, imax = 10, jmax = 10, kmax = 10;
+		int imax = 10, jmax = 10, kmax = 10;
 		if (!borderOnly) {
 			// Set the n_cells in which to fit this shell and determine MaxNumber_NInShell
 			imax = 30; jmax = 30; kmax = 30;

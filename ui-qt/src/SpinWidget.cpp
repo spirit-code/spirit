@@ -36,12 +36,12 @@ void SpinWidget::paintGL() {
   auto& spins = *s->spins;
   
   std::vector<glm::vec3> positions(s->geometry->nos);
-  for (unsigned int i = 0; i < s->geometry->nos; ++i)
+  for (int i = 0; i < s->geometry->nos; ++i)
   {
     positions[i] = glm::vec3(s->geometry->spin_pos[0][i], s->geometry->spin_pos[1][i], s->geometry->spin_pos[2][i]);
   }
   std::vector<glm::vec3> directions(s->geometry->nos);
-  for (unsigned int i = 0; i < s->geometry->nos; ++i)
+  for (int i = 0; i < s->geometry->nos; ++i)
   {
     directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
   }

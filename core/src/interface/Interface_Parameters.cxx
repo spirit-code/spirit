@@ -42,7 +42,7 @@ void Parameters_Get_LLG_Time_Step(State *state, float * dt)
 {
     auto s = state->active_image;
     auto p = s->llg_parameters;
-    *dt = p->dt;
+    *dt = (float)p->dt;
 
 }
 
@@ -50,14 +50,14 @@ void Parameters_Get_LLG_Damping(State *state, float * damping)
 {
     auto s = state->active_image;
     auto p = s->llg_parameters;
-    *damping = p->damping;
+    *damping = (float)p->damping;
 }
 
 // Set GNEB
 void Parameters_Get_GNEB_Spring_Constant(State *state, float * spring_constant)
 {
     auto p = state->active_chain->gneb_parameters;
-    *spring_constant = p->spring_constant;
+    *spring_constant = (float)p->spring_constant;
 }
 
 void Parameters_Get_GNEB_Climbing_Falling(State *state, bool * climbing, bool * falling)

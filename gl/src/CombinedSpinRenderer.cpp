@@ -26,7 +26,7 @@ void CombinedSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
   }
 }
 
-void CombinedSpinRenderer::draw(double aspectRatio) const {
+void CombinedSpinRenderer::draw(float aspectRatio) const {
   for (auto renderer : _renderers) {
     renderer->draw(aspectRatio);
   }

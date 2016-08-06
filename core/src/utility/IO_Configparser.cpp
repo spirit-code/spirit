@@ -274,9 +274,9 @@ namespace Utility
 			// PRNG Seed
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
-			int n_iterations=2E+6;
+			int n_iterations = (int)2E+6;
 			// after "log_steps"-iterations the current system is logged to file
-			int log_steps=5000;
+			int log_steps = 5000;
 			// Temperature in K
 			double temperature = 0.0;
 			// Damping constant
@@ -350,7 +350,7 @@ namespace Utility
 			// Force convergence parameter
 			double force_convergence = 10e-9;
 			// number of iterations carried out when pressing "play" or calling "iterate"
-			int n_iterations = 2E+6;
+			int n_iterations = (int)2E+6;
 			// after "log_steps"-iterations the current system is logged to file
 			int log_steps = 5000;
 			// Number of Energy Interpolation points

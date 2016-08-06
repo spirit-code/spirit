@@ -143,7 +143,7 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s)
 {
     auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-    *mu_s = ham->mu_s;
+    *mu_s = (float)ham->mu_s;
 }
 
 void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
@@ -152,12 +152,12 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, fl
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
-    *magnitude = ham->external_field_magnitude / ham->mu_s / Utility::Vectormath::MuB();
+    *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Utility::Vectormath::MuB());
     
     // Normal
-    *normal_x = ham->external_field_normal[0];
-    *normal_y = ham->external_field_normal[1];
-    *normal_z = ham->external_field_normal[2];
+    *normal_x = (float)ham->external_field_normal[0];
+    *normal_y = (float)ham->external_field_normal[1];
+    *normal_z = (float)ham->external_field_normal[2];
 }
 
 void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
@@ -170,7 +170,7 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
     // Note the array needs to be correctly allocated beforehand!
     for (int i=0; i<*n_shells; ++i)
     {
-        jij[i] = ham->jij[i];
+        jij[i] = (float)ham->jij[i];
     }
 }
 
@@ -179,7 +179,7 @@ void Hamiltonian_Get_DMI(State *state, float * dij)
     auto s = state->active_image;
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
-    *dij = ham->dij;
+    *dij = (float)ham->dij;
 }
 
 void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
@@ -188,12 +188,12 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal_
     auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
 
     // Magnitude
-    *magnitude = ham->anisotropy_magnitude;
+    *magnitude = (float)ham->anisotropy_magnitude;
     
     // Normal
-    *normal_x = ham->anisotropy_normal[0];
-    *normal_y = ham->anisotropy_normal[1];
-    *normal_z = ham->anisotropy_normal[2];
+    *normal_x = (float)ham->anisotropy_normal[0];
+    *normal_y = (float)ham->anisotropy_normal[1];
+    *normal_z = (float)ham->anisotropy_normal[2];
 }
 
 void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
@@ -201,15 +201,15 @@ void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal_x, floa
     auto s = state->active_image;
 
     // Magnitude
-    *magnitude = s->llg_parameters->stt_magnitude;
+    *magnitude = (float)s->llg_parameters->stt_magnitude;
     // Normal
-    *normal_x = s->llg_parameters->stt_polarisation_normal[0];
-    *normal_y = s->llg_parameters->stt_polarisation_normal[1];
-    *normal_z = s->llg_parameters->stt_polarisation_normal[2];
+    *normal_x = (float)s->llg_parameters->stt_polarisation_normal[0];
+    *normal_y = (float)s->llg_parameters->stt_polarisation_normal[1];
+    *normal_z = (float)s->llg_parameters->stt_polarisation_normal[2];
 }
 
 void Hamiltonian_Get_Temperature(State *state, float * T)
 {
     auto s = state->active_image;
-    *T = s->llg_parameters->temperature;
+    *T = (float)s->llg_parameters->temperature;
 }

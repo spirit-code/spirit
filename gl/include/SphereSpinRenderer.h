@@ -15,7 +15,7 @@ public:
   virtual void initGL();
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions);
-  virtual void draw(double aspectRatio) const;
+  virtual void draw(float aspectRatio) const;
   
 protected:
   virtual void optionsHaveChanged(const std::vector<int>& changedOptions);
@@ -34,12 +34,12 @@ private:
 
 template<> template<>
 struct Options<GLSpins>::Option<SphereSpinRenderer::Option::POINT_SIZE_RANGE> {
-  glm::vec2 default_value = {1.0, 4.0};
+  glm::vec2 default_value = {1.0f, 4.0f};
 };
 
 template<> template<>
 struct Options<GLSpins>::Option<SphereSpinRenderer::Option::INNER_SPHERE_RADIUS> {
-  double default_value = 0.95;
+  float default_value = 0.95f;
 };
 
 template<> template<>

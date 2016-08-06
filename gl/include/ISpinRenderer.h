@@ -25,7 +25,7 @@ public:
   virtual void initGL() = 0;
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions) = 0;
-  virtual void draw(double aspect_ratio) const = 0;
+  virtual void draw(float aspect_ratio) const = 0;
 
 protected:
   virtual void optionsHaveChanged(const std::vector<int>& changedOptions) = 0;
@@ -41,7 +41,7 @@ inline void ISpinRenderer::updateOptions(const Options<GLSpins>& options) {
 
 template<> template<>
 struct Options<GLSpins>::Option<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW> {
-  double default_value = 45.0;
+  float default_value = 45.0;
 };
 
 template<> template<>

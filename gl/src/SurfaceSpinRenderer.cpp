@@ -75,7 +75,7 @@ void SurfaceSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
 }
 
-void SurfaceSpinRenderer::draw(double aspectRatio) const {
+void SurfaceSpinRenderer::draw(float aspectRatio) const {
   if (_numIndices <= 0) {
     return;
   }
@@ -89,14 +89,14 @@ void SurfaceSpinRenderer::draw(double aspectRatio) const {
   if (zRange.y >= 1) {
     zRange.y = 2;
   }
-  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  float verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   
   glm::mat4 projectionMatrix;
   if (verticalFieldOfView > 0) {
-    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1f, 10000.0f);
   } else {
     float camera_distance = glm::length(cameraPosition-centerPosition);
     float leftRight = camera_distance * aspectRatio;
@@ -104,7 +104,7 @@ void SurfaceSpinRenderer::draw(double aspectRatio) const {
     projectionMatrix = glm::ortho(-leftRight, leftRight, -bottomTop, bottomTop, -10000.0f, 10000.0f);
   }
   glm::mat4 modelviewMatrix = glm::lookAt(cameraPosition, centerPosition, upVector);
-  glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0);
+  glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0f);
   
   glUniformMatrix4fv(glGetUniformLocation(_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projectionMatrix));
   glUniformMatrix4fv(glGetUniformLocation(_program, "uModelviewMatrix"), 1, false, glm::value_ptr(modelviewMatrix));

@@ -51,13 +51,13 @@ public:
   void draw();
 
   void mouseMove(const glm::vec2& position_before, const glm::vec2& position_after, CameraMovementModes mode);
-  void mouseScroll(const double& wheel_delta);
+  void mouseScroll(const float& wheel_delta);
   void setCameraToDefault();
   void setCameraToX();
   void setCameraToY();
   void setCameraToZ();
-  void setFramebufferSize(double width, double height);
-  double getFramerate() const;
+  void setFramebufferSize(float width, float height);
+  float getFramerate() const;
   
   void updateOptions(const Options<GLSpins>& options);
   void options(const Options<GLSpins>& options);
@@ -72,11 +72,11 @@ private:
   
   std::vector<float> _positions;
   std::vector<float> _directions;
-  std::vector<std::pair<std::shared_ptr<ISpinRenderer>, std::array<double, 4>>> _renderers;
+  std::vector<std::pair<std::shared_ptr<ISpinRenderer>, std::array<float, 4>>> _renderers;
   Camera _camera;
   FPSCounter _fps_counter;
-  double _width;
-  double _height;
+  float _width;
+  float _height;
   
   Options<GLSpins> _options;
 };

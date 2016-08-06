@@ -65,11 +65,11 @@ void BoundingBoxRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                      const std::vector<glm::vec3>& directions) {
 }
 
-void BoundingBoxRenderer::draw(double aspectRatio) const {
+void BoundingBoxRenderer::draw(float aspectRatio) const {
   glUseProgram(_program);
   glBindVertexArray(_vao);
 
-  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  float verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
@@ -77,7 +77,7 @@ void BoundingBoxRenderer::draw(double aspectRatio) const {
   
   glm::mat4 projectionMatrix;
   if (verticalFieldOfView > 0) {
-    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1f, 10000.0f);
   } else {
     float camera_distance = glm::length(cameraPosition-centerPosition);
     float leftRight = camera_distance * aspectRatio;

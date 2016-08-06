@@ -72,11 +72,11 @@ void SphereSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
   _numInstances = directions.size();
 }
 
-void SphereSpinRenderer::draw(double aspectRatio) const {
-  double innerSphereRadius = _options.get<SphereSpinRenderer::Option::INNER_SPHERE_RADIUS>();
-  if (innerSphereRadius > 0.0) {
-    if (innerSphereRadius > 0.99) {
-      innerSphereRadius = 0.99;
+void SphereSpinRenderer::draw(float aspectRatio) const {
+  float innerSphereRadius = _options.get<SphereSpinRenderer::Option::INNER_SPHERE_RADIUS>();
+  if (innerSphereRadius > 0.0f) {
+    if (innerSphereRadius > 0.99f) {
+      innerSphereRadius = 0.99f;
     }
     glUseProgram(_program2);
     
@@ -110,9 +110,9 @@ void SphereSpinRenderer::draw(double aspectRatio) const {
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
   glm::vec2 pointSizeRange = _options.get<SphereSpinRenderer::Option::POINT_SIZE_RANGE>();
   
-  glm::mat4 projectionMatrix = glm::ortho(-aspectRatio, aspectRatio, -1.0, 1.0, 2.0, 0.0);
+  glm::mat4 projectionMatrix = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f, 2.0f, 0.0f);
   glm::mat4 modelviewMatrix = glm::lookAt(glm::normalize(cameraPosition-centerPosition), {0, 0, 0}, upVector);
-  glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0);
+  glm::vec4 lightPosition = modelviewMatrix * glm::vec4(cameraPosition, 1.0f);
   
   glUniformMatrix4fv(glGetUniformLocation(_program1, "uProjectionMatrix"), 1, false, glm::value_ptr(projectionMatrix));
   glUniformMatrix4fv(glGetUniformLocation(_program1, "uModelviewMatrix"), 1, false, glm::value_ptr(modelviewMatrix));
@@ -124,9 +124,9 @@ void SphereSpinRenderer::draw(double aspectRatio) const {
   glUniform1f(glGetUniformLocation(_program1, "uInnerSphereRadius"), innerSphereRadius);
   bool useSphereFakePerspective = _options.get<SphereSpinRenderer::Option::USE_SPHERE_FAKE_PERSPECTIVE>();
   if (useSphereFakePerspective) {
-    glUniform1f(glGetUniformLocation(_program1, "uUseFakePerspective"), 1.0);
+    glUniform1f(glGetUniformLocation(_program1, "uUseFakePerspective"), 1.0f);
   } else {
-    glUniform1f(glGetUniformLocation(_program1, "uUseFakePerspective"), 0.0);
+    glUniform1f(glGetUniformLocation(_program1, "uUseFakePerspective"), 0.0f);
   }
   
   glEnable(GL_PROGRAM_POINT_SIZE);

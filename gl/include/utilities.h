@@ -17,12 +17,12 @@ std::string getColormapImplementation(const std::string& colormapName);
 class FPSCounter {
 public:
   void tick();
-  double getFramerate() const;
+  float getFramerate() const;
 private:
   int _max_n = 60;
-  std::chrono::duration<double> _n_frame_duration = std::chrono::duration<double>::zero();
+  std::chrono::duration<float> _n_frame_duration = std::chrono::duration<float>::zero();
   std::chrono::steady_clock::time_point _previous_frame_time_point;
-  std::queue<std::chrono::duration<double>> _frame_durations;
+  std::queue<std::chrono::duration<float>> _frame_durations;
 };
 
 #endif

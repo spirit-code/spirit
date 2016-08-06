@@ -85,7 +85,7 @@ void FPSCounter::tick() {
     auto previous_duration = std::chrono::steady_clock::now() - _previous_frame_time_point;
     _n_frame_duration += previous_duration;
     _frame_durations.push(previous_duration);
-    while (_frame_durations.size() > _max_n) {
+    while (_frame_durations.size() > (unsigned int)_max_n) {
       _n_frame_duration -= _frame_durations.front();
       _frame_durations.pop();
     }
@@ -93,6 +93,6 @@ void FPSCounter::tick() {
   _previous_frame_time_point = std::chrono::steady_clock::now();
 }
 
-double FPSCounter::getFramerate() const {
+float FPSCounter::getFramerate() const {
   return _frame_durations.size() / _n_frame_duration.count();
 }

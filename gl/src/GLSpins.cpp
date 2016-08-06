@@ -87,7 +87,7 @@ void GLSpins::draw() {
   for (auto it : _renderers) {
     auto renderer = it.first;
     auto viewport = it.second;
-    glViewport(viewport[0] * _width, viewport[1] * _height, viewport[2] * _width, viewport[3] * _height);
+    glViewport((GLint)(viewport[0] * _width), (GLint)(viewport[1] * _height), (GLsizei)(viewport[2] * _width), (GLsizei)(viewport[3] * _height));
     glClear(GL_DEPTH_BUFFER_BIT);
     renderer->draw(viewport[2]/viewport[3] * _camera.aspectRatio());
     assert(!glGetError());
@@ -96,7 +96,7 @@ void GLSpins::draw() {
   assert(!glGetError());
 }
 
-double GLSpins::getFramerate() const {
+float GLSpins::getFramerate() const {
   return _fps_counter.getFramerate();
 }
 
@@ -115,7 +115,7 @@ void GLSpins::mouseMove(const glm::vec2& position_before, const glm::vec2& posit
   switch (mode) {
     case GLSpins::CameraMovementModes::ROTATE: {
       auto axis = glm::normalize(delta.x * up + delta.y * right);
-      float angle = -length * 0.1 / 180 * 3.14;
+      float angle = -length * 0.1f / 180 * 3.14f;
       auto rotation_matrix = glm::rotate(angle, axis);
       up = glm::mat3(rotation_matrix) * up;
       forward = glm::mat3(rotation_matrix) * forward;
@@ -125,7 +125,7 @@ void GLSpins::mouseMove(const glm::vec2& position_before, const glm::vec2& posit
     }
       break;
     case GLSpins::CameraMovementModes::TRANSLATE: {
-      float factor = 0.001 * camera_distance * length;
+      float factor = 0.001f * camera_distance * length;
       auto translation = factor * (delta.y * up - delta.x * right);
       _camera.lookAt(_camera.cameraPosition() + translation,
                      _camera.centerPosition() + translation,
@@ -137,7 +137,7 @@ void GLSpins::mouseMove(const glm::vec2& position_before, const glm::vec2& posit
   }
 }
 
-void GLSpins::mouseScroll(const double& wheel_delta) {
+void GLSpins::mouseScroll(const float& wheel_delta) {
   auto forward = _camera.centerPosition() - _camera.cameraPosition();
   float camera_distance = glm::length(forward);
   if (camera_distance < 2 && wheel_delta < 1) {
@@ -150,7 +150,7 @@ void GLSpins::mouseScroll(const double& wheel_delta) {
                  _camera.upVector());
 }
 
-void GLSpins::setFramebufferSize(double width, double height) {
+void GLSpins::setFramebufferSize(float width, float height) {
   _width = width;
   _height = height;
   _camera.setAspectRatio(width / height);
@@ -187,16 +187,16 @@ void GLSpins::setCameraToZ() {
                  glm::vec3(0.0, 1.0, 0.0));
 }
 
-static std::array<double, 4> locationToViewport(GLSpins::WidgetLocation location) {
+static std::array<float, 4> locationToViewport(GLSpins::WidgetLocation location) {
   switch(location) {
     case GLSpins::WidgetLocation::BOTTOM_LEFT:
-      return {0, 0, 0.2, 0.2};
+      return {0.0f, 0.0f, 0.2f, 0.2f};
     case GLSpins::WidgetLocation::BOTTOM_RIGHT:
-      return {0.8, 0, 0.2, 0.2};
+      return {0.8f, 0.0f, 0.2f, 0.2f};
     case GLSpins::WidgetLocation::TOP_LEFT:
-      return {0, 0.8, 0.2, 0.2};
+      return {0.0f, 0.8f, 0.2f, 0.2f};
     case GLSpins::WidgetLocation::TOP_RIGHT:
-      return {0.8, 0.8, 0.2, 0.2};
+      return {0.8f, 0.8f, 0.2f, 0.2f};
   }
   return {0, 0, 1, 1};
 }

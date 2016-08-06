@@ -104,7 +104,7 @@ void ArrowSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
   assert(!glGetError());
 }
 
-void ArrowSpinRenderer::draw(double aspectRatio) const {
+void ArrowSpinRenderer::draw(float aspectRatio) const {
   if (_numInstances <= 0) {
     return;
   }
@@ -118,14 +118,14 @@ void ArrowSpinRenderer::draw(double aspectRatio) const {
   if (zRange.y >= 1) {
     zRange.y = 2;
   }
-  double verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
+  float verticalFieldOfView = _options.get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
   glm::vec3 cameraPosition = _options.get<ISpinRenderer::Option::CAMERA_POSITION>();
   glm::vec3 centerPosition = _options.get<ISpinRenderer::Option::CENTER_POSITION>();
   glm::vec3 upVector = _options.get<ISpinRenderer::Option::UP_VECTOR>();
 
   glm::mat4 projectionMatrix;
   if (verticalFieldOfView > 0) {
-    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1, 10000.0);
+    projectionMatrix = glm::perspective(verticalFieldOfView, aspectRatio, 0.1f, 10000.0f);
   } else {
     float camera_distance = glm::length(cameraPosition-centerPosition);
     float leftRight = camera_distance * aspectRatio;
@@ -162,10 +162,10 @@ void ArrowSpinRenderer::_updateShaderProgram() {
 
 void ArrowSpinRenderer::_updateVertexData() {
   unsigned int levelOfDetail = _options.get<ArrowSpinRendererOptions::LEVEL_OF_DETAIL>();
-  double coneHeight = _options.get<ArrowSpinRendererOptions::CONE_HEIGHT>();
-  double coneRadius = _options.get<ArrowSpinRendererOptions::CONE_RADIUS>();
-  double cylinderHeight = _options.get<ArrowSpinRendererOptions::CYLINDER_HEIGHT>();
-  double cylinderRadius = _options.get<ArrowSpinRendererOptions::CYLINDER_RADIUS>();
+  float coneHeight = _options.get<ArrowSpinRendererOptions::CONE_HEIGHT>();
+  float coneRadius = _options.get<ArrowSpinRendererOptions::CONE_RADIUS>();
+  float cylinderHeight = _options.get<ArrowSpinRendererOptions::CYLINDER_HEIGHT>();
+  float cylinderRadius = _options.get<ArrowSpinRendererOptions::CYLINDER_RADIUS>();
   
   // Enforce valid range
   if (levelOfDetail < 3) {
@@ -185,37 +185,37 @@ void ArrowSpinRenderer::_updateVertexData() {
   }
   unsigned int i;
   glm::vec3 baseNormal = {0, 0, -1};
-  double zOffset = (cylinderHeight-coneHeight)/2;
-  double l = sqrt(coneRadius*coneRadius+coneHeight*coneHeight);
-  double f1 = coneRadius/l;
-  double f2 = coneHeight/l;
+  float zOffset = (cylinderHeight-coneHeight)/2;
+  float l = sqrt(coneRadius*coneRadius+coneHeight*coneHeight);
+  float f1 = coneRadius/l;
+  float f2 = coneHeight/l;
   std::vector<glm::vec3> vertexData;
   vertexData.reserve(levelOfDetail*5*2);
   // The tip has no normal to prevent a discontinuity.
   vertexData.push_back({0, 0, zOffset+coneHeight});
   vertexData.push_back({0, 0, 0});
   for (i = 0; i < levelOfDetail; i++) {
-    double alpha = 2*M_PI*i/levelOfDetail;
+    float alpha = 2*(float)M_PI*i/levelOfDetail;
     vertexData.push_back({coneRadius*cos(alpha), coneRadius*sin(alpha), zOffset});
     vertexData.push_back({f2*cos(alpha), f2*sin(alpha), f1});
   }
   for (i = 0; i < levelOfDetail; i++) {
-    double alpha = 2*M_PI*i/levelOfDetail;
+    float alpha = 2* (float)M_PI*i/levelOfDetail;
     vertexData.push_back({coneRadius*cos(alpha), coneRadius*sin(alpha), zOffset});
     vertexData.push_back(baseNormal);
   }
   for (i = 0; i < levelOfDetail; i++) {
-    double alpha = 2*M_PI*i/levelOfDetail;
+    float alpha = 2* (float)M_PI*i/levelOfDetail;
     vertexData.push_back({cylinderRadius*cos(alpha), cylinderRadius*sin(alpha), zOffset-cylinderHeight});
     vertexData.push_back(baseNormal);
   }
   for (i = 0; i < levelOfDetail; i++) {
-    double alpha = 2*M_PI*i/levelOfDetail;
+    float alpha = 2* (float)M_PI*i/levelOfDetail;
     vertexData.push_back({cylinderRadius*cos(alpha), cylinderRadius*sin(alpha), zOffset-cylinderHeight});
     vertexData.push_back({cos(alpha), sin(alpha), 0});
   }
   for (i = 0; i < levelOfDetail; i++) {
-    double alpha = 2*M_PI*i/levelOfDetail;
+    float alpha = 2* (float)M_PI*i/levelOfDetail;
     vertexData.push_back({cylinderRadius*cos(alpha), cylinderRadius*sin(alpha), zOffset});
     vertexData.push_back({cos(alpha), sin(alpha), 0});
   }
