@@ -1,10 +1,11 @@
 #include "Threading.h"
-#include "Signal.h"
+#include "Handle_Signal.h"
 
 #include "Interface_State.h"
 #include "Interface_Chain.h"
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
+#include "Interface_Simulation.h"
 
 // Use Core Namespaces
 using namespace Data;
@@ -13,16 +14,16 @@ using namespace Utility;
 
 // Initialise Global Variables
 std::shared_ptr<State> state;
-Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
-std::map<std::shared_ptr<Data::Spin_System>, std::thread> Utility::Threading::llg_threads = std::map<std::shared_ptr<Data::Spin_System>, std::thread>();
-std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threading::gneb_threads = std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread>();
+//Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
+//std::map<std::shared_ptr<Data::Spin_System>, std::thread> Utility::Threading::llg_threads = std::map<std::shared_ptr<Data::Spin_System>, std::thread>();
+//std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threading::gneb_threads = std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread>();
 
 // Main
 int main(int argc, char ** argv)
 {
 
 	//--- Register SigInt
-	signal(SIGINT, Signal::Handle_SigInt);
+	signal(SIGINT, Handle_Signal::Handle_SigInt);
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
@@ -36,7 +37,7 @@ int main(int argc, char ** argv)
 	
 	//--- Initialise State
 	state = std::shared_ptr<State>(setupState(cfgfile));
-//---------------------- initialize spin_systems --------------------------------
+	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
 	Chain_Image_to_Clipboard(state.get());
 	for (int i=1; i<7; ++i)
@@ -66,13 +67,7 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 
 	//----------------------- LLG Iterations ----------------------------------------
-	auto optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
-	auto solver = new Engine::Solver_LLG(state->active_chain, optim);
-	// We could also do the following without using threads, but not without loss of generality
-	state->active_image->iteration_allowed = true;
-	Utility::Threading::llg_threads[state->active_image] = std::thread(&Engine::Solver_LLG::Iterate, solver);
-	// To wait for started thread to finish, call:
-	Threading::llg_threads[state->active_image].join();
+	Simulation_PlayPause(state.get(), "LLG", "SIB");
 	//-------------------------------------------------------------------------------
 
 

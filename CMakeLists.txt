@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 2.8.11)
 ######### Build Flags #######################
 ### These decide which projects are built
 option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."              OFF )
-option( BUILD_UI_PYTHON "Build the shared library for the Python UI."               ON  )
-option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                         OFF )
+option( BUILD_UI_PYTHON "Build the shared library for the Python UI."               OFF )
+option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                         ON  )
 option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."   ON  )
 ### Bundle option
 option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."  OFF )

@@ -1,4 +1,4 @@
-#include "Signal.h"
+#include "Handle_Signal.h"
 #include "Logging.h"
 #include "Interface_State.h"
 #include "Timing.h"
@@ -10,7 +10,7 @@ namespace Utility
     static system_clock::time_point t_last_sigint = system_clock::now();
 
     // Handle interrupt by signal SIGINT
-    void Signal::Handle_SigInt(int sig)
+    void Handle_Signal::Handle_SigInt(int sig)
     {
         // Have SIG_IGN (ignore) handle further SIGINTs from now
         signal(sig, SIG_IGN);
