@@ -1,10 +1,8 @@
-import os 
+import corelib
 import ctypes
 
-### Get this file's directory. The library should be here
-core_dir = os.path.dirname(os.path.realpath(__file__))
-### Load the core library
-_core = ctypes.CDLL(core_dir + '/libcore.so')
+### Load Library
+_core = corelib.LoadCoreLibrary()
 
 ### Setup State
 _setupState = _core.setupState

@@ -7,7 +7,7 @@
 #include <IO.h>
 #include <signal.h>
 
-Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
+Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Utility::Log_Level::WARNING, Utility::Log_Level::DEBUG, ".", "Log_" + Utility::Timing::CurrentDateTime() + ".txt");
 
 namespace Utility
 {

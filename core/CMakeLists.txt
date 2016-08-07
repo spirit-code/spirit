@@ -93,7 +93,8 @@ add_library( core STATIC
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
-	SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
+	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
+	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
 		${HEADER_CORE_DATA}

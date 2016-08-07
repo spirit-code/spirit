@@ -1,8 +1,9 @@
-### Make sure to find the interface module
+### Make sure to find the core modules
 import os
-interface_dir = os.path.dirname(os.path.realpath(__file__)) + "/interface"
+core_dir = os.path.dirname(os.path.realpath(__file__)) + '/core'
 import sys
-sys.path.insert(0, interface_dir)
+sys.path.insert(0, core_dir)
+
 
 ### Import core library
 from core import state
@@ -10,9 +11,9 @@ from core import simulation
 
 
 
-# cfgfile = "input/markus-paper.cfg"
-cfgfile = "input/gideon-master-thesis-isotropic.cfg"
-# cfgfile = "input/daniel-master-thesis-isotropic.cfg"
+# cfgfile = b'input/markus-paper.cfg'
+cfgfile = b'input/gideon-master-thesis-isotropic.cfg'
+# cfgfile = b'input/daniel-master-thesis-isotropic.cfg'
 
 ### Get a State pointer
 p_state = state.setup(cfgfile)
@@ -48,7 +49,7 @@ p_state = state.setup(cfgfile)
 
 
 ### Run a LLG simulation
-simulation.PlayPause(p_state, "LLG", "SIB", -1, -1)
+# simulation.PlayPause(p_state, "LLG", "SIB", -1, -1)
 
 ### ...
 # // Finish
