@@ -16,6 +16,7 @@ project(MonoSpinCore)
 # set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 # set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin2)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #############################################
@@ -77,7 +78,7 @@ source_group("src\\interface" FILES ${SOURCE_CORE_INTERFACE})
 #############################################
 
 
-######### Tell CMake to create the executable
+######### Tell CMake to create the static library
 add_library( core STATIC
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
@@ -89,6 +90,26 @@ add_library( core STATIC
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY})
+#############################################
+
+######### Tell CMake to create the shared library
+if( BUILD_UI_PYTHON )
+	MESSAGE( STATUS ">> Building shared library for Python" )
+	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
+	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
+	add_library( pycore SHARED
+		${HEADER_CORE_ROOT}
+		${HEADER_CORE_DATA}
+		${HEADER_CORE_ENGINE}
+		${HEADER_CORE_INTERFACE}
+		${HEADER_CORE_UTILITY}
+		${SOURCE_CORE_ROOT}
+		${SOURCE_CORE_DATA}
+		${SOURCE_CORE_ENGINE}
+		${SOURCE_CORE_INTERFACE}
+		${SOURCE_CORE_UTILITY})
+	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
+endif()
 #############################################
 
 

@@ -133,7 +133,9 @@ you may need to adapt some paths and options in the Root CMakeLists.txt, specifi
 
 The **Options** you can set under *### Build Flags ###* are:
 * BUILD_UI_WEB - build the web interface instead of others
-* UI_USE_QT - build qt user interface instead of console version
+* BUILD_UI_PYTHON - build the python library
+* BUILD_UI_CXX - build the C++ interfaces (console or QT) instead of others
+* UI_CXX_USE_QT - build qt user interface instead of console version
 * OSX_BUNDLE_APP - not yet functional
 * PRINT_SOURCES - print all source files (for debugging)
 

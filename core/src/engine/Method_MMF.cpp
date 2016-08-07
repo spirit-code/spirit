@@ -19,6 +19,21 @@ namespace Engine
         return false;
     }
 
+    void Method_MMF::Hook_Pre_Step()
+    {
+
+	}
+
+    void Method_MMF::Hook_Post_Step()
+    {
+
+    }
+
+    void Method_MMF::Save_Step(std::string starttime, int iteration, bool final)
+	{
+
+    }
+
     // Optimizer name as string
     std::string Method_MMF::Name() { return "MMF"; }
 }
