@@ -124,7 +124,7 @@ if( BUILD_UI_PYTHON )
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 			${PROJECT_BINARY_DIR}/libcore.so
 			${CMAKE_SOURCE_DIR}/ui-python/core/libcore.so) 
-	endif
+	endif()
 endif()
 #############################################
 

@@ -53,7 +53,8 @@ namespace Engine
 		}//endfor ispin
 
 		// Maximum number of neighbours in any shell
-		max_number_n_in_shell = Get_MaxNumber_NInShell(geometry, n_shells, shell_radius, boundary_vectors, true);
+		std::vector<std::vector<double>> boundary_vectors_true = Get_Boundary_Vectors(geometry, std::vector<bool>(3, true));
+		max_number_n_in_shell = Get_MaxNumber_NInShell(geometry, n_shells, shell_radius, boundary_vectors_true, true);
 		int max_number_n = 0;
 		for (i = 0; i < n_shells; ++i) {
 			if (max_number_n < max_number_n_in_shell[i]) {
