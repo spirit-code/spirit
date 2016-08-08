@@ -112,14 +112,16 @@ namespace Engine
 		}
 		else suffix = "_archive";
 
-		// Append Spin configuration to File
+		// Append Spin configuration to Spin_Archieve_File
 		auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
 		Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsFile);
 
-		// Save Spin configuration to new File
-		auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-		Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsIterFile);
-
+		if (this->system->llg_parameters->save_single_configurations) {
+			// Save Spin configuration to new "spins" File
+			auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
+			Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsIterFile);
+		}
+		
 		// Check if Energy File exists and write Header if it doesn't
 		auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
 		std::ifstream f(energyFile);
