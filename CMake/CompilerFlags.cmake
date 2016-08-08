@@ -4,9 +4,7 @@ MESSAGE( STATUS ">> --------------------- CompilerFlags.cmake ------------------
 ### Place all functions which should be exported by emcc into this list
 set( INTERFACE_EXPORT_FUNCTIONS
 		# State
-		'_setupState'
-		# main
-		'_PlayPause' '_getSpinDirections'
+		'_setupState' '_State_getSpinDirections' '_State_iterate'
 		# Chain
 		'_Chain_next_Image' '_Chain_prev_Image'
 		'_Chain_Image_to_Clipboard' '_Chain_Insert_Image_Before' '_Chain_Insert_Image_After' '_Chain_Replace_Image' '_Chain_Delete_Image'
@@ -52,7 +50,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
 		### Compiler Flags
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -Wno-warn-absolute-paths" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
 		### Linker Flags
 		### 	optimization, memory growth and exported functions
 		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O2 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\"" )

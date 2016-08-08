@@ -5,7 +5,7 @@ if (BUILD_UI_WEB)
 	### 
 	MESSAGE( STATUS ">> Choosing compiler:             emcc" )
 	### Set the path to emscripten
-	SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk_portable/emscripten/1.30.0/")
+	SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk_portable/emscripten/1.35.0/")
 	### Use the Emscripten toolchain file
 	SET(CMAKE_TOOLCHAIN_FILE Emscripten)
 ######################################################################
