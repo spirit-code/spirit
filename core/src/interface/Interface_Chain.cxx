@@ -219,8 +219,6 @@ extern "C" void Chain_Setup_Data(State * state, int idx_chain_i)
     chain->E_interpolated = std::vector<double>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
     chain->E_array_interpolated = std::vector<std::vector<double>>(7, std::vector<double>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
-    chain->tangents = std::vector<std::vector<double>>(state->noi, std::vector<double>(3 * state->nos));
-
     // Initial data update
     Chain_Update_Data(state, idx_chain);
 }

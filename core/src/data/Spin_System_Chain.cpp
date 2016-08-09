@@ -21,7 +21,5 @@ namespace Data
 		this->E_interpolated = std::vector<double>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
 		this->E_array_interpolated = std::vector<std::vector<double>>(7, std::vector<double>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0));
 
-		this->tangents = std::vector<std::vector<double>>(noi, std::vector<double>(3 * this->images[0]->nos));
-
 	}
 }
