@@ -44,4 +44,8 @@ extern "C" State * setupState(const char * config_file = "");
 // TODO: move this away somewhere?
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain);
 
+extern "C" double *State_getSpinDirections(State *state);
+
+extern "C" void State_iterate(State *state);
+
 #endif

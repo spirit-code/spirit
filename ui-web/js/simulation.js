@@ -31,19 +31,19 @@ var Module = {
 $.getScript("core.js");
 
 Module.ready(function() {
-    Module.createSimulation = Module.cwrap('createSimulation', 'number', []);
+    Module.setupState = Module.cwrap('setupState', 'number', ['string']);
     window.Simulation = function(options) {
         var defaultOptions = {
         };
         this._options = {};
         this._mergeOptions(options, defaultOptions);
-        this._state = Module.createSimulation();
+        this._state = Module.setupState("");
         this.showBoundingBox = true;
     };
 
-    Module.performIteration = Module.cwrap('performIteration', 'number', ['number']);
+    Module.iterate = Module.cwrap('State_iterate', null, ['number']);
     Simulation.prototype.performIteration = function() {
-        Module.performIteration(this._state);
+        Module.iterate(this._state);
         this.update();
     };
 
@@ -61,7 +61,7 @@ Module.ready(function() {
         }
     };
 
-    Module.getSpinDirections = Module.cwrap('getSpinDirections', 'number', ['number']);
+    Module.getSpinDirections = Module.cwrap('State_getSpinDirections', 'number', ['number']);
     Simulation.prototype.update = function() {
         var NX = 100;
         var NY = 100;

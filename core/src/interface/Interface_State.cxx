@@ -113,3 +113,20 @@ void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_p
         idx_image = idx_image;
     }
 }
+
+extern "C" double *State_getSpinDirections(State *state) {
+  return (double *)state->active_image->spins->data();
+}
+
+extern "C" void State_iterate(State *state) {
+  auto method = state->methods_llg[state->idx_active_chain][state->idx_active_image];
+  if (!method) {
+    // New Solver
+    method = std::make_shared<Engine::Method_LLG>(state->active_image, state->idx_active_image, state->idx_active_chain);
+    state->methods_llg[state->idx_active_chain][state->idx_active_image] = method;
+  }
+  // SIB optimizer
+  auto optim = std::make_shared<Engine::Optimizer_SIB>(method);
+  // Iterate
+  optim->Iteration();
+}

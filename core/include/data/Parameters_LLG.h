@@ -14,7 +14,7 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_LLG(std::string output_folder, int seed, int n_iterations, int log_steps, double temperature, double damping, double time_step, bool renorm_sd, double stt_magnitude, std::vector<double> stt_polarisation_normal, double force_convergence);
+		Parameters_LLG(std::string output_folder, int seed, int n_iterations, int log_steps, double temperature, double damping, double time_step, bool renorm_sd, bool save_single_configurations, double stt_magnitude, std::vector<double> stt_polarisation_normal, double force_convergence);
 
 		//PRNG Seed
 		const int seed;
@@ -32,6 +32,8 @@ namespace Data
 		double dt;
 		// whether to renormalize spins after every SD iteration
 		bool renorm_sd = 1;
+		// Whether to save a single "spins"
+		bool save_single_configurations;
 
 		// spin-transfer-torque parameter (prop to injected current density)
 		double stt_magnitude;

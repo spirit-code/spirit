@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 2.8.11)
 ######### Project Name ######################
 project(MonoSpinCore)
 #############################################
-
+ 
 
 ######### Have the binary placed into the source head
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -42,7 +42,6 @@ set(CORE_INCLUDE_DIRS
 	${PROJECT_SOURCE_DIR}/src/utility)
 include_directories(${CORE_INCLUDE_DIRS})
 #############################################
-
 
 ######### Declare File groups ###############
 ### Header Gropus
@@ -109,8 +108,28 @@ if( BUILD_UI_PYTHON )
 		${SOURCE_CORE_INTERFACE}
 		${SOURCE_CORE_UTILITY})
 	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
+	
+	if (WIN32)
+		add_custom_command(TARGET pycore POST_BUILD  		# Adds a post-build event to pycore
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different  	# which executes "cmake - E copy_if_different..."
+			${PROJECT_BINARY_DIR}/$<CONFIGURATION>/core.dll # <--this is in-file
+			${CMAKE_SOURCE_DIR}/ui-python/core/core.dll) 
+	elseif(APPLE)
+		add_custom_command(TARGET pycore POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			${PROJECT_BINARY_DIR}/libcore.dylib
+			${CMAKE_SOURCE_DIR}/ui-python/core/libcore.dylib) 
+	elseif(UNIX)
+		add_custom_command(TARGET pycore POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			${PROJECT_BINARY_DIR}/libcore.so
+			${CMAKE_SOURCE_DIR}/ui-python/core/libcore.so) 
+	endif()
 endif()
 #############################################
+
+#############Copy Library into correct folder (on Windows) ##########
+
 
 
 ### TODO: Add threading define if we dont use emscripten (which cannot use threads)
@@ -132,6 +151,8 @@ set(SOURCE_CORE_ENGINE  ${SOURCE_CORE_ENGINE} PARENT_SCOPE)
 set(SOURCE_CORE_INTERFACE ${SOURCE_CORE_INTERFACE} PARENT_SCOPE)
 set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
 #############################################
+
+
 
 
 ######### Header and Source messages ########

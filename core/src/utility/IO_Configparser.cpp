@@ -285,6 +285,8 @@ namespace Utility
 			double dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
+			// Whether to save a single "spins"
+			bool save_single_configurations = true;
 			// spin transfer torque vector
 			double stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
@@ -310,6 +312,7 @@ namespace Utility
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
 					dt = dt*std::pow(10, -12) / Utility::Vectormath::MuB()*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
+					myfile.Read_Single(save_single_configurations, "llg_save_single_configurations");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_3Vector(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
@@ -335,7 +338,7 @@ namespace Utility
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "                n_iterations      = " + std::to_string(n_iterations));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "                log_steps         = " + std::to_string(log_steps));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "                output_folder     = " + output_folder);
-			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal, force_convergence));
+			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal, force_convergence));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "LLG Parameters: built");
 			return llg_params;
 		}// end LLG_Parameters_from_Config
@@ -658,7 +661,7 @@ namespace Utility
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(dd_radius, "dd_radius");
-					if (dd_radius >0 ) Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
+					// if (dd_radius >0 ) Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 					// std::vector<std::vector<int>> dd_neigh;
 					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
