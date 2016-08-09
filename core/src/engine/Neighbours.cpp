@@ -593,6 +593,167 @@ namespace Engine
 		IO::Dump_to_File(output_to_file, "output/segments.dat");
 	}//end Neighbours::Create_Segments
 
+	void Neighbours::Create_Dipole_Pairs(const Data::Geometry & geometry, double dd_radius,
+		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<double>> & DD_magnitude, std::vector<std::vector<std::vector<double>>> & DD_normal)
+	{
+		// Get the boundary vectors
+		// auto boundary_vectors = Engine::Neighbours::Get_Boundary_Vectors(geometry, std::vector<bool>{ true, true, true });
+		
+		// ------ Find the pairs for the first cell ------
+		auto vector_ij = std::vector<double>(3), build_array = std::vector<double>(3),  ipos = std::vector<double>(3), jpos = std::vector<double>(3);
+		double magnitude;
+		
+		int iatom, jatom;
+		int da, db, dc;
+		int sign_a, sign_b, sign_c;
+		int pair_da, pair_db, pair_dc;
+		int na, nb, nc;
+
+		unsigned int bvector;
+
+		int idx_i = 0, idx_j = 0;
+		int Na = geometry.n_cells[0];
+		int Nb = geometry.n_cells[1];
+		int Nc = geometry.n_cells[2];
+		int N = geometry.n_spins_basic_domain;
+		
+		int periods_a, periods_b, periods_c, pair_periodicity;
+
+		// Loop over all basis atoms
+		for (iatom = 0; iatom < N; ++iatom)
+		{
+			for (jatom = 0; jatom < N; ++jatom)
+			{
+				// Because the terms with the largest distance are the smallest, we start with the largest indices
+				for (da = Na-1; da >= 0; --da)
+				{
+					for (db = Nb-1; db >= 0; --db)
+					{
+						for (dc = Nc-1; dc >= 0; --dc)
+						{
+							for (sign_a = -1; sign_a <= 1; sign_a+=2)
+							{
+							for (sign_b = -1; sign_b <= 1; sign_b+=2)
+							{
+							for (sign_c = -1; sign_c <= 1; sign_c+=2)
+							{
+								pair_da = sign_a * da;
+								pair_db = sign_b * db;
+								pair_dc = sign_c * dc;
+								// Calculate positions and difference vector
+								for (int dim=0; dim<3; ++dim)
+								{
+									ipos[dim] 		= geometry.spin_pos[dim][iatom];
+									jpos[dim] 		= geometry.spin_pos[dim][jatom]
+														+ geometry.translation_vectors[dim][0]*pair_da
+														+ geometry.translation_vectors[dim][1]*pair_db
+														+ geometry.translation_vectors[dim][2]*pair_dc;
+									vector_ij[dim]  = jpos[dim] - ipos[dim];
+								}
+								// Length of difference vector
+								magnitude = Vectormath::Length(vector_ij);
+								if ( magnitude==0.0 || (da==0 && sign_a==-1) || (db==0 && sign_b==-1) || (dc==0 && sign_c==-1) )
+								{
+									magnitude = dd_radius + 1.0;
+								}
+								// Check if inside DD radius
+								if ( magnitude - dd_radius < 1.0E-5 )
+								{
+									// std::cerr << "found " << iatom << " " << jatom << std::endl;
+									// std::cerr << "      " << pair_da << " " << pair_db << " " << pair_dc << std::endl;
+									// Normal
+									vector_ij[0] = vector_ij[0]/magnitude;
+									vector_ij[1] = vector_ij[1]/magnitude;
+									vector_ij[2] = vector_ij[2]/magnitude;
+
+									// ------ Translate for the whole lattice ------
+									// Create all Pairs of this Kind through translation
+									for (int na = 0; na < Na; ++na)
+									{
+										for (int nb = 0; nb < Nb; ++nb)
+										{
+											for (int nc = 0; nc < Nc; ++nc)
+											{
+												idx_i = iatom + N*na + N*Na*nb + N*Na*Nb*nc;
+												// na + pair_da is absolute position of cell in x direction
+												// if (na + pair_da) > Na (number of atoms in x)
+												// go to the other side with % Na
+												// if (na + pair_da) negative (or multiply (of Na) negative)
+												// add Na and modulo again afterwards
+												// analogous for y and z direction with nb, nc
+												idx_j = jatom	+ N*( (((na + pair_da) % Na) + Na) % Na )
+																+ N*Na*( (((nb + pair_db) % Nb) + Nb) % Nb )
+																+ N*Na*Nb*( (((nc + pair_dc) % Nc) + Nc) % Nc );
+												// Determine the periodicity
+												periods_a = (na + pair_da) / Na;
+												periods_b = (nb + pair_db) / Nb;
+												periods_c = (nc + pair_dc) / N;
+												//		none
+												if (periods_a == 0 && periods_b == 0 && periods_c == 0)
+												{
+													pair_periodicity = 0;
+												}
+												//		a
+												else if (periods_a != 0 && periods_b == 0 && periods_c == 0)
+												{
+													pair_periodicity = 1;
+												}
+												//		b
+												else if (periods_a == 0 && periods_b != 0 && periods_c == 0)
+												{
+													pair_periodicity = 2;
+												}
+												//		c
+												else if (periods_a == 0 && periods_b == 0 && periods_c != 0)
+												{
+													pair_periodicity = 3;
+												}
+												//		ab
+												else if (periods_a != 0 && periods_b != 0 && periods_c == 0)
+												{
+													pair_periodicity = 4;
+												}
+												//		ac
+												else if (periods_a != 0 && periods_b == 0 && periods_c != 0)
+												{
+													pair_periodicity = 5;
+												}
+												//		bc
+												else if (periods_a == 0 && periods_b != 0 && periods_c != 0)
+												{
+													pair_periodicity = 6;
+												}
+												//		abc
+												else if (periods_a != 0 && periods_b != 0 && periods_c != 0)
+												{
+													pair_periodicity = 7;
+												}
+
+												// Add the indices and parameters to the corresponding lists
+												if (idx_i < idx_j)
+												{
+													// std::cerr << "   made pair " << idx_i << " " << idx_j << std::endl;
+													DD_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
+													DD_magnitude[pair_periodicity].push_back(magnitude);
+													DD_normal[pair_periodicity].push_back(vector_ij);
+												}
+											}// end for nc
+										}// end for nb
+									}// end for na
+								}// end if in radius
+							}
+							}
+							}
+							// else 
+							// 	std::cerr << "outed " << iatom << " " << jatom << " with d=" << magnitude << std::endl;
+						}// end for pair_dc
+					}// end for pair_db
+				}// end for pair_da
+			}// end for jatom
+		}// end for iatom
+	}
+
+
 	void Neighbours::Create_Dipole_Neighbours(const Data::Geometry & geometry, std::vector<bool> boundary_conditions,
 		const double dd_radius,	std::vector<std::vector<int>>& dd_neigh, std::vector<std::vector<std::vector<double>>>& dd_neigh_pos,
 		std::vector<std::vector<std::vector<double>>>& dd_normal, std::vector<std::vector<double>> & dd_distance)

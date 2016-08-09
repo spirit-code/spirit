@@ -56,6 +56,9 @@ namespace Engine
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 			std::vector<std::vector<int>> &segments, std::vector<std::vector<std::vector<double>>> &segments_pos);
 
+		void Create_Dipole_Pairs(const Data::Geometry & geometry, double dd_radius,
+		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<double>> & DD_magnitude, std::vector<std::vector<std::vector<double>>> & DD_normal);
+
 		void Create_Dipole_Neighbours(const Data::Geometry & geometry, std::vector<bool> boundary_conditions,
 			const double dd_radius, std::vector<std::vector<int>> & dd_neigh, std::vector<std::vector<std::vector<double>>>& dd_neigh_pos,
 			std::vector<std::vector<std::vector<double>>> & dd_normal, std::vector<std::vector<double>> & dd_distance);
