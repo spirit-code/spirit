@@ -1,5 +1,10 @@
+
+#ifndef __gl_h_
+#include <glad/glad.h>
+#endif
 #include "SpinWidget.h"
 
+#include <cassert>
 #include <QTimer>
 #include <QMouseEvent>
 #include "Interface_Geometry.h"
@@ -17,8 +22,10 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 }
 
 void SpinWidget::initializeGL() {
+	makeCurrent();
 	this->gl_spins = std::make_shared<GLSpins>();
   _reset_camera = true;
+  assert(!glGetError());
 }
 
 void SpinWidget::teardownGL() {
@@ -26,11 +33,15 @@ void SpinWidget::teardownGL() {
 }
 
 void SpinWidget::resizeGL(int width, int height) {
+
+assert(!glGetError());
   gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
+  assert(!glGetError());
   update();
 }
 
 void SpinWidget::paintGL() {
+	assert(!glGetError());
   // Update the pointer to our Data
   auto s = state->active_image;
   auto& spins = *s->spins;
@@ -45,19 +56,25 @@ void SpinWidget::paintGL() {
   {
     directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
   }
+
+  assert(!glGetError());
   gl_spins->updateSpins(positions, directions);
-  
+
+  assert(!glGetError());
   glm::vec3 bounds_min;
   glm::vec3 bounds_max;
   Geometry_Get_Bounds(state.get(), &bounds_min.x, &bounds_min.y, &bounds_min.z, &bounds_max.x, &bounds_max.y, &bounds_max.z);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
+
+  assert(!glGetError());
   gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
   if (_reset_camera) {
     gl_spins->setCameraToDefault();
     _reset_camera = false;
   }
-  
+  assert(!glGetError());
   gl_spins->draw();
+  assert(!glGetError());
   QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -115,6 +132,7 @@ double SpinWidget::verticalFieldOfView() const {
 }
 
 void SpinWidget::setVerticalFieldOfView(double vertical_field_of_view) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
   gl_spins->updateOptions(option);
 }
@@ -124,6 +142,7 @@ glm::vec3 SpinWidget::backgroundColor() const {
 }
 
 void SpinWidget::setBackgroundColor(glm::vec3 background_color) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::BACKGROUND_COLOR>(background_color);
   gl_spins->updateOptions(option);
 }
@@ -133,6 +152,7 @@ glm::vec3 SpinWidget::boundingBoxColor() const {
 }
 
 void SpinWidget::setBoundingBoxColor(glm::vec3 bounding_box_color) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
   gl_spins->updateOptions(option);
 }
@@ -142,6 +162,7 @@ bool SpinWidget::isMiniviewEnabled() const {
 }
 
 void SpinWidget::enableMiniview(bool enabled) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_MINIVIEW>(enabled);
   gl_spins->updateOptions(option);
 }
@@ -151,6 +172,8 @@ bool SpinWidget::isCoordinateSystemEnabled() const {
 }
 
 void SpinWidget::enableCoordinateSystem(bool enabled) {
+	makeCurrent();
+	assert(!glGetError());
   auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_COORDINATE_SYSTEM>(enabled);
   gl_spins->updateOptions(option);
 }
@@ -160,6 +183,8 @@ bool SpinWidget::isBoundingBoxEnabled() const {
 }
 
 void SpinWidget::enableBoundingBox(bool enabled) {
+	makeCurrent();
+	assert(!glGetError());
   auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_BOUNDING_BOX>(enabled);
   gl_spins->updateOptions(option);
 }
@@ -169,6 +194,7 @@ GLSpins::WidgetLocation SpinWidget::miniviewPosition() const {
 }
 
 void SpinWidget::setMiniviewPosition(GLSpins::WidgetLocation miniview_position) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<GLSpins::Option::MINIVIEW_LOCATION>(miniview_position);
   gl_spins->updateOptions(option);
 }
@@ -178,6 +204,7 @@ GLSpins::WidgetLocation SpinWidget::coordinateSystemPosition() const {
 }
 
 void SpinWidget::setCoordinateSystemPosition(GLSpins::WidgetLocation coordinatesystem_position) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>(coordinatesystem_position);
   gl_spins->updateOptions(option);
 }
@@ -187,6 +214,7 @@ GLSpins::VisualizationMode SpinWidget::visualizationMode() const {
 }
 
 void SpinWidget::setVisualizationMode(GLSpins::VisualizationMode visualization_mode) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<GLSpins::Option::VISUALIZATION_MODE>(visualization_mode);
   gl_spins->updateOptions(option);
 }
@@ -196,6 +224,7 @@ glm::vec2 SpinWidget::zRange() const {
 }
 
 void SpinWidget::setZRange(glm::vec2 z_range) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::Z_RANGE>(z_range);
   gl_spins->updateOptions(option);
 }
@@ -212,6 +241,7 @@ GLSpins::Colormap SpinWidget::colormap() const {
 }
 
 void SpinWidget::setColormap(GLSpins::Colormap colormap) {
+	makeCurrent();
   std::string colormap_implementation = getColormapImplementation("hsv");
   switch (colormap) {
     case GLSpins::Colormap::HSV:
@@ -233,6 +263,7 @@ glm::vec2 SpinWidget::spherePointSizeRange() const {
 }
 
 void SpinWidget::setSpherePointSizeRange(glm::vec2 sphere_point_size_range) {
+	makeCurrent();
   auto option = Options<GLSpins>::withOption<SphereSpinRenderer::Option::POINT_SIZE_RANGE>(sphere_point_size_range);
   gl_spins->updateOptions(option);
 }

@@ -39,7 +39,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	if (APPLE)
 		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_compact_unwind -pthread" )
 	else()
-		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static -pthread" )
+		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pthread" )
 	endif()
 	# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}    "-O3")
 ######################################################################

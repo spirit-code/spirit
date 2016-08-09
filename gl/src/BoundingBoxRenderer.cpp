@@ -22,7 +22,8 @@ BoundingBoxRenderer::~BoundingBoxRenderer() {
   glDeleteVertexArrays(1, &_vao);
   glDeleteBuffers(1, &_vbo);
   glDeleteProgram(_program);
-  glDisableVertexAttribArray(0);
+  //glDisableVertexAttribArray(0);
+  assert(!glGetError());
 }
 
 void BoundingBoxRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
@@ -63,6 +64,7 @@ void BoundingBoxRenderer::initGL() {
 
 void BoundingBoxRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                      const std::vector<glm::vec3>& directions) {
+	assert(!glGetError());
 }
 
 void BoundingBoxRenderer::draw(float aspectRatio) const {

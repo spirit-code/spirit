@@ -20,8 +20,9 @@ CoordinateSystemRenderer::~CoordinateSystemRenderer() {
   glDeleteVertexArrays(1, &_vao);
   glDeleteBuffers(1, &_vbo);
   glDeleteProgram(_program);
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
+  //glDisableVertexAttribArray(0);
+  //glDisableVertexAttribArray(1);
+  assert(!glGetError());
 }
 
 void CoordinateSystemRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
@@ -60,6 +61,7 @@ void CoordinateSystemRenderer::initGL() {
 
 void CoordinateSystemRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                       const std::vector<glm::vec3>& directions) {
+	assert(!glGetError());
 }
 
 void CoordinateSystemRenderer::draw(float aspectRatio) const {

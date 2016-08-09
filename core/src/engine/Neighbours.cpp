@@ -669,11 +669,11 @@ namespace Engine
 
 									// ------ Translate for the whole lattice ------
 									// Create all Pairs of this Kind through translation
-									for (int na = 0; na < Na; ++na)
+									for (na = 0; na < Na; ++na)
 									{
-										for (int nb = 0; nb < Nb; ++nb)
+										for (nb = 0; nb < Nb; ++nb)
 										{
-											for (int nc = 0; nc < Nc; ++nc)
+											for (nc = 0; nc < Nc; ++nc)
 											{
 												idx_i = iatom + N*na + N*Na*nb + N*Na*Nb*nc;
 												// na + pair_da is absolute position of cell in x direction
