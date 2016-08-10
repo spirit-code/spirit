@@ -1,6 +1,3 @@
-#ifndef __gl_h_
-#include <glad/glad.h>
-#endif
 #include "CombinedSpinRenderer.h"
 
 
@@ -16,19 +13,11 @@ void CombinedSpinRenderer::updateOptions(const Options<GLSpins>& options) {
   }
 }
 
-void CombinedSpinRenderer::initGL() {
-  for (auto renderer : _renderers) {
-    renderer->initGL();
-  }
-}
-
 void CombinedSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                        const std::vector<glm::vec3>& directions) {
-	assert(!glGetError());
   for (auto renderer : _renderers) {
     renderer->updateSpins(positions, directions);
   }
-  assert(!glGetError());
 }
 
 void CombinedSpinRenderer::draw(float aspectRatio) const {

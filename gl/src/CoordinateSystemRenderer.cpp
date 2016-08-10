@@ -12,32 +12,7 @@
 #include "utilities.h"
 
 CoordinateSystemRenderer::CoordinateSystemRenderer() {
-  // TODO: initGL if possible
-  // TODO: updateSpins if possible
-}
-
-CoordinateSystemRenderer::~CoordinateSystemRenderer() {
-  glDeleteVertexArrays(1, &_vao);
-  glDeleteBuffers(1, &_vbo);
-  glDeleteProgram(_program);
-  //glDisableVertexAttribArray(0);
-  //glDisableVertexAttribArray(1);
-  assert(!glGetError());
-}
-
-void CoordinateSystemRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
-  bool updateShader = false;
-  for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
-    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
-      updateShader = true;
-    }
-  }
-  if (updateShader) {
-    _updateShaderProgram();
-  }
-}
-
-void CoordinateSystemRenderer::initGL() {
+  CHECK_GL_ERROR;
   glGenVertexArrays(1, &_vao);
   glBindVertexArray(_vao);
   glGenBuffers(1, &_vbo);
@@ -55,16 +30,39 @@ void CoordinateSystemRenderer::initGL() {
   glVertexAttribPointer(1, 3, GL_FLOAT, false, 4*3*2,  (void *)(4*3));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
-
+  
   _updateShaderProgram();
+  CHECK_GL_ERROR;
+}
+
+CoordinateSystemRenderer::~CoordinateSystemRenderer() {
+  CHECK_GL_ERROR;
+  glDeleteVertexArrays(1, &_vao);
+  glDeleteBuffers(1, &_vbo);
+  glDeleteProgram(_program);
+  CHECK_GL_ERROR;
+}
+
+void CoordinateSystemRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  CHECK_GL_ERROR;
+  bool updateShader = false;
+  for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
+    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
+      updateShader = true;
+    }
+  }
+  if (updateShader) {
+    _updateShaderProgram();
+  }
+  CHECK_GL_ERROR;
 }
 
 void CoordinateSystemRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                       const std::vector<glm::vec3>& directions) {
-	assert(!glGetError());
 }
 
 void CoordinateSystemRenderer::draw(float aspectRatio) const {
+  CHECK_GL_ERROR;
   glUseProgram(_program);
   glBindVertexArray(_vao);
 
@@ -94,9 +92,11 @@ void CoordinateSystemRenderer::draw(float aspectRatio) const {
   glDisable(GL_CULL_FACE);
   glDrawArrays(GL_LINES, 0, 6);
   glEnable(GL_CULL_FACE);
+  CHECK_GL_ERROR;
 }
 
 void CoordinateSystemRenderer::_updateShaderProgram() {
+  CHECK_GL_ERROR;
   if (_program) {
     glDeleteProgram(_program);
   }
@@ -112,4 +112,5 @@ void CoordinateSystemRenderer::_updateShaderProgram() {
   if (program) {
     _program = program;
   }
+  CHECK_GL_ERROR;
 }
