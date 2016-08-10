@@ -52,8 +52,9 @@ namespace Engine
 			}//endfor jneigh
 		}//endfor ispin
 
-		// Maximum number of neighbours in any shell
+		// to calculate MaxNumber_NInShell one needs periodical BC - this vector is used to ensure this
 		std::vector<std::vector<double>> boundary_vectors_true = Get_Boundary_Vectors(geometry, std::vector<bool>(3, true));
+		// Maximum number of neighbours in any shell
 		max_number_n_in_shell = Get_MaxNumber_NInShell(geometry, n_shells, shell_radius, boundary_vectors_true, true);
 		int max_number_n = 0;
 		for (i = 0; i < n_shells; ++i) {
