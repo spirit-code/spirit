@@ -22,62 +22,69 @@ using namespace Utility;
 namespace Engine
 {
     Method_LLG::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-		Method(system->llg_parameters, idx_img, idx_chain), system(system)
+		Method(system->llg_parameters, idx_img, idx_chain)
 	{
-		// currently only support a single image being iterated:
+		// Currently we only support a single image being iterated at once:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
 
-		this->force_max = std::vector<double>(this->systems.size(), 0.0);
-		this->force_converged = std::vector<bool>(this->systems.size(), false);
+		// We assume it is not converged before the first iteration
+		this->force_converged = std::vector<bool>(systems.size(), false);
+
+		// Forces
+		this->F_total = std::vector<std::vector<double>>(systems.size(), std::vector<double>(systems[0]->spins->size()));	// [noi][3nos]
 	}
 
 
 	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
 	{
-		int noi = configurations.size();
-		int nos = configurations[0]->size() / 3;
+		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
 		this->force_maxAbsComponent = 0;
 
 		// TODO: override Force convergence stuff
 		// Loop over images to calculate the total Effective Field on each Image
-		for (int img = 0; img < noi; ++img)
+		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
-			// The gradient force (unprojected) is simply the effective field
-			systems[img]->hamiltonian->Effective_Field(*configurations[img], forces[img]);
-			// Check for convergence
-			auto fmax = this->Force_on_Image_MaxAbsComponent(*configurations[img], forces[img]);
-			// if (fmax < this->parameters->force_convergence) this->Force_Converged[img] = true;
-			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
-			if (fmax > this->force_max[img]) this->force_max[img] = fmax;
+			// The effective field is the total Force here
+			systems[img]->hamiltonian->Effective_Field(*configurations[img], F_total[img]);
+			// Copy out
+			forces[img] = F_total[img];
 		}
 	}
 
 
 	bool Method_LLG::Force_Converged()
 	{
-		for (unsigned int i=0; i<this->systems.size(); ++i)
-		{
-			if (force_max[0] < this->systems[0]->llg_parameters->force_convergence) this->force_converged[0] = true;	
-		}
-		
+		// Check if all images converged
 		return std::all_of(this->force_converged.begin(),
 							this->force_converged.end(),
 							[](bool b) { return b; });
 	}
 
-	void Method_LLG::Hook_Pre_Step()
+	void Method_LLG::Hook_Pre_Iteration()
     {
 
 	}
 
-    void Method_LLG::Hook_Post_Step()
+    void Method_LLG::Hook_Post_Iteration()
     {
-		// Update the system's Energy
-		system->UpdateEnergy();
+		// --- Convergence Parameter Update
+		this->force_maxAbsComponent = 0;
+		// Loop over images to calculate the total Effective Field on each Image
+		for (unsigned int img = 0; img < systems.size(); ++img)
+		{
+			this->force_converged[img] = false;
+			auto fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
+			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+			if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
+		}
 
-		// TODO: renormalize spins??
+		// --- Image Data Update
+		// Update the system's Energy
+		systems[0]->UpdateEnergy();
+
+		// --- Renormalize Spins?
 		// TODO: figure out specialization of members (Method_LLG should hold Parameters_LLG)
         // if (this->parameters->renorm_sd) {
         //     try {
@@ -98,11 +105,11 @@ namespace Engine
 
 	void Method_LLG::Finalize()
     {
-		this->system->iteration_allowed = false;
+		this->systems[0]->iteration_allowed = false;
     }
 
 	
-	void Method_LLG::Save_Step(std::string starttime, int iteration, bool final)
+	void Method_LLG::Save_Current(std::string starttime, int iteration, bool final)
 	{
 		// Convert indices to formatted strings
 		auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
@@ -119,12 +126,12 @@ namespace Engine
 
 		// Append Spin configuration to Spin_Archieve_File
 		auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-		Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsFile);
+		Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
 
-		if (this->system->llg_parameters->save_single_configurations) {
+		if (this->systems[0]->llg_parameters->save_single_configurations) {
 			// Save Spin configuration to new "spins" File
 			auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-			Utility::IO::Append_Spin_Configuration(this->system, iteration, spinsIterFile);
+			Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
 		}
 		
 		// Check if Energy File exists and write Header if it doesn't
@@ -132,7 +139,7 @@ namespace Engine
 		std::ifstream f(energyFile);
 		if (!f.good()) Utility::IO::Write_Energy_Header(energyFile);
 		// Append Energy to File
-		Utility::IO::Append_Energy(*this->system, iteration, energyFile);
+		Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
 
 		// Save Log
 		Log.Append_to_File();

@@ -28,11 +28,11 @@ namespace Engine
 		std::string Name() override;
 
 		// Save the current Step's Data: images and images' energies and reaction coordinates
-		void Save_Step(std::string starttime, int iteration, bool final=false) override;
+		void Save_Current(std::string starttime, int iteration, bool final=false) override;
 		// A hook into the Optimizer before an Iteration
-		void Hook_Pre_Step() override;
+		void Hook_Pre_Iteration() override;
 		// A hook into the Optimizer after an Iteration
-		void Hook_Post_Step() override;
+		void Hook_Post_Iteration() override;
 
 		// Sets iteration_allowed to false for the corresponding method
 		void Finalize() override;
@@ -46,6 +46,7 @@ namespace Engine
 		// Last calculated Reaction coordinates
 		std::vector<double> Rx;
 		// Last calculated forces
+		std::vector<std::vector<double>> F_total;
 		std::vector<std::vector<double>> F_gradient;
 		std::vector<std::vector<double>> F_spring;
 		// Last calculated tangents

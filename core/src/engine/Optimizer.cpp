@@ -60,11 +60,11 @@ namespace Engine
 		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
 		{
             // Pre-Iteration hook
-            this->method->Hook_Pre_Step();
+            this->method->Hook_Pre_Iteration();
 			// Do one single Iteration
 			this->Iteration();
             // Post-Iteration hook
-            this->method->Hook_Post_Step();
+            this->method->Hook_Post_Iteration();
 
 			// Recalculate FPS
 			this->t_iterations.pop_front();
@@ -84,7 +84,7 @@ namespace Engine
 				Log.Send(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
 				Log.Send(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
 
-				this->method->Save_Step(this->starttime, i, false);
+				this->method->Save_Current(this->starttime, i, false);
 
 				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
 			}// endif log_steps
@@ -109,8 +109,8 @@ namespace Engine
 		Log.Send(Log_Level::ALL, sender, "------------------------------------------------------");
 
         //---- Final save
-		this->method->Save_Step(this->starttime, i, true);
-        // set iterations to false
+		this->method->Save_Current(this->starttime, i, true);
+        //---- Finalize (set iterations_allowed to false etc.)
         this->method->Finalize();
     }
 

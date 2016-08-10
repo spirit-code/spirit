@@ -28,11 +28,11 @@ namespace Engine
 		std::string Name() override;
 	
 		// Save the current Step's Data: images and images' energies and reaction coordinates
-		void Save_Step(std::string starttime, int iteration, bool final) override;
+		void Save_Current(std::string starttime, int iteration, bool final) override;
 		// A hook into the Optimizer before an Iteration
-		void Hook_Pre_Step() override;
+		void Hook_Pre_Iteration() override;
 		// A hook into the Optimizer after an Iteration
-		void Hook_Post_Step() override;
+		void Hook_Post_Iteration() override;
 		
 	private:
 	};

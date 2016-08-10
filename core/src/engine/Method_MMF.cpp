@@ -19,17 +19,17 @@ namespace Engine
         return false;
     }
 
-    void Method_MMF::Hook_Pre_Step()
+    void Method_MMF::Hook_Pre_Iteration()
     {
 
 	}
 
-    void Method_MMF::Hook_Post_Step()
+    void Method_MMF::Hook_Post_Iteration()
     {
 
     }
 
-    void Method_MMF::Save_Step(std::string starttime, int iteration, bool final)
+    void Method_MMF::Save_Current(std::string starttime, int iteration, bool final)
 	{
 
     }

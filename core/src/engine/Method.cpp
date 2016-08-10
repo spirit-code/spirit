@@ -24,7 +24,7 @@ namespace Engine
 
     bool Method::ContinueIterating()
     {
-        return this->Iterations_Allowed() && !this->Force_Converged(); // && c->iteration_allowed;
+        return this->Iterations_Allowed() && !this->Force_Converged();
     }
 
     bool Method::Iterations_Allowed()
@@ -32,24 +32,24 @@ namespace Engine
         return this->systems[0]->iteration_allowed;
     }
 
-    void Method::Save_Step(std::string starttime, int iteration, bool final)
+    void Method::Save_Current(std::string starttime, int iteration, bool final)
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Step() of the Method base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Current() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
-    void Method::Hook_Pre_Step()
+    void Method::Hook_Pre_Iteration()
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Pre_Step() of the Method base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
-    void Method::Hook_Post_Step()
+    void Method::Hook_Post_Iteration()
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Post_Step() of the Method base class!"));
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 

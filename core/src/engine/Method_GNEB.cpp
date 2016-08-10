@@ -24,30 +24,31 @@ namespace Engine
 		this->systems = chain->images;
 		this->SenderName = Utility::Log_Sender::GNEB;
 
-
 		int noi = chain->noi;
 		int nos = chain->images[0]->nos;
 
 		this->energies = std::vector<double>(noi, 0.0);
 		this->Rx = std::vector<double>(noi, 0.0);
+
+		// We assume that the chain is not converged before the first iteration
+		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
+
 		// Tangents
 		this->tangents = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		// Forces
+		this->F_total    = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		this->F_gradient = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
-		this->F_spring = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->F_spring   = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
 	}
 
 	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
 	{
-		int noi = configurations.size();
 		int nos = configurations[0]->size()/3;
-		// this->Force_Converged = false;
-		this->force_maxAbsComponent = 0;
 
 		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
 		//		The Optimizer shuld respect this, but there is no way to enforce it.
 		// Get Energy and Effective Field of configurations
-		for (int i = 0; i < noi; ++i)
+		for (int i = 0; i < chain->noi; ++i)
 		{
 			// Calculate the Energy of the image (and store it in image)
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
@@ -58,11 +59,8 @@ namespace Engine
 		Utility::Manifoldmath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
-		//auto force = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
-
-		//auto F_total = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		// Loop over images to calculate the total Effective Field on each Image
-		for (int img = 1; img < noi - 1; ++img)
+		for (int img = 1; img < chain->noi - 1; ++img)
 		{
 			auto& image = *configurations[img];
 			// The gradient force (unprojected) is simply the effective field
@@ -74,7 +72,7 @@ namespace Engine
 				// We reverse the component in tangent direction
 				Utility::Manifoldmath::Project_Reverse(F_gradient[img], tangents[img]);
 				// And Spring Force is zero
-				forces[img] = F_gradient[img];
+				F_total[img] = F_gradient[img];
 			}
 			else if (chain->falling_image[img])
 			{
@@ -82,7 +80,7 @@ namespace Engine
 				// If anything, project orthogonal to the spins... idiot! But Heun already does that.
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Spring Force is zero
-				forces[img] = F_gradient[img];
+				F_total[img] = F_gradient[img];
 			}
 			else
 			{
@@ -133,19 +131,13 @@ namespace Engine
 				// Calculate the total force
 				for (int j = 0; j < 3 * nos; ++j)
 				{
-					forces[img][j] = F_gradient[img][j] + F_spring[img][j];
+					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
 				}
+
+				// Copy out
+				forces[img] = F_total[img];
 			}// end if climbing
 		}// end for img=1..noi-1
-
-		// Check for convergence
-		for (int img = 1; img < noi - 1; ++img)
-		{
-			double fmax = this->Force_on_Image_MaxAbsComponent(*configurations[img], forces[img]);
-			// TODO: how to handle convergence??
-			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
-			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
-		}
 	}// end Calculate
 
 	bool Method_GNEB::Force_Converged()
@@ -160,14 +152,24 @@ namespace Engine
 		return this->chain->iteration_allowed;
 	}
 
-	void Method_GNEB::Hook_Pre_Step()
+	void Method_GNEB::Hook_Pre_Iteration()
 	{
 
 	}
 
-	void Method_GNEB::Hook_Post_Step()
+	void Method_GNEB::Hook_Post_Iteration()
 	{
+		// --- Convergence Parameter Update
+		this->force_maxAbsComponent = 0;
+		for (int img = 1; img < chain->noi - 1; ++img)
+		{
+			double fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
+			// TODO: how to handle convergence??
+			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
+			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+		}
 
+		// --- Chain Data Update
 		// Calculate the inclinations at the data points
 		std::vector<double> dE_dRx(chain->noi, 0);
 		for (int i = 0; i < chain->noi; ++i)
@@ -178,10 +180,8 @@ namespace Engine
 				dE_dRx[i] += this->F_gradient[i][j] * this->tangents[i][j];
 			}
 		}
-
 		// Interpolate data points
 		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
-
 		// Update the chain
 		//		Rx
 		chain->Rx = this->Rx;
@@ -199,7 +199,7 @@ namespace Engine
     }
 
 
-	void Method_GNEB::Save_Step(std::string starttime, int iteration, bool final)
+	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool final)
 	{
 
 		// Get the file suffix
