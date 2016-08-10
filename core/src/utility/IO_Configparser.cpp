@@ -661,19 +661,22 @@ namespace Utility
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(dd_radius, "dd_radius");
-					if (dd_radius >0 ) Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
+					// if (dd_radius >0 ) Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
-					std::vector<std::vector<int>> dd_neigh;
-					// Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
-					std::vector<std::vector<std::vector<double>>> dd_neigh_pos;
-					// Dipole Dipole normal vectors [dim][nos][max_n]
-					std::vector<std::vector<std::vector<double>>> dd_normal;
-					// Dipole Dipole distance [nos][max_n]
-					std::vector<std::vector<double>> dd_distance;
-					// Create the DD neighbours
-					Engine::Neighbours::Create_Dipole_Neighbours(geometry, std::vector<bool>{ true, true, true }, dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-					// Get the DD pairs from the neighbours
-					Engine::Neighbours::Create_DD_Pairs_from_Neighbours(geometry, dd_neigh, dd_neigh_pos, dd_distance, dd_normal, DD_indices, DD_magnitude, DD_normal);
+					// std::vector<std::vector<int>> dd_neigh;
+					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
+					// std::vector<std::vector<std::vector<double>>> dd_neigh_pos;
+					// // Dipole Dipole normal vectors [dim][nos][max_n]
+					// std::vector<std::vector<std::vector<double>>> dd_normal;
+					// // Dipole Dipole distance [nos][max_n]
+					// std::vector<std::vector<double>> dd_distance;
+					// // Create the DD neighbours
+					// Engine::Neighbours::Create_Dipole_Neighbours(geometry, std::vector<bool>{ true, true, true }, dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
+					// // Get the DD pairs from the neighbours
+					// Engine::Neighbours::Create_DD_Pairs_from_Neighbours(geometry, dd_neigh, dd_neigh_pos, dd_distance, dd_normal, DD_indices, DD_magnitude, DD_normal);
+					
+					
+					Engine::Neighbours::Create_Dipole_Pairs(geometry, dd_radius, DD_indices, DD_magnitude, DD_normal);
 
 				}// end try
 				catch (Exception ex) {

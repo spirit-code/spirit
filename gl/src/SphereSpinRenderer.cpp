@@ -17,13 +17,19 @@ SphereSpinRenderer::SphereSpinRenderer() {
 }
 
 SphereSpinRenderer::~SphereSpinRenderer() {
+	assert(!glGetError());
   glDeleteVertexArrays(1, &_vao1);
+  assert(!glGetError());
   glDeleteVertexArrays(1, &_vao2);
+  assert(!glGetError());
   glDeleteBuffers(1, &_fakeSphereVbo);
+  assert(!glGetError());
   glDeleteBuffers(1, &_instanceDirectionVbo);
+  assert(!glGetError());
   glDeleteProgram(_program1);
+  assert(!glGetError());
   glDeleteProgram(_program2);
-  glDisableVertexAttribArray(0);
+  assert(!glGetError());
 }
 
 void SphereSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
@@ -42,6 +48,7 @@ void SphereSpinRenderer::initGL() {
   glGenVertexArrays(1, &_vao1);
   glBindVertexArray(_vao1);
   glGenBuffers(1, &_instanceDirectionVbo);
+  assert(_instanceDirectionVbo);
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
   glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
   glEnableVertexAttribArray(0);
@@ -66,10 +73,16 @@ void SphereSpinRenderer::initGL() {
 
 void SphereSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                       const std::vector<glm::vec3>& directions) {
-  glBindVertexArray(_vao2);
+	assert(!glGetError());
+  glBindVertexArray(_vao1);
+  assert(!glGetError());
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
+  assert(!glGetError());
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
+  assert(!glGetError());
   _numInstances = directions.size();
+  assert(!glGetError());
 }
 
 void SphereSpinRenderer::draw(float aspectRatio) const {

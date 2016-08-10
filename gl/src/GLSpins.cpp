@@ -1,3 +1,8 @@
+
+#ifndef __gl_h_
+#include <glad/glad.h>
+#endif
+
 #include <iostream>
 #include <cmath>
 #include <cassert>
@@ -29,6 +34,8 @@ GLSpins::GLSpins() {
   if (!gladLoadGL()) {
     std::cerr << "Failed to initialize glad" << std::endl;
   }
+  
+  glGetError();
 
   setCameraToDefault();
 
@@ -48,10 +55,16 @@ GLSpins::~GLSpins() {
 }
 
 void GLSpins::updateSpins(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& directions) {
-  for (auto it : _renderers) {
+
+	assert(!glGetError());
+	for (auto it : _renderers) {
+		assert(!glGetError());
     auto renderer = it.first;
+	assert(!glGetError());
     renderer->updateSpins(positions, directions);
+	assert(!glGetError());
   }
+	assert(!glGetError());
 }
 
 void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max) {
@@ -202,13 +215,16 @@ static std::array<float, 4> locationToViewport(GLSpins::WidgetLocation location)
 }
 
 void GLSpins::updateRenderers() {
+	assert(!glGetError());
   bool show_bounding_box = options().get<GLSpins::Option::SHOW_BOUNDING_BOX>();
   bool show_coordinate_system = options().get<GLSpins::Option::SHOW_COORDINATE_SYSTEM>();
   bool show_miniview = options().get<GLSpins::Option::SHOW_MINIVIEW>();
   GLSpins::VisualizationMode mode = options().get<GLSpins::Option::VISUALIZATION_MODE>();
   GLSpins::WidgetLocation coordinate_system_location = options().get<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>();
   GLSpins::WidgetLocation miniview_location = options().get<GLSpins::Option::MINIVIEW_LOCATION>();
+  assert(!glGetError());
   _renderers.clear();
+  assert(!glGetError());
   std::shared_ptr<ISpinRenderer> main_renderer;
   switch (mode) {
     case VisualizationMode::ARROWS:
@@ -221,6 +237,7 @@ void GLSpins::updateRenderers() {
       main_renderer = std::make_shared<SphereSpinRenderer>();
       break;
   }
+  assert(!glGetError());
   if (show_bounding_box && mode != VisualizationMode::SPHERE) {
     std::vector<std::shared_ptr<ISpinRenderer>> r = {
       main_renderer,
@@ -234,6 +251,7 @@ void GLSpins::updateRenderers() {
     std::shared_ptr<ISpinRenderer> renderer = std::make_shared<CoordinateSystemRenderer>();
     _renderers.push_back({renderer, locationToViewport(coordinate_system_location)});
   }
+  assert(!glGetError());
   if (show_miniview) {
     std::shared_ptr<ISpinRenderer> renderer;
     if (mode == VisualizationMode::SPHERE) {
@@ -250,23 +268,30 @@ void GLSpins::updateRenderers() {
     }
     _renderers.push_back({renderer, locationToViewport(miniview_location)});
   }
+  assert(!glGetError());
 
   for (auto it : _renderers) {
     auto renderer = it.first;
     renderer->initGL();
+	assert(!glGetError());
     renderer->updateOptions(options());
   }
+  assert(!glGetError());
 }
 
 void GLSpins::updateOptions(const Options<GLSpins>& options) {
+	assert(!glGetError());
   auto changedOptions = _options.update(options);
   if (changedOptions.size() == 0) {
     return;
   }
+  assert(!glGetError());
   optionsHaveChanged(changedOptions);
+  assert(!glGetError());
   for (auto it : _renderers) {
     auto renderer = it.first;
     renderer->updateOptions(options);
+	assert(!glGetError());
   }
 }
 

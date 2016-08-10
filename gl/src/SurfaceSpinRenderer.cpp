@@ -17,13 +17,20 @@ SurfaceSpinRenderer::SurfaceSpinRenderer() {
 }
 
 SurfaceSpinRenderer::~SurfaceSpinRenderer() {
+	assert(!glGetError());
   glDeleteVertexArrays(1, &_vao);
+  assert(!glGetError());
   glDeleteBuffers(1, &_ibo);
+  assert(!glGetError());
   glDeleteBuffers(1, &_instancePositionVbo);
+  assert(!glGetError());
   glDeleteBuffers(1, &_instanceDirectionVbo);
+  assert(!glGetError());
   glDeleteProgram(_program);
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
+  assert(!glGetError());
+  //glDisableVertexAttribArray(0);
+  //glDisableVertexAttribArray(1);
+  assert(!glGetError());
 }
 
 void SurfaceSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
@@ -68,11 +75,13 @@ void SurfaceSpinRenderer::initGL() {
 
 void SurfaceSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                     const std::vector<glm::vec3>& directions) {
+	assert(!glGetError());
   glBindVertexArray(_vao);
   glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STREAM_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
+  assert(!glGetError());
 }
 
 void SurfaceSpinRenderer::draw(float aspectRatio) const {

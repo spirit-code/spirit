@@ -37,6 +37,16 @@ namespace Engine
 		bool Iterations_Allowed() override;
 	private:
 		std::shared_ptr<Data::Spin_System_Chain> chain;
+
+		// Last calculated energies
+		std::vector<double> energies;
+		// Last calculated Reaction coordinates
+		std::vector<double> Rx;
+		// Last calculated forces
+		std::vector<std::vector<double>> F_gradient;
+		std::vector<std::vector<double>> F_spring;
+		// Last calculated tangents
+		std::vector<std::vector<double>> tangents;
     };
 }
 

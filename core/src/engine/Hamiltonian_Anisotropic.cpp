@@ -220,7 +220,7 @@ namespace Engine
 		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		double result = 0.0;
 
-		Energy[ENERGY_POS_DD] += mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0) *
+		Energy[ENERGY_POS_DD] -= mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0) *
 			(3  *   ( spins[indices[1]]           * DD_normal[0]
 					+ spins[indices[1] + 1 * nos] * DD_normal[1]
 					+ spins[indices[1] + 2 * nos] * DD_normal[2])

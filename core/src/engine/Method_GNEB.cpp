@@ -23,6 +23,18 @@ namespace Engine
 	{
 		this->systems = chain->images;
 		this->SenderName = Utility::Log_Sender::GNEB;
+
+
+		int noi = chain->noi;
+		int nos = chain->images[0]->nos;
+
+		this->energies = std::vector<double>(noi, 0.0);
+		this->Rx = std::vector<double>(noi, 0.0);
+		// Tangents
+		this->tangents = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		// Forces
+		this->F_gradient = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->F_spring = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
 	}
 
 	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
@@ -35,25 +47,19 @@ namespace Engine
 		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
 		//		The Optimizer shuld respect this, but there is no way to enforce it.
 		// Get Energy and Effective Field of configurations
-		std::vector<double> energies(configurations.size());
 		for (int i = 0; i < noi; ++i)
 		{
 			// Calculate the Energy of the image (and store it in image)
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
+			if (i>0) Rx[i] = Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*configurations[i], *configurations[i - 1]);
 		}
 
-		// Tangents
-		// TODO: we might not want to update the chain's tangents, since this might be an intermediate step
-		auto tangents = std::vector<std::vector<double>>(chain->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
 		Utility::Manifoldmath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
 		//auto force = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 
-		// Forces
-		auto F_gradient = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
-		auto F_spring = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		//auto F_total = std::vector<std::vector<double>>(c->noi, std::vector<double>(3 * nos));	// [noi][3nos]
 		// Loop over images to calculate the total Effective Field on each Image
 		for (int img = 1; img < noi - 1; ++img)
@@ -118,10 +124,7 @@ namespace Engine
 
 				// Calculate the spring force
 				//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
-				double d1, d2, d;
-				d1 = Utility::Manifoldmath::Dist_Geodesic(*configurations[img + 1], *configurations[img]);
-				d2 = Utility::Manifoldmath::Dist_Geodesic(*configurations[img], *configurations[img - 1]);
-				d = this->chain->gneb_parameters->spring_constant * (d1 - d2);
+				double d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - Rx[img-1]);
 				for (unsigned int i = 0; i < F_spring[0].size(); ++i)
 				{
 					F_spring[img][i] = d * tangents[img][i];
@@ -164,34 +167,6 @@ namespace Engine
 
 	void Method_GNEB::Hook_Post_Step()
 	{
-		// Update Chain's reaction coordinates
-		for (int i = 1; i < chain->noi; ++i)
-		{
-			chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i - 1]->spins, *chain->images[i]->spins);
-		}
-
-		// Update and save Images' Energies
-		std::vector<double> energies(chain->noi, 0);
-		for (int img = 0; img < chain->noi; ++img)
-		{
-			//Engine::Energy::Update(*chain->images[i]);
-			//chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
-			chain->images[img]->UpdateEnergy();
-			// if (i > 0) chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(chain->images[i - 1]->spins, state->active_chain->images[i]->spins);
-			// Gather in array array
-			energies[img] = chain->images[img]->E;
-		}
-
-		// TODO: Update the tangents?? Doing this 2x per GNEB iteration is costly!
-		auto configurations = std::vector<std::shared_ptr<std::vector<double>>>(chain->noi);
-		for (int img=0; img<chain->noi; ++img) configurations[img] = chain->images[img]->spins;
-		Utility::Manifoldmath::Tangents(configurations, energies, this->chain->tangents);
-
-		// TODO: Update the effective field?? Doing this 2x per GNEB iteration is costly!
-		for (int img = 0; img < chain->noi; ++img)
-		{
-			this->chain->images[img]->hamiltonian->Effective_Field(*chain->images[img]->spins, this->chain->images[img]->effective_field);
-		}
 
 		// Calculate the inclinations at the data points
 		std::vector<double> dE_dRx(chain->noi, 0);
@@ -200,15 +175,21 @@ namespace Engine
 			// dy/dx
 			for (int j = 0; j < 3 * chain->images[i]->nos; ++j)
 			{
-				dE_dRx[i] += chain->images[i]->effective_field[j] * chain->tangents[i][j];
+				dE_dRx[i] += this->F_gradient[i][j] * this->tangents[i][j];
 			}
 		}
 
 		// Interpolate data points
-		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(chain->Rx, energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
+		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
 
-		// Assign to chain
+		// Update the chain
+		//		Rx
+		chain->Rx = this->Rx;
+		//		E
+		for (int img = 1; img < chain->noi; ++img) chain->images[img]->E = this->energies[img];
+		//		Rx interpolated
 		chain->Rx_interpolated = interp[0];
+		//		E interpolated
 		chain->E_interpolated  = interp[1];
 	}
 

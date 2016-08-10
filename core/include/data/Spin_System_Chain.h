@@ -37,9 +37,6 @@ namespace Data
 		std::vector<double> E_interpolated;
 		std::vector<std::vector<double>> E_array_interpolated;
 
-		// tangents to be accessed by e.g. solver
-		std::vector<std::vector<double>> tangents;
-
 
 	private:
 	
