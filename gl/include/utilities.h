@@ -1,6 +1,8 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+#include <iostream>
+#include <cassert>
 #include <vector>
 #include <chrono>
 #include <queue>
@@ -24,5 +26,14 @@ private:
   std::chrono::steady_clock::time_point _previous_frame_time_point;
   std::queue<std::chrono::duration<float>> _frame_durations;
 };
+
+
+#define CHECK_GL_ERROR do {\
+  GLuint error = glGetError();\
+  if (error) {\
+    std::cerr << "OpenGL error (" << error << ") detected in " << __FILE__ << " (l. " << __LINE__ << ")" << std::endl;\
+  }\
+  assert(!error);\
+} while(0)
 
 #endif

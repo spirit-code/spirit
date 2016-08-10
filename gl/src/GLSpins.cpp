@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <cmath>
-#include <cassert>
 #include <memory>
 
 // Include GLM
@@ -35,8 +34,10 @@ GLSpins::GLSpins() {
     std::cerr << "Failed to initialize glad" << std::endl;
   }
   
+  // Reset any error potentially caused by glad
   glGetError();
-
+  
+  CHECK_GL_ERROR;
   setCameraToDefault();
 
   glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
@@ -49,22 +50,19 @@ GLSpins::GLSpins() {
   updateOptions(options);
   
   updateRenderers();
+  CHECK_GL_ERROR;
 }
 
 GLSpins::~GLSpins() {
 }
 
 void GLSpins::updateSpins(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& directions) {
-
-	assert(!glGetError());
+  CHECK_GL_ERROR;
 	for (auto it : _renderers) {
-		assert(!glGetError());
     auto renderer = it.first;
-	assert(!glGetError());
     renderer->updateSpins(positions, directions);
-	assert(!glGetError());
   }
-	assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max) {
@@ -76,6 +74,7 @@ void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::
 }
 
 void GLSpins::draw() {
+  CHECK_GL_ERROR;
   // Clear the screen and the depth buffer
   auto background_color = _options.get<ISpinRenderer::Option::BACKGROUND_COLOR>();
   glClearColor(background_color.x, background_color.y, background_color.z, 1.0);
@@ -103,10 +102,9 @@ void GLSpins::draw() {
     glViewport((GLint)(viewport[0] * _width), (GLint)(viewport[1] * _height), (GLsizei)(viewport[2] * _width), (GLsizei)(viewport[3] * _height));
     glClear(GL_DEPTH_BUFFER_BIT);
     renderer->draw(viewport[2]/viewport[3] * _camera.aspectRatio());
-    assert(!glGetError());
   }
   _fps_counter.tick();
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 float GLSpins::getFramerate() const {
@@ -215,16 +213,14 @@ static std::array<float, 4> locationToViewport(GLSpins::WidgetLocation location)
 }
 
 void GLSpins::updateRenderers() {
-	assert(!glGetError());
+  CHECK_GL_ERROR;
   bool show_bounding_box = options().get<GLSpins::Option::SHOW_BOUNDING_BOX>();
   bool show_coordinate_system = options().get<GLSpins::Option::SHOW_COORDINATE_SYSTEM>();
   bool show_miniview = options().get<GLSpins::Option::SHOW_MINIVIEW>();
   GLSpins::VisualizationMode mode = options().get<GLSpins::Option::VISUALIZATION_MODE>();
   GLSpins::WidgetLocation coordinate_system_location = options().get<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>();
   GLSpins::WidgetLocation miniview_location = options().get<GLSpins::Option::MINIVIEW_LOCATION>();
-  assert(!glGetError());
   _renderers.clear();
-  assert(!glGetError());
   std::shared_ptr<ISpinRenderer> main_renderer;
   switch (mode) {
     case VisualizationMode::ARROWS:
@@ -237,7 +233,6 @@ void GLSpins::updateRenderers() {
       main_renderer = std::make_shared<SphereSpinRenderer>();
       break;
   }
-  assert(!glGetError());
   if (show_bounding_box && mode != VisualizationMode::SPHERE) {
     std::vector<std::shared_ptr<ISpinRenderer>> r = {
       main_renderer,
@@ -251,7 +246,6 @@ void GLSpins::updateRenderers() {
     std::shared_ptr<ISpinRenderer> renderer = std::make_shared<CoordinateSystemRenderer>();
     _renderers.push_back({renderer, locationToViewport(coordinate_system_location)});
   }
-  assert(!glGetError());
   if (show_miniview) {
     std::shared_ptr<ISpinRenderer> renderer;
     if (mode == VisualizationMode::SPHERE) {
@@ -268,31 +262,26 @@ void GLSpins::updateRenderers() {
     }
     _renderers.push_back({renderer, locationToViewport(miniview_location)});
   }
-  assert(!glGetError());
 
   for (auto it : _renderers) {
     auto renderer = it.first;
-    renderer->initGL();
-	assert(!glGetError());
     renderer->updateOptions(options());
   }
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void GLSpins::updateOptions(const Options<GLSpins>& options) {
-	assert(!glGetError());
+  CHECK_GL_ERROR;
   auto changedOptions = _options.update(options);
   if (changedOptions.size() == 0) {
     return;
   }
-  assert(!glGetError());
   optionsHaveChanged(changedOptions);
-  assert(!glGetError());
   for (auto it : _renderers) {
     auto renderer = it.first;
     renderer->updateOptions(options);
-	assert(!glGetError());
   }
+  CHECK_GL_ERROR;
 }
 
 void GLSpins::options(const Options<GLSpins>& options) {
@@ -305,6 +294,7 @@ const Options<GLSpins>& GLSpins::options() const {
 }
 
 void GLSpins::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  CHECK_GL_ERROR;
   bool renderersChanged = false;
   for (int option_id : changedOptions) {
     switch (option_id) {
@@ -321,4 +311,5 @@ void GLSpins::optionsHaveChanged(const std::vector<int>& changedOptions) {
   if (renderersChanged) {
     updateRenderers();
   }
+  CHECK_GL_ERROR;
 }

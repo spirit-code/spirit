@@ -11,7 +11,6 @@ public:
   
   BoundingBoxRenderer();
   virtual ~BoundingBoxRenderer();
-  virtual void initGL();
   virtual void updateSpins(const std::vector<glm::vec3>& positions,
                            const std::vector<glm::vec3>& directions);
   virtual void draw(float aspectRatio) const;

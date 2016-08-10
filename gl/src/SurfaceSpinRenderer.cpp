@@ -12,46 +12,7 @@
 #include "utilities.h"
 
 SurfaceSpinRenderer::SurfaceSpinRenderer() {
-  // TODO: initGL if possible
-  // TODO: updateSpins if possible
-}
-
-SurfaceSpinRenderer::~SurfaceSpinRenderer() {
-	assert(!glGetError());
-  glDeleteVertexArrays(1, &_vao);
-  assert(!glGetError());
-  glDeleteBuffers(1, &_ibo);
-  assert(!glGetError());
-  glDeleteBuffers(1, &_instancePositionVbo);
-  assert(!glGetError());
-  glDeleteBuffers(1, &_instanceDirectionVbo);
-  assert(!glGetError());
-  glDeleteProgram(_program);
-  assert(!glGetError());
-  //glDisableVertexAttribArray(0);
-  //glDisableVertexAttribArray(1);
-  assert(!glGetError());
-}
-
-void SurfaceSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
-  bool updateShader = false;
-  bool updateIndices = false;
-  for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
-    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
-      updateShader = true;
-    } else if (*it == SurfaceSpinRendererOptions::SURFACE_INDICES) {
-      updateIndices = true;
-    }
-  }
-  if (updateShader) {
-    _updateShaderProgram();
-  }
-  if (updateIndices) {
-    _updateSurfaceIndices();
-  }
-}
-
-void SurfaceSpinRenderer::initGL() {
+  CHECK_GL_ERROR;
   glGenVertexArrays(1, &_vao);
   glBindVertexArray(_vao);
   
@@ -71,20 +32,52 @@ void SurfaceSpinRenderer::initGL() {
   
   _updateShaderProgram();
   _updateSurfaceIndices();
+  CHECK_GL_ERROR;
+}
+
+SurfaceSpinRenderer::~SurfaceSpinRenderer() {
+  CHECK_GL_ERROR;
+  glDeleteVertexArrays(1, &_vao);
+  glDeleteBuffers(1, &_ibo);
+  glDeleteBuffers(1, &_instancePositionVbo);
+  glDeleteBuffers(1, &_instanceDirectionVbo);
+  glDeleteProgram(_program);
+  CHECK_GL_ERROR;
+}
+
+void SurfaceSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  CHECK_GL_ERROR;
+  bool updateShader = false;
+  bool updateIndices = false;
+  for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
+    if (*it == ISpinRenderer::Option::COLORMAP_IMPLEMENTATION) {
+      updateShader = true;
+    } else if (*it == SurfaceSpinRendererOptions::SURFACE_INDICES) {
+      updateIndices = true;
+    }
+  }
+  if (updateShader) {
+    _updateShaderProgram();
+  }
+  if (updateIndices) {
+    _updateSurfaceIndices();
+  }
+  CHECK_GL_ERROR;
 }
 
 void SurfaceSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
-                                    const std::vector<glm::vec3>& directions) {
-	assert(!glGetError());
+                                      const std::vector<glm::vec3>& directions) {
+  CHECK_GL_ERROR;
   glBindVertexArray(_vao);
   glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STREAM_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void SurfaceSpinRenderer::draw(float aspectRatio) const {
+  CHECK_GL_ERROR;
   if (_numIndices <= 0) {
     return;
   }
@@ -122,11 +115,12 @@ void SurfaceSpinRenderer::draw(float aspectRatio) const {
   
   glDisable(GL_CULL_FACE);
   glDrawElements(GL_TRIANGLES, _numIndices, GL_UNSIGNED_INT, nullptr);
-  assert(!glGetError());
   glEnable(GL_CULL_FACE);
+  CHECK_GL_ERROR;
 }
 
 void SurfaceSpinRenderer::_updateShaderProgram() {
+  CHECK_GL_ERROR;
   if (_program) {
     glDeleteProgram(_program);
   }
@@ -142,9 +136,11 @@ void SurfaceSpinRenderer::_updateShaderProgram() {
   if (program) {
     _program = program;
   }
+  CHECK_GL_ERROR;
 }
 
 void SurfaceSpinRenderer::_updateSurfaceIndices() {
+  CHECK_GL_ERROR;
   const std::vector<GLuint>& surfaceIndices = _options.get<SurfaceSpinRendererOptions::SURFACE_INDICES>();
   
   // Enforce valid range
@@ -156,6 +152,7 @@ void SurfaceSpinRenderer::_updateSurfaceIndices() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * surfaceIndices.size(), surfaceIndices.data(), GL_STREAM_DRAW);
   _numIndices = surfaceIndices.size();
+  CHECK_GL_ERROR;
 }
 
 std::vector<unsigned int> SurfaceSpinRenderer::generateCartesianSurfaceIndices(int nx, int ny) {

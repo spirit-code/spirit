@@ -1,10 +1,5 @@
-
-#ifndef __gl_h_
-#include <glad/glad.h>
-#endif
 #include "SpinWidget.h"
 
-#include <cassert>
 #include <QTimer>
 #include <QMouseEvent>
 #include "Interface_Geometry.h"
@@ -25,7 +20,6 @@ void SpinWidget::initializeGL() {
 	makeCurrent();
 	this->gl_spins = std::make_shared<GLSpins>();
   _reset_camera = true;
-  assert(!glGetError());
 }
 
 void SpinWidget::teardownGL() {
@@ -33,15 +27,11 @@ void SpinWidget::teardownGL() {
 }
 
 void SpinWidget::resizeGL(int width, int height) {
-
-assert(!glGetError());
   gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
-  assert(!glGetError());
   update();
 }
 
 void SpinWidget::paintGL() {
-	assert(!glGetError());
   // Update the pointer to our Data
   auto s = state->active_image;
   auto& spins = *s->spins;
@@ -57,24 +47,19 @@ void SpinWidget::paintGL() {
     directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
   }
 
-  assert(!glGetError());
   gl_spins->updateSpins(positions, directions);
 
-  assert(!glGetError());
   glm::vec3 bounds_min;
   glm::vec3 bounds_max;
   Geometry_Get_Bounds(state.get(), &bounds_min.x, &bounds_min.y, &bounds_min.z, &bounds_max.x, &bounds_max.y, &bounds_max.z);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
 
-  assert(!glGetError());
   gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
   if (_reset_camera) {
     gl_spins->setCameraToDefault();
     _reset_camera = false;
   }
-  assert(!glGetError());
   gl_spins->draw();
-  assert(!glGetError());
   QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -173,7 +158,6 @@ bool SpinWidget::isCoordinateSystemEnabled() const {
 
 void SpinWidget::enableCoordinateSystem(bool enabled) {
 	makeCurrent();
-	assert(!glGetError());
   auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_COORDINATE_SYSTEM>(enabled);
   gl_spins->updateOptions(option);
 }
@@ -184,7 +168,6 @@ bool SpinWidget::isBoundingBoxEnabled() const {
 
 void SpinWidget::enableBoundingBox(bool enabled) {
 	makeCurrent();
-	assert(!glGetError());
   auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_BOUNDING_BOX>(enabled);
   gl_spins->updateOptions(option);
 }

@@ -14,19 +14,39 @@
 
 
 BoundingBoxRenderer::BoundingBoxRenderer() {
-  // TODO: initGL if possible
-  // TODO: updateSpins if possible
+  CHECK_GL_ERROR;
+  glGenVertexArrays(1, &_vao);
+  glBindVertexArray(_vao);
+  glGenBuffers(1, &_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
+  glEnableVertexAttribArray(0);
+  
+  _updateVertexData();
+  
+  std::string vertexShaderSource =
+#include "boundingbox.vert.txt"
+  ;
+  std::string fragmentShaderSource =
+#include "boundingbox.frag.txt"
+  ;
+  GLuint program = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition"});
+  if (program) {
+    _program = program;
+  }
+  CHECK_GL_ERROR;
 }
 
 BoundingBoxRenderer::~BoundingBoxRenderer() {
+  CHECK_GL_ERROR;
   glDeleteVertexArrays(1, &_vao);
   glDeleteBuffers(1, &_vbo);
   glDeleteProgram(_program);
-  //glDisableVertexAttribArray(0);
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void BoundingBoxRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  CHECK_GL_ERROR;
   bool updateVertices = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
     if (*it == GLSpins::Option::BOUNDING_BOX_MIN) {
@@ -38,36 +58,15 @@ void BoundingBoxRenderer::optionsHaveChanged(const std::vector<int>& changedOpti
   if (updateVertices) {
     _updateVertexData();
   }
-}
-
-void BoundingBoxRenderer::initGL() {
-  glGenVertexArrays(1, &_vao);
-  glBindVertexArray(_vao);
-  glGenBuffers(1, &_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
-  glEnableVertexAttribArray(0);
-
-  _updateVertexData();
-
-  std::string vertexShaderSource =
-#include "boundingbox.vert.txt"
-  ;
-  std::string fragmentShaderSource =
-#include "boundingbox.frag.txt"
-  ;
-  GLuint program = createProgram(vertexShaderSource, fragmentShaderSource, {"ivPosition"});
-  if (program) {
-    _program = program;
-  }
+  CHECK_GL_ERROR;
 }
 
 void BoundingBoxRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                      const std::vector<glm::vec3>& directions) {
-	assert(!glGetError());
 }
 
 void BoundingBoxRenderer::draw(float aspectRatio) const {
+  CHECK_GL_ERROR;
   glUseProgram(_program);
   glBindVertexArray(_vao);
 
@@ -95,9 +94,11 @@ void BoundingBoxRenderer::draw(float aspectRatio) const {
   glDisable(GL_CULL_FACE);
   glDrawArrays(GL_LINES, 0, 24);
   glEnable(GL_CULL_FACE);
+  CHECK_GL_ERROR;
 }
 
 void BoundingBoxRenderer::_updateVertexData() {
+  CHECK_GL_ERROR;
   glBindBuffer(GL_ARRAY_BUFFER, _vbo);
   auto color = _options.get<BoundingBoxRenderer::Option::COLOR>();
   auto min = _options.get<GLSpins::Option::BOUNDING_BOX_MIN>();
@@ -128,4 +129,5 @@ void BoundingBoxRenderer::_updateVertexData() {
     min[0], max[1], min[2],
     min[0], max[1], max[2]};
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
+  CHECK_GL_ERROR;
 }

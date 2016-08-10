@@ -2,8 +2,9 @@
 #include "utilities.h"
 
 GLuint createProgram(const std::string& vertexShaderSource,
-                            const std::string& fragmentShaderSource,
-                            const std::vector<std::string>& attributes) {
+                     const std::string& fragmentShaderSource,
+                     const std::vector<std::string>& attributes) {
+  CHECK_GL_ERROR;
   GLint status = 0;
   
   const char *vertexShaderSourceCStr = vertexShaderSource.c_str();
@@ -64,6 +65,7 @@ GLuint createProgram(const std::string& vertexShaderSource,
     return 0;
   }
   return program;
+  CHECK_GL_ERROR;
 }
 
 std::string getColormapImplementation(const std::string& colormapName) {

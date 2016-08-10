@@ -16,25 +16,53 @@
 #endif
 
 ArrowSpinRenderer::ArrowSpinRenderer() {
-  // TODO: initGL if possible
-  // TODO: updateSpins if possible
+  CHECK_GL_ERROR;
+  glGenVertexArrays(1, &_vao);
+  glBindVertexArray(_vao);
+  glGenBuffers(1, &_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 4*3*2, nullptr);
+  glEnableVertexAttribArray(0);
+  glVertexAttribDivisor(0, 0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, false, 4*3*2, (void *)(4*3));
+  glEnableVertexAttribArray(1);
+  glVertexAttribDivisor(1, 0);
+  
+  glGenBuffers(1, &_ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+  _numIndices = 0;
+  
+  glGenBuffers(1, &_instancePositionVbo);
+  glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
+  glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, nullptr);
+  glEnableVertexAttribArray(2);
+  glVertexAttribDivisor(2, 1);
+  
+  glGenBuffers(1, &_instanceDirectionVbo);
+  glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
+  glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, nullptr);
+  glEnableVertexAttribArray(3);
+  glVertexAttribDivisor(3, 1);
+  _numInstances = 0;
+  
+  _updateShaderProgram();
+  _updateVertexData();
+  CHECK_GL_ERROR;
 }
 
 ArrowSpinRenderer::~ArrowSpinRenderer() {
+  CHECK_GL_ERROR;
   glDeleteVertexArrays(1, &_vao);
   glDeleteBuffers(1, &_vbo);
   glDeleteBuffers(1, &_ibo);
   glDeleteBuffers(1, &_instancePositionVbo);
   glDeleteBuffers(1, &_instanceDirectionVbo);
   glDeleteProgram(_program);
-  //glDisableVertexAttribArray(0);
-  //glDisableVertexAttribArray(1);
-  //glDisableVertexAttribArray(2);
-  //glDisableVertexAttribArray(3);
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void ArrowSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptions) {
+  CHECK_GL_ERROR;
   bool updateShader = false;
   bool updateVertices = false;
   for (auto it = changedOptions.cbegin(); it != changedOptions.cend(); it++) {
@@ -50,73 +78,29 @@ void ArrowSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOption
       updateVertices = true;
     }
   }
-  assert(!glGetError());
   if (updateShader) {
     _updateShaderProgram();
   }
-  assert(!glGetError());
   if (updateVertices) {
     _updateVertexData();
   }
-  assert(!glGetError());
-}
-
-void ArrowSpinRenderer::initGL() {
-	assert(!glGetError());
-  glGenVertexArrays(1, &_vao);
-  glBindVertexArray(_vao);
-  glGenBuffers(1, &_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 4*3*2, nullptr);
-  glEnableVertexAttribArray(0);
-  assert(!glGetError());
-  glVertexAttribDivisor(0, 0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, false, 4*3*2, (void *)(4*3));
-  glEnableVertexAttribArray(1);
-  glVertexAttribDivisor(1, 0);
-
-  assert(!glGetError());
-  glGenBuffers(1, &_ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-  _numIndices = 0;
-
-  assert(!glGetError());
-  glGenBuffers(1, &_instancePositionVbo);
-  glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
-  glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, nullptr);
-  glEnableVertexAttribArray(2);
-  glVertexAttribDivisor(2, 1);
-
-  assert(!glGetError());
-  glGenBuffers(1, &_instanceDirectionVbo);
-  glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
-  glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, nullptr);
-  glEnableVertexAttribArray(3);
-  glVertexAttribDivisor(3, 1);
-  _numInstances = 0;
-
-  assert(!glGetError());
-  _updateShaderProgram();
-  assert(!glGetError());
-  _updateVertexData();
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void ArrowSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                     const std::vector<glm::vec3>& directions) {
-  assert(!glGetError());
+  CHECK_GL_ERROR;
   glBindVertexArray(_vao);
   _numInstances = positions.size();
-  assert(!glGetError());
   glBindBuffer(GL_ARRAY_BUFFER, _instancePositionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STREAM_DRAW);
-  assert(!glGetError());
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
-  assert(!glGetError());
+  CHECK_GL_ERROR;
 }
 
 void ArrowSpinRenderer::draw(float aspectRatio) const {
+  CHECK_GL_ERROR;
   if (_numInstances <= 0) {
     return;
   }
@@ -153,9 +137,11 @@ void ArrowSpinRenderer::draw(float aspectRatio) const {
   glUniform2f(glGetUniformLocation(_program, "uZRange"), zRange[0], zRange[1]);
   
   glDrawElementsInstanced(GL_TRIANGLES, _numIndices, GL_UNSIGNED_SHORT, nullptr, _numInstances);
+  CHECK_GL_ERROR;
 }
 
 void ArrowSpinRenderer::_updateShaderProgram() {
+  CHECK_GL_ERROR;
   if (_program) {
     glDeleteProgram(_program);
   }
@@ -170,9 +156,11 @@ void ArrowSpinRenderer::_updateShaderProgram() {
   if (program) {
     _program = program;
   }
+  CHECK_GL_ERROR;
 }
 
 void ArrowSpinRenderer::_updateVertexData() {
+  CHECK_GL_ERROR;
   unsigned int levelOfDetail = _options.get<ArrowSpinRendererOptions::LEVEL_OF_DETAIL>();
   float coneHeight = _options.get<ArrowSpinRendererOptions::CONE_HEIGHT>();
   float coneRadius = _options.get<ArrowSpinRendererOptions::CONE_RADIUS>();
@@ -261,4 +249,5 @@ void ArrowSpinRenderer::_updateVertexData() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indices.size(), indices.data(), GL_STATIC_DRAW);
   _numIndices = indices.size();
+  CHECK_GL_ERROR;
 }
