@@ -6,7 +6,8 @@ struct State;
 #include <vector>
 
 // Play/Pause functionality
-extern "C" void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, int idx_image=-1, int idx_chain=-1);
+extern "C" void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, 
+	int n_iterations = -1, int log_steps = -1, int idx_image=-1, int idx_chain=-1);
 
 // Stop all simulations
 extern "C" void Simulation_Stop_All(State *state);

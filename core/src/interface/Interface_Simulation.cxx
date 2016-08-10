@@ -8,7 +8,7 @@
 #include "Optimizer_QM.h"
 #include "Method.h"
 
-void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, int idx_image, int idx_chain)
+void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, int n_iterations, int log_steps, int idx_image, int idx_chain)
 {
     // Translate to string
     std::string method_type(c_method_type);
@@ -55,12 +55,16 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
     	    systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, image);
             state->active_image->iteration_allowed = true;
+			if (n_iterations > 0) state->active_image->llg_parameters->n_iterations = n_iterations;
+			if (log_steps > 0) state->active_image->llg_parameters->log_steps = log_steps;
             method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(state->active_image, state->idx_active_image, state->idx_active_image));
         }
         else if (method_type == "GNEB")
         {
             systems = chain->images;
     	    state->active_chain->iteration_allowed = true;
+			if (n_iterations > 0) state->active_chain->gneb_parameters->n_iterations = n_iterations;
+			if (log_steps > 0) state->active_chain->gneb_parameters->log_steps = log_steps;
             method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(state->active_chain, state->idx_active_image, state->idx_active_image));
         }
         else if (method_type == "MMF")
