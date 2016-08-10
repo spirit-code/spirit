@@ -1,4 +1,4 @@
-import corelib
+import core.corelib as corelib
 import ctypes
 import threading
 
