@@ -433,15 +433,18 @@ void MainWindow::playpausePressed()
 		// Not running, so we start it
 		if (this->comboBox_Method->currentText() == "LLG")
 		{
+			if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
 			this->threads_llg[state->idx_active_image] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1);
 		}
 		else if (this->comboBox_Method->currentText() == "GNEB")
 		{
+			if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
 			this->threads_gneb[state->idx_active_chain] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1);
 		}
 		else if (this->comboBox_Method->currentText() == "MMF")
+			if (thread_mmf.joinable()) thread_mmf.join();
 		{
 
 		}

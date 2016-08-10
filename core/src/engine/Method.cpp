@@ -53,6 +53,13 @@ namespace Engine
         throw Utility::Exception::Not_Implemented;
     }
 
+    void Method::Finalize()
+    {
+        // Not Implemented!
+        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Finalize() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
     // Return the maximum of absolute values of force components for an image
     double  Method::Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force)
     {

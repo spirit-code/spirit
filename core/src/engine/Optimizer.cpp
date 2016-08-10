@@ -110,6 +110,8 @@ namespace Engine
 
         //---- Final save
 		this->method->Save_Step(this->starttime, i, true);
+        // set iterations to false
+        this->method->Finalize();
     }
 
     

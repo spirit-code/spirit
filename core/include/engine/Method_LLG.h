@@ -38,6 +38,9 @@ namespace Engine
 		// A hook into the Optimizer after an Iteration
 		void Hook_Post_Step() override;
 
+		// Sets iteration_allowed to false for the corresponding method
+		void Finalize() override;
+
 	private:
 		std::shared_ptr<Data::Spin_System> system;
 		std::vector<bool> force_converged;

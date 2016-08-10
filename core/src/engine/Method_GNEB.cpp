@@ -193,6 +193,11 @@ namespace Engine
 		chain->E_interpolated  = interp[1];
 	}
 
+	void Method_GNEB::Finalize()
+    {
+        this->chain->iteration_allowed=false;
+    }
+
 
 	void Method_GNEB::Save_Step(std::string starttime, int iteration, bool final)
 	{

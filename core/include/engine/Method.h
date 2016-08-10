@@ -42,6 +42,9 @@ namespace Engine
 		// A hook into the Optimizer after an Iteration
 		virtual void Hook_Post_Step();
 
+		// Sets iteration_allowed to false for the corresponding method
+		virtual void Method::Finalize();
+
 		// Systems the Optimizer will access
 		std::vector<std::shared_ptr<Data::Spin_System>> systems;
 

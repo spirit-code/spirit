@@ -96,6 +96,11 @@ namespace Engine
         // }//endif renorm_sd
     }
 
+	void Method_LLG::Finalize()
+    {
+		this->system->iteration_allowed = false;
+    }
+
 	
 	void Method_LLG::Save_Step(std::string starttime, int iteration, bool final)
 	{
