@@ -27,12 +27,12 @@ State * setupState(const char * config_file)
         IO::Log_Levels_from_Config(config_file);
         //-------------------------------------------------------------------------------
 
-        //---------------------- initialize spin_systems --------------------------------
+        //---------------------- initialize spin_system ---------------------------------
         // Create a system according to Config
         state->active_image = IO::Spin_System_from_Config(config_file);
         //-------------------------------------------------------------------------------
 
-        //---------------------- set images' configurations -----------------------------
+        //---------------------- set images configuration -------------------------------
         // Parameters
         double dir[3] = { 0,0,1 };
         std::vector<double> pos = { 14.5, 14.5, 0 };
@@ -41,14 +41,22 @@ State * setupState(const char * config_file)
         //Configurations::Skyrmion(*s1, pos, 6.0, 1.0, -90.0, false, false, false, false);
         //-------------------------------------------------------------------------------
 
-
         //----------------------- initialize spin system chain --------------------------
         // Get parameters
-        auto params_gneb = std::shared_ptr<Data::Parameters_GNEB>(IO::GNEB_Parameters_from_Config(config_file));
+        auto params_gneb = std::shared_ptr<Data::Parameters_GNEB>(IO::Parameters_GNEB_from_Config(config_file));
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
         state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(new Data::Spin_System_Chain(sv, params_gneb, false));
+        //-------------------------------------------------------------------------------
+
+        //----------------------- initialize spin system chain collection ---------------
+        // Get parameters
+        auto params_mmf = std::shared_ptr<Data::Parameters_MMF>(IO::Parameters_MMF_from_Config(config_file));
+        // Create the collection
+        auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
+        cv.push_back(state->active_chain);
+        state->collection = std::shared_ptr<Data::Spin_System_Chain_Collection>(new Data::Spin_System_Chain_Collection(cv, params_mmf, false));
         //-------------------------------------------------------------------------------
     }
 	catch (Exception ex)
@@ -74,8 +82,8 @@ State * setupState(const char * config_file)
 
     // Methods
     state->methods_llg = std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>>(state->noc, std::vector<std::shared_ptr<Engine::Method_LLG>>(state->noi));
-    state->methods_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noi);
-    state->methods_mmf = std::vector<std::shared_ptr<Engine::Method_MMF>>(state->noi);
+    state->methods_gneb = std::vector<std::shared_ptr<Engine::Method_GNEB>>(state->noc);
+    state->method_mmf = std::shared_ptr<Engine::Method_MMF>();
 
     // Log
     Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");

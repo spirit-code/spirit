@@ -444,9 +444,10 @@ void MainWindow::playpausePressed()
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
 		else if (this->comboBox_Method->currentText() == "MMF")
-			if (thread_mmf.joinable()) thread_mmf.join();
 		{
-
+			if (thread_mmf.joinable()) thread_mmf.join();
+			this->thread_mmf =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
 		// New button text
 		this->pushButton_PlayPause->setText("Pause");

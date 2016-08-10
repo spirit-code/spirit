@@ -71,6 +71,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             // method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->active_?->mmf_parameters));
             Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF selected, but not yet implemented! Not doing anything..."));
+            return;
         }
 
         // Determine the Optimizer

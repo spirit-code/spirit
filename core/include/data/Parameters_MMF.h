@@ -12,7 +12,8 @@ namespace Data
 	// LLG_Parameters contains all LLG information about the spin system
 	class Parameters_MMF : public Parameters_Method
 	{
-	
+	public:
+		Parameters_MMF();
 	};
 }
 #endif

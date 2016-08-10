@@ -34,10 +34,11 @@ namespace Engine
 		// A hook into the Optimizer after an Iteration
 		void Hook_Post_Iteration() override;
 
-		// Sets iteration_allowed to false for the corresponding method
+		// Sets iteration_allowed to false for the chain
 		void Finalize() override;
 		
 		bool Iterations_Allowed() override;
+
 	private:
 		std::shared_ptr<Data::Spin_System_Chain> chain;
 

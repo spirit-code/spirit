@@ -2,7 +2,7 @@
 #ifndef INTERFACE_STATE_H
 #define INTERFACE_STATE_H
 
-#include "Spin_System_Chain.h"
+#include "Spin_System_Chain_Collection.h"
 #include "Optimizer.h"
 #include "Method_LLG.h"
 #include "Method_GNEB.h"
@@ -16,9 +16,10 @@ struct State
     // TODO: new main data container Spin_System_Chain_Collection
     //std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
-    // Main data container: a chain of Spin_Systems
-    //    this needs to be replaced by a collection of chains for MMF
-    std::shared_ptr<Data::Spin_System_Chain> active_chain; // TODO: rename into active_chain
+    // Main data container: a collection of chains
+    std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
+    // Currently active chain
+    std::shared_ptr<Data::Spin_System_Chain> active_chain;
     // Currently active Image
     std::shared_ptr<Data::Spin_System> active_image;
     // Spin System instance in clipboard
@@ -33,8 +34,8 @@ struct State
     std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>> methods_llg; // [noc][noi]
     //    max. noc GNEB methods
     std::vector<std::shared_ptr<Engine::Method_GNEB>> methods_gneb; // [noc]
-    //    max. noc MMF methods
-    std::vector<std::shared_ptr<Engine::Method_MMF>> methods_mmf; // [noc]
+    //    max. 1 MMF method
+    std::shared_ptr<Engine::Method_MMF> method_mmf;
 };
 
 // setupState

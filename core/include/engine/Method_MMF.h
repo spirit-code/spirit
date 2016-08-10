@@ -4,6 +4,7 @@
 
 #include "Method.h"
 #include "Parameters_MMF.h"
+#include "Spin_System_Chain_Collection.h"
 
 namespace Engine
 {
@@ -15,7 +16,7 @@ namespace Engine
 
 	public:
  		// Constructor
-		Method_MMF(std::shared_ptr<Data::Parameters_MMF> parameters, int idx_img, int idx_chain);
+		Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_img, int idx_chain);
     
 	//public override:
 		// Calculate Forces onto Systems
@@ -33,8 +34,17 @@ namespace Engine
 		void Hook_Pre_Iteration() override;
 		// A hook into the Optimizer after an Iteration
 		void Hook_Post_Iteration() override;
+
+		// Sets iteration_allowed to false for the collection
+		void Finalize() override;
 		
 	private:
+		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
+
+		// Last calculated forces
+		std::vector<std::vector<double>> F_total;
+		std::vector<std::vector<double>> F_gradient;
+		std::vector<std::vector<double>> F_mode;
 	};
 }
 

@@ -67,7 +67,7 @@ namespace Utility
 			// Geometry
 			auto geometry = Geometry_from_Config(configFile);
 			// LLG Parameters
-			auto llg_params = LLG_Parameters_from_Config(configFile);
+			auto llg_params = Parameters_LLG_from_Config(configFile);
 			// Hamiltonian
 			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, *geometry));
 			// Spin System
@@ -266,10 +266,10 @@ namespace Utility
 			return geometry;
 		}// end Geometry from Config
 
-		std::unique_ptr<Data::Parameters_LLG> LLG_Parameters_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_LLG> Parameters_LLG_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
-			// Output folder for GNEB results
+			// Output folder for results
 			std::string output_folder = "";
 			// PRNG Seed
 			int seed = 0;
@@ -341,12 +341,12 @@ namespace Utility
 			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal, force_convergence));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "LLG Parameters: built");
 			return llg_params;
-		}// end LLG_Parameters_from_Config
+		}// end Parameters_LLG_from_Config
 
-		std::unique_ptr<Data::Parameters_GNEB> GNEB_Parameters_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_GNEB> Parameters_GNEB_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
-			// Output folder for GNEB results
+			// Output folder for results
 			std::string output_folder = "";
 			// Spring constant
 			double spring_constant = 1.0;
@@ -392,7 +392,20 @@ namespace Utility
 			auto gneb_params = std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_iterations, log_steps, n_E_interpolations));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "GNEB Parameters: built");
 			return gneb_params;
-		}// end LLG_Parameters_from_Config
+		}// end Parameters_LLG_from_Config
+
+		std::unique_ptr<Data::Parameters_MMF> Parameters_MMF_from_Config(const std::string configFile)
+		{
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "MMF Parameters: building");
+			//-------------- Insert default values here -----------------------------
+			// Output folder for results
+			std::string output_folder = "";
+			
+			//------------------------------- Parser --------------------------------
+			auto mmf_params = std::unique_ptr<Data::Parameters_MMF>(new Data::Parameters_MMF());
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "MMF Parameters: built");
+			return mmf_params;
+		}
 
 		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry)
 		{

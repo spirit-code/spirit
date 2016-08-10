@@ -7,5 +7,6 @@ set(HEADER_CORE_DATA
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_MMF.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain_Collection.h
     PARENT_SCOPE
 )

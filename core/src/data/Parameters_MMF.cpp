@@ -2,5 +2,8 @@
 
 namespace Data
 {
-	
+	Parameters_MMF::Parameters_MMF()
+    {
+        
+    }
 }

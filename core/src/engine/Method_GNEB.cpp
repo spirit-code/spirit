@@ -50,7 +50,7 @@ namespace Engine
 		// Get Energy and Effective Field of configurations
 		for (int i = 0; i < chain->noi; ++i)
 		{
-			// Calculate the Energy of the image (and store it in image)
+			// Calculate the Energy of the image
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
 			if (i>0) Rx[i] = Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*configurations[i], *configurations[i - 1]);
 		}
