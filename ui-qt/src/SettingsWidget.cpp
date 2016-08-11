@@ -36,8 +36,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->Setup_Input_Validators();
 
 	// Setup Configurations Tab
-	this->greater = true;
-	this->pushButton_GreaterLesser->setText("Greater");
+	//this->greater = true;
+	//this->pushButton_GreaterLesser->setText("Greater");
 
 	// Setup Transitions Tab
 	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(this->state->noi));
@@ -91,18 +91,6 @@ void SettingsWidget::plusZ()
 	print_Energies_to_console();
 }
 
-void SettingsWidget::greaterLesserToggle()
-{
-	if (this->greater) {
-		this->greater = false;
-		this->pushButton_GreaterLesser->setText("Lesser");
-	}
-	else {
-		this->greater = true;
-		this->pushButton_GreaterLesser->setText("Greater");
-	}
-}
-
 void SettingsWidget::create_Skyrmion()
 {
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button createSkyrmion");
@@ -144,7 +132,7 @@ void SettingsWidget::domainWallPressed()
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button DomainWall");
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
-	Configuration_DomainWall(this->state.get(), pos, vec, this->greater);
+	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	print_Energies_to_console();
 }
 
@@ -943,6 +931,7 @@ void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 	connect(this->lineEdit_spin_torquey, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_spin_torquez, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	// Temperature (does not really belong to interactions)
+	connect(this->checkBox_Temperature, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_temper, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 
 }
@@ -1003,7 +992,6 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
 	// Domain Wall
 	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
-	connect(this->pushButton_GreaterLesser, SIGNAL(clicked()), this, SLOT(greaterLesserToggle()));
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));

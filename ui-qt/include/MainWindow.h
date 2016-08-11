@@ -87,7 +87,7 @@ private:
 
     //SpinWidget *spins;
 	std::shared_ptr<State> state;
-  SpinWidget *spinWidget;
+	SpinWidget *spinWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;
 	DebugWidget * debugWidget;
@@ -101,6 +101,7 @@ private:
 	QTimer * m_timer;
 
 	// Status Bar labels
+	QLabel * m_Label_NOC;
 	QLabel * m_Label_NOI;
 	QLabel * m_Label_NOS;
 	QLabel * m_Label_FPS;

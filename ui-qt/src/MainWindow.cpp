@@ -161,6 +161,10 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_NOI = new QLabel;
 	this->m_Label_NOI->setText("NOI: 0");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
+	//		NOC
+	this->m_Label_NOC = new QLabel;
+	this->m_Label_NOC->setText("NOC: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 	//		Initialisations & connect
 	this->createStatusBar();
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
@@ -501,26 +505,22 @@ void MainWindow::nextImagePressed()
 
 void MainWindow::resetPressed()
 {
-    /*this->spinWidget->SetCameraToDefault();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToDefault();
 }
 
 void MainWindow::xPressed()
 {
-    /*this->spinWidget->SetCameraToX();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToX();
 }
 
 void MainWindow::yPressed()
 {
-    /*this->spinWidget->SetCameraToY();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToY();
 }
 
 void MainWindow::zPressed()
 {
-    /*this->spinWidget->SetCameraToZ();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToZ();
 }
 
 void MainWindow::view_toggleDebug()
@@ -579,6 +579,12 @@ void MainWindow::createStatusBar()
 	this->m_Label_NOI = new QLabel;
 	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(this->state->noi));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
+
+	//		NOC
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
+	this->m_Label_NOC = new QLabel;
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(this->state->noc));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 }
 
 

@@ -24,7 +24,6 @@ public:
 	void SelectTab(int index);
 
 	std::shared_ptr<State> state;
-	bool greater;
 
 private:
 	// Setup Input Validators
@@ -59,7 +58,6 @@ private slots:
 	void domainWallPressed();
 	void plusZ();
 	void minusZ();
-	void greaterLesserToggle();
 	void create_Skyrmion();
 	void create_SpinSpiral();
 	// Transitions
