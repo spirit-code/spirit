@@ -13,6 +13,8 @@ option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version.
 option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."  OFF )
 ### CMake Verbosity
 option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                     OFF )
+### Option for building on the IFF cluster
+option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster."              OFF  )
 #############################################
 
 
