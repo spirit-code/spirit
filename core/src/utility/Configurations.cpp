@@ -14,14 +14,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-//extern Utility::LoggingHandler Log;
-
 namespace Utility
 {
 	namespace Configurations
 	{
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 		void DomainWall(Data::Spin_System & s, const double pos[3], double v[3], bool greater)
 		{
 			try {
@@ -102,7 +98,7 @@ namespace Utility
 			}
 		}
 
-		void Random(Data::Spin_System & s, int no, std::mt19937 &prng)
+		void Random(Data::Spin_System & s, int no, std::mt19937 & prng)
 		{
 			auto& spins = *s.spins;
 			std::vector<double> v = { 0.0, 0.0, 0.0 };			// declare v= 0,0,0
@@ -122,6 +118,46 @@ namespace Utility
 				}
 			}
 		}// end Random
+
+
+		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed)
+		{
+			if (temperature == 0.0) return;
+
+			std::vector<double> v = { 0.0, 0.0, 0.0 };
+			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Vectormath::kB());
+			
+			std::mt19937 * prng;
+			if (delta_seed!=0) prng = new std::mt19937(123456789+delta_seed);
+			else prng = &s.llg_parameters->prng;
+
+			for (int i = 0; i < s.nos; ++i)
+			{
+				while (true)
+				{
+					for (int dim = 0; dim < 3; ++dim)
+					{		// use spin_system's PRNG
+						v[dim] = s.llg_parameters->distribution_minus_plus_one(*prng) * epsilon;		// roll random for v in 3 dimensions
+					}
+					try
+					{
+						double l = Vectormath::Length(v);
+						//Vectormath::Normalize(v);			// try normalizing v
+						for (int dim = 0; dim < 3; ++dim)
+						{
+							(*s.spins)[dim*s.nos + i] += v[dim];// copy normalized v into spins array
+						}
+						break;									// normalizing worked -> return function
+					}
+					catch (Exception ex)
+					{
+						if (ex != Exception::Division_by_zero) throw(ex);				// throw everything except division by zero
+					}
+				}
+			}
+			Vectormath::Normalize_3Nos(*s.spins);
+		}
+
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)

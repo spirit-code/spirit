@@ -18,6 +18,11 @@ namespace Utility
 		{
 			return 0.057883817555;
 		}
+		// Returns the Boltzmann constant [meV / K]
+		double kB()
+		{
+			return 0.08617330350;
+		}
 		///////////// Quick Debug Method that is used occasionally to print some arrays -> move to Utility_IO?!
 		void Array_to_Console(const double *array, const int length) {
 			std::cout << std::endl;

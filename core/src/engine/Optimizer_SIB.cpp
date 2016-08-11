@@ -24,7 +24,7 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature);
+			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Vectormath::kB());
 			// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
 			this->Gen_Xi(*s, xi, epsilon);
 		}

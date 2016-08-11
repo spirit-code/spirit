@@ -33,17 +33,17 @@ private:
 	void Setup_Transitions_Slots();
 	void Setup_Hamiltonian_Isotropic_Slots();
 	void Setup_Hamiltonian_Anisotropic_Slots();
-  void Setup_Parameters_Slots();
-  void Setup_Visualization_Slots();
+	void Setup_Parameters_Slots();
+	void Setup_Visualization_Slots();
 	// Load a set of parameters from the spin systems
 	void Load_Hamiltonian_Isotropic_Contents();
-  void Load_Hamiltonian_Anisotropic_Contents();
-  void Load_Parameters_Contents();
-  void Load_Visualization_Contents();
+	void Load_Hamiltonian_Anisotropic_Contents();
+	void Load_Parameters_Contents();
+	void Load_Visualization_Contents();
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;
 	QRegularExpressionValidator * number_validator_unsigned;
-  SpinWidget *_spinWidget;
+	SpinWidget *_spinWidget;
 
 private slots:
 	// Parameters
@@ -51,9 +51,10 @@ private slots:
 	// Configurations
 	void set_hamiltonian_iso();
 	void set_hamiltonian_aniso();
-  // Visualization
-  void set_visualization();
+	// Visualization
+	void set_visualization();
 	// Configurations
+	void configurationAddNoise();
 	void randomPressed();
 	void domainWallPressed();
 	void plusZ();

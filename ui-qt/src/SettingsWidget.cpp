@@ -6,8 +6,8 @@
 #include "SettingsWidget.h"
 
 #include "Vectormath.h"
-// #include "Configurations.h"
-// #include "Configuration_Chain.h"
+ #include "Configurations.h"
+ #include "Configuration_Chain.h"
 
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
@@ -78,16 +78,19 @@ void SettingsWidget::randomPressed()
 {
 	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, "button Random");
 	Configuration_Random(this->state.get());
+	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 void SettingsWidget::minusZ()
 {
 	Configuration_MinusZ(this->state.get());
+	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 void SettingsWidget::plusZ()
 {
 	Configuration_PlusZ(this->state.get());
+	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 
@@ -108,6 +111,7 @@ void SettingsWidget::create_Skyrmion()
 	};
 	double rad = lineEdit_sky_rad->text().toDouble();
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
+	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 
@@ -124,6 +128,7 @@ void SettingsWidget::create_SpinSpiral()
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
 	//Utility::Configurations::SpinSpiral(*s, axis, direction, direction_type, period);
 	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
+	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 
@@ -133,7 +138,19 @@ void SettingsWidget::domainWallPressed()
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
+	this->configurationAddNoise();
 	print_Energies_to_console();
+}
+
+void SettingsWidget::configurationAddNoise()
+{
+	// Add Noise
+	if (this->checkBox_Configuration_Noise->isChecked())
+	{
+		double temperature = lineEdit_Configuration_Noise->text().toDouble();
+		//Utility::Configuration_Chain::Add_Noise_Temperature(this->state->active_chain, idx_1, idx_2, temperature);
+		Utility::Configurations::Add_Noise_Temperature(*this->state->active_image, temperature);
+	}
 }
 
 void SettingsWidget::homogeneousTransitionPressed()
@@ -154,7 +171,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 	}
 	if (idx_1 == idx_2)
 	{
-		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "Indices are equal in homogeneous transtion! Aborting...");
+		Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::UI, "Indices are equal in homogeneous transition! Aborting...");
 		return;
 	}
 	if (idx_2 < idx_1)
@@ -165,6 +182,13 @@ void SettingsWidget::homogeneousTransitionPressed()
 
 	// Do the transition
 	Transition_Homogeneous(this->state.get(), idx_1, idx_2);
+
+	// Add Noise
+	if (this->checkBox_Transition_Noise->isChecked())
+	{
+		double temperature = lineEdit_Transition_Noise->text().toDouble();
+		Utility::Configuration_Chain::Add_Noise_Temperature(this->state->active_chain, idx_1, idx_2, temperature);
+	}
 }
 
 
@@ -1030,8 +1054,6 @@ void SettingsWidget::Setup_Configurations_Slots()
 void SettingsWidget::Setup_Transitions_Slots()
 {
 	// Homogeneous Transition
-	connect(this->lineEdit_Transition_Homogeneous_First, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
-	connect(this->lineEdit_Transition_Homogeneous_Last, SIGNAL(returnPressed()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
 }
 
@@ -1109,6 +1131,7 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_T_aniso->setValidator(this->number_validator_unsigned);
 
 	// Configurations
+	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
 	//		Skyrmion
 	this->lineEdit_sky_order->setValidator(this->number_validator);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);
@@ -1133,6 +1156,7 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_posz->setValidator(this->number_validator);
 
 	// Transitions
+	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
 	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_unsigned);
 	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_unsigned);
 

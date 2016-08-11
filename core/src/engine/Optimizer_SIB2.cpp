@@ -35,7 +35,7 @@ namespace Engine
 			double ax, ay, az;
 			double Ax, Ay, Az;
 			double detMi;
-			double D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature);
+			double D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Vectormath::kB());
 
 			auto R = std::vector<double>(3 * nos);
 			this->Gen_Xi(*s, R, D);

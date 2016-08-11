@@ -27,6 +27,8 @@ namespace Utility
 		void Random(Data::Spin_System &s, bool external = false);
 		// points only spin no into a random direction created by prng
 		void Random(Data::Spin_System &s, int no, std::mt19937 &prng);
+		// Add temperature-scaled random noise to a system
+		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed=0);
 
 		// points a sperical region of spins of radius r
 		// into direction of vec at position pos

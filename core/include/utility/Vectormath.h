@@ -11,6 +11,7 @@ namespace Utility
 	{
 		// Returns the Bohr Magneton
 		double MuB();
+		double kB();
 
 		//Prints a 1-d array of doubles to console
 		void Array_to_Console(const double *array, const int length);

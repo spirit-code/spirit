@@ -1,4 +1,5 @@
 #include "Configuration_Chain.h"
+#include "Configurations.h"
 #include "Spin_System.h"
 #include "Vectormath.h"
 #include "Manifoldmath.h"
@@ -17,6 +18,14 @@ namespace Utility
 {
 	namespace Configuration_Chain
 	{
+		void Add_Noise_Temperature(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, double temperature)
+		{
+			for (int img = idx_1 + 1; img <= idx_2 - 1; ++img)
+			{
+				Configurations::Add_Noise_Temperature(*c->images[img], temperature, img);
+			}
+		}
+
 		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2)
 		{
 			int nos = c->images[0]->nos;
