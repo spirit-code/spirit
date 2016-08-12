@@ -1,4 +1,5 @@
 #include "Method_MMF.h"
+#include "Manifoldmath.h"
 
 namespace Engine
 {
@@ -9,17 +10,19 @@ namespace Engine
 		int nos = collection->chains[0]->images[0]->nos;
 
 		this->SenderName = Utility::Log_Sender::MMF;
-
+        
         // The systems we use are the last image of each respective chain
         for (int ichain = 0; ichain < noc; ++ichain)
 		{
 			this->systems.push_back(this->collection->chains[ichain]->images.back());
 		}
 
+		// We assume that the systems are not converged before the first iteration
+		this->force_maxAbsComponent = this->collection->parameters->force_convergence + 1.0;
+
 		// Forces
-		this->F_total    = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
-		this->F_gradient = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
-		this->F_mode     = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->F_gradient   = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->minimum_mode = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
     }
 
     void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
@@ -31,20 +34,23 @@ namespace Engine
 
 			// The gradient force (unprojected) is simply the effective field
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
-		}
+		
+            // Get the Minimum Mode
+            // this->minimum_mode = ...
 
-        // Get the Minimum Mode
+            // Invert the gradient force along the minimum mode
+            Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
 
-        // Invert the gradient force along the minimum mode
-
-        // Full force! Power up the horse!
-
+            // Copy out the forces
+            forces[ichain] = F_gradient[ichain];
+        }
     }
 		
     // Check if the Forces are converged
     bool Method_MMF::Force_Converged()
     {
-        return false;
+		if (this->force_maxAbsComponent < this->collection->parameters->force_convergence) return true;
+		return false;
     }
 
     void Method_MMF::Hook_Pre_Iteration()
@@ -54,7 +60,15 @@ namespace Engine
 
     void Method_MMF::Hook_Post_Iteration()
     {
-        // Update the chains' last images
+        // --- Convergence Parameter Update
+		this->force_maxAbsComponent = 0;
+		for (int ichain = 0; ichain < collection->noc; ++ichain)
+		{
+			double fmax = this->Force_on_Image_MaxAbsComponent(*(systems[ichain]->spins), F_gradient[ichain]);
+			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+		}
+
+        // --- Update the chains' last images
     }
 
     void Method_MMF::Save_Current(std::string starttime, int iteration, bool final)
@@ -76,6 +90,11 @@ namespace Engine
     {
         this->collection->iteration_allowed=false;
     }
+
+    bool Method_MMF::Iterations_Allowed()
+	{
+		return this->collection->iteration_allowed;
+	}
 
     // Optimizer name as string
     std::string Method_MMF::Name() { return "MMF"; }

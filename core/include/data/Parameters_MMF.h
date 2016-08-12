@@ -13,7 +13,7 @@ namespace Data
 	class Parameters_MMF : public Parameters_Method
 	{
 	public:
-		Parameters_MMF();
+		Parameters_MMF(std::string output_folder, double force_convergence, int n_iterations, int log_steps);
 	};
 }
 #endif

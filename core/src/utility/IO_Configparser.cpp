@@ -297,11 +297,10 @@ namespace Utility
 			double force_convergence = 10e-9;
 
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "LLG Parameters: building");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: building");
 			if (configFile != "")
 			{
 				try {
-					Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Reading LLG_Parameters");
 					Utility::IO::Filter_File_Handle myfile(configFile);
 
 					myfile.Read_Single(output_folder, "llg_output_folder");
@@ -322,15 +321,15 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "LLG_Parameters: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "LLG_Parameters: Using default configuration!");
+			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters LLG: Using default configuration!");
 
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "LLG Parameters:");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG:");
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        seed              = " + std::to_string(seed));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        damping           = " + std::to_string(damping));
@@ -342,7 +341,7 @@ namespace Utility
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps         = " + std::to_string(log_steps));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder     = " + output_folder);
 			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal, force_convergence));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "LLG Parameters: built");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_LLG_from_Config
 
@@ -362,7 +361,7 @@ namespace Utility
 			// Number of Energy Interpolation points
 			int n_E_interpolations = 10;
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "GNEB Parameters: building");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: building");
 			if (configFile != "")
 			{
 				try {
@@ -378,15 +377,15 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "GNEB_Parameters: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "GNEB_Parameters: Using default configuration!");
+			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters GNEB: Using default configuration!");
 
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "GNEB Parameters:");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB:");
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
@@ -394,22 +393,52 @@ namespace Utility
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
 			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
 			auto gneb_params = std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_iterations, log_steps, n_E_interpolations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "GNEB Parameters: built");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_LLG_from_Config
 
 		std::unique_ptr<Data::Parameters_MMF> Parameters_MMF_from_Config(const std::string configFile)
 		{
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "MMF Parameters: building");
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "";
+			// Force convergence parameter
+			double force_convergence = 10e-9;
+			// number of iterations carried out when pressing "play" or calling "iterate"
+			int n_iterations = (int)2E+6;
+			// after "log_steps"-iterations the current system is logged to file
+			int log_steps = 5000;
 			
 			//------------------------------- Parser --------------------------------
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: building");
+			if (configFile != "")
+			{
+				try {
+					Utility::IO::Filter_File_Handle myfile(configFile);
+					
+					myfile.Read_Single(output_folder, "mmf_output_folder");
+					myfile.Read_Single(force_convergence, "mmf_force_convergence");
+					myfile.Read_Single(n_iterations, "mmf_n_iterations");
+					myfile.Read_Single(log_steps, "mmf_log_steps");
+				}// end try
+				catch (Exception ex) {
+					if (ex == Exception::File_not_Found)
+					{
+						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
+					}
+					else throw ex;
+				}// end catch
+			}
+			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters MMF: Using default configuration!");
+
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "MMF Parameters: output folder       = " + output_folder);
-			auto mmf_params = std::unique_ptr<Data::Parameters_MMF>(new Data::Parameters_MMF());
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "MMF Parameters: built");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF:");
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
+			auto mmf_params = std::unique_ptr<Data::Parameters_MMF>(new Data::Parameters_MMF(output_folder, force_convergence, n_iterations, log_steps));
+			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}
 

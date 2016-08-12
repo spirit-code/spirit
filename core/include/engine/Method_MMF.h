@@ -38,13 +38,15 @@ namespace Engine
 		// Sets iteration_allowed to false for the collection
 		void Finalize() override;
 		
+		bool Iterations_Allowed() override;
+		
 	private:
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
 		// Last calculated forces
-		std::vector<std::vector<double>> F_total;
 		std::vector<std::vector<double>> F_gradient;
-		std::vector<std::vector<double>> F_mode;
+		// Last calculated minimum mode
+		std::vector<std::vector<double>> minimum_mode;
 	};
 }
 
