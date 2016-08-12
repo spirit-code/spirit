@@ -27,42 +27,43 @@ namespace Utility
 			if (configFile != "")
 			{
 				try {
-					Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Building Log_Levels");
+					Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Building Log_Levels");
 					Utility::IO::Filter_File_Handle myfile(configFile);
 
 					// Accept Level
 					if (myfile.Find("log_accept")) myfile.iss >> i_accept_level;
-					else Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
+					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
 
 					// Print level
 					if (myfile.Find("log_print")) myfile.iss >> i_print_level;
-					else Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
+					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
 
 					// Output folder
-					if (myfile.Find("log_output_folder")) myfile.iss >> Log.output_folder;
-					else Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
+					if (myfile.Find("log_output_folder")) myfile.iss >> output_folder;
+					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
 
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found) {
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Log_Levels: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Log_Levels: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			Log.accept_level = Log_Level(i_accept_level);
-			Log.print_level = Log_Level(i_print_level);
-
-			// Log this
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Log accept level  = " + std::to_string(i_accept_level));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Log print level   = " + std::to_string(i_print_level));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Log output folder = " + Log.output_folder);
+			// Log the parameters
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Log accept level  = " + std::to_string(i_accept_level));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Log print level   = " + std::to_string(i_print_level));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Log output folder = " + output_folder);
+			// Update the Log
+			Log.accept_level  = Log_Level(i_accept_level);
+			Log.print_level   = Log_Level(i_print_level);
+			Log.output_folder = output_folder;
 		}// End Log_Levels_from_Config
 
 
 		std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile)
 		{
-			Log.Send(Log_Level::INFO, Log_Sender::IO, "-------------- Initialising Spin System ------------");
+			Log(Log_Level::INFO, Log_Sender::IO, "-------------- Initialising Spin System ------------");
 			// ----------------------------------------------------------------------------------------------
 			// Geometry
 			auto geometry = Geometry_from_Config(configFile);
@@ -73,7 +74,7 @@ namespace Utility
 			// Spin System
 			auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), false));
 			// ----------------------------------------------------------------------------------------------
-			Log.Send(Log_Level::INFO, Log_Sender::IO, "-------------- Spin System Initialised -------------");
+			Log(Log_Level::INFO, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
 			// Return
 			return system;
@@ -91,7 +92,7 @@ namespace Utility
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			no_spins_basic_domain = basis_atoms[0].size();
 			
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: building");
 
 			if (configFile != "")
 			{
@@ -131,31 +132,31 @@ namespace Utility
 
 					}// end find "basis"
 					else {
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
 					}
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Basis: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Basis: Unable to open Config File " + configFile + " Leaving values at default.");
 						throw Exception::System_not_Initialized;
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
 			
 			// Log the parameters
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: vectors");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[1][0]) + " " + std::to_string(basis[2][0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        b = " + std::to_string(basis[0][1]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[2][1]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        c = " + std::to_string(basis[0][2]) + " " + std::to_string(basis[1][2]) + " " + std::to_string(basis[2][2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: " + std::to_string(no_spins_basic_domain) + " atom(s) at the following positions:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Basis: vectors");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[1][0]) + " " + std::to_string(basis[2][0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        b = " + std::to_string(basis[0][1]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[2][1]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        c = " + std::to_string(basis[0][2]) + " " + std::to_string(basis[1][2]) + " " + std::to_string(basis[2][2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Basis: " + std::to_string(no_spins_basic_domain) + " atom(s) at the following positions:");
 			for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
 			{
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[0][iatom]) + " " + std::to_string(basis_atoms[1][iatom]) + " " + std::to_string(basis_atoms[2][iatom]));
+				Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[0][iatom]) + " " + std::to_string(basis_atoms[1][iatom]) + " " + std::to_string(basis_atoms[2][iatom]));
 			}
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Basis: built");
 		}// End Basis_from_Config
 
 		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile)
@@ -180,14 +181,14 @@ namespace Utility
 			// Utility 1D array to build vectors and use Vectormath
 			std::vector<double> build_array = { 0, 0, 0 };
 
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Geometry: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Geometry: building");
 			//------------------------------- Parser --------------------------------
 			// iteration variables
 			int iatom = 0, dim = 0;
 			if (configFile != "")
 			{
 				try {
-					Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Reading Geometry Parameters");
+					Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Reading Geometry Parameters");
 					Utility::IO::Filter_File_Handle myfile(configFile);
 
 					// Read Shape of spins in term of the basis
@@ -202,7 +203,7 @@ namespace Utility
 						myfile.iss >> translation_vectors[0][2] >> translation_vectors[1][2] >> translation_vectors[2][2] >> n_cells[2];
 					}// finish Reading Shape in terms of basis
 					else {
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
 					}
 					// Read Basis
 						
@@ -216,24 +217,24 @@ namespace Utility
 						Basis_from_Config(configFile, basis, basis_atoms, no_spins_basic_domain);
 					}
 					else {
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
 					}// end Basis
 				}// end try
 				catch (Exception ex)
 				{
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Geometry: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Geometry: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}// end if file=""
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Geometry: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Geometry: Using default configuration!");
 
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Translation: vectors");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Translation: vectors");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
 
 			// Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
 			for (dim = 0; dim < 3; ++dim)
@@ -252,19 +253,19 @@ namespace Utility
 			Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Translation: vectors transformed by basis");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Translation: n_cells");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        na = " + std::to_string(n_cells[0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        nc = " + std::to_string(n_cells[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Translation: vectors transformed by basis");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Translation: n_cells");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        na = " + std::to_string(n_cells[0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        nc = " + std::to_string(n_cells[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 
 			// Return geometry
 			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, spin_pos));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Geometry: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Geometry: built");
 			return geometry;
 		}// end Geometry from Config
 
@@ -297,7 +298,7 @@ namespace Utility
 			double force_convergence = 10e-9;
 
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: building");
 			if (configFile != "")
 			{
 				try {
@@ -321,27 +322,27 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters LLG: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters LLG: Using default configuration!");
 
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG:");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        seed              = " + std::to_string(seed));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        time step         = " + std::to_string(dt));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps         = " + std::to_string(log_steps));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder     = " + output_folder);
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Parameters LLG:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        seed              = " + std::to_string(seed));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        damping           = " + std::to_string(damping));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        time step         = " + std::to_string(dt));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        log_steps         = " + std::to_string(log_steps));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        output_folder     = " + output_folder);
 			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal, force_convergence));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_LLG_from_Config
 
@@ -361,7 +362,7 @@ namespace Utility
 			// Number of Energy Interpolation points
 			int n_E_interpolations = 10;
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: building");
 			if (configFile != "")
 			{
 				try {
@@ -377,23 +378,23 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters GNEB: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters GNEB: Using default configuration!");
 
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB:");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Parameters GNEB:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
 			auto gneb_params = std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_iterations, log_steps, n_E_interpolations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_LLG_from_Config
 
@@ -410,7 +411,7 @@ namespace Utility
 			int log_steps = 5000;
 			
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: building");
 			if (configFile != "")
 			{
 				try {
@@ -424,21 +425,21 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters MMF: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Parameters MMF: Using default configuration!");
 
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF:");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Parameters MMF:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        output_folder      = " + output_folder);
 			auto mmf_params = std::unique_ptr<Data::Parameters_MMF>(new Data::Parameters_MMF(output_folder, force_convergence, n_iterations, log_steps));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}
 
@@ -449,13 +450,13 @@ namespace Utility
 			std::string hamiltonian_type = "isotropic";
 
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: building");
 
 			// Hamiltonian type
 			if (configFile != "")
 			{
 				try {
-					Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: deciding type");
+					Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: deciding type");
 					Utility::IO::Filter_File_Handle myfile(configFile);
 
 					// What hamiltonian do we use?
@@ -463,12 +464,12 @@ namespace Utility
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found) {
-						Log.Send(Log_Level::L_ERROR, Log_Sender::IO, "Hamiltonian: Unable to open Config File " + configFile + " Using default Hamiltonian: " + hamiltonian_type);
+						Log(Log_Level::L_ERROR, Log_Sender::IO, "Hamiltonian: Unable to open Config File " + configFile + " Using default Hamiltonian: " + hamiltonian_type);
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
 			
 			// Hamiltonian
 			std::unique_ptr<Engine::Hamiltonian> hamiltonian;
@@ -483,11 +484,11 @@ namespace Utility
 			}// endif anisotropic
 			else
 			{
-				Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
+				Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
 			}// endif neither
 			
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: built hamiltonian of type: " + hamiltonian_type);
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian: built hamiltonian of type: " + hamiltonian_type);
 			return hamiltonian;
 		}
 
@@ -522,7 +523,7 @@ namespace Utility
 			double dd_radius = 0.0;
 
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: building");
 			// iteration variables
 			int iatom = 0;
 			if (configFile != "")
@@ -549,7 +550,7 @@ namespace Utility
 							myfile.iss >> jij[iatom];
 						}						
 					}
-					else Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
+					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
 					
 					myfile.Read_Single(dij, "dij");
 					myfile.Read_Single(bij, "bij");
@@ -559,31 +560,31 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_isotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_isotropic: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Using default configuration!");
 			
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Isotropic:");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        B                   = " + std::to_string(external_field_magnitude));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        B_normal            = " + std::to_string(external_field_normal[0]) + " " + std::to_string(external_field_normal[1]) + " " + std::to_string(external_field_normal[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        mu_s                = " + std::to_string(mu_s));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        K                   = " + std::to_string(anisotropy_magnitude));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        K_normal            = " + std::to_string(anisotropy_normal[0]) + " " + std::to_string(anisotropy_normal[1]) + " " + std::to_string(anisotropy_normal[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        n_neigh_shells      = " + std::to_string(n_neigh_shells));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        D_ij                = " + std::to_string(dij));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Hamiltonian_Isotropic:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        B                   = " + std::to_string(external_field_magnitude));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        B_normal            = " + std::to_string(external_field_normal[0]) + " " + std::to_string(external_field_normal[1]) + " " + std::to_string(external_field_normal[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        mu_s                = " + std::to_string(mu_s));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        K                   = " + std::to_string(anisotropy_magnitude));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        K_normal            = " + std::to_string(anisotropy_normal[0]) + " " + std::to_string(anisotropy_normal[1]) + " " + std::to_string(anisotropy_normal[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        n_neigh_shells      = " + std::to_string(n_neigh_shells));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        D_ij                = " + std::to_string(dij));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Isotropic>(new Engine::Hamiltonian_Isotropic(boundary_conditions, external_field_magnitude,
 					external_field_normal, mu_s, anisotropy_magnitude, anisotropy_normal,
 					n_neigh_shells, jij, dij, bij, kijkl, dd_radius, geometry));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: built");
 			return hamiltonian;
 		}// end Hamiltonian_Isotropic_from_Config
 
@@ -624,7 +625,7 @@ namespace Utility
 			double dd_radius = 0.0;
 
 			//------------------------------- Parser --------------------------------
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: building");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: building");
 			// iteration variables
 			int iatom = 0;
 			if (configFile != "")
@@ -651,13 +652,13 @@ namespace Utility
 							}
 						}
 					}
-					else Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
 
 					// External Field
 					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
 					if (external_field_file.length() > 0)
 					{
-						Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Read external field file has not been implemented yet. Using 0 field for now.");
+						Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Read external field file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
 						// Not yet implemented!
 					}
@@ -682,7 +683,7 @@ namespace Utility
 					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
 					if (anisotropy_file.length() > 0)
 					{
-						Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Read anisotropy file has not been implemented yet. Using 0 field for now.");
+						Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Read anisotropy file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
 						// Not yet implemented!
 					}
@@ -715,7 +716,7 @@ namespace Utility
 					}
 					else
 					{
-						Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Default Interaction pairs have not been implemented yet.");
+						Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Default Interaction pairs have not been implemented yet.");
 						throw Exception::System_not_Initialized;
 						// Not implemented!
 					}
@@ -723,7 +724,7 @@ namespace Utility
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(dd_radius, "dd_radius");
-					// if (dd_radius >0 ) Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
+					// if (dd_radius >0 ) Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 					// std::vector<std::vector<int>> dd_neigh;
 					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
@@ -744,22 +745,22 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: Using default configuration!");
+			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: Using default configuration!");
 			
 			// Return
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic:");
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        B[0]                = " + std::to_string(external_field_magnitude[0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[1][0]) + " " + std::to_string(anisotropy_normal[2][0]));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic:");
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        B[0]                = " + std::to_string(external_field_magnitude[0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[1][0]) + " " + std::to_string(anisotropy_normal[2][0]));
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,
 				external_field_magnitude, external_field_normal,
@@ -770,7 +771,7 @@ namespace Utility
 				DD_indices, DD_magnitude, DD_normal,
 				boundary_conditions
 			));
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: built");
+			Log(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Hamiltonian_Anisotropic: built");
 			return hamiltonian;
 		}// end Hamiltonian_From_Config
 	}// end namespace IO

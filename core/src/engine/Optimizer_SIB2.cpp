@@ -11,7 +11,7 @@ namespace Engine
     {
 		//this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
 		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-		//if (systems.size() > 1) Log.Send(Log_Level::L_ERROR, Log_Sender::LLG, "THE OPTIMIZER_SIB2 CANNOT HANDLE MORE THAN 1 IMAGE CORRECTLY !!");
+		//if (systems.size() > 1) Log(Log_Level::L_ERROR, Log_Sender::LLG, "THE OPTIMIZER_SIB2 CANNOT HANDLE MORE THAN 1 IMAGE CORRECTLY !!");
     }
 	
 	void Optimizer_SIB2::Iteration()

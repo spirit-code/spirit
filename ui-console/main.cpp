@@ -72,9 +72,9 @@ int main(int argc, char ** argv)
 
 
 	// Finish
-	Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-	Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
-	Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+	Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+	Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
+	Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
 	Log.Append_to_File();
 	return 0;
 }

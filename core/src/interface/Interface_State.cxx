@@ -15,11 +15,11 @@ State * setupState(const char * config_file)
     State *state = new State();
     
     // Log
-    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
-    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "============ MonoSpin State Initialising ============");
-    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "============     Version:  " + std::string(VERSION));
-    Log.Send(Log_Level::INFO, Log_Sender::ALL, "============     Revision: " + std::string(VERSION_REVISION));
-    Log.Send(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
+    Log(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
+    Log(Log_Level::ALL, Log_Sender::ALL,  "============ MonoSpin State Initialising ============");
+    Log(Log_Level::ALL, Log_Sender::ALL,  "============     Version:  " + std::string(VERSION));
+    Log(Log_Level::INFO, Log_Sender::ALL, "============     Revision: " + std::string(VERSION_REVISION));
+    Log(Log_Level::ALL, Log_Sender::ALL,  "=====================================================");
     
     try
     {
@@ -62,13 +62,13 @@ State * setupState(const char * config_file)
 	catch (Exception ex)
     {
 		if (ex == Exception::System_not_Initialized)
-			Log.Send(Utility::Log_Level::SEVERE, Utility::Log_Sender::IO, std::string("System not initialized - Terminating."));
+			Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::IO, std::string("System not initialized - Terminating."));
 		else if (ex == Exception::Simulated_domain_too_small)
-			Log.Send(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("CreateNeighbours:: Simulated domain is too small"));
+			Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("CreateNeighbours:: Simulated domain is too small"));
 		else if (ex == Exception::Not_Implemented)
-			Log.Send(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("Tried to use function which has not been implemented"));
+			Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("Tried to use function which has not been implemented"));
 		else
-			Log.Send(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("Unknown exception!"));
+			Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, std::string("Unknown exception!"));
 	}
 
     // active images
@@ -86,10 +86,10 @@ State * setupState(const char * config_file)
     state->method_mmf = std::shared_ptr<Engine::Method_MMF>();
 
     // Log
-    Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-    Log.Send(Log_Level::ALL, Log_Sender::ALL, "============ MonoSpin State Initialised =============");
-    Log.Send(Log_Level::ALL, Log_Sender::ALL, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
-    Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+    Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+    Log(Log_Level::ALL, Log_Sender::ALL, "============ MonoSpin State Initialised =============");
+    Log(Log_Level::ALL, Log_Sender::ALL, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
+    Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
     
     // Return
     return state;

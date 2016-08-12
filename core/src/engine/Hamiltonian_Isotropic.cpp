@@ -29,12 +29,12 @@ namespace Engine
 		Utility::Vectormath::Normalize(external_field_normal);
 
 		// Calculate Neighbours
-		Log.Send(Log_Level::INFO, Log_Sender::ALL, "Building Neighbours ...");
+		Log(Log_Level::INFO, Log_Sender::ALL, "Building Neighbours ...");
 		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
 			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, segments, segments_pos);
 		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
 			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-		Log.Send(Log_Level::INFO, Log_Sender::ALL, "Done Caclulating Neighbours");
+		Log(Log_Level::INFO, Log_Sender::ALL, "Done Caclulating Neighbours");
 	}
 
 

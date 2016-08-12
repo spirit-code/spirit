@@ -20,6 +20,7 @@ int main(int argc, char ** argv)
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
+	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
 	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
@@ -78,7 +79,7 @@ int main(int argc, char ** argv)
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	QSurfaceFormat::setDefaultFormat(format);
-	Log.Send(Log_Level::INFO, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
+	Log(Log_Level::INFO, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
 
 	MainWindow window(state);
 	window.setWindowTitle(app.applicationName());
@@ -88,9 +89,9 @@ int main(int argc, char ** argv)
 	// If Application is closed normally
 	if (exec == 0)
 	{
-		Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-		Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
-		Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+		Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+		Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
+		Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
 		Log.Append_to_File();
 	}
 	else throw exec;

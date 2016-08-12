@@ -22,8 +22,19 @@ namespace Utility
             return buf;
         }
         
-        
-        
+        const std::string TimePointToString_Pretty(system_clock::time_point t)
+        {
+            // Convert to C-Time
+            std::time_t t_c = system_clock::to_time_t(t);
+            // Convert to TM Struct
+            struct tm time_s = *localtime(&t_c);
+            // Convert TM Struct to String
+			char   buf[80];
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &time_s);
+            // Return
+            return buf;
+        }
+
         const std::string CurrentDateTime()
         {
             // Get Time Point

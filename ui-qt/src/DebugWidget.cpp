@@ -11,7 +11,7 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
     this->setupUi(this);
 
 	// Load variables
-	this->comboBox_ShowLevel->setCurrentIndex((int)Utility::Log.print_level);
+	this->comboBox_ShowLevel->setCurrentIndex((int)Log.print_level);
 	this->plainTextEdit->setPlainText("");
 	this->n_log_entries = 0;
 
@@ -34,7 +34,7 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
 void DebugWidget::update()
 {
 	// Update the list of log entries
-	if (n_log_entries < Utility::Log.n_entries)
+	if (n_log_entries < Log.n_entries)
 	{
 		this->UpdateFromLog();
 	}
@@ -43,7 +43,7 @@ void DebugWidget::update()
 void DebugWidget::UpdateFromLog()
 {
 	// Load all new Log messages and apply filters
-	auto entries = Utility::Log.GetEntries();
+	auto entries = Log.GetEntries();
 	auto n_old_entries = this->n_log_entries;
 	this->n_log_entries = entries.size();
 	for (int i = n_old_entries; i < this->n_log_entries; ++i)

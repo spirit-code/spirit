@@ -22,15 +22,15 @@ namespace Utility
 
             if ( Timing::SecondsPassed(t_last_sigint, t_now) < 2.0 )
             {
-                Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Received second time in less than 2s.");
-                Log.Send(Log_Level::ALL, Log_Sender::ALL, "                 Terminating Program.");
+                Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Received second time in less than 2s.");
+                Log(Log_Level::ALL, Log_Sender::ALL, "                 Terminating Program.");
                 Log.Append_to_File();
                 exit(0);
             }
             else
             {
-                Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-                Log.Send(Log_Level::ALL, Log_Sender::ALL, "                 Press again in less than 2s to terminate the Program.");
+                Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
+                Log(Log_Level::ALL, Log_Sender::ALL, "                 Press again in less than 2s to terminate the Program.");
                 state->active_chain->iteration_allowed = false;
                 for (int i = 0; i < state->noi; ++i)
                 {
@@ -42,7 +42,7 @@ namespace Utility
         // No iterations started, exit the program
         else
         {
-            Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
+            Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
             Log.Append_to_File();
             exit(0);
         }

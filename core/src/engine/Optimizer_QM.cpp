@@ -12,7 +12,7 @@ namespace Engine
     void Optimizer_QM::Iteration()
     {
         // Not Implemented!
-        Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
+        Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
     }
     
     // Optimizer name as string

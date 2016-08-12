@@ -74,7 +74,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
 			if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
             method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, state->idx_active_image, state->idx_active_chain));
-            Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
 
         // Determine the Optimizer

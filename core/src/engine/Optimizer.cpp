@@ -45,11 +45,11 @@ namespace Engine
 		//------------------------ End Init ----------------------------------------
 
         //---- Log messages
-		Log.Send(Log_Level::ALL, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
-		Log.Send(Log_Level::ALL, sender, "Going to iterate " + std::to_string(n_log) + " steps");
-        Log.Send(Log_Level::ALL, sender, "            with " + std::to_string(log_steps) + " iterations per step");
-		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
-		Log.Send(Log_Level::ALL, sender, "-----------------------------------------------------");
+		Log(Log_Level::ALL, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
+		Log(Log_Level::ALL, sender, "Going to iterate " + std::to_string(n_log) + " steps");
+        Log(Log_Level::ALL, sender, "            with " + std::to_string(log_steps) + " iterations per step");
+		Log(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
+		Log(Log_Level::ALL, sender, "-----------------------------------------------------");
 
         //---- Start Timings
 		auto t_start = system_clock::now();
@@ -78,11 +78,11 @@ namespace Engine
 				t_last = t_current;
 				t_current = system_clock::now();
 
-				Log.Send(Log_Level::ALL, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
-				Log.Send(Log_Level::ALL, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
-				Log.Send(Log_Level::ALL, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
-				Log.Send(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
-				Log.Send(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
+				Log(Log_Level::ALL, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
+				Log(Log_Level::ALL, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
+				Log(Log_Level::ALL, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
+				Log(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
+				Log(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
 
 				this->method->Save_Current(this->starttime, i, false);
 
@@ -94,19 +94,19 @@ namespace Engine
 		auto t_end = system_clock::now();
 
         //---- Log messages
-		Log.Send(Log_Level::ALL, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------");
-		Log.Send(Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
-		Log.Send(Log_Level::ALL, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		Log(Log_Level::ALL, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------");
+		Log(Log_Level::ALL, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
+		Log(Log_Level::ALL, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
         if (this->StopFilePresent())
-			Log.Send(Log_Level::ALL, sender, "    A STOP file has been found.");
+			Log(Log_Level::ALL, sender, "    A STOP file has been found.");
         else
-        Log.Send(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
+        Log(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
         if (this->method->Force_Converged())
-			Log.Send(Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent));
+			Log(Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent));
 		else
-			Log.Send(Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->method->force_maxAbsComponent));
-		Log.Send(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
-		Log.Send(Log_Level::ALL, sender, "------------------------------------------------------");
+			Log(Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->method->force_maxAbsComponent));
+		Log(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
+		Log(Log_Level::ALL, sender, "------------------------------------------------------");
 
         //---- Final save
 		this->method->Save_Current(this->starttime, i, true);
@@ -118,7 +118,7 @@ namespace Engine
     void Optimizer::Iteration()
     {
         // Not Implemented!
-        Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
+        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
     }
 
 
@@ -144,14 +144,14 @@ namespace Engine
     std::string Optimizer::Name()
     {
         // Not Implemented!
-        Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"));
+        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"));
         return "--";
     }
 
     std::string Optimizer::FullName()
     {
         // Not Implemented!
-        Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"));
+        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"));
         return "--";
     }
 }
