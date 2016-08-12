@@ -43,12 +43,12 @@ namespace Utility
 			// Reads a single variable into var, with logging in case of failure.
 			template <typename T> void Read_Single(T & var, const std::string name) {
 				if (Find(name)) iss >> var;
-				else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
+				else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
 			};
 			// Reads a vector into var, with logging in case of failure.
 			template <typename T> void Read_3Vector(T & var, const std::string name) {
 				if (Find(name)) iss >> var[0] >> var[1] >> var[2];
-				else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+				else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
 			};
 			template<class T> typename std::enable_if<std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::to_string(t); }
 			template<class T> typename std::enable_if<!std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::string(t); }

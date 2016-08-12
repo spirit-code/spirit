@@ -86,7 +86,7 @@ extern "C" void Chain_Insert_Image_Before(State * state, int idx_image_i, int id
     }
     else
     {
-        Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to insert image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "Tried to insert image before " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 
@@ -130,7 +130,7 @@ extern "C" void Chain_Insert_Image_After(State * state, int idx_image_i, int idx
     }
     else
     {
-        Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to insert image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "Tried to insert image after " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 
@@ -159,7 +159,7 @@ extern "C" void Chain_Replace_Image(State * state, int idx_image_i, int idx_chai
     }
     else
     {
-        Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::API, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
     }
 }
 

@@ -118,7 +118,7 @@ namespace Engine
     void Optimizer::Iteration()
     {
         // Not Implemented!
-        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
+        Log(Log_Level::ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
     }
 
 
@@ -144,14 +144,14 @@ namespace Engine
     std::string Optimizer::Name()
     {
         // Not Implemented!
-        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"));
+        Log(Log_Level::ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"));
         return "--";
     }
 
     std::string Optimizer::FullName()
     {
         // Not Implemented!
-        Log(Log_Level::L_ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"));
+        Log(Log_Level::ERROR, Log_Sender::ALL, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"));
         return "--";
     }
 }

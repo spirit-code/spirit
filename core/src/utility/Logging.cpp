@@ -25,7 +25,7 @@ namespace Utility
 		else result.append("   ");
 		if      (level == Log_Level::ALL)    	result.append("  ALL  ");
 		else if (level == Log_Level::SEVERE) 	result.append("SEVERE ");
-		else if (level == Log_Level::L_ERROR)	result.append(" ERROR ");
+		else if (level == Log_Level::ERROR)	result.append(" ERROR ");
 		else if (level == Log_Level::WARNING)	result.append("WARNING");
 		else if (level == Log_Level::PARAMETER) result.append(" PARAM ");
 		else if (level == Log_Level::INFO)    	result.append(" INFO  ");

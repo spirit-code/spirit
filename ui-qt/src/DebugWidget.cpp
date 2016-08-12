@@ -1,7 +1,7 @@
 #include <QtWidgets>
 
 #include "DebugWidget.h"
-#include "Logging.h"
+#include "Interface_Log.h"
 
 DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {
@@ -43,7 +43,7 @@ void DebugWidget::update()
 void DebugWidget::UpdateFromLog()
 {
 	// Load all new Log messages and apply filters
-	auto entries = Log.GetEntries();
+	auto entries = Log_Get_Entries(state.get());
 	auto n_old_entries = this->n_log_entries;
 	this->n_log_entries = entries.size();
 	for (int i = n_old_entries; i < this->n_log_entries; ++i)
@@ -51,6 +51,7 @@ void DebugWidget::UpdateFromLog()
 		if ((int)entries[i].level <= this->comboBox_ShowLevel->currentIndex())
 		{
 			if ((entries[i].sender == Utility::Log_Sender::ALL) ||
+				(this->checkBox_API->isChecked() && (entries[i].sender == Utility::Log_Sender::API)) ||
 				(this->checkBox_IO->isChecked() && (entries[i].sender == Utility::Log_Sender::IO)) ||
 				(this->checkBox_GUI->isChecked() && (entries[i].sender == Utility::Log_Sender::UI)) ||
 				(this->checkBox_LLG->isChecked() && (entries[i].sender == Utility::Log_Sender::LLG)) ||

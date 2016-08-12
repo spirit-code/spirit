@@ -2,9 +2,11 @@
 #ifndef UTILITY_LOGGING_H
 #define UTILITY_LOGGING_H
 
+#include "Logging_Enums.h"
+#include "Timing.h"
+
 #include <iostream>
 #include <vector>
-#include "Timing.h"
 
 #ifndef Log
 #define Log Utility::LoggingHandler::getInstance()
@@ -12,28 +14,6 @@
 
 namespace Utility
 {
-	enum class Log_Sender
-	{
-		ALL,
-		IO,
-		GNEB,
-		LLG,
-		MMF,
-		API,
-		UI
-	};
-
-	enum class Log_Level
-	{
-		ALL,
-		SEVERE,
-		L_ERROR,
-		WARNING,
-		PARAMETER,
-		INFO,
-		DEBUG
-	};
-
 	class LogEntry
 	{
 	public:
@@ -61,8 +41,6 @@ namespace Utility
 
 		// Get the Log's entries
 		std::vector<LogEntry> GetEntries();
-		// Get the Log's entries, filtered for level, sender and indices
-		std::vector<LogEntry> Filter(Log_Level level=Log_Level::ALL, Log_Sender sender=Log_Sender::ALL, int idx_image=-1, int idx_chain=-1);
 
 		// Dumps the log to File fileName
 		void Append_to_File();
@@ -91,6 +69,9 @@ namespace Utility
 		// Constructor
 		LoggingHandler();
 
+		// Get the Log's entries, filtered for level, sender and indices
+		std::vector<LogEntry> Filter(Log_Level level=Log_Level::ALL, Log_Sender sender=Log_Sender::ALL, int idx_image=-1, int idx_chain=-1);
+		
 		int no_dumped;
 		std::vector<LogEntry> log_entries;
 	

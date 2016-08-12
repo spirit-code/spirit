@@ -324,13 +324,13 @@ namespace Utility
 			}
 			else if (direction_type == "Reciprocal Lattice")
 			{
-				Log(Log_Level::L_ERROR, Log_Sender::ALL, "The reciprocal lattice spin spiral is not yet implemented!");
+				Log(Log_Level::ERROR, Log_Sender::ALL, "The reciprocal lattice spin spiral is not yet implemented!");
 				// Not yet implemented!
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 			}
 			else if (direction_type == "Real Space")
 			{
-				Log(Log_Level::L_ERROR, Log_Sender::ALL, "The real space spin spiral is not yet implemented!");
+				Log(Log_Level::ERROR, Log_Sender::ALL, "The real space spin spiral is not yet implemented!");
 			}
 			else
 			{

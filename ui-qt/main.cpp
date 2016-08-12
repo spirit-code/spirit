@@ -5,12 +5,10 @@
 #include "Interface_Chain.h"
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
+#include "Interface_Log.h"
 
 // Use Utility Namespace
 using namespace Utility;
-
-// Initialise Global Variables
-//Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
 
 // Main
 int main(int argc, char ** argv)
@@ -79,7 +77,7 @@ int main(int argc, char ** argv)
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	QSurfaceFormat::setDefaultFormat(format);
-	Log(Log_Level::INFO, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
+	Log_Send(state.get(), INFO, UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
 
 	MainWindow window(state);
 	window.setWindowTitle(app.applicationName());
@@ -89,10 +87,10 @@ int main(int argc, char ** argv)
 	// If Application is closed normally
 	if (exec == 0)
 	{
-		Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-		Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
-		Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-		Log.Append_to_File();
+		Log_Send(state.get(), ALL, Log_Sender::ALL, "=====================================================");
+		Log_Send(state.get(), ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
+		Log_Send(state.get(), ALL, Log_Sender::ALL, "=====================================================");
+		Log_Append(state.get());
 	}
 	else throw exec;
 	// Finish

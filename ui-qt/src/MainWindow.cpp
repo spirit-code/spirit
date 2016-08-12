@@ -13,13 +13,13 @@
 #include "Optimizer_CG.h"
 #include "Optimizer_QM.h"
 
-#include "Logging.h"
 #include "Timing.h"
 
 #include "Interface_System.h"
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
+#include "Interface_Log.h"
 
 #include <thread>
 
@@ -375,7 +375,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				//else this->nextImagePressed();
 				Chain_Delete_Image(state.get(), idx);
 
-				Log(Utility::Log_Level::INFO, Utility::Log_Sender::UI, "Deleted image " + std::to_string(state->idx_active_image));
+				Log_Send(state.get(), INFO, UI, "Deleted image " + std::to_string(state->idx_active_image));
 			}
 			break;
 	}
@@ -385,7 +385,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 void MainWindow::stopallPressed()
 {
 	this->return_focus();
-	Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, std::string("Button: stopall"));
+	
+	Log_Send(state.get(), DEBUG, UI, "Button: stopall");
 	
 	Simulation_Stop_All(state.get());
 
@@ -406,7 +407,8 @@ void MainWindow::stopallPressed()
 void MainWindow::playpausePressed()
 {
 	this->return_focus();
-	Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::UI, std::string("Button: playpause"));
+	
+	Log_Send(state.get(), DEBUG, UI, "Button: playpause");
 
 	Chain_Update_Data(this->state.get());
 

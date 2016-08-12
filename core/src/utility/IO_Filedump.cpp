@@ -296,7 +296,7 @@ namespace Utility
 			}
 			else
 			{
-				Log(Log_Level::L_ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
+				Log(Log_Level::ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace Utility
 			}
 			else
 			{
-				Log(Log_Level::L_ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
+				Log(Log_Level::ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
 			}
 		}
 

@@ -1,5 +1,6 @@
 set(SOURCE_CORE_INTERFACE
 	${SOURCE_CORE_INTERFACE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Log.cxx
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_State.cxx
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Simulation.cxx
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Configurations.cxx

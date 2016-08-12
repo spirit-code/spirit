@@ -32,20 +32,20 @@ namespace Utility
 
 					// Accept Level
 					if (myfile.Find("log_accept")) myfile.iss >> i_accept_level;
-					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
+					else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
 
 					// Print level
 					if (myfile.Find("log_print")) myfile.iss >> i_print_level;
-					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
+					else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
 
 					// Output folder
 					if (myfile.Find("log_output_folder")) myfile.iss >> output_folder;
-					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
+					else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
 
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found) {
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Log_Levels: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Log_Levels: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -132,13 +132,13 @@ namespace Utility
 
 					}// end find "basis"
 					else {
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
 					}
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Basis: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Basis: Unable to open Config File " + configFile + " Leaving values at default.");
 						throw Exception::System_not_Initialized;
 					}
 					else throw ex;
@@ -203,7 +203,7 @@ namespace Utility
 						myfile.iss >> translation_vectors[0][2] >> translation_vectors[1][2] >> translation_vectors[2][2] >> n_cells[2];
 					}// finish Reading Shape in terms of basis
 					else {
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
 					}
 					// Read Basis
 						
@@ -217,14 +217,14 @@ namespace Utility
 						Basis_from_Config(configFile, basis, basis_atoms, no_spins_basic_domain);
 					}
 					else {
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
 					}// end Basis
 				}// end try
 				catch (Exception ex)
 				{
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Geometry: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Geometry: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -322,7 +322,7 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -378,7 +378,7 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -425,7 +425,7 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -464,7 +464,7 @@ namespace Utility
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found) {
-						Log(Log_Level::L_ERROR, Log_Sender::IO, "Hamiltonian: Unable to open Config File " + configFile + " Using default Hamiltonian: " + hamiltonian_type);
+						Log(Log_Level::ERROR, Log_Sender::IO, "Hamiltonian: Unable to open Config File " + configFile + " Using default Hamiltonian: " + hamiltonian_type);
 					}
 					else throw ex;
 				}// end catch
@@ -484,7 +484,7 @@ namespace Utility
 			}// endif anisotropic
 			else
 			{
-				Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
+				Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
 			}// endif neither
 			
 			// Return
@@ -550,7 +550,7 @@ namespace Utility
 							myfile.iss >> jij[iatom];
 						}						
 					}
-					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
+					else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
 					
 					myfile.Read_Single(dij, "dij");
 					myfile.Read_Single(bij, "bij");
@@ -560,7 +560,7 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_isotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Hamiltonian_isotropic: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
@@ -652,7 +652,7 @@ namespace Utility
 							}
 						}
 					}
-					else Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+					else Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
 
 					// External Field
 					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
@@ -724,7 +724,7 @@ namespace Utility
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(dd_radius, "dd_radius");
-					// if (dd_radius >0 ) Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
+					// if (dd_radius >0 ) Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 					// std::vector<std::vector<int>> dd_neigh;
 					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
@@ -745,7 +745,7 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Utility::Log_Level::L_ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Utility::Log_Level::ERROR, Utility::Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
