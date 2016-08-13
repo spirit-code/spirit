@@ -2,11 +2,10 @@
 #ifndef DEBUGWIDGET_H
 #define DEBUGWIDGET_H
 
-#include <QtWidgets>
+#include <QWidget>
 
 #include <memory>
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
+
 #include "Interface_State.h"
 
 #include "ui_DebugWidget.h"

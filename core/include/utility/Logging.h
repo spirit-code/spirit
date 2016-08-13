@@ -14,24 +14,6 @@
 
 namespace Utility
 {
-	class LogEntry
-	{
-	public:
-		// Constructs a log Entry
-		LogEntry(system_clock::time_point time, Log_Sender sender, Log_Level level, std::string message, int idx_image=-1, int idx_chain=-1);
-		// Writes the LogEntry to string
-		std::string toString(bool braces_separators = true);
-
-		system_clock::time_point time;
-		Log_Sender sender;
-		Log_Level level;
-		std::string message;
-		int idx_image;
-		int idx_chain;
-	};
-
-	
-
 	class LoggingHandler
 	{
 	public:
@@ -41,7 +23,7 @@ namespace Utility
 
 		// Get the Log's entries
 		std::vector<LogEntry> GetEntries();
-
+		
 		// Dumps the log to File fileName
 		void Append_to_File();
 		void Dump_to_File();

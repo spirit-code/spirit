@@ -1,4 +1,4 @@
-#include <QtWidgets>
+// #include <QtWidgets>
 
 #include "DebugWidget.h"
 #include "Interface_Log.h"
@@ -58,7 +58,7 @@ void DebugWidget::UpdateFromLog()
 				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Utility::Log_Sender::GNEB)) ||
 				(this->checkBox_MMF->isChecked() && (entries[i].sender == Utility::Log_Sender::MMF)))
 			{
-				this->plainTextEdit->appendPlainText(QString::fromLatin1(entries[i].toString().c_str()));
+				this->plainTextEdit->appendPlainText(QString::fromLatin1(LogEntryToString(entries[i]).c_str()));
 			}
 		}
 	}

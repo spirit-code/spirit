@@ -3,25 +3,18 @@
 #include "MainWindow.h"
 #include "PlotWidget.h"
 
-// #include "Vectormath.h"
-#include "Configurations.h"
-// #include "Optimizer.h"
-#include "IO.h"
-
-#include "Optimizer_SIB.h"
-#include "Optimizer_Heun.h"
-#include "Optimizer_CG.h"
-#include "Optimizer_QM.h"
-
-#include "Timing.h"
-
 #include "Interface_System.h"
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
+#include "Interface_Configurations.h"
 #include "Interface_Log.h"
 
 #include <thread>
+
+// TODO: Replace this
+#include "IO.h"
+/////
 
 /*
 	Converts a QString to an std::string.
@@ -759,7 +752,7 @@ void MainWindow::load_Configuration()
 		if (acceptable)
 		{
 			this->state->active_chain->images[idx_img] = sys;
-			Utility::Configurations::Random(*sys);
+			Configuration_Random(state.get());
 		}
 		else QMessageBox::about(this, tr("About JuSpin"),
 			tr("The resulting Spin System would have different NOS\n"

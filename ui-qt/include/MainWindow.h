@@ -10,20 +10,15 @@
 #include "SettingsWidget.h"
 #include "PlotsWidget.h"
 #include "DebugWidget.h"
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
-
-#include "Method_LLG.h"
-#include "Method_GNEB.h"
-#include "Method_MMF.h"
 
 #include "Interface_State.h"
 
+#include "ui_MainWindow.h"
+
+// Forward declarations
 class QAction;
 class QMenu;
 class QPlainTextEdit;
-
-#include "ui_MainWindow.h"
 
 std::string string_q2std(QString qs);
 

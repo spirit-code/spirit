@@ -2,12 +2,10 @@
 #ifndef PLOTWIDGET_H
 #define PLOTWIDGET_H
 
-
 #include <memory>
 
 #include <QWidget>
 
-#include "Spin_System_Chain.h"
 #include "Interface_State.h"
 
 

@@ -1,28 +1,27 @@
-#include <QtWidgets>
-//#include <QString>
-//#include <QtCore>
+// #include <QtWidgets>
 
 #include "MainWindow.h"
 #include "SettingsWidget.h"
 #include "SpinWidget.h"
 
-#include "Vectormath.h"
-#include "Configurations.h"
-#include "Configuration_Chain.h"
-
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
 #include "Interface_Log.h"
 
-#include "Exception.h"
-
 #include <iostream>
 #include <memory>
+
+// TODO: Replace these
+#include "Vectormath.h"
+#include "Configurations.h"
+#include "Configuration_Chain.h"
+#include "Exception.h"
+/////
 
 SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
 {
 	this->state = state;
-  _spinWidget = spinWidget;
+    _spinWidget = spinWidget;
 
 	// Setup User Interface
 	this->setupUi(this);
@@ -148,7 +147,6 @@ void SettingsWidget::configurationAddNoise()
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
-		//Utility::Configuration_Chain::Add_Noise_Temperature(this->state->active_chain, idx_1, idx_2, temperature);
 		Utility::Configurations::Add_Noise_Temperature(*this->state->active_image, temperature);
 	}
 }

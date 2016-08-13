@@ -2,9 +2,12 @@
 #ifndef UTILITY_LOGGING_ENUMS_H
 #define UTILITY_LOGGING_ENUMS_H
 
+#include <chrono>
+#include <string>
+
 namespace Utility
 {
-	enum class Log_Sender
+	extern "C" enum class Log_Sender
 	{
 		ALL,
 		IO,
@@ -15,7 +18,7 @@ namespace Utility
 		UI
 	};
 
-	enum class Log_Level
+	extern "C" enum class Log_Level
 	{
 		ALL,
 		SEVERE,
@@ -25,6 +28,19 @@ namespace Utility
 		INFO,
 		DEBUG
 	};
+
+	extern "C" struct LogEntry
+	{
+		std::chrono::system_clock::time_point time;
+		Log_Sender sender;
+		Log_Level level;
+		std::string message;
+		int idx_image;
+		int idx_chain;
+	};
+
+	std::string LogEntryToString(LogEntry entry, bool braces_separators=true);
+	
 }
 
 #endif
