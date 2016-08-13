@@ -2,6 +2,7 @@
 #include "Handle_Signal.h"
 
 #include "Interface_State.h"
+#include "Interface_System.h"
 #include "Interface_Chain.h"
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
@@ -13,10 +14,8 @@ using namespace Engine;
 using namespace Utility;
 
 // Initialise Global Variables
+struct State;
 std::shared_ptr<State> state;
-//Utility::LoggingHandler Utility::Log = Utility::LoggingHandler(Log_Level::WARNING, Log_Level::DEBUG, ".", "Log_" + Timing::CurrentDateTime() + ".txt");
-//std::map<std::shared_ptr<Data::Spin_System>, std::thread> Utility::Threading::llg_threads = std::map<std::shared_ptr<Data::Spin_System>, std::thread>();
-//std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread> Utility::Threading::gneb_threads = std::map<std::shared_ptr<Data::Spin_System_Chain>, std::thread>();
 
 // Main
 int main(int argc, char ** argv)
@@ -60,10 +59,10 @@ int main(int argc, char ** argv)
 	Configuration_Homogeneous(state.get(), dir, 0);
 	Configuration_Skyrmion(state.get(), pos, 6.0, 1.0, -90.0, false, false, false, 0);
 	// Last image is homogeneous
-	Configuration_Homogeneous(state.get(), dir, state->noi-1);
+	Configuration_Homogeneous(state.get(), dir, Chain_Get_NOI(state.get())-1);
 
 	// Create transition of images between first and last
-	Transition_Homogeneous(state.get(), 0, state->noi-1);
+	Transition_Homogeneous(state.get(), 0, Chain_Get_NOI(state.get())-1);
 	//-------------------------------------------------------------------------------
 
 	//----------------------- LLG Iterations ----------------------------------------

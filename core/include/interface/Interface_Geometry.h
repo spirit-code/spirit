@@ -4,7 +4,7 @@
 struct State;
 
 // Get Bounds as array (x,y,z)
-extern "C" void Geometry_Get_Bounds_(State *state, float * min, float * max);
+extern "C" void Geometry_Get_Bounds(State *state, float * min, float * max);
 // Get Center as array (x,y,z)
 extern "C" void Geometry_Get_Center(State *state, float * center);
 

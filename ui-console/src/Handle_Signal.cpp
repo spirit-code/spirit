@@ -1,8 +1,12 @@
 #include "Handle_Signal.h"
-#include "Logging.h"
-#include "Interface_State.h"
+
+#include "Interface_Simulation.h"
+#include "Interface_Log.h"
+
+// TODO: Replace this
 #include "Timing.h"
 
+struct State;
 std::shared_ptr<State> extern state;
 
 namespace Utility
@@ -22,28 +26,24 @@ namespace Utility
 
             if ( Timing::SecondsPassed(t_last_sigint, t_now) < 2.0 )
             {
-                Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Received second time in less than 2s.");
-                Log(Log_Level::ALL, Log_Sender::ALL, "                 Terminating Program.");
-                Log.Append_to_File();
+                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Received second time in less than 2s.");
+                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "                 Terminating Program.");
+                Log_Append(state.get());
                 exit(0);
             }
             else
             {
-                Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-                Log(Log_Level::ALL, Log_Sender::ALL, "                 Press again in less than 2s to terminate the Program.");
-                state->active_chain->iteration_allowed = false;
-                for (int i = 0; i < state->noi; ++i)
-                {
-                    state->active_chain->images[i]->iteration_allowed = false;
-                }
+                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
+                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "                 Press again in less than 2s to terminate the Program.");
+                Simulation_Stop_All(state.get());
             }
-            Log.Append_to_File();
+            Log_Append(state.get());
         }
         // No iterations started, exit the program
         else
         {
-            Log(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
-            Log.Append_to_File();
+            Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
+            Log_Append(state.get());
             exit(0);
         }
 
