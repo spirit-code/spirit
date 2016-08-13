@@ -27,6 +27,9 @@ namespace Data
 		const std::vector<int> n_cells;
 		// Number of spins per basic domain
 		const int n_spins_basic_domain;
+		// TODO: array of basis atom positions [n][3]
+		// std::vector<std::vector<double>> basis_atoms;
+		// Number of Spins total
 		const int nos;
 		// number of shells -> moved to Hamiltonian
 		// const int n_shells;

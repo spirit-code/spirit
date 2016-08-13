@@ -8,208 +8,327 @@
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void Hamiltonian_Set_Boundary_Conditions(State *state, bool periodical_a, bool periodical_b, bool periodical_c)
+void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-    s->hamiltonian->boundary_conditions[0] = periodical_a;
-    s->hamiltonian->boundary_conditions[1] = periodical_b;
-    s->hamiltonian->boundary_conditions[2] = periodical_c;
+    image->hamiltonian->boundary_conditions[0] = periodical[0];
+    image->hamiltonian->boundary_conditions[1] = periodical[1];
+    image->hamiltonian->boundary_conditions[2] = periodical[2];
 }
 
-void Hamiltonian_Set_mu_s(State *state, float mu_s)
+void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-    ham->mu_s = mu_s;
-}
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-void Hamiltonian_Set_Field(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
-{
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-
-    // Magnitude
-    ham->external_field_magnitude = magnitude *  ham->mu_s * Utility::Vectormath::MuB();
-    
-    // Normal
-    ham->external_field_normal[0] = normal_x;
-    ham->external_field_normal[1] = normal_y;
-    ham->external_field_normal[2] = normal_z;
-    try {
-        Utility::Vectormath::Normalize(ham->external_field_normal);
-    }
-    catch (Utility::Exception ex) {
-        if (ex == Utility::Exception::Division_by_zero) {
-            ham->external_field_normal[0] = 0.0;
-            ham->external_field_normal[1] = 0.0;
-            ham->external_field_normal[2] = 1.0;
-            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
-        }
-        else { throw(ex); }
-    }
-}
-
-void Hamiltonian_Set_Exchange(State *state, int n_shells, float* jij)
-{
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-
-    for (int i=0; i<n_shells; ++i)
+    if (image->is_isotropic)
     {
-        ham->jij[i] = jij[i];
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+        ham->mu_s = mu_s;
+    }
+    else
+    {
+        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        // TODO
     }
 }
 
-void Hamiltonian_Set_DMI(State *state, float dij)
+void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-    ham->dij = dij;
-}
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
-void Hamiltonian_Set_Anisotropy(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
-{
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-
-    // Magnitude
-    ham->anisotropy_magnitude = magnitude;
-    // Normal
-    ham->anisotropy_normal[0] = normal_x;
-    ham->anisotropy_normal[1] = normal_y;
-    ham->anisotropy_normal[2] = normal_z;
-    try {
-        Utility::Vectormath::Normalize(ham->anisotropy_normal);
-    }
-    catch (Utility::Exception ex) {
-        if (ex == Utility::Exception::Division_by_zero) {
-            ham->anisotropy_normal[0] = 0.0;
-            ham->anisotropy_normal[1] = 0.0;
-            ham->anisotropy_normal[2] = 1.0;
-            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+        // Magnitude
+        ham->external_field_magnitude = magnitude *  ham->mu_s * Utility::Vectormath::MuB();
+        
+        // Normal
+        ham->external_field_normal[0] = normal[0];
+        ham->external_field_normal[1] = normal[1];
+        ham->external_field_normal[2] = normal[2];
+        try {
+            Utility::Vectormath::Normalize(ham->external_field_normal);
         }
-        else { throw(ex); }
+        catch (Utility::Exception ex) {
+            if (ex == Utility::Exception::Division_by_zero) {
+                ham->external_field_normal[0] = 0.0;
+                ham->external_field_normal[1] = 0.0;
+                ham->external_field_normal[2] = 1.0;
+                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
+            }
+            else { throw(ex); }
+        }
+    }
+    else
+    {
+        // TODO
     }
 }
 
-void Hamiltonian_Set_STT(State *state, float magnitude, float normal_x, float normal_y, float normal_z)
+void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        for (int i=0; i<n_shells; ++i)
+        {
+            ham->jij[i] = jij[i];
+        }
+    }
+    else
+    {
+        // TODO
+    }
+}
+
+void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        ham->dij = dij;
+    }
+    else
+    {
+
+    }
+}
+
+void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        // Magnitude
+        ham->anisotropy_magnitude = magnitude;
+        // Normal
+        ham->anisotropy_normal[0] = normal[0];
+        ham->anisotropy_normal[1] = normal[1];
+        ham->anisotropy_normal[2] = normal[2];
+        try {
+            Utility::Vectormath::Normalize(ham->anisotropy_normal);
+        }
+        catch (Utility::Exception ex) {
+            if (ex == Utility::Exception::Division_by_zero) {
+                ham->anisotropy_normal[0] = 0.0;
+                ham->anisotropy_normal[1] = 0.0;
+                ham->anisotropy_normal[2] = 1.0;
+                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+            }
+            else { throw(ex); }
+        }
+    }
+}
+
+void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
     // Magnitude
-    s->llg_parameters->stt_magnitude = magnitude;
+    image->llg_parameters->stt_magnitude = magnitude;
     // Normal
-    s->llg_parameters->stt_polarisation_normal[0] = normal_x;
-    s->llg_parameters->stt_polarisation_normal[1] = normal_y;
-    s->llg_parameters->stt_polarisation_normal[2] = normal_z;
+    image->llg_parameters->stt_polarisation_normal[0] = normal[0];
+    image->llg_parameters->stt_polarisation_normal[1] = normal[1];
+    image->llg_parameters->stt_polarisation_normal[2] = normal[2];
     try {
-        Utility::Vectormath::Normalize(s->llg_parameters->stt_polarisation_normal);
+        Utility::Vectormath::Normalize(image->llg_parameters->stt_polarisation_normal);
     }
     catch (Utility::Exception ex) {
         if (ex == Utility::Exception::Division_by_zero) {
-            s->llg_parameters->stt_polarisation_normal[0] = 0.0;
-            s->llg_parameters->stt_polarisation_normal[1] = 0.0;
-            s->llg_parameters->stt_polarisation_normal[2] = 1.0;
+            image->llg_parameters->stt_polarisation_normal[0] = 0.0;
+            image->llg_parameters->stt_polarisation_normal[1] = 0.0;
+            image->llg_parameters->stt_polarisation_normal[2] = 1.0;
             Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
         }
         else { throw(ex); }
     }
 }
 
-void Hamiltonian_Set_Temperature(State *state, float T)
+void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    s->llg_parameters->temperature = T;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    image->llg_parameters->temperature = T;
 }
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical_a, bool * periodical_b, bool * periodical_c)
+void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-    *periodical_a = s->hamiltonian->boundary_conditions[0];
-    *periodical_b = s->hamiltonian->boundary_conditions[1];
-    *periodical_c = s->hamiltonian->boundary_conditions[2];
+    periodical[0] = image->hamiltonian->boundary_conditions[0];
+    periodical[1] = image->hamiltonian->boundary_conditions[1];
+    periodical[2] = image->hamiltonian->boundary_conditions[2];
 }
 
-void Hamiltonian_Get_mu_s(State *state, float * mu_s)
+void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-    *mu_s = (float)ham->mu_s;
-}
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
-{
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-
-    // Magnitude
-    *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Utility::Vectormath::MuB());
-    
-    // Normal
-    *normal_x = (float)ham->external_field_normal[0];
-    *normal_y = (float)ham->external_field_normal[1];
-    *normal_z = (float)ham->external_field_normal[2];
-}
-
-void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij)
-{
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
-
-    *n_shells = ham->n_neigh_shells;
-
-    // Note the array needs to be correctly allocated beforehand!
-    for (int i=0; i<*n_shells; ++i)
+    if (image->is_isotropic)
     {
-        jij[i] = (float)ham->jij[i];
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+        *mu_s = (float)ham->mu_s;
+    }
+    else
+    {
+        // TODO
     }
 }
 
-void Hamiltonian_Get_DMI(State *state, float * dij)
+void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-    *dij = (float)ham->dij;
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        // Magnitude
+        *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Utility::Vectormath::MuB());
+        
+        // Normal
+        normal[0] = (float)ham->external_field_normal[0];
+        normal[1] = (float)ham->external_field_normal[1];
+        normal[2] = (float)ham->external_field_normal[2];
+    }
+    else
+    {
+        // TODO
+    }
 }
 
-void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
+void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    auto ham = (Engine::Hamiltonian_Isotropic*)s->hamiltonian.get();
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        *n_shells = ham->n_neigh_shells;
+
+        // Note the array needs to be correctly allocated beforehand!
+        for (int i=0; i<*n_shells; ++i)
+        {
+            jij[i] = (float)ham->jij[i];
+        }
+    }
+    else
+    {
+        // TODO
+    }
+}
+
+void Hamiltonian_Get_DMI(State *state, float * dij, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        *dij = (float)ham->dij;
+    }
+    else
+    {
+        // TODO
+    }
+}
+
+void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->is_isotropic)
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        // Magnitude
+        *magnitude = (float)ham->anisotropy_magnitude;
+        
+        // Normal
+        normal[0] = (float)ham->anisotropy_normal[0];
+        normal[1] = (float)ham->anisotropy_normal[1];
+        normal[2] = (float)ham->anisotropy_normal[2];
+    }
+    else
+    {
+        // TODO
+    }
+}
+
+void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
     // Magnitude
-    *magnitude = (float)ham->anisotropy_magnitude;
-    
+    *magnitude = (float)image->llg_parameters->stt_magnitude;
     // Normal
-    *normal_x = (float)ham->anisotropy_normal[0];
-    *normal_y = (float)ham->anisotropy_normal[1];
-    *normal_z = (float)ham->anisotropy_normal[2];
+    normal[0] = (float)image->llg_parameters->stt_polarisation_normal[0];
+    normal[1] = (float)image->llg_parameters->stt_polarisation_normal[1];
+    normal[2] = (float)image->llg_parameters->stt_polarisation_normal[2];
 }
 
-void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal_x, float * normal_y, float * normal_z)
+void Hamiltonian_Get_Temperature(State *state, float * T, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
-    // Magnitude
-    *magnitude = (float)s->llg_parameters->stt_magnitude;
-    // Normal
-    *normal_x = (float)s->llg_parameters->stt_polarisation_normal[0];
-    *normal_y = (float)s->llg_parameters->stt_polarisation_normal[1];
-    *normal_z = (float)s->llg_parameters->stt_polarisation_normal[2];
+    *T = (float)image->llg_parameters->temperature;
 }
 
-void Hamiltonian_Get_Temperature(State *state, float * T)
+
+extern "C" bool Hamiltonian_Is_Isotropic(State * state, int idx_image, int idx_chain)
 {
-    auto s = state->active_image;
-    *T = (float)s->llg_parameters->temperature;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    return image->is_isotropic;
 }

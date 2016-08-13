@@ -7,6 +7,8 @@
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
 #include "Interface_Log.h"
+#include "Interface_Chain.h"
+#include "Interface_System.h"
 
 #include <iostream>
 #include <memory>
