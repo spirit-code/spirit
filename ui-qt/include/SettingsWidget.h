@@ -6,11 +6,10 @@
 
 #include <memory>
 
-#include "Interface_State.h"
-
 #include "ui_SettingsWidget.h"
 
 class SpinWidget;
+struct State;
 
 class SettingsWidget : public QWidget, private Ui::SettingsWidget
 {

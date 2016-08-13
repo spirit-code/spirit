@@ -6,9 +6,9 @@
 
 #include <memory>
 
-#include "Interface_State.h"
-
 #include "ui_DebugWidget.h"
+
+struct State;
 
 class DebugWidget : public QWidget, private Ui::DebugWidget
 {

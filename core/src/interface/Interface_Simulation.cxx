@@ -162,7 +162,11 @@ std::vector<double> Simulation_Get_IterationsPerSecond(State *state)
 	return ret;
 }
 
-
+extern "C" bool Simulation_Running_Any(State *state)
+{
+    if (Simulation_Running_LLG(state) || Simulation_Running_GNEB(state) || Simulation_Running_MMF(state)) return true;
+    else return false;
+}
 extern "C" bool Simulation_Running_LLG(State *state)
 {
     if (state->active_image->iteration_allowed) return true;

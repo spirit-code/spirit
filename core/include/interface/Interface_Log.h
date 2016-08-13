@@ -33,6 +33,9 @@ extern "C" void Log_Send(State *state, Log_Level level, Log_Sender sender, std::
 // Get the entries from the Log and write new number of entries into given int
 std::vector<Utility::LogEntry> Log_Get_Entries(State *state);
 
+// Get the number of Log entries
+extern "C" int Log_Get_N_Entries(State *state);
+
 // Append the Log to it's file
 extern "C" void Log_Append(State *state);
 

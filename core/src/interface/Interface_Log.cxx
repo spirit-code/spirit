@@ -12,6 +12,11 @@ std::vector<Utility::LogEntry> Log_Get_Entries(State *state)
     return Log.GetEntries();
 }
 
+extern "C" int Log_Get_N_Entries(State *state)
+{
+    return Log.n_entries;
+}
+
 extern "C" void Log_Append(State *state)
 {
     Log.Append_to_File();

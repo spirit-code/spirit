@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 #include <memory>
+#include <thread>
 #include <map>
 
 #include "SpinWidget.h"
@@ -11,14 +12,13 @@
 #include "PlotsWidget.h"
 #include "DebugWidget.h"
 
-#include "Interface_State.h"
-
 #include "ui_MainWindow.h"
 
 // Forward declarations
 class QAction;
 class QMenu;
 class QPlainTextEdit;
+struct State;
 
 std::string string_q2std(QString qs);
 

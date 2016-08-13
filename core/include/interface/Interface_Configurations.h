@@ -16,6 +16,8 @@ extern "C" void Configuration_MinusZ(State *state, int idx_image=-1, int idx_cha
 
 // Points all Spins in random directions
 extern "C" void Configuration_Random(State *state, bool external = false, int idx_image=-1, int idx_chain=-1);
+// Adds some random noise scaled by temperature
+extern "C" void Configuration_Add_Noise_Temperature(State *state, double temperature, int idx_image=-1, int idx_chain=-1);
 
 // Points a sperical region of spins of radius r
 // into direction of vec at position pos

@@ -10,10 +10,10 @@
 #include "Interface_Configurations.h"
 #include "Interface_Log.h"
 
-#include <thread>
 
 // TODO: Replace this
 #include "IO.h"
+#include "Interface_State.h"
 /////
 
 /*
@@ -71,14 +71,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->dockWidget_Debug->setWidget(this->debugWidget);
 
 	// Read Iterate State form Spin System
-	if (state->active_image->iteration_allowed == false)
+	if ( Simulation_Running_Any(state.get()) )
 	{
-		this->pushButton_PlayPause->setText("Play");
+		this->pushButton_PlayPause->setText("Pause");
 	}
 	else
 	{
-		this->pushButton_PlayPause->setText("Pause");
-		//std::thread(Engine::SIB::Iterate, s).detach();
+		this->pushButton_PlayPause->setText("Play");
 	}
 
 	/*
@@ -191,11 +190,10 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		// Copy a Spin System
 		Chain_Image_to_Clipboard(state.get());
-		// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
-		if (state->noi > 1)
+		if (Chain_Get_NOI(state.get()) > 1)
 		{
 			if ( Simulation_Running_LLG(this->state.get())  ||
 				 Simulation_Running_GNEB(this->state.get()) ||
@@ -207,8 +205,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				// Running, so we stop it
 				Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
 				// Join the thread of the stopped simulation
-				if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
-				else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+				if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+				else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 				else if (thread_mmf.joinable()) thread_mmf.join();
 				// New button text
 				this->pushButton_PlayPause->setText("Play");
@@ -216,9 +214,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 
 			// Cut a Spin System
 			Chain_Image_to_Clipboard(state.get());
-			// image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->active_image));
 
-			int idx = state->idx_active_image;
+			int idx = System_Get_Index(state.get());
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
@@ -238,8 +235,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// Running, so we stop it
 			Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
 			// Join the thread of the stopped simulation
-			if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
-			else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+			if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 			else if (thread_mmf.joinable()) thread_mmf.join();
 			// New button text
 			this->pushButton_PlayPause->setText("Play");
@@ -344,7 +341,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			break;
 		// Delete: Delete current image
 		case Qt::Key_Delete:
-			if (state->noi > 1)
+			if (Chain_Get_NOI(state.get()) > 1)
 			{
 				if ( Simulation_Running_LLG(this->state.get())  ||
 					 Simulation_Running_GNEB(this->state.get()) ||
@@ -356,19 +353,19 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 					// Running, so we stop it
 					Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
 					// Join the thread of the stopped simulation
-					if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
-					else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+					if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+					else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 					else if (thread_mmf.joinable()) thread_mmf.join();
 					// New button text
 					this->pushButton_PlayPause->setText("Play");
 				}
 
-				int idx = state->idx_active_image;
+				int idx = System_Get_Index(state.get());
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
 				Chain_Delete_Image(state.get(), idx);
 
-				Log_Send(state.get(), INFO, UI, "Deleted image " + std::to_string(state->idx_active_image));
+				Log_Send(state.get(), INFO, UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
 			}
 			break;
 	}
@@ -421,8 +418,8 @@ void MainWindow::playpausePressed()
 		// Running, so we stop it
 		Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
 		// Join the thread of the stopped simulation
-		if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
-		else if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
+		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 		else if (thread_mmf.joinable()) thread_mmf.join();
 		// New button text
 		this->pushButton_PlayPause->setText("Play");
@@ -432,14 +429,14 @@ void MainWindow::playpausePressed()
 		// Not running, so we start it
 		if (this->comboBox_Method->currentText() == "LLG")
 		{
-			if (threads_llg[state->idx_active_image].joinable()) threads_llg[state->idx_active_image].join();
-			this->threads_llg[state->idx_active_image] =
+			if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			this->threads_llg[System_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
 		else if (this->comboBox_Method->currentText() == "GNEB")
 		{
-			if (threads_gneb[state->idx_active_chain].joinable()) threads_gneb[state->idx_active_chain].join();
-			this->threads_gneb[state->idx_active_chain] =
+			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+			this->threads_gneb[Chain_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
 		else if (this->comboBox_Method->currentText() == "MMF")
@@ -459,13 +456,13 @@ void MainWindow::playpausePressed()
 void MainWindow::previousImagePressed()
 {
 	this->return_focus();
-	if (state->idx_active_image > 0)
+	if (System_Get_Index(state.get()) > 0)
 	{
 		// Change active image!
 		Chain_prev_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
+		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 		// Update Play/Pause Button
-		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (Simulation_Running_Any(state.get())) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -480,13 +477,13 @@ void MainWindow::previousImagePressed()
 void MainWindow::nextImagePressed()
 {
 	this->return_focus();
-	if (state->idx_active_image < this->state->noi-1)
+	if (System_Get_Index(state.get()) < Chain_Get_NOI(this->state.get())-1)
 	{
 		// Change active image
 		Chain_next_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(state->idx_active_image+1));
+		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 		// Update Play/Pause Button
-		if (this->state->active_image->iteration_allowed || this->state->active_chain->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -566,19 +563,19 @@ void MainWindow::createStatusBar()
 	//		NOS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
 	this->m_Label_NOS = new QLabel;
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(this->state->nos));
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(System_Get_NOS(this->state.get())));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
 	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(this->state->noi));
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 
 	//		NOC
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
 	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(this->state->noc));
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 }
 
@@ -733,7 +730,7 @@ void MainWindow::save_EPressed()
 
 void MainWindow::load_Configuration()
 {
-	int idx_img = state->idx_active_image;
+	int idx_img = System_Get_Index(state.get());
 	// Read Spin System from cfg
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
 	if (!fileName.isEmpty())
@@ -742,7 +739,7 @@ void MainWindow::load_Configuration()
 		std::shared_ptr<Data::Spin_System> sys = Utility::IO::Spin_System_from_Config(string_q2std(fileName));
 		// Filter for unacceptable differences to other systems in the chain
 		bool acceptable = true;
-		for (int i = 0; i < state->noi; ++i)
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
 		{
 			if (state->active_chain->images[i]->nos != sys->nos) acceptable = false;
 			// Currently the SettingsWidget does not support different images being isotropic AND anisotropic at the same time

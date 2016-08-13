@@ -48,6 +48,11 @@ void Configuration_Random(State *state, bool external, int idx_image, int idx_ch
     Utility::Configurations::Random(*state->active_image);
 }
 
+void Configuration_Add_Noise_Temperature(State *state, double temperature, int idx_image, int idx_chain)
+{
+    Utility::Configurations::Add_Noise_Temperature(*state->active_image, temperature);
+}
+
 void Configuration_Skyrmion(State *state, double pos[3], double r, double order, double phase, bool upDown, bool achiral, bool rl, int idx_image, int idx_chain)
 {
     std::vector<double> position = {pos[0], pos[1], pos[2]};

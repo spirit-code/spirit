@@ -13,9 +13,8 @@
 
 // TODO: Replace these
 #include "Vectormath.h"
-#include "Configurations.h"
-#include "Configuration_Chain.h"
 #include "Exception.h"
+#include "Interface_State.h"
 /////
 
 SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
@@ -39,7 +38,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	//this->pushButton_GreaterLesser->setText("Greater");
 
 	// Setup Transitions Tab
-	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(this->state->noi));
+	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(Chain_Get_NOI(this->state.get())));
 
 	// Setup Interactions Tab
 	if (this->state->active_image->is_isotropic) this->tabWidget_Settings->removeTab(3);
@@ -125,7 +124,6 @@ void SettingsWidget::create_SpinSpiral()
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
-	//Utility::Configurations::SpinSpiral(*s, axis, direction, direction_type, period);
 	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
 	this->configurationAddNoise();
 	print_Energies_to_console();
@@ -147,7 +145,7 @@ void SettingsWidget::configurationAddNoise()
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
-		Utility::Configurations::Add_Noise_Temperature(*this->state->active_image, temperature);
+		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
 	}
 }
 
@@ -157,12 +155,12 @@ void SettingsWidget::homogeneousTransitionPressed()
 	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
 
 	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= this->state->noi)
+	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
 		Log_Send(state.get(), ERROR, UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
-	if (idx_1 < 0 || idx_1 >= this->state->noi)
+	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
 		Log_Send(state.get(), ERROR, UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
@@ -185,7 +183,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 	if (this->checkBox_Transition_Noise->isChecked())
 	{
 		double temperature = lineEdit_Transition_Noise->text().toDouble();
-		Utility::Configuration_Chain::Add_Noise_Temperature(this->state->active_chain, idx_1, idx_2, temperature);
+		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
 }
 
@@ -679,12 +677,12 @@ void SettingsWidget::set_hamiltonian_aniso()
 		// External magnetic field
 		//		magnitude
 		if (this->checkBox_extH_aniso->isChecked()) {
-			for (int iatom = 0; iatom < state->nos; ++iatom) {
+			for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 				ham->external_field_magnitude[iatom] = this->lineEdit_extH_aniso->text().toDouble() * ham->mu_s[iatom] * Utility::Vectormath::MuB();
 			}
 		}
 		else {
-			for (int iatom = 0; iatom < state->nos; ++iatom) {
+			for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 				ham->external_field_magnitude[iatom] = 0.0;
 			}
 		}
@@ -707,7 +705,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 			}
 			else { throw(ex); }
 		}
-		for (int iatom = 0; iatom < state->nos; ++iatom) {
+		for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 			ham->external_field_normal[0][iatom] = temp[0];
 			ham->external_field_normal[1][iatom] = temp[1];
 			ham->external_field_normal[2][iatom] = temp[2];
@@ -716,12 +714,12 @@ void SettingsWidget::set_hamiltonian_aniso()
 		// Anisotropy
 		//		magnitude
 		if (this->checkBox_ani_aniso->isChecked()) {
-			for (int iatom = 0; iatom < state->nos; ++iatom) {
+			for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 				ham->anisotropy_magnitude[iatom] = this->lineEdit_ani_aniso->text().toDouble();
 			}
 		}
 		else {
-			for (int iatom = 0; iatom < state->nos; ++iatom) {
+			for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 				ham->anisotropy_magnitude[iatom] = 0.0;
 			}
 		}
@@ -744,7 +742,7 @@ void SettingsWidget::set_hamiltonian_aniso()
 			}
 			else { throw(ex); }
 		}
-		for (int iatom = 0; iatom < state->nos; ++iatom) {
+		for (int iatom = 0; iatom < System_Get_NOS(this->state.get()); ++iatom) {
 			ham->anisotropy_normal[0][iatom] = temp[0];
 			ham->anisotropy_normal[1][iatom] = temp[1];
 			ham->anisotropy_normal[2][iatom] = temp[2];
@@ -895,14 +893,14 @@ void SettingsWidget::SelectTab(int index)
 void SettingsWidget::print_Energies_to_console()
 {
 	state->active_image->UpdateEnergy();
-	std::cout << "E_tot = " << state->active_image->E / state->nos << "  ||| Zeeman = ";
-	std::cout << state->active_image->E_array[ENERGY_POS_ZEEMAN] / state->nos << "  | Aniso = "
-		<< state->active_image->E_array[ENERGY_POS_ANISOTROPY] / state->nos << "  | Exchange = "
-		<< state->active_image->E_array[ENERGY_POS_EXCHANGE] / state->nos << "  | DMI = "
-		<< state->active_image->E_array[ENERGY_POS_DMI] / state->nos << "  | BQC = "
-		<< state->active_image->E_array[ENERGY_POS_BQC] / state->nos << "  | FourSC = "
-		<< state->active_image->E_array[ENERGY_POS_FSC] / state->nos << "  | DD = "
-		<< state->active_image->E_array[ENERGY_POS_DD] / state->nos << std::endl;
+	std::cout << "E_tot = " << state->active_image->E / System_Get_NOS(this->state.get()) << "  ||| Zeeman = ";
+	std::cout << state->active_image->E_array[ENERGY_POS_ZEEMAN] / System_Get_NOS(this->state.get()) << "  | Aniso = "
+		<< state->active_image->E_array[ENERGY_POS_ANISOTROPY] / System_Get_NOS(this->state.get()) << "  | Exchange = "
+		<< state->active_image->E_array[ENERGY_POS_EXCHANGE] / System_Get_NOS(this->state.get()) << "  | DMI = "
+		<< state->active_image->E_array[ENERGY_POS_DMI] / System_Get_NOS(this->state.get()) << "  | BQC = "
+		<< state->active_image->E_array[ENERGY_POS_BQC] / System_Get_NOS(this->state.get()) << "  | FourSC = "
+		<< state->active_image->E_array[ENERGY_POS_FSC] / System_Get_NOS(this->state.get()) << "  | DD = "
+		<< state->active_image->E_array[ENERGY_POS_DD] / System_Get_NOS(this->state.get()) << std::endl;
 }
 
 

@@ -6,8 +6,7 @@
 
 #include <QWidget>
 
-#include "Interface_State.h"
-
+struct State;
 
 class PlotWidget : public QWidget	// We need a proper 2D plotting solution!!
 {

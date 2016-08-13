@@ -7,9 +7,10 @@
 #include <memory>
 
 #include "PlotWidget.h"
-#include "Interface_State.h"
 
 #include "ui_PlotsWidget.h"
+
+struct State;
 
 class PlotsWidget : public QWidget, private Ui::PlotsWidget
 {

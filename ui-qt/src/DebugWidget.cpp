@@ -11,7 +11,7 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
     this->setupUi(this);
 
 	// Load variables
-	this->comboBox_ShowLevel->setCurrentIndex((int)Log.print_level);
+	this->comboBox_ShowLevel->setCurrentIndex(3); // (int)Log.print_level);
 	this->plainTextEdit->setPlainText("");
 	this->n_log_entries = 0;
 
@@ -34,7 +34,7 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
 void DebugWidget::update()
 {
 	// Update the list of log entries
-	if (n_log_entries < Log.n_entries)
+	if (n_log_entries < Log_Get_N_Entries(state.get()))
 	{
 		this->UpdateFromLog();
 	}

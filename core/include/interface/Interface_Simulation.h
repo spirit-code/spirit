@@ -16,6 +16,7 @@ extern "C" void Simulation_Stop_All(State *state);
 std::vector<double> Simulation_Get_IterationsPerSecond(State *state);
 
 // Check for running simulations
+extern "C" bool Simulation_Running_Any(State *state);
 extern "C" bool Simulation_Running_LLG(State *state);
 extern "C" bool Simulation_Running_GNEB(State *state);
 extern "C" bool Simulation_Running_MMF(State *state);
