@@ -5,7 +5,7 @@ struct State;
 
 // Info
 extern "C" int Chain_Get_Index(State * state);
-extern "C" int Chain_Get_NOI(State * state);
+extern "C" int Chain_Get_NOI(State * state, int idx_chain=-1);
 
 // Move between images (change active_image)
 extern "C" void Chain_next_Image(State * state, int idx_chain=-1);

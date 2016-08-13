@@ -7,8 +7,9 @@ extern "C" int Chain_Get_Index(State * state)
     return state->idx_active_chain;
 }
 
-extern "C" int Chain_Get_NOI(State * state)
+extern "C" int Chain_Get_NOI(State * state, int idx_chain)
 {
+    if (idx_chain>=0) return state->collection->chains[idx_chain]->noi;
     return state->active_chain->noi;
 }
 

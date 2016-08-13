@@ -160,6 +160,9 @@ namespace Utility
 
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
+			// pos=(0,0,0) is the center of the system
+			for (int i=0; i<3; ++i) pos[i] += s.geometry->center[i];
+
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 			auto& spins = *s.spins;
 			// skaled to fit with 

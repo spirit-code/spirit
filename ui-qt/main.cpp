@@ -8,7 +8,7 @@
 #include "Interface_Log.h"
 
 // Use Utility Namespace
-using namespace Utility;
+// using namespace Utility;
 
 // Main
 int main(int argc, char ** argv)
@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 	//----------------------- spin_system_chain -------------------------------------
 	// Parameters
 	double dir[3] = { 0,0,1 };
-	double pos[3] = { 14.5, 14.5, 0 };
+	double pos[3] = { 0,0,0 };
 
 	// Read Image from file
 	//Configuration_from_File(state.get(), spinsfile, 0);
@@ -53,10 +53,10 @@ int main(int argc, char ** argv)
 	Configuration_Homogeneous(state.get(), dir, 0);
 	Configuration_Skyrmion(state.get(), pos, 6.0, 1.0, -90.0, false, false, false, 0);
 	// Last image is homogeneous
-	Configuration_Homogeneous(state.get(), dir, state->noi-1);
+	Configuration_Homogeneous(state.get(), dir, Chain_Get_NOI(state.get())-1);
 
 	// Create transition of images between first and last
-	Transition_Homogeneous(state.get(), 0, state->noi-1);
+	Transition_Homogeneous(state.get(), 0, Chain_Get_NOI(state.get())-1);
 	//-------------------------------------------------------------------------------
 	
 	//------------------------ User Interface ---------------------------------------

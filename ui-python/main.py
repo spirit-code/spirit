@@ -33,7 +33,7 @@ noi = chain.Get_NOI(p_state)
 
 ### First image is homogeneous with a Skyrmion at pos
 configuration.PlusZ(p_state, 0)
-configuration.Skyrmion(p_state, [14.5, 14.5, 0], 5.0, 1, -90.0, False, False, False, 0)
+configuration.Skyrmion(p_state, [0,0,0], 5.0, 1, -90.0, False, False, False, 0)
 ### Last image is homogeneous
 configuration.PlusZ(p_state, noi-1)
 
@@ -54,7 +54,7 @@ while t.is_alive(): # wait for the thread to exit
 
 ### ...
 # // Finish
-# Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-# Log.Send(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
-# Log.Send(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+# Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+# Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
+# Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
 # Log.Append_to_File();

@@ -8,6 +8,7 @@
 #include "BoundingBoxRenderer.h"
 #include "SphereSpinRenderer.h"
 #include "utilities.h"
+#include <glm/gtc/type_ptr.hpp>
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -49,9 +50,10 @@ void SpinWidget::paintGL() {
 
   gl_spins->updateSpins(positions, directions);
 
-  glm::vec3 bounds_min;
-  glm::vec3 bounds_max;
-  Geometry_Get_Bounds(state.get(), &bounds_min.x, &bounds_min.y, &bounds_min.z, &bounds_max.x, &bounds_max.y, &bounds_max.z);
+  float b_min[3], b_max[3];
+  Geometry_Get_Bounds(state.get(), b_min, b_max);
+  glm::vec3 bounds_min = glm::make_vec3(b_min);
+  glm::vec3 bounds_max = glm::make_vec3(b_max);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
 
   gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);

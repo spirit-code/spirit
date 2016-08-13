@@ -172,81 +172,9 @@ namespace Utility
 			for (int i = 0; i < (int)a.size(); ++i) {
 				result[i] = skalar*a[i] + skalar_2*b[i] + skalar_3*c[i];
 			}
-		}
-		;//end Array_Array_Add
+		};//end Array_Array_Add
 
-		double Length(const double *array, const int length) {
-			double result = 0;
-			for (int i = 0; i < length; ++i) {
-				result += pow(array[i], 2.0);
-			}
-			return sqrt(result);
-		}
-		double Length(const std::vector<double> &vec)
-		{
-			double result = 0.0;
-			for (int i = 0; i < (int)vec.size(); ++i) {
-				result += pow(vec[i], 2.0);
-			}
-			return sqrt(result);
-		}
-		double Length_3Nos(const std::vector<double>& vec, int ispin)
-		{
-			double result = 0.0;
-			for (int dim = 0; dim < 3; ++dim) {
-				result += pow(vec[dim * (int)vec.size()/3 + ispin], 2.0);
-			}
-			return sqrt(result);
-		}
-		;
-		double Length(const double *const *array, const int length, const int pos_1) {
-			double result = 0;
-			for (int i = 0; i < length; ++i) {
-				result += pow(array[i][pos_1], 2.0);
-			}
-			return sqrt(result);
-		}
-		double Length(const std::vector<std::vector<double>>& vec, const int pos_1)
-		{
-			double result = 0;
-			for (int i = 0; i < (int)vec.size(); ++i) {
-				result += pow(vec[i][pos_1], 2.0);
-			}
-			return sqrt(result);
-		}
-		;
-		double Length(const double *const *const *array, const int length, const int pos_1, const int pos_2) {
-			double result = 0;
-			for (int i = 0; i < length; ++i) {
-				result += pow(array[i][pos_1][pos_2], 2.0);
-			}
-			return sqrt(result);
-		}
-		double Length(const std::vector<std::vector<std::vector<double>>>& vec, const int pos_1, const int pos_2)
-		{
-			double result = 0;
-			for (int i = 0; i < (int)vec.size(); ++i) {
-				result += pow(vec[i][pos_1][pos_2], 2.0);
-			}
-			return sqrt(result);
-		}
-		;
-		double Length(const double *const *const *const *array, const int length, const int pos_1, const int pos_2, const int pos_3) {
-			double result = 0;
-			for (int i = 0; i < length; ++i) {
-				result += pow(array[i][pos_1][pos_2][pos_3], 2.0);
-			}
-			return sqrt(result);
-		};//end Length
-
-		void Normalize(double *array, const int length) {
-			double l = Length(array, length);
-			if (l == 0.0) { throw Exception::Division_by_zero; };
-			double norm = 1.0 / l;
-			for (int i = 0; i < length; ++i) {
-				array[i] = array[i] * norm;
-			}
-		}
+		
 		void Normalize(std::vector<double> &vec)
 		{
 			double l = Length(vec);

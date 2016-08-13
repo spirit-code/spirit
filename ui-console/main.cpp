@@ -9,9 +9,9 @@
 #include "Interface_Simulation.h"
 
 // Use Core Namespaces
-using namespace Data;
-using namespace Engine;
-using namespace Utility;
+// using namespace Data;
+// using namespace Engine;
+// using namespace Utility;
 
 // Initialise Global Variables
 struct State;
@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
 	//----------------------- spin_system_chain -------------------------------------
 	// Parameters
 	double dir[3] = { 0,0,1 };
-	double pos[3] = { 14.5, 14.5, 0 };
+	double pos[3] = { 0,0,0 };
 
 	// Read Image from file
 	//Configuration_from_File(state.get(), spinsfile, 0);
