@@ -55,8 +55,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>812</width>
+            <height>913</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -198,7 +198,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>150</height>
+               <height>260</height>
               </size>
              </property>
              <property name="title">
@@ -529,7 +529,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>120</height>
+               <height>200</height>
               </size>
              </property>
              <property name="title">
@@ -814,7 +814,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>120</height>
+               <height>160</height>
               </size>
              </property>
              <property name="title">
@@ -1100,13 +1100,19 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>812</width>
+            <height>913</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QGroupBox" name="groupBox_7">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>120</height>
+              </size>
+             </property>
              <property name="title">
               <string>Homogeneous</string>
              </property>
@@ -1224,6 +1230,12 @@
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_8">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>120</height>
+              </size>
+             </property>
              <property name="title">
               <string>Skyrmion</string>
              </property>
@@ -1355,8 +1367,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>875</height>
+            <width>812</width>
+            <height>853</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2006,8 +2018,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>875</height>
+            <width>812</width>
+            <height>853</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2460,8 +2472,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>812</width>
+            <height>913</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2860,8 +2872,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>812</width>
+            <height>913</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
