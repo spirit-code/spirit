@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	std::shared_ptr<State> state = std::shared_ptr<State>(setupState(cfgfile));
+	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile));
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times

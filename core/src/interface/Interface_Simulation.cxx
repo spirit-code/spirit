@@ -1,5 +1,7 @@
 #include "Interface_Simulation.h"
 #include "Interface_State.h"
+#include "Logging.h"
+
 #include "Optimizer.h"
 #include "Optimizer_Heun.h"
 #include "Optimizer_SIB.h"
@@ -8,7 +10,87 @@
 #include "Optimizer_QM.h"
 #include "Method.h"
 
-void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, int n_iterations, int log_steps, int idx_image, int idx_chain)
+
+extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
+	int n_iterations, int log_steps, int idx_image, int idx_chain)
+{
+    // Translate to string
+    std::string method_type(c_method_type);
+    std::string optimizer_type(c_optimizer_type);
+
+    // Fetch correct indices and pointers for image and chain
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+     // Determine the method and chain(s) or image(s) involved
+    std::shared_ptr<Engine::Method> method;
+    std::shared_ptr<Engine::Optimizer> optim;
+    if (method_type == "LLG")
+    {
+        image->iteration_allowed = true;
+        if (n_iterations > 0) image->llg_parameters->n_iterations = n_iterations;
+        if (log_steps > 0) image->llg_parameters->log_steps = log_steps;
+        method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
+    }
+    else if (method_type == "GNEB")
+    {
+        if (Simulation_Running_LLG_Chain(state, idx_chain))
+        {
+            Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+        }
+        else
+        {
+            chain->iteration_allowed = true;
+            if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
+            if (log_steps > 0) chain->gneb_parameters->log_steps = log_steps;
+            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
+        }
+    }
+    else if (method_type == "MMF")
+    {
+        if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
+        {
+            Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+        }
+        else
+        {
+            state->collection->iteration_allowed = true;
+            if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
+            if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
+            method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
+            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+        }
+    }
+
+    // Determine the Optimizer
+    if (optimizer_type == "SIB")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB(method));
+    }
+    else if (optimizer_type == "SIB2")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB2(method));
+    }
+    else if (optimizer_type == "Heun")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
+    }
+    else if (optimizer_type == "CG")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
+    }
+    else if (optimizer_type == "QM")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM(method));
+    }
+
+    // One Iteration
+    optim->Iteration();
+}
+
+void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type,
+    int n_iterations, int log_steps, int idx_image, int idx_chain)
 {
     // Translate to string
     std::string method_type(c_method_type);
@@ -23,28 +105,19 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     
 
     // Determine wether to stop or start a simulation
-    if (state->active_image->iteration_allowed)
+    if (image->iteration_allowed)
     {
         // Currently iterating image, so we stop
-    	state->active_image->iteration_allowed = false;
-    	// state->active_chain->iteration_allowed = false; // should not be necessary, as only one of the two can be active at the same time
-        // this->gneb_methods.erase(state->active_chain);
-        // this->llg_methods.erase(state->active_image);
+    	image->iteration_allowed = false;
     }
-    else if (state->active_chain->iteration_allowed)
+    else if (chain->iteration_allowed)
     {
         // Currently iterating chain, so we stop
-    	state->active_chain->iteration_allowed = false;
-        // 	this->pushButton_PlayPause->setText("Play");
-        // 	for (int i = 0; i < state->noi; ++i)
-        // 	{
-        // 		state->active_chain->images[i]->iteration_allowed = false;
-        // 		this->llg_methods.erase(state->active_chain->images[i]);
-        // 	}
-        // 	this->gneb_methods.erase(state->active_chain);
+    	chain->iteration_allowed = false;
     }
     else if (state->collection->iteration_allowed)
     {
+        // Currently iterating collection, so we stop
         state->collection->iteration_allowed = false;
     }
     else
@@ -56,25 +129,39 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         std::shared_ptr<Engine::Optimizer> optim;
         if (method_type == "LLG")
         {
-            state->active_image->iteration_allowed = true;
-			if (n_iterations > 0) state->active_image->llg_parameters->n_iterations = n_iterations;
-			if (log_steps > 0) state->active_image->llg_parameters->log_steps = log_steps;
-            method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(state->active_image, state->idx_active_image, state->idx_active_chain));
+            image->iteration_allowed = true;
+			if (n_iterations > 0) image->llg_parameters->n_iterations = n_iterations;
+			if (log_steps > 0) image->llg_parameters->log_steps = log_steps;
+            method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
         }
         else if (method_type == "GNEB")
         {
-    	    state->active_chain->iteration_allowed = true;
-			if (n_iterations > 0) state->active_chain->gneb_parameters->n_iterations = n_iterations;
-			if (log_steps > 0) state->active_chain->gneb_parameters->log_steps = log_steps;
-            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(state->active_chain, state->idx_active_image, state->idx_active_chain));
+            if (Simulation_Running_LLG_Chain(state, idx_chain))
+            {
+                Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+            }
+            else
+            {
+                chain->iteration_allowed = true;
+                if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
+                if (log_steps > 0) chain->gneb_parameters->log_steps = log_steps;
+                method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
+            }
         }
         else if (method_type == "MMF")
         {
-            state->collection->iteration_allowed = true;
-			if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
-			if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
-            method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, state->idx_active_image, state->idx_active_chain));
-            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+            if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
+            {
+                Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+            }
+            else
+            {
+                state->collection->iteration_allowed = true;
+                if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
+                if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
+                method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
+                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+            }
         }
 
         // Determine the Optimizer
@@ -162,22 +249,73 @@ std::vector<double> Simulation_Get_IterationsPerSecond(State *state)
 	return ret;
 }
 
-extern "C" bool Simulation_Running_Any(State *state)
+extern "C" bool Simulation_Running_Any_Anywhere(State *state)
 {
-    if (Simulation_Running_LLG(state) || Simulation_Running_GNEB(state) || Simulation_Running_MMF(state)) return true;
+    if (Simulation_Running_LLG_Anywhere(state) ||
+        Simulation_Running_GNEB_Anywhere(state) ||
+        Simulation_Running_MMF(state)) return true;
     else return false;
 }
-extern "C" bool Simulation_Running_LLG(State *state)
+extern "C" bool Simulation_Running_LLG_Anywhere(State *state)
 {
-    if (state->active_image->iteration_allowed) return true;
+    bool running = false;
+    for (int ichain=0; ichain<state->collection->noc; ++ichain)
+    {
+        if (Simulation_Running_LLG_Chain(state, ichain)) running = true;
+    }
+    return running;
+}
+extern "C" bool Simulation_Running_GNEB_Anywhere(State *state)
+{
+    bool running = false;
+    for (int i=0; i<state->collection->noc; ++i)
+    {
+        if (Simulation_Running_GNEB(state, i)) running = true;
+    }
+    return running;
+}
+
+extern "C" bool Simulation_Running_LLG_Chain(State *state, int idx_chain)
+{
+    bool running = false;
+    for (int img=0; img<state->collection->chains[idx_chain]->noi; ++img)
+    {
+        if (Simulation_Running_LLG(state, img, idx_chain)) running = true;
+    }
+    return running;
+}
+
+extern "C" bool Simulation_Running_Any(State *state, int idx_image, int idx_chain)
+{
+    if (Simulation_Running_LLG(state, idx_image, idx_chain) ||
+        Simulation_Running_GNEB(state, idx_chain) ||
+        Simulation_Running_MMF(state))
+        return true;
     else return false;
 }
-extern "C" bool Simulation_Running_GNEB(State *state)
+extern "C" bool Simulation_Running_LLG(State *state, int idx_image, int idx_chain)
 {
-    if (state->active_chain->iteration_allowed) return true;
+    // Fetch correct indices and pointers for image and chain
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->iteration_allowed) return true;
+    else return false;
+}
+extern "C" bool Simulation_Running_GNEB(State *state, int idx_chain)
+{
+    int idx_image = -1;
+    // Fetch correct indices and pointers for image and chain
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (state->collection->chains[idx_chain]->iteration_allowed) return true;
     else return false;
 }
 extern "C" bool Simulation_Running_MMF(State *state)
 {
-    return false;
+    if (state->collection->iteration_allowed) return true;
+    else return false;
 }

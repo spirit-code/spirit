@@ -5,8 +5,8 @@ import ctypes
 _core = corelib.LoadCoreLibrary()
 
 ### Setup State
-_setupState = _core.setupState
-_setupState.argtypes = [ctypes.c_char_p]
-_setupState.restype = ctypes.c_void_p
+_State_Setup = _core.State_Setup
+_State_Setup.argtypes = [ctypes.c_char_p]
+_State_Setup.restype = ctypes.c_void_p
 def setup(configfile):
-    return _setupState(ctypes.c_char_p(configfile))
+    return _State_Setup(ctypes.c_char_p(configfile))

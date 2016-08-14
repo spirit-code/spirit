@@ -47,6 +47,14 @@ def Random(p_state, external=False, idx_image=-1, idx_chain=-1):
     _Random(p_state, idx_image, idx_chain)
 
 
+### Add temperature-scaled random noise to configuration
+_Add_Noise_Temperature             = _core.Configuration_Add_Noise_Temperature
+_Add_Noise_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_double, ctypes.c_int, ctypes.c_int]
+_Add_Noise_Temperature.restype     = None
+def Add_Noise_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1):
+    _Add_Noise_Temperature(p_state, temperature, idx_image, idx_chain)
+
+
 ### Skyrmion configuration
 _Skyrmion             = _core.Configuration_Skyrmion
 _Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_bool, ctypes.c_bool, ctypes.c_bool, ctypes.c_int, ctypes.c_int]

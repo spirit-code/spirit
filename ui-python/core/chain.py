@@ -15,10 +15,10 @@ def Get_Index(p_state):
 
 ### Get Chain number of images
 _Get_NOI            = _core.Chain_Get_NOI
-_Get_NOI.argtypes   = [ctypes.c_void_p]
+_Get_NOI.argtypes   = [ctypes.c_void_p, ctypes.c_int]
 _Get_NOI.restype    = ctypes.c_int
-def Get_NOI(p_state):
-    return int(_Get_NOI(p_state))
+def Get_NOI(p_state, idx_chain=-1):
+    return int(_Get_NOI(p_state, idx_chain))
 
 
 ### Switch active to next image of chain
@@ -61,7 +61,7 @@ def Insert_Image_After(p_state, idx_image=-1, idx_chain=-1):
     _Insert_Image_After(p_state, idx_image, idx_chain)
 
 
-### Insert clipboard image before active in chain
+### Replace active image in chain
 _Replace_Image             = _core.Chain_Replace_Image
 _Replace_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Replace_Image.restype     = None
@@ -69,15 +69,7 @@ def Replace_Image(p_state, idx_image=-1, idx_chain=-1):
     _Replace_Image(p_state, idx_image, idx_chain)
 
 
-### Insert clipboard image before active in chain
-_Delete_Image             = _core.Chain_Delete_Image
-_Delete_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Delete_Image.restype     = None
-def Delete_Image(p_state, idx_image=-1, idx_chain=-1):
-    _Delete_Image(p_state, idx_image, idx_chain)
-
-
-### Insert clipboard image before active in chain
+### Delete active image
 _Delete_Image             = _core.Chain_Delete_Image
 _Delete_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Delete_Image.restype     = None

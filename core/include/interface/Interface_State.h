@@ -13,14 +13,11 @@
 //    simulation's state available.
 struct State
 {
-    // TODO: new main data container Spin_System_Chain_Collection
-    //std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
-
     // Main data container: a collection of chains
     std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
     // Currently active chain
     std::shared_ptr<Data::Spin_System_Chain> active_chain;
-    // Currently active Image
+    // Currently active image
     std::shared_ptr<Data::Spin_System> active_image;
     // Spin System instance in clipboard
     std::shared_ptr<Data::Spin_System> clipboard_image;
@@ -38,14 +35,11 @@ struct State
     std::shared_ptr<Engine::Method_MMF> method_mmf;
 };
 
-// setupState
+// State_Setup
 //    Create the State and fill it with initial data
-extern "C" State * setupState(const char * config_file = "");
+extern "C" State * State_Setup(const char * config_file = "");
 
 // TODO: move this away somewhere?
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain);
-
-// TODO: move to Interface_Simulation and make more efficient
-extern "C" void State_iterate(State *state);
 
 #endif

@@ -4,7 +4,7 @@ MESSAGE( STATUS ">> --------------------- CompilerFlags.cmake ------------------
 ### Place all functions which should be exported by emcc into this list
 set( INTERFACE_EXPORT_FUNCTIONS
 		# State
-		'_setupState' '_State_iterate'
+		'_State_Setup'
 		# System
 		'_System_Get_Index' '_System_Get_NOS' '_System_Get_Spin_Directions'
 		# Chain
@@ -31,7 +31,10 @@ set( INTERFACE_EXPORT_FUNCTIONS
 		# Transitions
 		'_Transition_Homogeneous' '_Transition_Add_Noise_Temperature'
 		# Simulation
-		'_Simulation_PlayPause' '_Simulation_Stop_All'
+		'_JS_LLG_Iteration'
+		'_Simulation_SingleShot' '_Simulation_PlayPause' '_Simulation_Stop_All'
+		'_Simulation_Running_Any_Anywhere' '_Simulation_Running_LLG_Anywhere' '_Simulation_Running_GNEB_Anywhere'
+		'_Simulation_Running_LLG_Chain'
 		'_Simulation_Running_Any' '_Simulation_Running_LLG' '_Simulation_Running_GNEB' '_Simulation_Running_MMF'
 		# Log
 		'_Log_Send' '_Log_Get_N_Entries' '_Log_Append' '_Log_Dump'

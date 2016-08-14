@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	state = std::shared_ptr<State>(setupState(cfgfile));
+	state = std::shared_ptr<State>(State_Setup(cfgfile));
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
 	Chain_Image_to_Clipboard(state.get());

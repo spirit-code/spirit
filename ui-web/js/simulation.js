@@ -31,17 +31,17 @@ var Module = {
 $.getScript("core.js");
 
 Module.ready(function() {
-    Module.setupState = Module.cwrap('setupState', 'number', ['string']);
+    Module.State_Setup = Module.cwrap('State_Setup', 'number', ['string']);
     window.Simulation = function(options) {
         var defaultOptions = {
         };
         this._options = {};
         this._mergeOptions(options, defaultOptions);
-        this._state = Module.setupState("");
+        this._state = Module.State_Setup("");
         this.showBoundingBox = true;
     };
 
-    Module.iterate = Module.cwrap('State_iterate', null, ['number']);
+    Module.iterate = Module.cwrap('JS_LLG_Iteration', null, ['number']);
     Simulation.prototype.performIteration = function() {
         Module.iterate(this._state);
         this.update();
@@ -61,7 +61,7 @@ Module.ready(function() {
         }
     };
 
-    Module.getSpinDirections = Module.cwrap('State_getSpinDirections', 'number', ['number']);
+    Module.getSpinDirections = Module.cwrap('System_Get_Spin_Directions', 'number', ['number']);
     Simulation.prototype.update = function() {
         var NX = 100;
         var NY = 100;
