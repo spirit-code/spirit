@@ -48,6 +48,8 @@ namespace Engine
 		Log(Log_Level::ALL, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
 		Log(Log_Level::ALL, sender, "Going to iterate " + std::to_string(n_log) + " steps");
         Log(Log_Level::ALL, sender, "            with " + std::to_string(log_steps) + " iterations per step");
+        Log(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
+        Log(Log_Level::ALL, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent));
 		Log(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log(Log_Level::ALL, sender, "-----------------------------------------------------");
 
@@ -55,6 +57,9 @@ namespace Engine
 		auto t_start = system_clock::now();
 		auto t_current = system_clock::now();
 		auto t_last = system_clock::now();
+
+        //---- Initial save
+		this->method->Save_Current(this->starttime, i, true, false);
 
         //---- Iteration loop
 		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
@@ -71,7 +76,7 @@ namespace Engine
 			this->t_iterations.push_back(system_clock::now());
 
 			// Log Output every log_steps steps
-			if (0 == fmod(i, log_steps))
+			if (i>0 && 0 == fmod(i, log_steps))
 			{
 				++step;
 
@@ -84,7 +89,7 @@ namespace Engine
 				Log(Log_Level::ALL, sender, "    Iterations / sec:        " + std::to_string(log_steps / Timing::SecondsPassed(t_last, t_current)));
 				Log(Log_Level::ALL, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
 
-				this->method->Save_Current(this->starttime, i, false);
+				this->method->Save_Current(this->starttime, i, false, false);
 
 				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
 			}// endif log_steps
@@ -100,16 +105,16 @@ namespace Engine
         if (this->StopFilePresent())
 			Log(Log_Level::ALL, sender, "    A STOP file has been found.");
         else
-        Log(Log_Level::ALL, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
+        Log(Log_Level::ALL, sender,     "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
         if (this->method->Force_Converged())
 			Log(Log_Level::ALL, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent));
 		else
-			Log(Log_Level::ALL, sender, "    Maximum force component:    " + std::to_string(this->method->force_maxAbsComponent));
+			Log(Log_Level::ALL, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent));
 		Log(Log_Level::ALL, sender, "Optimizer: " + this->FullName());
 		Log(Log_Level::ALL, sender, "------------------------------------------------------");
 
         //---- Final save
-		this->method->Save_Current(this->starttime, i, true);
+		this->method->Save_Current(this->starttime, i, false, true);
         //---- Finalize (set iterations_allowed to false etc.)
         this->method->Finalize();
     }

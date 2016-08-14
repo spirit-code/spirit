@@ -37,7 +37,7 @@ namespace Engine
 		virtual void Hook_Post_Iteration();
 
 		// Save the systems' current data
-		virtual void Save_Current(std::string starttime, int iteration, bool final=false);
+		virtual void Save_Current(std::string starttime, int iteration, bool initial=false, bool final=false);
 		// Finalize the optimization of the systems
 		virtual void Finalize();
 

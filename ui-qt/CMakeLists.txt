@@ -18,6 +18,8 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_AUTOMOC ON )
 ### Let CMake collect QT Resources automatically
 set( CMAKE_AUTORCC ON )
+### Let CMake handle .ui files automatically
+# set(CMAKE_AUTOUIC ON) # unfortunately, for this, .ui files ned to be next to corresponding .cpp files
 ######### Have the binary placed into the source head
 ### Output paths for single-config builds
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )

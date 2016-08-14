@@ -85,6 +85,8 @@ namespace Utility
 			int & no_spins_basic_domain)
 		{
 			// ---------- Default values
+			// Lattice constant [Angtrom]
+			double lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
 			basis = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
 			// Atoms in the basis
@@ -98,6 +100,8 @@ namespace Utility
 			{
 				try {
 					Utility::IO::Filter_File_Handle myfile(configFile);
+
+					myfile.Read_Single(lattice_constant, "lattice_constant");
 
 					// Utility 1D array to build vectors and use Vectormath
 					std::vector<double> build_array = { 0, 0, 0 };
@@ -127,7 +131,7 @@ namespace Utility
 							{
 								build_array[i] = basis[i][0] * basis_atoms[0][iatom] + basis[i][1] * basis_atoms[1][iatom] + basis[i][2] * basis_atoms[2][iatom];
 							}
-							basis_atoms[0][iatom] = build_array[0]; basis_atoms[1][iatom] = build_array[1]; basis_atoms[2][iatom] = build_array[2];
+							for (int i=0; i<3; ++i) basis_atoms[i][iatom] = lattice_constant * build_array[i];
 						}// endfor iatom
 
 					}// end find "basis"
@@ -147,6 +151,11 @@ namespace Utility
 			else Log(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
 			
 			// Log the parameters
+			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Lattice constant = " + std::to_string(lattice_constant) + " angstrom");
+			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, "Basis: vectors in units of lattice constant");
+			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[2][0]/lattice_constant));
+			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, "        b = " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant));
+			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, "        c = " + std::to_string(basis[0][2]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
 			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "Basis: vectors");
 			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[1][0]) + " " + std::to_string(basis[2][0]));
 			Log(Utility::Log_Level::PARAMETER, Utility::Log_Sender::IO, "        b = " + std::to_string(basis[0][1]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[2][1]));

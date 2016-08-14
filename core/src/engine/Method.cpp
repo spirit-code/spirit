@@ -32,7 +32,7 @@ namespace Engine
         return this->systems[0]->iteration_allowed;
     }
 
-    void Method::Save_Current(std::string starttime, int iteration, bool final)
+    void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // Not Implemented!
         Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Current() of the Method base class!"));

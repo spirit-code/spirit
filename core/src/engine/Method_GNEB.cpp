@@ -199,7 +199,7 @@ namespace Engine
     }
 
 
-	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool final)
+	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
 
 		// Get the file suffix

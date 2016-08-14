@@ -71,15 +71,29 @@ namespace Engine
         // --- Update the chains' last images
     }
 
-    void Method_MMF::Save_Current(std::string starttime, int iteration, bool final)
+    void Method_MMF::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
-        // Prepend copies of the current systems to their corresponding chains
+        if (initial) return;
+        // Insert copies of the current systems into their corresponding chains
         // - this way we will be able to look at the history of the optimizations
+        for (int ichain=0; ichain<collection->noc; ++ichain)
+        {
+            // Copy the image
+            auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
+            
+            // Insert into chain
+            auto chain = collection->chains[ichain];
+            chain->noi++;
+            chain->images.insert(chain->images.end(), copy);
+            chain->climbing_image.insert(chain->climbing_image.end(), false);
+            chain->falling_image.insert(chain->falling_image.end(), false);
+        }
 
-        // Recalculate the chains' Rx, E and interpolated values for their last two images
-        // Maybe just reallocate and recalculate everything... this is maybe not done too often?
+        // Reallocate and recalculate the chains' Rx, E and interpolated values for their last two images
 
-        // In the final save, we save all chains to file
+        // Append Each chain's new image to it's corresponding archive
+
+        // In the final save, we save all chains to file?
         if (final)
         {
 
