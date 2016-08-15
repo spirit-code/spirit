@@ -33,14 +33,15 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/incl
 
 
 ######### Where to search for library headers
-set(CORE_INCLUDE_DIRS
-	${PROJECT_SOURCE_DIR}/include
-	${PROJECT_SOURCE_DIR}/include/data
-	${PROJECT_SOURCE_DIR}/include/engine
-	${PROJECT_SOURCE_DIR}/include/interface
-	${PROJECT_SOURCE_DIR}/include/utility
-	${PROJECT_SOURCE_DIR}/src/utility)
-include_directories(${CORE_INCLUDE_DIRS})
+set( EIGEN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/eigen )
+set( CORE_INCLUDE_DIRS
+	 ${PROJECT_SOURCE_DIR}/include
+	 ${PROJECT_SOURCE_DIR}/include/data
+	 ${PROJECT_SOURCE_DIR}/include/engine
+	 ${PROJECT_SOURCE_DIR}/include/interface
+	 ${PROJECT_SOURCE_DIR}/include/utility
+	 ${PROJECT_SOURCE_DIR}/src/utility )
+include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR})
 #############################################
 
 ######### Declare File groups ###############
