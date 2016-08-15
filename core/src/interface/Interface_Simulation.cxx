@@ -37,7 +37,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
     {
         if (Simulation_Running_LLG_Chain(state, idx_chain))
         {
-            Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
         }
         else
         {
@@ -51,7 +51,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
     {
         if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
         {
-            Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
         }
         else
         {
@@ -59,7 +59,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
             if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
             if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
             method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
-            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+            Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
     }
 
@@ -138,7 +138,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             if (Simulation_Running_LLG_Chain(state, idx_chain))
             {
-                Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
             }
             else
             {
@@ -152,7 +152,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
             {
-                Log(Utility::Log_Level::ERROR, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
             }
             else
             {
@@ -160,7 +160,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
                 if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
                 if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
                 method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
-                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
+                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
             }
         }
 

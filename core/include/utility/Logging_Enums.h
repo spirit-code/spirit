@@ -9,7 +9,7 @@ namespace Utility
 {
 	extern "C" enum class Log_Sender
 	{
-		ALL,
+		All,
 		IO,
 		GNEB,
 		LLG,
@@ -20,13 +20,13 @@ namespace Utility
 
 	extern "C" enum class Log_Level
 	{
-		ALL,
-		SEVERE,
-		ERROR,
-		WARNING,
-		PARAMETER,
-		INFO,
-		DEBUG
+		All,
+		Severe,
+		Error,
+		Warning,
+		Parameter,
+		Info,
+		Debug
 	};
 
 	extern "C" struct LogEntry

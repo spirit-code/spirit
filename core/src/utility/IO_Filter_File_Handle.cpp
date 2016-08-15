@@ -26,14 +26,14 @@ namespace Utility
 			myfile = std::unique_ptr<std::ifstream>(new std::ifstream(filename));
 			if (!myfile->is_open()) { throw Utility::Exception::File_not_Found; }
 			else {
-				Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, std::string("  Reading from Config File ").append(filename));
+				Log(Log_Level::Debug, Utility::Log_Sender::IO, std::string("  Reading from Config File ").append(filename));
 			}
 		}// end constructor
 
 		Filter_File_Handle::~Filter_File_Handle()
 		{ 
 			myfile->close();
-			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::IO, std::string("  Config File Closed: ").append(filename));
+			Log(Log_Level::Debug, Utility::Log_Sender::IO, std::string("  Config File Closed: ").append(filename));
 		}// end destructor
 
 		bool Filter_File_Handle::GetLine_Handle()

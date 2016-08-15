@@ -11,19 +11,19 @@ struct LogEntry;
 
 // Log Level
 using Utility::Log_Level;
-using Utility::Log_Level::ALL;
-using Utility::Log_Level::ERROR;
-using Utility::Log_Level::WARNING;
-using Utility::Log_Level::PARAMETER;
-using Utility::Log_Level::INFO;
-using Utility::Log_Level::DEBUG;
+//using Utility::Log_Level::All;
+//using Utility::Log_Level::Error;
+//using Utility::Log_Level::Warning;
+//using Utility::Log_Level::Parameter;
+//using Utility::Log_Level::Info;
+//using Utility::Log_Level::Debug;
 // Log Sender - Only UIs will use this
 using Utility::Log_Sender;
-using Utility::Log_Sender::UI;
+//using Utility::Log_Sender::UI;
 // Log Entry
 namespace Utility
 {
-    class LogEntry;
+    struct LogEntry;
 }
 // using Utility::LogEntry;
 

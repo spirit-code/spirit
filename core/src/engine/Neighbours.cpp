@@ -44,7 +44,7 @@ namespace Engine
 			for (j = 0; j < n_shells; ++j) {
 				if (2 * shell_radius[j] >= Vectormath::Length(boundary_vectors, i))
 				{
-					Log(Log_Level::SEVERE, Log_Sender::ALL, "Simulated domain is too small!\n     Shell " + std::to_string(n_shells) + " diameter=" + std::to_string(2 * shell_radius[j])
+					Log(Log_Level::Severe, Log_Sender::All, "Simulated domain is too small!\n     Shell " + std::to_string(n_shells) + " diameter=" + std::to_string(2 * shell_radius[j])
 					+ "\n    B.V.  " + std::to_string(i) + "   length=" + std::to_string(Vectormath::Length(boundary_vectors, i))
 					+ "\n    B.V.  " + std::to_string(i) + "   vec   =" + std::to_string(boundary_vectors[0][i]) + " " + std::to_string(boundary_vectors[1][i]) + " " + std::to_string(boundary_vectors[2][i]));
 					throw Exception::Simulated_domain_too_small;
@@ -84,34 +84,34 @@ namespace Engine
 		}
 		if (spin_sum_3d == 0)
 		{
-			Log(Log_Level::INFO, Log_Sender::ALL, "------------- 2D Case -------------");
+			Log(Log_Level::Info, Log_Sender::All, "------------- 2D Case -------------");
 			switch (max_number_n_in_shell[0]) {
 
 			case 4: // square lattice
 				max_n_4spin = 4; //diamonds
-				Log(Log_Level::INFO, Log_Sender::ALL, "4-spin for square lattice!");
+				Log(Log_Level::Info, Log_Sender::All, "4-spin for square lattice!");
 				neigh_4spin = std::vector<std::vector<std::vector<int>>>(3, std::vector<std::vector<int>>(nos, std::vector<int>(max_n_4spin)));
 				Create_Neighbours_4Spin(nos, n_shells, neigh, n_spins_in_shell, max_n_4spin, n_4spin, neigh_4spin);
 				break;
 
 			case 6: // hexagonal lattice
 				max_n_4spin = 12; //diamonds
-				Log(Log_Level::INFO, Log_Sender::ALL, "4-spin for hexagonal lattice!");
+				Log(Log_Level::Info, Log_Sender::All, "4-spin for hexagonal lattice!");
 				neigh_4spin = std::vector<std::vector<std::vector<int>>>(3, std::vector<std::vector<int>>(nos, std::vector<int>(max_n_4spin)));
 				Create_Neighbours_4Spin(nos, n_shells, neigh, n_spins_in_shell, max_n_4spin, n_4spin, neigh_4spin);
 				break;
 
 			default:
 				max_n_4spin = 1;
-				Log(Log_Level::WARNING, Log_Sender::ALL, "4-spin interaction is not defined for this type of lattice!");
+				Log(Log_Level::Warning, Log_Sender::All, "4-spin interaction is not defined for this type of lattice!");
 				// Maybe need to somehow tell the System that K_ijkl should be zero
 				//kijkl = 0;
 			}//end switch
 		}//end 2D-Case
 		else
 		{
-			Log(Log_Level::INFO, Log_Sender::ALL, "------------- 3D Case -------------");
-			Log(Log_Level::WARNING, Log_Sender::ALL, "4-spin interaction is not defined for the 3D case");
+			Log(Log_Level::Info, Log_Sender::All, "------------- 3D Case -------------");
+			Log(Log_Level::Warning, Log_Sender::All, "4-spin interaction is not defined for the 3D case");
 			// Maybe need to somehow tell the System that K_ijkl should be zero
 			//kijkl = 0;
 		}//end 3D-Case
@@ -124,7 +124,7 @@ namespace Engine
 		Create_DM_Norm_Vectors_Bulk(nos, geometry.spin_pos, n_boundary_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal);
 		//DM_Norm_Vectors_To_File(nos, n_shells, n_spins_in_shell, neigh, dm_normal);
 
-		Log(Log_Level::INFO, Log_Sender::ALL, "Done creating Neighbours");
+		Log(Log_Level::Info, Log_Sender::All, "Done creating Neighbours");
 	}//end Neighbours::Create_Neighbours
 
 
@@ -206,7 +206,7 @@ namespace Engine
 		if (!borderOnly) {
 			// Set the n_cells in which to fit this shell and determine MaxNumber_NInShell
 			imax = 30; jmax = 30; kmax = 30;
-			Log(Utility::Log_Level::DEBUG, Utility::Log_Sender::ALL, "Remember Maximum size of Dipole shell should fit into " + std::to_string(imax) + "x" + std::to_string(jmax) + "x" + std::to_string(kmax) + " translations. Neighbours.cpp line 178 to change this");
+			Log(Utility::Log_Level::Debug, Utility::Log_Sender::All, "Remember Maximum size of Dipole shell should fit into " + std::to_string(imax) + "x" + std::to_string(jmax) + "x" + std::to_string(kmax) + " translations. Neighbours.cpp line 178 to change this");
 		}
 		// Retrieve basis vectors from geometry.basis
 		std::vector<double> a = { geometry.basis[0][0], geometry.basis[1][0], geometry.basis[2][0] };
@@ -464,7 +464,7 @@ namespace Engine
 		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
 		//------------------------ End Init ----------------------------------------
 
-		Log(Log_Level::DEBUG, Log_Sender::ALL, "Calculating Bulk DMI norm vectors...");
+		Log(Log_Level::Debug, Log_Sender::All, "Calculating Bulk DMI norm vectors...");
 		for (ispin = 0; ispin < nos; ++ispin) {								// loop over all spins
 			Vectormath::Vector_Copy_o(ispin_pos, spin_pos, 0, ispin);
 			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh) {	// loop over all neighbours of that spin
@@ -476,7 +476,7 @@ namespace Engine
 				Vectormath::Vector_Copy_i(dm_normal, r_a, 0, ispin, jneigh);
 			}//endfor jneigh
 		}//endfor ispin
-		Log(Log_Level::DEBUG, Log_Sender::ALL, "Done calculating Bulk DMI norm vectors.");
+		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Bulk DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Bulk
 
 	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<std::vector<double>> &spin_pos, const int number_b_vectors,
@@ -499,7 +499,7 @@ namespace Engine
 				Vectormath::Vector_Copy_i(dm_normal, build_array_2, 0, ispin, jneigh);
 			}
 		}
-		Log(Log_Level::DEBUG, Log_Sender::ALL, "Done calculating Surface DMI norm vectors.");
+		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Surface DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Surface
 
 	void Neighbours::DM_Norm_Vectors_To_File(const int nos, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
@@ -611,7 +611,6 @@ namespace Engine
 		int pair_da, pair_db, pair_dc;
 		int na, nb, nc;
 
-		unsigned int bvector;
 
 		int idx_i = 0, idx_j = 0;
 		int Na = geometry.n_cells[0];
@@ -874,7 +873,7 @@ namespace Engine
 		double norm_ba=0, norm_bb=0, norm_bc=0;
 		bool periodical_a, periodical_b, periodical_c;
 
-		Log(Log_Level::WARNING, Log_Sender::ALL, "DD Pairs are being calculated from Neighbours! This may produce bugs in non-orthogonal basis systems!");
+		Log(Log_Level::Warning, Log_Sender::All, "DD Pairs are being calculated from Neighbours! This may produce bugs in non-orthogonal basis systems!");
 		
 		// Norm of basis and translation vectors
 		for (int dim = 0; dim < 3; ++dim)

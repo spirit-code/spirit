@@ -50,13 +50,13 @@ void DebugWidget::UpdateFromLog()
 	{
 		if ((int)entries[i].level <= this->comboBox_ShowLevel->currentIndex())
 		{
-			if ((entries[i].sender == Utility::Log_Sender::ALL) ||
-				(this->checkBox_API->isChecked() && (entries[i].sender == Utility::Log_Sender::API)) ||
-				(this->checkBox_IO->isChecked() && (entries[i].sender == Utility::Log_Sender::IO)) ||
-				(this->checkBox_GUI->isChecked() && (entries[i].sender == Utility::Log_Sender::UI)) ||
-				(this->checkBox_LLG->isChecked() && (entries[i].sender == Utility::Log_Sender::LLG)) ||
-				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Utility::Log_Sender::GNEB)) ||
-				(this->checkBox_MMF->isChecked() && (entries[i].sender == Utility::Log_Sender::MMF)))
+			if ((entries[i].sender == Log_Sender::All) ||
+				(this->checkBox_API->isChecked() && (entries[i].sender == Log_Sender::API)) ||
+				(this->checkBox_IO->isChecked() && (entries[i].sender == Log_Sender::IO)) ||
+				(this->checkBox_GUI->isChecked() && (entries[i].sender == Log_Sender::UI)) ||
+				(this->checkBox_LLG->isChecked() && (entries[i].sender == Log_Sender::LLG)) ||
+				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Log_Sender::GNEB)) ||
+				(this->checkBox_MMF->isChecked() && (entries[i].sender == Log_Sender::MMF)))
 			{
 				this->plainTextEdit->appendPlainText(QString::fromLatin1(LogEntryToString(entries[i]).c_str()));
 			}

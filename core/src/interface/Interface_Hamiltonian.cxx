@@ -62,7 +62,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
                 ham->external_field_normal[0] = 0.0;
                 ham->external_field_normal[1] = 0.0;
                 ham->external_field_normal[2] = 1.0;
-                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
+                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
             }
             else { throw(ex); }
         }
@@ -118,7 +118,7 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
                 ham->anisotropy_normal[0] = 0.0;
                 ham->anisotropy_normal[1] = 0.0;
                 ham->anisotropy_normal[2] = 1.0;
-                Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
             }
             else { throw(ex); }
         }
@@ -203,7 +203,7 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
             image->llg_parameters->stt_polarisation_normal[0] = 0.0;
             image->llg_parameters->stt_polarisation_normal[1] = 0.0;
             image->llg_parameters->stt_polarisation_normal[2] = 1.0;
-            Log(Utility::Log_Level::WARNING, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+            Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
         }
         else { throw(ex); }
     }

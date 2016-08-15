@@ -11,17 +11,17 @@ std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
     // Message Level
     if (braces_separators) result.append("  [");
     else result.append("   ");
-    if      (entry.level == Log_Level::ALL)    	result.append("  ALL  ");
-    else if (entry.level == Log_Level::SEVERE) 	result.append("SEVERE ");
-    else if (entry.level == Log_Level::ERROR)	result.append(" ERROR ");
-    else if (entry.level == Log_Level::WARNING)	result.append("WARNING");
-    else if (entry.level == Log_Level::PARAMETER) result.append(" PARAM ");
-    else if (entry.level == Log_Level::INFO)    	result.append(" INFO  ");
-    else if (entry.level == Log_Level::DEBUG)   	result.append(" DEBUG ");
+    if      (entry.level == Log_Level::All)    	result.append("  ALL  ");
+    else if (entry.level == Log_Level::Severe) 	result.append("SEVERE ");
+    else if (entry.level == Log_Level::Error)	result.append(" L_ERROR ");
+    else if (entry.level == Log_Level::Warning)	result.append("WARNING");
+    else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
+    else if (entry.level == Log_Level::Info)    	result.append(" INFO  ");
+    else if (entry.level == Log_Level::Debug)   	result.append(" DEBUG ");
     // Sender
     if (braces_separators) result.append("] [");
     else result.append("  ");
-    if     (entry.sender == Log_Sender::ALL)  result.append("ALL ");
+    if     (entry.sender == Log_Sender::All)  result.append("ALL ");
     else if(entry.sender == Log_Sender::IO)   result.append("IO  ");
     else if(entry.sender == Log_Sender::API)  result.append("API ");
     else if(entry.sender == Log_Sender::GNEB) result.append("GNEB");

@@ -7,7 +7,7 @@ namespace Engine
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
         parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
-        this->SenderName = Utility::Log_Sender::ALL;
+        this->SenderName = Utility::Log_Sender::All;
     }
 
     void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
@@ -35,28 +35,28 @@ namespace Engine
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Save_Current() of the Method base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
     void Method::Hook_Pre_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
     void Method::Hook_Post_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
     void Method::Finalize()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Finalize() of the Method base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
         throw Utility::Exception::Not_Implemented;
     }
 
@@ -97,7 +97,7 @@ namespace Engine
     std::string Method::Name()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Method::Name() of the Method base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
         return "--";
     }
 }

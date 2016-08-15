@@ -12,8 +12,8 @@ namespace Utility
 	LoggingHandler::LoggingHandler()
 	{
 		// Set the default Log parameters
-		print_level   = Utility::Log_Level::WARNING;
-		accept_level  = Utility::Log_Level::DEBUG;
+		print_level   = Log_Level::Warning;
+		accept_level  = Log_Level::Debug;
 		output_folder = ".";
 		fileName      = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
 		n_entries     = 0;
@@ -48,8 +48,8 @@ namespace Utility
 		// Get vector of Log entries
 		auto result = std::vector<LogEntry>();
 		for (auto entry : log_entries) {
-			if (level == Log_Level::ALL || level == entry.level) {
-				if (sender == Log_Sender::ALL || sender == entry.sender) {
+			if (level == Log_Level::All || level == entry.level) {
+				if (sender == Log_Sender::All || sender == entry.sender) {
 					if (idx_image == -1 || idx_image == entry.idx_image) {
 						if (idx_chain == -1 || idx_chain == entry.idx_chain) {
 							result.push_back(entry);
@@ -66,7 +66,7 @@ namespace Utility
 	void LoggingHandler::Append_to_File()
 	{
 		// Log this event
-		Send(Log_Level::INFO, Log_Sender::ALL, "Appending Log to file " + output_folder + "/" + fileName);
+		Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
 		
 		// Gather the string
 		std::string logstring = "";
@@ -85,7 +85,7 @@ namespace Utility
 	void LoggingHandler::Dump_to_File()
 	{
 		// Log this event
-		Send(Log_Level::INFO, Log_Sender::ALL, "Dumping Log to file " + output_folder + "/" + fileName);
+		Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
 
 		// Gather the string
 		std::string logstring = "";

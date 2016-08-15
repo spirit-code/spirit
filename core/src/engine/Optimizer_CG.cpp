@@ -12,7 +12,7 @@ namespace Engine
     void Optimizer_CG::Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
     }
 
     // Optimizer name as string

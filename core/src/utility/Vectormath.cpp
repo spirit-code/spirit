@@ -71,7 +71,7 @@ namespace Utility
 					if (std::abs(spin_pos[0][i] - spin_pos[0][j]) < 1.0E-6) {
 						if (std::abs(spin_pos[1][i] - spin_pos[1][j]) < 1.0E-6) {
 							if (std::abs(spin_pos[2][i] - spin_pos[2][j]) < 1.0E-6) {
-								Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+								Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
 								throw Exception::System_not_Initialized;
 							}
 						}
@@ -112,7 +112,7 @@ namespace Utility
 					if (std::abs(spin_pos[0][i] - spin_pos[0][j]) < 1.0E-6) {
 						if (std::abs(spin_pos[1][i] - spin_pos[1][j]) < 1.0E-6) {
 							if (std::abs(spin_pos[2][i] - spin_pos[2][j]) < 1.0E-6) {
-								Log(Utility::Log_Level::SEVERE, Utility::Log_Sender::ALL, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+								Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
 								throw Exception::System_not_Initialized;
 							}
 						}

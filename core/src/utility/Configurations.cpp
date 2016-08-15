@@ -27,7 +27,7 @@ namespace Utility
 				if (ex == Exception::Division_by_zero) 
 				{
 					std::string message = "Homogeneous vector was (" + std::to_string(v[0]) + ", " + std::to_string(v[1]) + ", " + std::to_string(v[2]) + ") and got set to (0, 0, 1)";
-					Log(Log_Level::WARNING, Log_Sender::ALL, message);
+					Log(Log_Level::Warning, Log_Sender::All, message);
 					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
 				}
 				else { throw(ex); }
@@ -327,17 +327,17 @@ namespace Utility
 			}
 			else if (direction_type == "Reciprocal Lattice")
 			{
-				Log(Log_Level::ERROR, Log_Sender::ALL, "The reciprocal lattice spin spiral is not yet implemented!");
+				Log(Log_Level::Error, Log_Sender::All, "The reciprocal lattice spin spiral is not yet implemented!");
 				// Not yet implemented!
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 			}
 			else if (direction_type == "Real Space")
 			{
-				Log(Log_Level::ERROR, Log_Sender::ALL, "The real space spin spiral is not yet implemented!");
+				Log(Log_Level::Error, Log_Sender::All, "The real space spin spiral is not yet implemented!");
 			}
 			else
 			{
-				Log(Log_Level::WARNING, Log_Sender::ALL, "Got passed invalid type for SS: " + direction_type);
+				Log(Log_Level::Warning, Log_Sender::All, "Got passed invalid type for SS: " + direction_type);
 			}
 		}
 

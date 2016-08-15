@@ -94,7 +94,7 @@ namespace Engine
 		// 	{
         //         if (ex == Exception::Division_by_zero)
 		// 		{
-		// 			Log(Utility::Log_Level::WARNING, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
+		// 			Log(Utility::Log_Level::Warning, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
         //             //Utility::Configurations::Random(s, false);
         //         }
         //         else { throw(ex); }

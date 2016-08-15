@@ -52,7 +52,7 @@ namespace Utility
 		LoggingHandler();
 
 		// Get the Log's entries, filtered for level, sender and indices
-		std::vector<LogEntry> Filter(Log_Level level=Log_Level::ALL, Log_Sender sender=Log_Sender::ALL, int idx_image=-1, int idx_chain=-1);
+		std::vector<LogEntry> Filter(Log_Level level=Log_Level::All, Log_Sender sender=Log_Sender::All, int idx_image=-1, int idx_chain=-1);
 		
 		int no_dumped;
 		std::vector<LogEntry> log_entries;

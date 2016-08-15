@@ -8,11 +8,6 @@
 #include "Interface_Transitions.h"
 #include "Interface_Simulation.h"
 
-// Use Core Namespaces
-// using namespace Data;
-// using namespace Engine;
-// using namespace Utility;
-
 // Initialise Global Variables
 struct State;
 std::shared_ptr<State> state;
@@ -71,9 +66,9 @@ int main(int argc, char ** argv)
 
 
 	// Finish
-	Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-	Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
-	Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
+	Log(Log_Level::All, Log_Sender::All, "=====================================================");
+	Log(Log_Level::All, Log_Sender::All, "================= MonoSpin Finished =================");
+	Log(Log_Level::All, Log_Sender::All, "=====================================================");
 	Log.Append_to_File();
 	return 0;
 }

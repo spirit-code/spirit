@@ -287,16 +287,16 @@ namespace Utility
 			myfile.open(name);
 			if (myfile.is_open())
 			{
-				Log(Log_Level::DEBUG, Log_Sender::ALL, "Started writing " + name);
+				Log(Log_Level::Debug, Log_Sender::All, "Started writing " + name);
 				for (int i = 0; i < no; ++i) {
 					myfile << text[i];
 				}
 				myfile.close();
-				Log(Log_Level::DEBUG, Log_Sender::ALL, "Finished writing " + name);
+				Log(Log_Level::Debug, Log_Sender::All, "Finished writing " + name);
 			}
 			else
 			{
-				Log(Log_Level::ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
+				Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to write to file");
 			}
 		}
 
@@ -306,14 +306,14 @@ namespace Utility
 			myfile.open(name, std::ofstream::out | std::ofstream::app);
 			if (myfile.is_open())
 			{
-				Log(Log_Level::DEBUG, Log_Sender::ALL, "Started writing " + name);
+				Log(Log_Level::Debug, Log_Sender::All, "Started writing " + name);
 				myfile << text;
 				myfile.close();
-				Log(Log_Level::DEBUG, Log_Sender::ALL, "Finished writing " + name);
+				Log(Log_Level::Debug, Log_Sender::All, "Finished writing " + name);
 			}
 			else
 			{
-				Log(Log_Level::ERROR, Log_Sender::ALL, "Could not open " + name + " to write to file");
+				Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to write to file");
 			}
 		}
 
