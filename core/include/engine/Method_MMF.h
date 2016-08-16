@@ -43,6 +43,7 @@ namespace Engine
 	private:
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
+		std::vector<std::vector<double>> hessian;
 		// Last calculated forces
 		std::vector<std::vector<double>> F_gradient;
 		// Last calculated minimum mode

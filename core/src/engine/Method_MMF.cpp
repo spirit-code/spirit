@@ -1,6 +1,8 @@
 #include "Method_MMF.h"
 #include "Manifoldmath.h"
 
+#include <Eigenvalues>
+
 namespace Engine
 {
     Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_img, int idx_chain) :
@@ -20,6 +22,7 @@ namespace Engine
 		// We assume that the systems are not converged before the first iteration
 		this->force_maxAbsComponent = this->collection->parameters->force_convergence + 1.0;
 
+		this->hessian = std::vector<std::vector<double>>(noc, std::vector<double>(9 * nos*nos));	// [noi][3nos]
 		// Forces
 		this->F_gradient   = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
 		this->minimum_mode = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
@@ -27,6 +30,7 @@ namespace Engine
 
     void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
     {
+		const int nos = configurations[0]->size() / 3;
         // Get Effective Fields of configurations
 		for (int ichain = 0; ichain < collection->noc; ++ichain)
 		{
@@ -34,9 +38,23 @@ namespace Engine
 
 			// The gradient force (unprojected) is simply the effective field
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
-		
-            // Get the Minimum Mode
-            // this->minimum_mode = ...
+			
+			// Get the Minimum Mode
+			//this->minimum_mode = ...
+			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
+
+			std::cerr << "test" << std::endl;
+			Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3*nos, 3*nos, Eigen::OuterStride<>(3*nos));
+			//Eigen::Map<Eigen::MatrixXd> test(configurations[ichain]->data(), 3, 100);
+			std::cerr << "last test" << std::endl;
+			Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> estest(test);
+			std::cerr << "last test done" << std::endl;
+			//std::cerr << test.diagonal() << std::endl;
+			//std::cerr << estest.eigenvalues() << std::endl;
+			std::cerr << estest.eigenvectors().col(0).size() << std::endl;
+			//vector<int> vec(mat.data(), mat.data() + mat.rows() * mat.cols());
+			auto& x = estest.eigenvectors().col(0);
+			this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
 
             // Invert the gradient force along the minimum mode
             Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);

@@ -30,6 +30,13 @@ namespace Engine
 	public:
 		Hamiltonian(std::vector<bool> boundary_conditions) : boundary_conditions(boundary_conditions) {};
 
+		virtual void Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+		{
+			// Not Implemented!
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Hessian() of the Hamiltonian base class!"));
+			throw Utility::Exception::Not_Implemented;
+		}
+
 		// Calculate the Effective field of a spin configuration
 		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
 		{

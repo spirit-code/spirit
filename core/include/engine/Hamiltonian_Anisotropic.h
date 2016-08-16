@@ -27,7 +27,8 @@ namespace Engine
 			std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<double>> DD_magnitude, std::vector<std::vector<std::vector<double>>> DD_normal,
 			std::vector<bool> boundary_conditions
 		);
-		
+
+		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
 		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
 		double Energy(std::vector<double> & spins) override;
 		std::vector<double> Energy_Array(std::vector<double> & spins) override;

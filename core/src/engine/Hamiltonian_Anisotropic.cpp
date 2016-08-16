@@ -381,4 +381,46 @@ namespace Engine
 			eff_field[dim*nos + indices[1]] += skalar_contrib * (3 * dotprod0*DD_normal[dim] - spins[dim * nos + indices[0]]);
 		}
 	}//end Field_DipoleDipole
+
+	void Hamiltonian_Anisotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	{
+		int nos = spins.size() / 3;
+
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			for (int i = 0; i < nos; ++i)
+			{
+				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = 2.0*this->anisotropy_magnitude[i]*this->anisotropy_normal[alpha][i];
+			}
+		}
+
+		// Spin Pair elements
+		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		{
+			//		Check if boundary conditions contain this periodicity
+			if ((i_periodicity == 0)
+				|| (i_periodicity == 1 && this->boundary_conditions[0])
+				|| (i_periodicity == 2 && this->boundary_conditions[1])
+				|| (i_periodicity == 3 && this->boundary_conditions[2])
+				|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+				|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+			{
+				//		Loop over pairs of this periodicity
+				// Exchange
+				for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
+				{
+					for (int alpha = 0; alpha < 3; ++alpha)
+					{
+						//this->Field_Exchange(nos, spins, Exchange_indices[i_periodicity][i_pair], Exchange_magnitude[i_periodicity][i_pair], field);
+						hessian[Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos)] =
+							-0.5*Exchange_magnitude[i_periodicity][i_pair];
+					}
+				}
+				// TODO: DMI
+			}
+		}
+	}
 }

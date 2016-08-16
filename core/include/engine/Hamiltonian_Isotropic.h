@@ -17,7 +17,8 @@ namespace Engine
 		Hamiltonian_Isotropic(std::vector<bool> boundary_conditions, double external_field_magnitude, std::vector<double> external_field_normal, double mu_s,
 			double anisotropy_magnitude, std::vector<double> anisotropy_normal,
 			int n_neigh_shells, std::vector<double> jij, double dij, double bij, double kijkl, double dd_radius, Data::Geometry geometry);
-
+		
+		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
 		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
 		double Energy(std::vector<double> & spins) override;
 		std::vector<double> Energy_Array(std::vector<double> & spins) override;
