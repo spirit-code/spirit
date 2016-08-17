@@ -2,23 +2,24 @@
 #ifndef PLOTSWIDGET_H
 #define PLOTSWIDGET_H
 
-#include <QtWidgets>
+#include <QWidget>
 
 #include <memory>
 
-#include "Spin_System_Chain.h"
 #include "PlotWidget.h"
 
 #include "ui_PlotsWidget.h"
+
+struct State;
 
 class PlotsWidget : public QWidget, private Ui::PlotsWidget
 {
     Q_OBJECT
 
 public:
-	PlotsWidget(std::shared_ptr<Data::Spin_System_Chain> c);
+	PlotsWidget(std::shared_ptr<State> state);
 
-	std::shared_ptr<Data::Spin_System_Chain> c;
+	std::shared_ptr<State> state;
     
     PlotWidget * energyPlot;
 

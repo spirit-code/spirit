@@ -5,12 +5,12 @@
 #include <random>
 #include <vector>
 
-#include "Parameters_Solver.h"
+#include "Parameters_Method.h"
 
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_GNEB : public Parameters_Solver
+	class Parameters_GNEB : public Parameters_Method
 	{
 	public:
 		// Constructor
@@ -18,11 +18,6 @@ namespace Data
 
 		// Strength of springs between images
 		double spring_constant;
-		
-		// number of iterations carried out when pressing "play" or calling "iterate"
-		int n_iterations;
-		// after "log_steps"-iterations the current system is logged to file
-		int log_steps;
 
 		// Number of Energy interpolations between Images
 		int n_E_interpolations;

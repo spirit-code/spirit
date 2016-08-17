@@ -2,9 +2,9 @@
 #include "Manifoldmath.h"
 #include "gr.h"
 
-PlotWidget::PlotWidget(std::shared_ptr<Data::Spin_System_Chain> c)
+PlotWidget::PlotWidget(std::shared_ptr<State> state)
 {
-	this->c = c;
+	this->state = state;
 
 }
 

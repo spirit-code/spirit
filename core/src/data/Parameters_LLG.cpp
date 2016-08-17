@@ -2,11 +2,16 @@
 
 namespace Data
 {
-	Parameters_LLG::Parameters_LLG(std::string output_folder, int seed_i, int n_iterations_i, int log_steps_i, double temperature_i, double damping_i, double time_step_i,
-		bool renorm_sd_i, double stt_magnitude_i, std::vector<double> stt_polarisation_normal_i, double force_convergence):
-		seed(seed_i), n_iterations(n_iterations_i), log_steps(log_steps_i), temperature(temperature_i), damping(damping_i), dt(time_step_i),
-		renorm_sd(renorm_sd_i), stt_magnitude(stt_magnitude_i), stt_polarisation_normal(stt_polarisation_normal_i)
+	Parameters_LLG::Parameters_LLG(std::string output_folder, int seed_i, int n_iterations_i, int log_steps_i,
+		double temperature_i, double damping_i, double time_step_i,
+		bool renorm_sd_i, bool save_single_configurations_i,
+		double stt_magnitude_i, std::vector<double> stt_polarisation_normal_i, double force_convergence):
+		seed(seed_i), temperature(temperature_i), damping(damping_i), dt(time_step_i),
+		renorm_sd(renorm_sd_i), save_single_configurations(save_single_configurations_i),
+		stt_magnitude(stt_magnitude_i), stt_polarisation_normal(stt_polarisation_normal_i)
 	{
+		this->n_iterations = n_iterations_i;
+		this->log_steps = log_steps_i;
 		this->force_convergence = force_convergence;
 		this->output_folder = output_folder;
 		prng = std::mt19937(seed);

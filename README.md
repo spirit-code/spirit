@@ -4,6 +4,9 @@ MonoSpin
 The code is released under [MIT License](../master/LICENSE.txt).<br />
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/MonoSpin
 
+The Web interface is hosted by the PGI-1 institute at the Research Centre Jülich:
+http://iffwww.iff.kfa-juelich.de/pub/monospindemo/
+
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
 -->
@@ -89,13 +92,6 @@ one does not need any libraries on which other projects depend.
 * gcc >= 4.8.1 (C++11 stdlib)
 * cmake >= 2.8.12
 
-### UI-QT
-* QT >= 5.5
-
-In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
-
-Note that building QT can be a big pain, but usually it should work if you simply use their installers.
-
 ### GL
 * OpenGL Drivers >= 3.3
 * GLAD (pre-built)
@@ -108,8 +104,14 @@ To build GLAD, use the following:
 	cmake .
 	make
 
+### UI-QT
+* QT >= 5.5
 
-### Web
+In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
+
+Note that building QT can be a big pain, but usually it should work if you simply use their installers.
+
+### UI-Web
 * emscripten
 
 In order to build the core.js JavaScript library, you need emscripten.
@@ -127,11 +129,21 @@ Installation Instructions <a name="Installation"></a>
 >The following assumes you are in the MonoSpin root directory.
 
 Please be aware that our CMake scripts are written for our use cases and
-you may need to adapt some paths etc.
+you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
 
-In order to build a specific UI, set the corresponding switches in the
-root CMakeLists.txt.
+The **Options** you can set under *### Build Flags ###* are:
+* BUILD_UI_WEB - build the web interface instead of others
+* BUILD_UI_PYTHON - build the python library
+* BUILD_UI_CXX - build the C++ interfaces (console or QT) instead of others
+* UI_CXX_USE_QT - build qt user interface instead of console version
+* OSX_BUNDLE_APP - not yet functional
+* PRINT_SOURCES - print all source files (for debugging)
 
+The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
+* USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
+* USER_PATH_COMPILER for the directory your compiler is located in
+* USER_PATH_QT for the path to your CMake installation
+Otherwise, the developers' defaults will be used or CMake will try to use it's defaults.
   
 Clear the build directory using
 

@@ -2,7 +2,6 @@
 #ifndef PLOTWIDGET_H
 #define PLOTWIDGET_H
 
-
 #include <memory>
 
 #include <QWidget>
@@ -11,16 +10,19 @@
 
 #include "grwidget.h"
 
+struct State;
+
 
 class PlotWidget : public GRWidget	// We need a proper 2D plotting solution!!
 {
 
 public:
-	PlotWidget(std::shared_ptr<Data::Spin_System_Chain> c);
+	PlotWidget(std::shared_ptr<State> state);
 	void draw();
 
+
 private:
-	std::shared_ptr<Data::Spin_System_Chain> c;
+	std::shared_ptr<State> state;
 
 };
 

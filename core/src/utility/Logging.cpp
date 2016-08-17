@@ -1,4 +1,5 @@
 ﻿#include "Logging.h"
+#include "Interface_State.h"
 
 #include <string>
 #include <iostream>
@@ -6,143 +7,95 @@
 #include <IO.h>
 #include <signal.h>
 
-// Handle interrupt by signal SIGINT
-void Handle_SigInt(int sig)
-{
-	std::shared_ptr<Data::Spin_System_Chain> extern c;
-	using Utility::Log_Level;
-	using Utility::Log_Sender;
-
-	// Have SIG_IGN (ignore) handle further SIGINTs from now
-	signal(sig, SIG_IGN);
-
-	// Check if the chain is initialized
-	if (c != nullptr)
-	{
-		Utility::Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-		c->iteration_allowed = false;
-		for (int i = 0; i < c->noi; ++i)
-		{
-			c->images[i]->iteration_allowed = false;
-		}
-		Utility::Log.Append_to_File();
-	}
-	// No iterations started, exit the program
-	else
-	{
-		Utility::Log.Send(Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
-		Utility::Log.Append_to_File();
-		exit(0);
-	}
-
-	// Have this function handle the signal again
-	signal(sig, Handle_SigInt);
-}
-
 namespace Utility
 {
-	LogEntry::LogEntry(system_clock::time_point t, Log_Sender s, Log_Level l, int i, std::string m) :
-		time(t), sender(s), level(l), image(i), message(m)
+	LoggingHandler::LoggingHandler()
 	{
+		// Set the default Log parameters
+		print_level   = Log_Level::Warning;
+		accept_level  = Log_Level::Debug;
+		output_folder = ".";
+		fileName      = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+		n_entries     = 0;
 	}
 
-	std::string LogEntry::toString()
-	{
-		std::string t = Timing::TimePointToString(time);
-		std::string result = "[";
-		result.append(t);
-		result.append("] [");
-		if (sender == Log_Sender::ALL) result.append("ALL ");
-		else if(sender == Log_Sender::IO) result.append(" IO ");
-		else if(sender == Log_Sender::GNEB) result.append("GNEB");
-		else if(sender == Log_Sender::LLG) result.append("LLG ");
-		else if(sender == Log_Sender::MMF) result.append("MMF ");
-		else if(sender == Log_Sender::GUI) result.append("GUI ");
-		result.append("] [");
-		if (level == Log_Level::ALL) result.append("  ALL  ");
-		else if (level == Log_Level::SEVERE) result.append("SEVERE ");
-		else if (level == Log_Level::L_ERROR) result.append(" ERROR ");
-		else if (level == Log_Level::WARNING) result.append("WARNING");
-		else if (level == Log_Level::INFO) result.append(" INFO  ");
-		else if (level == Log_Level::DEBUG) result.append(" DEBUG ");
-		result.append("] [");
-		result.append(std::to_string(image));
-		result.append("] : ");
-		result.append(message);
-		return result;
-	}
-
-	LoggingHandler::LoggingHandler(Log_Level print_level_i, Log_Level accept_level_i, std::string output_folder_i, std::string fileName_i) :
-		print_level(print_level_i), accept_level(accept_level_i), output_folder(output_folder_i), fileName(fileName_i), n_entries(0)
-	{
-		//signal(SIGINT, Handle_SigInt);
-	}
-
-	// Send a Log message without image index
-	void LoggingHandler::Send(Log_Level level, Log_Sender s, std::string m)
-	{
-		Send(level, s, -1, m);
-	}
-
-	// Send a Log message
-	void LoggingHandler::Send(Log_Level level, Log_Sender s, int image, std::string m)
+	void LoggingHandler::Send(Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
 	{
 		// All messages are saved in the Log
-		log_entries.push_back(LogEntry(std::chrono::system_clock::now(), s, level, image, m));
+		LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
+		log_entries.push_back(entry);
 		
 		// If level <= verbosity, we print to console
 		if (level <= print_level && level <= accept_level)
-			std::cout << log_entries[(int)log_entries.size() - 1].toString() << std::endl;
+			std::cout << LogEntryToString(log_entries.back()) << std::endl;
 		
+		// Increment message count
 		n_entries++;
 	}
 
-	// Filter the messages saved in the Log by levels and/or senders and/or image index
-	std::vector<LogEntry> LoggingHandler::Filter(Log_Level level, Log_Sender sender, int image)
+	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
 	{
+		Send(level, sender, message, idx_image, idx_chain);
+	}
+
+	std::vector<LogEntry> LoggingHandler::GetEntries()
+	{
+		return log_entries;
+	}
+
+	std::vector<LogEntry> LoggingHandler::Filter(Log_Level level, Log_Sender sender, int idx_image, int idx_chain)
+	{
+		// Get vector of Log entries
 		auto result = std::vector<LogEntry>();
-		for (unsigned int i = 0; i < log_entries.size(); ++i) {
-			if (level == Log_Level::ALL || level == log_entries[i].level) {
-				if (sender == Log_Sender::ALL || sender == log_entries[i].sender) {
-					if (image == -1 || image == log_entries[i].image) {
-						result.push_back(log_entries[i]);
+		for (auto entry : log_entries) {
+			if (level == Log_Level::All || level == entry.level) {
+				if (sender == Log_Sender::All || sender == entry.sender) {
+					if (idx_image == -1 || idx_image == entry.idx_image) {
+						if (idx_chain == -1 || idx_chain == entry.idx_chain) {
+							result.push_back(entry);
+						}
 					}// endif image no
 				}// endif sender
 			}// endif level
 		}// endfor i -> log_entries.size()
+
+		// Return
 		return std::vector<LogEntry>();
 	}
 
 	void LoggingHandler::Append_to_File()
 	{
-		Send(Log_Level::INFO, Log_Sender::ALL, "Appending Log to file " + Log.output_folder + "/" + Log.fileName);
+		// Log this event
+		Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
+		
+		// Gather the string
 		std::string logstring = "";
 		int begin_append = no_dumped;
 		no_dumped = (int)log_entries.size();
-		for (int i = begin_append; i < no_dumped; ++i) {
-			logstring.append(log_entries[i].toString());
+		for (auto entry : log_entries) {
+			logstring.append(LogEntryToString(entry));
 			logstring.append("\n");
 		}
-		IO::Append_String_to_File(logstring, Log.output_folder + "/" + Log.fileName);
+
+		// Append to file
+		IO::Append_String_to_File(logstring, output_folder + "/" + fileName);
 	}
 
 	// Write the entire Log to file
 	void LoggingHandler::Dump_to_File()
 	{
-		Send(Log_Level::INFO, Log_Sender::ALL, "Dumping Log to file " + Log.output_folder + "/" + Log.fileName);
+		// Log this event
+		Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
+
+		// Gather the string
 		std::string logstring = "";
 		no_dumped = (int)log_entries.size();
-		for (int i = 0; i < no_dumped; ++i) {
-			logstring.append(log_entries[i].toString());
+		for (auto entry : log_entries) {
+			logstring.append(LogEntryToString(entry));
 			logstring.append("\n");
 		}
-		IO::String_to_File(logstring, Log.output_folder + "/" + Log.fileName);
-	}
 
-	std::vector<LogEntry> LoggingHandler::GetEntries()
-	{
-		return this->log_entries;
+		// Write the string to file
+		IO::String_to_File(logstring, output_folder + "/" + fileName);
 	}
-
-	
 }// end namespace Utility

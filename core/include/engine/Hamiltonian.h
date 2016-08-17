@@ -31,10 +31,10 @@ namespace Engine
 		Hamiltonian(std::vector<bool> boundary_conditions) : boundary_conditions(boundary_conditions) {};
 
 		// Calculate the Effective field of a spin configuration
-		virtual void Effective_Field(std::vector<double> & spins, std::vector<double> & field)
+		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
 		{
 			// Not Implemented!
-			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Hamiltonian::Effective_Field() of the Hamiltonian base class!"));
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Effective_Field() of the Hamiltonian base class!"));
 			throw Utility::Exception::Not_Implemented;
 		};
 
@@ -42,7 +42,7 @@ namespace Engine
 		virtual double Energy(std::vector<double> & spins)
 		{
 			// Not Implemented!
-			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
 			throw Utility::Exception::Not_Implemented;
 			return 0.0;
 		}
@@ -50,7 +50,7 @@ namespace Engine
 		// Calculate the Energies of the spins of a configuration
 		virtual std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins)
 		{
-			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
 			throw Utility::Exception::Not_Implemented;
 			return std::vector<std::vector<double>>(spins.size(), std::vector<double>(7, 0.0));
 		}
@@ -58,7 +58,7 @@ namespace Engine
 		// Calculate the Effective Field of a spin configuration
 		virtual std::vector<double> Energy_Array(std::vector<double> & spins)
 		{
-			Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::ALL, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
 			throw Utility::Exception::Not_Implemented;
 			return std::vector<double>(7, 0.0);
 		}

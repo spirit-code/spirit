@@ -11,7 +11,7 @@ namespace Utility
 	{
 		// Calculates the tangent in configuration space along a configuration chain at configuration idx_img
 		//void Tangent(Data::Spin_System_Chain & c, int idx_img, std::vector<double> & Field);
-		void Tangents(std::vector<std::vector<double>> & configurations, std::vector<double> energies, std::vector<std::vector<double>> & tangents);
+		void Tangents(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<double> energies, std::vector<std::vector<double>> & tangents);
 
 		// Normalise a 3N-dimensional vector v in 3N dimensions
 		void Normalise(std::vector<double> & v);

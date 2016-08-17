@@ -10,8 +10,6 @@
 #include "Logging.h"
 #include "Exception.h"
 
-//extern Utility::LoggingHandler Log;
-
 namespace Utility
 {
 	namespace IO
@@ -42,14 +40,14 @@ namespace Utility
 			std::ifstream myfile(file);
 			if (myfile.is_open())
 			{
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, std::string("Reading Spins File ").append(file));
+				Log(Log_Level::Info, Log_Sender::IO, std::string("Reading Spins File ").append(file));
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
 				int i = 0;
 				while (getline(myfile, line))
 				{
-					if (i >= s->nos) { Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+					if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
 					found = line.find("#");
 					// Read the line if # is not found (# marks a comment)
 					if (found == std::string::npos)
@@ -57,15 +55,16 @@ namespace Utility
 						//double x, y, z;
 						iss.clear();
 						iss.str(line);
+						auto& spins = *s->spins;
 						//iss >> x >> y >> z;
-						iss >> s->spins[i] >> s->spins[1 * s->nos + i] >> s->spins[2 * s->nos + i];
+						iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
 						++i;
 					}// endif (# not found)
 					 // discard line if # is found
 				}// endif new line (while)
-				if (i < s->nos) { Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
+				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 				myfile.close();
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Done");
+				Log(Log_Level::Info, Log_Sender::IO, "Done");
 			}
 		}
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
@@ -73,7 +72,7 @@ namespace Utility
 			std::ifstream myfile(file);
 			if (myfile.is_open())
 			{
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
+				Log(Log_Level::Info, Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
@@ -88,13 +87,13 @@ namespace Utility
 						{
 							if (i < nos && iimage>0)	// Check if less than NOS spins were read for the image before
 							{
-								Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage)));
+								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage)));
 							}
 							++iimage;
 							i = 0;
 							if (iimage >= noi)
 							{
-								Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "NOI(file) > NOI(chain)");
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain)");
 							}
 							else
 							{
@@ -106,9 +105,9 @@ namespace Utility
 
 							if (i >= nos)
 							{
-								Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, std::string("NOS missmatch in image ").append(std::to_string(iimage)));
-								Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, std::string("NOS(file) > NOS(image)"));
-								//Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
+								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS missmatch in image ").append(std::to_string(iimage)));
+								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(file) > NOS(image)"));
+								//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 								//myfile.close();
 								//return;
 							}
@@ -116,18 +115,19 @@ namespace Utility
 							{
 								iss.clear();
 								iss.str(line);
+								auto& spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> c->images[iimage]->spins[i] >> c->images[iimage]->spins[1 * nos + i] >> c->images[iimage]->spins[2 * nos + i];
+								iss >> spins[i] >> spins[1 * nos + i] >> spins[2 * nos + i];
 							}
 							++i;
 						}//end else
 					}// endif (# not found)
 					 // discard line if # is found
 				}// endif new line (while)
-				if (i < nos) Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage - 1)));
-				if (iimage < noi-1) Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "NOI(chain) > NOI(file)");
+				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage - 1)));
+				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) > NOI(file)");
 				myfile.close();
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
+				Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 			}
 		}
 		/*std::vector<std::vector<double>> External_Field_from_File(int nos, const std::string externalFieldFile)
@@ -144,7 +144,7 @@ namespace Utility
 			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<double>> & DMI_magnitude, std::vector<std::vector<std::vector<double>>> & DMI_normal,
 			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<double>> & BQC_magnitude)
 		{
-			Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
+			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
 			try {
 				nop = 0;
 				std::vector<std::string> columns(20);	// at least: 2 (indices) + 3 (J) + 3 (DMI) + 1 (BQC)
@@ -156,7 +156,7 @@ namespace Utility
 				int pair_periodicity = 0;
 				std::vector<double> pair_D_temp = { 0, 0, 0 };
 				// Get column indices
-				Utility::IO::Filter_File_Handle file(pairsFile);
+				IO::Filter_File_Handle file(pairsFile);
 				file.GetLine(); // first line contains the columns
 				for (unsigned int i = 0; i < columns.size(); ++i)
 				{
@@ -181,7 +181,7 @@ namespace Utility
 				}
 
 				// Check if interactions have been found in header
-				if (!J && !BQC && !DMI_xyz && !DMI_abc) Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::IO, "No interactions could be found in header of pairs file " + pairsFile);
+				if (!J && !BQC && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in header of pairs file " + pairsFile);
 
 				// Catch horizontal separation Line
 				file.GetLine();
@@ -270,12 +270,9 @@ namespace Utility
 
 					// Create all Pairs of this Kind through translation
 					int idx_i = 0, idx_j = 0;
-					int Na = geometry.n_translations[0] + 1;
-					int nTa = geometry.n_translations[0];
-					int Nb = geometry.n_translations[1] + 1;
-					int nTb = geometry.n_translations[1];
-					int Nc = geometry.n_translations[2] + 1;
-					int nTc = geometry.n_translations[2];
+					int Na = geometry.n_cells[0];
+					int Nb = geometry.n_cells[1];
+					int Nc = geometry.n_cells[2];
 					int N = geometry.n_spins_basic_domain;
 					int periods_a = 0, periods_b = 0, periods_c = 0;
 					for (int na = 0; na < Na; ++na)
@@ -363,7 +360,7 @@ namespace Utility
 
 					++i_pair;
 				}// end while GetLine
-				Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::IO, "Done reading " + std::to_string(i_pair) + " spin pairs from file " + pairsFile);
+				Log(Log_Level::Info, Log_Sender::IO, "Done reading " + std::to_string(i_pair) + " spin pairs from file " + pairsFile);
 			}// end try
 			catch (Exception ex)
 			{

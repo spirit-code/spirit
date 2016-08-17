@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- GL ------------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -48,27 +51,22 @@ source_group("include" FILES ${HEADER_GL_ROOT})
 ### Folder src
 source_group("src" FILES  ${SOURCE_GL_ROOT})
 ### Folder shaders
-source_group("shaders" FILES  ${PROJECT_SOURCE_DIR}/shaders/vertex.shader ${PROJECT_SOURCE_DIR}/shaders/fragment.shader)
+source_group("shaders" FILES
+	${PROJECT_SOURCE_DIR}/shaders/arrows.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/arrows.frag.glsl
+	${PROJECT_SOURCE_DIR}/shaders/hsv.colormap.glsl
+	${PROJECT_SOURCE_DIR}/shaders/redblue.colormap.glsl
+	${PROJECT_SOURCE_DIR}/shaders/surface.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/surface.frag.glsl
+	${PROJECT_SOURCE_DIR}/shaders/sphere_points.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/sphere_points.frag.glsl
+	${PROJECT_SOURCE_DIR}/shaders/sphere_background.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/sphere_background.frag.glsl
+	${PROJECT_SOURCE_DIR}/shaders/boundingbox.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/boundingbox.frag.glsl
+	${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.vert.glsl
+	${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.frag.glsl)
 #############################################
-
-
-
-
-### Convert .shader files to .txt files inside R"()"
-### With this conversion we can read the .txt files into the code statically
-add_custom_target (shaders
-    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/vertex.shader
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/vertex.txt
-                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
-    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/fragment.shader
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/fragment.txt
-                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
-    WORKING_DIR ${PROJECT_SOURCE_DIR})
-
-### Custom target to create dependency on shaders, so that the custom command is executed
-# add_custom_target(corejs ALL DEPENDS core.js coreinterface)
 
 ######### Tell CMake to create the executable
 add_library( gl STATIC
@@ -76,10 +74,85 @@ add_library( gl STATIC
     ${SOURCE_GL_ROOT})
 #############################################
 
+######### Create converted shader .txt files
+### Convert .glsl files to .txt files inside R"()"
+### With this conversion we can read the .txt files into the code statically
+add_custom_target (shaders
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/arrows.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/arrows.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/arrows.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/arrows.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redblue.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redblue.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/surface.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/surface.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/surface.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/surface.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/sphere_points.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/sphere_points.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/sphere_points.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/sphere_points.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/sphere_background.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/sphere_background.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/sphere_background.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/sphere_background.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/boundingbox.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/boundingbox.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/boundingbox.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/boundingbox.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.vert.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.vert.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.frag.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/coordinatesystem.frag.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    WORKING_DIR ${PROJECT_SOURCE_DIR})
 add_dependencies(gl shaders)
+#############################################
 
 ######### Export
 set(GL_LIBRARIES    gl PARENT_SCOPE)
 set(GL_INCLUDE_DIRS ${GL_INCLUDE_DIRS} PARENT_SCOPE)
 set(HEADER_GL_ROOT  ${HEADER_GL_ROOT} PARENT_SCOPE)
 set(SOURCE_GL_ROOT  ${SOURCE_GL_ROOT} PARENT_SCOPE)
+#############################################
+
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+    MESSAGE( STATUS ">> Headers:                    " ${HEADER_GL_ROOT} )
+    MESSAGE( STATUS ">> Sources:                    " ${SOURCE_GL_ROOT} )
+endif ()
+#############################################
+
+
+MESSAGE( STATUS ">> --------------------- GL done -------------------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

@@ -1,10 +1,92 @@
 #include "Vectormath.h"
+#include "Exception.h"
 #include <vector>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 namespace Utility
 {
 	namespace Vectormath
 	{
+		template <typename T>
+		T Length(const T *array, const int length) {
+			T result = 0;
+			for (int i = 0; i < length; ++i) {
+				result += pow(array[i], 2.0);
+			}
+			return sqrt(result);
+		}
+		template <typename T>
+		T Length(const std::vector<T> &vec)
+		{
+			T result = 0.0;
+			for (int i = 0; i < (int)vec.size(); ++i) {
+				result += pow(vec[i], 2.0);
+			}
+			return sqrt(result);
+		}
+		template <typename T>
+		T Length_3Nos(const std::vector<T>& vec, int ispin)
+		{
+			T result = 0.0;
+			for (int dim = 0; dim < 3; ++dim) {
+				result += pow(vec[dim * (int)vec.size()/3 + ispin], 2.0);
+			}
+			return sqrt(result);
+		};
+		template <typename T>
+		T Length(const T *const *array, const int length, const int pos_1) {
+			T result = 0;
+			for (int i = 0; i < length; ++i) {
+				result += pow(array[i][pos_1], 2.0);
+			}
+			return sqrt(result);
+		}
+		template <typename T>
+		T Length(const std::vector<std::vector<T>>& vec, const int pos_1)
+		{
+			T result = 0;
+			for (int i = 0; i < (int)vec.size(); ++i) {
+				result += pow(vec[i][pos_1], 2.0);
+			}
+			return sqrt(result);
+		};
+		template <typename T>
+		T Length(const T *const *const *array, const int length, const int pos_1, const int pos_2) {
+			T result = 0;
+			for (int i = 0; i < length; ++i) {
+				result += pow(array[i][pos_1][pos_2], 2.0);
+			}
+			return sqrt(result);
+		}
+		template <typename T>
+		T Length(const std::vector<std::vector<std::vector<T>>>& vec, const int pos_1, const int pos_2)
+		{
+			T result = 0;
+			for (int i = 0; i < (int)vec.size(); ++i) {
+				result += pow(vec[i][pos_1][pos_2], 2.0);
+			}
+			return sqrt(result);
+		};
+		template <typename T>
+		T Length(const T *const *const *const *array, const int length, const int pos_1, const int pos_2, const int pos_3) {
+			T result = 0;
+			for (int i = 0; i < length; ++i) {
+				result += pow(array[i][pos_1][pos_2][pos_3], 2.0);
+			}
+			return sqrt(result);
+		};//end Length
+
+		template <typename T>
+		void Normalize(T *array, const int length) {
+			T l = Length(array, length);
+			if (l == 0.0) { throw Exception::Division_by_zero; };
+			T norm = 1.0 / l;
+			for (int i = 0; i < length; ++i) {
+				array[i] = array[i] * norm;
+			}
+		}
+
 		//====================================== VECTOR COPY =======================================
 		// Copies Vector b of dimension dim into a
 		template <typename T1> void Vector_Copy(T1 * a, const T1 *b, const int dim) {

@@ -15,6 +15,7 @@ namespace Utility
     namespace Timing
     {   
         const std::string TimePointToString(system_clock::time_point t);
+        const std::string TimePointToString_Pretty(system_clock::time_point t);
         
 		// Returns the current time like: 2012-05-06_21:47:59
 		const std::string CurrentDateTime();

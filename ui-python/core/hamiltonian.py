@@ -1,0 +1,50 @@
+import core.corelib as corelib
+import ctypes
+
+### Load Library
+_core = corelib.LoadCoreLibrary()
+
+### TODO:
+#Hamiltonian_Set_mu_s
+#Hamiltonian_Set_DMI
+#Hamiltonian_Set_BQE
+#Hamiltonian_Set_FSC
+#all getters
+
+### Set external magnetic field
+_Set_Field             = _core.Hamiltonian_Set_Field
+_Set_Field.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Set_Field.restype     = None
+def Set_Field(p_state, magnitude, direction, idx_image, idx_chain):
+    vec3 = ctypes.c_double * 3
+    _Set_Field(p_state, ctypes.c_float(magnitude), vec3(direction), idx_image, idx_chain)
+
+### Set anisotropy
+_Set_Anisotropy             = _core.Hamiltonian_Set_Anisotropy
+_Set_Anisotropy.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Set_Anisotropy.restype     = None
+def Set_Anisotropy(p_state, magnitude, direction, idx_image, idx_chain):
+    vec3 = ctypes.c_double * 3
+    _Set_Anisotropy(p_state, ctypes.c_float(magnitude), vec3(direction), idx_image, idx_chain)
+
+### Set spin transfer torque
+_Set_STT             = _core.Hamiltonian_Set_STT
+_Set_STT.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Set_STT.restype     = None
+def Set_STT(p_state, magnitude, direction, idx_image, idx_chain):
+    vec3 = ctypes.c_double * 3
+    _Set_STT(p_state, ctypes.c_float(magnitude), vec3(direction), idx_image, idx_chain)
+
+### Set Temperature
+_Set_Temperature             = _core.Hamiltonian_Set_Temperature
+_Set_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_Set_Temperature.restype     = None
+def Set_Temperature(p_state, temperature, idx_image, idx_chain):
+    _Set_Temperature(p_state, ctypes.c_float(temperature), idx_image, idx_chain)
+
+### Find out if a system has a isotropic Hamiltonian
+_Is_Isotropic             = _core.Hamiltonian_Is_Isotropic
+_Is_Isotropic.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Is_Isotropic.restype     = ctypes.c_bool
+def Is_Isotropic(p_state, idx_image, idx_chain):
+    return _Is_Isotropic(p_state, idx_image, idx_chain)

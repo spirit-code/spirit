@@ -1,5 +1,6 @@
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/data)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/engine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/include/interface)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/utility)
 
 set(HEADER_CORE_ROOT
@@ -16,6 +17,11 @@ set(HEADER_CORE_DATA
 
 set(HEADER_CORE_ENGINE
     ${HEADER_CORE_ENGINE}
+    PARENT_SCOPE
+)
+
+set(HEADER_CORE_INTERFACE
+    ${HEADER_CORE_INTERFACE}
     PARENT_SCOPE
 )
 
