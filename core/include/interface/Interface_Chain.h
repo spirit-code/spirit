@@ -22,6 +22,8 @@ extern "C" void Chain_Delete_Image(State * state, int idx_image=-1, int idx_chai
 extern "C" void Chain_Update_Data(State * state, int idx_chain=-1);
 extern "C" void Chain_Setup_Data(State * state, int idx_chain=-1);
 
+// TODO: Get reaction coordinates and interpolated energies
+
 // TODO: file read
 //extern "C" void Chain_from_File(State * state, const char * filename, int idx_chain=-1);
 

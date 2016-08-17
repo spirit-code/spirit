@@ -20,10 +20,10 @@ public:
 	PlotWidget(std::shared_ptr<State> state);
 	void draw();
 
-
 private:
 	std::shared_ptr<State> state;
-
+	void plotEnergies();
+	void plotEnergiesInterpolated();
 };
 
 #endif
