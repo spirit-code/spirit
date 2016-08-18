@@ -4,6 +4,10 @@
  * The JS_LLG_Iteration function is specifically for JavaScript, where it
  * is (almost) impossible to have different threads for UI and simulation. 
  */
+#include <memory>
+
+#include "Method_LLG.h"
+#include "Interface_State.h"
 
 int main(void)
 {
