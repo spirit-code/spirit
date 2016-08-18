@@ -1,7 +1,9 @@
 #include "Method_MMF.h"
 #include "Manifoldmath.h"
 
-#include <Eigenvalues>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Core>
+#include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
 
 namespace Engine
 {
@@ -43,18 +45,45 @@ namespace Engine
 			//this->minimum_mode = ...
 			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
 
-			std::cerr << "test" << std::endl;
-			Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3*nos, 3*nos, Eigen::OuterStride<>(3*nos));
-			//Eigen::Map<Eigen::MatrixXd> test(configurations[ichain]->data(), 3, 100);
-			std::cerr << "last test" << std::endl;
-			Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> estest(test);
-			std::cerr << "last test done" << std::endl;
-			//std::cerr << test.diagonal() << std::endl;
-			//std::cerr << estest.eigenvalues() << std::endl;
-			std::cerr << estest.eigenvectors().col(0).size() << std::endl;
-			//vector<int> vec(mat.data(), mat.data() + mat.rows() * mat.cols());
-			auto& x = estest.eigenvectors().col(0);
-			this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
+			if (true)
+			{
+				/////////////////////////////////
+				// The Eigen way... calculate them all
+				Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3 * nos, 3 * nos, Eigen::OuterStride<>(3 * nos));
+				Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> estest(test);
+				auto& x = estest.eigenvectors().col(0);
+				this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
+				std::cerr << estest.eigenvalues()[0] << std::endl;
+				/////////////////////////////////
+			}
+			else
+			{
+				/////////////////////////////////
+				// The Spectra way... calculate only a few
+				Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3 * nos, 3 * nos, Eigen::OuterStride<>(3 * nos));
+				Spectra::DenseSymMatProd<double> op(test);
+				Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > eigs(&op, 5, 10);
+				eigs.init();
+				int nconv = eigs.compute();
+				/*Eigen::VectorXd evalues;
+				if (eigs.info() == Spectra::SUCCESSFUL)
+					evalues = eigs.eigenvalues();*/
+				Eigen::MatrixXd evectors;
+				if (eigs.info() == Spectra::SUCCESSFUL)
+					evectors = eigs.eigenvectors();
+
+				/*std::cout << "Lowest Eigenvalue found:\n" << evalues << std::endl;
+				std::cout << "Eigenvector        size:\n" << evectors.size() << std::endl;*/
+				//std::cout << "Eigenvectors found:\n" << evectors << std::endl;
+
+				auto& x = evectors.col(0);
+				for (int iv = 0; iv < 5; ++iv)
+				{
+					x = x + evectors.col(iv);
+				}
+				this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
+				/////////////////////////////////
+			}
 
             // Invert the gradient force along the minimum mode
             Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);

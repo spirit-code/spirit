@@ -414,12 +414,36 @@ namespace Engine
 				{
 					for (int alpha = 0; alpha < 3; ++alpha)
 					{
-						//this->Field_Exchange(nos, spins, Exchange_indices[i_periodicity][i_pair], Exchange_magnitude[i_periodicity][i_pair], field);
-						hessian[Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos)] =
+						int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
+						hessian[idx_h] =
 							-0.5*Exchange_magnitude[i_periodicity][i_pair];
 					}
 				}
-				// TODO: DMI
+				// DMI
+				for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
+				{
+					for (int alpha = 0; alpha < 3; ++alpha)
+					{
+						for (int beta = 0; beta < 3; ++beta)
+						{
+							if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+							{
+								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+									0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+							}
+							else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+							{
+								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+									-0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+							}
+							else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+							{
+								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+									0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+							}
+						}
+					}
+				}
 			}
 		}
 	}
