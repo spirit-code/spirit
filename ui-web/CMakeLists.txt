@@ -94,6 +94,9 @@ add_executable( corejs main_js.cxx
 target_link_libraries( corejs core )
 
 set_target_properties( corejs PROPERTIES OUTPUT_NAME "core" )
+### We want it to be placed under ui-web/ s.t. it is directly part of the python core module/package
+set( COREJS_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-web/ )
+set_target_properties( corejs PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${COREJS_OUTPUT_DIR} )
 
 
 
