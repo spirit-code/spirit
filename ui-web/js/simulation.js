@@ -28,8 +28,6 @@ var Module = {
     }
 };
 
-$.getScript("core.js");
-
 Module.ready(function() {
     Module.State_Setup = Module.cwrap('State_Setup', 'number', ['string']);
     window.Simulation = function(options) {
