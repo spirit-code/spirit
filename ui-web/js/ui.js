@@ -593,6 +593,11 @@ $(document).ready(function() {
     updateGNEBSpringConstant();
     updateGNEBClimbingFalling();
     $('#div-load').hide();
+    $( window ).resize(function() {
+      if (!isSimulating) {
+        update(sim);
+      }
+    });
     function update(sim) {
       sim.performIteration();
       if (isSimulating) {
