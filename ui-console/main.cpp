@@ -7,6 +7,7 @@
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
 #include "Interface_Simulation.h"
+#include "Interface_Log.h"
 
 // Initialise Global Variables
 struct State;
@@ -17,7 +18,7 @@ int main(int argc, char ** argv)
 {
 
 	//--- Register SigInt
-	signal(SIGINT, Handle_Signal::Handle_SigInt);
+	signal(SIGINT, Utility::Handle_Signal::Handle_SigInt);
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files

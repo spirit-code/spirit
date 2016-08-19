@@ -107,8 +107,8 @@ set_target_properties( corejs PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${COREJS_OUTPU
 
 ######### Header and Source messages ########
 if ( PRINT_SOURCES )
-	MESSAGE( STATUS ">> Headers:                    " ${HEADER_UI_WEB_ROOT} )
-	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_UI_WEB_ROOT} )
+	MESSAGE( STATUS ">> Headers:                    ${HEADER_UI_WEB_ROOT}" )
+	MESSAGE( STATUS ">> Sources:                    ${SOURCE_UI_WEB_ROOT}" )
 endif ()
 #############################################
 
