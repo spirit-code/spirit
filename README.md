@@ -23,6 +23,7 @@ Contents
 3. [Branches](#Branches)
 4. [Code Dependencies](#Dependencies)
 5. [Installation Instructions](#Installation)
+5. [Contributing](#Contributing)
 
 
 &nbsp;
@@ -183,3 +184,30 @@ When on pure **Windows** (no MSys etc), instead of using `make` or `./make.sh`,
 you need to open the generated Solution in Visual Studio and build it there.
 The execution folder should be 'build' and file paths at runtime will be
 relative to this folder.
+
+----------------------------------------
+
+&nbsp;
+   
+
+Contributing <a name="Contributing"></a>
+-----------------------------------------
+
+1. Fork this repository
+2. Check out the develop branch: `git checkout develop`
+3. Create your feature branch: `git checkout -b feature-something`
+4. Commit your changes: `git commit -am 'Add some feature'`
+5. Push to the branch: `git push origin feature-something`
+6. Submit a pull request
+
+Please keep your pull requests feature-specific and limit yourself
+to one feature per feature branch.
+Remember to pull updates from this repository before opening a new
+feature branch.
+
+If you are unsure where to add you feature into the code, please
+do not hesitate to contact us.
+
+There is no strict coding guideline, but please try to match your
+code style to the code you edited or to the style in the respective
+module.
