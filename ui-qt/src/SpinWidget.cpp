@@ -2,13 +2,18 @@
 
 #include <QTimer>
 #include <QMouseEvent>
-#include "Interface_Geometry.h"
-#include "Interface_State.h"
+
 #include "ISpinRenderer.h"
 #include "BoundingBoxRenderer.h"
 #include "SphereSpinRenderer.h"
 #include "utilities.h"
+
 #include <glm/gtc/type_ptr.hpp>
+
+#include "Interface_Geometry.h"
+// TODO: Replace this
+#include "Interface_State.h"
+/////
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -19,7 +24,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 void SpinWidget::initializeGL() {
 	makeCurrent();
-	this->gl_spins = std::make_shared<GLSpins>();
+	this->gl_spins = std::make_shared<GLSpins>(state->active_image->geometry->n_cells);
   _reset_camera = true;
 }
 
