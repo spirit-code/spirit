@@ -13,7 +13,7 @@ std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
     else result.append("   ");
     if      (entry.level == Log_Level::All)    	result.append("  ALL  ");
     else if (entry.level == Log_Level::Severe) 	result.append("SEVERE ");
-    else if (entry.level == Log_Level::Error)	result.append(" L_ERROR ");
+    else if (entry.level == Log_Level::Error)	result.append(" ERROR ");
     else if (entry.level == Log_Level::Warning)	result.append("WARNING");
     else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
     else if (entry.level == Log_Level::Info)    	result.append(" INFO  ");

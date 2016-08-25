@@ -95,6 +95,30 @@ State * State_Setup(const char * config_file)
     return state;
 }
 
+void State_Update(State * state)
+{
+    // Correct for removed chains - active_chain can maximally be noc-1
+    if ( state->collection->idx_active_chain >= state->collection->noc )
+        state->collection->idx_active_chain = state->collection->noc-1;
+        
+    // Update Chain
+    state->idx_active_chain = state->collection->idx_active_chain;
+    state->active_chain     = state->collection->chains[state->idx_active_chain];
+
+    // Correct for removed images - active_image can maximally be noi-1
+    if ( state->active_chain->idx_active_image >= state->active_chain->noi )
+        state->active_chain->idx_active_image = state->active_chain->noi-1;
+
+    // Update Image
+    state->idx_active_image = state->active_chain->idx_active_image; 
+    state->active_image     = state->active_chain->images[state->idx_active_image];
+
+    // Update NOS, NOI, NOC
+    state->noc = state->collection->noc;
+    state->noi = state->active_chain->noi;
+    state->nos = state->active_image->nos;
+}
+
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
 {
     // Chain

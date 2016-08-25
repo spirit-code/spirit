@@ -13,7 +13,7 @@ extern "C" int Chain_Get_NOI(State * state, int idx_chain)
     return state->active_chain->noi;
 }
 
-extern "C" void Chain_next_Image(State * state, int idx_chain_i)
+extern "C" bool Chain_next_Image(State * state, int idx_chain_i)
 {
     int idx_image = -1, idx_chain = idx_chain_i;
     std::shared_ptr<Data::Spin_System> image;
@@ -22,12 +22,19 @@ extern "C" void Chain_next_Image(State * state, int idx_chain_i)
     from_indices(state, idx_image, idx_chain, image, chain);
     
     // Apply
-    ++state->idx_active_image;
-    state->active_image = chain->images[state->idx_active_image];
-    chain->idx_active_image = state->idx_active_image;
+    if ( idx_image < chain->noi-1 )
+    {
+        ++chain->idx_active_image;
+        State_Update(state);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
-extern "C" void Chain_prev_Image(State * state, int idx_chain_i)
+extern "C" bool Chain_prev_Image(State * state, int idx_chain_i)
 {
     int idx_image = -1, idx_chain = idx_chain_i;
     std::shared_ptr<Data::Spin_System> image;
@@ -36,9 +43,16 @@ extern "C" void Chain_prev_Image(State * state, int idx_chain_i)
     from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply
-    --state->idx_active_image;
-    state->active_image = chain->images[state->idx_active_image];
-    chain->idx_active_image = state->idx_active_image;
+    if ( idx_image > 0 )
+    {
+        --chain->idx_active_image;
+        State_Update(state);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 extern "C" void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)
@@ -75,10 +89,7 @@ extern "C" void Chain_Insert_Image_Before(State * state, int idx_image_i, int id
         chain->falling_image.insert(chain->falling_image.begin() + idx_image, false);
 
         // Update state
-        state->noi++;
-        state->active_image = state->active_chain->images[state->idx_active_image];
-        // state->active_image = copy;
-        // state->active_chain->idx_active_image = state->idx_active_image;
+        State_Update(state);
 
         // Update array lengths
         Chain_Setup_Data(state, idx_chain);
@@ -106,23 +117,20 @@ extern "C" void Chain_Insert_Image_After(State * state, int idx_image_i, int idx
         
         // Add to chain
         chain->noi++;
-        if (idx_image < state->noi - 1)
-        {
+        // if (idx_image < state->noi - 1)
+        // {
             chain->images.insert(chain->images.begin() + idx_image + 1, copy);
             chain->climbing_image.insert(chain->climbing_image.begin() + idx_image + 1, false);
             chain->falling_image.insert(chain->falling_image.begin() + idx_image + 1, false);
-        }
-        else
-        {
-            chain->images.push_back(copy);
-            chain->climbing_image.push_back(false);
-            chain->falling_image.push_back(false);
-        }
+        // }
+        // else
+        // {
+        //     chain->images.push_back(copy);
+        //     chain->climbing_image.push_back(false);
+        //     chain->falling_image.push_back(false);
+        // }
         // Update state
-        state->noi++;
-        state->active_image = state->active_chain->images[state->idx_active_image];
-        // state->active_image = copy;
-        // state->active_chain->idx_active_image = state->idx_active_image;
+        State_Update(state);
 
         // Update array lengths
         Chain_Setup_Data(state, idx_chain);
@@ -152,10 +160,7 @@ extern "C" void Chain_Replace_Image(State * state, int idx_image_i, int idx_chai
         chain->images[idx_image] = copy;
         
         // Update state
-        // state->noi++;
         state->active_image = state->active_chain->images[state->idx_active_image];
-        // state->active_image = copy;
-        // state->active_chain->idx_active_image = state->idx_active_image;
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Replaced image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
     }
     else
@@ -164,7 +169,7 @@ extern "C" void Chain_Replace_Image(State * state, int idx_image_i, int idx_chai
     }
 }
 
-extern "C" void Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
+extern "C" bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
 {
     int idx_image = idx_image_i, idx_chain = idx_chain_i;
     std::shared_ptr<Data::Spin_System> image;
@@ -173,19 +178,28 @@ extern "C" void Chain_Delete_Image(State * state, int idx_image_i, int idx_chain
     from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply
-    state->noi--;
-    
-    chain->images.erase(chain->images.begin() + idx_image);
-    chain->climbing_image.erase(chain->climbing_image.begin() + idx_image);
-    chain->falling_image.erase(chain->falling_image.begin() + idx_image);
+    if (chain->noi > 1)
+    {
+        chain->noi--;
+        state->noi = state->active_chain->noi;
+        
+        chain->images.erase(chain->images.begin() + idx_image);
+        chain->climbing_image.erase(chain->climbing_image.begin() + idx_image);
+        chain->falling_image.erase(chain->falling_image.begin() + idx_image);
 
-    state->active_image = state->active_chain->images[state->idx_active_image];
-    state->active_chain->idx_active_image = state->idx_active_image;
+        State_Update(state);
 
-    // Update array lengths
-    Chain_Setup_Data(state, idx_chain);
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Deleted image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ")");
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Deleted image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ")");
+        return true;
+    }
+    else
+    {
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Tried to delete last image (chain " + std::to_string(idx_chain) + ")");
+        return false;
+    }
 }
 
 extern "C" void Chain_Update_Data(State * state, int idx_chain_i)
@@ -197,7 +211,7 @@ extern "C" void Chain_Update_Data(State * state, int idx_chain_i)
     from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply
-    for (int i = 0; i < state->noi; ++i)
+    for (int i = 0; i < chain->noi; ++i)
     {
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);

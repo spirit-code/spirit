@@ -219,7 +219,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
-			Chain_Delete_Image(state.get(), idx);
+			if (Chain_Delete_Image(state.get(), idx)) 
+			{
+				// Make the llg_threads vector smaller
+				this->threads_llg.erase(threads_llg.begin() + idx);
+			}
 		}
 	}
 	else if (k->matches(QKeySequence::Paste))
@@ -260,7 +264,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				// Update the chain's data (primarily for the plot)
 				Chain_Update_Data(state.get());
 				// Make the llg_threads vector larger
-				this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+				this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
 				// Switch to the inserted image
 				//this->previousImagePressed();
 				break;
@@ -272,7 +276,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				// Update the chain's data (primarily for the plot)
 				Chain_Update_Data(state.get());
 				// Make the llg_threads vector larger
-				this->threads_llg.insert(threads_llg.begin() + idx, std::thread());
+				this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
 				// Switch to the inserted image
 				this->nextImagePressed();
 				break;
@@ -368,7 +372,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				int idx = System_Get_Index(state.get());
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
-				Chain_Delete_Image(state.get(), idx);
+				if (Chain_Delete_Image(state.get(), idx)) 
+				{
+					// Make the llg_threads vector smaller
+					this->threads_llg.erase(threads_llg.begin() + idx);
+				}
 
 				Log_Send(state.get(), Log_Level::Info, Log_Sender::UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
 			}
