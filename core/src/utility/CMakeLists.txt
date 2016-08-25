@@ -13,6 +13,7 @@ set(SOURCE_CORE_UTILITY
 	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Logging_Enums.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp
     PARENT_SCOPE
 )

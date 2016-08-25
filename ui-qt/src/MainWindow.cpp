@@ -3,32 +3,50 @@
 #include "MainWindow.h"
 #include "PlotWidget.h"
 
-#include "Vectormath.h"
-#include "Configurations.h"
-#include "Optimizer.h"
+#include "Interface_System.h"
+#include "Interface_Chain.h"
+#include "Interface_Collection.h"
+#include "Interface_Simulation.h"
+#include "Interface_Configurations.h"
+#include "Interface_Log.h"
+
+
+// TODO: Replace this
 #include "IO.h"
+#include "Interface_State.h"
+/////
 
-#include "Solver_LLG.h"
-#include "Solver_GNEB.h"
-#include "Logging.h"
-#include "Timing.h"
-#include "Threading.h"
-
-#include <thread>
-
-MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
+/*
+	Converts a QString to an std::string.
+	This function is needed sometimes due to weird behaviour of QString::toStdString().
+*/
+std::string string_q2std(QString qs)
 {
-	this->c = c;
-	this->s = this->c->images[this->c->active_image];
-	this->spinWidget = new Spin_Widget(this->c);
+	auto bytearray = qs.toLatin1();
+	const char *c_fileName = bytearray.data();
+	return std::string(c_fileName);
+}
+
+MainWindow::MainWindow(std::shared_ptr<State> state)
+{
+	// State
+	this->state = state;
+	// Widgets
+	this->spinWidget = new SpinWidget(this->state);
 	//this->spinWidgetGL = new Spin_Widget_GL(s);
-	this->settingsWidget = new SettingsWidget(this->c);
-	this->plotsWidget = new PlotsWidget(this->c);
-	this->debugWidget = new DebugWidget(this->c);
+	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
+	this->plotsWidget = new PlotsWidget(this->state);
+	this->debugWidget = new DebugWidget(this->state);
+
+	// Create threads
+	threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
+	threads_gneb = std::vector<std::thread>(Collection_Get_NOC(this->state.get()));
+	//threads_mmf
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
 
+	// Fix text size on OSX
     #ifdef Q_OS_MAC
         this->setStyleSheet("QWidget{font-size:10pt}");
     #else
@@ -53,16 +71,15 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	this->dockWidget_Debug->setWidget(this->debugWidget);
 
 	// Read Iterate State form Spin System
-	if (s->iteration_allowed == false)
+	if ( Simulation_Running_Any(state.get()) )
 	{
-		this->pushButton_PlayPause->setText("Play");
+		this->pushButton_PlayPause->setText("Pause");
 	}
 	else
 	{
-		this->pushButton_PlayPause->setText("Pause");
-		//std::thread(Engine::SIB::Iterate, s, 2000000, 5000).detach();
+		this->pushButton_PlayPause->setText("Play");
 	}
-	
+
 	/*
     // Create Widgets
     createWidgets(s);
@@ -71,7 +88,6 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
     createActions();
     //createMenus();    // these fail for some reason... maybe add resource stuff later on
     //createToolBars(); // these fail for some reason... maybe add resource stuff later on
-    createStatusBar();
 
     connect(textEdit->document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
 
@@ -79,11 +95,19 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
     setUnifiedTitleAndToolBarOnMac(true);//*/
     
 
+	// Set up Update Timers
+	m_timer = new QTimer(this);
+	//m_timer_plots = new QTimer(this);
+	//m_timer_spins = new QTimer(this);
+
+
 	// Buttons
 	connect(this->lineEdit_Save_E, SIGNAL(returnPressed()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_Save_E, SIGNAL(clicked()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_StopAll, SIGNAL(clicked()), this, SLOT(stopallPressed()));
+	//connect(this->pushButton_StopAll, SIGNAL(clicked()), this, SLOT(createStatusBar()));
 	connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(playpausePressed()));
+	//connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(createStatusBar()));
 	connect(this->pushButton_PreviousImage, SIGNAL(clicked()), this, SLOT(previousImagePressed()));
 	connect(this->pushButton_NextImage, SIGNAL(clicked()), this, SLOT(nextImagePressed()));
     connect(this->pushButton_Reset, SIGNAL(clicked()), this, SLOT(resetPressed()));
@@ -95,8 +119,8 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	// Image number
 	// We use a regular expression (regex) to filter the input into the lineEdits
 	QRegularExpression re("[\\d]*");
-	QRegularExpressionValidator *number_vali = new QRegularExpressionValidator(re);
-	this->lineEdit_ImageNumber->setValidator(number_vali);
+	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
+	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
 
 	// File Menu
@@ -116,40 +140,48 @@ MainWindow::MainWindow(std::shared_ptr<Data::Spin_System_Chain> c)
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
+	// Status Bar
+	//		FPS
+	this->m_Label_FPS = new QLabel;
+	this->m_Label_FPS->setText("FPS: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	//		NOS
+	this->m_Label_NOS = new QLabel;
+	this->m_Label_NOS->setText("NOS: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
+	//		NOI
+	this->m_Label_NOI = new QLabel;
+	this->m_Label_NOI->setText("NOI: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
+	//		NOC
+	this->m_Label_NOC = new QLabel;
+	this->m_Label_NOC->setText("NOC: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
+	//		Initialisations & connect
+	this->createStatusBar();
+	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
 
-    // Event Filter
-    //this->installEventFilter(this);
-	//this->statusBar->showMessage(tr("Ready"));
-	//statusBar()->showMessage(tr("Ready"));
-
-
-	// Set up Update Timer for Plots
-	//m_timer_plots = new QTimer(this);
+	// Plots Widget
 	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
-	//m_timer_plots->start(100);
 
-	// Set up Update Timer for Spin Visualisation
-	//m_timer_spins = new QTimer(this);
-	////connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+	// Spins Widget
 	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
+	
+
+	// Event Filter
+	//this->installEventFilter(this);
+
+	// Start Timers
+	m_timer->start(200);
+	//m_timer_plots->start(100);
 	//m_timer_spins->start(100);
+	//m_timer_debug->start(100);
 
-	// Set up Update Timer
-	//m_timer_debug = new QTimer(this);
-	//connect(m_timer_debug, &QTimer::timeout, this->debugWidget, &DebugWidget::update);
-	//m_timer_debug->start(200);
 
+
+	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
 }
 
-
-//bool MainWindow::eventFilter(QObject *object, QEvent *event)
-//{
-//	if (object == lineEdit && event->type() == QEvent::FocusOut)
-//	{
-//		std::cout << "eventFilter" << std::endl;
-//	}
-//	return false; // Pass the event along (don't consume it)
-//}
 
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
@@ -157,83 +189,97 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	if (k->matches(QKeySequence::Copy))
 	{
 		// Copy a Spin System
-		image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*s.get()));
-		Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Copied image " + std::to_string(c->active_image) + " to clipboard");
+		Chain_Image_to_Clipboard(state.get());
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
-		if (c->noi > 1)
+		if (Chain_Get_NOI(state.get()) > 1)
 		{
-			s->iteration_allowed = false;
-			c->iteration_allowed = false;
-			if (Utility::Threading::llg_threads[s].joinable()) {
-				Utility::Threading::llg_threads[s].join();
-			}
-			if (Utility::Threading::gneb_threads[c].joinable()) {
-				Utility::Threading::gneb_threads[c].join();
+			if ( Simulation_Running_LLG(this->state.get())  ||
+				 Simulation_Running_GNEB(this->state.get()) ||
+				 Simulation_Running_MMF(this->state.get()) )
+			{
+				auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+				auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+				// Running, so we stop it
+				Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+				// Join the thread of the stopped simulation
+				if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+				else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+				else if (thread_mmf.joinable()) thread_mmf.join();
+				// New button text
+				this->pushButton_PlayPause->setText("Play");
 			}
 
 			// Cut a Spin System
-			image_clipboard = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*s.get()));
+			Chain_Image_to_Clipboard(state.get());
 
-			int idx = c->active_image;
+			int idx = System_Get_Index(state.get());
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
-			this->c->Delete_Image(idx);
-
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Cut image " + std::to_string(c->active_image) + " to clipboard");
+			if (Chain_Delete_Image(state.get(), idx)) 
+			{
+				// Make the llg_threads vector smaller
+				this->threads_llg.erase(threads_llg.begin() + idx);
+			}
 		}
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste a Spin System
-
-		s->iteration_allowed = false;
-		c->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[s].joinable()) {
-			Utility::Threading::llg_threads[s].join();
-		}
-		if (Utility::Threading::gneb_threads[c].joinable()) {
-			Utility::Threading::gneb_threads[c].join();
-		}
-
-		if (image_clipboard.get())
+		if ( Simulation_Running_LLG(this->state.get())  ||
+			 Simulation_Running_GNEB(this->state.get()) ||
+			 Simulation_Running_MMF(this->state.get()) )
 		{
-			s = image_clipboard;
-			c->Replace_Image(c->active_image, image_clipboard);
-			Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image " + std::to_string(c->active_image) + " from clipboard");
+			auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+			auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+			// Running, so we stop it
+			Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+			// Join the thread of the stopped simulation
+			if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+			else if (thread_mmf.joinable()) thread_mmf.join();
+			// New button text
+			this->pushButton_PlayPause->setText("Play");
 		}
-		else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image " + std::to_string(c->active_image) + " from clipboard but no image was found");
+
+		Chain_Replace_Image(state.get());
+		// Update the chain's data (primarily for the plot)
+		Chain_Update_Data(state.get());
 	}
 
 	// Custom Key Sequences
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
-		std::shared_ptr<Data::Spin_System> newImage;
+		int idx = System_Get_Index(state.get());
 		switch (k->key())
 		{
-		case Qt::Key_Left:
-			if (image_clipboard.get())
-			{
-				s = image_clipboard;
-				this->c->Insert_Image_Before(this->c->active_image, image_clipboard);
+			// CTRL+Left - Paste image to left of current image
+			case Qt::Key_Left:
+				// Insert Image
+				Chain_Insert_Image_Before(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Make the llg_threads vector larger
+				this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+				// Switch to the inserted image
 				//this->previousImagePressed();
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image before " + std::to_string(c->active_image) + " from clipboard");
-			}
-			else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image before " + std::to_string(c->active_image) + " from clipboard but no image was found");
-			break;
+				break;
 
-		case Qt::Key_Right:
-			if (image_clipboard.get())
-			{
-				s = image_clipboard;
-				this->c->Insert_Image_After(this->c->active_image, image_clipboard);
+			// CTRL+Right - Paste image to right of current image
+			case Qt::Key_Right:
+				// Insert Image
+				Chain_Insert_Image_After(state.get());
+				// Update the chain's data (primarily for the plot)
+				Chain_Update_Data(state.get());
+				// Make the llg_threads vector larger
+				this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+				// Switch to the inserted image
 				this->nextImagePressed();
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Pasted image after " + std::to_string(c->active_image) + " from clipboard");
-			}
-			else Utility::Log.Send(Utility::Log_Level::L_ERROR, Utility::Log_Sender::GUI, "Tried to paste image after " + std::to_string(c->active_image) + " from clipboard but no image was found");
-			break;
+				break;
 		}
 	}
 	
@@ -241,85 +287,98 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	else
 	switch (k->key())
 	{
+		// Escape: try to return focus to MainWindow
 		case Qt::Key_Escape:
 			this->setFocus();
 			break;
-
+		// Up: ...
 		case Qt::Key_Up:
 			break;
-
+		// Left: switch to image left of current image
 		case Qt::Key_Left:
 			this->previousImagePressed();
 			break;
-
+		// Left: switch to image left of current image
 		case Qt::Key_Right:
 			this->nextImagePressed();
 			break;
-
+		// Down: ...
 		case Qt::Key_Down:
 			break;
-
-		case Qt::Key_0:
-			break;
-
+		// Space: Play and Pause
 		case Qt::Key_Space:
 			this->playpausePressed();
 			break;
-
+		// F1: Show key bindings
 		case Qt::Key_F1:
 			this->keyBindings();
 			break;
-
+		// F2: Toggle settings widget
 		case Qt::Key_F2:
 			this->view_toggleSettings();
 			break;
-
+		// F3: Toggle Plots widget
 		case Qt::Key_F3:
 			this->view_togglePlots();
 			break;
-
+		// F2: Toggle debug widget
 		case Qt::Key_F4:
 			this->view_toggleDebug();
 			break;
-
+		// 0: ...
+		case Qt::Key_0:
+			break;
+		// 1: Select tab 1 of settings widget
 		case Qt::Key_1:
 			this->settingsWidget->SelectTab(0);
 			break;
-
+		// 2: Select tab 2 of settings widget 
 		case Qt::Key_2:
 			this->settingsWidget->SelectTab(1);
 			break;
-
+		// 3: Select tab 3 of settings widget
 		case Qt::Key_3:
 			this->settingsWidget->SelectTab(2);
 			break;
-
+		// 4: Select tab 4 of settings widget
 		case Qt::Key_4:
 			this->settingsWidget->SelectTab(3);
 			break;
-
+		// 5: Select tab 5 of settings widget
 		case Qt::Key_5:
 			this->settingsWidget->SelectTab(4);
 			break;
-
+		// Delete: Delete current image
 		case Qt::Key_Delete:
-			if (c->noi > 1)
+			if (Chain_Get_NOI(state.get()) > 1)
 			{
-				s->iteration_allowed = false;
-				c->iteration_allowed = false;
-				if (Utility::Threading::llg_threads[s].joinable()) {
-					Utility::Threading::llg_threads[s].join();
-				}
-				if (Utility::Threading::gneb_threads[c].joinable()) {
-					Utility::Threading::gneb_threads[c].join();
+				if ( Simulation_Running_LLG(this->state.get())  ||
+					 Simulation_Running_GNEB(this->state.get()) ||
+					 Simulation_Running_MMF(this->state.get()) )
+				{
+					auto c_method = string_q2std(this->comboBox_Method->currentText()).c_str();
+					auto c_optimizer = string_q2std(this->comboBox_Optimizer->currentText()).c_str();
+
+					// Running, so we stop it
+					Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+					// Join the thread of the stopped simulation
+					if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+					else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+					else if (thread_mmf.joinable()) thread_mmf.join();
+					// New button text
+					this->pushButton_PlayPause->setText("Play");
 				}
 
-				int idx = c->active_image;
+				int idx = System_Get_Index(state.get());
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
-				this->c->Delete_Image(idx);
+				if (Chain_Delete_Image(state.get(), idx)) 
+				{
+					// Make the llg_threads vector smaller
+					this->threads_llg.erase(threads_llg.begin() + idx);
+				}
 
-				Utility::Log.Send(Utility::Log_Level::INFO, Utility::Log_Sender::GUI, "Deleted image " + std::to_string(c->active_image));
+				Log_Send(state.get(), Log_Level::Info, Log_Sender::UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
 			}
 			break;
 	}
@@ -329,109 +388,95 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 void MainWindow::stopallPressed()
 {
 	this->return_focus();
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: stopall"));
 	
-	c->iteration_allowed = false;
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "Button: stopall");
+	
+	Simulation_Stop_All(state.get());
 
-	for (int i = 0; i < c->noi; ++i)
+	for (unsigned int i=0; i<threads_llg.size(); ++i)
 	{
-		c->images[i]->iteration_allowed = false;
+		if (threads_llg[i].joinable()) threads_llg[i].join();
 	}
+	for (unsigned int i=0; i<threads_gneb.size(); ++i)
+	{
+		if (threads_gneb[i].joinable()) threads_gneb[i].join();
+	}
+	if (thread_mmf.joinable()) thread_mmf.join();
 
 	this->pushButton_PlayPause->setText("Play");
+	this->createStatusBar();
 }
 
 void MainWindow::playpausePressed()
 {
 	this->return_focus();
-	Utility::Log.Send(Utility::Log_Level::DEBUG, Utility::Log_Sender::GUI, std::string("Button: playpause"));
+	
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "Button: playpause");
 
-	this->c->Update_Data();
+	Chain_Update_Data(this->state.get());
 
-	std::shared_ptr<Engine::Optimizer> optim;
-	if (this->comboBox_Optimizer->currentText() == "SIB")
+	auto qs_method = this->comboBox_Method->currentText();
+	auto qs_optimizer = this->comboBox_Optimizer->currentText();
+	
+	auto s_method = string_q2std(qs_method);
+	auto s_optimizer = string_q2std(qs_optimizer);
+	
+	auto c_method = s_method.c_str();
+	auto c_optimizer = s_optimizer.c_str();
+
+	if ( Simulation_Running_LLG(this->state.get())  ||
+		 Simulation_Running_GNEB(this->state.get()) ||
+		 Simulation_Running_MMF(this->state.get()) )
 	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB());
+		// Running, so we stop it
+		Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+		// Join the thread of the stopped simulation
+		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+		else if (thread_mmf.joinable()) thread_mmf.join();
+		// New button text
+		this->pushButton_PlayPause->setText("Play");
 	}
-	else if (this->comboBox_Optimizer->currentText() == "Heun")
+	else
 	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun());
-	}
-	else if (this->comboBox_Optimizer->currentText() == "CG")
-	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG());
-	}
-	else if (this->comboBox_Optimizer->currentText() == "QM")
-	{
-		optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM());
+		// Not running, so we start it
+		if (this->comboBox_Method->currentText() == "LLG")
+		{
+			int idx = System_Get_Index(state.get());
+			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			this->threads_llg[System_Get_Index(state.get())] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+		}
+		else if (this->comboBox_Method->currentText() == "GNEB")
+		{
+			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+			this->threads_gneb[Chain_Get_Index(state.get())] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+		}
+		else if (this->comboBox_Method->currentText() == "MMF")
+		{
+			if (thread_mmf.joinable()) thread_mmf.join();
+			this->thread_mmf =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+		}
+		// New button text
+		this->pushButton_PlayPause->setText("Pause");
 	}
 
-	if (this->comboBox_Solver->currentText() == "LLG")
-	{
-		if (s->iteration_allowed)
-		{
-			this->pushButton_PlayPause->setText("Play");
-			s->iteration_allowed = false;
-			c->iteration_allowed = false;
-		}
-		else
-		{
-			this->pushButton_PlayPause->setText("Pause");
-			if (Utility::Threading::llg_threads[s].joinable()) {
-				s->iteration_allowed = false;
-				Utility::Threading::llg_threads[s].join();
-			}
-			s->iteration_allowed = true;
-			c->iteration_allowed = false;
-            auto g = new Engine::Solver_LLG(this->c, optim);
-			Utility::Threading::llg_threads[s] = std::thread(&Engine::Solver_LLG::Iterate, g, 2000000, 5000);
-		}
-	}
-	else if (this->comboBox_Solver->currentText() == "GNEB")
-	{
-		if (c->iteration_allowed)
-		{
-			this->pushButton_PlayPause->setText("Play");
-			for (int i = 0; i < c->noi; ++i)
-			{
-				c->images[i]->iteration_allowed = false;
-			}
-			c->iteration_allowed = false;
-		}
-		else
-		{
-			this->pushButton_PlayPause->setText("Pause");
-			for (int i = 0; i < c->noi; ++i)
-			{
-				c->images[i]->iteration_allowed = false;
-			}
-			if (Utility::Threading::gneb_threads[c].joinable()) {
-				c->iteration_allowed = false;
-				Utility::Threading::gneb_threads[c].join();
-			}
-			c->iteration_allowed = true;
-            auto g = new Engine::Solver_GNEB(this->c, optim);
-			Utility::Threading::gneb_threads[c] = std::thread(&Engine::Solver_GNEB::Iterate, g, 2000000, 5000);
-		}
-	}
-	else if (this->comboBox_Solver->currentText() == "MMF")
-	{
-		Utility::Log.Send(Utility::Log_Level::WARNING, Utility::Log_Sender::GUI, std::string("MMF selected, but not yet implemented! Not doing anything..."));
-	}
+	this->createStatusBar();
 }
 
 
 void MainWindow::previousImagePressed()
 {
 	this->return_focus();
-	if (this->c->active_image > 0)
+	if (System_Get_Index(state.get()) > 0)
 	{
 		// Change active image!
-		c->active_image--;
-		this->lineEdit_ImageNumber->setText(QString::number(c->active_image+1));
-		this->s = c->images[c->active_image];
+		Chain_prev_Image(this->state.get());
+		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 		// Update Play/Pause Button
-		if (this->s->iteration_allowed || this->c->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (Simulation_Running_Any(state.get())) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -439,16 +484,6 @@ void MainWindow::previousImagePressed()
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
-
-		/*this->spinWidget = new Spin_Widget(s);
-		this->settingsWidget = new SettingsWidget(s);
-		this->plotsWidget = new PlotsWidget(c);
-		this->debugWidget = new DebugWidget(s);
-
-		this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
-		this->dockWidget_Settings->setWidget(this->settingsWidget);
-		this->dockWidget_Plots->setWidget(this->plotsWidget);
-		this->dockWidget_Debug->setWidget(this->debugWidget);*/
 	}
 }
 
@@ -456,14 +491,13 @@ void MainWindow::previousImagePressed()
 void MainWindow::nextImagePressed()
 {
 	this->return_focus();
-	if (this->c->active_image < this->c->noi-1)
+	if (System_Get_Index(state.get()) < Chain_Get_NOI(this->state.get())-1)
 	{
 		// Change active image
-		c->active_image++;
-		this->lineEdit_ImageNumber->setText(QString::number(c->active_image+1));
-		this->s = c->images[c->active_image];
+		Chain_next_Image(this->state.get());
+		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 		// Update Play/Pause Button
-		if (this->s->iteration_allowed || this->c->iteration_allowed) this->pushButton_PlayPause->setText("Pause");
+		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
@@ -471,42 +505,28 @@ void MainWindow::nextImagePressed()
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
-
-		/*this->spinWidget = new Spin_Widget(s);
-		this->settingsWidget = new SettingsWidget(s);
-		this->plotsWidget = new PlotsWidget(c);
-		this->debugWidget = new DebugWidget(s);
-
-		this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
-		this->dockWidget_Settings->setWidget(this->settingsWidget);
-		this->dockWidget_Plots->setWidget(this->plotsWidget);
-		this->dockWidget_Debug->setWidget(this->debugWidget);*/
 	}
 }
 
 
 void MainWindow::resetPressed()
 {
-    /*this->spinWidget->SetCameraToDefault();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToDefault();
 }
 
 void MainWindow::xPressed()
 {
-    /*this->spinWidget->SetCameraToX();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToX();
 }
 
 void MainWindow::yPressed()
 {
-    /*this->spinWidget->SetCameraToY();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToY();
 }
 
 void MainWindow::zPressed()
 {
-    /*this->spinWidget->SetCameraToZ();
-	this->spinWidget->update();*/
+	this->spinWidget->setCameraToZ();
 }
 
 void MainWindow::view_toggleDebug()
@@ -526,6 +546,64 @@ void MainWindow::view_toggleSettings()
 	if (this->dockWidget_Settings->isVisible()) this->dockWidget_Settings->hide();
 	else this->dockWidget_Settings->show();
 }
+
+
+void MainWindow::createStatusBar()
+{
+	// Remove previous IPS labels
+	for (unsigned int i = 0; i < this->m_Labels_IPS.size(); ++i)
+	{
+		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
+	}
+
+	// Get Methods' IPS
+	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
+
+	// Create IPS Labels and add them to the statusBar
+	this->m_Labels_IPS = std::vector<QLabel*>();
+	for (unsigned int i = 0; i < v_ips.size(); ++i)
+	{
+		this->m_Labels_IPS.push_back(new QLabel);
+		this->m_Labels_IPS[i]->setText("IPS [-]: -");
+		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
+	}
+
+	//		FPS
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
+	this->m_Label_FPS = new QLabel;
+	this->m_Label_FPS->setText("FPS: -");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+
+	//		NOS
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
+	this->m_Label_NOS = new QLabel;
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(System_Get_NOS(this->state.get())));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
+
+	//		NOI
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
+	this->m_Label_NOI = new QLabel;
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
+
+	//		NOC
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
+	this->m_Label_NOC = new QLabel;
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
+}
+
+
+void MainWindow::updateStatusBar()
+{
+	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
+	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
+	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
+	{
+		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i+1) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
+	}
+}
+
 
 void MainWindow::about()
 {
@@ -587,29 +665,19 @@ void MainWindow::return_focus()
 }
 
 
-/*
-	Converts a QString to an std::string.
-	This function is needed sometimes due to weird behaviour of QString::toStdString().
-*/
-std::string string_q2std(QString qs)
-{
-	auto bytearray = qs.toLatin1();
-	const char *c_fileName = bytearray.data();
-	return std::string(c_fileName);
-}
 
 void MainWindow::save_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Spin Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Append_Spin_Configuration(this->s, 0, string_q2std(fileName));
+		Utility::IO::Append_Spin_Configuration(this->state->active_image, 0, string_q2std(fileName));
 	}
 }
 void MainWindow::load_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_Spin_Configuration(this->s, string_q2std(fileName));
+		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName));
 	}
 }
 
@@ -617,7 +685,7 @@ void MainWindow::save_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_SpinChain_Configuration(this->c, string_q2std(fileName));
+		Utility::IO::Save_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
 	}
 }
 
@@ -625,7 +693,7 @@ void MainWindow::load_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_SpinChain_Configuration(this->c, string_q2std(fileName));
+		Utility::IO::Read_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
 	}
 }
 
@@ -635,7 +703,7 @@ void MainWindow::save_Energies()
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_Energies(*c, 0, string_q2std(fileName));
+		Utility::IO::Save_Energies(*state->active_chain, 0, string_q2std(fileName));
 	}
 }
 
@@ -660,9 +728,9 @@ void MainWindow::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	Utility::IO::Save_Energies(*c, 0, fullName);
-	Utility::IO::Save_Energies_Spins(*c, fullNameSpins);
-	Utility::IO::Save_Energies_Interpolated(*c, fullNameInterpolated);
+	Utility::IO::Save_Energies(*state->active_chain, 0, fullName);
+	Utility::IO::Save_Energies_Spins(*state->active_chain, fullNameSpins);
+	Utility::IO::Save_Energies_Interpolated(*state->active_chain, fullNameInterpolated);
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");
@@ -676,24 +744,26 @@ void MainWindow::save_EPressed()
 
 void MainWindow::load_Configuration()
 {
-	int idx_img = c->active_image;
-	// Read System
+	int idx_img = System_Get_Index(state.get());
+	// Read Spin System from cfg
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
+		// TODO: use interface_system function
 		std::shared_ptr<Data::Spin_System> sys = Utility::IO::Spin_System_from_Config(string_q2std(fileName));
 		// Filter for unacceptable differences to other systems in the chain
 		bool acceptable = true;
-		for (int i = 0; i < c->noi; ++i)
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
 		{
-			if (c->images[i]->nos != sys->nos) acceptable = false;
+			if (state->active_chain->images[i]->nos != sys->nos) acceptable = false;
 			// Currently the SettingsWidget does not support different images being isotropic AND anisotropic at the same time
-			if (c->images[i]->is_isotropic != sys->is_isotropic) acceptable = false;
+			if (state->active_chain->images[i]->is_isotropic != sys->is_isotropic) acceptable = false;
 		}
 		// Set current image
 		if (acceptable)
 		{
-			this->c->images[idx_img] = sys;
-			Utility::Configurations::Random(*sys);
+			this->state->active_chain->images[idx_img] = sys;
+			Configuration_Random(state.get());
 		}
 		else QMessageBox::about(this, tr("About JuSpin"),
 			tr("The resulting Spin System would have different NOS\n"
@@ -721,32 +791,9 @@ void MainWindow::writeSettings()
 }
 
 
-/*bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-{ 
-    if (event->type() == QEvent::KeyPress)
-    {
-        if(obj == spins)
-        {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-            spins->keyPressEvent(keyEvent);
-        }
-    }
-    return QObject::eventFilter(obj, event);
-}*/
-
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	c->iteration_allowed = false;
-	if (Utility::Threading::gneb_threads[c].joinable()) Utility::Threading::gneb_threads[c].join();
-	for (int isystem = 0; isystem < (int)c->images.size(); ++isystem)
-	{
-		c->images[isystem]->iteration_allowed = false;
-		if (Utility::Threading::llg_threads[c->images[isystem]].joinable())
-		{
-			Utility::Threading::llg_threads[c->images[isystem]].join();
-		}	
-	}
+	this->stopallPressed();
 	
     //if (maybeSave()) {
         writeSettings();
@@ -755,287 +802,3 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }*/
 }
-/*
-void MainWindow::newFile()
-{
-    if (maybeSave()) {
-        textEdit->clear();
-        setCurrentFile("");
-    }
-}
-
-void MainWindow::open()
-{
-    if (maybeSave()) {
-        QString fileName = QFileDialog::getOpenFileName(this);
-        if (!fileName.isEmpty())
-            loadFile(fileName);
-    }
-}
-
-bool MainWindow::save()
-{
-    if (curFile.isEmpty()) {
-        return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
-}
-
-bool MainWindow::saveAs()
-{
-    QFileDialog dialog(this);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    QStringList files;
-    if (dialog.exec())
-        files = dialog.selectedFiles();
-    else
-        return false;
-
-    return saveFile(files.at(0));
-}
-
-
-
-void MainWindow::documentWasModified()
-{
-    setWindowModified(textEdit->document()->isModified());
-}
-
-
-void MainWindow::createWidgets(Spin_System * s)
-{
-    // Create Widgets
-    textEdit = new QPlainTextEdit;
-    //spins = new SpinWidget(s);
-    spinWidget = new Spin_Widget(s);
-    disableGLHiDPI(spinWidget->winId()); // thanks to http://public.kitware.com/pipermail/vtkusers/2015-February/090117.html Retina displays on OS X have a bug due to some QT internals
-    
-    QPushButton *renderButton = new QPushButton(tr("Render"));
-    QPushButton *renderButton2 = new QPushButton(tr("Render2"));
-    
-    
-    
-    
-    // Set central widget with layout
-    QWidget *centralWidget = new QWidget();
-    QGridLayout *layout = new QGridLayout();
-    centralWidget->setLayout (layout);
-    setCentralWidget(centralWidget);
-    //setCentralWidget(spins);
-    //setCentralWidget(example);
-    
-
-    // Set layout
-    //layout->addWidget (spins, 0, 0, 1, 1);
-    layout->addWidget (spinWidget, 0, 0, 1, 1);
-    layout->addWidget (textEdit, 0, 1, 1, 1);
-    layout->addWidget (renderButton2, 1,1, 1, 1);
-    layout->addWidget (renderButton, 1, 0, 1, 1);
-}
-
-
-void MainWindow::createActions()
-{
-    // Key Presses
-    //connect(this, SIGNAL(keyPressEvent(QKeyEvent*)), spins, SLOT(keyPressEvent(QKeyEvent*)));
-    
-    
-    newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
-    newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
-    connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
-
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
-    openAct->setShortcuts(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open an existing file"));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-
-    saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
-    saveAct->setShortcuts(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-    saveAsAct = new QAction(tr("Save &As..."), this);
-    saveAsAct->setShortcuts(QKeySequence::SaveAs);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-
-    exitAct = new QAction(tr("E&xit"), this);
-    exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Exit the application"));
-    connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
-    cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
-    cutAct->setShortcuts(QKeySequence::Cut);
-    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
-                            "clipboard"));
-    connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
-
-    copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
-    copyAct->setShortcuts(QKeySequence::Copy);
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-                             "clipboard"));
-    connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
-
-    pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
-    pasteAct->setShortcuts(QKeySequence::Paste);
-    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
-                              "selection"));
-    connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
-
-    aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-
-    cutAct->setEnabled(false);
-    copyAct->setEnabled(false);
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            cutAct, SLOT(setEnabled(bool)));
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
-            
-}
-
-void MainWindow::createMenus()
-{
-    fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(newAct);
-    fileMenu->addAction(openAct);
-    fileMenu->addAction(saveAct);
-    fileMenu->addAction(saveAsAct);
-    fileMenu->addSeparator();
-    fileMenu->addAction(exitAct);
-
-    editMenu = menuBar()->addMenu(tr("&Edit"));
-    editMenu->addAction(cutAct);
-    editMenu->addAction(copyAct);
-    editMenu->addAction(pasteAct);
-
-    menuBar()->addSeparator();
-
-    helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
-}
-
-void MainWindow::createToolBars()
-{
-    fileToolBar = addToolBar(tr("File"));
-    fileToolBar->addAction(newAct);
-    fileToolBar->addAction(openAct);
-    fileToolBar->addAction(saveAct);
-
-    editToolBar = addToolBar(tr("Edit"));
-    editToolBar->addAction(cutAct);
-    editToolBar->addAction(copyAct);
-    editToolBar->addAction(pasteAct);
-}
-
-void MainWindow::createStatusBar()
-{
-    statusBar()->showMessage(tr("Ready"));
-}
-
-void MainWindow::readSettings()
-{
-    QSettings settings("QtProject", "Application Example");
-    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
-    resize(size);
-    move(pos);
-}
-
-void MainWindow::writeSettings()
-{
-    QSettings settings("QtProject", "Application Example");
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
-}
-
-bool MainWindow::maybeSave()
-{
-    if (textEdit->document()->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save)
-            return save();
-        else if (ret == QMessageBox::Cancel)
-            return false;
-    }
-    return true;
-}
-
-void MainWindow::loadFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return;
-    }
-
-    QTextStream in(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    textEdit->setPlainText(in.readAll());
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File loaded"), 2000);
-}
-
-bool MainWindow::saveFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    QTextStream out(&file);
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-#endif
-    out << textEdit->toPlainText();
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("File saved"), 2000);
-    return true;
-}
-
-void MainWindow::setCurrentFile(const QString &fileName)
-{
-    curFile = fileName;
-    textEdit->document()->setModified(false);
-    setWindowModified(false);
-
-    QString shownName = curFile;
-    if (curFile.isEmpty())
-        shownName = "untitled.txt";
-    setWindowFilePath(shownName);
-}
-
-QString MainWindow::strippedName(const QString &fullFileName)
-{
-    return QFileInfo(fullFileName).fileName();
-}*/

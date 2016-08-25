@@ -10,6 +10,8 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		// TODO: replace the Spin_System references with smart pointers??
+		
 		// orients all spins with x>pos into the direction of the v
 		void DomainWall(Data::Spin_System &s, const double pos[3], double v[3], const bool greater = true);
 
@@ -25,6 +27,8 @@ namespace Utility
 		void Random(Data::Spin_System &s, bool external = false);
 		// points only spin no into a random direction created by prng
 		void Random(Data::Spin_System &s, int no, std::mt19937 &prng);
+		// Add temperature-scaled random noise to a system
+		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed=0);
 
 		// points a sperical region of spins of radius r
 		// into direction of vec at position pos

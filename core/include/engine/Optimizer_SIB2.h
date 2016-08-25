@@ -6,7 +6,6 @@
 
 #include "Optimizer.h"
 #include "Spin_System_Chain.h"
-#include "Force.h"
 
 namespace Engine
 {
@@ -15,14 +14,17 @@ namespace Engine
 	*/
 	class Optimizer_SIB2 : public Optimizer
 	{
-
 	public:
+		Optimizer_SIB2(std::shared_ptr<Engine::Method> method);
+		
 		// One step in the optimization
-		void Step() override;
-		void Configure(std::vector<std::shared_ptr<Data::Spin_System>> systems, std::shared_ptr<Engine::Force> force_call) override;
+		void Iteration() override;
+		
+		// Optimizer name as string
+		std::string Name() override;
+		std::string FullName() override;
 
     private:
-
 		// Temporary Spins arrays
 		std::vector<std::vector<double>> spins_temp;
 

@@ -5,20 +5,20 @@
 #include <random>
 #include <vector>
 
-#include "Parameters_Solver.h"
+#include "Parameters_Method.h"
 
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_GNEB : public Parameters_Solver
+	class Parameters_GNEB : public Parameters_Method
 	{
 	public:
 		// Constructor
-		Parameters_GNEB(std::string output_folder, double spring_constant, double force_convergence, int n_E_interpolations);
+		Parameters_GNEB(std::string output_folder, double spring_constant, double force_convergence, int n_iterations, int log_steps, int n_E_interpolations);
 
 		// Strength of springs between images
 		double spring_constant;
-		
+
 		// Number of Energy interpolations between Images
 		int n_E_interpolations;
 	};

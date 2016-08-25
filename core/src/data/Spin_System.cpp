@@ -23,7 +23,7 @@ namespace Data
 		this->nos = this->geometry->nos;
 
 		// Initialize Spins Array
-		this->spins = std::vector<double>(3 * nos);
+		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * nos));
 
 		// Check for the type of the Hamiltonian
 		if (typeid(*this->hamiltonian.get()) == typeid(Engine::Hamiltonian_Isotropic))
@@ -46,7 +46,7 @@ namespace Data
 	Spin_System::Spin_System(Spin_System const & other)
 	{
 		this->nos = other.nos;
-		this->spins = other.spins;
+		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
 
 		this->is_isotropic = other.is_isotropic;
 
@@ -77,7 +77,7 @@ namespace Data
 		if (this != &other)
 		{
 			this->nos = other.nos;
-			this->spins = other.spins;
+			this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
 
 			this->is_isotropic = other.is_isotropic;
 
@@ -107,13 +107,13 @@ namespace Data
 
 	void Spin_System::UpdateEnergy()
 	{
-		this->E_array = this->hamiltonian->Energy_Array(this->spins);
+		this->E_array = this->hamiltonian->Energy_Array(*this->spins);
 		this->E = sum(this->E_array);
 	}
 
 	void Spin_System::UpdateEffectiveField()
 	{
-		this->hamiltonian->Effective_Field(this->spins, this->effective_field);
+		this->hamiltonian->Effective_Field(*this->spins, this->effective_field);
 	}
 
 }

@@ -11,6 +11,7 @@ namespace Utility
 	{
 		// Returns the Bohr Magneton
 		double MuB();
+		double kB();
 
 		//Prints a 1-d array of doubles to console
 		void Array_to_Console(const double *array, const int length);
@@ -19,8 +20,8 @@ namespace Utility
 
 
 		// Builds the spins and spin_pos array according to nTa, nTb, nTc, nos_basic
-		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nTa, const int nTb, const int nTc, const int nos_basic);
-		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_translations, const int nos_basic);
+		void Build_Spins(double ** &spins, double ** &spin_pos, const double *a, const double *b, const double *c, const int nCa, const int nCb, const int nCc, const int nos_basic);
+		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> & basis_atoms, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_cells, const int nos_basic);
 
 
 		//Multiplies a given 1-d array with a double skalar
@@ -44,25 +45,33 @@ namespace Utility
 
 		//Returns the Kartesian Length of an 
 		//arbitrary long vector represented by a 1d-array 
-		double Length(const double *array, const int length);
-		double Length(const std::vector<double> &vec);
+		template <typename T>
+		T Length(const T *array, const int length);
+		template <typename T>
+		T Length(const std::vector<T> &vec);
 
 		// Returns the length of spin ispin from spins array vec
-		double Length_3Nos(const std::vector<double> &vec, int ispin);
+		template <typename T>
+		T Length_3Nos(const std::vector<T> &vec, int ispin);
 
 		//Returns the kartesian length of an arbitrary long vector
 		//in the first slot of a 2D-Array at position pos_1
-		double Length(const double *const *array, const int length, const int pos_1);
-		double Length(const std::vector<std::vector<double>> &vec, const int pos_1);
+		template <typename T>
+		T Length(const T *const *array, const int length, const int pos_1);
+		template <typename T>
+		T Length(const std::vector<std::vector<T>> &vec, const int pos_1);
 
 		//Returns the kartesian length of an arbitrary long vector
 		//in the first slot of a 3D-Array at position pos_1, pos_2
-		double Length(const double *const *const *array, const int length, const int pos_1, const int pos_2);
-		double Length(const std::vector<std::vector<std::vector<double>>> &vec, const int pos_1, const int pos_2);
+		template <typename T>
+		T Length(const T *const *const *array, const int length, const int pos_1, const int pos_2);
+		template <typename T>
+		T Length(const std::vector<std::vector<std::vector<T>>> &vec, const int pos_1, const int pos_2);
 
 		//Returns the kartesian length of an arbitrary long vector
 		//in the first slot of a 4D-Array at position pos_1, pos_2, pos_3
-		double Length(const double *const *const *const *array, const int length, const int pos_1, const int pos_2, const int pos_3);
+		template <typename T>
+		T Length(const T *const *const *const *array, const int length, const int pos_1, const int pos_2, const int pos_3);
 
 		//Calculates the dot product of two 3D vectors
 		double Dot_Product(const double *v1, const double *v2);
@@ -80,7 +89,8 @@ namespace Utility
 		void Cross_Product(const double *const* v1, const int a1, const double *const* const* v2, const int b1, const int b2, double *v3);
 
 		//Normalizes an arbitrary vector of doubles with its Kartesian Length
-		void Normalize(double *array, const int length);
+		template <typename T>
+		void Normalize(T *array, const int length);
 		void Normalize(std::vector<double> &vec);
 		void Normalize_3Nos(std::vector<double> &vec);
 

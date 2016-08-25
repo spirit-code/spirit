@@ -12,7 +12,13 @@ namespace Engine
 	class Optimizer_QM : public Optimizer
 	{
 	public:
-		void Step() override {};
+		Optimizer_QM(std::shared_ptr<Engine::Method> method);
+
+		void Iteration() override;
+		
+		// Optimizer name as string
+		std::string Name() override;
+		std::string FullName() override;
     };
 }
 

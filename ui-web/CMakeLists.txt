@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - Web ------------------------------------- <<" )
+
 ######### CMake Version #####################
 cmake_minimum_required(VERSION 2.8.11)
 #############################################
@@ -43,6 +46,21 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 include_directories(${PROJECT_SOURCE_DIR}/include
 					${CORE_INCLUDE_DIRS})
 
+######### Declare File groups ###############
+### Header Gropus
+set(HEADER_UI_WEB_ROOT)
+### Source Groups
+set(SOURCE_UI_WEB_ROOT)
+#############################################
+
+
+######### Add Subdirectories
+# add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/include)
+#############################################
+
+
+
 ### Create Core Interface
 # add_library( coreinterface STATIC main_js.cxx )
 
@@ -69,12 +87,31 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 # add_custom_target(corejs ALL DEPENDS core.js coreinterface)
 
 
-add_executable( corejs main_js.cxx )
+add_executable( corejs main_js.cxx
+				${HEADER_UI_WEB_ROOT}
+				${SOURCE_UI_WEB_ROOT})
+
 target_link_libraries( corejs core )
+
 set_target_properties( corejs PROPERTIES OUTPUT_NAME "core" )
+### We want it to be placed under ui-web/ s.t. it is directly part of the python core module/package
+set( COREJS_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-web/ )
+set_target_properties( corejs PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${COREJS_OUTPUT_DIR} )
 
 
 
 ### Non-transpile version
 # add_executable(corejs main_js.cxx)
 # target_link_libraries(corejs core)
+
+
+######### Header and Source messages ########
+if ( PRINT_SOURCES )
+	MESSAGE( STATUS ">> Headers:                    ${HEADER_UI_WEB_ROOT}" )
+	MESSAGE( STATUS ">> Sources:                    ${SOURCE_UI_WEB_ROOT}" )
+endif ()
+#############################################
+
+
+MESSAGE( STATUS ">> --------------------- UI - Web done -------------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

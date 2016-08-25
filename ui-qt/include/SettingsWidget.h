@@ -2,23 +2,27 @@
 #ifndef SETTINGSWIDGET_H
 #define SETTINGSWIDGET_H
 
-#include <QtWidgets>
+#include <QWidget>
 
 #include <memory>
 
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
-
-
 #include "ui_SettingsWidget.h"
+
+class SpinWidget;
+struct State;
 
 class SettingsWidget : public QWidget, private Ui::SettingsWidget
 {
     Q_OBJECT
 
+public:
+	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
+	void update();
+	void SelectTab(int index);
+
+	std::shared_ptr<State> state;
 
 private:
-	void ReadExchange();
 	// Setup Input Validators
 	void Setup_Input_Validators();
 	// Setup Slots
@@ -27,59 +31,43 @@ private:
 	void Setup_Hamiltonian_Isotropic_Slots();
 	void Setup_Hamiltonian_Anisotropic_Slots();
 	void Setup_Parameters_Slots();
+	void Setup_Visualization_Slots();
 	// Load a set of parameters from the spin systems
 	void Load_Hamiltonian_Isotropic_Contents();
 	void Load_Hamiltonian_Anisotropic_Contents();
 	void Load_Parameters_Contents();
+	void Load_Visualization_Contents();
 	// Validator for Input into lineEdits
-	QRegularExpressionValidator * number_vali;
-	QRegularExpressionValidator * number_vali_unsigned;
+	QRegularExpressionValidator * number_validator;
+	QRegularExpressionValidator * number_validator_unsigned;
+	SpinWidget *_spinWidget;
 
 private slots:
 	// Parameters
 	void set_parameters();
 	// Configurations
 	void set_hamiltonian_iso();
-	void set_hamiltonian_aniso();
-	// Hamiltonian (isotropic)
-	void set_extB(std::shared_ptr<Data::Spin_System> ss);
-	void set_exchange(std::shared_ptr<Data::Spin_System> ss);
-	void set_dt(std::shared_ptr<Data::Spin_System> ss);
-	void set_dmi(std::shared_ptr<Data::Spin_System> ss);
-	void set_aniso(std::shared_ptr<Data::Spin_System> ss);
-	void set_spc(std::shared_ptr<Data::Spin_System> ss);
-	void set_bqe(std::shared_ptr<Data::Spin_System> ss);
-	void set_fourspin(std::shared_ptr<Data::Spin_System> ss);
-	void set_temper(std::shared_ptr<Data::Spin_System> ss);
-	// Hamiltonian (anisotropic)
-	void set_extB_Anisotropic(std::shared_ptr<Data::Spin_System> ss);
-	// Configurartions
+	// void set_hamiltonian_aniso();
+	void set_hamiltonian_aniso_bc();
+	void set_hamiltonian_aniso_mu_s();
+	void set_hamiltonian_aniso_field();
+	void set_hamiltonian_aniso_ani();
+	void set_hamiltonian_aniso_stt();
+	void set_hamiltonian_aniso_temp();
+	// Visualization
+	void set_visualization();
+	// Configurations
+	void configurationAddNoise();
 	void randomPressed();
 	void domainWallPressed();
 	void plusZ();
 	void minusZ();
-	void greaterLesserToggle();
 	void create_Skyrmion();
 	void create_SpinSpiral();
 	// Transitions
 	void homogeneousTransitionPressed();
-	// Parameters
-	void set_damping(std::shared_ptr<Data::Spin_System> ss);
-	void set_mu_spin(std::shared_ptr<Data::Spin_System> ss);
-	void set_spring_constant();
-	void set_climbing_falling();
-	void set_periodical(std::shared_ptr<Data::Spin_System> ss);
 	// Debug?
 	void print_Energies_to_console();
-
-public:
-	SettingsWidget(std::shared_ptr<Data::Spin_System_Chain> s_i);
-	void update();
-	void SelectTab(int index);
-
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
-	bool greater;
 };
 
 #endif

@@ -9,6 +9,9 @@ namespace Utility
 {
 	namespace Configuration_Chain
 	{
+		// Add noise to the images of a transition (except the border images)
+		void Add_Noise_Temperature(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, double temperature);
+
 		// Homogeneous rotation of all spins from configuration A to B for all images in a chain
 		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<double> A, std::vector<double> B);
 

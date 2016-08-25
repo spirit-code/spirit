@@ -4,27 +4,30 @@
 #include <QMainWindow>
 
 #include <memory>
+#include <thread>
 #include <map>
 
-#include "Spin_Widget.h"
+#include "SpinWidget.h"
 #include "SettingsWidget.h"
 #include "PlotsWidget.h"
 #include "DebugWidget.h"
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
 
+#include "ui_MainWindow.h"
+
+// Forward declarations
 class QAction;
 class QMenu;
 class QPlainTextEdit;
+struct State;
 
-#include "ui_MainWindow.h"
+std::string string_q2std(QString qs);
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(std::shared_ptr<Data::Spin_System_Chain> c);
+    MainWindow(std::shared_ptr<State> state);
 	//bool eventFilter(QObject *object, QEvent *event);
 
 protected:
@@ -66,22 +69,20 @@ private:
     /*void createWidgets(Spin_System * s);
     void createActions();
     void createMenus();
-    void createToolBars();
-    void createStatusBar();*/
+    void createToolBars();*/
     void readSettings();
     void writeSettings();
+	void createStatusBar();
+	void updateStatusBar();
     /*bool maybeSave();
     void loadFile(const QString &fileName);
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);*/
-    
+
     //SpinWidget *spins;
-	std::shared_ptr<Data::Spin_System> s;
-	std::shared_ptr<Data::Spin_System> image_clipboard;
-	std::shared_ptr<Data::Spin_System> localcopy_s;
-	std::shared_ptr<Data::Spin_System_Chain> c;
-    Spin_Widget *spinWidget;
+	std::shared_ptr<State> state;
+	SpinWidget *spinWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;
 	DebugWidget * debugWidget;
@@ -92,6 +93,19 @@ private:
 	QTimer * m_timer_spins;
 	QTimer * m_timer_plots;
 	QTimer * m_timer_debug;
+	QTimer * m_timer;
+
+	// Status Bar labels
+	QLabel * m_Label_NOC;
+	QLabel * m_Label_NOI;
+	QLabel * m_Label_NOS;
+	QLabel * m_Label_FPS;
+	std::vector<QLabel*> m_Labels_IPS;
+
+	// Image/Chain - Method maps
+	std::vector<std::thread> threads_llg;
+	std::vector<std::thread> threads_gneb;
+	std::thread thread_mmf;
 
 };
 

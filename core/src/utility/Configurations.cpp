@@ -14,14 +14,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-//extern Utility::LoggingHandler Log;
-
 namespace Utility
 {
 	namespace Configurations
 	{
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 		void DomainWall(Data::Spin_System & s, const double pos[3], double v[3], bool greater)
 		{
 			try {
@@ -31,13 +27,14 @@ namespace Utility
 				if (ex == Exception::Division_by_zero) 
 				{
 					std::string message = "Homogeneous vector was (" + std::to_string(v[0]) + ", " + std::to_string(v[1]) + ", " + std::to_string(v[2]) + ") and got set to (0, 0, 1)";
-					Log.Send(Log_Level::WARNING, Log_Sender::ALL, message);
+					Log(Log_Level::Warning, Log_Sender::All, message);
 					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
 				}
 				else { throw(ex); }
 			}
 
 			int dim, iatom, nos = s.nos;
+			auto& spins = *s.spins;
 
 			if (greater) {
 				for (dim = 0; dim < 3; ++dim) {
@@ -45,7 +42,7 @@ namespace Utility
 						if (s.geometry->spin_pos[0][iatom] >= pos[0]) {
 							if (s.geometry->spin_pos[1][iatom] >= pos[1]) {
 								if (s.geometry->spin_pos[2][iatom] >= pos[2]) {
-									s.spins[dim*s.nos + iatom] = v[dim];
+									spins[dim*s.nos + iatom] = v[dim];
 								}
 							}
 						}
@@ -58,7 +55,7 @@ namespace Utility
 						if (s.geometry->spin_pos[0][iatom] <= pos[0]) {
 							if (s.geometry->spin_pos[1][iatom] <= pos[1]) {
 								if (s.geometry->spin_pos[2][iatom] <= pos[2]) {
-									s.spins[dim*s.nos + iatom] = v[dim];
+									spins[dim*s.nos + iatom] = v[dim];
 								}
 							}
 						}
@@ -101,8 +98,9 @@ namespace Utility
 			}
 		}
 
-		void Random(Data::Spin_System & s, int no, std::mt19937 &prng)
+		void Random(Data::Spin_System & s, int no, std::mt19937 & prng)
 		{
+			auto& spins = *s.spins;
 			std::vector<double> v = { 0.0, 0.0, 0.0 };			// declare v= 0,0,0
 			while (true) {
 				for (int dim = 0; dim < 3; ++dim) {		// use spin_system's PRNG
@@ -111,7 +109,7 @@ namespace Utility
 				try {
 					Vectormath::Normalize(v);			// try normalizing v
 					for (int dim = 0; dim < 3; ++dim) {
-						s.spins[dim*s.nos + no] = v[dim];// copy normalized v into spins array
+						spins[dim*s.nos + no] = v[dim];// copy normalized v into spins array
 					}
 					return;									// normalizing worked -> return function
 				}
@@ -120,9 +118,53 @@ namespace Utility
 				}
 			}
 		}// end Random
+
+
+		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed)
+		{
+			if (temperature == 0.0) return;
+
+			std::vector<double> v = { 0.0, 0.0, 0.0 };
+			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Vectormath::kB());
+			
+			std::mt19937 * prng;
+			if (delta_seed!=0) prng = new std::mt19937(123456789+delta_seed);
+			else prng = &s.llg_parameters->prng;
+
+			for (int i = 0; i < s.nos; ++i)
+			{
+				while (true)
+				{
+					for (int dim = 0; dim < 3; ++dim)
+					{		// use spin_system's PRNG
+						v[dim] = s.llg_parameters->distribution_minus_plus_one(*prng) * epsilon;		// roll random for v in 3 dimensions
+					}
+					try
+					{
+						double l = Vectormath::Length(v);
+						//Vectormath::Normalize(v);			// try normalizing v
+						for (int dim = 0; dim < 3; ++dim)
+						{
+							(*s.spins)[dim*s.nos + i] += v[dim];// copy normalized v into spins array
+						}
+						break;									// normalizing worked -> return function
+					}
+					catch (Exception ex)
+					{
+						if (ex != Exception::Division_by_zero) throw(ex);				// throw everything except division by zero
+					}
+				}
+			}
+			Vectormath::Normalize_3Nos(*s.spins);
+		}
+
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
+			// pos=(0,0,0) is the center of the system
+			for (int i=0; i<3; ++i) pos[i] += s.geometry->center[i];
+
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
+			auto& spins = *s.spins;
 			// skaled to fit with 
 			double r_new = r;
 			if (experimental) { r_new = r*1.2; }
@@ -139,12 +181,12 @@ namespace Utility
 					phi_i += phase / 180 * M_PI;
 					if(experimental){ theta_i = M_PI - 4 * std::asin(std::tanh(distance)); }
 					else{ theta_i = M_PI - M_PI *distance; }
-					s.spins[2 * s.nos + iatom] = std::cos(theta_i) * -dir;
-					s.spins[1 * s.nos + iatom] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * M_PI));
-					s.spins[iatom] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
+					spins[2 * s.nos + iatom] = std::cos(theta_i) * -dir;
+					spins[1 * s.nos + iatom] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * M_PI));
+					spins[iatom] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
 				}
 			}
-			Utility::Vectormath::Normalize_3Nos(s.spins);
+			Utility::Vectormath::Normalize_3Nos(spins);	
 		}
 		// end Skyrmion
 
@@ -253,6 +295,7 @@ namespace Utility
 			}
 
 			// -------------------- Spin Spiral creation --------------------
+			auto& spins = *s.spins;
 			if (direction_type == "Real Lattice")
 			{
 				// NOTE this is not yet the correct function!!
@@ -268,33 +311,33 @@ namespace Utility
 					double norms = 0.0;
 					for (int dim = 0; dim < 3; ++dim)
 					{
-						s.spins[dim * s.nos + iatom] = axis[dim] * std::cos(theta)
+						spins[dim * s.nos + iatom] = axis[dim] * std::cos(theta)
 													+ v1[dim] * std::cos(phase) * std::sin(theta)
 													+ v2[dim] * std::sin(phase) * std::sin(theta);
-						norms += std::pow(s.spins[dim * s.nos + iatom], 2);
+						norms += std::pow(spins[dim * s.nos + iatom], 2);
 					}
 					norms = std::sqrt(norms);
 					
 					// Write to spin
 					for (int dim = 0; dim < 3; ++dim)
 					{
-						s.spins[dim * s.nos + iatom] = s.spins[dim * s.nos + iatom] / norms;
+						spins[dim * s.nos + iatom] = spins[dim * s.nos + iatom] / norms;
 					}
 				}// endfor iatom
 			}
 			else if (direction_type == "Reciprocal Lattice")
 			{
-				Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, "The reciprocal lattice spin spiral is not yet implemented!");
+				Log(Log_Level::Error, Log_Sender::All, "The reciprocal lattice spin spiral is not yet implemented!");
 				// Not yet implemented!
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 			}
 			else if (direction_type == "Real Space")
 			{
-				Log.Send(Log_Level::L_ERROR, Log_Sender::ALL, "The real space spin spiral is not yet implemented!");
+				Log(Log_Level::Error, Log_Sender::All, "The real space spin spiral is not yet implemented!");
 			}
 			else
 			{
-				Log.Send(Log_Level::WARNING, Log_Sender::ALL, "Got passed invalid type for SS: " + direction_type);
+				Log(Log_Level::Warning, Log_Sender::All, "Got passed invalid type for SS: " + direction_type);
 			}
 		}
 

@@ -1,18 +1,17 @@
-#include <QtWidgets>
+// #include <QtWidgets>
 
 #include "DebugWidget.h"
-#include "Logging.h"
+#include "Interface_Log.h"
 
-DebugWidget::DebugWidget(std::shared_ptr<Data::Spin_System_Chain> c)
+DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {
-	this->c = c;
-	this->s = c->images[c->active_image];
+	this->state = state;
     
 	// Setup User Interface
     this->setupUi(this);
 
 	// Load variables
-	this->comboBox_ShowLevel->setCurrentIndex((int)Utility::Log.print_level);
+	this->comboBox_ShowLevel->setCurrentIndex(3); // (int)Log.print_level);
 	this->plainTextEdit->setPlainText("");
 	this->n_log_entries = 0;
 
@@ -34,10 +33,8 @@ DebugWidget::DebugWidget(std::shared_ptr<Data::Spin_System_Chain> c)
 
 void DebugWidget::update()
 {
-	this->s = this->c->images[this->c->active_image];
-
 	// Update the list of log entries
-	if (n_log_entries < Utility::Log.n_entries)
+	if (n_log_entries < Log_Get_N_Entries(state.get()))
 	{
 		this->UpdateFromLog();
 	}
@@ -46,21 +43,22 @@ void DebugWidget::update()
 void DebugWidget::UpdateFromLog()
 {
 	// Load all new Log messages and apply filters
-	auto entries = Utility::Log.GetEntries();
+	auto entries = Log_Get_Entries(state.get());
 	auto n_old_entries = this->n_log_entries;
 	this->n_log_entries = entries.size();
 	for (int i = n_old_entries; i < this->n_log_entries; ++i)
 	{
 		if ((int)entries[i].level <= this->comboBox_ShowLevel->currentIndex())
 		{
-			if ((entries[i].sender == Utility::Log_Sender::ALL) ||
-				(this->checkBox_IO->isChecked() && (entries[i].sender == Utility::Log_Sender::IO)) ||
-				(this->checkBox_GUI->isChecked() && (entries[i].sender == Utility::Log_Sender::GUI)) ||
-				(this->checkBox_LLG->isChecked() && (entries[i].sender == Utility::Log_Sender::LLG)) ||
-				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Utility::Log_Sender::GNEB)) ||
-				(this->checkBox_MMF->isChecked() && (entries[i].sender == Utility::Log_Sender::MMF)))
+			if ((entries[i].sender == Log_Sender::All) ||
+				(this->checkBox_API->isChecked() && (entries[i].sender == Log_Sender::API)) ||
+				(this->checkBox_IO->isChecked() && (entries[i].sender == Log_Sender::IO)) ||
+				(this->checkBox_GUI->isChecked() && (entries[i].sender == Log_Sender::UI)) ||
+				(this->checkBox_LLG->isChecked() && (entries[i].sender == Log_Sender::LLG)) ||
+				(this->checkBox_GNEB->isChecked() && (entries[i].sender == Log_Sender::GNEB)) ||
+				(this->checkBox_MMF->isChecked() && (entries[i].sender == Log_Sender::MMF)))
 			{
-				this->plainTextEdit->appendPlainText(QString::fromLatin1(entries[i].toString().c_str()));
+				this->plainTextEdit->appendPlainText(QString::fromLatin1(LogEntryToString(entries[i]).c_str()));
 			}
 		}
 	}

@@ -8,12 +8,14 @@
 
 // Use the System Clock (Wall Time) to handle Timing
 using std::chrono::system_clock;
+using std::chrono::time_point;
 
 namespace Utility
 {
     namespace Timing
     {   
         const std::string TimePointToString(system_clock::time_point t);
+        const std::string TimePointToString_Pretty(system_clock::time_point t);
         
 		// Returns the current time like: 2012-05-06_21:47:59
 		const std::string CurrentDateTime();

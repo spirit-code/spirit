@@ -1,8 +1,30 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- Platforms.cmake ------------------------------ <<" )
+######## Apple #######################################################
 if (APPLE)
-	MESSAGE( STATUS ">> We are on Apple" )
-	# set(OS_BUNDLE MACOSX_BUNDLE)
+	SET ( PLATFORM_NAME "Apple" )
+	if ( OSX_BUNDLE_APP )
+		set( OS_BUNDLE MACOSX_BUNDLE )
+	endif ()
+######################################################################
+
+######## UNIX ########################################################
 elseif (UNIX)
-    MESSAGE( STATUS ">> We are on UNIX" )
+	SET ( PLATFORM_NAME "UNIX" )
+######################################################################
+
+######## Windows #####################################################
 elseif (WIN32)
-	MESSAGE( STATUS ">> We are on Win32" )
+	SET ( PLATFORM_NAME "Win32" )
+######################################################################
+
+######## The End #####################################################
 endif()
+######## Print platform info
+MESSAGE( STATUS ">> We are on the platform:        " ${PLATFORM_NAME} )
+if ( APPLE AND OSX_BUNDLE_APP )
+	MESSAGE( STATUS ">> Going to create .app Bundle" )
+endif ()
+######################################################################
+MESSAGE( STATUS ">> --------------------- Platforms.cmake done ------------------------- <<" )
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
