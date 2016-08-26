@@ -28,11 +28,11 @@ def Set_LLG_N_Iterations(p_state, n_iterations, idx_image, idx_chain):
     _Set_LLG_N_Iterations(p_state, ctypes.c_int(n_iterations), idx_image, idx_chain)
 
 ### Set LLG Log Steps
-_Set_LLG_Log_Steps             = _core.Parameters_Set_LLG_Log_Steps
-_Set_LLG_Log_Steps.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Set_LLG_Log_Steps.restype     = None
-def Set_LLG_Log_Steps(p_state, log_steps, idx_image, idx_chain):
-    _Set_LLG_Log_Steps(p_state, ctypes.c_int(log_steps), idx_image, idx_chain)
+_Set_LLG_N_Iterations_Log             = _core.Parameters_Set_LLG_N_Iterations_Log
+_Set_LLG_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_Set_LLG_N_Iterations_Log.restype     = None
+def Set_LLG_N_Iterations_Log(p_state, n_iterations_log, idx_image, idx_chain):
+    _Set_LLG_N_Iterations_Log(p_state, ctypes.c_int(n_iterations_log), idx_image, idx_chain)
 
 ### ------------------- Set GNEB -------------------
 ### Set GNEB Spring Constant
@@ -57,11 +57,11 @@ def Set_GNEB_N_Iterations(p_state, n_iterations, idx_image, idx_chain):
     _Set_GNEB_N_Iterations(p_state, ctypes.c_int(n_iterations), idx_image, idx_chain)
 
 ### Set GNEB Log Steps
-_Set_GNEB_Log_Steps             = _core.Parameters_Set_GNEB_Log_Steps
-_Set_GNEB_Log_Steps.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Set_GNEB_Log_Steps.restype     = None
-def Set_GNEB_Log_Steps(p_state, log_steps, idx_image, idx_chain):
-    _Set_GNEB_Log_Steps(p_state, ctypes.c_int(log_steps), idx_image, idx_chain)
+_Set_GNEB_N_Iterations_Log             = _core.Parameters_Set_GNEB_N_Iterations_Log
+_Set_GNEB_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_Set_GNEB_N_Iterations_Log.restype     = None
+def Set_GNEB_N_Iterations_Log(p_state, n_iterations_log, idx_image, idx_chain):
+    _Set_GNEB_N_Iterations_Log(p_state, ctypes.c_int(n_iterations_log), idx_image, idx_chain)
 
 
 ### ------------------- Get LLG -------------------
@@ -87,11 +87,11 @@ def Get_LLG_N_Iterations(p_state, n_iterations, idx_image, idx_chain):
     return _Get_LLG_N_Iterations(p_state, ctypes.c_int(n_iterations), idx_image, idx_chain)
 
 ### Get LLG Log Steps
-_Get_LLG_Log_Steps             = _core.Parameters_Get_LLG_Log_Steps
-_Get_LLG_Log_Steps.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_LLG_Log_Steps.restype     = ctypes.c_int
-def Get_LLG_Log_Steps(p_state, log_steps, idx_image, idx_chain):
-    return _Get_LLG_Log_Steps(p_state, ctypes.c_int(log_steps), idx_image, idx_chain)
+_Get_LLG_N_Iterations_Log             = _core.Parameters_Get_LLG_N_Iterations_Log
+_Get_LLG_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_LLG_N_Iterations_Log.restype     = ctypes.c_int
+def Get_LLG_N_Iterations_Log(p_state, n_iterations_log, idx_image, idx_chain):
+    return _Get_LLG_N_Iterations_Log(p_state, ctypes.c_int(n_iterations_log), idx_image, idx_chain)
 
 ### ------------------- Get GNEB -------------------
 ### Get GNEB Spring Constant
@@ -116,8 +116,8 @@ def Get_GNEB_N_Iterations(p_state, n_iterations, idx_image, idx_chain):
     return _Get_GNEB_N_Iterations(p_state, ctypes.c_int(n_iterations), idx_image, idx_chain)
 
 ### Get GNEB Log Steps
-_Get_GNEB_Log_Steps             = _core.Parameters_Get_GNEB_Log_Steps
-_Get_GNEB_Log_Steps.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_GNEB_Log_Steps.restype     = ctypes.c_int
-def Get_GNEB_Log_Steps(p_state, log_steps, idx_image, idx_chain):
-    return _Get_GNEB_Log_Steps(p_state, ctypes.c_int(log_steps), idx_image, idx_chain)
+_Get_GNEB_N_Iterations_Log             = _core.Parameters_Get_GNEB_N_Iterations_Log
+_Get_GNEB_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_GNEB_N_Iterations_Log.restype     = ctypes.c_int
+def Get_GNEB_N_Iterations_Log(p_state, n_iterations_log, idx_image, idx_chain):
+    return _Get_GNEB_N_Iterations_Log(p_state, ctypes.c_int(n_iterations_log), idx_image, idx_chain)

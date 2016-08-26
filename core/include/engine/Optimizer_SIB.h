@@ -43,7 +43,7 @@ namespace Engine
 		// Generate an array of random spins?
 		void Gen_Xi(Data::Spin_System & s, std::vector<double> & xi, double eps);
 		// Calculate the virtual Heun force to be used in the Steps
-		void VirtualForce(const int nos, std::vector<double> & spins, Data::Parameters_LLG & llg_params, std::vector<double> & beff, std::vector<double> & xi, std::vector<double> & force);
+		void VirtualForce(const int nos, std::vector<double> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<double> & beff, std::vector<double> & xi, std::vector<double> & force);
 		// First Part of one Optimization step
 		void FirstStep(const int nos, std::vector<double> & spins, std::vector<double> & force, std::vector<double> & spins_temp);
 		// Second Part of one Optimization step

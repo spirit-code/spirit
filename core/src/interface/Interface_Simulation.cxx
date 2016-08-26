@@ -12,7 +12,7 @@
 
 
 extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
-	int n_iterations, int log_steps, int idx_image, int idx_chain)
+	int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
 {
     // Translate to string
     std::string method_type(c_method_type);
@@ -30,7 +30,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
     {
         image->iteration_allowed = true;
         if (n_iterations > 0) image->llg_parameters->n_iterations = n_iterations;
-        if (log_steps > 0) image->llg_parameters->log_steps = log_steps;
+        if (n_iterations_log > 0) image->llg_parameters->n_iterations_log = n_iterations_log;
         method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
     }
     else if (method_type == "GNEB")
@@ -43,7 +43,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
         {
             chain->iteration_allowed = true;
             if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
-            if (log_steps > 0) chain->gneb_parameters->log_steps = log_steps;
+            if (n_iterations_log > 0) chain->gneb_parameters->n_iterations_log = n_iterations_log;
             method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
         }
     }
@@ -57,7 +57,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
         {
             state->collection->iteration_allowed = true;
             if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
-            if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
+            if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
             method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
             Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
@@ -90,7 +90,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
 }
 
 void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type,
-    int n_iterations, int log_steps, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
 {
     // Translate to string
     std::string method_type(c_method_type);
@@ -131,7 +131,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             image->iteration_allowed = true;
 			if (n_iterations > 0) image->llg_parameters->n_iterations = n_iterations;
-			if (log_steps > 0) image->llg_parameters->log_steps = log_steps;
+			if (n_iterations_log > 0) image->llg_parameters->n_iterations_log = n_iterations_log;
             method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
         }
         else if (method_type == "GNEB")
@@ -144,7 +144,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             {
                 chain->iteration_allowed = true;
                 if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
-                if (log_steps > 0) chain->gneb_parameters->log_steps = log_steps;
+                if (n_iterations_log > 0) chain->gneb_parameters->n_iterations_log = n_iterations_log;
                 method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
             }
         }
@@ -158,7 +158,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             {
                 state->collection->iteration_allowed = true;
                 if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
-                if (log_steps > 0) state->collection->parameters->log_steps = log_steps;
+                if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
                 method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
                 Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
             }

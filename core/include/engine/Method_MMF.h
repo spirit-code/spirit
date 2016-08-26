@@ -3,7 +3,7 @@
 #define METHOD_MMF_H
 
 #include "Method.h"
-#include "Parameters_MMF.h"
+#include "Parameters_Method_MMF.h"
 #include "Spin_System_Chain_Collection.h"
 
 namespace Engine

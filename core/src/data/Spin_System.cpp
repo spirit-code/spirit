@@ -15,7 +15,7 @@ using namespace Utility;
 
 namespace Data
 {
-	Spin_System::Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::unique_ptr<Geometry> geometry, std::unique_ptr<Parameters_LLG> llg_params, bool iteration_allowed) :
+	Spin_System::Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::unique_ptr<Geometry> geometry, std::unique_ptr<Parameters_Method_LLG> llg_params, bool iteration_allowed) :
 		iteration_allowed(iteration_allowed), hamiltonian(std::move(hamiltonian)), geometry(std::move(geometry)), llg_parameters(std::move(llg_params))
 	{
 
@@ -66,7 +66,7 @@ namespace Data
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
 		}
 
-		this->llg_parameters = std::shared_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(*other.llg_parameters));
+		this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));
 
 		this->iteration_allowed = false;
 	}
@@ -97,7 +97,7 @@ namespace Data
 				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
 			}
 
-			this->llg_parameters = std::shared_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(*other.llg_parameters));
+			this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));
 
 			this->iteration_allowed = false;
 		}

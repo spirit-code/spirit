@@ -3,7 +3,7 @@
 #define METHOD_LLG_H
 
 #include "Method.h"
-#include "Parameters_LLG.h"
+#include "Parameters_Method_LLG.h"
 #include "Spin_System.h"
 #include "Spin_System_Chain.h"
 #include "Optimizer.h"

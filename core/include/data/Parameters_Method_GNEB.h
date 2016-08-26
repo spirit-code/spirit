@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DATA_PARAMETERS_GNEB_H
-#define DATA_PARAMETERS_GNEB_H
+#ifndef DATA_PARAMETERS_METHOD_GNEB_H
+#define DATA_PARAMETERS_METHOD_GNEB_H
 
 #include <random>
 #include <vector>
@@ -10,11 +10,11 @@
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_GNEB : public Parameters_Method
+	class Parameters_Method_GNEB : public Parameters_Method
 	{
 	public:
 		// Constructor
-		Parameters_GNEB(std::string output_folder, double spring_constant, double force_convergence, int n_iterations, int log_steps, int n_E_interpolations);
+		Parameters_Method_GNEB(std::string output_folder, double force_convergence, long int n_iterations, long int n_iterations_log, double spring_constant, int n_E_interpolations);
 
 		// Strength of springs between images
 		double spring_constant;

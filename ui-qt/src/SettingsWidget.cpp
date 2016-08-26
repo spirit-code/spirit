@@ -214,12 +214,12 @@ void SettingsWidget::Load_Parameters_Contents()
 	// LLG Iteration Params
 	i = Parameters_Get_LLG_N_Iterations(state.get());
 	this->lineEdit_llg_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_LLG_Log_Steps(state.get());
+	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
 	this->lineEdit_llg_log_steps->setText(QString::number(i));
 	// GNEB Interation Params
 	i = Parameters_Get_GNEB_N_Iterations(state.get());
 	this->lineEdit_gneb_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_GNEB_Log_Steps(state.get());
+	i = Parameters_Get_GNEB_N_Iterations_Log(state.get());
 	this->lineEdit_gneb_log_steps->setText(QString::number(i));
 
 	// GNEB Spring Constant
@@ -548,9 +548,9 @@ void SettingsWidget::set_parameters()
 		Parameters_Set_GNEB_N_Iterations(state.get(), i);
 		// log steps
 		i = this->lineEdit_llg_log_steps->text().toInt();
-		Parameters_Set_LLG_Log_Steps(state.get(), i);
+		Parameters_Set_LLG_N_Iterations_Log(state.get(), i);
 		i = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_Log_Steps(state.get(), i);
+		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
 		// Spring Constant
 		d = this->lineEdit_gneb_springconstant->text().toDouble();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);

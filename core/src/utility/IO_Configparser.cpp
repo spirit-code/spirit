@@ -66,7 +66,7 @@ namespace Utility
 			// Geometry
 			auto geometry = Geometry_from_Config(configFile);
 			// LLG Parameters
-			auto llg_params = Parameters_LLG_from_Config(configFile);
+			auto llg_params = Parameters_Method_LLG_from_Config(configFile);
 			// Hamiltonian
 			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, *geometry));
 			// Spin System
@@ -276,7 +276,7 @@ namespace Utility
 			return geometry;
 		}// end Geometry from Config
 
-		std::unique_ptr<Data::Parameters_LLG> Parameters_LLG_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -285,8 +285,8 @@ namespace Utility
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
-			// after "log_steps"-iterations the current system is logged to file
-			int log_steps = 5000;
+			// Number of iterations after which the system is logged to file
+			int n_iterations_log = 100;
 			// Temperature in K
 			double temperature = 0.0;
 			// Damping constant
@@ -314,7 +314,7 @@ namespace Utility
 					myfile.Read_Single(output_folder, "llg_output_folder");
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
-					myfile.Read_Single(log_steps, "llg_log_steps");
+					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
 					myfile.Read_Single(temperature, "llg_temperature");
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
@@ -346,14 +346,14 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        log_steps         = " + std::to_string(log_steps));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-			auto llg_params = std::unique_ptr<Data::Parameters_LLG>(new Data::Parameters_LLG(output_folder, seed, n_iterations, log_steps, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal, force_convergence));
+			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(output_folder, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
-		}// end Parameters_LLG_from_Config
+		}// end Parameters_Method_LLG_from_Config
 
-		std::unique_ptr<Data::Parameters_GNEB> Parameters_GNEB_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -364,8 +364,8 @@ namespace Utility
 			double force_convergence = 10e-9;
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
-			// after "log_steps"-iterations the current system is logged to file
-			int log_steps = 5000;
+			// Number of iterations after which the system is logged to file
+			int n_iterations_log = 100;
 			// Number of Energy Interpolation points
 			int n_E_interpolations = 10;
 			//------------------------------- Parser --------------------------------
@@ -379,7 +379,7 @@ namespace Utility
 					myfile.Read_Single(spring_constant, "gneb_spring_constant");
 					myfile.Read_Single(force_convergence, "gneb_force_convergence");
 					myfile.Read_Single(n_iterations, "gneb_n_iterations");
-					myfile.Read_Single(log_steps, "gneb_log_steps");
+					myfile.Read_Single(n_iterations_log, "gneb_n_iterations_log");
 					myfile.Read_Single(n_E_interpolations, "gneb_n_energy_interpolations");
 				}// end try
 				catch (Exception ex) {
@@ -398,24 +398,24 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto gneb_params = std::unique_ptr<Data::Parameters_GNEB>(new Data::Parameters_GNEB(output_folder, spring_constant, force_convergence, n_iterations, log_steps, n_E_interpolations));
+			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
-		}// end Parameters_LLG_from_Config
+		}// end Parameters_Method_LLG_from_Config
 
-		std::unique_ptr<Data::Parameters_MMF> Parameters_MMF_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "";
 			// Force convergence parameter
 			double force_convergence = 10e-9;
-			// number of iterations carried out when pressing "play" or calling "iterate"
+			// Number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
-			// after "log_steps"-iterations the current system is logged to file
-			int log_steps = 5000;
+			// Number of iterations after which the system is logged to file
+			int n_iterations_log = 100;
 			
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: building");
@@ -427,7 +427,7 @@ namespace Utility
 					myfile.Read_Single(output_folder, "mmf_output_folder");
 					myfile.Read_Single(force_convergence, "mmf_force_convergence");
 					myfile.Read_Single(n_iterations, "mmf_n_iterations");
-					myfile.Read_Single(log_steps, "mmf_log_steps");
+					myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
@@ -443,9 +443,9 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        log_steps          = " + std::to_string(log_steps));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto mmf_params = std::unique_ptr<Data::Parameters_MMF>(new Data::Parameters_MMF(output_folder, force_convergence, n_iterations, log_steps));
+			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, force_convergence, n_iterations, n_iterations_log));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}
