@@ -18,8 +18,8 @@ using namespace Utility;
 
 namespace Engine
 {
-    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_img, int idx_chain) :
-		Method(chain->gneb_parameters, idx_img, idx_chain), chain(chain)
+    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain) :
+		Method(chain->gneb_parameters, -1, idx_chain), chain(chain)
 	{
 		this->systems = chain->images;
 		this->SenderName = Utility::Log_Sender::GNEB;

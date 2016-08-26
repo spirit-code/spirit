@@ -16,7 +16,7 @@ namespace Engine
 
 	public:
  		// Constructor
-		Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_img, int idx_chain);
+		Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain);
     
 	//public override:
 		// Calculate Forces onto Systems

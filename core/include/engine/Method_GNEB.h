@@ -16,7 +16,7 @@ namespace Engine
 	{
 	public:
         // Constructor
-		Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_img, int idx_chain);
+		Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain);
     
 		// Calculate Forces onto Systems
 		void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces) override;

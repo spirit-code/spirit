@@ -45,13 +45,13 @@ namespace Engine
 		//------------------------ End Init ----------------------------------------
 
         //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Started " + this->method->Name() + " Simulation --------------");
-		Log(Log_Level::All, sender, "Going to iterate " + std::to_string(n_log) + " steps");
-        Log(Log_Level::All, sender, "            with " + std::to_string(n_iterations_log) + " iterations per step");
-        Log(Log_Level::All, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
-        Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent));
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName());
-		Log(Log_Level::All, sender, "-----------------------------------------------------");
+		Log(Log_Level::All, sender, "-------------- Started " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "            with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
 
         //---- Start Timings
 		auto t_start = system_clock::now();
@@ -83,11 +83,11 @@ namespace Engine
 				t_last = t_current;
 				t_current = system_clock::now();
 
-				Log(Log_Level::All, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log));
-				Log(Log_Level::All, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations));
-				Log(Log_Level::All, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.");
-				Log(Log_Level::All, sender, "    Iterations / sec:        " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)));
-				Log(Log_Level::All, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent));
+				Log(Log_Level::All, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.", this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Iterations / sec:        " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)), this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
 
 				this->method->Save_Current(this->starttime, i, false, false);
 
@@ -99,19 +99,19 @@ namespace Engine
 		auto t_end = system_clock::now();
 
         //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------");
-		Log(Log_Level::All, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.");
-		Log(Log_Level::All, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		Log(Log_Level::All, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.", this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.", this->method->idx_image, this->method->idx_chain);
         if (this->StopFilePresent())
-			Log(Log_Level::All, sender, "    A STOP file has been found.");
+			Log(Log_Level::All, sender, "    A STOP file has been found.", this->method->idx_image, this->method->idx_chain);
         else
-        Log(Log_Level::All, sender,     "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence));
+        Log(Log_Level::All, sender,     "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
         if (this->method->Force_Converged())
-			Log(Log_Level::All, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent));
+			Log(Log_Level::All, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
 		else
-			Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent));
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName());
-		Log(Log_Level::All, sender, "------------------------------------------------------");
+			Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "------------------------------------------------------", this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
 		this->method->Save_Current(this->starttime, i, false, true);
@@ -123,7 +123,7 @@ namespace Engine
     void Optimizer::Iteration()
     {
         // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"), this->method->idx_image, this->method->idx_chain);
     }
 
 
@@ -149,14 +149,14 @@ namespace Engine
     std::string Optimizer::Name()
     {
         // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"));
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Name() of the Optimizer base class!"), this->method->idx_image, this->method->idx_chain);
         return "--";
     }
 
     std::string Optimizer::FullName()
     {
         // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"));
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"), this->method->idx_image, this->method->idx_chain);
         return "--";
     }
 }

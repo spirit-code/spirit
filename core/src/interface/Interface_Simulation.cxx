@@ -44,7 +44,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
             chain->iteration_allowed = true;
             if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
             if (n_iterations_log > 0) chain->gneb_parameters->n_iterations_log = n_iterations_log;
-            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
+            method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_chain));
         }
     }
     else if (method_type == "MMF")
@@ -58,7 +58,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
             state->collection->iteration_allowed = true;
             if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
             if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
-            method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
+            method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_chain));
             Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
     }
@@ -145,7 +145,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
                 chain->iteration_allowed = true;
                 if (n_iterations > 0) chain->gneb_parameters->n_iterations = n_iterations;
                 if (n_iterations_log > 0) chain->gneb_parameters->n_iterations_log = n_iterations_log;
-                method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_image, idx_chain));
+                method = std::shared_ptr<Engine::Method_GNEB>(new Engine::Method_GNEB(chain, idx_chain));
             }
         }
         else if (method_type == "MMF")
@@ -159,7 +159,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
                 state->collection->iteration_allowed = true;
                 if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
                 if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
-                method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_image, idx_chain));
+                method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_chain));
                 Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
             }
         }
