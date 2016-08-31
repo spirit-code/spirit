@@ -280,7 +280,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = ".";
+			std::string output_folder = "output_llg";
 			// PRNG Seed
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
@@ -357,7 +357,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = ".";
+			std::string output_folder = "output_gneb";
 			// Spring constant
 			double spring_constant = 1.0;
 			// Force convergence parameter
@@ -409,7 +409,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = ".";
+			std::string output_folder = "output_mmf";
 			// Force convergence parameter
 			double force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"

@@ -1,7 +1,12 @@
-push!(LOAD_PATH, "C:/Users/Gideon/Git/juliatest/core/")
+push!(LOAD_PATH, "./core/")
 
 using core
 
-state = State_Setup()
+cfgfile = ""
+# cfgfile = "../input/markus-paper.cfg"
+# cfgfile = "../input/gideon-master-thesis-isotropic.cfg"
+# cfgfile = "../input/daniel-master-thesis-isotropic.cfg"
 
-Simulation_PlayPause(state, "LLG", "SIB", 100, 20)
+p_state = State_Setup(cfgfile)
+
+Simulation_PlayPause(p_state, "LLG", "SIB", 100, 100)
