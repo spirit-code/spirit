@@ -121,6 +121,37 @@ if( BUILD_UI_PYTHON )
 endif()
 #############################################
 
+######### Tell CMake to create the shared library
+if( BUILD_UI_JULIA )
+	MESSAGE( STATUS ">> Building shared library for Julia" )
+	### We dont use dll_export directives, so on Windows we just export everything
+	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
+	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
+	add_library( corejl SHARED
+		${HEADER_CORE_ROOT}
+		${HEADER_CORE_DATA}
+		${HEADER_CORE_ENGINE}
+		${HEADER_CORE_INTERFACE}
+		${HEADER_CORE_UTILITY}
+		${SOURCE_CORE_ROOT}
+		${SOURCE_CORE_DATA}
+		${SOURCE_CORE_ENGINE}
+		${SOURCE_CORE_INTERFACE}
+		${SOURCE_CORE_UTILITY})
+	### We want it to be called core, not corejl
+	set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
+	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
+	set( JLLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-julia/core/ )
+    set_target_properties( corejl PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
+    if ( MSVC )
+		foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+			string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+        	set_target_properties( corejl PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${JLLIB_OUTPUT_DIR} )
+		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+    endif ( MSVC )
+endif()
+#############################################
+
 
 ### TODO: Add threading define if we dont use emscripten (which cannot use threads)
 # if (NOT BUILD_UI_WEB)
