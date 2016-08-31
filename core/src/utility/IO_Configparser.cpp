@@ -19,7 +19,7 @@ namespace Utility
 		{
 			// Verbosity and Reject Level are read as integers
 			int i_print_level = 5, i_accept_level = 5;
-			std::string output_folder;
+			std::string output_folder = ".";
 
 			//------------------------------- Parser --------------------------------
 			if (configFile != "")
@@ -280,7 +280,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = "";
+			std::string output_folder = ".";
 			// PRNG Seed
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
@@ -357,7 +357,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = "";
+			std::string output_folder = ".";
 			// Spring constant
 			double spring_constant = 1.0;
 			// Force convergence parameter
@@ -409,7 +409,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
-			std::string output_folder = "";
+			std::string output_folder = ".";
 			// Force convergence parameter
 			double force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"
