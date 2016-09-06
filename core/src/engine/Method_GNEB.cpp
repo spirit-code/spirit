@@ -84,31 +84,30 @@ namespace Engine
 			}
 			else
 			{
-
 				// We project the gradient force orthogonal to the SPIN
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Get the scalar product of the vectors
-				double v1v2 = 0.0;
-				int dim;
-				// Take out component in direction of v2
-				for (int i = 0; i < nos; ++i)
-				{
-					v1v2 = 0.0;
-					for (dim = 0; dim < 3; ++dim)
-					{
-						v1v2 += F_gradient[img][i+dim*nos] * image[i+dim*nos];
-					}
-					for (dim = 0; dim < 3; ++dim)
-					{
-						F_gradient[img][i + dim*nos] = F_gradient[img][i + dim*nos] - v1v2 * image[i + dim*nos];
-					}
-				}
+				// double v1v2 = 0.0;
+				// int dim;
+				// // Take out component in direction of v2
+				// for (int i = 0; i < nos; ++i)
+				// {
+				// 	v1v2 = 0.0;
+				// 	for (dim = 0; dim < 3; ++dim)
+				// 	{
+				// 		v1v2 += F_gradient[img][i+dim*nos] * image[i+dim*nos];
+				// 	}
+				// 	for (dim = 0; dim < 3; ++dim)
+				// 	{
+				// 		F_gradient[img][i + dim*nos] = F_gradient[img][i + dim*nos] - v1v2 * image[i + dim*nos];
+				// 	}
+				// }
 			
 
 				// We project the gradient force orthogonal to the TANGENT
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Get the scalar product of the vectors
-				v1v2 = 0.0;
+				double v1v2 = 0.0;
 				for (int i = 0; i < 3*nos; ++i)
 				{
 					v1v2 += F_gradient[img][i] * tangents[img][i];
@@ -122,7 +121,7 @@ namespace Engine
 
 				// Calculate the spring force
 				//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
-				double d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - Rx[img-1]);
+				double d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
 				for (unsigned int i = 0; i < F_spring[0].size(); ++i)
 				{
 					F_spring[img][i] = d * tangents[img][i];
