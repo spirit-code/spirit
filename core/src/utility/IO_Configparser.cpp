@@ -365,7 +365,7 @@ namespace Utility
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
 			// after "log_steps"-iterations the current system is logged to file
-			int log_steps = 5000;
+			int log_steps = 1000;
 			// Number of Energy Interpolation points
 			int n_E_interpolations = 10;
 			//------------------------------- Parser --------------------------------
@@ -415,7 +415,7 @@ namespace Utility
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
 			// after "log_steps"-iterations the current system is logged to file
-			int log_steps = 5000;
+			int log_steps = 100;
 			
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: building");

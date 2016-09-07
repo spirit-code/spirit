@@ -48,12 +48,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	### Message
 	MESSAGE( STATUS ">> Chose compiler:                gcc" )
 	### Compiler Flags
-	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11" )
+	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 -DEIGEN_NO_DEBUG" )
 	### Linker Flags
 	if (APPLE)
-		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_compact_unwind -pthread" )
+		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -Wl,-no_compact_unwind -pthread" )
 	else()
-		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pthread" )
+		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -pthread" )
 	endif()
 	# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}    "-O3")
 ######################################################################
@@ -64,18 +64,17 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
 		### Compiler Flags
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-warn-absolute-paths -O2 -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-warn-absolute-paths -O2 -DEIGEN_NO_DEBUG -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
 		### Linker Flags
 		### 	optimization, memory growth and exported functions
-		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O2 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\"" )
+		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O2 -DEIGEN_NO_DEBUG -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\"" )
 	else ()
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang" )
 		### Compiler Flags
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -DEIGEN_NO_DEBUG" )
 		### Linker Flags
-		# set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -pthread" ) 
-		# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}    "-O3")
+		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O3 -DEIGEN_NO_DEBUG" )
 	endif ()
 ######################################################################
 

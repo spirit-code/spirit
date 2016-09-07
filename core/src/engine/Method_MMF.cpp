@@ -1,8 +1,10 @@
 #include "Method_MMF.h"
 #include "Manifoldmath.h"
+#include "Vectormath.h"
+#include "Interface_Log.h"
 
-#include <Eigen/Eigenvalues>
 #include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #include <SymEigsSolver.h>  // Also includes <MatOp/DenseSymMatProd.h>
 
 namespace Engine
@@ -33,7 +35,8 @@ namespace Engine
     void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
     {
 		const int nos = configurations[0]->size() / 3;
-        // Get Effective Fields of configurations
+
+        // Loop over chains and calculate the forces
 		for (int ichain = 0; ichain < collection->noc; ++ichain)
 		{
 			auto& image = *configurations[ichain];
@@ -41,55 +44,67 @@ namespace Engine
 			// The gradient force (unprojected) is simply the effective field
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
 			
-			// Get the Minimum Mode
-			//this->minimum_mode = ...
+			// Get the Hessian
 			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
-
-			if (true)
+			// Eigen::MatrixXd e_hessian = Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> >(hessian[ichain].data(), 3 * nos, 3 * nos, Eigen::OuterStride<>(3 * nos));
+			Eigen::MatrixXd e_hessian = Eigen::Map<Eigen::MatrixXd>(hessian[ichain].data(), 3 * nos, 3 * nos);
+			
+			// Remove Hessian's components in the basis of the image
+			//		Get the image as Eigen vector
+			Eigen::VectorXd e_image = Eigen::Map<Eigen::VectorXd>(image.data(), 3*nos);
+			// 		Get basis change matrix M=1-S, S=x*x^T
+			//Log(Log_Level::Debug, Log_Sender::MMF, "before basis matrix creation");
+			Eigen::MatrixXd image_basis = Eigen::MatrixXd::Identity(3*nos, 3*nos) - e_image*e_image.transpose();
+			// 		Change the basis of the Hessian: H -> H - SHS
+			//Log(Log_Level::Debug, Log_Sender::MMF, "after basis matrix creation");
+			e_hessian = image_basis.transpose()*e_hessian*image_basis;
+			//Log(Log_Level::Debug, Log_Sender::MMF, "after basis change");
+			
+			// Get the lowest Eigenvector
+			//		Create a Spectra solver
+			Spectra::DenseSymMatProd<double> op(e_hessian);
+			Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > hessian_spectrum(&op, 1, 5);
+			hessian_spectrum.init();
+			//		Compute the specified spectrum
+			int nconv = hessian_spectrum.compute();
+			if (hessian_spectrum.info() == Spectra::SUCCESSFUL)
 			{
-				/////////////////////////////////
-				// The Eigen way... calculate them all
-				Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3 * nos, 3 * nos, Eigen::OuterStride<>(3 * nos));
-				Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> estest(test);
-				auto& x = estest.eigenvectors().col(0);
+				// Create the Minimum Mode
+				// 		Retrieve the Eigenvectors
+				Eigen::MatrixXd evectors = hessian_spectrum.eigenvectors();
+				Eigen::Ref<Eigen::VectorXd> x = evectors.col(0);
+				// 		Copy via assignment
 				this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
-				std::cerr << estest.eigenvalues()[0] << std::endl;
-				/////////////////////////////////
+				// 		Normalize the mode vector in 3N dimensions
+				Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
+
+				// Calculate the Force
+				// 		Retrieve the Eigenvalues
+				Eigen::VectorXd evalues = hessian_spectrum.eigenvalues();
+				// 		Check if the lowest eigenvalue is negative
+				if (evalues[0] < 0)
+				{
+					// We have found the mode towards a saddle point
+					// Invert the gradient force along the minimum mode
+					Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
+					// Copy out the forces
+					forces[ichain] = F_gradient[ichain];
+				}
+				else
+				{
+					// We are too close to the local minimum so we have to use a strong force
+					// TODO: calculate the force differently
+					Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
+					// Copy out the forces
+					forces[ichain] = F_gradient[ichain];
+				}
 			}
 			else
 			{
-				/////////////////////////////////
-				// The Spectra way... calculate only a few
-				Eigen::Map<Eigen::MatrixXd, 0, Eigen::OuterStride<> > test(hessian[ichain].data(), 3 * nos, 3 * nos, Eigen::OuterStride<>(3 * nos));
-				Spectra::DenseSymMatProd<double> op(test);
-				Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > eigs(&op, 5, 10);
-				eigs.init();
-				int nconv = eigs.compute();
-				/*Eigen::VectorXd evalues;
-				if (eigs.info() == Spectra::SUCCESSFUL)
-					evalues = eigs.eigenvalues();*/
-				Eigen::MatrixXd evectors;
-				if (eigs.info() == Spectra::SUCCESSFUL)
-					evectors = eigs.eigenvectors();
-
-				/*std::cout << "Lowest Eigenvalue found:\n" << evalues << std::endl;
-				std::cout << "Eigenvector        size:\n" << evectors.size() << std::endl;*/
-				//std::cout << "Eigenvectors found:\n" << evectors << std::endl;
-
-				auto& x = evectors.col(0);
-				for (int iv = 0; iv < 5; ++iv)
-				{
-					x = x + evectors.col(iv);
-				}
-				this->minimum_mode[ichain] = std::vector<double>(x.data(), x.data() + x.rows()*x.cols());
-				/////////////////////////////////
+				Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
+				Log(Log_Level::Info, Log_Sender::MMF, "Zeroing the MMF force...");
+				for (double x : forces[ichain]) x = 0;
 			}
-
-            // Invert the gradient force along the minimum mode
-            Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
-
-            // Copy out the forces
-            forces[ichain] = F_gradient[ichain];
         }
     }
 		
@@ -123,18 +138,18 @@ namespace Engine
         if (initial) return;
         // Insert copies of the current systems into their corresponding chains
         // - this way we will be able to look at the history of the optimizations
-        for (int ichain=0; ichain<collection->noc; ++ichain)
-        {
-            // Copy the image
-            auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
+        // for (int ichain=0; ichain<collection->noc; ++ichain)
+        // {
+        //     // Copy the image
+        //     auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
             
-            // Insert into chain
-            auto chain = collection->chains[ichain];
-            chain->noi++;
-            chain->images.insert(chain->images.end(), copy);
-            chain->climbing_image.insert(chain->climbing_image.end(), false);
-            chain->falling_image.insert(chain->falling_image.end(), false);
-        }
+        //     // Insert into chain
+        //     auto chain = collection->chains[ichain];
+        //     chain->noi++;
+        //     chain->images.insert(chain->images.end(), copy);
+        //     chain->climbing_image.insert(chain->climbing_image.end(), false);
+        //     chain->falling_image.insert(chain->falling_image.end(), false);
+        // }
 
         // Reallocate and recalculate the chains' Rx, E and interpolated values for their last two images
 
