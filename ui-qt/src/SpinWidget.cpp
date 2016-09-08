@@ -41,16 +41,17 @@ void SpinWidget::paintGL() {
   // Update the pointer to our Data
   auto s = state->active_image;
   auto& spins = *s->spins;
+  int nos = s->geometry->nos;
   
-  std::vector<glm::vec3> positions(s->geometry->nos);
-  for (int i = 0; i < s->geometry->nos; ++i)
+  std::vector<glm::vec3> positions(nos);
+  for (int i = 0; i < nos; ++i)
   {
-    positions[i] = glm::vec3(s->geometry->spin_pos[0][i], s->geometry->spin_pos[1][i], s->geometry->spin_pos[2][i]);
+    positions[i] = glm::vec3(s->geometry->spin_pos[0*nos+i], s->geometry->spin_pos[1*nos+i], s->geometry->spin_pos[2*nos+i]);
   }
-  std::vector<glm::vec3> directions(s->geometry->nos);
-  for (int i = 0; i < s->geometry->nos; ++i)
+  std::vector<glm::vec3> directions(nos);
+  for (int i = 0; i < nos; ++i)
   {
-    directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
+    directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
   }
 
   gl_spins->updateSpins(positions, directions);

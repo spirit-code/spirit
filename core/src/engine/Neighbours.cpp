@@ -80,7 +80,7 @@ namespace Engine
 
 		// Four-Spin Neighbours
 		for (i = 0; i < nos; ++i) {
-			spin_sum_3d += std::abs(geometry.spin_pos[2][i]);
+			spin_sum_3d += std::abs(geometry.spin_pos[2*nos+i]);
 		}
 		if (spin_sum_3d == 0)
 		{
@@ -201,6 +201,7 @@ namespace Engine
 		unsigned int bvector, number_b_vectors = boundary_vectors[0].size();
 		int iatom, jatom, shell;
 		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
+		int nos = geometry.nos;
 
 		int imax = 10, jmax = 10, kmax = 10;
 		if (!borderOnly) {
@@ -239,18 +240,18 @@ namespace Engine
 		for (iatom = 0; iatom < 1; ++iatom)//geometry.nos; ++iatom)
 		{
 			for (shell = 0; shell < n_shells; ++shell) max_temp[shell] = 0;
-			ipos[0] = geometry.spin_pos[0][iatom];
-			ipos[1] = geometry.spin_pos[1][iatom];
-			ipos[2] = geometry.spin_pos[2][iatom];
+			ipos[0] = geometry.spin_pos[0*nos+iatom];
+			ipos[1] = geometry.spin_pos[1*nos+iatom];
+			ipos[2] = geometry.spin_pos[2*nos+iatom];
 			// Loop over neighbours, avoid double counting
 			for (jatom = iatom + 1; jatom < geometry.nos; ++jatom)
 			{
 				// Loop also over atoms translated by boundary conditions
 				for (bvector = 0; bvector < number_b_vectors; ++bvector)
 				{
-					jpos[0] = geometry.spin_pos[0][jatom] + boundary_vectors[0][bvector];
-					jpos[1] = geometry.spin_pos[1][jatom] + boundary_vectors[1][bvector];
-					jpos[2] = geometry.spin_pos[2][jatom] + boundary_vectors[2][bvector];
+					jpos[0] = geometry.spin_pos[0*nos+jatom] + boundary_vectors[0][bvector];
+					jpos[1] = geometry.spin_pos[1*nos+jatom] + boundary_vectors[1][bvector];
+					jpos[2] = geometry.spin_pos[2*nos+jatom] + boundary_vectors[2][bvector];
 					// ipos - jpos
 					Vectormath::Array_Array_Add(ipos, jpos, build_array, 1.0, -1.0);
 					// dist = |ipos-jpos|
@@ -290,6 +291,8 @@ namespace Engine
 		int iatom, jatom, jspin, shell;
 		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
 
+		int nos = geometry.nos;
+
 		std::string output_to_file;
 		if (geometry.nos < 5E+06) {											// if nos too big - guard preallocation against int overflow
 			output_to_file.reserve(geometry.nos * 22 + geometry.nos * 6 * 20 + 200);	//memory allocation for fast append
@@ -321,18 +324,18 @@ namespace Engine
 		// Loop over all atoms
 		for (iatom = 0; iatom < geometry.nos; ++iatom)
 		{
-			ipos[0] = geometry.spin_pos[0][iatom];
-			ipos[1] = geometry.spin_pos[1][iatom];
-			ipos[2] = geometry.spin_pos[2][iatom];
+			ipos[0] = geometry.spin_pos[0*nos+iatom];
+			ipos[1] = geometry.spin_pos[1*nos+iatom];
+			ipos[2] = geometry.spin_pos[2*nos+iatom];
 			// Loop over neighbours, avoid double counting
 			for (jatom = iatom + 1; jatom < geometry.nos; ++jatom)
 			{
 				// Loop also over atoms translated by boundary conditions
 				for (bvector = 0; bvector < number_b_vectors; ++bvector)
 				{
-					jpos[0] = geometry.spin_pos[0][jatom] + boundary_vectors[0][bvector];
-					jpos[1] = geometry.spin_pos[1][jatom] + boundary_vectors[1][bvector];
-					jpos[2] = geometry.spin_pos[2][jatom] + boundary_vectors[2][bvector];
+					jpos[0] = geometry.spin_pos[0*nos+jatom] + boundary_vectors[0][bvector];
+					jpos[1] = geometry.spin_pos[1*nos+jatom] + boundary_vectors[1][bvector];
+					jpos[2] = geometry.spin_pos[2*nos+jatom] + boundary_vectors[2][bvector];
 
 					// ipos - jpos
 					Vectormath::Array_Array_Add(ipos, jpos, build_array, 1.0, -1.0);
@@ -450,7 +453,7 @@ namespace Engine
 		IO::Dump_to_File(output_to_file, "output/neighbours_4spin.dat");
 	}//end Neighbours::Create_Neighbours_4Spin
 
-	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<std::vector<double>> &spin_pos, const int number_b_vectors,
+	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<double> &spin_pos, const int number_b_vectors,
 		const std::vector<std::vector<double>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 		const int max_ndm, std::vector<std::vector<std::vector<double>>> &dm_normal)
@@ -466,7 +469,8 @@ namespace Engine
 
 		Log(Log_Level::Debug, Log_Sender::All, "Calculating Bulk DMI norm vectors...");
 		for (ispin = 0; ispin < nos; ++ispin) {								// loop over all spins
-			Vectormath::Vector_Copy_o(ispin_pos, spin_pos, 0, ispin);
+			//Vectormath::Vector_Copy_o(ispin_pos, spin_pos, 0, ispin);
+			for (int dim = 0; dim < 3; ++dim) ispin_pos[dim] = spin_pos[dim*nos + ispin];
 			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh) {	// loop over all neighbours of that spin
 				jspin = neigh[ispin][0][jneigh];
 				Vectormath::Vector_Copy_o(jspin_pos, neigh_pos, 0, ispin, 0, jneigh);
@@ -479,7 +483,7 @@ namespace Engine
 		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Bulk DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Bulk
 
-	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<std::vector<double>> &spin_pos, const int number_b_vectors,
+	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<double> &spin_pos, const int number_b_vectors,
 		const std::vector<std::vector<double>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 		const int max_ndm, std::vector<std::vector<std::vector<double>>> &dm_normal)
@@ -530,7 +534,7 @@ namespace Engine
 	}//end Neighbours::DM_Norm_Vectors_To_File
 
 	void Neighbours::Create_Segments(const Data::Geometry & geometry, const int n_shells,
-		const int nos, const std::vector<std::vector<double>> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
+		const int nos, const std::vector<double> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 		std::vector<std::vector<int>> &segments, std::vector<std::vector<std::vector<double>>> &segments_pos)
 	{
@@ -560,7 +564,7 @@ namespace Engine
 		}
 
 		for (ispin = 0; ispin < nos; ++ispin) {
-			ipos[0] = spin_pos[0][ispin]; ipos[1] = spin_pos[1][ispin]; ipos[2] = spin_pos[2][ispin];
+			ipos[0] = spin_pos[0*nos+ispin]; ipos[1] = spin_pos[1*nos+ispin]; ipos[2] = spin_pos[2*nos+ispin];
 			for (shell = 0; shell < shell_fin; ++shell) {
 				for (jneigh = 0; jneigh < n_spins_in_shell[ispin][shell]; ++jneigh) {
 					jspin = neigh[ispin][shell][jneigh];
@@ -611,12 +615,12 @@ namespace Engine
 		int pair_da, pair_db, pair_dc;
 		int na, nb, nc;
 
-
 		int idx_i = 0, idx_j = 0;
 		int Na = geometry.n_cells[0];
 		int Nb = geometry.n_cells[1];
 		int Nc = geometry.n_cells[2];
 		int N = geometry.n_spins_basic_domain;
+		int nos = geometry.nos;
 		
 		int periods_a, periods_b, periods_c, pair_periodicity;
 
@@ -644,8 +648,8 @@ namespace Engine
 								// Calculate positions and difference vector
 								for (int dim=0; dim<3; ++dim)
 								{
-									ipos[dim] 		= geometry.spin_pos[dim][iatom];
-									jpos[dim] 		= geometry.spin_pos[dim][jatom]
+									ipos[dim] 		= geometry.spin_pos[dim*nos + iatom];
+									jpos[dim] 		= geometry.spin_pos[dim*nos + jatom]
 														+ geometry.translation_vectors[dim][0]*pair_da
 														+ geometry.translation_vectors[dim][1]*pair_db
 														+ geometry.translation_vectors[dim][2]*pair_dc;
@@ -800,7 +804,7 @@ namespace Engine
 					for (dim = 0; dim < 3; ++dim) {
 						dd_neigh_pos[dim][ispin][jneigh] = neigh_pos[dim][ispin][0][jneigh];
 						// calculate dd_normal
-						dd_normal[dim][ispin][jneigh] = geometry.spin_pos[dim][ispin] - dd_neigh_pos[dim][ispin][jneigh];
+						dd_normal[dim][ispin][jneigh] = geometry.spin_pos[dim*geometry.nos+ispin] - dd_neigh_pos[dim][ispin][jneigh];
 					}// endfor dim
 					dd_distance[ispin][jneigh] = Vectormath::Length(dd_normal, ispin, jneigh);
 					if (dd_distance[ispin][jneigh] == 0.0) throw Exception::Division_by_zero;

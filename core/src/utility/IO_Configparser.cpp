@@ -183,7 +183,7 @@ namespace Utility
 			std::vector<int> n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
-			std::vector<std::vector<double>> spin_pos;
+			std::vector<double> spin_pos;
 
 			// Utility 1D array to build vectors and use Vectormath
 			std::vector<double> build_array = { 0, 0, 0 };
@@ -256,7 +256,7 @@ namespace Utility
 			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
-			spin_pos = std::vector<std::vector<double>>(3, std::vector<double>(nos));
+			spin_pos = std::vector<double>(3*nos);
 			Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters

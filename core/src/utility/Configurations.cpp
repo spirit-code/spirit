@@ -39,9 +39,9 @@ namespace Utility
 			if (greater) {
 				for (dim = 0; dim < 3; ++dim) {
 					for (iatom = 0; iatom < nos; ++iatom) {
-						if (s.geometry->spin_pos[0][iatom] >= pos[0]) {
-							if (s.geometry->spin_pos[1][iatom] >= pos[1]) {
-								if (s.geometry->spin_pos[2][iatom] >= pos[2]) {
+						if (s.geometry->spin_pos[0 * s.geometry->nos + iatom] >= pos[0]) {
+							if (s.geometry->spin_pos[1 * s.geometry->nos + iatom] >= pos[1]) {
+								if (s.geometry->spin_pos[2 * s.geometry->nos + iatom] >= pos[2]) {
 									spins[dim*s.nos + iatom] = v[dim];
 								}
 							}
@@ -52,9 +52,9 @@ namespace Utility
 			else {
 				for (dim = 0; dim < 3; ++dim) {
 					for (iatom = 0; iatom < nos; ++iatom) {
-						if (s.geometry->spin_pos[0][iatom] <= pos[0]) {
-							if (s.geometry->spin_pos[1][iatom] <= pos[1]) {
-								if (s.geometry->spin_pos[2][iatom] <= pos[2]) {
+						if (s.geometry->spin_pos[0 * s.geometry->nos + iatom] <= pos[0]) {
+							if (s.geometry->spin_pos[1 * s.geometry->nos + iatom] <= pos[1]) {
+								if (s.geometry->spin_pos[2 * s.geometry->nos + iatom] <= pos[2]) {
 									spins[dim*s.nos + iatom] = v[dim];
 								}
 							}
@@ -171,13 +171,13 @@ namespace Utility
 			int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
 			double distance, phi_i, theta_i;
 			for (iatom = 0; iatom < s.nos; ++iatom) {
-				distance = std::sqrt(std::pow(s.geometry->spin_pos[0][iatom] - pos[0], 2) + std::pow(s.geometry->spin_pos[1][iatom] - pos[1], 2));
+				distance = std::sqrt(std::pow(s.geometry->spin_pos[0 * s.geometry->nos + iatom] - pos[0], 2) + std::pow(s.geometry->spin_pos[1 * s.geometry->nos + iatom] - pos[1], 2));
 				distance = distance / r_new;
 				if (distance >= 0.0 && distance * r_new <= r) {
-					double x = (s.geometry->spin_pos[0][iatom] - pos[0]) / distance / r_new;
+					double x = (s.geometry->spin_pos[0*s.geometry->nos+iatom] - pos[0]) / distance / r_new;
 					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
 					if (distance == 0) { phi_i = 0; }
-					if (s.geometry->spin_pos[1][iatom] - pos[1] < 0.0) { phi_i = - phi_i ; }
+					if (s.geometry->spin_pos[1 * s.geometry->nos+iatom] - pos[1] < 0.0) { phi_i = - phi_i ; }
 					phi_i += phase / 180 * M_PI;
 					if(experimental){ theta_i = M_PI - 4 * std::asin(std::tanh(distance)); }
 					else{ theta_i = M_PI - M_PI *distance; }
@@ -302,9 +302,9 @@ namespace Utility
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
 					// Phase is scalar product of spin position and q
-					phase = (s.geometry->spin_pos[0][iatom] * q[0])
-						+ (s.geometry->spin_pos[1][iatom] * q[1])
-						+ (s.geometry->spin_pos[2][iatom] * q[2]);
+					phase = (s.geometry->spin_pos[0*s.geometry->nos+iatom] * q[0])
+						+ (s.geometry->spin_pos[1* s.geometry->nos+iatom] * q[1])
+						+ (s.geometry->spin_pos[2* s.geometry->nos+iatom] * q[2]);
 					//phase = phase / 180.0 * M_PI;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically

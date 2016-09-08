@@ -80,7 +80,7 @@ namespace Utility
 			}
 		};// end Build_Spins
 
-		void Build_Spins(std::vector<std::vector<double>> &spin_pos, std::vector<std::vector<double>> & basis_atoms, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_cells, const int nos_basic)
+		void Build_Spins(std::vector<double> &spin_pos, std::vector<std::vector<double>> & basis_atoms, std::vector<std::vector<double>> &translation_vectors, std::vector<int> &n_cells, const int nos_basic)
 		{
 			double a[3] = { translation_vectors[0][0], translation_vectors[1][0], translation_vectors[2][0] };
 			double b[3] = { translation_vectors[0][1], translation_vectors[1][1], translation_vectors[2][1] };
@@ -99,7 +99,7 @@ namespace Utility
 								// paste initial spin orientations across the lattice translations
 								//spins[dim*nos + pos] = spins[dim*nos + s];
 								// calculate the spin positions
-								spin_pos[dim][pos] = basis_atoms[dim][s] + build_array[dim];
+								spin_pos[dim*nos+pos] = basis_atoms[dim][s] + build_array[dim];
 							}// endfor dim
 						}// endfor s
 					}// endfor k
@@ -109,9 +109,9 @@ namespace Utility
 			 // Check for erronous input placing two spins on the same location
 			for (i = 0; i < pos; ++i) {
 				for (j = i + 1; j < pos; ++j) {
-					if (std::abs(spin_pos[0][i] - spin_pos[0][j]) < 1.0E-6) {
-						if (std::abs(spin_pos[1][i] - spin_pos[1][j]) < 1.0E-6) {
-							if (std::abs(spin_pos[2][i] - spin_pos[2][j]) < 1.0E-6) {
+					if (std::abs(spin_pos[0*nos+i] - spin_pos[0*nos+j]) < 1.0E-6) {
+						if (std::abs(spin_pos[1*nos+i] - spin_pos[1*nos+j]) < 1.0E-6) {
+							if (std::abs(spin_pos[2*nos+i] - spin_pos[2*nos+j]) < 1.0E-6) {
 								Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
 								throw Exception::System_not_Initialized;
 							}

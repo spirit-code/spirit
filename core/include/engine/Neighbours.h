@@ -35,13 +35,13 @@ namespace Engine
 			const int &max_n_4spin, std::vector<int> &n_4spin, std::vector<std::vector<std::vector<int>>> &neigh_4spin);
 
 		// calculates the Bulk DMI vectors
-		void Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<std::vector<double>> &spin_pos, const int number_b_vectors,
+		void Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<double> &spin_pos, const int number_b_vectors,
 			const std::vector<std::vector<double>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 			const int max_ndm, std::vector<std::vector<std::vector<double>>> &dm_normal);
 
 		// calculates the surface DMI vectors
-		void Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<std::vector<double>> &spin_pos, const int number_b_vectors,
+		void Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<double> &spin_pos, const int number_b_vectors,
 			const std::vector<std::vector<double>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 			const int max_ndm, std::vector<std::vector<std::vector<double>>> &dm_normal);
@@ -52,7 +52,7 @@ namespace Engine
 
 		// calculates the segments
 		void Create_Segments(const Data::Geometry & geometry, int n_shells, const int nos,
-			const std::vector<std::vector<double>> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell, 
+			const std::vector<double> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell, 
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<double>>>> & neigh_pos,
 			std::vector<std::vector<int>> &segments, std::vector<std::vector<std::vector<double>>> &segments_pos);
 
