@@ -24,6 +24,7 @@ public:
     PlotWidget * energyPlot;
 
 private slots:
+	void updatePlots();
 	void RefreshClicked();
 	void ChangeInterpolationClicked();
 
