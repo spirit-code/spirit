@@ -4,11 +4,11 @@
 
 #include <memory>
 
-#include <QWidget>
+#include <QtCharts/QChartView>
 
 struct State;
 
-class PlotWidget : public QWidget	// We need a proper 2D plotting solution!!
+class PlotWidget : public QtCharts::QChartView	// We need a proper 2D plotting solution!!
 {
 
 public:
