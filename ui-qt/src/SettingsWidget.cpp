@@ -210,16 +210,16 @@ void SettingsWidget::Load_Parameters_Contents()
 	this->lineEdit_Damping->setText(QString::number(d));
 	// Converto to PicoSeconds
 	Parameters_Get_LLG_Time_Step(state.get(), &d);
-	this->lineEdit_dt->setText(QString::number(d /std::pow(10, -12) * Utility::Vectormath::MuB()/1.760859644/std::pow(10, 11)));
+	this->lineEdit_dt->setText(QString::number(d));
 	// LLG Iteration Params
 	i = Parameters_Get_LLG_N_Iterations(state.get());
 	this->lineEdit_llg_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_LLG_Log_Steps(state.get());
+	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
 	this->lineEdit_llg_log_steps->setText(QString::number(i));
 	// GNEB Interation Params
 	i = Parameters_Get_GNEB_N_Iterations(state.get());
 	this->lineEdit_gneb_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_GNEB_Log_Steps(state.get());
+	i = Parameters_Get_GNEB_N_Iterations_Log(state.get());
 	this->lineEdit_gneb_log_steps->setText(QString::number(i));
 
 	// GNEB Spring Constant
@@ -252,7 +252,7 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 
 	// External magnetic field
 	Hamiltonian_Get_Field(state.get(), &d, vd);
-	this->lineEdit_extH->setText(QString::number(d / Utility::Vectormath::MuB() / mu_s));
+	this->lineEdit_extH->setText(QString::number(d));
 	this->lineEdit_extHx->setText(QString::number(vd[0]));
 	this->lineEdit_extHy->setText(QString::number(vd[1]));
 	this->lineEdit_extHz->setText(QString::number(vd[2]));
@@ -344,7 +344,7 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 	// External magnetic field
 	Hamiltonian_Get_Field(state.get(), &d, vd);
-	this->lineEdit_extH_aniso->setText(QString::number(d / Utility::Vectormath::MuB() / mu_s));
+	this->lineEdit_extH_aniso->setText(QString::number(d));
 	this->lineEdit_extHx_aniso->setText(QString::number(vd[0]));
 	this->lineEdit_extHy_aniso->setText(QString::number(vd[1]));
 	this->lineEdit_extHz_aniso->setText(QString::number(vd[2]));
@@ -535,7 +535,7 @@ void SettingsWidget::set_parameters()
 
 		// Time step [ps]
 		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-		d = this->lineEdit_dt->text().toDouble()*std::pow(10,-12)/Utility::Vectormath::MuB()*1.760859644*std::pow(10,11);
+		d = this->lineEdit_dt->text().toDouble();
 		Parameters_Set_LLG_Time_Step(state.get(), d, idx_image, idx_chain);
 		
 		// Damping
@@ -548,9 +548,9 @@ void SettingsWidget::set_parameters()
 		Parameters_Set_GNEB_N_Iterations(state.get(), i);
 		// log steps
 		i = this->lineEdit_llg_log_steps->text().toInt();
-		Parameters_Set_LLG_Log_Steps(state.get(), i);
+		Parameters_Set_LLG_N_Iterations_Log(state.get(), i);
 		i = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_Log_Steps(state.get(), i);
+		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
 		// Spring Constant
 		d = this->lineEdit_gneb_springconstant->text().toDouble();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
@@ -606,7 +606,7 @@ void SettingsWidget::set_hamiltonian_iso()
 		// External magnetic field
 		//		magnitude
 		if (this->checkBox_extH->isChecked())
-			d = this->lineEdit_extH->text().toDouble() * mu_s * Utility::Vectormath::MuB();
+			d = this->lineEdit_extH->text().toDouble();
 		else d = 0.0;
 		//		normal
 		vd[0] = lineEdit_extHx->text().toDouble();
@@ -743,23 +743,83 @@ void SettingsWidget::set_hamiltonian_iso()
 	}
 }
 
-void SettingsWidget::set_hamiltonian_aniso()
+void SettingsWidget::set_hamiltonian_aniso_bc()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3];
-
 		// Boundary conditions
 		bool boundary_conditions[3];
 		boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
 		boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
 		boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
 		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image, idx_chain);
+	};
+	
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
+}
+
+void SettingsWidget::set_hamiltonian_aniso_mu_s()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		float d;
 
 		// mu_s
 		float mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
+	};
+	
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
+}
+
+void SettingsWidget::set_hamiltonian_aniso_field()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		float d, vd[3];
 
 		// External magnetic field
 		//		magnitude
@@ -785,7 +845,38 @@ void SettingsWidget::set_hamiltonian_aniso()
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Field(state.get(), d, vd, idx_image, idx_chain);
-		
+	};
+	
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
+}
+
+void SettingsWidget::set_hamiltonian_aniso_ani()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		float d, vd[3];
+
 		// Anisotropy
 		//		magnitude
 		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toDouble();
@@ -810,6 +901,37 @@ void SettingsWidget::set_hamiltonian_aniso()
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
+	};
+	
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
+}
+
+void SettingsWidget::set_hamiltonian_aniso_stt()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		float d, vd[3];
 
 		// TODO: Make these anisotropic for Anisotropic Hamiltonian
 		//		 or move them to Parameters...
@@ -836,15 +958,8 @@ void SettingsWidget::set_hamiltonian_aniso()
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
-
-		// Temperature
-		if (this->checkBox_T_aniso->isChecked())
-			d = this->lineEdit_T_aniso->text().toDouble();
-		else
-			d = 0.0;
-		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
 	};
-
+	
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
@@ -867,6 +982,44 @@ void SettingsWidget::set_hamiltonian_aniso()
 		}
 	}
 }
+
+void SettingsWidget::set_hamiltonian_aniso_temp()
+{
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		float d = 0.0;
+
+		// Temperature
+		if (this->checkBox_T_aniso->isChecked())
+			d = this->lineEdit_T_aniso->text().toDouble();
+		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
+	};
+	
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
+}
+
+
 
 void SettingsWidget::set_visualization()
 {
@@ -1053,32 +1206,32 @@ void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 void SettingsWidget::Setup_Hamiltonian_Anisotropic_Slots()
 {
 	// Boundary Conditions
-	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
+	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
+	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
 	// mu_s
-	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_mu_s()));
 	// External Field
-	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_field()));
+	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
+	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
+	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
+	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
 	// Anisotropy
-	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_ani()));
+	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
+	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
+	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
+	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
 	// Spin polarised current
-	connect(this->checkBox_stt_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_stt_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_sttx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_stty_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_sttz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_stt_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_stt()));
+	connect(this->lineEdit_stt_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
+	connect(this->lineEdit_sttx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
+	connect(this->lineEdit_stty_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
+	connect(this->lineEdit_sttz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
 	// Temperature
-	connect(this->checkBox_T_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso()));
-	connect(this->lineEdit_T_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso()));
+	connect(this->checkBox_T_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_temp()));
+	connect(this->lineEdit_T_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_temp()));
 }
 
 void SettingsWidget::Setup_Parameters_Slots()

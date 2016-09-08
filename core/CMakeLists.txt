@@ -9,7 +9,6 @@ cmake_minimum_required(VERSION 2.8.11)
 ######### Project Name ######################
 project(MonoSpinCore)
 #############################################
- 
 
 ######### Have the binary placed into the source head
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -96,6 +95,8 @@ add_library( core STATIC
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
+	### We dont use dll_export directives, so on Windows we just export everything
+	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
@@ -110,8 +111,6 @@ if( BUILD_UI_PYTHON )
 		${SOURCE_CORE_UTILITY})
 	### We want it to be called core, not pycore
 	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
-	### We dont use dll_export directives, so on Windows we just export everything
-	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 	### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
 	set( PYLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-python/core/ )
     set_target_properties( pycore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
@@ -150,8 +149,8 @@ set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
 
 ######### Header and Source messages ########
 if ( PRINT_SOURCES )
-	MESSAGE( STATUS ">> Headers:                    " ${HEADER_CORE_ROOT} ${HEADER_CORE_DATA} ${HEADER_CORE_ENGINE} ${HEADER_CORE_INTERFACE} ${HEADER_CORE_UTILITY} )
-	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_CORE_ROOT} ${SOURCE_CORE_DATA} ${SOURCE_CORE_ENGINE} ${SOURCE_CORE_INTERFACE} ${SOURCE_CORE_UTILITY} )
+	MESSAGE( STATUS ">> Headers:                    ${HEADER_CORE_ROOT} ${HEADER_CORE_DATA} ${HEADER_CORE_ENGINE} ${HEADER_CORE_INTERFACE} ${HEADER_CORE_UTILITY}" )
+	MESSAGE( STATUS ">> Sources:                    ${SOURCE_CORE_ROOT} ${SOURCE_CORE_DATA} ${SOURCE_CORE_ENGINE} ${SOURCE_CORE_INTERFACE} ${SOURCE_CORE_UTILITY}" )
 endif ()
 #############################################
 

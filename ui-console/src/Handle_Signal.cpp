@@ -6,6 +6,8 @@
 // TODO: Replace this
 #include "Timing.h"
 
+#include <memory>
+
 struct State;
 std::shared_ptr<State> extern state;
 
@@ -26,15 +28,15 @@ namespace Utility
 
             if ( Timing::SecondsPassed(t_last_sigint, t_now) < 2.0 )
             {
-                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Received second time in less than 2s.");
-                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "                 Terminating Program.");
+                Log_Send(state.get(), Log_Level::All, Log_Sender::All, "SIGINT received! Received second time in less than 2s.");
+                Log_Send(state.get(), Log_Level::All, Log_Sender::All, "                 Terminating Program.");
                 Log_Append(state.get());
                 exit(0);
             }
             else
             {
-                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! All iteration_allowed are being set to false.");
-                Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "                 Press again in less than 2s to terminate the Program.");
+                Log_Send(state.get(), Log_Level::All, Log_Sender::All, "SIGINT received! All iteration_allowed are being set to false.");
+                Log_Send(state.get(), Log_Level::All, Log_Sender::All, "                 Press again in less than 2s to terminate the Program.");
                 Simulation_Stop_All(state.get());
             }
             Log_Append(state.get());
@@ -42,7 +44,7 @@ namespace Utility
         // No iterations started, exit the program
         else
         {
-            Log_Send(state.get(), Log_Level::ALL, Log_Sender::ALL, "SIGINT received! Calling exit(0).");
+            Log_Send(state.get(), Log_Level::All, Log_Sender::All, "SIGINT received! Calling exit(0).");
             Log_Append(state.get());
             exit(0);
         }

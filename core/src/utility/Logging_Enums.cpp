@@ -1,9 +1,14 @@
 #include "Logging_Enums.h"
 
 #include "Timing.h"
+#include "IO.h"
 
 std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
 {
+    // Format indices
+    auto s_chain = IO::int_to_formatted_string(entry.idx_chain, 2);
+    auto s_image = IO::int_to_formatted_string(entry.idx_image, 2);
+
     // Time
     std::string t = Timing::TimePointToString_Pretty(entry.time);
     std::string result = "";
@@ -13,7 +18,7 @@ std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
     else result.append("   ");
     if      (entry.level == Log_Level::All)    	result.append("  ALL  ");
     else if (entry.level == Log_Level::Severe) 	result.append("SEVERE ");
-    else if (entry.level == Log_Level::Error)	result.append(" L_ERROR ");
+    else if (entry.level == Log_Level::Error)	result.append(" ERROR ");
     else if (entry.level == Log_Level::Warning)	result.append("WARNING");
     else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
     else if (entry.level == Log_Level::Info)    	result.append(" INFO  ");
@@ -31,12 +36,12 @@ std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
     // Chain Index
     if (braces_separators) result.append("] [");
     else result.append("  ");
-    if (entry.idx_chain >= 0) result.append(std::to_string(entry.idx_chain));
+    if (entry.idx_chain >= 0) result.append(s_chain);
     else result.append("--");
     // Image Index
     if (braces_separators) result.append("] [");
     else result.append("  ");
-    if (entry.idx_image >= 0) result.append(std::to_string(entry.idx_image));
+    if (entry.idx_image >= 0) result.append(s_image);
     else result.append("--");
     if (braces_separators) result.append("]  ");
     else result.append("   ");

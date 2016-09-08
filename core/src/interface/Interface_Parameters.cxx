@@ -1,5 +1,6 @@
 #include "Interface_Parameters.h"
 #include "Interface_State.h"
+#include "Vectormath.h"
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
@@ -13,7 +14,8 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    p->dt = dt;
+    // Translate from picoseconds to units of our SIB
+    p->dt = dt*std::pow(10,-12)/Utility::Vectormath::MuB()*1.760859644*std::pow(10,11);
 }
 
 void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain)
@@ -35,13 +37,13 @@ void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int idx_ima
     image->llg_parameters->n_iterations = n_iterations;
 }
 
-void Parameters_Set_LLG_Log_Steps(State *state, int log_steps, int idx_image, int idx_chain)
+void Parameters_Set_LLG_N_Iterations_Log(State *state, int n_iterations_log, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    image->llg_parameters->log_steps = log_steps;
+    image->llg_parameters->n_iterations_log = n_iterations_log;
 }
 
 // Set GNEB
@@ -74,13 +76,13 @@ void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int idx_im
     chain->gneb_parameters->n_iterations = n_iterations;
 }
 
-void Parameters_Set_GNEB_Log_Steps(State *state, int log_steps, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_N_Iterations_Log(State *state, int n_iterations_log, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    chain->gneb_parameters->log_steps = log_steps;
+    chain->gneb_parameters->n_iterations_log = n_iterations_log;
 }
 
 /*------------------------------------------------------------------------------------------------------ */
@@ -95,7 +97,7 @@ void Parameters_Get_LLG_Time_Step(State *state, float * dt, int idx_image, int i
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    *dt = (float)p->dt;
+    *dt = (float)(p->dt/std::pow(10, -12)*Utility::Vectormath::MuB()/1.760859644/std::pow(10, 11));
 
 }
 
@@ -119,14 +121,14 @@ int Parameters_Get_LLG_N_Iterations(State *state, int idx_image, int idx_chain)
     return p->n_iterations;
 }
 
-int Parameters_Get_LLG_Log_Steps(State *state, int idx_image, int idx_chain)
+int Parameters_Get_LLG_N_Iterations_Log(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    return p->log_steps;
+    return p->n_iterations_log;
 }
 
 // Get GNEB
@@ -160,12 +162,12 @@ int Parameters_Get_GNEB_N_Iterations(State *state, int idx_image, int idx_chain)
     return p->n_iterations;
 }
 
-int Parameters_Get_GNEB_Log_Steps(State *state, int idx_image, int idx_chain)
+int Parameters_Get_GNEB_N_Iterations_Log(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = chain->gneb_parameters;
-    return p->log_steps;
+    return p->n_iterations_log;
 }

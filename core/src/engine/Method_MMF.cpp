@@ -9,8 +9,8 @@
 
 namespace Engine
 {
-    Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_img, int idx_chain) :
-        Method(collection->parameters, idx_img, idx_chain), collection(collection)
+    Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain) :
+        Method(collection->parameters, -1, idx_chain), collection(collection)
     {
 		int noc = collection->noc;
 		int nos = collection->chains[0]->images[0]->nos;
@@ -63,7 +63,7 @@ namespace Engine
 			// Get the lowest Eigenvector
 			//		Create a Spectra solver
 			Spectra::DenseSymMatProd<double> op(e_hessian);
-			Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > hessian_spectrum(&op, 1, 5);
+			Spectra::SymEigsSolver< double, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<double> > hessian_spectrum(&op, 1, 2);
 			hessian_spectrum.init();
 			//		Compute the specified spectrum
 			int nconv = hessian_spectrum.compute();

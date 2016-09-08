@@ -46,7 +46,7 @@ public:
     OTHER
   };
   
-  GLSpins();
+  GLSpins(std::vector<int> n_cells, bool threeD=false);
   ~GLSpins();
   void draw();
 

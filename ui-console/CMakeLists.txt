@@ -80,8 +80,8 @@ endif()
 
 ######### Header and Source messages ########
 if ( PRINT_SOURCES )
-	MESSAGE( STATUS ">> Headers:                    " ${HEADER_UI_CONSOLE_ROOT} )
-	MESSAGE( STATUS ">> Sources:                    " ${SOURCE_UI_CONSOLE_ROOT} )
+	MESSAGE( STATUS ">> Headers:                    ${HEADER_UI_CONSOLE_ROOT}" )
+	MESSAGE( STATUS ">> Sources:                    ${SOURCE_UI_CONSOLE_ROOT}" )
 endif ()
 #############################################
 

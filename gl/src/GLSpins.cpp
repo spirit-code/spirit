@@ -29,7 +29,7 @@
 	#define M_PI 3.14159265358979323846
 #endif // !M_PI
 
-GLSpins::GLSpins() {
+GLSpins::GLSpins(std::vector<int> n_cells, bool threeD) {
   if (!gladLoadGL()) {
     std::cerr << "Failed to initialize glad" << std::endl;
   }
@@ -46,7 +46,15 @@ GLSpins::GLSpins() {
   
   Options<GLSpins> options;
   options.set<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>(getColormapImplementation("hsv"));
-  options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(30, 30));
+  
+  if (threeD)
+  {
+    //ToDo
+  }
+  else
+  {
+    options.set<SurfaceSpinRendererOptions::SURFACE_INDICES>(SurfaceSpinRenderer::generateCartesianSurfaceIndices(n_cells[0], n_cells[1]));
+  }
   updateOptions(options);
   
   updateRenderers();

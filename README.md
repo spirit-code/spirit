@@ -2,9 +2,14 @@ MonoSpin
 ========
 **Modular Numerical Optimizations Spin Code**<br />
 The code is released under [MIT License](../master/LICENSE.txt).<br />
+If you intend to *present and/or publish* scientific results for which you used MonoSpin,
+please read the [REFERENCE.md](../master/REFERENCE.md)
+
+For contributions and affiliations, see [CONTRIBUTIONS.md](../master/CONTRIBUTIONS.md)
+
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/MonoSpin
 
-The Web interface is hosted by the PGI-1 institute at the Research Centre Jülich:
+Please note that the MonoSpin Web interface is hosted at the Research Centre Jülich:
 http://iffwww.iff.kfa-juelich.de/pub/monospindemo/
 
 <!--
@@ -18,6 +23,7 @@ Contents
 3. [Branches](#Branches)
 4. [Code Dependencies](#Dependencies)
 5. [Installation Instructions](#Installation)
+5. [Contributing](#Contributing)
 
 
 &nbsp;
@@ -84,9 +90,12 @@ The develop branch contains the latest updates, but is generally less consistent
 Code Dependencies <a name="Dependencies"></a>
 ---------------------------------------------
 
-The Core does not have dependencies, except for C++11.
-Due to the modular CMake Project structure, when building only a specific UI,
-one does not need any libraries on which other projects depend.
+The core library does not have dependencies, except for C++11.
+Due to the modular CMake Project structure, when building only a specific library or UI,
+one does thus not need any libraries on which other projects may depend.
+Most *external* dependencies are included in the thirdparty folder. 
+
+The following lists all *external* dependencies which are not included: 
 
 ### Core
 * gcc >= 4.8.1 (C++11 stdlib)
@@ -94,15 +103,8 @@ one does not need any libraries on which other projects depend.
 
 ### GL
 * OpenGL Drivers >= 3.3
-* GLAD (pre-built)
-* (GR? -- maybe later)
 
 Necessary OpenGL drivers *should* be available through the regular drivers for any remotely modern graphics card.
-To build GLAD, use the following:
-
-	cd lib/glad
-	cmake .
-	make
 
 ### UI-QT
 * QT >= 5.5
@@ -110,6 +112,12 @@ To build GLAD, use the following:
 In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
 
 Note that building QT can be a big pain, but usually it should work if you simply use their installers.
+
+### UI-Python
+* Python
+
+We have not tested how far backwards the Python UI is compatible.
+It should not matter if you use Python 2 or 3.
 
 ### UI-Web
 * emscripten
@@ -138,6 +146,7 @@ The **Options** you can set under *### Build Flags ###* are:
 * UI_CXX_USE_QT - build qt user interface instead of console version
 * OSX_BUNDLE_APP - not yet functional
 * PRINT_SOURCES - print all source files (for debugging)
+* USER_PATHS_IFF - use default IFF (FZJ) cluster paths
 
 The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
 * USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
@@ -175,3 +184,30 @@ When on pure **Windows** (no MSys etc), instead of using `make` or `./make.sh`,
 you need to open the generated Solution in Visual Studio and build it there.
 The execution folder should be 'build' and file paths at runtime will be
 relative to this folder.
+
+----------------------------------------
+
+&nbsp;
+   
+
+Contributing <a name="Contributing"></a>
+-----------------------------------------
+
+1. Fork this repository
+2. Check out the develop branch: `git checkout develop`
+3. Create your feature branch: `git checkout -b feature-something`
+4. Commit your changes: `git commit -am 'Add some feature'`
+5. Push to the branch: `git push origin feature-something`
+6. Submit a pull request
+
+Please keep your pull requests feature-specific and limit yourself
+to one feature per feature branch.
+Remember to pull updates from this repository before opening a new
+feature branch.
+
+If you are unsure where to add you feature into the code, please
+do not hesitate to contact us.
+
+There is no strict coding guideline, but please try to match your
+code style to the code you edited or to the style in the respective
+module.

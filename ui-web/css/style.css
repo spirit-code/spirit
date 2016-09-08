@@ -148,3 +148,6 @@ body, body > div{
     height:100vh;
   }
 }
+span.input-group-addon {
+  width:53px;
+}

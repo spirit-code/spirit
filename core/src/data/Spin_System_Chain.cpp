@@ -3,7 +3,7 @@
 
 namespace Data
 {
-	Spin_System_Chain::Spin_System_Chain(std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_GNEB> gneb_parameters, bool iteration_allowed) :
+	Spin_System_Chain::Spin_System_Chain(std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters, bool iteration_allowed) :
 		gneb_parameters(gneb_parameters)
 	{
 		this->noi = images.size();

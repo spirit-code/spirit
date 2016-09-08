@@ -5,26 +5,16 @@ cmake_minimum_required(VERSION 2.8.11)
 
 ######### Build Flags #######################
 ### These decide which projects are built
-option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."              OFF  )
-option( BUILD_UI_PYTHON "Build the shared library for the Python UI."               OFF )
-option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                         ON )
-option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."   ON  )
+option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."                 OFF  )
+option( BUILD_UI_PYTHON "Build the shared library for the Python UI."                  OFF )
+option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                            ON )
+option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
-option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."  OFF )
+option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."     OFF )
 ### CMake Verbosity
-option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                     OFF )
+option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster."              OFF  )
-#############################################
-
-
-######### User Paths ########################
-### Set these if you do not want cmake to choose your compiler
-# set( USER_COMPILER_C    "gcc" )
-# set( USER_COMPILER_CXX  "g++" )
-# set( USER_PATH_COMPILER "/usr/bin" )
-### Set this if you need cmake to find your QT installation
-# set( USER_PATH_QT       "~/QT/5.7" )
+option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster." OFF )
 #############################################
 
 
@@ -34,6 +24,17 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ### Set thirdparty include dirs
 set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include)
 set( GLM_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
+#############################################
+
+
+######### User Paths ########################
+include(PathsIFF)
+### Set these if you do not want cmake to choose your compiler
+# set( USER_COMPILER_C    "gcc" )
+# set( USER_COMPILER_CXX  "g++" )
+# set( USER_PATH_COMPILER "/usr/bin" )
+### Set this if you need cmake to find your QT installation
+# set( USER_PATH_QT       "~/QT/5.7" )
 #############################################
 
 
@@ -51,7 +52,7 @@ set(META_AUTHOR_ORGANIZATION  "")
 set(META_AUTHOR_DOMAIN        "https://github.com/PGI-1/monospin")
 set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "0")
+set(META_VERSION_MINOR        "1")
 set(META_VERSION_PATCH        "0")
 set(META_VERSION_REVISION     "${GIT_REV}")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")

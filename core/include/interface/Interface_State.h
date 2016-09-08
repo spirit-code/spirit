@@ -39,6 +39,10 @@ struct State
 //    Create the State and fill it with initial data
 extern "C" State * State_Setup(const char * config_file = "");
 
+// State_Update
+//    Update the state to hold current values
+void State_Update(State * state);
+
 // TODO: move this away somewhere?
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain);
 

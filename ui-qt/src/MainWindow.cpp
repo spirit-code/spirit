@@ -219,7 +219,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			if (idx > 0) this->previousImagePressed();
 			//else this->nextImagePressed();
 
-			Chain_Delete_Image(state.get(), idx);
+			if (Chain_Delete_Image(state.get(), idx)) 
+			{
+				// Make the llg_threads vector smaller
+				this->threads_llg.erase(threads_llg.begin() + idx);
+			}
 		}
 	}
 	else if (k->matches(QKeySequence::Paste))
@@ -250,6 +254,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	// Custom Key Sequences
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
+		int idx = System_Get_Index(state.get());
 		switch (k->key())
 		{
 			// CTRL+Left - Paste image to left of current image
@@ -258,6 +263,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				Chain_Insert_Image_Before(state.get());
 				// Update the chain's data (primarily for the plot)
 				Chain_Update_Data(state.get());
+				// Make the llg_threads vector larger
+				this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
 				// Switch to the inserted image
 				//this->previousImagePressed();
 				break;
@@ -268,6 +275,8 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				Chain_Insert_Image_After(state.get());
 				// Update the chain's data (primarily for the plot)
 				Chain_Update_Data(state.get());
+				// Make the llg_threads vector larger
+				this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
 				// Switch to the inserted image
 				this->nextImagePressed();
 				break;
@@ -363,7 +372,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				int idx = System_Get_Index(state.get());
 				if (idx > 0) this->previousImagePressed();
 				//else this->nextImagePressed();
-				Chain_Delete_Image(state.get(), idx);
+				if (Chain_Delete_Image(state.get(), idx)) 
+				{
+					// Make the llg_threads vector smaller
+					this->threads_llg.erase(threads_llg.begin() + idx);
+				}
 
 				Log_Send(state.get(), Log_Level::Info, Log_Sender::UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
 			}
@@ -429,7 +442,8 @@ void MainWindow::playpausePressed()
 		// Not running, so we start it
 		if (this->comboBox_Method->currentText() == "LLG")
 		{
-			if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			int idx = System_Get_Index(state.get());
+			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
 			this->threads_llg[System_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}

@@ -47,7 +47,13 @@ private slots:
 	void set_parameters();
 	// Configurations
 	void set_hamiltonian_iso();
-	void set_hamiltonian_aniso();
+	// void set_hamiltonian_aniso();
+	void set_hamiltonian_aniso_bc();
+	void set_hamiltonian_aniso_mu_s();
+	void set_hamiltonian_aniso_field();
+	void set_hamiltonian_aniso_ani();
+	void set_hamiltonian_aniso_stt();
+	void set_hamiltonian_aniso_temp();
 	// Visualization
 	void set_visualization();
 	// Configurations

@@ -9,8 +9,8 @@
 #include "engine/Hamiltonian.h"
 #include "engine/Hamiltonian_Isotropic.h"
 #include "engine/Hamiltonian_Anisotropic.h"
-#include "data/Parameters_LLG.h"
-#include "data/Parameters_GNEB.h"
+#include "data/Parameters_Method_LLG.h"
+#include "data/Parameters_Method_GNEB.h"
 
 namespace Data
 {
@@ -22,7 +22,7 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::unique_ptr<Geometry> geometry, std::unique_ptr<Parameters_LLG> llg_params, bool iteration_allowed);
+		Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::unique_ptr<Geometry> geometry, std::unique_ptr<Parameters_Method_LLG> llg_params, bool iteration_allowed);
 		// Copy Constructor
 		Spin_System(Spin_System const & other);
 		// Assignment operator
@@ -42,7 +42,7 @@ namespace Data
 		// Geometric Information
 		std::shared_ptr<Geometry> geometry;
 		// Parameters for LLG Iterations (MC, SIB, ...)
-		std::shared_ptr<Parameters_LLG> llg_parameters;
+		std::shared_ptr<Parameters_Method_LLG> llg_parameters;
 		// Is it allowed to iterate on this system?
 		bool iteration_allowed;
 

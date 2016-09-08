@@ -3,7 +3,7 @@
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
 #include "Spin_System.h"
-#include "Parameters_GNEB.h"
+#include "Parameters_Method_GNEB.h"
 
 namespace Data
 {
@@ -11,14 +11,14 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Spin_System_Chain(std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_GNEB> gneb_parameters, bool iteration_allowed = false);
+		Spin_System_Chain(std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters, bool iteration_allowed = false);
 
 		int noi;	// Number of Images
 		std::vector<std::shared_ptr<Spin_System>> images;
 		int idx_active_image;
 
 		// Parameters for GNEB Iterations
-		std::shared_ptr<Data::Parameters_GNEB> gneb_parameters;
+		std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters;
 
 		// Are we allowed to iterate on this chain?
 		bool iteration_allowed;

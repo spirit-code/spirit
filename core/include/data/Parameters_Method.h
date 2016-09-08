@@ -10,18 +10,19 @@ namespace Data
 	class Parameters_Method
 	{
 	public:
-		// number of iterations carried out when pressing "play" or calling "iterate"
-		int n_iterations;
-		// after "log_steps"-iterations the current system is logged to file
-		int log_steps;
+		// Constructor
+		Parameters_Method(std::string output_folder, double force_convergence, long int n_iterations, long int n_iterations_log);
 
-		// Renormalise after each iteration? -- maybe let the optimizer decide when to renormalize?
-		//bool renorm = false;
 		// Data output folder
 		std::string output_folder;
 
 		// Force convergence criterium
 		double force_convergence;
+
+		// Number of iterations carried out when pressing "play" or calling "iterate"
+		long int n_iterations;
+		// Number of iterations after which the Method should save data
+		long int n_iterations_log;
 	};
 }
 #endif

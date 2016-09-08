@@ -148,8 +148,8 @@ set(SOURCE_GL_ROOT  ${SOURCE_GL_ROOT} PARENT_SCOPE)
 
 ######### Header and Source messages ########
 if ( PRINT_SOURCES )
-    MESSAGE( STATUS ">> Headers:                    " ${HEADER_GL_ROOT} )
-    MESSAGE( STATUS ">> Sources:                    " ${SOURCE_GL_ROOT} )
+    MESSAGE( STATUS ">> Headers:                    ${HEADER_GL_ROOT}" )
+    MESSAGE( STATUS ">> Sources:                    ${SOURCE_GL_ROOT}" )
 endif ()
 #############################################
 
