@@ -55,8 +55,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>913</height>
+            <width>816</width>
+            <height>911</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1100,8 +1100,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>913</height>
+            <width>816</width>
+            <height>911</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1367,8 +1367,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>853</height>
+            <width>816</width>
+            <height>857</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2018,8 +2018,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>853</height>
+            <width>816</width>
+            <height>857</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2472,8 +2472,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>913</height>
+            <width>816</width>
+            <height>911</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2872,8 +2872,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>812</width>
-            <height>913</height>
+            <width>816</width>
+            <height>911</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3483,23 +3483,50 @@
   <tabstop>pushButton_Random</tabstop>
   <tabstop>pushButton_plusZ</tabstop>
   <tabstop>pushButton_minusZ</tabstop>
+  <tabstop>checkBox_Configuration_Noise</tabstop>
+  <tabstop>lineEdit_Configuration_Noise</tabstop>
   <tabstop>pushButton_skyrmion</tabstop>
-  <tabstop>lineEdit_sky_order</tabstop>
-  <tabstop>checkBox_sky_UpDown</tabstop>
-  <tabstop>checkBox_sky_RL</tabstop>
   <tabstop>lineEdit_sky_posx</tabstop>
   <tabstop>lineEdit_sky_posy</tabstop>
   <tabstop>lineEdit_sky_posz</tabstop>
+  <tabstop>lineEdit_sky_rad</tabstop>
+  <tabstop>lineEdit_sky_order</tabstop>
+  <tabstop>lineEdit_sky_phase</tabstop>
+  <tabstop>checkBox_sky_UpDown</tabstop>
+  <tabstop>checkBox_sky_RL</tabstop>
+  <tabstop>checkBox_sky_Achiral</tabstop>
+  <tabstop>checkBox_sky_experimental</tabstop>
   <tabstop>pushButton_SS</tabstop>
+  <tabstop>lineEdit_SS_period</tabstop>
   <tabstop>lineEdit_SS_dir_x</tabstop>
   <tabstop>lineEdit_SS_dir_y</tabstop>
   <tabstop>lineEdit_SS_dir_z</tabstop>
-  <tabstop>lineEdit_SS_period</tabstop>
+  <tabstop>lineEdit_SS_axis_x</tabstop>
   <tabstop>lineEdit_SS_axis_y</tabstop>
   <tabstop>lineEdit_SS_axis_z</tabstop>
+  <tabstop>comboBox_SS</tabstop>
   <tabstop>pushButton_DomainWall</tabstop>
+  <tabstop>lineEdit_vx</tabstop>
+  <tabstop>lineEdit_vy</tabstop>
+  <tabstop>lineEdit_vz</tabstop>
+  <tabstop>lineEdit_posx</tabstop>
   <tabstop>lineEdit_posy</tabstop>
   <tabstop>lineEdit_posz</tabstop>
+  <tabstop>radioButton_DW_greater</tabstop>
+  <tabstop>radioButton_DW_lesser</tabstop>
+  <tabstop>scrollArea_3</tabstop>
+  <tabstop>scrollArea_4</tabstop>
+  <tabstop>pushButton_Transition_Homogeneous</tabstop>
+  <tabstop>checkBox_Transition_Noise</tabstop>
+  <tabstop>lineEdit_Transition_Noise</tabstop>
+  <tabstop>lineEdit_Transition_Homogeneous_First</tabstop>
+  <tabstop>lineEdit_Transition_Homogeneous_Last</tabstop>
+  <tabstop>scrollArea_6</tabstop>
+  <tabstop>tabWidget_Settings</tabstop>
+  <tabstop>comboBox_Hamiltonian_Iso_ApplyTo</tabstop>
+  <tabstop>checkBox_iso_periodical_a</tabstop>
+  <tabstop>checkBox_iso_periodical_b</tabstop>
+  <tabstop>checkBox_iso_periodical_c</tabstop>
   <tabstop>checkBox_extH</tabstop>
   <tabstop>lineEdit_extH</tabstop>
   <tabstop>lineEdit_muSpin</tabstop>
@@ -3530,23 +3557,59 @@
   <tabstop>lineEdit_fourspin</tabstop>
   <tabstop>checkBox_Temperature</tabstop>
   <tabstop>lineEdit_temper</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
+  <tabstop>checkBox_aniso_periodical_a</tabstop>
+  <tabstop>checkBox_aniso_periodical_b</tabstop>
+  <tabstop>checkBox_aniso_periodical_c</tabstop>
   <tabstop>checkBox_extH_aniso</tabstop>
   <tabstop>lineEdit_extH_aniso</tabstop>
   <tabstop>lineEdit_muSpin_aniso</tabstop>
   <tabstop>lineEdit_extHx_aniso</tabstop>
   <tabstop>lineEdit_extHy_aniso</tabstop>
   <tabstop>lineEdit_extHz_aniso</tabstop>
+  <tabstop>checkBox_ani_aniso</tabstop>
+  <tabstop>lineEdit_ani_aniso</tabstop>
+  <tabstop>lineEdit_anix_aniso</tabstop>
+  <tabstop>lineEdit_aniy_aniso</tabstop>
+  <tabstop>lineEdit_aniz_aniso</tabstop>
+  <tabstop>checkBox_stt_aniso</tabstop>
+  <tabstop>lineEdit_stt_aniso</tabstop>
+  <tabstop>lineEdit_sttx_aniso</tabstop>
+  <tabstop>lineEdit_stty_aniso</tabstop>
+  <tabstop>lineEdit_sttz_aniso</tabstop>
+  <tabstop>checkBox_T_aniso</tabstop>
+  <tabstop>lineEdit_T_aniso</tabstop>
+  <tabstop>scrollArea_5</tabstop>
+  <tabstop>comboBox_Parameters_ApplyTo</tabstop>
   <tabstop>lineEdit_Damping</tabstop>
+  <tabstop>lineEdit_dt</tabstop>
+  <tabstop>lineEdit_llg_n_iterations</tabstop>
+  <tabstop>lineEdit_llg_log_steps</tabstop>
   <tabstop>lineEdit_gneb_springconstant</tabstop>
+  <tabstop>radioButton_Normal</tabstop>
+  <tabstop>radioButton_ClimbingImage</tabstop>
+  <tabstop>radioButton_FallingImage</tabstop>
+  <tabstop>lineEdit_gneb_n_iterations</tabstop>
+  <tabstop>lineEdit_gneb_log_steps</tabstop>
+  <tabstop>scrollArea_2</tabstop>
   <tabstop>comboBox_VisualisationSource</tabstop>
+  <tabstop>comboBox_visualizationMode</tabstop>
+  <tabstop>checkBox_showBoundingBox</tabstop>
+  <tabstop>horizontalSlider_zRangeMin</tabstop>
+  <tabstop>horizontalSlider_zRangeMax</tabstop>
+  <tabstop>radioButton_perspectiveProjection</tabstop>
+  <tabstop>radioButton_orthographicProjection</tabstop>
+  <tabstop>horizontalSlider_spherePointSize</tabstop>
+  <tabstop>checkBox_showMiniView</tabstop>
+  <tabstop>comboBox_miniViewPosition</tabstop>
+  <tabstop>checkBox_showCoordinateSystem</tabstop>
+  <tabstop>comboBox_coordinateSystemPosition</tabstop>
+  <tabstop>comboBox_colormap</tabstop>
+  <tabstop>comboBox_backgroundColor</tabstop>
   <tabstop>horizontalSlider</tabstop>
   <tabstop>horizontalSlider_2</tabstop>
-  <tabstop>scrollArea_3</tabstop>
-  <tabstop>scrollArea</tabstop>
-  <tabstop>scrollArea_5</tabstop>
-  <tabstop>tabWidget_Settings</tabstop>
-  <tabstop>scrollArea_2</tabstop>
-  <tabstop>scrollArea_4</tabstop>
+  <tabstop>horizontalSlider_3</tabstop>
  </tabstops>
  <resources/>
  <connections/>
