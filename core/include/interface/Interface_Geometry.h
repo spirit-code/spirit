@@ -17,7 +17,7 @@ extern "C" void Geometry_Get_Basis_Vectors(State *state, float * a, float * b, f
 // extern "C" void Geometry_Get_Basis_Atoms(State *state, float ** atoms);
 
 // Get number of basis cells in the three translation directions
-extern "C" void Geometry_Get_N_Cells(State *state, int * na, int * nb, int * nc, int idx_image=-1, int idx_chain=-1);
+extern "C" void Geometry_Get_N_Cells(State *state, int * n_cells, int idx_image=-1, int idx_chain=-1);
 // Get translation vectors ta, tb, tc
 extern "C" void Geometry_Get_Translation_Vectors(State *state, float * ta, float * tb, float * tc, int idx_image=-1, int idx_chain=-1);
 

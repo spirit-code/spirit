@@ -328,8 +328,7 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 
 void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 {
-	float d, vd[3], mu_s, jij[5];
-	int n_neigh_shells;
+	float d, vd[3], mu_s;
 
 	// Boundary conditions
 	bool boundary_conditions[3];
@@ -529,7 +528,7 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		double d, vd[3];
+		double d;
 		bool climbing, falling;
 		int i;
 
@@ -784,8 +783,6 @@ void SettingsWidget::set_hamiltonian_aniso_mu_s()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d;
-
 		// mu_s
 		float mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);

@@ -11,9 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Interface_Geometry.h"
-// TODO: Replace this
-#include "Interface_State.h"
-/////
+#include "Interface_System.h"
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -24,7 +22,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 void SpinWidget::initializeGL() {
 	makeCurrent();
-	this->gl_spins = std::make_shared<GLSpins>(state->active_image->geometry->n_cells);
+  std::vector<int> n_cells(3);
+  Geometry_Get_N_Cells(state.get(), n_cells.data());
+	this->gl_spins = std::make_shared<GLSpins>(n_cells);
   _reset_camera = true;
 }
 
@@ -38,15 +38,23 @@ void SpinWidget::resizeGL(int width, int height) {
 }
 
 void SpinWidget::paintGL() {
-  // Update the pointer to our Data
-  auto s = state->active_image;
-  auto& spins = *s->spins;
-  int nos = s->geometry->nos;
+  // ToDo: Update the pointer to our Data instead of copying Data?
+  int nos = System_Get_NOS(state.get());
+  double *spins, *spin_pos;
+  if (true)
+  {
+    spins = System_Get_Spin_Directions(state.get());
+  }
+  else
+  {
+    spins = System_Get_Effective_Field(state.get());
+  }
+  spin_pos = Geometry_Get_Spin_Positions(state.get());
   
   std::vector<glm::vec3> positions(nos);
   for (int i = 0; i < nos; ++i)
   {
-    positions[i] = glm::vec3(s->geometry->spin_pos[0*nos+i], s->geometry->spin_pos[1*nos+i], s->geometry->spin_pos[2*nos+i]);
+    positions[i] = glm::vec3(spin_pos[0*nos+i], spin_pos[1*nos+i], spin_pos[2*nos+i]);
   }
   std::vector<glm::vec3> directions(nos);
   for (int i = 0; i < nos; ++i)

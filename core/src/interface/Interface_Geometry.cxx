@@ -62,16 +62,16 @@ extern "C" void Geometry_Get_Basis_Vectors(State *state, float * a, float * b, f
 // }
 
 // Get number of basis cells in the three translation directions
-extern "C" void Geometry_Get_N_Cells(State *state, int * na, int * nb, int * nc, int idx_image, int idx_chain)
+extern "C" void Geometry_Get_N_Cells(State *state, int * n_cells, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
     auto g = image->geometry;
-    *na = g->n_cells[0];
-    *nb = g->n_cells[1];
-    *nc = g->n_cells[2];
+    n_cells[0] = g->n_cells[0];
+	n_cells[1] = g->n_cells[1];
+	n_cells[2] = g->n_cells[2];
 }
 // Get translation vectors ta, tb, tc
 extern "C" void Geometry_Get_Translation_Vectors(State *state, float * ta, float * tb, float * tc, int idx_image, int idx_chain)
