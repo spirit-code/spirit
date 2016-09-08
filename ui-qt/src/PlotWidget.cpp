@@ -48,9 +48,10 @@ void PlotWidget::plotEnergies()
 	series_E->clear();
 
 	// Add data to series
-	for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+	int noi = Chain_Get_NOI(state.get());
+	for (int i = 0; i < noi; ++i)
 	{
-		*series_E << QPointF(i, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+		*series_E << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
 	// Re-add Series to chart
@@ -60,7 +61,7 @@ void PlotWidget::plotEnergies()
 	// Current image - red dot
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
-	*series_E_current << QPointF(i, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+	*series_E_current << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 	chart->removeSeries(series_E_current);
 	chart->addSeries(series_E_current);
 
@@ -75,11 +76,13 @@ void PlotWidget::plotEnergiesInterpolated()
 	series_E_interp->clear();
 
 	// Add data to series
-	// TODO: get true interpolated values
-	for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+	int noi = Chain_Get_NOI(state.get());
+	int nos = System_Get_NOS(state.get());
+	auto Rx = Chain_Get_Rx_Interpolated(state.get());
+	auto E = Chain_Get_Energy_Interpolated(state.get());
+	for (int i = 0; i < Rx.size(); ++i)
 	{
-		*series_E_interp << QPointF(i, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
-		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
+		*series_E_interp << QPointF(Rx[i]/Rx.back(), E[i] / nos);
 	}
 
 	// Re-add Series to chart

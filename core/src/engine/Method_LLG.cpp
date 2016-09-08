@@ -83,6 +83,7 @@ namespace Engine
 		// --- Image Data Update
 		// Update the system's Energy
 		systems[0]->UpdateEnergy();
+		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
 
 		// --- Renormalize Spins?
 		// TODO: figure out specialization of members (Method_LLG should hold Parameters_Method_LLG)

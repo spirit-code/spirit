@@ -20,7 +20,7 @@ PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 	// Update Timer
 	auto timer = new QTimer(this);
 	connect(timer, &QTimer::timeout, this, &PlotsWidget::updatePlots);
-	timer->start(500);
+	timer->start(200);
 }
 
 void PlotsWidget::updatePlots()

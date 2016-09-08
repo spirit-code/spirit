@@ -202,6 +202,52 @@ extern "C" bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain
     }
 }
 
+std::vector<double> Chain_Get_Rx(State * state, int idx_chain_i)
+{
+	int idx_image = -1, idx_chain = idx_chain_i;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	// Fetch correct indices and pointers
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	return chain->Rx;
+}
+
+std::vector<double> Chain_Get_Rx_Interpolated(State * state, int idx_chain_i)
+{
+	int idx_image = -1, idx_chain = idx_chain_i;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	// Fetch correct indices and pointers
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	return chain->Rx_interpolated;
+}
+
+std::vector<double> Chain_Get_Energy_Interpolated(State * state, int idx_chain_i)
+{
+	int idx_image = -1, idx_chain = idx_chain_i;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	// Fetch correct indices and pointers
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	return chain->E_interpolated;
+}
+
+std::vector<std::vector<double>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain_i)
+{
+	int idx_image = -1, idx_chain = idx_chain_i;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	// Fetch correct indices and pointers
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	return chain->E_array_interpolated;
+}
+
+
+
 extern "C" void Chain_Update_Data(State * state, int idx_chain_i)
 {
     int idx_image = -1, idx_chain = idx_chain_i;
@@ -216,7 +262,7 @@ extern "C" void Chain_Update_Data(State * state, int idx_chain_i)
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
         chain->images[i]->UpdateEnergy();
-        // if (i > 0) chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(chain->images[i - 1]->spins, state->active_chain->images[i]->spins);
+        if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
     }
 }
 

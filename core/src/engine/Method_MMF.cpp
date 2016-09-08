@@ -131,6 +131,12 @@ namespace Engine
 		}
 
         // --- Update the chains' last images
+		for (auto system : systems) system->UpdateEnergy();
+		for (auto chain : collection->chains)
+		{
+			int i = chain->noi - 1;
+			if (i>0) chain->Rx[i] = chain->Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i]->spins, *chain->images[i-1]->spins);
+		}
     }
 
     void Method_MMF::Save_Current(std::string starttime, int iteration, bool initial, bool final)
