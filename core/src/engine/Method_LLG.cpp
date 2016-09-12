@@ -40,9 +40,8 @@ namespace Engine
 	{
 		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
-		this->force_maxAbsComponent = 0;
+		//this->force_maxAbsComponent = 0;
 
-		// TODO: override Force convergence stuff
 		// Loop over images to calculate the total Effective Field on each Image
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{

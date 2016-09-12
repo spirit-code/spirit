@@ -80,7 +80,7 @@ void PlotWidget::plotEnergiesInterpolated()
 	int nos = System_Get_NOS(state.get());
 	auto Rx = Chain_Get_Rx_Interpolated(state.get());
 	auto E = Chain_Get_Energy_Interpolated(state.get());
-	for (int i = 0; i < Rx.size(); ++i)
+	for (unsigned int i = 0; i < Rx.size(); ++i)
 	{
 		*series_E_interp << QPointF(Rx[i]/Rx.back(), E[i] / nos);
 	}
