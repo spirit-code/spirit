@@ -13,5 +13,6 @@ set(SOURCE_CORE_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
 )

@@ -8,5 +8,6 @@ set(HEADER_CORE_DATA
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )
