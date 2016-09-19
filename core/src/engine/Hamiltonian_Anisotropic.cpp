@@ -391,60 +391,60 @@ namespace Engine
 		{
 			for (int i = 0; i < nos; ++i)
 			{
-				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = 2.0*this->anisotropy_magnitude[i]*this->anisotropy_normal[alpha][i];
+				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = -2.0*this->anisotropy_magnitude[i]*this->anisotropy_normal[alpha][i];
 			}
 		}
 
-		// Spin Pair elements
-		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		{
-			//		Check if boundary conditions contain this periodicity
-			if ((i_periodicity == 0)
-				|| (i_periodicity == 1 && this->boundary_conditions[0])
-				|| (i_periodicity == 2 && this->boundary_conditions[1])
-				|| (i_periodicity == 3 && this->boundary_conditions[2])
-				|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-				|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
-			{
-				//		Loop over pairs of this periodicity
-				// Exchange
-				for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
-				{
-					for (int alpha = 0; alpha < 3; ++alpha)
-					{
-						int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
-						hessian[idx_h] =
-							-0.5*Exchange_magnitude[i_periodicity][i_pair];
-					}
-				}
-				// DMI
-				for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
-				{
-					for (int alpha = 0; alpha < 3; ++alpha)
-					{
-						for (int beta = 0; beta < 3; ++beta)
-						{
-							if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
-							{
-								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
-									0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
-							}
-							else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
-							{
-								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
-									-0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
-							}
-							else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
-							{
-								hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
-									0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
-							}
-						}
-					}
-				}
-			}
-		}
+		//// Spin Pair elements
+		//for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		//{
+		//	//		Check if boundary conditions contain this periodicity
+		//	if ((i_periodicity == 0)
+		//		|| (i_periodicity == 1 && this->boundary_conditions[0])
+		//		|| (i_periodicity == 2 && this->boundary_conditions[1])
+		//		|| (i_periodicity == 3 && this->boundary_conditions[2])
+		//		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+		//		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+		//		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+		//		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+		//	{
+		//		//		Loop over pairs of this periodicity
+		//		// Exchange
+		//		for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
+		//		{
+		//			for (int alpha = 0; alpha < 3; ++alpha)
+		//			{
+		//				int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
+		//				hessian[idx_h] =
+		//					-0.5*Exchange_magnitude[i_periodicity][i_pair];
+		//			}
+		//		}
+		//		// DMI
+		//		for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
+		//		{
+		//			for (int alpha = 0; alpha < 3; ++alpha)
+		//			{
+		//				for (int beta = 0; beta < 3; ++beta)
+		//				{
+		//					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+		//					{
+		//						hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+		//							0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		//					}
+		//					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+		//					{
+		//						hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+		//							-0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		//					}
+		//					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+		//					{
+		//						hessian[DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos)] =
+		//							0.5*DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 	}
 }
