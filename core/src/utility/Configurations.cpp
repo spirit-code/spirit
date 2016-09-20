@@ -18,10 +18,10 @@ namespace Utility
 {
 	namespace Configurations
 	{
-		void DomainWall(Data::Spin_System & s, const double pos[3], double v[3], bool greater)
+		void DomainWall(Data::Spin_System & s, const std::vector<double> pos, std::vector<double> v, bool greater)
 		{
 			try {
-				Vectormath::Normalize(v, 3);				// try normalizing v
+				Vectormath::Normalize(v);				// try normalizing v
 			}
 			catch (Exception ex) {
 				if (ex == Exception::Division_by_zero) 
@@ -65,21 +65,21 @@ namespace Utility
 
 		}//endfor DomainWall
 
-		void Homogeneous(Data::Spin_System & s, double v[3])
+		void Homogeneous(Data::Spin_System & s, std::vector<double> v)
 		{
-			double pos[3] = { -1.0E+20, -1.0E+20, -1.0E+20 };
+			std::vector<double> pos{ -1.0E+20, -1.0E+20, -1.0E+20 };
 			DomainWall(s, pos, v, true);
 		}//endfor Homogeneous
 
 		void PlusZ(Data::Spin_System & s)
 		{
-			double v[3] = { 0.0 , 0.0, 1.0 };
+			std::vector<double> v { 0.0 , 0.0, 1.0 };
 			Homogeneous(s, v);
 		}//endfor PlusZ
 
 		void MinusZ(Data::Spin_System & s)
 		{
-			double v[3] = { 0.0 , 0.0, -1.0 };
+			std::vector<double> v { 0.0 , 0.0, -1.0 };
 			Homogeneous(s, v);
 		}//endfor MinusZ
 
@@ -190,14 +190,14 @@ namespace Utility
 		}
 		// end Skyrmion
 
-		void SpinSpiral(Data::Spin_System & s, std::string direction_type, double q[3], double axis[3], double theta)
+		void SpinSpiral(Data::Spin_System & s, std::string direction_type, std::vector<double> q, std::vector<double> axis, double theta)
 		{
 			double phase;
-			double vx[3] = { 1,0,0 }, vy[3] = { 0,1,0 }, vz[3] = { 0, 0, 1 };
-			double e1[3], e2[3];
+			std::vector<double> vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0, 0, 1 };
+			std::vector<double> e1(3), e2(3);
 			
 			// -------------------- Preparation --------------------
-			Vectormath::Normalize(axis, 3);
+			Vectormath::Normalize(axis);
 			
 			/*
 			if axis_z=0 its in the xy-plane

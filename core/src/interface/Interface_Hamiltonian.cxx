@@ -25,12 +25,12 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
         ham->mu_s = mu_s;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
         for (auto& m : ham->mu_s) m = mu_s;
@@ -43,7 +43,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -67,7 +67,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
             else { throw(ex); }
         }
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -79,7 +79,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -88,7 +88,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
             ham->jij[i] = jij[i];
         }
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -100,7 +100,7 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -123,7 +123,7 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
             else { throw(ex); }
         }
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -135,13 +135,13 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->dij = dij;
     }
-    else
+    else if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
 
     }
@@ -153,13 +153,13 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->bij = bij;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
 
     }
@@ -171,13 +171,13 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->kijkl = kijkl;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
 
     }
@@ -222,6 +222,15 @@ void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_c
 /*---------------------------------- Get Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
+const char * Hamiltonian_Get_Name(State * state, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	return image->hamiltonian->Name().c_str();
+}
+
 void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -239,12 +248,12 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
         *mu_s = (float)ham->mu_s;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
         *mu_s = (float)ham->mu_s[0];
@@ -257,7 +266,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -269,7 +278,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         normal[1] = (float)ham->external_field_normal[1];
         normal[2] = (float)ham->external_field_normal[2];
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
 
@@ -289,7 +298,7 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -301,7 +310,7 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
             jij[i] = (float)ham->jij[i];
         }
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -313,7 +322,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
@@ -325,7 +334,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
         normal[1] = (float)ham->anisotropy_normal[1];
         normal[2] = (float)ham->anisotropy_normal[2];
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
 
@@ -345,13 +354,13 @@ void Hamiltonian_Get_DMI(State *state, float * dij, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         *dij = (float)ham->dij;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -363,13 +372,13 @@ void Hamiltonian_Get_BQE(State *state, float * bij, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         *bij = (float)ham->bij;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -381,13 +390,13 @@ void Hamiltonian_Get_FSC(State *state, float * kijkl, int idx_image, int idx_cha
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->is_isotropic)
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         *kijkl = (float)ham->kijkl;
     }
-    else
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         // TODO
     }
@@ -423,5 +432,5 @@ extern "C" bool Hamiltonian_Is_Isotropic(State * state, int idx_image, int idx_c
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    return image->is_isotropic;
+    return image->hamiltonian->Name() == "Isotropic Heisenberg";
 }

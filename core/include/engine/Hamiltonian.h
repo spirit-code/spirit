@@ -70,6 +70,13 @@ namespace Engine
 			return std::vector<double>(7, 0.0);
 		}
 
+		// Hamiltonian name as string
+		virtual std::string Name()
+		{
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Name() of the Hamiltonian base class!"));
+			return "--";
+		}
+
 		// Boundary conditions
 		std::vector<bool> boundary_conditions; // [3] (a, b, c)
 

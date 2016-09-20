@@ -34,6 +34,9 @@ namespace Engine
 		std::vector<double> Energy_Array(std::vector<double> & spins) override;
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
+		// Hamiltonian name as string
+		std::string Name() override;
+
 		// ------------ General Variables ------------
 		//std::vector<double> & field;
 		

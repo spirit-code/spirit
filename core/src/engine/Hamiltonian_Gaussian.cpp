@@ -51,6 +51,8 @@ namespace Engine
 		{
 			for (int ispin = 0; ispin < nos; ++ispin)
 			{
+				field[ispin] = 0; field[ispin+nos] = 0; field[ispin+2*nos] = 0;
+
 				// Distance between spin and gaussian center
 				std::vector<double> n { spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
 				double l = Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
@@ -60,8 +62,8 @@ namespace Engine
 				// Effective Field contribution
 				for (int dim = 0; dim < 3; ++dim)
 				{
-					field[ispin + dim*nos] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
-						/ ( std::pow(this->width[i], 2)*std::sqrt(1-std::pow(nc,2)) ) * this->center[i][dim];
+					field[ispin + dim*nos] -= this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
+						*std::sqrt(1 - std::pow(nc, 2)) / std::pow(this->width[i], 2) * this->center[i][dim];
 				}
 			}
 		}
@@ -93,4 +95,7 @@ namespace Engine
 	}
 
 	//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
+
+	// Hamiltonian name as string
+	std::string Hamiltonian_Gaussian::Name() { return "Gaussian"; }
 }

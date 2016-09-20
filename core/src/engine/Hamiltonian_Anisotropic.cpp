@@ -447,4 +447,7 @@ namespace Engine
 		//	}
 		//}
 	}
+
+	// Hamiltonian name as string
+	std::string Hamiltonian_Anisotropic::Name() { return "Anisotropic Heisenberg"; }
 }

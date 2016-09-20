@@ -25,16 +25,6 @@ namespace Data
 		// Initialize Spins Array
 		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * nos));
 
-		// Check for the type of the Hamiltonian
-		if (typeid(*this->hamiltonian.get()) == typeid(Engine::Hamiltonian_Isotropic))
-		{
-			is_isotropic = true;
-		}
-		else if (typeid(*this->hamiltonian.get()) == typeid(Engine::Hamiltonian_Anisotropic))
-		{
-			is_isotropic = false;
-		}
-
 		// ...
 		this->E = 0;
 		this->E_array = std::vector<double>(7, 0.0);
@@ -48,24 +38,21 @@ namespace Data
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
 
-		this->is_isotropic = other.is_isotropic;
-
 		this->E = other.E;
 		this->E_array = other.E_array;
 		this->effective_field = other.effective_field;
 
 		this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 		
-		// Getting the Hamiltonian involves UGLY casting... maybe there's a nicer (and safer) way?
-		if (typeid(*other.hamiltonian.get()) == typeid(Engine::Hamiltonian_Isotropic))
+		if (other.hamiltonian->Name() == "Isotropic Heisenberg")
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Isotropic(*(Engine::Hamiltonian_Isotropic*)(other.hamiltonian.get())));
 		}
-		else if (typeid(*other.hamiltonian.get()) == typeid(Engine::Hamiltonian_Anisotropic))
+		else if (other.hamiltonian->Name() == "Anisotropic Heisenberg")
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
 		}
-		else
+		else if (other.hamiltonian->Name() == "Gaussian")
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
 		}
@@ -83,22 +70,23 @@ namespace Data
 			this->nos = other.nos;
 			this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
 
-			this->is_isotropic = other.is_isotropic;
-
 			this->E = other.E;
 			this->E_array = other.E_array;
 			this->effective_field = other.effective_field;
 
 			this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 			
-			// Getting the Hamiltonian involves UGLY casting... maybe there's a nicer (and safer) way?
-			if (this->is_isotropic)
+			if (other.hamiltonian->Name() == "Isotropic Heisenberg")
 			{
 				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Isotropic(*(Engine::Hamiltonian_Isotropic*)(other.hamiltonian.get())));
 			}
-			else
+			else if (other.hamiltonian->Name() == "Anisotropic Heisenberg")
 			{
 				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
+			}
+			else if (other.hamiltonian->Name() == "Gaussian")
+			{
+				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
 			}
 
 			this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));

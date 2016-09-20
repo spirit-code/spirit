@@ -25,6 +25,9 @@ namespace Engine
 		// Need to implement:
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
+		// Hamiltonian name as string
+		std::string Name() override;
+
 	//private:// these are currently needed by the to-be-removed Energy and Eff_Field
 		// -------------------- Effective Field Functions ------------------
 		// Calculates the Zeeman contribution to the effective field of spin ispin within system s
