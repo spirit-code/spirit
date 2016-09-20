@@ -14,6 +14,7 @@
 #include "Geometry.h"
 #include "Hamiltonian_Isotropic.h"
 #include "Hamiltonian_Anisotropic.h"
+#include "Hamiltonian_Gaussian.h"
 #include "Parameters_Method_LLG.h"
 #include "Parameters_Method_GNEB.h"
 #include "Parameters_Method_MMF.h"
@@ -35,6 +36,7 @@ namespace Utility
 		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry);
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
 
 		// ========================= Fileparser =========================
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file);

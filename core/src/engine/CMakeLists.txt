@@ -1,8 +1,9 @@
 set(SOURCE_CORE_ENGINE
     ${SOURCE_CORE_ENGINE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.cpp

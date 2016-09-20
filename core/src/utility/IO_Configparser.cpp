@@ -489,6 +489,10 @@ namespace Utility
 				// TODO: to std::move or not to std::move, that is the question...
 				hamiltonian = std::move(Hamiltonian_Anisotropic_from_Config(configFile, geometry));
 			}// endif anisotropic
+			else if (hamiltonian_type == "gaussian")
+			{
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			}
 			else
 			{
 				Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
@@ -780,6 +784,86 @@ namespace Utility
 			));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: built");
 			return hamiltonian;
-		}// end Hamiltonian_From_Config
+		}// end Hamiltonian_Anisotropic_From_Config
+		
+		
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry)
+		{
+			//-------------- Insert default values here -----------------------------
+			// Number of Gaussians
+			int n_gaussians = 1;
+			// Amplitudes
+			std::vector<double> amplitude = { 1 };
+			// Widths
+			std::vector<double> width = { 1 };
+			// Centers
+			std::vector<std::vector<double>> center = { std::vector<double>{ 0, 0, 1 } };
+
+			//------------------------------- Parser --------------------------------
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
+			
+			if (configFile != "")
+			{
+				try {
+					IO::Filter_File_Handle myfile(configFile);
+
+					// N
+					myfile.Read_Single(n_gaussians, "gaussian_n");
+
+					// Amplitude
+					amplitude = std::vector<double>(n_gaussians, 1.0);
+					if (myfile.Find("gaussian_amplitudes"))
+					{
+						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> amplitude[i];
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_amplitudes' not found. Using Default: 1.0");
+
+					// Width
+					width = std::vector<double>(n_gaussians, 1.0);
+					if (myfile.Find("gaussian_widths"))
+					{
+						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> width[i];
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_widths' not found. Using Default: 1.0");
+
+					// Center
+					center = std::vector<std::vector<double>>(n_gaussians, std::vector<double>{0, 0, 1});
+					if (myfile.Find("gaussian_centers"))
+					{
+						for (int i = 0; i < n_gaussians; ++i)
+						{
+							myfile.GetLine();
+							for (int j = 0; j < 3; ++j)
+							{
+								myfile.iss >> center[i][j];
+							}
+							Utility::Vectormath::Normalize(center[i]);
+						}
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_centers' not found. Using Default: {0, 0, 1}");
+				}// end try
+				catch (Exception ex) {
+					if (ex == Exception::File_not_Found)
+					{
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Unable to open Config File " + configFile + " Leaving values at default.");
+					}
+					else throw ex;
+				}// end catch
+			}
+			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
+
+
+			// Return
+			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_gaussians  = " + std::to_string(n_gaussians));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        amplitude[0] = " + std::to_string(amplitude[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        width[0]     = " + std::to_string(width[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        center[0]    = " + std::to_string(center[0][0]) + " " + std::to_string(center[0][1]) + " " + std::to_string(center[0][2]));
+			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Gaussian>(new Engine::Hamiltonian_Gaussian(
+				amplitude, width, center
+			));
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: built");
+			return hamiltonian;
+		}
 	}// end namespace IO
 }// end namespace Utility

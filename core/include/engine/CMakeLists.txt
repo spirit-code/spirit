@@ -4,6 +4,7 @@ set(HEADER_CORE_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.h

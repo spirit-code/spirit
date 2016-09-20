@@ -57,13 +57,17 @@ namespace Data
 		this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 		
 		// Getting the Hamiltonian involves UGLY casting... maybe there's a nicer (and safer) way?
-		if (this->is_isotropic)
+		if (typeid(*other.hamiltonian.get()) == typeid(Engine::Hamiltonian_Isotropic))
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Isotropic(*(Engine::Hamiltonian_Isotropic*)(other.hamiltonian.get())));
 		}
-		else
+		else if (typeid(*other.hamiltonian.get()) == typeid(Engine::Hamiltonian_Anisotropic))
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
+		}
+		else
+		{
+			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
 		}
 
 		this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));

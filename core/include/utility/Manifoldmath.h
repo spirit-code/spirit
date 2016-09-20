@@ -25,8 +25,11 @@ namespace Utility
 		// Geodesic distance between two configurations
 		double Dist_Geodesic(std::vector<double> s1, std::vector<double> s2);
 
-		// Greatcircle distance between two spins
-		double Dist_Greatcircle(std::vector<double> s1, std::vector<double> s2, int idx_spin=0);
+		// Greatcircle distance between two vectors
+		double Dist_Greatcircle_(std::vector<double> v1, std::vector<double> v2);
+
+		// Greatcircle distance between two spins of two images
+		double Dist_Greatcircle(std::vector<double> image1, std::vector<double> image2, int idx_spin=0);
 
 		// Rotate a spin around an axis
 		void Rotate_Spin(std::vector<double> v, std::vector<double> axis, double angle, std::vector<double> & v_out);

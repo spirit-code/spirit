@@ -9,6 +9,7 @@
 #include "engine/Hamiltonian.h"
 #include "engine/Hamiltonian_Isotropic.h"
 #include "engine/Hamiltonian_Anisotropic.h"
+#include "engine/Hamiltonian_Gaussian.h"
 #include "data/Parameters_Method_LLG.h"
 #include "data/Parameters_Method_GNEB.h"
 
