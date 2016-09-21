@@ -27,6 +27,7 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 	series_E_interp = new QLineSeries();
 	// Add Series
 	chart->addSeries(series_E);
+	chart->addSeries(series_E_current);
 	//chart->addSeries(series_E_interp);
 
 	// Axes

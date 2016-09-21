@@ -8,6 +8,7 @@ namespace Engine
         parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
         this->SenderName = Utility::Log_Sender::All;
+		this->force_maxAbsComponent = parameters->force_convergence + 1.0;
     }
 
     void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)

@@ -30,6 +30,7 @@ namespace Engine
 
 		// We assume it is not converged before the first iteration
 		this->force_converged = std::vector<bool>(systems.size(), false);
+		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
 		this->F_total = std::vector<std::vector<double>>(systems.size(), std::vector<double>(systems[0]->spins->size()));	// [noi][3nos]

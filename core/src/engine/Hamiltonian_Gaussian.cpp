@@ -1,6 +1,7 @@
 #include <engine/Hamiltonian_Gaussian.h>
 
 #include <utility/Manifoldmath.h>
+#include <utility/Vectormath.h>
 
 using namespace Data;
 
@@ -18,14 +19,22 @@ namespace Engine
 	void Hamiltonian_Gaussian::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
 	{
 		int nos = spins.size() / 3;
-
-		for (int i = 0; i < this->n_gaussians; ++i)
+		for (int ispin = 0; ispin < nos; ++ispin)
 		{
-			for (int ispin = 0; ispin < nos; ++ispin)
+			// Set Hessian to zero
+			for (int alpha = 0; alpha < 3; ++alpha)
+			{
+				for (int beta = 0; beta < 3; ++beta)
+				{
+					hessian[ispin + alpha*nos + 3 * nos*(ispin + alpha*nos)] = 0.0;
+				}
+			}
+			// Calculate Hessian
+			for (int i = 0; i < this->n_gaussians; ++i)
 			{
 				// Distance between spin and gaussian center
 				std::vector<double> n{ spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				double l = Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+				double l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
 				double nc = 0;
 				for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
@@ -35,8 +44,8 @@ namespace Engine
 					for (int beta = 0; beta < 3; ++beta)
 					{
 						hessian[ispin + alpha*nos + 3 * nos*(ispin + alpha*nos)] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
-							/ (std::pow(this->width[i], 2)*(1 - std::pow(nc, 2))) * this->center[i][alpha]
-							* ( this->center[i][beta] / std::pow(this->width[i], 2) - this->center[i][alpha]* this->center[i][beta]*nc / (1 - std::pow(nc, 2)) );
+							* this->center[i][alpha] * this->center[i][beta] / this->width[i]
+							* ( std::pow(l,2)/ this->width[i] - 1 );
 					}
 				}
 			}
@@ -47,23 +56,24 @@ namespace Engine
 	{
 		int nos = spins.size() / 3;
 
-		for (int i = 0; i < this->n_gaussians; ++i)
+		for (int ispin = 0; ispin < nos; ++ispin)
 		{
-			for (int ispin = 0; ispin < nos; ++ispin)
+			// Set field to zero
+			field[ispin] = 0; field[ispin + nos] = 0; field[ispin + 2 * nos] = 0;
+			// Calculate field
+			for (int i = 0; i < this->n_gaussians; ++i)
 			{
-				field[ispin] = 0; field[ispin+nos] = 0; field[ispin+2*nos] = 0;
-
 				// Distance between spin and gaussian center
 				std::vector<double> n { spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				double l = Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+				double l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
 				double nc = 0;
 				for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
 				// Effective Field contribution
 				for (int dim = 0; dim < 3; ++dim)
 				{
-					field[ispin + dim*nos] -= this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
-						*std::sqrt(1 - std::pow(nc, 2)) / std::pow(this->width[i], 2) * this->center[i][dim];
+					field[ispin + dim*nos] -= this->amplitude[i] * std::exp( -std::pow(l, 2)/(2.0*std::pow(this->width[i], 2)) )
+						* l / this->width[i] * this->center[i][dim];
 				}
 			}
 		}
@@ -80,9 +90,9 @@ namespace Engine
 			{
 				// Distance between spin and gaussian center
 				std::vector<double> n{ spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				double l = Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+				double l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Energy contribution
-				E += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
+				E += this->amplitude[i] * std::exp( -std::pow(l, 2)/(2.0*std::pow(this->width[i], 2)) );
 			}
 		}
 
