@@ -44,8 +44,9 @@ namespace Engine
 					for (int beta = 0; beta < 3; ++beta)
 					{
 						hessian[ispin + alpha*nos + 3 * nos*(ispin + alpha*nos)] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
-							* this->center[i][alpha] * this->center[i][beta] / this->width[i]
-							* ( std::pow(l,2)/ this->width[i] - 1 );
+							/ std::pow(this->width[i], 2)
+							* (std::pow(l, 2) / std::pow(this->width[i], 2) - 1)
+							* this->center[i][alpha] * this->center[i][beta];
 					}
 				}
 			}
