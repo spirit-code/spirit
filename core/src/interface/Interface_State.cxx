@@ -16,7 +16,7 @@ State * State_Setup(const char * config_file)
     
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "============ MonoSpin State Initialising ============");
+    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State Initialising ==============");
     Log(Log_Level::All, Log_Sender::All,  "============     Version:  " + std::string(VERSION));
     Log(Log_Level::Info, Log_Sender::All, "============     Revision: " + std::string(VERSION_REVISION));
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -87,7 +87,7 @@ State * State_Setup(const char * config_file)
 
     // Log
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
-    Log(Log_Level::All, Log_Sender::All, "============ MonoSpin State Initialised =============");
+    Log(Log_Level::All, Log_Sender::All, "============ Spirit State Initialised ===============");
     Log(Log_Level::All, Log_Sender::All, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
     

@@ -16,7 +16,7 @@ CMakeFiles/*
 Log_*
 
 ### Executables and Libraries ###
-monospin
+spirit
 core.js
 core.js.mem
 

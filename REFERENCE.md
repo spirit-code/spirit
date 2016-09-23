@@ -1,7 +1,7 @@
 # Reference
 
-**MonoSpin** is a scientific project.
-If you present and/or publish scientific results that used MonoSpin,
+**Spirit** is a scientific project.
+If you present and/or publish scientific results that used Spirit,
 you should add a reference.
 
 
@@ -21,4 +21,4 @@ You may use the following TeX code:
 
 (none yet)
 
-[1]: https://github.com/PGI-1/monospin/releases
+[1]: https://github.com/spirit-code/spirit/releases

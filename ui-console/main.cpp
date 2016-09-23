@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 
 	// Finish
 	Log(Log_Level::All, Log_Sender::All, "=====================================================");
-	Log(Log_Level::All, Log_Sender::All, "================= MonoSpin Finished =================");
+	Log(Log_Level::All, Log_Sender::All, "================= Spirit Finished ===================");
 	Log(Log_Level::All, Log_Sender::All, "=====================================================");
 	Log.Append_to_File();
 	return 0;

@@ -58,8 +58,8 @@ int main(int argc, char ** argv)
 	//------------------------ User Interface ---------------------------------------
 	// Initialise Application and MainWindow
 	QApplication app(argc, argv);
-	//app.setOrganizationName("Forschungszentrum Juelich");
-	//app.setApplicationName("MonoSpin - Juelich Spin Code - OpenGL with Qt");
+	//app.setOrganizationName("--");
+	//app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
 	// Format for all GL Surfaces
 	QSurfaceFormat format;
@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
 	if (exec == 0)
 	{
 		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "================= MonoSpin Finished =================");
+		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "================= Spirit Finished ===================");
 		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
 		Log_Append(state.get());
 	}

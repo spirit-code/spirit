@@ -1,16 +1,16 @@
-MonoSpin
+Spirit
 ========
 **Modular Numerical Optimizations Spin Code**<br />
 The code is released under [MIT License](../master/LICENSE.txt).<br />
-If you intend to *present and/or publish* scientific results for which you used MonoSpin,
+If you intend to *present and/or publish* scientific results for which you used Spirit,
 please read the [REFERENCE.md](../master/REFERENCE.md)
 
 For contributions and affiliations, see [CONTRIBUTIONS.md](../master/CONTRIBUTIONS.md)
 
-Wiki Page: https://iffwiki.fz-juelich.de/index.php/MonoSpin
+Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
 
-Please note that the MonoSpin Web interface is hosted at the Research Centre Jülich:
-http://iffwww.iff.kfa-juelich.de/pub/monospindemo/
+Please note that the Spirit Web interface is hosted at the Research Centre Jülich:
+http://iffwww.iff.kfa-juelich.de/pub/spiritdemo/
 
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
@@ -42,7 +42,7 @@ This code has been developed as a flexible solution to various use-cases, includ
   spin configurations, using the GNEB method
 * Energy Landscape **Saddlepoint searches** using the MMF method
 
-More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/MonoSpin "Click me...").
+More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me...").
 
 ----------------------------------------
 
@@ -78,7 +78,7 @@ We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-succ
 
 >Release (`master` branch) versions are tagged `x.x.x`, starting at `1.0.0`
 
-Download the latest stable version from https://github.com/PGI-1/monospin/releases
+Download the latest stable version from https://github.com/spirit-code/spirit/releases
 
 The develop branch contains the latest updates, but is generally less consistently tested than the releases.
 
@@ -134,7 +134,7 @@ Note we have not tested this process on different machines.
 Installation Instructions <a name="Installation"></a>
 -----------------------------------------------------
 
->The following assumes you are in the MonoSpin root directory.
+>The following assumes you are in the Spirit root directory.
 
 Please be aware that our CMake scripts are written for our use cases and
 you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
@@ -178,7 +178,7 @@ When using MSys etc., CMake will create corresponding MSys makefiles.
 	or
 	cd build && make && cd ..
 
-If building any C++ UI, the executable `monospin` should now be in the root folder
+If building any C++ UI, the executable `spirit` should now be in the root folder
 
 When on pure **Windows** (no MSys etc), instead of using `make` or `./make.sh`,
 you need to open the generated Solution in Visual Studio and build it there.

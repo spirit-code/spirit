@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Project Name ######################
-project(MonoSpinCore)
+project(SpiritCore)
 #############################################
 
 ######### Have the binary placed into the source head

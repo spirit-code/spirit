@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Project Name ######################
-project(MonoSpinWeb)
+project(SpiritWeb)
 #############################################
 
 
@@ -37,8 +37,8 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 # 	${HEADER_GROUP_UTILITY} main_js.cxx)
 # #############################################
 # ######### Tell CMake to create the executable
-# add_executable(monospin  main_js.cxx)
-# # add_executable(monospin  ${SOURCE} ${UI_SOURCE} ${HEADERS} resources.qrc)
+# add_executable(spirit  main_js.cxx)
+# # add_executable(spirit  ${SOURCE} ${UI_SOURCE} ${HEADERS} resources.qrc)
 # #############################################
 
 

@@ -52,4 +52,4 @@ Building the lightweight GR library for plotting.
 You may also take a look at the [contributors graph][1].
 
 
-[1]: https://github.com/PGI-1/monospin/graphs/contributors
+[1]: https://github.com/spirit-code/spirit/graphs/contributors
