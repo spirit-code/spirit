@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="MonoSpin Web is a web interface to the MonoSpin simulation library.">
+    <meta name="description" content="Spirit Web is a web interface to the Spirit atomistic spin simulation library.">
     <meta name="author" content="Florian Rhiem">
     <meta name="keywords" content="spins,skyrmions,simulation,webgl">
-    <title>MonoSpin</title>
+    <title>Spirit</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <style>
       a.github-fork-ribbon > img {
@@ -57,31 +57,31 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="index.html">MonoSpin</a>
+          <a class="navbar-brand" href="index.html">Spirit</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="index.html">Overview</a></li>
-            <li><a href="https://github.com/PGI-1/monospin/releases/latest">Download</a></li>
-            <li><a href="https://github.com/PGI-1/monospin">Source</a></li>
-            <li><a href="https://iffwiki.fz-juelich.de/index.php/MonoSpin">Wiki</a></li>
-            <li><a href="https://github.com/PGI-1/monospin/issues">Feedback</a></li>
-            <li><a href="web.html">MonoSpin Web</a></li>=
+            <li><a href="https://github.com/spirit-code/spirit/releases/latest">Download</a></li>
+            <li><a href="https://github.com/spirit-code/spirit">Source</a></li>
+            <li><a href="https://iffwiki.fz-juelich.de/index.php/Spirit">Wiki</a></li>
+            <li><a href="https://github.com/spirit-code/spirit/issues">Feedback</a></li>
+            <li><a href="web.html">Spirit Web</a></li>=
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
     <aside>
-      <a href="https://github.com/PGI-1/monospin" title="Fork me on GitHub" class="github-fork-ribbon">
+      <a href="https://github.com/spirit-code/spirit" title="Fork me on GitHub" class="github-fork-ribbon">
         <img src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png">
       </a>
     </aside>
     <div class="jumbotron">
       <div class="container">
-        <h1 class="sr-only">MonoSpin</h1>
-        <p>MonoSpin &ndash; our <strong>mo</strong>dular <strong>n</strong>umerical <strong>o</strong>ptimizations <strong>spin</strong> code &ndash; is a is a Spin Dynamics code developed in large part at the PGI-1 at Forschungszentrum Jülich, which simulates magnetic structures on an atomistic level and provides live visualisations during simulations.</p>
-        <p><a class="btn btn-primary btn-lg" href="https://github.com/PGI-1/monospin/releases/latest" role="button">Download MonoSpin</a> or <a class="btn btn-primary btn-lg" href="web.html" role="button">Try the Web version</a></p>
+        <h1 class="sr-only">Spirit</h1>
+        <p>Spirit &ndash; our <strong>mo</strong>dular <strong>n</strong>umerical <strong>o</strong>ptimizations <strong>spin</strong> code &ndash; is a is a Spin Dynamics code developed in large part at the PGI-1 at Forschungszentrum Jülich, which simulates magnetic structures on an atomistic level and provides live visualisations during simulations.</p>
+        <p><a class="btn btn-primary btn-lg" href="https://github.com/spirit-code/spirit/releases/latest" role="button">Download Spirit</a> or <a class="btn btn-primary btn-lg" href="web.html" role="button">Try the Web version</a></p>
       </div>
     </div>
     <div class="container">
@@ -90,20 +90,20 @@
         <h3>Portability</h3>
         <p>This code is written in <strong>platform-independent</strong> C++, the build process is platform-independent as well, due to the use of <a href="https://cmake.org/">CMake</a>. This code has been tested on Windows 7 and 10, OSX Yosemite and upwards and CentOS 6. It should run on most other machines as well.</p>
         <h3>Few dependencies</h3>
-        <p>During development of the MonoSpin core, a key focus was the <strong>independence from third party libraries</strong>. Due to this, the core can be used in almost any context and for various purposes.</p>
+        <p>During development of the Spirit core, a key focus was the <strong>independence from third party libraries</strong>. Due to this, the core can be used in almost any context and for various purposes.</p>
         <h3>Modularity and extensibility</h3>
-        <p>MonoSpin utilizes a <strong>modular class structure</strong> to enable flexible workflows. This allows the core to be extended for your specific simulation requirements and to be used with a variety of user interfaces.</p>
+        <p>Spirit utilizes a <strong>modular class structure</strong> to enable flexible workflows. This allows the core to be extended for your specific simulation requirements and to be used with a variety of user interfaces.</p>
         <h3>User Interface with live visualisation</h3>
-        <p>MonoSpin comes with an <strong>optional graphical user interface</strong> (GUI), based on <a href="https://www.qt.io/">QT</a> and <a href="https://www.opengl.org/">OpenGL</a>. For use on clusters and other headless systems, a <strong>command line interface</strong> is also available. Due to the modular structure and the highly portable core library, a wide variety of further UIs are possible.</p>
+        <p>Spirit comes with an <strong>optional graphical user interface</strong> (GUI), based on <a href="https://www.qt.io/">QT</a> and <a href="https://www.opengl.org/">OpenGL</a>. For use on clusters and other headless systems, a <strong>command line interface</strong> is also available. Due to the modular structure and the highly portable core library, a wide variety of further UIs are possible.</p>
         <h3>Web interface for education and portable presentations</h3>
-        <p>A web-based interface has been written, which runs in most modern browsers and even on some mobile devices. The MonoSpin core can be transpiled to JavaScript using <a href="https://kripken.github.io/emscripten-site/">Emscripten</a>, allowing you to <strong>simulate spin dynamics right in your browser</strong>.</p>
-        <p><a href="web.html" role="button">Try MonoSpin Web!</a></p>
+        <p>A web-based interface has been written, which runs in most modern browsers and even on some mobile devices. The Spirit core can be transpiled to JavaScript using <a href="https://kripken.github.io/emscripten-site/">Emscripten</a>, allowing you to <strong>simulate spin dynamics right in your browser</strong>.</p>
+        <p><a href="web.html" role="button">Try Spirit Web!</a></p>
       </div>
       <div class="col-md-6">
-        <img src="spinshalf.png" class="large-only" alt="Spins simulated using MonoSpin Web" style="max-width:100%; max-height:100%; border-left:2px solid #333333">
+        <img src="spinshalf.png" class="large-only" alt="Spins simulated using Spirit Web" style="max-width:100%; max-height:100%; border-left:2px solid #333333">
       </div>
       <div class="col-md-12">
-        <img src="spins.png" class="small-only" alt="Spins simulated using MonoSpin Web" style="max-width:100%; max-height:100%;">
+        <img src="spins.png" class="small-only" alt="Spins simulated using Spirit Web" style="max-width:100%; max-height:100%;">
       </div>
     </div>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>

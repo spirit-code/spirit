@@ -16,12 +16,13 @@ namespace Utility
 
 			for (int idx_img = 0; idx_img < noi; ++idx_img)
 			{
-				auto& image_plus  = *configurations[idx_img+1];
-				auto& image       = *configurations[idx_img];
-				auto& image_minus = *configurations[idx_img-1];
+				auto& image = *configurations[idx_img];
+
 				// First Image
 				if (idx_img == 0)
 				{
+					auto& image_plus = *configurations[idx_img + 1];
+
 					//tangents = IMAGES_LAST(idx_img + 1, :, : ) - IMAGES_LAST(idx_img, :, : );
 					for (int dim = 0; dim < 3; ++dim)
 					{
@@ -35,6 +36,8 @@ namespace Utility
 				// Last Image
 				else if (idx_img == noi - 1)
 				{
+					auto& image_minus = *configurations[idx_img - 1];
+
 					//tangents = IMAGES_LAST(idx_img, :, : ) - IMAGES_LAST(idx_img - 1, :, : );
 					for (int dim = 0; dim < 3; ++dim)
 					{
@@ -48,6 +51,9 @@ namespace Utility
 				// Images Inbetween
 				else
 				{
+					auto& image_plus = *configurations[idx_img + 1];
+					auto& image_minus = *configurations[idx_img - 1];
+
 					// Energies
 					double E_mid = 0, E_plus = 0, E_minus = 0;
 					E_mid = energies[idx_img];

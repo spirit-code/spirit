@@ -11,9 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Interface_Geometry.h"
-// TODO: Replace this
-#include "Interface_State.h"
-/////
+#include "Interface_System.h"
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -24,7 +22,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 void SpinWidget::initializeGL() {
 	makeCurrent();
-	this->gl_spins = std::make_shared<GLSpins>(state->active_image->geometry->n_cells);
+  std::vector<int> n_cells(3);
+  Geometry_Get_N_Cells(state.get(), n_cells.data());
+	this->gl_spins = std::make_shared<GLSpins>(n_cells);
   _reset_camera = true;
 }
 
@@ -38,19 +38,28 @@ void SpinWidget::resizeGL(int width, int height) {
 }
 
 void SpinWidget::paintGL() {
-  // Update the pointer to our Data
-  auto s = state->active_image;
-  auto& spins = *s->spins;
-  
-  std::vector<glm::vec3> positions(s->geometry->nos);
-  for (int i = 0; i < s->geometry->nos; ++i)
+  // ToDo: Update the pointer to our Data instead of copying Data?
+  int nos = System_Get_NOS(state.get());
+  double *spins, *spin_pos;
+  if (true)
   {
-    positions[i] = glm::vec3(s->geometry->spin_pos[0][i], s->geometry->spin_pos[1][i], s->geometry->spin_pos[2][i]);
+    spins = System_Get_Spin_Directions(state.get());
   }
-  std::vector<glm::vec3> directions(s->geometry->nos);
-  for (int i = 0; i < s->geometry->nos; ++i)
+  else
   {
-    directions[i] = glm::vec3(spins[i], spins[s->geometry->nos + i], spins[2*s->geometry->nos + i]);
+    spins = System_Get_Effective_Field(state.get());
+  }
+  spin_pos = Geometry_Get_Spin_Positions(state.get());
+  
+  std::vector<glm::vec3> positions(nos);
+  for (int i = 0; i < nos; ++i)
+  {
+    positions[i] = glm::vec3(spin_pos[0*nos+i], spin_pos[1*nos+i], spin_pos[2*nos+i]);
+  }
+  std::vector<glm::vec3> directions(nos);
+  for (int i = 0; i < nos; ++i)
+  {
+    directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
   }
 
   gl_spins->updateSpins(positions, directions);

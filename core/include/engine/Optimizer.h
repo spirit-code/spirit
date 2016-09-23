@@ -50,8 +50,8 @@ namespace Engine
 		int nos;
 		// Number of iterations
 		int n_iterations;
-		// Number of steps after which to save
-		int log_steps;
+		// Number of iterations until log
+		int n_iterations_log;
 		// Number of times to save
 		int n_log;
 

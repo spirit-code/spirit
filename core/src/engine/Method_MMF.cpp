@@ -3,8 +3,8 @@
 
 namespace Engine
 {
-    Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_img, int idx_chain) :
-        Method(collection->parameters, idx_img, idx_chain), collection(collection)
+    Method_MMF::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain) :
+        Method(collection->parameters, -1, idx_chain), collection(collection)
     {
 		int noc = collection->noc;
 		int nos = collection->chains[0]->images[0]->nos;

@@ -51,10 +51,11 @@ namespace Engine
 		// Method Parameters
 		std::shared_ptr<Data::Parameters_Method> parameters;
 
-	protected:
-		// Information for Save_Current
+		// Information for Logging and Save_Current
 		int idx_image;
 		int idx_chain;
+		
+	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
 		virtual double Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force) final;
 		// Check if iterations_allowed

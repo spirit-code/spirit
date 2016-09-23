@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Project Name ######################
-project(MonoSpinConsole)
-SET(EXECUTABLE_NAME monospin)
+project(SpiritConsole)
+SET(EXECUTABLE_NAME spirit)
 #############################################
 
 

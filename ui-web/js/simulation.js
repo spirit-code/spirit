@@ -54,7 +54,7 @@ Module.ready(function() {
             if (defaultOptions.hasOwnProperty(option)) {
                 this._options[option] = options[option];
             } else {
-                console.warn("JuSpin Simulation does not recognize option '" + option +"'.");
+                console.warn("Spirit Simulation does not recognize option '" + option +"'.");
             }
         }
     };

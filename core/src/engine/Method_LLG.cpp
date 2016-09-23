@@ -83,9 +83,11 @@ namespace Engine
 		// --- Image Data Update
 		// Update the system's Energy
 		systems[0]->UpdateEnergy();
+		// ToDo: How to update eff_field without numerical overhead?
+		// systems[0]->UpdateEffectiveField();
 
 		// --- Renormalize Spins?
-		// TODO: figure out specialization of members (Method_LLG should hold Parameters_LLG)
+		// TODO: figure out specialization of members (Method_LLG should hold Parameters_Method_LLG)
         // if (this->parameters->renorm_sd) {
         //     try {
         //         //Vectormath::Normalize(3, s->nos, s->spins);

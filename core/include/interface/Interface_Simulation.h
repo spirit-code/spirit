@@ -8,11 +8,11 @@ struct State;
 // Single Optimization iteration with a Method
 //		To be used with caution! It does not inquire if an iteration is allowed!
 extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
-	int n_iterations = -1, int log_steps = -1, int idx_image=-1, int idx_chain=-1);
+	int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1);
 
 // Play/Pause functionality
 extern "C" void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_optimizer_type, 
-	int n_iterations = -1, int log_steps = -1, int idx_image=-1, int idx_chain=-1);
+	int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1);
 
 // Stop all simulations
 extern "C" void Simulation_Stop_All(State *state);

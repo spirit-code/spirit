@@ -46,10 +46,10 @@ string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
 
 
 ######### Meta information about the project
-set(META_PROJECT_NAME         "MonoSpin")
+set(META_PROJECT_NAME         "Spirit")
 set(META_PROJECT_DESCRIPTION  "Modular Numerical Optimizations Spin Code")
 set(META_AUTHOR_ORGANIZATION  "")
-set(META_AUTHOR_DOMAIN        "https://github.com/PGI-1/monospin")
+set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
 set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
 set(META_VERSION_MINOR        "1")

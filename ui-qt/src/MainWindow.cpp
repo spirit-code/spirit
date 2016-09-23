@@ -607,8 +607,8 @@ void MainWindow::updateStatusBar()
 
 void MainWindow::about()
 {
-	QMessageBox::about(this, tr("About JuSpin"),
-		QString::fromLatin1("The <b>JuSpin</b> application incorporates intuitive visualisation,<br>"
+	QMessageBox::about(this, tr("About Spirit"),
+		QString::fromLatin1("The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
 			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
 			"into a cross-platform user interface.<br>"
 			"<br>"
@@ -627,7 +627,7 @@ void MainWindow::about()
 
 void MainWindow::keyBindings()
 {
-	QMessageBox::about(this, tr("JuSpin UI Key Bindings"),
+	QMessageBox::about(this, tr("Spirit UI Key Bindings"),
 		QString::fromLatin1("The <b>Key Bindings</b> are as follows:<br>"
 			"<br>"
 			" - <b>F1</b>:      Show this<br>"
@@ -765,7 +765,7 @@ void MainWindow::load_Configuration()
 			this->state->active_chain->images[idx_img] = sys;
 			Configuration_Random(state.get());
 		}
-		else QMessageBox::about(this, tr("About JuSpin"),
+		else QMessageBox::about(this, tr("About Spirit"),
 			tr("The resulting Spin System would have different NOS\n"
 				"or isotropy status than one or more of the other\n"
 				"images in the chain!\n"

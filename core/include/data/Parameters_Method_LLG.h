@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DATA_PARAMETERS_LLG_H
-#define DATA_PARAMETERS_LLG_H
+#ifndef DATA_PARAMETERS_METHOD_LLG_H
+#define DATA_PARAMETERS_METHOD_LLG_H
 
 #include <random>
 #include <vector>
@@ -10,11 +10,14 @@
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_LLG : public Parameters_Method
+	class Parameters_Method_LLG : public Parameters_Method
 	{
 	public:
 		// Constructor
-		Parameters_LLG(std::string output_folder, int seed, int n_iterations, int log_steps, double temperature, double damping, double time_step, bool renorm_sd, bool save_single_configurations, double stt_magnitude, std::vector<double> stt_polarisation_normal, double force_convergence);
+		Parameters_Method_LLG(std::string output_folder, double force_convergence, long int n_iterations, long int n_iterations_log,
+			int seed_i, double temperature_i, double damping_i, double time_step_i,
+			bool renorm_sd_i, bool save_single_configurations_i,
+			double stt_magnitude_i, std::vector<double> stt_polarisation_normal_i);
 
 		//PRNG Seed
 		const int seed;

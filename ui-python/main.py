@@ -55,6 +55,6 @@ while t.is_alive(): # wait for the thread to exit
 ### ...
 # // Finish
 # Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-# Log(Log_Level::ALL, Log_Sender::ALL, "================= MonoSpin Finished =================");
+# Log(Log_Level::ALL, Log_Sender::ALL, "================= Spirit Finished ===================");
 # Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
 # Log.Append_to_File();
