@@ -31,47 +31,292 @@ namespace Engine
 		// Forces
 		this->F_gradient   = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
 		this->minimum_mode = std::vector<std::vector<double>>(noc, std::vector<double>(3 * nos));	// [noi][3nos]
+
+		// Force function
+		// ToDo: move into parameters
+		this->mm_function = "Spectra Prefactor"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
     }
+	
+
+    void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+    {
+		if (this->mm_function == "Spectra Matrix")
+		{
+			this->Calculate_Force_Spectra_Matrix(configurations, forces);
+		}
+		else if (this->mm_function == "Spectra Prefactor")
+		{
+			this->Calculate_Force_Spectra_Prefactor(configurations, forces);
+		}
+		else if (this->mm_function == "Lanczos")
+		{
+			this->Calculate_Force_Lanczos(configurations, forces);
+		}
+    }
+
+
+	Eigen::MatrixXd deorder_matrix(Eigen::MatrixXd m)
+	{
+		Eigen::MatrixXd r(m.rows(), m.rows());
+		int nos = m.rows() / 3;
+
+		for (int i = 0; i < nos; ++i)
+		{
+			for (int dim1 = 0; dim1 < 3; ++dim1)
+			{
+				for (int j = 0; j < nos; ++j)
+				{
+					for (int dim2 = 0; dim2 < 3; ++dim2)
+					{
+						 r(i + dim1*nos, j + dim2*nos) = m(dim1 + 3 * i, dim2 + 3 * j);
+					}
+				}
+			}
+		}
+		return r;
+	}
 
 	Eigen::MatrixXd projector(std::vector<double> & image)
 	{
 		int size = image.size();
+		int nos = size / 3;
 		//		Get the image as Eigen vector
-		Eigen::VectorXd e_image = Eigen::Map<Eigen::VectorXd>(image.data(), size);
+		//Eigen::VectorXd e_image = Eigen::Map<Eigen::VectorXd>(image.data(), size);
 		// 		Get basis change matrix M=1-S, S=x*x^T
 		//Log(Log_Level::Debug, Log_Sender::MMF, "before basis matrix creation");
-		Eigen::MatrixXd proj = Eigen::MatrixXd::Identity(size, size) - e_image*e_image.transpose();
+
+		Eigen::MatrixXd proj = Eigen::MatrixXd::Identity(size, size);// -e_image*e_image.transpose();
+		// TODO: do this with stride, instead of deordering later
+		Eigen::Vector3d spin;
+		for (int i = 0; i < nos; ++i)
+		{
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				spin[dim] = image[i+dim*nos];
+			}
+			proj.block<3, 3>(3*i, 3*i) -= spin*spin.transpose();
+		}
+		//std::cerr << "projector orig: " << std::endl << proj << std::endl;
 		// 		Change the basis of the Hessian: H -> H - SHS
 		//Log(Log_Level::Debug, Log_Sender::MMF, "after basis matrix creation");
-		return proj;
+		return deorder_matrix(proj);
+	}
+
+	Eigen::MatrixXd reorder_matrix(Eigen::MatrixXd m)
+	{
+		Eigen::MatrixXd r(m.rows(), m.rows());
+		int nos = m.rows() / 3;
+
+		for (int i = 0; i < nos; ++i)
+		{
+			for (int dim1 = 0; dim1 < 3; ++dim1)
+			{
+				for (int j = 0; j < nos; ++j)
+				{
+					for (int dim2 = 0; dim2 < 3; ++dim2)
+					{
+						r(dim1 + 3 * i, dim2 + 3 * j) = m(i + dim1*nos, j + dim2*nos);
+					}
+				}
+			}
+		}
+		return r;
+	}
+
+	Eigen::VectorXd reorder_vector(Eigen::VectorXd m)
+	{
+		Eigen::VectorXd r(m.rows());
+		int nos = m.rows() / 3;
+
+		for (int i = 0; i < nos; ++i)
+		{
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				r(dim + 3 * i) = m(i + dim*nos);
+			}
+		}
+		return r;
+	}
+
+	void Method_MMF::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+	{
+		std::cerr << "calculating force" << std::endl;
+		const int nos = configurations[0]->size() / 3;
+
+		// Loop over chains and calculate the forces
+		for (int ichain = 0; ichain < collection->noc; ++ichain)
+		{
+			auto& image = *configurations[ichain];
+			Eigen::VectorXd x = Eigen::Map<Eigen::VectorXd>(configurations[ichain]->data(), 3 * nos);
+
+			// The gradient force (unprojected) is simply minus the effective field
+			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
+			Eigen::VectorXd grad = Eigen::Map<Eigen::VectorXd>(F_gradient[ichain].data(), 3 * nos);
+			grad = -grad;
+
+			// Get the unprojected Hessian
+			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
+			Eigen::MatrixXd H = Eigen::Map<Eigen::MatrixXd>(hessian[ichain].data(), 3 * nos, 3 * nos);
+
+
+			// Remove Hessian's components in the basis of the image (project it into tangent space)
+			//		and add the gradient contributions (inner and outer product)
+			auto P = projector(image);
+
+			//std::cerr << "------------------------" << std::endl;
+			std::cerr << "gradient:      " << reorder_vector(grad).transpose() << std::endl;
+			//std::cerr << "hessian:       " << std::endl << reorder_matrix(H) << std::endl;*/
+
+			H = P.transpose()*H*P - P*(x.dot(grad)) - (P*grad)*x.transpose();
+
+			//Log(Log_Level::Debug, Log_Sender::MMF, "after basis change");
+			std::cerr << "projector:     " << std::endl << reorder_matrix(P) << std::endl;
+			std::cerr << "gradient proj: " << std::endl << reorder_vector(P*grad).transpose() << std::endl;
+			//std::cerr << "hessian final: " << std::endl << reorder_matrix(H) << std::endl;
+			//std::cerr << "------------------------" << std::endl;*/
+
+			Eigen::EigenSolver<Eigen::MatrixXd> estest1(reorder_matrix(H));
+			std::cerr << "hessian:    " << std::endl << reorder_matrix(H) << std::endl;
+			std::cerr << "eigen vals: " << std::endl << estest1.eigenvalues() << std::endl;
+			std::cerr << "eigen vecs: " << std::endl << estest1.eigenvectors().real() << std::endl;
+			Eigen::EigenSolver<Eigen::MatrixXd> estest2(H);
+			std::cerr << "eigen vals: " << std::endl << estest2.eigenvalues() << std::endl;
+			std::cerr << "eigen vecs: " << std::endl << (estest2.eigenvectors().real()) << std::endl;
+			// Get the lowest Eigenvector
+			//		Create a Spectra solver
+			Spectra::DenseGenMatProd<double> op(H);
+			Spectra::GenEigsSolver< double, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<double> > hessian_spectrum(&op, 1, 3);
+			hessian_spectrum.init();
+			//		Compute the specified spectrum
+			int nconv = hessian_spectrum.compute();
+			if (hessian_spectrum.info() == Spectra::SUCCESSFUL)
+			{
+				// Calculate the Force
+				// 		Retrieve the Eigenvalues
+				Eigen::VectorXd evalues = hessian_spectrum.eigenvalues().real();
+				//std::cerr << "spectra val: " << std::endl << hessian_spectrum.eigenvalues() << std::endl;
+				//std::cerr << "spectra vec: " << std::endl << reorder_vector(hessian_spectrum.eigenvectors().col(0).real()) << std::endl;
+				// 		Check if the lowest eigenvalue is negative
+				if (evalues[0] < -10e-7)
+				{
+					// Create the Minimum Mode
+					// 		Retrieve the Eigenvectors
+					Eigen::MatrixXd evectors = hessian_spectrum.eigenvectors().real();
+					Eigen::Ref<Eigen::VectorXd> evec = evectors.col(0);
+					// We have found the mode towards a saddle point
+					// 		Copy via assignment
+					this->minimum_mode[ichain] = std::vector<double>(evec.data(), evec.data() + evec.rows()*evec.cols());
+					// 		Normalize the mode vector in 3N dimensions
+					Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
+					// std::cerr << "grad " << F_gradient[ichain][0] << " " << F_gradient[ichain][1] << " " << F_gradient[ichain][2] << std::endl;
+					// std::cerr << "mode " << minimum_mode[ichain][0] << " " << minimum_mode[ichain][1] << " " << minimum_mode[ichain][2] << std::endl;
+					// Invert the gradient force along the minimum mode
+					Utility::Manifoldmath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
+					// Copy out the forces
+					forces[ichain] = F_gradient[ichain];
+					// std::cerr << "force " << forces[ichain][0] << " " << forces[ichain][1] << " " << forces[ichain][2] << std::endl;
+				}
+				//		Otherwise we seek for the lowest nonzero eigenvalue
+				else
+				{
+					/////////////////////////////////
+					// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
+					Eigen::EigenSolver<Eigen::MatrixXd> estest(H);
+					auto evals = estest.eigenvalues().real();
+					std::cerr << "eigen vals: " << std::endl << estest.eigenvalues() << std::endl;
+					std::cerr << "eigen vecs: " << std::endl << reorder_matrix(estest.eigenvectors().real()) << std::endl;
+					/////////////////////////////////
+
+					// Find lowest nonzero eigenvalue
+					double eval_min = 10e-7;
+					int idx_eval_min = 0;
+					for (int ival = 0; ival<evals.size(); ++ival)
+					{
+						if (evals[ival] > 10e-7 && evals[ival] < eval_min)
+						{
+							eval_min = evals[ival];
+							idx_eval_min = ival;
+							break;
+						}
+					}
+					//std::cerr << "lowest eval: " << eval_min << std::endl;
+					//std::cerr << "lowest evec: " << reorder_vector(estest.eigenvectors().col(idx_eval_min).real()) << std::endl;
+					// Corresponding eigenvector
+					auto evec_min = estest.eigenvectors().col(idx_eval_min).real();
+
+					// 		Copy via assignment
+					this->minimum_mode[ichain] = std::vector<double>(evec_min.data(), evec_min.data() + evec_min.rows()*evec_min.cols());
+					// 		Normalize the mode vector in 3N dimensions
+					Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
+					// We are too close to the local minimum so we have to use a strong force
+					//		We apply the force against the minimum mode of the positive eigenvalue
+					double v1v2 = 0.0;
+					for (int i = 0; i < 3 * nos; ++i)
+					{
+						v1v2 += F_gradient[ichain][i] * minimum_mode[ichain][i];
+					}
+					// Take out component in direction of v2
+					for (int i = 0; i < 3 * nos; ++i)
+					{
+						F_gradient[ichain][i] = -v1v2 * minimum_mode[ichain][i];
+					}
+
+					// Copy out the forces
+					forces[ichain] = F_gradient[ichain];
+				}
+			}
+			else
+			{
+				Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
+				Log(Log_Level::Info, Log_Sender::MMF, "Zeroing the MMF force...");
+				for (double x : forces[ichain]) x = 0;
+			}
+		}
 	}
 
 	std::vector<Eigen::MatrixXd> gamma(std::vector<double> & image)
 	{
+		int nos = image.size() / 3;
+
+		Eigen::MatrixXd a_x(3 * nos, 3 * nos), a_y(3 * nos, 3 * nos), a_z(3 * nos, 3 * nos);
 		Eigen::Matrix3d A_x, A_y, A_z;
-		A_x << -2*image[0], -image[1], -image[2],
-				-image[1], 0, 0,
-				-image[2], 0, 0;
-		A_y <<  0, -image[0], 0,
-				-image[0], -2*image[1], -image[2],
-				0, -image[2], 0;
-		A_z << 0, 0, -image[0],
-				0, 0, -image[1],
-				-image[0], -image[1], -2*image[2];
-		return std::vector<Eigen::MatrixXd>({ A_x, A_y, A_z });
+		for (int i = 0; i < nos; ++i)
+		{
+			A_x << -2 * image[i + 0 * nos], -image[i + 1 * nos], -image[i + 2 * nos],
+				-image[i + 1 * nos], 0, 0,
+				-image[i + 2 * nos], 0, 0;
+			A_y << 0, -image[i + 0 * nos], 0,
+				-image[i + 0 * nos], -2 * image[i + 1 * nos], -image[i + 2 * nos],
+				0, -image[i + 2 * nos], 0;
+			A_z << 0, 0, -image[i + 0 * nos],
+				0, 0, -image[i + 1 * nos],
+				-image[i + 0 * nos], -image[i + 1 * nos], -2 * image[i + 2 * nos];
+
+			a_x.block<3, 3>(3*i, 3*i) = A_x;
+			a_y.block<3, 3>(3*i, 3*i) = A_y;
+			a_z.block<3, 3>(3*i, 3*i) = A_z;
+		}
+		return std::vector<Eigen::MatrixXd>({ a_x, a_y, a_z });
 	}
 
-    void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
-    {
+	void printmatrix(Eigen::MatrixXd & m)
+	{
+		std::cerr << m << std::endl;
+	}
+
+	void Method_MMF::Calculate_Force_Spectra_Prefactor(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+	{
 		const int nos = configurations[0]->size() / 3;
 
-        // Loop over chains and calculate the forces
+		// Loop over chains and calculate the forces
 		for (int ichain = 0; ichain < collection->noc; ++ichain)
 		{
 			auto& image = *configurations[ichain];
 
 			// The gradient force (unprojected) is simply minus the effective field
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
+
+
 			Eigen::VectorXd e_gradient = Eigen::Map<Eigen::VectorXd>(F_gradient[ichain].data(), 3 * nos);
 			e_gradient = -e_gradient;
 
@@ -82,7 +327,7 @@ namespace Engine
 			// std::cerr << "------------------------" << std::endl;
 			// std::cerr << "gradient:      " << std::endl << e_gradient.transpose() << std::endl;
 			// std::cerr << "hessian:       " << std::endl << e_hessian << std::endl;
-			
+
 			// Remove Hessian's components in the basis of the image (project it into tangent space)
 			auto e_projector = projector(image);
 			e_hessian = e_projector.transpose()*e_hessian*e_projector;
@@ -96,14 +341,15 @@ namespace Engine
 			// Calculate contribution of gradient
 			auto e_gamma = gamma(image);
 			//for (int g = 0; g < 3; ++g) std::cerr << "gamma " << g << ":" << std::endl << e_gamma[g] << std::endl;
-			for (int i = 0; i < 3; ++i)
+
+			for (int i = 0; i < 3 * nos; ++i)
 			{
-				for (int j = 0; j < 3; ++j)
+				for (int j = 0; j < 3 * nos; ++j)
 				{
 					double temp = 0;
 					for (int k = 0; k < 3; ++k)
 					{
-						for (int m = 0; m < 3; ++m)
+						for (int m = 0; m < 3 * nos; ++m)
 						{
 							temp += e_projector(i, k) * e_gamma[k](j, m) * e_gradient[m];
 							//std::cerr << i << " " << j << " " << k << " " << m << " - g - " << e_gamma[k](j, m) << std::endl;
@@ -206,8 +452,13 @@ namespace Engine
 				Log(Log_Level::Info, Log_Sender::MMF, "Zeroing the MMF force...");
 				for (double x : forces[ichain]) x = 0;
 			}
-        }
-    }
+		}
+	}
+
+	void Method_MMF::Calculate_Force_Lanczos(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+	{
+
+	}
 		
     // Check if the Forces are converged
     bool Method_MMF::Force_Converged()
