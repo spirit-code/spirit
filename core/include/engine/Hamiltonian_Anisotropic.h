@@ -20,7 +20,7 @@ namespace Engine
 		Hamiltonian_Anisotropic(
 			std::vector<double> mu_s,
 			std::vector<double> external_field_magnitude, std::vector<std::vector<double>> external_field_normal,
-			std::vector<double> anisotropy_magnitude, std::vector<std::vector<double>> anisotropy_normal,
+			std::vector<int> anisotropy_index, std::vector<double> anisotropy_magnitude, std::vector<std::vector<double>> anisotropy_normal,
 			std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<double>> Exchange_magnitude,
 			std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<double>> DMI_magnitude, std::vector<std::vector<std::vector<double>>> DMI_normal,
 			std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<double>> BQC_magnitude,
@@ -44,10 +44,11 @@ namespace Engine
 		// Spin moment
 		std::vector<double> mu_s;									// [nos]
 		// External Magnetic Field
-		std::vector<double> external_field_magnitude;	// [nos]
+		std::vector<double> external_field_magnitude;				// [nos]
 		std::vector<std::vector<double>> external_field_normal;		// [3][nos] (x, y, z)
 		// Anisotropy
-		std::vector<double> anisotropy_magnitude;		// [nos]
+		std::vector<int> anisotropy_index;
+		std::vector<double> anisotropy_magnitude;					// [nos]
 		std::vector<std::vector<double>> anisotropy_normal;			// [3][nos] (x, y, z)
 
 		// ------------ Two Spin Interactions ------------
@@ -78,7 +79,7 @@ namespace Engine
 		// Calculate the Zeeman effective field of a single Spin
 		void Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
 		// Calculate the Anisotropy effective field of a single Spin
-		void Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field);
 		// Calculate the exchange interaction effective field of a Spin Pair
 		void Field_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & eff_field);
 		// Calculate the DMI effective field of a Spin Pair
@@ -92,7 +93,7 @@ namespace Engine
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy);
 		// Calculate the Anisotropy energy of a Spin System
-		void E_Anisotropy(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy);
+		void E_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & Energy);
 		// Calculate the exchange interaction energy of a Spin System
 		void E_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy);
 		// Calculate the DMI energy of a Spin System

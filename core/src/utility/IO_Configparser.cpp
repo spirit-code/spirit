@@ -614,15 +614,16 @@ namespace Utility
 			double B = 0;
 			std::vector<double> B_normal = { 0.0, 0.0, 1.0 };
 			std::vector<double> external_field_magnitude = std::vector<double>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> external_field_normal = { std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 1.0) };	// [3][nos]
+			std::vector<std::vector<double>> external_field_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
 			double K = 0;
 			std::vector<double> K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
-			std::vector<double> anisotropy_magnitude = std::vector<double>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal = { std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 1.0) };	// [3][nos]
+			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
+			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
+			std::vector<std::vector<double>> anisotropy_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;
@@ -694,9 +695,9 @@ namespace Utility
 					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
 					if (anisotropy_file.length() > 0)
 					{
-						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Read anisotropy file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
-						// Not yet implemented!
+						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
+							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 					}
 					else
 					{
@@ -707,10 +708,11 @@ namespace Utility
 						// Fill the arrays
 						for (int i = 0; i < geometry.nos; ++i)
 						{
+							anisotropy_index[i] = i;
 							anisotropy_magnitude[i] = K;
 							for (int dim = 0; dim < 3; ++dim)
 							{
-								anisotropy_normal[dim][i] = K_normal[dim];
+								anisotropy_normal[i][dim] = K_normal[dim];
 							}
 						}
 					}
@@ -770,12 +772,12 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[1][0]) + " " + std::to_string(anisotropy_normal[2][0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[0][1]) + " " + std::to_string(anisotropy_normal[0][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,
 				external_field_magnitude, external_field_normal,
-				anisotropy_magnitude, anisotropy_normal,
+				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
 				Exchange_indices, Exchange_magnitude,
 				DMI_indices, DMI_magnitude, DMI_normal,
 				BQC_indices, BQC_magnitude,

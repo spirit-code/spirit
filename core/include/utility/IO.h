@@ -42,6 +42,9 @@ namespace Utility
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
 		//External_Field_from_File ....
+		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
+			std::vector<int> & anisotropy_index, std::vector<double> & anisotropy_magnitude,
+			std::vector<std::vector<double>> & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<double>> & Exchange_magnitude,
 			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<double>> & DMI_magnitude, std::vector<std::vector<std::vector<double>>> & DMI_normal,
