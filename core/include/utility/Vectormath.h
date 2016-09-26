@@ -88,10 +88,11 @@ namespace Utility
 		void Cross_Product(const double *const* v1, const int a1, const double *const* v2, const int b1, double *v3);
 		void Cross_Product(const double *const* v1, const int a1, const double *const* const* v2, const int b1, const int b2, double *v3);
 
-		//Normalizes an arbitrary vector of doubles with its Kartesian Length
+		//Normalizes an arbitrary vector of doubles with its Cartesian Length
 		template <typename T>
 		void Normalize(T *array, const int length);
 		void Normalize(std::vector<double> &vec);
+		// Normalize each 3-component subvector of a 3N-dimensional vector
 		void Normalize_3Nos(std::vector<double> &vec);
 
 		//Normalizes an array of array[dim][no_v] of vectors with their respective Kartesian Length

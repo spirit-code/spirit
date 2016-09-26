@@ -1,6 +1,7 @@
 set(SOURCE_CORE_ENGINE
     ${SOURCE_CORE_ENGINE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
