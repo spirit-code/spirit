@@ -159,11 +159,12 @@ void GLSpins::mouseMove(const glm::vec2& position_before, const glm::vec2& posit
 void GLSpins::mouseScroll(const float& wheel_delta) {
   auto forward = _camera.centerPosition() - _camera.cameraPosition();
   float camera_distance = glm::length(forward);
-  if (camera_distance < 2 && wheel_delta < 1) {
-    return;
+  float new_camera_distance = (float)(1+0.02*wheel_delta)*camera_distance;
+  if (new_camera_distance < 2) {
+    new_camera_distance = 2;
   }
   
-  auto camera_position = _camera.centerPosition() - (float)(1+0.02*wheel_delta) * forward;
+  auto camera_position = _camera.centerPosition() - new_camera_distance/camera_distance * forward;
   _camera.lookAt(camera_position,
                  _camera.centerPosition(),
                  _camera.upVector());
