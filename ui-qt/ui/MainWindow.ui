@@ -199,7 +199,7 @@
             </item>
             <item>
              <property name="text">
-              <string>QM</string>
+              <string>VP</string>
              </property>
             </item>
            </widget>
@@ -483,7 +483,7 @@
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -736,6 +736,21 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_PlayPause</tabstop>
+  <tabstop>pushButton_StopAll</tabstop>
+  <tabstop>comboBox_Method</tabstop>
+  <tabstop>comboBox_Optimizer</tabstop>
+  <tabstop>pushButton_PreviousImage</tabstop>
+  <tabstop>lineEdit_ImageNumber</tabstop>
+  <tabstop>pushButton_NextImage</tabstop>
+  <tabstop>pushButton_X</tabstop>
+  <tabstop>pushButton_Y</tabstop>
+  <tabstop>pushButton_Z</tabstop>
+  <tabstop>pushButton_Reset</tabstop>
+  <tabstop>lineEdit_Save_E</tabstop>
+  <tabstop>pushButton_Save_E</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

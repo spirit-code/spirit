@@ -19,7 +19,7 @@ namespace Engine
 	Hamiltonian_Anisotropic::Hamiltonian_Anisotropic(
 		std::vector<double> mu_s,
 		std::vector<double> external_field_magnitude, std::vector<std::vector<double>> external_field_normal,
-		std::vector<double> anisotropy_magnitude, std::vector<std::vector<double>> anisotropy_normal,
+		std::vector<int> anisotropy_index, std::vector<double> anisotropy_magnitude, std::vector<std::vector<double>> anisotropy_normal,
 		std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<double>> Exchange_magnitude,
 		std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<double>> DMI_magnitude, std::vector<std::vector<std::vector<double>>> DMI_normal,
 		std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<double>> BQC_magnitude,
@@ -29,7 +29,7 @@ namespace Engine
 		Hamiltonian(boundary_conditions),
 		mu_s(mu_s),
 		external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
-		anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
+		anisotropy_index(anisotropy_index), anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
 		Exchange_indices(Exchange_indices), Exchange_magnitude(Exchange_magnitude),
 		DMI_indices(DMI_indices), DMI_magnitude(DMI_magnitude), DMI_normal(DMI_normal),
 		BQC_indices(BQC_indices), BQC_magnitude(BQC_magnitude),
@@ -59,9 +59,10 @@ namespace Engine
 		{
 			// External field
 			E_Zeeman(nos, spins, i, E);
-			// Anisotropy
-			E_Anisotropy(nos, spins, i, E);
 		}
+
+		// Anisotropy
+		E_Anisotropy(nos, spins, E);
 
 		// Pairs
 		//		Loop over periodicity
@@ -165,14 +166,19 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & Energy)
 	{
 		double t = 0;
-		for (int i = 0; i < 3; ++i)
+		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			t += this->anisotropy_normal[i][ispin] * spins[ispin + i*nos];
+			t = 0;
+			int index = this->anisotropy_index[i];
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				t += this->anisotropy_normal[i][dim] * spins[index + dim*nos];
+			}
+			Energy[ENERGY_POS_ANISOTROPY] -= this->anisotropy_magnitude[index] * std::pow(t, 2.0);
 		}
-		Energy[ENERGY_POS_ANISOTROPY] -= this->anisotropy_magnitude[ispin] * std::pow(t, 2.0);
 	}
 
 	void Hamiltonian_Anisotropic::E_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
@@ -243,9 +249,10 @@ namespace Engine
 			// AT SOME POINT WE MIGHT CONSTRUCT A CLASS ANALOGOUS TO Spin_Pair FOR THIS
 			// External field
 			Field_Zeeman(nos, spins, field, i);
-			// Anisotropy
-			Field_Anisotropy(nos, spins, field, i);
 		}
+
+		// Anisotropy
+		Field_Anisotropy(nos, spins, field);
 
 		// Pairs
 		//		Loop over periodicity
@@ -298,17 +305,22 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Anisotropic::Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field)
 	{
-		double ks = 0.0;
-		for (int i = 0; i < 3; ++i)
+		double t = 0;
+		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			ks += this->anisotropy_normal[i][ispin] * spins[ispin + i*nos];
-		}
-		for (int i = 0; i < 3; ++i)
-		{
+			int index = this->anisotropy_index[i];
+			t = 0;
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				t += this->anisotropy_normal[i][dim] * spins[index + dim*nos];
+			}
 
-			eff_field[ispin + i*nos] += 2.0 * this->anisotropy_magnitude[ispin] * this->anisotropy_normal[i][ispin] * ks;
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				eff_field[index + dim*nos] += 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i][dim] * t;
+			}
 		}
 	}
 
@@ -381,4 +393,73 @@ namespace Engine
 			eff_field[dim*nos + indices[1]] += skalar_contrib * (3 * dotprod0*DD_normal[dim] - spins[dim * nos + indices[0]]);
 		}
 	}//end Field_DipoleDipole
+
+	void Hamiltonian_Anisotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	{
+		int nos = spins.size() / 3;
+
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			for (int i = 0; i < nos; ++i)
+			{
+				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[alpha][i],2);
+			}
+		}
+
+		// Spin Pair elements
+		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		{
+			//		Check if boundary conditions contain this periodicity
+			if ((i_periodicity == 0)
+				|| (i_periodicity == 1 && this->boundary_conditions[0])
+				|| (i_periodicity == 2 && this->boundary_conditions[1])
+				|| (i_periodicity == 3 && this->boundary_conditions[2])
+				|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+				|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+			{
+				//		Loop over pairs of this periodicity
+				// Exchange
+				for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
+				{
+					for (int alpha = 0; alpha < 3; ++alpha)
+					{
+						int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
+						hessian[idx_h] = -Exchange_magnitude[i_periodicity][i_pair];
+					}
+				}
+				// DMI
+				for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
+				{
+					for (int alpha = 0; alpha < 3; ++alpha)
+					{
+						for (int beta = 0; beta < 3; ++beta)
+						{
+							int idx_h = DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos);
+							if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+							{
+								hessian[idx_h] =
+									DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+							}
+							else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+							{
+								hessian[idx_h] =
+									-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+							}
+							else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+							{
+								hessian[idx_h] =
+									DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Hamiltonian name as string
+	std::string Hamiltonian_Anisotropic::Name() { return "Anisotropic Heisenberg"; }
 }

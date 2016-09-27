@@ -9,6 +9,7 @@
 #include "engine/Hamiltonian.h"
 #include "engine/Hamiltonian_Isotropic.h"
 #include "engine/Hamiltonian_Anisotropic.h"
+#include "engine/Hamiltonian_Gaussian.h"
 #include "data/Parameters_Method_LLG.h"
 #include "data/Parameters_Method_GNEB.h"
 
@@ -37,7 +38,6 @@ namespace Data
 		// Orientations of the Spins: spins[dim][nos]
 		std::shared_ptr<std::vector<double>> spins;
 		// Spin Hamiltonian
-		bool is_isotropic;
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
 		std::shared_ptr<Geometry> geometry;

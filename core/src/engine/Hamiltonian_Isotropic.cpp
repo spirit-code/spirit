@@ -457,4 +457,22 @@ namespace Engine
 			}
 		}//endfor jneigh
 	}//end Field_DipoleDipole
+
+	void Hamiltonian_Isotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	{
+		int nos = spins.size() / 3;
+
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			double K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
+			for (int i = 0; i < nos; ++i)
+			{
+				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;
+			}
+		}
+	}
+
+	// Hamiltonian name as string
+	std::string Hamiltonian_Isotropic::Name() { return "Isotropic Heisenberg"; }
 }

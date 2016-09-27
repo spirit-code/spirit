@@ -64,7 +64,11 @@ namespace Engine
 		{
 			auto& image = *configurations[img];
 			// The gradient force (unprojected) is simply the effective field
-			this->chain->images[img]->hamiltonian->Effective_Field(image, F_gradient[img]);
+			//this->chain->images[img]->hamiltonian->Effective_Field(image, F_gradient[img]);
+			// We do it the following way so that the effective field can be e.g. displayed,
+			//		while the gradient force is manipulated (e.g. projected)
+			this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
+			F_gradient[img] = this->chain->images[img]->effective_field;
 
 			// Calculate Force
 			if (chain->climbing_image[img])
@@ -132,10 +136,10 @@ namespace Engine
 				{
 					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
 				}
-
-				// Copy out
-				forces[img] = F_total[img];
 			}// end if climbing
+
+			// Copy out
+			forces[img] = F_total[img];
 		}// end for img=1..noi-1
 	}// end Calculate
 
@@ -176,7 +180,7 @@ namespace Engine
 			// dy/dx
 			for (int j = 0; j < 3 * chain->images[i]->nos; ++j)
 			{
-				dE_dRx[i] += this->F_gradient[i][j] * this->tangents[i][j];
+				dE_dRx[i] += this->chain->images[i]->effective_field[j] * this->tangents[i][j];
 			}
 		}
 		// Interpolate data points

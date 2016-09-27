@@ -489,6 +489,10 @@ namespace Utility
 				// TODO: to std::move or not to std::move, that is the question...
 				hamiltonian = std::move(Hamiltonian_Anisotropic_from_Config(configFile, geometry));
 			}// endif anisotropic
+			else if (hamiltonian_type == "gaussian")
+			{
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			}
 			else
 			{
 				Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
@@ -610,15 +614,16 @@ namespace Utility
 			double B = 0;
 			std::vector<double> B_normal = { 0.0, 0.0, 1.0 };
 			std::vector<double> external_field_magnitude = std::vector<double>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> external_field_normal = { std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 1.0) };	// [3][nos]
+			std::vector<std::vector<double>> external_field_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
 			double K = 0;
 			std::vector<double> K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
-			std::vector<double> anisotropy_magnitude = std::vector<double>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal = { std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 0.0), std::vector<double>(geometry.nos, 1.0) };	// [3][nos]
+			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
+			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
+			std::vector<std::vector<double>> anisotropy_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;
@@ -690,9 +695,9 @@ namespace Utility
 					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
 					if (anisotropy_file.length() > 0)
 					{
-						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Read anisotropy file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
-						// Not yet implemented!
+						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
+							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 					}
 					else
 					{
@@ -703,10 +708,11 @@ namespace Utility
 						// Fill the arrays
 						for (int i = 0; i < geometry.nos; ++i)
 						{
+							anisotropy_index[i] = i;
 							anisotropy_magnitude[i] = K;
 							for (int dim = 0; dim < 3; ++dim)
 							{
-								anisotropy_normal[dim][i] = K_normal[dim];
+								anisotropy_normal[i][dim] = K_normal[dim];
 							}
 						}
 					}
@@ -721,12 +727,12 @@ namespace Utility
 							DMI_indices, DMI_magnitude, DMI_normal,
 							BQC_indices, BQC_magnitude);
 					}
-					else
-					{
-						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Default Interaction pairs have not been implemented yet.");
-						throw Exception::System_not_Initialized;
-						// Not implemented!
-					}
+					//else
+					//{
+					//	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Default Interaction pairs have not been implemented yet.");
+					//	throw Exception::System_not_Initialized;
+					//	// Not implemented!
+					//}
 					
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
@@ -766,12 +772,12 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[1][0]) + " " + std::to_string(anisotropy_normal[2][0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[0][1]) + " " + std::to_string(anisotropy_normal[0][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,
 				external_field_magnitude, external_field_normal,
-				anisotropy_magnitude, anisotropy_normal,
+				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
 				Exchange_indices, Exchange_magnitude,
 				DMI_indices, DMI_magnitude, DMI_normal,
 				BQC_indices, BQC_magnitude,
@@ -780,6 +786,86 @@ namespace Utility
 			));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: built");
 			return hamiltonian;
-		}// end Hamiltonian_From_Config
+		}// end Hamiltonian_Anisotropic_From_Config
+		
+		
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry)
+		{
+			//-------------- Insert default values here -----------------------------
+			// Number of Gaussians
+			int n_gaussians = 1;
+			// Amplitudes
+			std::vector<double> amplitude = { 1 };
+			// Widths
+			std::vector<double> width = { 1 };
+			// Centers
+			std::vector<std::vector<double>> center = { std::vector<double>{ 0, 0, 1 } };
+
+			//------------------------------- Parser --------------------------------
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
+			
+			if (configFile != "")
+			{
+				try {
+					IO::Filter_File_Handle myfile(configFile);
+
+					// N
+					myfile.Read_Single(n_gaussians, "gaussian_n");
+
+					// Amplitude
+					amplitude = std::vector<double>(n_gaussians, 1.0);
+					if (myfile.Find("gaussian_amplitudes"))
+					{
+						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> amplitude[i];
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_amplitudes' not found. Using Default: 1.0");
+
+					// Width
+					width = std::vector<double>(n_gaussians, 1.0);
+					if (myfile.Find("gaussian_widths"))
+					{
+						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> width[i];
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_widths' not found. Using Default: 1.0");
+
+					// Center
+					center = std::vector<std::vector<double>>(n_gaussians, std::vector<double>{0, 0, 1});
+					if (myfile.Find("gaussian_centers"))
+					{
+						for (int i = 0; i < n_gaussians; ++i)
+						{
+							myfile.GetLine();
+							for (int j = 0; j < 3; ++j)
+							{
+								myfile.iss >> center[i][j];
+							}
+							Utility::Vectormath::Normalize(center[i]);
+						}
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_centers' not found. Using Default: {0, 0, 1}");
+				}// end try
+				catch (Exception ex) {
+					if (ex == Exception::File_not_Found)
+					{
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Unable to open Config File " + configFile + " Leaving values at default.");
+					}
+					else throw ex;
+				}// end catch
+			}
+			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
+
+
+			// Return
+			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_gaussians  = " + std::to_string(n_gaussians));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        amplitude[0] = " + std::to_string(amplitude[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        width[0]     = " + std::to_string(width[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        center[0]    = " + std::to_string(center[0][0]) + " " + std::to_string(center[0][1]) + " " + std::to_string(center[0][2]));
+			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Gaussian>(new Engine::Hamiltonian_Gaussian(
+				amplitude, width, center
+			));
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: built");
+			return hamiltonian;
+		}
 	}// end namespace IO
 }// end namespace Utility

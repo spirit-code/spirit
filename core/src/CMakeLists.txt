@@ -5,7 +5,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/utility)
 
 set(SOURCE_CORE_ROOT
 	${SOURCE_CORE_ROOT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt  # unfortunately this won't work
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )
 

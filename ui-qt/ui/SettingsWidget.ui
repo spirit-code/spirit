@@ -3514,12 +3514,16 @@
   <tabstop>lineEdit_posz</tabstop>
   <tabstop>radioButton_DW_greater</tabstop>
   <tabstop>radioButton_DW_lesser</tabstop>
+  <tabstop>scrollArea_3</tabstop>
+  <tabstop>scrollArea_4</tabstop>
   <tabstop>pushButton_Transition_Homogeneous</tabstop>
   <tabstop>checkBox_Transition_Noise</tabstop>
   <tabstop>lineEdit_Transition_Noise</tabstop>
   <tabstop>lineEdit_Transition_Homogeneous_First</tabstop>
   <tabstop>lineEdit_Transition_Homogeneous_Last</tabstop>
-  <tabstop>scrollArea</tabstop>
+  <tabstop>scrollArea_6</tabstop>
+  <tabstop>tabWidget_Settings</tabstop>
+  <tabstop>comboBox_Hamiltonian_Iso_ApplyTo</tabstop>
   <tabstop>checkBox_iso_periodical_a</tabstop>
   <tabstop>checkBox_iso_periodical_b</tabstop>
   <tabstop>checkBox_iso_periodical_c</tabstop>
@@ -3553,6 +3557,8 @@
   <tabstop>lineEdit_fourspin</tabstop>
   <tabstop>checkBox_Temperature</tabstop>
   <tabstop>lineEdit_temper</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
   <tabstop>checkBox_aniso_periodical_a</tabstop>
   <tabstop>checkBox_aniso_periodical_b</tabstop>
   <tabstop>checkBox_aniso_periodical_c</tabstop>
@@ -3574,6 +3580,7 @@
   <tabstop>lineEdit_sttz_aniso</tabstop>
   <tabstop>checkBox_T_aniso</tabstop>
   <tabstop>lineEdit_T_aniso</tabstop>
+  <tabstop>scrollArea_5</tabstop>
   <tabstop>comboBox_Parameters_ApplyTo</tabstop>
   <tabstop>lineEdit_Damping</tabstop>
   <tabstop>lineEdit_dt</tabstop>
@@ -3585,6 +3592,7 @@
   <tabstop>radioButton_FallingImage</tabstop>
   <tabstop>lineEdit_gneb_n_iterations</tabstop>
   <tabstop>lineEdit_gneb_log_steps</tabstop>
+  <tabstop>scrollArea_2</tabstop>
   <tabstop>comboBox_VisualisationSource</tabstop>
   <tabstop>comboBox_visualizationMode</tabstop>
   <tabstop>checkBox_showBoundingBox</tabstop>
@@ -3602,14 +3610,6 @@
   <tabstop>horizontalSlider</tabstop>
   <tabstop>horizontalSlider_2</tabstop>
   <tabstop>horizontalSlider_3</tabstop>
-  <tabstop>tabWidget_Settings</tabstop>
-  <tabstop>scrollArea_3</tabstop>
-  <tabstop>scrollArea_5</tabstop>
-  <tabstop>scrollArea_6</tabstop>
-  <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
-  <tabstop>comboBox_Hamiltonian_Iso_ApplyTo</tabstop>
-  <tabstop>scrollArea_4</tabstop>
-  <tabstop>scrollArea_2</tabstop>
  </tabstops>
  <resources/>
  <connections/>

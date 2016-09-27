@@ -757,7 +757,7 @@ void MainWindow::load_Configuration()
 		{
 			if (state->active_chain->images[i]->nos != sys->nos) acceptable = false;
 			// Currently the SettingsWidget does not support different images being isotropic AND anisotropic at the same time
-			if (state->active_chain->images[i]->is_isotropic != sys->is_isotropic) acceptable = false;
+			if (state->active_chain->images[i]->hamiltonian->Name() != sys->hamiltonian->Name()) acceptable = false;
 		}
 		// Set current image
 		if (acceptable)

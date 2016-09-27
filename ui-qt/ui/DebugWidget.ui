@@ -370,6 +370,24 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget_Debug</tabstop>
+  <tabstop>comboBox_ShowLevel</tabstop>
+  <tabstop>pushButton_All</tabstop>
+  <tabstop>checkBox_IO</tabstop>
+  <tabstop>checkBox_GUI</tabstop>
+  <tabstop>checkBox_API</tabstop>
+  <tabstop>checkBox_LLG</tabstop>
+  <tabstop>checkBox_GNEB</tabstop>
+  <tabstop>checkBox_MMF</tabstop>
+  <tabstop>checkBox_2</tabstop>
+  <tabstop>lineEdit_Image</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>plainTextEdit</tabstop>
+  <tabstop>comboBox</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>comboBox_3</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

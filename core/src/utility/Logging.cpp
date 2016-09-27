@@ -24,13 +24,13 @@ namespace Utility
 		// All messages are saved in the Log
 		LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
 		log_entries.push_back(entry);
-		
+
+		// Increment message count
+		n_entries++;
+
 		// If level <= verbosity, we print to console
 		if (level <= print_level && level <= accept_level)
 			std::cout << LogEntryToString(log_entries.back()) << std::endl;
-		
-		// Increment message count
-		n_entries++;
 	}
 
 	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
@@ -71,9 +71,10 @@ namespace Utility
 		// Gather the string
 		std::string logstring = "";
 		int begin_append = no_dumped;
-		no_dumped = (int)log_entries.size();
-		for (auto entry : log_entries) {
-			logstring.append(LogEntryToString(entry));
+		no_dumped = n_entries;
+		for (int i=begin_append; i<n_entries; ++i)
+		{
+			logstring.append(LogEntryToString(log_entries[i]));
 			logstring.append("\n");
 		}
 
@@ -89,9 +90,9 @@ namespace Utility
 
 		// Gather the string
 		std::string logstring = "";
-		no_dumped = (int)log_entries.size();
-		for (auto entry : log_entries) {
-			logstring.append(LogEntryToString(entry));
+		for (int i=0; i<n_entries; ++i)
+		{
+			logstring.append(LogEntryToString(log_entries[i]));
 			logstring.append("\n");
 		}
 

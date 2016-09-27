@@ -16,6 +16,7 @@ extern "C" void Hamiltonian_Set_STT(State *state, float magnitude, const float *
 extern "C" void Hamiltonian_Set_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1);
 
 // Get the Hamiltonian's parameters
+extern "C" const char * Hamiltonian_Get_Name(State * state, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
@@ -26,8 +27,5 @@ extern "C" void Hamiltonian_Get_BQE(State *state, float * dij, int idx_image=-1,
 extern "C" void Hamiltonian_Get_FSC(State *state, float * dij, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_Temperature(State *state, float * T, int idx_image=-1, int idx_chain=-1);
-
-// Other
-extern "C" bool Hamiltonian_Is_Isotropic(State * state, int idx_image=-1, int idx_chain=-1);
 
 #endif

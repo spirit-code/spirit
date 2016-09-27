@@ -16,7 +16,10 @@ int main(int argc, char ** argv)
 	//--- Config Files
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
-	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	const char * cfgfile = "input/kagome-spin-ice.cfg";
+	// const char * cfgfile = "input/example-gaussian.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
@@ -53,8 +56,11 @@ int main(int argc, char ** argv)
 
 	// Create transition of images between first and last
 	Transition_Homogeneous(state.get(), 0, Chain_Get_NOI(state.get())-1);
+
+	// Update the Chain's Data'
+	Chain_Update_Data(state.get());
 	//-------------------------------------------------------------------------------
-	
+
 	//------------------------ User Interface ---------------------------------------
 	// Initialise Application and MainWindow
 	QApplication app(argc, argv);

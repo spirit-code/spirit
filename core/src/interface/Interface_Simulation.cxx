@@ -7,7 +7,7 @@
 #include "Optimizer_SIB.h"
 #include "Optimizer_SIB2.h"
 #include "Optimizer_CG.h"
-#include "Optimizer_QM.h"
+#include "Optimizer_VP.h"
 #include "Method.h"
 
 
@@ -38,6 +38,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
         if (Simulation_Running_LLG_Chain(state, idx_chain))
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+			return;
         }
         else
         {
@@ -52,6 +53,7 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
         if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+			return;
         }
         else
         {
@@ -62,6 +64,11 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
             Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
     }
+	else
+	{
+		Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Method selected: " + method_type);
+		return;
+	}
 
     // Determine the Optimizer
     if (optimizer_type == "SIB")
@@ -80,10 +87,15 @@ extern "C" void Simulation_SingleShot(State *state, const char * c_method_type, 
     {
         optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
     }
-    else if (optimizer_type == "QM")
+    else if (optimizer_type == "VP")
     {
-        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM(method));
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_VP(method));
     }
+	else
+	{
+		Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Optimizer selected: " + optimizer_type);
+		return;
+	}
 
     // One Iteration
     optim->Iteration();
@@ -139,6 +151,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             if (Simulation_Running_LLG_Chain(state, idx_chain))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+				return;
             }
             else
             {
@@ -153,6 +166,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+				return;
             }
             else
             {
@@ -163,6 +177,11 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
                 Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
             }
         }
+		else
+		{
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Method selected: " + method_type);
+			return;
+		}
 
         // Determine the Optimizer
         if (optimizer_type == "SIB")
@@ -181,10 +200,15 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
         }
-        else if (optimizer_type == "QM")
+        else if (optimizer_type == "VP")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_QM(method));
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_VP(method));
         }
+		else
+		{
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Optimizer selected: "+optimizer_type);
+			return;
+		}
 
         // TODO: how to add to list of optimizers?? how to remove when stopping??
         // state->optimizers.push_back(optim);

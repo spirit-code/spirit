@@ -4,7 +4,7 @@
 
 void Configuration_DomainWall(State *state, const double pos[3], double v[3], bool greater, int idx_image, int idx_chain)
 {
-    Utility::Configurations::DomainWall(*state->active_image, pos, v, greater);
+    Utility::Configurations::DomainWall(*state->active_image, std::vector<double>(pos, pos+3), std::vector<double>(v, v+3), greater);
 }
 
 void Configuration_Homogeneous(State *state, double v[3], int idx_image, int idx_chain)
@@ -16,7 +16,7 @@ void Configuration_Homogeneous(State *state, double v[3], int idx_image, int idx
     if (idx_image < 0) img = state->active_image;
     else img = c->images[idx_image];
     // Apply configuration
-    Utility::Configurations::Homogeneous(*img, v);
+    Utility::Configurations::Homogeneous(*img, std::vector<double>(v, v+3));
 }
 
 void Configuration_PlusZ(State *state, int idx_image, int idx_chain)
@@ -76,5 +76,5 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, double 
     if (idx_image < 0) img = state->active_image;
     else img = c->images[idx_image];
     // Apply configuration
-    Utility::Configurations::SpinSpiral(*img, dir_type, q, axis, theta);
+    Utility::Configurations::SpinSpiral(*img, dir_type, std::vector<double>(q, q+3), std::vector<double>(axis, axis+3), theta);
 }

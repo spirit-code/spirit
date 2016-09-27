@@ -43,10 +43,20 @@ namespace Engine
 	private:
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
+		std::vector<std::vector<double>> hessian;
 		// Last calculated forces
 		std::vector<std::vector<double>> F_gradient;
 		// Last calculated minimum mode
 		std::vector<std::vector<double>> minimum_mode;
+
+		// Which minimum mode function to use
+		// ToDo: move into parameters
+		std::string mm_function;
+
+		// Functions for getting the minimum mode of a Hessian
+		void Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
+		void Calculate_Force_Spectra_Prefactor(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
+		void Calculate_Force_Lanczos(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
 	};
 }
 

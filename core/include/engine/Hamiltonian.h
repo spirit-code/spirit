@@ -14,6 +14,7 @@
 #define ENERGY_POS_DD 6
 
 
+#include <random>
 #include <vector>
 
 #include "Logging.h"
@@ -28,44 +29,43 @@ namespace Engine
 	class Hamiltonian
 	{
 	public:
-		Hamiltonian(std::vector<bool> boundary_conditions) : boundary_conditions(boundary_conditions) {};
+		Hamiltonian(std::vector<bool> boundary_conditions);
 
-		// Calculate the Effective field of a spin configuration
-		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
-		{
-			// Not Implemented!
-			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Effective_Field() of the Hamiltonian base class!"));
-			throw Utility::Exception::Not_Implemented;
-		};
+		/*
+			Calculate the Hessian matrix of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient. You should
+			override it if you want to get proper performance.
+			This function is the fallback for derived classes where it has not been overridden.
+		*/
+		virtual void Hessian(const std::vector<double> & spins, std::vector<double> & hessian);
+
+		/*
+			Calculate the effective field of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient. You should
+			override it if you want to get proper performance.
+			This function is the fallback for derived classes where it has not been overridden.
+		*/
+		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field);
 
 		// Calculate the Energy of a spin configuration
-		virtual double Energy(std::vector<double> & spins)
-		{
-			// Not Implemented!
-			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
-			throw Utility::Exception::Not_Implemented;
-			return 0.0;
-		}
+		virtual double Energy(std::vector<double> & spins);
 
 		// Calculate the Energies of the spins of a configuration
-		virtual std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins)
-		{
-			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
-			throw Utility::Exception::Not_Implemented;
-			return std::vector<std::vector<double>>(spins.size(), std::vector<double>(7, 0.0));
-		}
+		virtual std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins);
 
 		// Calculate the Effective Field of a spin configuration
-		virtual std::vector<double> Energy_Array(std::vector<double> & spins)
-		{
-			Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
-			throw Utility::Exception::Not_Implemented;
-			return std::vector<double>(7, 0.0);
-		}
+		virtual std::vector<double> Energy_Array(std::vector<double> & spins);
+
+		// Hamiltonian name as string
+		virtual std::string Name();
 
 		// Boundary conditions
 		std::vector<bool> boundary_conditions; // [3] (a, b, c)
-
+	
+	private:
+		std::mt19937 prng;
+		std::uniform_int_distribution<int> distribution_int;
+		double delta;
 	};
 }
 #endif

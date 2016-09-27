@@ -14,6 +14,7 @@
 #include "Geometry.h"
 #include "Hamiltonian_Isotropic.h"
 #include "Hamiltonian_Anisotropic.h"
+#include "Hamiltonian_Gaussian.h"
 #include "Parameters_Method_LLG.h"
 #include "Parameters_Method_GNEB.h"
 #include "Parameters_Method_MMF.h"
@@ -35,11 +36,15 @@ namespace Utility
 		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry);
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
 
 		// ========================= Fileparser =========================
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
 		//External_Field_from_File ....
+		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
+			std::vector<int> & anisotropy_index, std::vector<double> & anisotropy_magnitude,
+			std::vector<std::vector<double>> & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<double>> & Exchange_magnitude,
 			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<double>> & DMI_magnitude, std::vector<std::vector<std::vector<double>>> & DMI_normal,

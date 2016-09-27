@@ -101,17 +101,21 @@ The following lists all *external* dependencies which are not included:
 * gcc >= 4.8.1 (C++11 stdlib)
 * cmake >= 2.8.12
 
+This is pretty much a standalone library and should be easy to implement into existing projects
+in which CMake is already used.
+
 ### GL
 * OpenGL Drivers >= 3.3
 
 Necessary OpenGL drivers *should* be available through the regular drivers for any remotely modern graphics card.
 
 ### UI-QT
-* QT >= 5.5
+* QT >= 5.7
 
-In order to build with QT as a dependency, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
+Building and installing QT manually can be a big pain, but usually their installers or packages should work fine.
+Unfortunately, at time of writing, Ubuntu has only QT5.5 in it's package repository.
 
-Note that building QT can be a big pain, but usually it should work if you simply use their installers.
+**Note** that you must install QTCharts (it may be deactivated by default).
 
 ### UI-Python
 * Python
@@ -153,7 +157,9 @@ The **Paths** you can set under *### User Paths ###* (just uncomment the corresp
 * USER_PATH_COMPILER for the directory your compiler is located in
 * USER_PATH_QT for the path to your CMake installation
 Otherwise, the developers' defaults will be used or CMake will try to use it's defaults.
-  
+ 
+**Note** that in order to build with QT as a dependency on Windows, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
+
 Clear the build directory using
 
 	./clean.sh

@@ -48,7 +48,7 @@ if( USER_PATH_QT )
 else()
     ### IFF and developers' default paths
     if ( WIN32 )
-        set( CMAKE_PREFIX_PATH "C:/Qt/qt-5.5.1/qtbase/" )
+        set( CMAKE_PREFIX_PATH "C:/QT/5.7/msvc2015/" )
     elseif ( APPLE)
         set( CMAKE_PREFIX_PATH "/usr/local/qt-5.5/" )
     elseif ( UNIX)
@@ -69,6 +69,8 @@ find_package( Qt5Gui REQUIRED )
 #MESSAGE( STATUS ">> Found QTGui at:         " ${Qt5Gui_DIR} )
 find_package( Qt5Widgets REQUIRED )
 #MESSAGE( STATUS ">> Found QTWidgets at:     " ${Qt5Widgets_DIR} )
+find_package( Qt5Charts REQUIRED )
+#MESSAGE( STATUS ">> Found QTCharts at:      " ${Qt5Charts_DIR} )
 find_package( Qt5OpenGL REQUIRED )
 #MESSAGE( STATUS ">> Found QTOpenGL at:      " ${Qt5OpenGL_DIR} )
 ###########################################
@@ -127,7 +129,7 @@ add_executable( ${EXECUTABLE_NAME}
 
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} core gl Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL )
+target_link_libraries( ${EXECUTABLE_NAME} core gl Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )
