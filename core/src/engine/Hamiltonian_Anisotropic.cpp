@@ -49,7 +49,7 @@ namespace Engine
 
 	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(std::vector<double> & spins)
 	{
-		//     0           1           2      3    4   6     7
+		//     0           1           2      3    4     5       6
 		// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
 		std::vector<double> E(7, 0); // initialized with zeros
 		int nos = spins.size() / 3;
@@ -177,7 +177,7 @@ namespace Engine
 			{
 				t += this->anisotropy_normal[i][dim] * spins[index + dim*nos];
 			}
-			Energy[ENERGY_POS_ANISOTROPY] -= this->anisotropy_magnitude[index] * std::pow(t, 2.0);
+			Energy[ENERGY_POS_ANISOTROPY] -= this->anisotropy_magnitude[i] * std::pow(t, 2.0);
 		}
 	}
 
