@@ -28,8 +28,4 @@ extern "C" void Hamiltonian_Get_FSC(State *state, float * dij, int idx_image=-1,
 extern "C" void Hamiltonian_Get_STT(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
 extern "C" void Hamiltonian_Get_Temperature(State *state, float * T, int idx_image=-1, int idx_chain=-1);
 
-// Other
-// TODO: remove this
-extern "C" bool Hamiltonian_Is_Isotropic(State * state, int idx_image=-1, int idx_chain=-1);
-
 #endif

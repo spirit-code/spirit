@@ -47,8 +47,14 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(Chain_Get_NOI(this->state.get())));
 
 	// Setup Interactions Tab
-	if (Hamiltonian_Is_Isotropic(state.get())) this->tabWidget_Settings->removeTab(3);
-	else this->tabWidget_Settings->removeTab(2);
+	std::string H_name = Hamiltonian_Get_Name(state.get());
+	if (H_name == "Isotropic Heisenberg") this->tabWidget_Settings->removeTab(3);
+	else if (H_name == "Anisotropic Heisenberg") this->tabWidget_Settings->removeTab(2);
+	else
+	{
+		this->tabWidget_Settings->removeTab(2);
+		this->tabWidget_Settings->removeTab(2);
+	}
 
 	// Load information from Spin Systems
 	this->update();
@@ -65,8 +71,9 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 void SettingsWidget::update()
 {
 	// Load Hamiltonian Contents
-	if (Hamiltonian_Is_Isotropic(state.get())) this->Load_Hamiltonian_Isotropic_Contents();
-	else this->Load_Hamiltonian_Anisotropic_Contents();
+	std::string H_name = Hamiltonian_Get_Name(state.get());
+	if (H_name == "Isotropic Heisenberg") this->Load_Hamiltonian_Isotropic_Contents();
+	else if (H_name == "Anisotropic Heisenberg") this->Load_Hamiltonian_Anisotropic_Contents();
 	// Load Parameters Contents
 	this->Load_Parameters_Contents();
 	// ToDo: Also update Debug etc!
