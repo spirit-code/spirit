@@ -43,6 +43,8 @@ public:
   enum Colormap {
     HSV,
     RED_BLUE,
+    RED_GREEN_BLUE,
+    RED_WHITE_BLUE,
     OTHER
   };
   

@@ -1,8 +1,8 @@
 $(document).ready(function() {
   $('form').attr('onsubmit', 'return false;');
   webglspins = new WebGLSpins(document.getElementById("webgl-canvas"), {
-    cameraLocation: [5, 5, 15],
-    centerLocation: [5, 5, 0],
+    cameraLocation: [50, 50, 100],
+    centerLocation: [50, 50, 0],
     upVector: [0, 1, 0],
     backgroundColor: [0.5, 0.5, 0.5]
   });

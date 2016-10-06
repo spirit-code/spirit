@@ -67,7 +67,31 @@ WebGLSpins.colormapImplementations = {
             vec2 xy = normalize(direction.yz);
             float hue = atan2(xy.x, xy.y) / 3.14159 / 2.0;
             return hsv2rgb(vec3(hue, 1.0, 1.0));
-        }`
+        }`,
+    'redgreenblue': `
+          vec3 colormap(vec3 direction) {
+              if (direction.z < 0.0) {
+                  vec3 color_down = vec3(1.0, 0.0, 0.0);
+                  vec3 color_up = vec3(0.0, 1.0, 0.0);
+                  return mix(color_down, color_up, direction.z+1.0);
+              } else {
+                  vec3 color_down = vec3(0.0, 1.0, 0.0);
+                  vec3 color_up = vec3(0.0, 0.0, 1.0);
+                  return mix(color_down, color_up, direction.z);
+              }
+          }`,
+    'redwhiteblue': `
+          vec3 colormap(vec3 direction) {
+              if (direction.z < 0.0) {
+                  vec3 color_down = vec3(1.0, 0.0, 0.0);
+                  vec3 color_up = vec3(1.0, 1.0, 1.0);
+                  return mix(color_down, color_up, direction.z+1.0);
+              } else {
+                  vec3 color_down = vec3(1.0, 1.0, 1.0);
+                  vec3 color_up = vec3(0.0, 0.0, 1.0);
+                  return mix(color_down, color_up, direction.z);
+              }
+          }`
 };
 
 WebGLSpins.renderers = {};

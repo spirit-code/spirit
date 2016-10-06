@@ -95,6 +95,14 @@ add_custom_target (shaders
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redblue.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redgreenblue.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redgreenblue.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redwhiteblue.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redwhiteblue.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/surface.vert.glsl
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/surface.vert.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake

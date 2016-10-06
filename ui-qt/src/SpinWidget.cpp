@@ -235,6 +235,10 @@ GLSpins::Colormap SpinWidget::colormap() const {
     return GLSpins::Colormap::HSV;
   } else if (colormap_implementation == getColormapImplementation("redblue")) {
     return GLSpins::Colormap::RED_BLUE;
+  } else if (colormap_implementation == getColormapImplementation("redgreenblue")) {
+    return GLSpins::Colormap::RED_GREEN_BLUE;
+  } else if (colormap_implementation == getColormapImplementation("redwhiteblue")) {
+    return GLSpins::Colormap::RED_WHITE_BLUE;
   }
   return GLSpins::Colormap::OTHER;
 }
@@ -247,6 +251,12 @@ void SpinWidget::setColormap(GLSpins::Colormap colormap) {
       break;
     case GLSpins::Colormap::RED_BLUE:
       colormap_implementation = getColormapImplementation("redblue");
+      break;
+    case GLSpins::Colormap::RED_GREEN_BLUE:
+      colormap_implementation = getColormapImplementation("redgreenblue");
+      break;
+    case GLSpins::Colormap::RED_WHITE_BLUE:
+      colormap_implementation = getColormapImplementation("redwhiteblue");
       break;
     case GLSpins::Colormap::OTHER:
       break;

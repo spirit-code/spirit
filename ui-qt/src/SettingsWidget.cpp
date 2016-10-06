@@ -474,11 +474,17 @@ void SettingsWidget::Load_Visualization_Contents()
 	switch (_spinWidget->colormap())
 	{
 		case GLSpins::Colormap::HSV:
-			break;
-		case GLSpins::Colormap::RED_BLUE:
-			colormap = "Z-Component: Red-Blue";
-			break;
-		case GLSpins::Colormap::OTHER:
+      break;
+    case GLSpins::Colormap::RED_BLUE:
+      colormap = "Z-Component: Red-Blue";
+      break;
+    case GLSpins::Colormap::RED_GREEN_BLUE:
+      colormap = "Z-Component: Red-Green-Blue";
+      break;
+    case GLSpins::Colormap::RED_WHITE_BLUE:
+      colormap = "Z-Component: Red-White-Blue";
+      break;
+    case GLSpins::Colormap::OTHER:
 			break;
 		default:
 			break;
@@ -1088,12 +1094,20 @@ void SettingsWidget::set_visualization()
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
 
-	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-	if (comboBox_colormap->currentText() == "Z-Component: Red-Blue")
-	{
-		colormap = GLSpins::Colormap::RED_BLUE;
-	}
-	_spinWidget->setColormap(colormap);
+  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+  if (comboBox_colormap->currentText() == "Z-Component: Red-Blue")
+  {
+    colormap = GLSpins::Colormap::RED_BLUE;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Red-Green-Blue")
+  {
+    colormap = GLSpins::Colormap::RED_GREEN_BLUE;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Red-White-Blue")
+  {
+    colormap = GLSpins::Colormap::RED_WHITE_BLUE;
+  }
+  _spinWidget->setColormap(colormap);
 
 	if (radioButton_orthographicProjection->isChecked())
 	{

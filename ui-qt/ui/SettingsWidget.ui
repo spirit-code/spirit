@@ -3339,6 +3339,16 @@
                   <string>Z-Component: Red-Blue</string>
                  </property>
                 </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Red-Green-Blue</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Red-White-Blue</string>
+                 </property>
+                </item>
                </widget>
               </item>
               <item row="1" column="0">

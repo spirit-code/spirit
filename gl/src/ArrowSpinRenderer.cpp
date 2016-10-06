@@ -136,7 +136,9 @@ void ArrowSpinRenderer::draw(float aspectRatio) const {
   glUniform3f(glGetUniformLocation(_program, "uLightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
   glUniform2f(glGetUniformLocation(_program, "uZRange"), zRange[0], zRange[1]);
   
+  glDisable(GL_CULL_FACE);
   glDrawElementsInstanced(GL_TRIANGLES, _numIndices, GL_UNSIGNED_SHORT, nullptr, _numInstances);
+  glEnable(GL_CULL_FACE);
   CHECK_GL_ERROR;
 }
 
