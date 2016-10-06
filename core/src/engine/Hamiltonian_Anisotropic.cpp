@@ -1,13 +1,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include <engine/Hamiltonian_Anisotropic.h>
+#include <engine/Hamiltonian_Anisotropic.hpp>
 
-#include "Vectormath.h"
-#include <Spin_System.h>
-#include "Vectoroperators.h"
-#include "Vectormath.h"
-#include "Neighbours.h"
+#include "Vectormath.hpp"
+#include <Spin_System.hpp>
+#include "Vectoroperators.hpp"
+#include "Vectormath.hpp"
+#include "Neighbours.hpp"
 
 using std::vector;
 using std::function;

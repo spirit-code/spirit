@@ -8,8 +8,8 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "CoordinateSystemRenderer.h"
-#include "utilities.h"
+#include "CoordinateSystemRenderer.hpp"
+#include "utilities.hpp"
 
 CoordinateSystemRenderer::CoordinateSystemRenderer() {
   CHECK_GL_ERROR;

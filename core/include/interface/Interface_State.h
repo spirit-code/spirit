@@ -2,11 +2,11 @@
 #ifndef INTERFACE_STATE_H
 #define INTERFACE_STATE_H
 
-#include "Spin_System_Chain_Collection.h"
-#include "Optimizer.h"
-#include "Method_LLG.h"
-#include "Method_GNEB.h"
-#include "Method_MMF.h"
+#include "Spin_System_Chain_Collection.hpp"
+#include "Optimizer.hpp"
+#include "Method_LLG.hpp"
+#include "Method_GNEB.hpp"
+#include "Method_MMF.hpp"
 
 //  State
 //    The State struct is passed around in an application to make the

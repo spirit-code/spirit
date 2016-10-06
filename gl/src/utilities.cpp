@@ -1,5 +1,5 @@
 #include <iostream>
-#include "utilities.h"
+#include "utilities.hpp"
 
 GLuint createProgram(const std::string& vertexShaderSource,
                      const std::string& fragmentShaderSource,

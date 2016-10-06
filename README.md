@@ -173,7 +173,9 @@ Simply call
 	./cmake.sh
 	or
 	cd build && cmake .. && cd ..
-	
+
+Passing `-debug` to the script will cause it to create a debug configuration,
+meaning that you will be able to properly debug the entire application.	
 When on pure **Windows** (no MSys etc), you can simply use the git bash to do this.
 When using MSys etc., CMake will create corresponding MSys makefiles.
 

@@ -14,16 +14,16 @@
 #include "glm/gtx/string_cast.hpp"
 #include <glm/gtx/transform.hpp>
 
-#include "Camera.h"
-#include "GLSpins.h"
-#include "ISpinRenderer.h"
-#include "ArrowSpinRenderer.h"
-#include "SurfaceSpinRenderer.h"
-#include "SphereSpinRenderer.h"
-#include "BoundingBoxRenderer.h"
-#include "CombinedSpinRenderer.h"
-#include "CoordinateSystemRenderer.h"
-#include "utilities.h"
+#include "Camera.hpp"
+#include "GLSpins.hpp"
+#include "ISpinRenderer.hpp"
+#include "ArrowSpinRenderer.hpp"
+#include "SurfaceSpinRenderer.hpp"
+#include "SphereSpinRenderer.hpp"
+#include "BoundingBoxRenderer.hpp"
+#include "CombinedSpinRenderer.hpp"
+#include "CoordinateSystemRenderer.hpp"
+#include "utilities.hpp"
 
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846

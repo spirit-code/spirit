@@ -1,8 +1,8 @@
-#include "Configuration_Chain.h"
-#include "Configurations.h"
-#include "Spin_System.h"
-#include "Vectormath.h"
-#include "Manifoldmath.h"
+#include "Configuration_Chain.hpp"
+#include "Configurations.hpp"
+#include "Spin_System.hpp"
+#include "Vectormath.hpp"
+#include "Manifoldmath.hpp"
 
 #include <random>
 #include <iostream>

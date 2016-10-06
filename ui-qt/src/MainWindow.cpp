@@ -1,7 +1,7 @@
 #include <QtWidgets>
 
-#include "MainWindow.h"
-#include "PlotWidget.h"
+#include "MainWindow.hpp"
+#include "PlotWidget.hpp"
 
 #include "Interface_System.h"
 #include "Interface_Chain.h"
@@ -12,7 +12,7 @@
 
 
 // TODO: Replace this
-#include "IO.h"
+#include "IO.hpp"
 #include "Interface_State.h"
 /////
 

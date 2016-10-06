@@ -1,5 +1,5 @@
-#include "Threading.h"
-#include "Handle_Signal.h"
+#include "Threading.hpp"
+#include "Handle_Signal.hpp"
 
 #include "Interface_State.h"
 #include "Interface_System.h"

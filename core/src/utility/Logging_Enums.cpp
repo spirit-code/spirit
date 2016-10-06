@@ -1,7 +1,7 @@
-#include "Logging_Enums.h"
+#include "Logging_Enums.hpp"
 
-#include "Timing.h"
-#include "IO.h"
+#include "Timing.hpp"
+#include "IO.hpp"
 
 std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
 {

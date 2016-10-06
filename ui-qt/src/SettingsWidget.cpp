@@ -1,8 +1,8 @@
 // #include <QtWidgets>
 
-#include "MainWindow.h"
-#include "SettingsWidget.h"
-#include "SpinWidget.h"
+#include "MainWindow.hpp"
+#include "SettingsWidget.hpp"
+#include "SpinWidget.hpp"
 
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
@@ -17,8 +17,8 @@
 #include <memory>
 
 // TODO: Replace these
-#include "Vectormath.h"
-#include "Exception.h"
+#include "Vectormath.hpp"
+#include "Exception.hpp"
 /////
 
 struct State;

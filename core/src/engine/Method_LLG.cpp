@@ -1,21 +1,21 @@
 
-#include "Method_LLG.h"
+#include "Method_LLG.hpp"
 
-#include "Optimizer_Heun.h"
+#include "Optimizer_Heun.hpp"
 
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
-#include "Vectormath.h"
-#include "IO.h"
-#include "Configurations.h"
-#include "Timing.h"
-#include "Exception.h"
+#include "Spin_System.hpp"
+#include "Spin_System_Chain.hpp"
+#include "Vectormath.hpp"
+#include "IO.hpp"
+#include "Configurations.hpp"
+#include "Timing.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <ctime>
 #include <math.h>
 
-#include"Logging.h"
+#include"Logging.hpp"
 
 using namespace Utility;
 

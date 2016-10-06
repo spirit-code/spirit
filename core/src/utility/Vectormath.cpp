@@ -1,12 +1,12 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "Vectormath.h"
+#include "Vectormath.hpp"
 
-#include "Logging.h"
+#include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
-#include "Exception.h"
+#include "Exception.hpp"
 
-#include"Logging.h"
+#include"Logging.hpp"
 //extern Utility::LoggingHandler Log;
 
 namespace Utility

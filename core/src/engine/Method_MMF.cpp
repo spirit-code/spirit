@@ -1,6 +1,6 @@
-#include "Method_MMF.h"
-#include "Manifoldmath.h"
-#include "Vectormath.h"
+#include "Method_MMF.hpp"
+#include "Manifoldmath.hpp"
+#include "Vectormath.hpp"
 #include "Interface_Log.h"
 
 #include <Eigen/Core>

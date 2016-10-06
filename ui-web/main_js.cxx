@@ -6,7 +6,7 @@
  */
 #include <memory>
 
-#include "Method_LLG.h"
+#include "Method_LLG.hpp"
 #include "Interface_State.h"
 
 int main(void)

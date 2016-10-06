@@ -1,12 +1,12 @@
-#include "SpinWidget.h"
+#include "SpinWidget.hpp"
 
 #include <QTimer>
 #include <QMouseEvent>
 
-#include "ISpinRenderer.h"
-#include "BoundingBoxRenderer.h"
-#include "SphereSpinRenderer.h"
-#include "utilities.h"
+#include "ISpinRenderer.hpp"
+#include "BoundingBoxRenderer.hpp"
+#include "SphereSpinRenderer.hpp"
+#include "utilities.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 

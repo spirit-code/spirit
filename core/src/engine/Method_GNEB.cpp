@@ -1,15 +1,15 @@
-#include "Method_GNEB.h"
+#include "Method_GNEB.hpp"
 
-#include "Manifoldmath.h"
-#include "Cubic_Hermite_Spline.h"
-#include "IO.h"
-#include "Timing.h"
+#include "Manifoldmath.hpp"
+#include "Cubic_Hermite_Spline.hpp"
+#include "IO.hpp"
+#include "Timing.hpp"
 
-#include "Optimizer_Heun.h"
-#include "Optimizer_SIB.h"
-#include "Vectormath.h"
+#include "Optimizer_Heun.hpp"
+#include "Optimizer_SIB.hpp"
+#include "Vectormath.hpp"
 
-#include"Logging.h"
+#include"Logging.hpp"
 
 #include <iostream>
 #include <math.h>

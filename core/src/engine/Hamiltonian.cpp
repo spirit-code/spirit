@@ -1,6 +1,6 @@
-#include <engine/Hamiltonian.h>
+#include <engine/Hamiltonian.hpp>
 
-#include <utility/Vectormath.h>
+#include <utility/Vectormath.hpp>
 
 namespace Engine
 {

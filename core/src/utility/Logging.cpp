@@ -1,10 +1,10 @@
-﻿#include "Logging.h"
+﻿#include "Logging.hpp"
 #include "Interface_State.h"
 
 #include <string>
 #include <iostream>
 #include <ctime>
-#include <IO.h>
+#include <IO.hpp>
 #include <signal.h>
 
 namespace Utility

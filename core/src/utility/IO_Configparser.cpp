@@ -1,9 +1,9 @@
-﻿#include "IO.h"
-#include "IO_Filter_File_Handle.h"
-#include "Vectormath.h"
-#include "Neighbours.h"
-#include "Logging.h"
-#include "Exception.h"
+﻿#include "IO.hpp"
+#include "IO_Filter_File_Handle.hpp"
+#include "Vectormath.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <fstream>

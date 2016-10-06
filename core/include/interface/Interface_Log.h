@@ -4,7 +4,7 @@
 struct State;
 struct LogEntry;
 
-#include "Logging_Enums.h"
+#include "Logging_Enums.hpp"
 
 #include <iostream>
 #include <vector>

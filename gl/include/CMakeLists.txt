@@ -1,16 +1,16 @@
 set(HEADER_GL_ROOT
 	${HEADER_GL_ROOT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Camera.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/GLSpins.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/options.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ISpinRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ArrowSpinRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SurfaceSpinRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SphereSpinRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/CoordinateSystemRenderer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/CombinedSpinRenderer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Camera.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GLSpins.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/options.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ISpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ArrowSpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SurfaceSpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SphereSpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CoordinateSystemRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CombinedSpinRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

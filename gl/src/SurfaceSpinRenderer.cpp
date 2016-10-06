@@ -8,8 +8,8 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "SurfaceSpinRenderer.h"
-#include "utilities.h"
+#include "SurfaceSpinRenderer.hpp"
+#include "utilities.hpp"
 
 SurfaceSpinRenderer::SurfaceSpinRenderer() {
   CHECK_GL_ERROR;

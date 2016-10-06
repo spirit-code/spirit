@@ -1,6 +1,6 @@
 // #include <QtWidgets>
 
-#include "DebugWidget.h"
+#include "DebugWidget.hpp"
 #include "Interface_Log.h"
 
 DebugWidget::DebugWidget(std::shared_ptr<State> state)

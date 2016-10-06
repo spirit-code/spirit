@@ -1,6 +1,6 @@
-#include <Optimizer_Heun.h>
+#include <Optimizer_Heun.hpp>
 
-#include "engine/Hamiltonian.h"
+#include "engine/Hamiltonian.hpp"
 
 
 namespace Engine
