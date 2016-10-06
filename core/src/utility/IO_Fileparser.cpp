@@ -216,7 +216,7 @@ namespace Utility
 						else
 							file.iss >> sdump;
 					}
-					// DMI vector orientation
+					// Anisotropy vector orientation
 					if (K_abc)
 					{
 						K_temp = { spin_K1, spin_K2, spin_K3 };
@@ -224,7 +224,7 @@ namespace Utility
 						spin_K2 = K_temp[0] * geometry.basis[1][0] + K_temp[1] * geometry.basis[1][1] + K_temp[2] * geometry.basis[1][2];
 						spin_K3 = K_temp[0] * geometry.basis[2][0] + K_temp[1] * geometry.basis[2][1] + K_temp[2] * geometry.basis[2][2];
 					}
-					// DMI vector normalisation
+					// Anisotropy vector normalisation
 					if (K_magnitude)
 					{
 						double dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));

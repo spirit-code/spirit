@@ -41,6 +41,7 @@ namespace Engine
 		bool Iterations_Allowed() override;
 		
 	private:
+		bool switched1, switched2;
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
 		std::vector<std::vector<double>> hessian;
@@ -48,6 +49,10 @@ namespace Engine
 		std::vector<std::vector<double>> F_gradient;
 		// Last calculated minimum mode
 		std::vector<std::vector<double>> minimum_mode;
+
+		// Last iterations spins and reaction coordinate
+		double Rx_last;
+		std::vector<std::vector<double>> spins_last;
 
 		// Which minimum mode function to use
 		// ToDo: move into parameters
