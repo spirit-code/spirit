@@ -34,6 +34,7 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/incl
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/eigen )
 set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
+set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
 set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data
@@ -41,7 +42,7 @@ set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include/interface
 	 ${PROJECT_SOURCE_DIR}/include/utility
 	 ${PROJECT_SOURCE_DIR}/src/utility )
-include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS})
+include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${QHULL_INCLUDE_DIRS})
 #############################################
 
 ######### Declare File groups ###############
@@ -90,6 +91,7 @@ add_library( core STATIC
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY})
+target_link_libraries( core ${QHULL_LIBRARIES} )
 #############################################
 
 ######### Tell CMake to create the shared library
@@ -163,16 +165,16 @@ endif()
 
 
 ######### Export
-set(CORE_LIBRARIES core PARENT_SCOPE)
-set(CORE_INCLUDE_DIRS   ${CORE_INCLUDE_DIRS} PARENT_SCOPE)
-set(HEADER_CORE_DATA    ${HEADER_CORE_DATA} PARENT_SCOPE)
-set(HEADER_CORE_ENGINE  ${HEADER_CORE_ENGINE} PARENT_SCOPE)
+set(CORE_LIBRARIES        core 				       PARENT_SCOPE)
+set(CORE_INCLUDE_DIRS     ${CORE_INCLUDE_DIRS}     PARENT_SCOPE)
+set(HEADER_CORE_DATA      ${HEADER_CORE_DATA}      PARENT_SCOPE)
+set(HEADER_CORE_ENGINE    ${HEADER_CORE_ENGINE}    PARENT_SCOPE)
 set(HEADER_CORE_INTERFACE ${HEADER_CORE_INTERFACE} PARENT_SCOPE)
-set(HEADER_CORE_UTILITY ${HEADER_CORE_UTILITY} PARENT_SCOPE)
-set(SOURCE_CORE_DATA    ${SOURCE_CORE_DATA} PARENT_SCOPE)
-set(SOURCE_CORE_ENGINE  ${SOURCE_CORE_ENGINE} PARENT_SCOPE)
+set(HEADER_CORE_UTILITY   ${HEADER_CORE_UTILITY}   PARENT_SCOPE)
+set(SOURCE_CORE_DATA      ${SOURCE_CORE_DATA}      PARENT_SCOPE)
+set(SOURCE_CORE_ENGINE    ${SOURCE_CORE_ENGINE}    PARENT_SCOPE)
 set(SOURCE_CORE_INTERFACE ${SOURCE_CORE_INTERFACE} PARENT_SCOPE)
-set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
+set(SOURCE_CORE_UTILITY   ${SOURCE_CORE_UTILITY}   PARENT_SCOPE)
 #############################################
 
 

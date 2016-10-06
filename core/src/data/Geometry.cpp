@@ -1,4 +1,5 @@
 #include <Geometry.h>
+#include <Qhull.h>
 
 namespace Data
 {
