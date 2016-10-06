@@ -20,6 +20,19 @@ function WebGLSpins(canvas, options) {
     this._instancePositionArray = null;
     this._instanceDirectionArray = null;
 
+    this._currentScale = 1;
+    this.isTouchDevice = 'ontouchstart' in document.documentElement;
+    this._options.useTouch = (this._options.useTouch && this.isTouchDevice);
+    if (this.isTouchDevice) {
+        this._lastPanDeltaX = 0;
+        this._lastPanDeltaY = 0;
+        var mc = new Hammer.Manager(canvas, {});
+        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0, pointers: 1}));
+        mc.on("pan", this._handlePan.bind(this));
+        mc.add(new Hammer.Pinch({}));
+        mc.on("pinchin pinchout pinchmove pinchend", this._handlePinch.bind(this));
+        mc.on("pinchstart", this._handlePinchStart.bind(this));
+    }
     this._mouseDown = false;
     this._lastMouseX = null;
     this._lastMouseY = null;
@@ -70,6 +83,7 @@ WebGLSpins.defaultOptions.backgroundColor = [0, 0, 0];
 WebGLSpins.defaultOptions.zRange = [-1, 1];
 WebGLSpins.defaultOptions.boundingBox = null;
 WebGLSpins.defaultOptions.boundingBoxColor = [1, 1, 1];
+WebGLSpins.defaultOptions.useTouch = true;
 
 WebGLSpins.prototype.updateOptions = function(options) {
     var changedOptions = [];
@@ -228,7 +242,76 @@ WebGLSpins._createProgram = function(gl, vertexShaderSource, fragmentShaderSourc
 
 // ---------------------------- Camera Movement -------------------------------
 
+WebGLSpins.prototype._rotationHelper = function(deltaX, deltaY) {
+    var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
+    var cameraDistance = WebGLSpins._length(forwardVector);
+    forwardVector = WebGLSpins._normalize(forwardVector);
+    this._options.upVector = WebGLSpins._normalize(this._options.upVector);
+    var rightVector = WebGLSpins._cross(forwardVector, this._options.upVector);
+    this._options.upVector = WebGLSpins._cross(rightVector, forwardVector);
+    this._options.upVector = WebGLSpins._normalize(this._options.upVector);
+
+    var l = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (l > 0) {
+        var axis = [
+            deltaX / l * this._options.upVector[0] + deltaY / l * rightVector[0],
+            deltaX / l * this._options.upVector[1] + deltaY / l * rightVector[1],
+            deltaX / l * this._options.upVector[2] + deltaY / l * rightVector[2]];
+        var rotationMatrix = WebGLSpins._rotationMatrix(axis, -0.1 * l);
+        forwardVector = WebGLSpins._matrixMultiply(rotationMatrix, forwardVector);
+        this._options.upVector = WebGLSpins._matrixMultiply(rotationMatrix, this._options.upVector);
+        this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
+        this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
+        this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
+    }
+    this.draw();
+}
+
+WebGLSpins.prototype._handlePinch = function(event) {
+    if (!this._options.useTouch) return;
+    var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
+    var cameraDistance = WebGLSpins._length(forwardVector);
+    var newCameraDistance = 1/event.scale * this._currentScale;
+    if (newCameraDistance < 2) {
+        newCameraDistance = 2;
+    }
+    this._options.cameraLocation[0] = this._options.centerLocation[0] - newCameraDistance/cameraDistance * forwardVector[0];
+    this._options.cameraLocation[1] = this._options.centerLocation[1] - newCameraDistance/cameraDistance * forwardVector[1];
+    this._options.cameraLocation[2] = this._options.centerLocation[2] - newCameraDistance/cameraDistance * forwardVector[2];
+    this.draw();
+}
+
+WebGLSpins.prototype._handlePinchStart = function(event) {
+    if (!this._options.useTouch) return;
+    var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
+    var cameraDistance = WebGLSpins._length(forwardVector);
+    this._currentScale = cameraDistance;
+}
+
+WebGLSpins.prototype._handlePan = function(event) {
+    if (!this._options.useTouch) return;
+    var deltaX = event.deltaX;
+    var deltaY = event.deltaY;
+    if (!event.isFirst) {
+        deltaX -= this._lastPanDeltaX;
+        deltaY -= this._lastPanDeltaY;
+    }
+    if (deltaX != 0 && deltaY != 0) {
+        if (event.pointers.length == 1) {
+            this._rotationHelper(2*deltaX, 2*deltaY);
+        }
+    }
+    if (event.isFinal) {
+        this._lastPanDeltaX = 0;
+        this._lastPanDeltaY = 0;
+    } else {
+        this._lastPanDeltaX = event.deltaX;
+        this._lastPanDeltaY = event.deltaY;
+    }
+};
+
 WebGLSpins.prototype._handleMouseDown = function(event) {
+    if (this._options.useTouch) return;
     if (!this._options.allowCameraMovement) {
         return;
     }
@@ -238,10 +321,12 @@ WebGLSpins.prototype._handleMouseDown = function(event) {
 };
 
 WebGLSpins.prototype._handleMouseUp = function(event) {
+    if (this._options.useTouch) return;
     this._mouseDown = false;
 };
 
 WebGLSpins.prototype._handleMouseMove = function(event) {
+    if (this._options.useTouch) return;
     if (!this._options.allowCameraMovement) {
         return;
     }
@@ -274,19 +359,7 @@ WebGLSpins.prototype._handleMouseMove = function(event) {
             this._options.centerLocation[1] += translation[1];
             this._options.centerLocation[2] += translation[2];
         } else {
-            var l = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            if (l > 0) {
-                var axis = [
-                    deltaX / l * this._options.upVector[0] + deltaY / l * rightVector[0],
-                    deltaX / l * this._options.upVector[1] + deltaY / l * rightVector[1],
-                    deltaX / l * this._options.upVector[2] + deltaY / l * rightVector[2]];
-                var rotationMatrix = WebGLSpins._rotationMatrix(axis, -0.1 * l);
-                forwardVector = WebGLSpins._matrixMultiply(rotationMatrix, forwardVector);
-                this._options.upVector = WebGLSpins._matrixMultiply(rotationMatrix, this._options.upVector);
-                this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
-                this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
-                this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
-            }
+            this._rotationHelper(deltaX, deltaY);
         }
     }
     this._lastMouseX = newX;
@@ -295,6 +368,7 @@ WebGLSpins.prototype._handleMouseMove = function(event) {
 };
 
 WebGLSpins.prototype._handleMouseScroll = function(event) {
+    if (this._options.useTouch) return;
     if (!this._options.allowCameraMovement) {
         return;
     }

@@ -1,8 +1,8 @@
 $(document).ready(function() {
   $('form').attr('onsubmit', 'return false;');
   webglspins = new WebGLSpins(document.getElementById("webgl-canvas"), {
-    cameraLocation: [50, 50, 100],
-    centerLocation: [50, 50, 0],
+    cameraLocation: [5, 5, 15],
+    centerLocation: [5, 5, 0],
     upVector: [0, 1, 0],
     backgroundColor: [0.5, 0.5, 0.5]
   });
@@ -573,11 +573,21 @@ $(document).ready(function() {
   $('#input-gneb-radio-climbing').on('change', updateGNEBClimbingFalling);
   $('#input-gneb-radio-falling').on('change', updateGNEBClimbingFalling);
 
+  function updateUseTouch() {
+    var useTouch = $('#input-use-touch')[0].checked;
+    webglspins.updateOptions({useTouch: useTouch});
+  }
+  $('#input-use-touch').on('change', updateUseTouch);
+
   var isSimulating = false;
 
   Module.ready(function() {
     var sim = new Simulation();
     window.currentSimulation = sim;
+    if (!webglspins.isTouchDevice) {
+      $('#input-use-touch')[0].disabled="disabled";
+      $('#input-use-touch')[0].checked = false;
+    }
     sim.update();
     updateShowBoundingBox();
     updateHamiltonianBoundaryConditions();
@@ -595,7 +605,17 @@ $(document).ready(function() {
     $('#div-load').hide();
     $( window ).resize(function() {
       if (!isSimulating) {
-        update(sim);
+        webglspins.draw();
+      }
+    });
+    $('.collapse').on('hidden.bs.collapse', function () {
+      if (!isSimulating) {
+        webglspins.draw();
+      }
+    });
+    $('.collapse').on('shown.bs.collapse', function () {
+      if (!isSimulating) {
+        webglspins.draw();
       }
     });
     function update(sim) {
