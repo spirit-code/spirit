@@ -194,9 +194,9 @@ void GLSpins::setCameraToX() {
 void GLSpins::setCameraToY() {
   auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
-  _camera.lookAt(glm::vec3(center.x, center.y+camera_distance, center.z),
+  _camera.lookAt(glm::vec3(center.x, center.y-camera_distance, center.z),
                  center,
-                 glm::vec3(1.0, 0.0, 0.0));
+                 glm::vec3(0.0, 0.0, 1.0));
 }
 
 void GLSpins::setCameraToZ() {
