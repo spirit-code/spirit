@@ -9,7 +9,6 @@ set(HEADER_CORE_UTILITY
 	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging_Enums.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Exception.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt

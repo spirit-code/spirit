@@ -1,5 +1,7 @@
 #include "Interface_Chain.h"
 #include "Interface_State.h"
+
+#include "State.hpp"
 #include "Manifoldmath.hpp"
 
 int Chain_Get_Index(State * state)

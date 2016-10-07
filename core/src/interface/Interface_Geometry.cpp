@@ -1,6 +1,8 @@
 #include "Interface_Geometry.h"
 #include "Interface_State.h"
 
+#include "State.hpp"
+
 double * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;

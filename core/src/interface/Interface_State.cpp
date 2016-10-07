@@ -1,11 +1,11 @@
 #include "Interface_State.h"
 
+#include "State.hpp"
 #include "Version.h"
 #include "Logging.hpp"
 #include "IO.hpp"
 #include "Configurations.hpp"
 #include "Configuration_Chain.hpp"
-
 
 using namespace Utility;
 
@@ -93,6 +93,11 @@ State * State_Setup(const char * config_file)
     
     // Return
     return state;
+}
+
+void State_Delete(State * state)
+{
+	delete(state);
 }
 
 void State_Update(State * state)

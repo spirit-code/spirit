@@ -1,9 +1,11 @@
 #include "Interface_Log.h"
 #include "Logging.hpp"
 
-void Log_Send(State *state, Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
+#include <iostream>
+
+void Log_Send(State *state, int level, int sender, std::string message, int idx_image, int idx_chain)
 {
-    Log(level, sender, message, idx_image, idx_chain);
+    Log(static_cast<Utility::Log_Level>(level), static_cast<Utility::Log_Sender>(sender), message, idx_image, idx_chain);
 }
 
 std::vector<Utility::LogEntry> Log_Get_Entries(State *state)

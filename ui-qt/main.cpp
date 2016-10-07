@@ -16,8 +16,8 @@ int main(int argc, char ** argv)
 	//--- Config Files
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
-	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
+	const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
 	// const char * cfgfile = "input/kagome-spin-ice.cfg";
 	// const char * cfgfile = "input/example-gaussian.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
@@ -89,9 +89,9 @@ int main(int argc, char ** argv)
 	// If Application is closed normally
 	if (exec == 0)
 	{
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "================= Spirit Finished ===================");
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
 		Log_Append(state.get());
 	}
 	else throw exec;

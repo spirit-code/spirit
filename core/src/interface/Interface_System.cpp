@@ -1,6 +1,8 @@
 #include "Interface_System.h"
 #include "Interface_State.h"
 
+#include "State.hpp"
+
 int System_Get_Index(State * state)
 {
     return state->idx_active_image;

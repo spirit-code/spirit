@@ -1,6 +1,9 @@
-#include "Configurations.hpp"
-#include "Interface_State.h"
 #include "Interface_Configurations.h"
+#include "Interface_State.h"
+
+#include "State.hpp"
+#include "Configurations.hpp"
+
 
 void Configuration_DomainWall(State *state, const double pos[3], double v[3], bool greater, int idx_image, int idx_chain)
 {

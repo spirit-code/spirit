@@ -1,7 +1,10 @@
 #include "Interface_Transitions.h"
 #include "Interface_State.h"
+
+#include "State.hpp"
 #include "Spin_System_Chain.hpp"
 #include "Configuration_Chain.hpp"
+
 #include <memory>
 
 void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)

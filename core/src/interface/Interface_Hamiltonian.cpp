@@ -1,8 +1,10 @@
+#include "Interface_Hamiltonian.h"
+#include "Interface_State.h"
+
+#include "State.hpp"
 #include "Spin_System.hpp"
 #include "Spin_System_Chain.hpp"
 #include "Vectormath.hpp"
-#include "Interface_State.h"
-#include "Interface_Hamiltonian.h"
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
