@@ -92,14 +92,22 @@ void SettingsWidget::randomPressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 }
+void SettingsWidget::addNoisePressed()
+{
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Add Noise");
+	this->configurationAddNoise();
+	print_Energies_to_console();
+}
 void SettingsWidget::minusZ()
 {
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Minus Z");
 	Configuration_MinusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 void SettingsWidget::plusZ()
 {
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Plus Z");
 	Configuration_PlusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
@@ -107,7 +115,7 @@ void SettingsWidget::plusZ()
 
 void SettingsWidget::create_Skyrmion()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button createSkyrmion");
+	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Create Skyrmion");
 	double speed = lineEdit_sky_order->text().toDouble();
 	double phase = lineEdit_sky_phase->text().toDouble();
 	bool upDown = checkBox_sky_UpDown->isChecked();
@@ -1275,6 +1283,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 {
 	// Random
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
+	// Add Noise
+	connect(this->pushButton_AddNoise, SIGNAL(clicked()), this, SLOT(addNoisePressed()));
 	// Domain Wall
 	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
 	// Homogeneous

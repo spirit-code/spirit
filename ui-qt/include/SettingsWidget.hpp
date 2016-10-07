@@ -59,6 +59,7 @@ private slots:
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();
+	void addNoisePressed();
 	void domainWallPressed();
 	void plusZ();
 	void minusZ();
