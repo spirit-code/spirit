@@ -483,14 +483,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	{
 		case GLSpins::Colormap::HSV:
       break;
-    case GLSpins::Colormap::RED_BLUE:
-      colormap = "Z-Component: Red-Blue";
+    case GLSpins::Colormap::BLUE_RED:
+      colormap = "Z-Component: Blue-Red";
       break;
-    case GLSpins::Colormap::RED_GREEN_BLUE:
-      colormap = "Z-Component: Red-Green-Blue";
+    case GLSpins::Colormap::BLUE_GREEN_RED:
+      colormap = "Z-Component: Blue-Green-Red";
       break;
-    case GLSpins::Colormap::RED_WHITE_BLUE:
-      colormap = "Z-Component: Red-White-Blue";
+    case GLSpins::Colormap::BLUE_WHITE_RED:
+      colormap = "Z-Component: Blue-White-Red";
       break;
     case GLSpins::Colormap::OTHER:
 			break;
@@ -1103,17 +1103,17 @@ void SettingsWidget::set_visualization()
 	_spinWidget->setZRange(z_range);
 
   GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-  if (comboBox_colormap->currentText() == "Z-Component: Red-Blue")
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
   {
-    colormap = GLSpins::Colormap::RED_BLUE;
+    colormap = GLSpins::Colormap::BLUE_RED;
   }
-  if (comboBox_colormap->currentText() == "Z-Component: Red-Green-Blue")
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
   {
-    colormap = GLSpins::Colormap::RED_GREEN_BLUE;
+    colormap = GLSpins::Colormap::BLUE_GREEN_RED;
   }
-  if (comboBox_colormap->currentText() == "Z-Component: Red-White-Blue")
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
   {
-    colormap = GLSpins::Colormap::RED_WHITE_BLUE;
+    colormap = GLSpins::Colormap::BLUE_WHITE_RED;
   }
   _spinWidget->setColormap(colormap);
 

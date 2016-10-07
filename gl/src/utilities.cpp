@@ -73,17 +73,17 @@ std::string getColormapImplementation(const std::string& colormapName) {
     return
 #include "colormap.hsv.txt"
     ;
-  } else if (colormapName == "redblue") {
+  } else if (colormapName == "bluered") {
     return
-#include "colormap.redblue.txt"
+#include "colormap.bluered.txt"
     ;
-  } else if (colormapName == "redgreenblue") {
+  } else if (colormapName == "bluegreenred") {
     return
-#include "colormap.redgreenblue.txt"
+#include "colormap.bluegreenred.txt"
     ;
-  } else if (colormapName == "redwhiteblue") {
+  } else if (colormapName == "bluewhitered") {
     return
-#include "colormap.redwhiteblue.txt"
+#include "colormap.bluewhitered.txt"
     ;
   } else {
     return "vec3 colormap(vec3 direction) {return vec3(1.0, 1.0, 1.0);}";

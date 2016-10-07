@@ -3359,17 +3359,17 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>Z-Component: Red-Blue</string>
+                  <string>Z-Component: Blue-Red</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>Z-Component: Red-Green-Blue</string>
+                  <string>Z-Component: Blue-Green-Red</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>Z-Component: Red-White-Blue</string>
+                  <string>Z-Component: Blue-White-Red</string>
                  </property>
                 </item>
                </widget>

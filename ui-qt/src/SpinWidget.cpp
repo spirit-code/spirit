@@ -233,12 +233,12 @@ GLSpins::Colormap SpinWidget::colormap() const {
   auto colormap_implementation = options().get<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>();
   if (colormap_implementation == getColormapImplementation("hsv")) {
     return GLSpins::Colormap::HSV;
-  } else if (colormap_implementation == getColormapImplementation("redblue")) {
-    return GLSpins::Colormap::RED_BLUE;
-  } else if (colormap_implementation == getColormapImplementation("redgreenblue")) {
-    return GLSpins::Colormap::RED_GREEN_BLUE;
-  } else if (colormap_implementation == getColormapImplementation("redwhiteblue")) {
-    return GLSpins::Colormap::RED_WHITE_BLUE;
+  } else if (colormap_implementation == getColormapImplementation("bluered")) {
+    return GLSpins::Colormap::BLUE_RED;
+  } else if (colormap_implementation == getColormapImplementation("bluegreenred")) {
+    return GLSpins::Colormap::BLUE_GREEN_RED;
+  } else if (colormap_implementation == getColormapImplementation("bluewhitered")) {
+    return GLSpins::Colormap::BLUE_WHITE_RED;
   }
   return GLSpins::Colormap::OTHER;
 }
@@ -249,14 +249,14 @@ void SpinWidget::setColormap(GLSpins::Colormap colormap) {
   switch (colormap) {
     case GLSpins::Colormap::HSV:
       break;
-    case GLSpins::Colormap::RED_BLUE:
-      colormap_implementation = getColormapImplementation("redblue");
+    case GLSpins::Colormap::BLUE_RED:
+      colormap_implementation = getColormapImplementation("bluered");
       break;
-    case GLSpins::Colormap::RED_GREEN_BLUE:
-      colormap_implementation = getColormapImplementation("redgreenblue");
+    case GLSpins::Colormap::BLUE_GREEN_RED:
+      colormap_implementation = getColormapImplementation("bluegreenred");
       break;
-    case GLSpins::Colormap::RED_WHITE_BLUE:
-      colormap_implementation = getColormapImplementation("redwhiteblue");
+    case GLSpins::Colormap::BLUE_WHITE_RED:
+      colormap_implementation = getColormapImplementation("bluewhitered");
       break;
     case GLSpins::Colormap::OTHER:
       break;

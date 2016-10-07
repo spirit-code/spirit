@@ -91,16 +91,16 @@ add_custom_target (shaders
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redblue.glsl
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redblue.txt
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.bluered.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.bluered.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redgreenblue.glsl
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redgreenblue.txt
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.bluegreenred.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.bluegreenred.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
-                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.redwhiteblue.glsl
-                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.redwhiteblue.txt
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.bluewhitered.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.bluewhitered.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/surface.vert.glsl
