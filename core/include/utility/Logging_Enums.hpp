@@ -7,7 +7,7 @@
 
 namespace Utility
 {
-	extern "C" enum class Log_Sender
+	enum class Log_Sender
 	{
 		All,
 		IO,
@@ -18,7 +18,7 @@ namespace Utility
 		UI
 	};
 
-	extern "C" enum class Log_Level
+	enum class Log_Level
 	{
 		All,
 		Severe,
@@ -29,7 +29,7 @@ namespace Utility
 		Debug
 	};
 
-	extern "C" struct LogEntry
+	struct LogEntry
 	{
 		std::chrono::system_clock::time_point time;
 		Log_Sender sender;

@@ -1,6 +1,8 @@
 #pragma once
 #ifndef INTERFACE_LOG_H
 #define INTERFACE_LOG_H
+#include "DLL_Define_Export.h"
+
 struct State;
 struct LogEntry;
 
@@ -28,19 +30,19 @@ namespace Utility
 // using Utility::LogEntry;
 
 // Send a Log message
-extern "C" void Log_Send(State *state, Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Log_Send(State *state, Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 
 // Get the entries from the Log and write new number of entries into given int
 std::vector<Utility::LogEntry> Log_Get_Entries(State *state);
 
 // Get the number of Log entries
-extern "C" int Log_Get_N_Entries(State *state);
+DLLEXPORT int Log_Get_N_Entries(State *state);
 
 // Append the Log to it's file
-extern "C" void Log_Append(State *state);
+DLLEXPORT void Log_Append(State *state);
 
 // Dump the Log into it's file
-extern "C" void Log_Dump(State *state);
+DLLEXPORT void Log_Dump(State *state);
 
-
+#include "DLL_Undefine_Export.h"
 #endif
