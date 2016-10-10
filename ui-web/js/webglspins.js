@@ -268,6 +268,21 @@ WebGLSpins._createProgram = function(gl, vertexShaderSource, fragmentShaderSourc
 
 // ---------------------------- Camera Movement -------------------------------
 
+WebGLSpins.prototype.alignCamera = function(forward, up) {
+    var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
+    var cameraDistance = WebGLSpins._length(forwardVector);
+
+    forwardVector = WebGLSpins._normalize(forward);
+    this._options.upVector = WebGLSpins._normalize(up);
+    var rightVector = WebGLSpins._cross(forwardVector, this._options.upVector);
+    this._options.upVector = WebGLSpins._cross(rightVector, forwardVector);
+    this._options.upVector = WebGLSpins._normalize(this._options.upVector);
+    this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
+    this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
+    this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
+    this.draw();
+};
+
 WebGLSpins.prototype._rotationHelper = function(deltaX, deltaY) {
     var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
     var cameraDistance = WebGLSpins._length(forwardVector);
@@ -291,7 +306,7 @@ WebGLSpins.prototype._rotationHelper = function(deltaX, deltaY) {
         this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
     }
     this.draw();
-}
+};
 
 WebGLSpins.prototype._handlePinch = function(event) {
     if (!this._options.useTouch) return;
@@ -305,14 +320,14 @@ WebGLSpins.prototype._handlePinch = function(event) {
     this._options.cameraLocation[1] = this._options.centerLocation[1] - newCameraDistance/cameraDistance * forwardVector[1];
     this._options.cameraLocation[2] = this._options.centerLocation[2] - newCameraDistance/cameraDistance * forwardVector[2];
     this.draw();
-}
+};
 
 WebGLSpins.prototype._handlePinchStart = function(event) {
     if (!this._options.useTouch) return;
     var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
     var cameraDistance = WebGLSpins._length(forwardVector);
     this._currentScale = cameraDistance;
-}
+};
 
 WebGLSpins.prototype._handlePan = function(event) {
     if (!this._options.useTouch) return;

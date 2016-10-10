@@ -579,6 +579,17 @@ $(document).ready(function() {
   }
   $('#input-use-touch').on('change', updateUseTouch);
 
+
+  $('#button-camera-x').on('click', function(e) {
+    webglspins.alignCamera([-1, 0, 0], [0, 0, 1]);
+  });
+  $('#button-camera-y').on('click', function(e) {
+    webglspins.alignCamera([0, 1, 0], [0, 0, 1]);
+  });
+  $('#button-camera-z').on('click', function(e) {
+    webglspins.alignCamera([0, 0, -1], [0, 1, 0]);
+  });
+
   var isSimulating = false;
 
   Module.ready(function() {
