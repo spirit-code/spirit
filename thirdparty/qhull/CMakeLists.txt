@@ -376,7 +376,7 @@ set_target_properties(${qhull_CPP} PROPERTIES
 
 
 ######### Export
-set(QHULL_LIBRARIES    ${qhull_CPP}          PARENT_SCOPE)
+set(QHULL_LIBRARIES    ${qhull_CPP} ${qhull_STATICR}          PARENT_SCOPE)
 
 # ---------------------------------------
 # Define qhull executables linked to qhullstatic library
