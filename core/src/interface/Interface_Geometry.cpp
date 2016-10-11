@@ -106,3 +106,18 @@ bool Geometry_Is_2D(State * state, int idx_image, int idx_chain)
     }
     return is2D;
 }
+
+
+int Geometry_Get_Triangulation(State * state, int **indices_ptr, int idx_image, int idx_chain)
+{
+  std::shared_ptr<Data::Spin_System> image;
+  std::shared_ptr<Data::Spin_System_Chain> chain;
+  from_indices(state, idx_image, idx_chain, image, chain);
+
+  auto g = image->geometry;
+  auto tetrahedra = g->delaunayTriangulation();
+  if (indices_ptr != nullptr) {
+    *indices_ptr = &tetrahedra.data()[0].point_indices[0];
+  }
+  return tetrahedra.size();
+}
