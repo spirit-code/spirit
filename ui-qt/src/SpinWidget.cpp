@@ -62,6 +62,13 @@ void SpinWidget::paintGL() {
     directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
   }
 
+  if (!Geometry_Is_2D(state.get())) {
+    // TODO: only use this if necessary for the current renderer
+    int *tetrahedra_indices = nullptr;
+    int num_tetrahedra = Geometry_Get_Triangulation(state.get(), &tetrahedra_indices);
+    // TODO: pass tetrahedra to GLSpins
+  }
+
   gl_spins->updateSpins(positions, directions);
 
   float b_min[3], b_max[3];
