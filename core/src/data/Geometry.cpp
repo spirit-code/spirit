@@ -60,9 +60,9 @@ namespace Data
       std::vector<vector_t> points;
       points.resize(spin_pos.size()/3);
       for (std::vector<vector_t>::size_type i = 0; i < points.size(); i++) {
-        points[i].x = spin_pos[3*i+0];
-        points[i].y = spin_pos[3*i+1];
-        points[i].z = spin_pos[3*i+2];
+        points[i].x = spin_pos[i];
+        points[i].y = spin_pos[points.size()+i];
+        points[i].z = spin_pos[points.size()*2+i];
       }
       delaunay_triangulation = compute_delaunay_triangulation(points);
     }
