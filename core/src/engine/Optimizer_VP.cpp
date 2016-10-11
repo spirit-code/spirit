@@ -1,6 +1,6 @@
-#include "Optimizer_VP.h"
+#include "Optimizer_VP.hpp"
 
-#include "Vectormath.h"
+#include "Vectormath.hpp"
 
 namespace Engine
 {

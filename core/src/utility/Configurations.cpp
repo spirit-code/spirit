@@ -1,8 +1,8 @@
-#include "Configurations.h"
-#include "Spin_System.h"
-#include "Vectormath.h"
-#include "Logging.h"
-#include "Exception.h"
+#include "Configurations.hpp"
+#include "Spin_System.hpp"
+#include "Vectormath.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <random>
 #include <iostream>

@@ -1,5 +1,5 @@
-﻿#include "IO_Filter_File_Handle.h"
-#include "Vectormath.h"
+﻿#include "IO_Filter_File_Handle.hpp"
+#include "Vectormath.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -9,8 +9,8 @@
 #include <cstring>
 #include <sstream>
 
-#include "Logging.h"
-#include "Exception.h"
+#include "Logging.hpp"
+#include "Exception.hpp"
 //extern Utility::LoggingHandler Log;
 
 namespace Utility

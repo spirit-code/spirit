@@ -43,7 +43,7 @@ Code design improvements.
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 
 Implementation of the initial OpenGL code.<br />
-Building the lightweight GR library for plotting.
+Code design improvements and other general help.
 
 -----------------
 

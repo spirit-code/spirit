@@ -1,5 +1,5 @@
-#include "Method.h"
-//#include "Manifoldmath.h"
+#include "Method.hpp"
+//#include "Manifoldmath.hpp"
 #include <algorithm>
 
 namespace Engine

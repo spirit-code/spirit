@@ -413,7 +413,9 @@
                     <select id="select-colormap">
                       <option value="hsv" selected="selected">Hue-Saturation-Value</option>
                       <option value="hue">Hue</option>
-                      <option value="redblue">Red-Blue</option>
+                      <option value="bluered">Blue-Red</option>
+                      <option value="bluegreenred">Blue-Green-Red</option>
+                      <option value="bluewhitered">Blue-White-Red</option>
                       <option value="red">Red</option>
                     </select>
                   </div>
@@ -440,6 +442,25 @@
                   </div>
                 </div>
               </form>
+            </div>
+            <h5>Controls</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                <div class="checkbox col-sm-12">
+                  <label>
+                    <input type="checkbox" checked="checked" id="input-use-touch"> Use Touch Controls
+                  </label>
+                </div>
+                </div>
+              </form>
+              <div class="text-center">Set Camera to axis:
+                <div class="btn-group" role="group" aria-label="...">
+                  <button type="button" class="btn btn-default" id="button-camera-x">X</button>
+                  <button type="button" class="btn btn-default" id="button-camera-y">Y</button>
+                  <button type="button" class="btn btn-default" id="button-camera-z">Z</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -474,6 +495,7 @@
 <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/bootstrap-slider.min.js"></script>
+<script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
 <script src="js/webglspins.js"></script>
 <script src="js/simulation.js"></script>
 <script src="core.js" async></script>

@@ -97,8 +97,6 @@ target_link_libraries( core ${QHULL_LIBRARIES} )
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
-	### We dont use dll_export directives, so on Windows we just export everything
-	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
@@ -128,8 +126,6 @@ endif()
 ######### Tell CMake to create the shared library
 if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
-	### We dont use dll_export directives, so on Windows we just export everything
-	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( corejl SHARED
 		${HEADER_CORE_ROOT}

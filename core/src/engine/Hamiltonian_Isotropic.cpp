@@ -2,11 +2,11 @@
 #include <cmath>
 #include <iostream>
 
-#include "Hamiltonian_Isotropic.h"
-#include "Vectormath.h"
-#include "Vectoroperators.h"
-#include "Neighbours.h"
-#include "Logging.h"
+#include "Hamiltonian_Isotropic.hpp"
+#include "Vectormath.hpp"
+#include "Vectoroperators.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
 
 using namespace Utility;

@@ -1,7 +1,7 @@
 #include <QtWidgets>
 
-#include "MainWindow.h"
-#include "PlotWidget.h"
+#include "MainWindow.hpp"
+#include "PlotWidget.hpp"
 
 #include "Interface_System.h"
 #include "Interface_Chain.h"
@@ -11,9 +11,9 @@
 #include "Interface_Log.h"
 
 
-// TODO: Replace this
-#include "IO.h"
-#include "Interface_State.h"
+// TODO: Replace these
+#include "IO.hpp"
+#include "State.hpp"
 /////
 
 /*
@@ -378,7 +378,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 					this->threads_llg.erase(threads_llg.begin() + idx);
 				}
 
-				Log_Send(state.get(), Log_Level::Info, Log_Sender::UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
+				Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
 			}
 			break;
 	}
@@ -389,7 +389,7 @@ void MainWindow::stopallPressed()
 {
 	this->return_focus();
 	
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "Button: stopall");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
 	
 	Simulation_Stop_All(state.get());
 
@@ -411,7 +411,7 @@ void MainWindow::playpausePressed()
 {
 	this->return_focus();
 	
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "Button: playpause");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: playpause");
 
 	Chain_Update_Data(this->state.get());
 

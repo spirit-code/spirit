@@ -1,14 +1,14 @@
-﻿#include "IO.h"
-#include "Vectormath.h"
-#include "IO_Filter_File_Handle.h"
+﻿#include "IO.hpp"
+#include "Vectormath.hpp"
+#include "IO_Filter_File_Handle.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <thread>
 #include <string>
 #include <sstream>
-#include "Logging.h"
-#include "Exception.h"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 namespace Utility
 {

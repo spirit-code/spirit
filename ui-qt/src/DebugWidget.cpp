@@ -1,7 +1,10 @@
 // #include <QtWidgets>
 
-#include "DebugWidget.h"
-#include "Interface_Log.h"
+#include "DebugWidget.hpp"
+#include "Logging.hpp"
+
+using Utility::Log_Level;
+using Utility::Log_Sender;
 
 DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {

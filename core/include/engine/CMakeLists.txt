@@ -1,20 +1,20 @@
 set(HEADER_CORE_ENGINE
     ${HEADER_CORE_ENGINE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Heun.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_CG.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_VP.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Method.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Isotropic.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Heun.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_CG.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_VP.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

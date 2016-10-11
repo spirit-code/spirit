@@ -1,4 +1,4 @@
-#include <Geometry.h>
+#include <Geometry.hpp>
 #include "Qhull.h"
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"

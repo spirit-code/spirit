@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
 #include "Interface_State.h"
 #include "Interface_Chain.h"
@@ -17,8 +17,8 @@ int main(int argc, char ** argv)
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
 	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
-	const char * cfgfile = "input/kagome-spin-ice.cfg";
+	const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/kagome-spin-ice.cfg";
 	// const char * cfgfile = "input/example-gaussian.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 	//--- Data Files
@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile));
+	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile), State_Delete);
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	QSurfaceFormat::setDefaultFormat(format);
-	Log_Send(state.get(), Log_Level::Info, Log_Sender::UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
+	Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, "QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion()));
 
 	MainWindow window(state);
 	window.setWindowTitle(app.applicationName());
@@ -89,9 +89,9 @@ int main(int argc, char ** argv)
 	// If Application is closed normally
 	if (exec == 0)
 	{
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "================= Spirit Finished ===================");
-		Log_Send(state.get(), Log_Level::All, Log_Sender::All, "=====================================================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
+		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
 		Log_Append(state.get());
 	}
 	else throw exec;

@@ -23,7 +23,7 @@ option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Clu
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ### Set thirdparty include dirs
-set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include)
+set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include )
 set( GLM_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
 #############################################
 

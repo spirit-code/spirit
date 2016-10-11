@@ -1,8 +1,8 @@
 // #include <QtWidgets>
 
-#include "MainWindow.h"
-#include "SettingsWidget.h"
-#include "SpinWidget.h"
+#include "MainWindow.hpp"
+#include "SettingsWidget.hpp"
+#include "SpinWidget.hpp"
 
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
@@ -12,16 +12,20 @@
 #include "Interface_Collection.h"
 #include "Interface_Hamiltonian.h"
 #include "Interface_Parameters.h"
+#include "Interface_Exception.h"
 
 #include <iostream>
 #include <memory>
 
-// TODO: Replace these
-#include "Vectormath.h"
-#include "Exception.h"
-/////
-
-struct State;
+// Small function for normalization of vectors
+template <typename T>
+void normalize(T v[3])
+{
+	T len = 0.0;
+	for (int i = 0; i < 3; ++i) len += std::pow(v[i], 2);
+	if (len == 0.0) throw Exception_Division_by_zero;
+	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
+}
 
 SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
 {
@@ -87,19 +91,27 @@ void SettingsWidget::update()
 
 void SettingsWidget::randomPressed()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Random");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
 	Configuration_Random(this->state.get());
+	this->configurationAddNoise();
+	print_Energies_to_console();
+}
+void SettingsWidget::addNoisePressed()
+{
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
 	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 void SettingsWidget::minusZ()
 {
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Minus Z");
 	Configuration_MinusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
 }
 void SettingsWidget::plusZ()
 {
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Plus Z");
 	Configuration_PlusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
@@ -107,7 +119,7 @@ void SettingsWidget::plusZ()
 
 void SettingsWidget::create_Skyrmion()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button createSkyrmion");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
 	double speed = lineEdit_sky_order->text().toDouble();
 	double phase = lineEdit_sky_phase->text().toDouble();
 	bool upDown = checkBox_sky_UpDown->isChecked();
@@ -128,7 +140,7 @@ void SettingsWidget::create_Skyrmion()
 
 void SettingsWidget::create_SpinSpiral()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button createSpinSpiral");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
 	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
 	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
 	double period = lineEdit_SS_period->text().toDouble();
@@ -144,7 +156,7 @@ void SettingsWidget::create_SpinSpiral()
 
 void SettingsWidget::domainWallPressed()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button DomainWall");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
@@ -170,22 +182,22 @@ void SettingsWidget::homogeneousTransitionPressed()
 	// Check the validity of the indices
 	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 == idx_2)
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "Indices are equal in homogeneous transition! Aborting...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Indices are equal in homogeneous transition! Aborting...");
 		return;
 	}
 	if (idx_2 < idx_1)
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
 		return;
 	}
 
@@ -474,11 +486,17 @@ void SettingsWidget::Load_Visualization_Contents()
 	switch (_spinWidget->colormap())
 	{
 		case GLSpins::Colormap::HSV:
-			break;
-		case GLSpins::Colormap::RED_BLUE:
-			colormap = "Z-Component: Red-Blue";
-			break;
-		case GLSpins::Colormap::OTHER:
+      break;
+    case GLSpins::Colormap::BLUE_RED:
+      colormap = "Z-Component: Blue-Red";
+      break;
+    case GLSpins::Colormap::BLUE_GREEN_RED:
+      colormap = "Z-Component: Blue-Green-Red";
+      break;
+    case GLSpins::Colormap::BLUE_WHITE_RED:
+      colormap = "Z-Component: Blue-White-Red";
+      break;
+    case GLSpins::Colormap::OTHER:
 			break;
 		default:
 			break;
@@ -619,14 +637,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_extHy->text().toDouble();
 		vd[2] = lineEdit_extHz->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx->setText(QString::number(0.0));
 				lineEdit_extHy->setText(QString::number(0.0));
 				lineEdit_extHz->setText(QString::number(1.0));
@@ -664,14 +682,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_anisoy->text().toDouble();
 		vd[2] = lineEdit_anisoz->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anisox->setText(QString::number(0.0));
 				lineEdit_anisoy->setText(QString::number(0.0));
 				lineEdit_anisoz->setText(QString::number(1.0));
@@ -702,14 +720,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_spin_torquey->text().toDouble();
 		vd[2] = lineEdit_spin_torquez->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_spin_torquex->setText(QString::number(0.0));
 				lineEdit_spin_torquey->setText(QString::number(0.0));
 				lineEdit_spin_torquez->setText(QString::number(1.0));
@@ -834,14 +852,14 @@ void SettingsWidget::set_hamiltonian_aniso_field()
 		vd[1] = lineEdit_extHy_aniso->text().toDouble();
 		vd[2] = lineEdit_extHz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx_aniso->setText(QString::number(0.0));
 				lineEdit_extHy_aniso->setText(QString::number(0.0));
 				lineEdit_extHz_aniso->setText(QString::number(1.0));
@@ -890,14 +908,14 @@ void SettingsWidget::set_hamiltonian_aniso_ani()
 		vd[1] = lineEdit_aniy_aniso->text().toDouble();
 		vd[2] = lineEdit_aniz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anix_aniso->setText(QString::number(0.0));
 				lineEdit_aniy_aniso->setText(QString::number(0.0));
 				lineEdit_aniz_aniso->setText(QString::number(1.0));
@@ -947,14 +965,14 @@ void SettingsWidget::set_hamiltonian_aniso_stt()
 		vd[1] = lineEdit_stty_aniso->text().toDouble();
 		vd[2] = lineEdit_sttz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_sttx_aniso->setText(QString::number(0.0));
 				lineEdit_stty_aniso->setText(QString::number(0.0));
 				lineEdit_sttz_aniso->setText(QString::number(1.0));
@@ -1088,12 +1106,20 @@ void SettingsWidget::set_visualization()
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
 
-	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-	if (comboBox_colormap->currentText() == "Z-Component: Red-Blue")
-	{
-		colormap = GLSpins::Colormap::RED_BLUE;
-	}
-	_spinWidget->setColormap(colormap);
+  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_RED;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_GREEN_RED;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_WHITE_RED;
+  }
+  _spinWidget->setColormap(colormap);
 
 	if (radioButton_orthographicProjection->isChecked())
 	{
@@ -1261,6 +1287,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 {
 	// Random
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
+	// Add Noise
+	connect(this->pushButton_AddNoise, SIGNAL(clicked()), this, SLOT(addNoisePressed()));
 	// Domain Wall
 	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
 	// Homogeneous

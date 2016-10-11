@@ -1,5 +1,5 @@
-#include "Manifoldmath.h"
-#include "Vectormath.h"
+#include "Manifoldmath.hpp"
+#include "Vectormath.hpp"
 
 
 namespace Utility

@@ -14,16 +14,16 @@
 #include "glm/gtx/string_cast.hpp"
 #include <glm/gtx/transform.hpp>
 
-#include "Camera.h"
-#include "GLSpins.h"
-#include "ISpinRenderer.h"
-#include "ArrowSpinRenderer.h"
-#include "SurfaceSpinRenderer.h"
-#include "SphereSpinRenderer.h"
-#include "BoundingBoxRenderer.h"
-#include "CombinedSpinRenderer.h"
-#include "CoordinateSystemRenderer.h"
-#include "utilities.h"
+#include "Camera.hpp"
+#include "GLSpins.hpp"
+#include "ISpinRenderer.hpp"
+#include "ArrowSpinRenderer.hpp"
+#include "SurfaceSpinRenderer.hpp"
+#include "SphereSpinRenderer.hpp"
+#include "BoundingBoxRenderer.hpp"
+#include "CombinedSpinRenderer.hpp"
+#include "CoordinateSystemRenderer.hpp"
+#include "utilities.hpp"
 
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
@@ -194,9 +194,9 @@ void GLSpins::setCameraToX() {
 void GLSpins::setCameraToY() {
   auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
-  _camera.lookAt(glm::vec3(center.x, center.y+camera_distance, center.z),
+  _camera.lookAt(glm::vec3(center.x, center.y-camera_distance, center.z),
                  center,
-                 glm::vec3(1.0, 0.0, 0.0));
+                 glm::vec3(0.0, 0.0, 1.0));
 }
 
 void GLSpins::setCameraToZ() {

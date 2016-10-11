@@ -1,5 +1,5 @@
-#include "Threading.h"
-#include "Handle_Signal.h"
+#include "Threading.hpp"
+#include "Handle_Signal.hpp"
 
 #include "Interface_State.h"
 #include "Interface_System.h"
@@ -10,7 +10,6 @@
 #include "Interface_Log.h"
 
 // Initialise Global Variables
-struct State;
 std::shared_ptr<State> state;
 
 // Main
@@ -67,9 +66,9 @@ int main(int argc, char ** argv)
 
 
 	// Finish
-	Log(Log_Level::All, Log_Sender::All, "=====================================================");
-	Log(Log_Level::All, Log_Sender::All, "================= Spirit Finished ===================");
-	Log(Log_Level::All, Log_Sender::All, "=====================================================");
+	Log(Log_Level_All, Log_Sender_All, "=====================================================");
+	Log(Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
+	Log(Log_Level_All, Log_Sender_All, "=====================================================");
 	Log.Append_to_File();
 	return 0;
 }

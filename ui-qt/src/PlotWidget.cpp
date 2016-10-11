@@ -1,4 +1,4 @@
-#include "PlotWidget.h"
+#include "PlotWidget.hpp"
 
 #include "Interface_Chain.h"
 #include "Interface_System.h"

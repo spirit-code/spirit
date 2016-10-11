@@ -1,9 +1,9 @@
-﻿#include "IO.h"
-#include "IO_Filter_File_Handle.h"
-#include "Vectormath.h"
-#include "Neighbours.h"
-#include "Logging.h"
-#include "Exception.h"
+﻿#include "IO.hpp"
+#include "IO_Filter_File_Handle.hpp"
+#include "Vectormath.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -623,7 +623,7 @@ namespace Utility
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
+			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 0.0 });	// [3][nos]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;

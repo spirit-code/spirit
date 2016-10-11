@@ -1,14 +1,14 @@
-#include "Neighbours.h"
-#include "Vectormath.h"
-#include "IO.h"
-#include "Logging.h"
+#include "Neighbours.hpp"
+#include "Vectormath.hpp"
+#include "IO.hpp"
+#include "Logging.hpp"
 
 #include <numeric>
 #include <iostream>
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
-#include "Exception.h"
+#include "Exception.hpp"
 
 using namespace Utility;
 

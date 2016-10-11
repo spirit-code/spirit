@@ -1,5 +1,5 @@
-#include "Spin_System_Chain.h"
-#include "Manifoldmath.h"
+#include "Spin_System_Chain.hpp"
+#include "Manifoldmath.hpp"
 
 namespace Data
 {
