@@ -7,10 +7,12 @@ set(HEADER_GL_ROOT
     ${CMAKE_CURRENT_SOURCE_DIR}/ISpinRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ArrowSpinRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SurfaceSpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IsosurfaceSpinRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SphereSpinRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BoundingBoxRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CoordinateSystemRenderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CombinedSpinRenderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/VectorfieldIsosurface.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

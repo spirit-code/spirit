@@ -61,12 +61,14 @@ void SpinWidget::paintGL() {
   {
     directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
   }
-
+  
+  std::vector<std::array<int, 4>> tetrahedra_indices;
+  
   if (!Geometry_Is_2D(state.get())) {
     // TODO: only use this if necessary for the current renderer
-    int *tetrahedra_indices = nullptr;
-    int num_tetrahedra = Geometry_Get_Triangulation(state.get(), &tetrahedra_indices);
-    // TODO: pass tetrahedra to GLSpins
+    std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
+    int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<int **>(&tetrahedra_indices_ptr));
+    tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr+num_tetrahedra);
   }
 
   gl_spins->updateSpins(positions, directions);
@@ -76,8 +78,8 @@ void SpinWidget::paintGL() {
   glm::vec3 bounds_min = glm::make_vec3(b_min);
   glm::vec3 bounds_max = glm::make_vec3(b_max);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
-
-  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
+  
+  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max, tetrahedra_indices);
   if (_reset_camera) {
     gl_spins->setCameraToDefault();
     _reset_camera = false;

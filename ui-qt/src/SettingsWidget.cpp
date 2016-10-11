@@ -397,11 +397,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	{
 		case GLSpins::VisualizationMode::SPHERE:
 			visualization_mode = "Sphere";
-			break;
-		case GLSpins::VisualizationMode::SURFACE:
-			visualization_mode = "Surface";
-			break;
-		default:
+      break;
+    case GLSpins::VisualizationMode::SURFACE:
+      visualization_mode = "Surface";
+      break;
+    case GLSpins::VisualizationMode::ISOSURFACE:
+      visualization_mode = "Isosurface";
+      break;
+    default:
 			visualization_mode = "Arrows";
 			break;
 	}
@@ -1045,16 +1048,20 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 void SettingsWidget::set_visualization()
 {
-	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
-	if (comboBox_visualizationMode->currentText() == "Surface")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Sphere")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SPHERE;
-	}
-	_spinWidget->setVisualizationMode(visualization_mode);
+  GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
+  if (comboBox_visualizationMode->currentText() == "Surface")
+  {
+    visualization_mode = GLSpins::VisualizationMode::SURFACE;
+  }
+  else if (comboBox_visualizationMode->currentText() == "Isosurface")
+  {
+    visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
+  }
+  else if (comboBox_visualizationMode->currentText() == "Sphere")
+  {
+    visualization_mode = GLSpins::VisualizationMode::SPHERE;
+  }
+  _spinWidget->setVisualizationMode(visualization_mode);
 
 	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
 	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());

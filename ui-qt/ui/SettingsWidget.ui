@@ -2958,6 +2958,11 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>Isosurface</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Sphere</string>
                  </property>
                 </item>

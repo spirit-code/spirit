@@ -97,14 +97,8 @@ bool Geometry_Is_2D(State * state, int idx_image, int idx_chain)
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-    bool is2D = true;
-    auto g = image->geometry;
-    for (int i=0; i<g->n_spins_basic_domain; ++i)
-    {
-        // We assume that the z-component of a 2D system will always be zero
-        if (g->spin_pos[2*g->nos+i] != 0) is2D = false;
-    }
-    return is2D;
+  auto g = image->geometry;
+  return g->is2D();
 }
 
 
@@ -115,7 +109,7 @@ int Geometry_Get_Triangulation(State * state, int **indices_ptr, int idx_image, 
   from_indices(state, idx_image, idx_chain, image, chain);
 
   auto g = image->geometry;
-  auto tetrahedra = g->delaunayTriangulation();
+  auto tetrahedra = g->triangulation();
   if (indices_ptr != nullptr) {
     *indices_ptr = &tetrahedra.data()[0].point_indices[0];
   }

@@ -19,6 +19,7 @@
 #include "ISpinRenderer.hpp"
 #include "ArrowSpinRenderer.hpp"
 #include "SurfaceSpinRenderer.hpp"
+#include "IsosurfaceSpinRenderer.hpp"
 #include "SphereSpinRenderer.hpp"
 #include "BoundingBoxRenderer.hpp"
 #include "CombinedSpinRenderer.hpp"
@@ -73,11 +74,12 @@ void GLSpins::updateSpins(const std::vector<glm::vec3>& positions, const std::ve
   CHECK_GL_ERROR;
 }
 
-void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max) {
+void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max, const std::vector<std::array<int, 4>>& tetrahedra_indices) {
   Options<GLSpins> options;
   options.set<GLSpins::Option::BOUNDING_BOX_MIN>(bounds_min);
   options.set<GLSpins::Option::BOUNDING_BOX_MAX>(bounds_max);
   options.set<GLSpins::Option::SYSTEM_CENTER>(center);
+  options.set<GLSpins::Option::TETRAHEDRA_INDICES>(tetrahedra_indices);
   updateOptions(options);
 }
 
@@ -237,6 +239,9 @@ void GLSpins::updateRenderers() {
       break;
     case VisualizationMode::SURFACE:
       main_renderer = std::make_shared<SurfaceSpinRenderer>();
+      break;
+    case VisualizationMode::ISOSURFACE:
+      main_renderer = std::make_shared<IsosurfaceSpinRenderer>();
       break;
     case VisualizationMode::SPHERE:
       main_renderer = std::make_shared<SphereSpinRenderer>();

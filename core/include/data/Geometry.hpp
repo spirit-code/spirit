@@ -64,10 +64,12 @@ namespace Data
 		// Position of the Segments: segments_pos[dim][nos][4]
     //const std::vector<std::vector<std::vector<double>>> segments_pos;
 
-    const std::vector<tetrahedron_t>& delaunayTriangulation();
+    const std::vector<tetrahedron_t>& triangulation();
 
+    bool is2D() const;
+    
   private:
-    std::vector<tetrahedron_t> delaunay_triangulation;
+    std::vector<tetrahedron_t> _triangulation;
 	};
 }
 #endif

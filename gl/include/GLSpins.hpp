@@ -26,6 +26,7 @@ public:
   };
   enum VisualizationMode {
     SURFACE,
+    ISOSURFACE,
     ARROWS,
     SPHERE
   };
@@ -38,7 +39,8 @@ public:
     MINIVIEW_LOCATION,
     SHOW_COORDINATE_SYSTEM,
     COORDINATE_SYSTEM_LOCATION,
-    VISUALIZATION_MODE
+    VISUALIZATION_MODE,
+    TETRAHEDRA_INDICES
   };
   enum Colormap {
     HSV,
@@ -66,7 +68,7 @@ public:
   const Options<GLSpins>& options() const;
   
   void updateSpins(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& directions);
-  void updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max);
+  void updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max, const std::vector<std::array<int, 4>>& tetrahedra_indices);
   
 private:
   void updateRenderers();
@@ -126,6 +128,11 @@ struct Options<GLSpins>::Option<GLSpins::Option::COORDINATE_SYSTEM_LOCATION> {
 template<> template<>
 struct Options<GLSpins>::Option<GLSpins::Option::VISUALIZATION_MODE> {
   GLSpins::VisualizationMode default_value = GLSpins::VisualizationMode::ARROWS;
+};
+
+template<> template<>
+struct Options<GLSpins>::Option<GLSpins::Option::TETRAHEDRA_INDICES> {
+  std::vector<std::array<int, 4>> default_value;
 };
 
 #endif
