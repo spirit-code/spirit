@@ -6,6 +6,7 @@
 #include "ISpinRenderer.hpp"
 #include "BoundingBoxRenderer.hpp"
 #include "SphereSpinRenderer.hpp"
+#include "IsosurfaceSpinRenderer.hpp"
 #include "utilities.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -232,8 +233,18 @@ glm::vec2 SpinWidget::zRange() const {
 }
 
 void SpinWidget::setZRange(glm::vec2 z_range) {
-	makeCurrent();
+  makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::Z_RANGE>(z_range);
+  gl_spins->updateOptions(option);
+}
+
+float SpinWidget::isovalue() const {
+  return options().get<IsosurfaceSpinRendererOptions::ISOVALUE>();
+}
+
+void SpinWidget::setIsovalue(float isovalue) {
+  makeCurrent();
+  auto option = Options<GLSpins>::withOption<IsosurfaceSpinRendererOptions::ISOVALUE>(isovalue);
   gl_spins->updateOptions(option);
 }
 

@@ -483,7 +483,11 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_zRangeMax->setRange(-100, 100);
 	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
 	horizontalSlider_zRangeMin->setTracking(true);
-	horizontalSlider_zRangeMax->setTracking(true);
+  horizontalSlider_zRangeMax->setTracking(true);
+  
+  auto isovalue = _spinWidget->isovalue();
+  horizontalSlider_isovalue->setRange(0, 100);
+  horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
 	std::string colormap = "Hue-Saturation-Value";
 	switch (_spinWidget->colormap())
@@ -1112,6 +1116,9 @@ void SettingsWidget::set_visualization()
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
+  
+  float isovalue = horizontalSlider_isovalue->value()/50.0f-1.0f;
+  _spinWidget->setIsovalue(isovalue);
 
   GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
   if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
@@ -1354,6 +1361,7 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
   connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
