@@ -30,6 +30,8 @@ namespace Utility
 		// Add temperature-scaled random noise to a system
 		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed=0);
 
+		// Creates a toroid
+		void Hopfion(Data::Spin_System & s, std::vector<double> pos, double r);
 		// points a sperical region of spins of radius r
 		// into direction of vec at position pos
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double speed, double order, bool upDown, bool achiral, bool rl, bool experimental);

@@ -83,7 +83,7 @@ namespace Data
         
         for (int ix = 0; ix < n_cells[0]-1; ix++) {
           for (int iy = 0; iy < n_cells[1]-1; iy++) {
-            for (int iz = 0; iz < n_cells[0]-1; iz++) {
+            for (int iz = 0; iz < n_cells[2]-1; iz++) {
               int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
               for (int j = 0; j < 6; j++) {
                 tetrahedron_t tetrahedron;

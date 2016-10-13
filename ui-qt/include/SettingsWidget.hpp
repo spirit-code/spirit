@@ -63,6 +63,7 @@ private slots:
 	void domainWallPressed();
 	void plusZ();
 	void minusZ();
+	void create_Hopfion();
 	void create_Skyrmion();
 	void create_SpinSpiral();
 	// Transitions

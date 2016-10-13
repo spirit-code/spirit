@@ -117,6 +117,21 @@ void SettingsWidget::plusZ()
 	print_Energies_to_console();
 }
 
+void SettingsWidget::create_Hopfion()
+{
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
+	double r = lineEdit_hopf_r->text().toDouble();
+	std::vector<double> pos =
+	{
+		lineEdit_hopf_posx->text().toDouble(),
+		lineEdit_hopf_posy->text().toDouble(),
+		lineEdit_hopf_posz->text().toDouble()
+	};
+	Configuration_Hopfion(this->state.get(), pos.data(), r);
+	this->configurationAddNoise();
+	print_Energies_to_console();
+}
+
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
@@ -1308,6 +1323,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));
+	// Hopfion
+	connect(this->pushButton_hopfion, SIGNAL(clicked()), this, SLOT(create_Hopfion()));
 	// Skyrmion
 	connect(this->pushButton_skyrmion, SIGNAL(clicked()), this, SLOT(create_Skyrmion()));
 	// Spin Spiral
@@ -1320,6 +1337,12 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_posx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
+
+	// Hopfion LineEdits
+	connect(this->lineEdit_hopf_posx, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
 	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
@@ -1422,6 +1445,11 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Configurations
 	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
+	//		Hopfion
+	this->lineEdit_hopf_posx->setValidator(this->number_validator);
+	this->lineEdit_hopf_posy->setValidator(this->number_validator);
+	this->lineEdit_hopf_posz->setValidator(this->number_validator);
+	this->lineEdit_hopf_r->setValidator(this->number_validator);
 	//		Skyrmion
 	this->lineEdit_sky_order->setValidator(this->number_validator);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);

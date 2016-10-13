@@ -112,6 +112,14 @@ int Geometry_Get_Triangulation(State * state, int **indices_ptr, int idx_image, 
   auto tetrahedra = g->triangulation();
   if (indices_ptr != nullptr) {
     *indices_ptr = &tetrahedra.data()[0].point_indices[0];
+	*indices_ptr = new int[tetrahedra.size() * 4];
+	for (int i = 0; i < tetrahedra.size(); ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			(*indices_ptr)[4 * i + j] = tetrahedra[i].point_indices[j];
+		}
+	}
   }
   return tetrahedra.size();
 }

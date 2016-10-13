@@ -56,6 +56,19 @@ void Configuration_Add_Noise_Temperature(State *state, double temperature, int i
     Utility::Configurations::Add_Noise_Temperature(*state->active_image, temperature);
 }
 
+void Configuration_Hopfion(State *state, double pos[3], double r, int idx_image, int idx_chain)
+{
+	std::vector<double> position = { pos[0], pos[1], pos[2] };
+	// Get the image
+	std::shared_ptr<Data::Spin_System_Chain> c;
+	if (idx_chain < 0) c = state->active_chain;
+	std::shared_ptr<Data::Spin_System> img;
+	if (idx_image < 0) img = state->active_image;
+	else img = c->images[idx_image];
+	// Apply configuration
+	Utility::Configurations::Hopfion(*img, position, r);
+}
+
 void Configuration_Skyrmion(State *state, double pos[3], double r, double order, double phase, bool upDown, bool achiral, bool rl, int idx_image, int idx_chain)
 {
     std::vector<double> position = {pos[0], pos[1], pos[2]};
