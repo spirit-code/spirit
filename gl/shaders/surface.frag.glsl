@@ -7,8 +7,9 @@ out vec4 fo_FragColor;
 vec3 colormap(vec3 direction);
 
 void main(void) {
-  if (vfDirection.z >= uZRange.x && vfDirection.z <= uZRange.y) {
-    vec3 color = colormap(normalize(vfDirection));
+  vec3 direction = normalize(vfDirection);
+  if (direction.z >= uZRange.x && direction.z <= uZRange.y) {
+    vec3 color = colormap(direction);
     fo_FragColor = vec4(color, 1.0);
   } else {
     discard;
