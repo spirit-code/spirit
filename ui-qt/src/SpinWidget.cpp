@@ -41,6 +41,7 @@ void SpinWidget::paintGL() {
   // ToDo: Update the pointer to our Data instead of copying Data?
   int nos = System_Get_NOS(state.get());
   double *spins, *spin_pos;
+  bool keep_magnitudes = false;
   if (true)
   {
     spins = System_Get_Spin_Directions(state.get());
@@ -48,6 +49,7 @@ void SpinWidget::paintGL() {
   else
   {
     spins = System_Get_Effective_Field(state.get());
+    keep_magnitudes = true;
   }
   spin_pos = Geometry_Get_Spin_Positions(state.get());
   
@@ -60,6 +62,21 @@ void SpinWidget::paintGL() {
   for (int i = 0; i < nos; ++i)
   {
     directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
+  }
+  if (keep_magnitudes) {
+    float max_length = 0;
+    for (auto direction : directions) {
+      max_length = std::max(max_length, glm::length(direction));
+    }
+    if (max_length > 0) {
+      for (auto& direction : directions) {
+        direction /= max_length;
+      }
+    }
+  } else {
+    for (auto& direction : directions) {
+      direction = glm::normalize(direction);
+    }
   }
 
   gl_spins->updateSpins(positions, directions);
