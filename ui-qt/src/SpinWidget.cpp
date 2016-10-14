@@ -66,17 +66,10 @@ void SpinWidget::paintGL() {
   std::vector<std::array<int, 4>> tetrahedra_indices;
   
   if (!Geometry_Is_2D(state.get())) {
-    // TODO: only use this if necessary for the current renderer
-    int *tetrahedra_indices_ptr = nullptr;
-    int num_tetrahedra = Geometry_Get_Triangulation(state.get(), &tetrahedra_indices_ptr);
-	tetrahedra_indices.resize(num_tetrahedra);
-	for (int i = 0; i < num_tetrahedra; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			tetrahedra_indices[i][j] = tetrahedra_indices_ptr[4*i + j];
-		}
-	}
+	  // TODO: only use this if necessary for the current renderer
+	  const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
+	  int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
+	  tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
   }
 
   gl_spins->updateSpins(positions, directions);

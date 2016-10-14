@@ -461,5 +461,6 @@ namespace Engine
 	}
 
 	// Hamiltonian name as string
-	std::string Hamiltonian_Anisotropic::Name() { return "Anisotropic Heisenberg"; }
+	static const std::string name = "Anisotropic Heisenberg";
+	const std::string& Hamiltonian_Anisotropic::Name() { return name; }
 }

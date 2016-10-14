@@ -46,7 +46,7 @@ namespace Data
         for(orgQhull::QhullFacetList::iterator facet_it = facet_list.begin(); facet_it != facet_list.end(); ++facet_it) {
             if(!facet_it->isUpperDelaunay()) {
                 orgQhull::QhullVertexSet vertices = facet_it->vertices();
-                current_index = &tmp_tetrahedron.point_indices[0];
+                current_index = &tmp_tetrahedron[0];
                 for(orgQhull::QhullVertexSet::iterator vertex_it = vertices.begin(); vertex_it != vertices.end(); ++vertex_it) {
                     *current_index++ = (*vertex_it).point().id();
                 }
@@ -89,7 +89,7 @@ namespace Data
                 tetrahedron_t tetrahedron;
                 for (int k = 0; k < 4; k++) {
                   int index = base_index + offsets[cell_indices[j*4+k]];
-                  tetrahedron.point_indices[k] = index;
+                  tetrahedron[k] = index;
                 }
                 _triangulation.push_back(tetrahedron);
               }

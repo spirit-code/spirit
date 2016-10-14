@@ -108,5 +108,6 @@ namespace Engine
 	//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
 	// Hamiltonian name as string
-	std::string Hamiltonian_Gaussian::Name() { return "Gaussian"; }
+	static const std::string name = "Gaussian";
+	const std::string& Hamiltonian_Gaussian::Name() { return name; }
 }

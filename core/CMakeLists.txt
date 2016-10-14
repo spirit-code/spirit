@@ -32,9 +32,9 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/incl
 
 
 ######### Where to search for library headers
-set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/eigen )
+set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
-set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
+set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
 set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data

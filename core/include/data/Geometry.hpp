@@ -3,6 +3,7 @@
 #define DATA_GEOMETRY_H
 
 #include <vector>
+#include <array>
 
 namespace Data
 {
@@ -12,9 +13,7 @@ namespace Data
         double x, y, z;
     } vector_t;
 
-    typedef struct {
-        int point_indices[4];
-    } tetrahedron_t;
+    typedef std::array<int, 4> tetrahedron_t;
 
 	// Geometry contains all geometric information about the spin_system
 	// The members are const, as a spin system has to be created new whenever one of these members is changed.

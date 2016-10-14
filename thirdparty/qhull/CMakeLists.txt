@@ -328,7 +328,7 @@ set(
         index.htm
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 if(CMAKE_BUILD_TYPE MATCHES "[dD]ebug")
     set(qhull_CPP qhullcpp_d)

@@ -26,7 +26,7 @@ namespace Engine
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
 		// Hamiltonian name as string
-		std::string Name() override;
+		const std::string& Name() override;
 
 	//private:// these are currently needed by the to-be-removed Energy and Eff_Field
 		// -------------------- Effective Field Functions ------------------
