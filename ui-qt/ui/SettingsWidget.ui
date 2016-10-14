@@ -55,8 +55,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>911</height>
+            <width>795</width>
+            <height>931</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -199,6 +199,121 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="title">
+              <string>Hopfion</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_56">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton_hopfion">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Create Hopfion</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_57">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_49">
+                  <property name="text">
+                   <string>Position (x,y,z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_50">
+                  <property name="text">
+                   <string>Radius</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_hopf_r">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>3</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QGridLayout" name="gridLayout_58">
+                  <item row="0" column="0">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posx">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posy">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posz">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <spacer name="verticalSpacer">
@@ -2958,6 +3073,11 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>Isosurface</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Sphere</string>
                  </property>
                 </item>
@@ -3113,6 +3233,32 @@
                 </property>
                 <property name="text">
                  <string>Sphere Point Radius</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="5">
+               <widget class="QSlider" name="horizontalSlider_isovalue">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_48">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Isovalue</string>
                 </property>
                </widget>
               </item>
@@ -3638,6 +3784,18 @@
   <tabstop>horizontalSlider</tabstop>
   <tabstop>horizontalSlider_2</tabstop>
   <tabstop>horizontalSlider_3</tabstop>
+  <tabstop>checkBox_Configuration_Noise</tabstop>
+  <tabstop>lineEdit_Configuration_Noise</tabstop>
+  <tabstop>pushButton_Random</tabstop>
+  <tabstop>pushButton_AddNoise</tabstop>
+  <tabstop>pushButton_plusZ</tabstop>
+  <tabstop>pushButton_minusZ</tabstop>
+  <tabstop>pushButton_hopfion</tabstop>
+  <tabstop>lineEdit_hopf_posx</tabstop>
+  <tabstop>lineEdit_hopf_posy</tabstop>
+  <tabstop>lineEdit_hopf_posz</tabstop>
+  <tabstop>lineEdit_hopf_r</tabstop>
+  <tabstop>horizontalSlider_isovalue</tabstop>
  </tabstops>
  <resources/>
  <connections/>

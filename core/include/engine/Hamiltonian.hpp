@@ -57,7 +57,7 @@ namespace Engine
 		virtual std::vector<double> Energy_Array(std::vector<double> & spins);
 
 		// Hamiltonian name as string
-		virtual std::string Name();
+		virtual const std::string& Name();
 
 		// Boundary conditions
 		std::vector<bool> boundary_conditions; // [3] (a, b, c)

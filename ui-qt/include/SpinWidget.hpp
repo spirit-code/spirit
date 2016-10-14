@@ -46,6 +46,8 @@ public:
   void setVisualizationMode(GLSpins::VisualizationMode visualization_mode);
   glm::vec2 zRange() const;
   void setZRange(glm::vec2 z_range);
+  float isovalue() const;
+  void setIsovalue(float isovalue);
   GLSpins::Colormap colormap() const;
   void setColormap(GLSpins::Colormap colormap);
   glm::vec2 spherePointSizeRange() const;

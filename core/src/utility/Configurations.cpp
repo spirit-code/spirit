@@ -158,6 +158,68 @@ namespace Utility
 			Vectormath::Normalize_3Nos(*s.spins);
 		}
 
+		void Hopfion(Data::Spin_System & s, std::vector<double> pos, double r)
+		{
+			using std::pow;
+			using std::sqrt;
+			using std::acos;
+			using std::sin;
+			using std::cos;
+			using std::atan;
+			using std::atan2;
+			
+			// pos=(0,0,0) is the center of the system
+			for (int i = 0; i<3; ++i) pos[i] += s.geometry->center[i];
+
+			const double* px = s.geometry->spin_pos.data();
+			const double* py = s.geometry->spin_pos.data()+s.nos;
+			const double* pz = s.geometry->spin_pos.data()+2*s.nos;
+
+			double* Sx = s.spins->data();
+			double* Sy = s.spins->data() + s.nos;
+			double* Sz = s.spins->data() + 2 * s.nos;
+
+			if (r != 0.0)
+			{
+				double tmp;
+				double d, T, t, F, f;
+				for (int n = 0; n<s.nos; n++)
+				{
+					// Distance of spin from center
+					d = sqrt(pow(px[n] - pos[0], 2) + pow(py[n] - pos[1], 2) + pow(pz[n] - pos[2], 2));
+					if (d < r*M_PI)
+					{
+						// Theta
+						if (d == 0) {
+							T = 0;
+						}
+						else {
+							T = (pz[n] - pos[2]) / d; // angle with respect to the main axis of toroid [0,0,1]
+						}
+						T = acos(T);
+						// ...
+						t = d / r;	// r is a big radius of the torus
+						t = 1.0 + 4.22 / (t*t);
+						tmp = M_PI*(1.0 - 1.0 / sqrt(t));
+						t = sin(tmp)*sin(T);
+						t = acos(1.0 - 2.0*t*t);
+						// ...
+						F = atan2(py[n], px[n]);
+						if (T > M_PI / 2.0) {
+							f = F + atan(1.0 / (tan(tmp)*cos(T)));
+						}
+						else {
+							f = F + atan(1.0 / (tan(tmp)*cos(T))) + M_PI;
+						}
+						// Spin orientation
+						Sx[n] = sin(t)*cos(f);
+						Sy[n] = sin(t)*sin(f);
+						Sz[n] = cos(t);
+					}
+				}
+			}
+		}
+
 		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
 			// pos=(0,0,0) is the center of the system

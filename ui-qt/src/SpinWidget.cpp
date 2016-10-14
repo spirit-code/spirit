@@ -6,6 +6,7 @@
 #include "ISpinRenderer.hpp"
 #include "BoundingBoxRenderer.hpp"
 #include "SphereSpinRenderer.hpp"
+#include "IsosurfaceSpinRenderer.hpp"
 #include "utilities.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -61,6 +62,15 @@ void SpinWidget::paintGL() {
   {
     directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
   }
+  
+  std::vector<std::array<int, 4>> tetrahedra_indices;
+  
+  if (!Geometry_Is_2D(state.get())) {
+	  // TODO: only use this if necessary for the current renderer
+	  const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
+	  int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
+	  tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+  }
 
   gl_spins->updateSpins(positions, directions);
 
@@ -69,8 +79,8 @@ void SpinWidget::paintGL() {
   glm::vec3 bounds_min = glm::make_vec3(b_min);
   glm::vec3 bounds_max = glm::make_vec3(b_max);
   glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
-
-  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
+  
+  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max, tetrahedra_indices);
   if (_reset_camera) {
     gl_spins->setCameraToDefault();
     _reset_camera = false;
@@ -223,8 +233,18 @@ glm::vec2 SpinWidget::zRange() const {
 }
 
 void SpinWidget::setZRange(glm::vec2 z_range) {
-	makeCurrent();
+  makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::Z_RANGE>(z_range);
+  gl_spins->updateOptions(option);
+}
+
+float SpinWidget::isovalue() const {
+  return options().get<IsosurfaceSpinRendererOptions::ISOVALUE>();
+}
+
+void SpinWidget::setIsovalue(float isovalue) {
+  makeCurrent();
+  auto option = Options<GLSpins>::withOption<IsosurfaceSpinRendererOptions::ISOVALUE>(isovalue);
   gl_spins->updateOptions(option);
 }
 

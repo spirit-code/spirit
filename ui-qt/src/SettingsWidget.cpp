@@ -117,6 +117,21 @@ void SettingsWidget::plusZ()
 	print_Energies_to_console();
 }
 
+void SettingsWidget::create_Hopfion()
+{
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
+	double r = lineEdit_hopf_r->text().toDouble();
+	std::vector<double> pos =
+	{
+		lineEdit_hopf_posx->text().toDouble(),
+		lineEdit_hopf_posy->text().toDouble(),
+		lineEdit_hopf_posz->text().toDouble()
+	};
+	Configuration_Hopfion(this->state.get(), pos.data(), r);
+	this->configurationAddNoise();
+	print_Energies_to_console();
+}
+
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
@@ -397,11 +412,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	{
 		case GLSpins::VisualizationMode::SPHERE:
 			visualization_mode = "Sphere";
-			break;
-		case GLSpins::VisualizationMode::SURFACE:
-			visualization_mode = "Surface";
-			break;
-		default:
+      break;
+    case GLSpins::VisualizationMode::SURFACE:
+      visualization_mode = "Surface";
+      break;
+    case GLSpins::VisualizationMode::ISOSURFACE:
+      visualization_mode = "Isosurface";
+      break;
+    default:
 			visualization_mode = "Arrows";
 			break;
 	}
@@ -480,7 +498,11 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_zRangeMax->setRange(-100, 100);
 	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
 	horizontalSlider_zRangeMin->setTracking(true);
-	horizontalSlider_zRangeMax->setTracking(true);
+  horizontalSlider_zRangeMax->setTracking(true);
+  
+  auto isovalue = _spinWidget->isovalue();
+  horizontalSlider_isovalue->setRange(0, 100);
+  horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
 	std::string colormap = "Hue-Saturation-Value";
 	switch (_spinWidget->colormap())
@@ -1045,16 +1067,20 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 void SettingsWidget::set_visualization()
 {
-	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
-	if (comboBox_visualizationMode->currentText() == "Surface")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Sphere")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SPHERE;
-	}
-	_spinWidget->setVisualizationMode(visualization_mode);
+  GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
+  if (comboBox_visualizationMode->currentText() == "Surface")
+  {
+    visualization_mode = GLSpins::VisualizationMode::SURFACE;
+  }
+  else if (comboBox_visualizationMode->currentText() == "Isosurface")
+  {
+    visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
+  }
+  else if (comboBox_visualizationMode->currentText() == "Sphere")
+  {
+    visualization_mode = GLSpins::VisualizationMode::SPHERE;
+  }
+  _spinWidget->setVisualizationMode(visualization_mode);
 
 	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
 	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
@@ -1105,6 +1131,9 @@ void SettingsWidget::set_visualization()
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
+  
+  float isovalue = horizontalSlider_isovalue->value()/50.0f-1.0f;
+  _spinWidget->setIsovalue(isovalue);
 
   GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
   if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
@@ -1294,6 +1323,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));
+	// Hopfion
+	connect(this->pushButton_hopfion, SIGNAL(clicked()), this, SLOT(create_Hopfion()));
 	// Skyrmion
 	connect(this->pushButton_skyrmion, SIGNAL(clicked()), this, SLOT(create_Skyrmion()));
 	// Spin Spiral
@@ -1306,6 +1337,12 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_posx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
+
+	// Hopfion LineEdits
+	connect(this->lineEdit_hopf_posx, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
 	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
@@ -1347,6 +1384,7 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
   connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
@@ -1407,6 +1445,11 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Configurations
 	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
+	//		Hopfion
+	this->lineEdit_hopf_posx->setValidator(this->number_validator);
+	this->lineEdit_hopf_posy->setValidator(this->number_validator);
+	this->lineEdit_hopf_posz->setValidator(this->number_validator);
+	this->lineEdit_hopf_r->setValidator(this->number_validator);
 	//		Skyrmion
 	this->lineEdit_sky_order->setValidator(this->number_validator);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);

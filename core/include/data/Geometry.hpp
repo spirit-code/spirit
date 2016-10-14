@@ -3,16 +3,25 @@
 #define DATA_GEOMETRY_H
 
 #include <vector>
+#include <array>
 
 namespace Data
 {
+
+    // TODO: replace that type with Eigen!
+    typedef struct {
+        double x, y, z;
+    } vector_t;
+
+    typedef std::array<int, 4> tetrahedron_t;
+
 	// Geometry contains all geometric information about the spin_system
 	// The members are const, as a spin system has to be created new whenever one of these members is changed.
 	class Geometry
 	{
 	public:
 		// Constructor
-		Geometry(const std::vector<std::vector<double>> basis, const std::vector<std::vector<double>> translation_vectors, 
+		Geometry(const std::vector<std::vector<double>> basis, const std::vector<std::vector<double>> translation_vectors,
 			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<double> spin_pos);
 		// Destructor
 		//~Geometry();
@@ -33,7 +42,7 @@ namespace Data
 		const int nos;
 		// number of shells -> moved to Hamiltonian
 		// const int n_shells;
-		
+
 		// Center and Bounds
 		std::vector<double> center;
 		std::vector<double> bounds_min;
@@ -47,12 +56,19 @@ namespace Data
 
 		// Positions of the Spins: spin_pos[dim][nos]
 		const std::vector<double> spin_pos;
-						
+
 		// //////  What are the segments used for??
 		// segments[nos][4]
 		//const std::vector<std::vector<int>> segments;
 		// Position of the Segments: segments_pos[dim][nos][4]
-		//const std::vector<std::vector<std::vector<double>>> segments_pos;
+    //const std::vector<std::vector<std::vector<double>>> segments_pos;
+
+    const std::vector<tetrahedron_t>& triangulation();
+
+    bool is2D() const;
+    
+  private:
+    std::vector<tetrahedron_t> _triangulation;
 	};
 }
 #endif

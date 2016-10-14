@@ -474,5 +474,6 @@ namespace Engine
 	}
 
 	// Hamiltonian name as string
-	std::string Hamiltonian_Isotropic::Name() { return "Isotropic Heisenberg"; }
+	static const std::string name = "Isotropic Heisenberg";
+	const std::string& Hamiltonian_Isotropic::Name() { return name; }
 }

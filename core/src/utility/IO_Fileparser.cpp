@@ -138,13 +138,13 @@ namespace Utility
 
 
 		/*
-		Read from Pairs file by Markus & Bernd
+		Read from Anisotropy file
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
 			std::vector<int> & anisotropy_index, std::vector<double> & anisotropy_magnitude,
 			std::vector<std::vector<double>> & anisotropy_normal)
 		{
-			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + anisotropyFile);
+			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
 			try {
 				n_indices = 0;
 				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
@@ -175,7 +175,7 @@ namespace Utility
 
 				// Catch horizontal separation Line
 				// file.GetLine();
-				// Get number of pairs
+				// Get number of lines
 				while (file.GetLine()) { ++n_indices; }
 
 				// Indices
@@ -186,7 +186,7 @@ namespace Utility
 				anisotropy_magnitude = std::vector<double>(0);
 				anisotropy_normal = std::vector<std::vector<double>>(0);
 
-				// Get actual Pairs Data
+				// Get actual Data
 				file.ResetStream();
 				int i_pair = 0;
 				std::string sdump;
@@ -194,7 +194,7 @@ namespace Utility
 								//dataHandle.GetLine();	// skip second line
 				while (file.GetLine())
 				{
-					// Read a Pair from the File
+					// Read a line from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
 					{
 						if (i == col_i)
@@ -216,7 +216,7 @@ namespace Utility
 						else
 							file.iss >> sdump;
 					}
-					// DMI vector orientation
+					// Anisotropy vector orientation
 					if (K_abc)
 					{
 						K_temp = { spin_K1, spin_K2, spin_K3 };
@@ -224,7 +224,7 @@ namespace Utility
 						spin_K2 = K_temp[0] * geometry.basis[1][0] + K_temp[1] * geometry.basis[1][1] + K_temp[2] * geometry.basis[1][2];
 						spin_K3 = K_temp[0] * geometry.basis[2][0] + K_temp[1] * geometry.basis[2][1] + K_temp[2] * geometry.basis[2][2];
 					}
-					// DMI vector normalisation
+					// Anisotropy vector normalisation
 					if (K_magnitude)
 					{
 						double dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
@@ -417,7 +417,7 @@ namespace Utility
 								// analogous for y and z direction with nb, nc
 								periods_a = (na + pair_da) / Na;
 								periods_b = (nb + pair_db) / Nb;
-								periods_c = (nc + pair_dc) / N;
+								periods_c = (nc + pair_dc) / Nc;
 								idx_j = pair_j	+ N*( (((na + pair_da) % Na) + Na) % Na )
 												+ N*Na*( (((nb + pair_db) % Nb) + Nb) % Nb )
 												+ N*Na*Nb*( (((nc + pair_dc) % Nc) + Nc) % Nc );

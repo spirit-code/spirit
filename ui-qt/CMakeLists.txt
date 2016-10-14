@@ -50,9 +50,9 @@ else()
     if ( WIN32 )
         set( CMAKE_PREFIX_PATH "C:/QT/5.7/msvc2015/" )
     elseif ( APPLE)
-        set( CMAKE_PREFIX_PATH "/usr/local/qt-5.7/" )
+        set( CMAKE_PREFIX_PATH "/usr/local/qt5/" )
     elseif ( UNIX)
-        set( CMAKE_PREFIX_PATH "/usr/local/qt-5.7/" )
+        set( CMAKE_PREFIX_PATH "/usr/local/qt5/" )
     endif()
 endif()
 MESSAGE( STATUS ">> Please check the CMAKE_PREFIX_PATH to make sure QT5 is found")
@@ -129,7 +129,7 @@ add_executable( ${EXECUTABLE_NAME}
 
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} core gl Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL )
+target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )
