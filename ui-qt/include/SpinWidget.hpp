@@ -65,6 +65,7 @@ private:
   std::shared_ptr<State> state;
   QPoint _previous_pos;
   bool _reset_camera;
+  bool initialized;
   
   const Options<GLSpins>& options() const;
   const Options<GLSpins> default_options;

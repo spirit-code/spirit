@@ -1,14 +1,14 @@
 ﻿#include "IO.hpp"
 #include "Vectormath.hpp"
 #include "IO_Filter_File_Handle.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <thread>
 #include <string>
 #include <sstream>
-#include "Logging.hpp"
-#include "Exception.hpp"
 
 namespace Utility
 {
@@ -35,7 +35,7 @@ namespace Utility
 		/*
 		Reads a configuration file into an existing Spin_System
 		*/
-		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file)
+		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format)
 		{
 			std::ifstream myfile(file);
 			if (myfile.is_open())
@@ -45,23 +45,47 @@ namespace Utility
 				std::istringstream iss(line);
 				std::size_t found;
 				int i = 0;
-				while (getline(myfile, line))
+				if (format == VectorFileFormat::CSV_POS_SPIN)
 				{
-					if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
-					found = line.find("#");
-					// Read the line if # is not found (# marks a comment)
-					if (found == std::string::npos)
+					auto& spins = *s->spins;
+					double px, py, pz;
+					while (getline(myfile, line, ','))
 					{
-						//double x, y, z;
-						iss.clear();
-						iss.str(line);
-						auto& spins = *s->spins;
-						//iss >> x >> y >> z;
-						iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
-						++i;
-					}// endif (# not found)
-					 // discard line if # is found
-				}// endif new line (while)
+						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+						found = line.find("#");
+						// Read the line if # is not found (# marks a comment)
+						if (found == std::string::npos)
+						{
+							//double x, y, z;
+							iss.clear();
+							iss.str(line);
+							//iss >> x >> y >> z;
+							iss >> px >> py >> pz >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
+							++i;
+						}// endif (# not found)
+						 // discard line if # is found
+					}// endif new line (while)
+				}
+				else
+				{
+					auto& spins = *s->spins;
+					while (getline(myfile, line))
+					{
+						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+						found = line.find("#");
+						// Read the line if # is not found (# marks a comment)
+						if (found == std::string::npos)
+						{
+							//double x, y, z;
+							iss.clear();
+							iss.str(line);
+							//iss >> x >> y >> z;
+							iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
+							++i;
+						}// endif (# not found)
+						 // discard line if # is found
+					}// endif new line (while)
+				}
 				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 				myfile.close();
 				Log(Log_Level::Info, Log_Sender::IO, "Done");

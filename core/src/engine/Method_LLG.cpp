@@ -82,9 +82,11 @@ namespace Engine
 
 		// --- Image Data Update
 		// Update the system's Energy
+		// ToDo: copy instead of recalculating
 		systems[0]->UpdateEnergy();
 
 		// ToDo: How to update eff_field without numerical overhead?
+		systems[0]->effective_field = F_total[0];
 		// systems[0]->UpdateEffectiveField();
 		
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?

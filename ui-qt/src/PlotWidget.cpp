@@ -52,7 +52,9 @@ void PlotWidget::plotEnergies()
 	int noi = Chain_Get_NOI(state.get());
 	for (int i = 0; i < noi; ++i)
 	{
-		*series_E << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+		double x = 0;
+		if (i > 1) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+		*series_E << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
 	// Re-add Series to chart
@@ -62,7 +64,9 @@ void PlotWidget::plotEnergies()
 	// Current image - red dot
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
-	*series_E_current << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+	double x = 0;
+	if (i > 1) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+	*series_E_current << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 	chart->removeSeries(series_E_current);
 	chart->addSeries(series_E_current);
 

@@ -24,6 +24,14 @@ namespace Utility
 {
 	namespace IO
 	{
+		enum class VectorFileFormat
+		{
+			CSV_POS_SPIN,
+			CSV_SPIN,
+			WHITESPACE_POS_SPIN,
+			WHITESPACE_SPIN
+		};
+
 		// ======================== Configparser ========================
 		// Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
 		// Input may be given incomplete. In this case a log entry is created and default values are used.
@@ -39,7 +47,8 @@ namespace Utility
 		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
 
 		// ========================= Fileparser =========================
-		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file);
+		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
+		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format = VectorFileFormat::CSV_POS_SPIN);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
 		//External_Field_from_File ....
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,

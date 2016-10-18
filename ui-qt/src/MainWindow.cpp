@@ -675,9 +675,14 @@ void MainWindow::save_Spin_Configuration()
 }
 void MainWindow::load_Spin_Configuration()
 {
-	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
+	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt *.csv)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName));
+		QFileInfo fi(fileName);
+		auto qs_type = fi.completeSuffix();
+		Utility::IO::VectorFileFormat type;
+		if (qs_type == "csv") type = Utility::IO::VectorFileFormat::CSV_POS_SPIN;
+		else type = Utility::IO::VectorFileFormat::WHITESPACE_SPIN;
+		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName), type);
 	}
 }
 

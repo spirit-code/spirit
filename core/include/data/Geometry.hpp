@@ -22,7 +22,8 @@ namespace Data
 	public:
 		// Constructor
 		Geometry(const std::vector<std::vector<double>> basis, const std::vector<std::vector<double>> translation_vectors,
-			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<double> spin_pos);
+			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<std::vector<double>> basis_atoms,
+			const std::vector<double> spin_pos);
 		// Destructor
 		//~Geometry();
 
@@ -36,8 +37,8 @@ namespace Data
 		const std::vector<int> n_cells;
 		// Number of spins per basic domain
 		const int n_spins_basic_domain;
-		// TODO: array of basis atom positions [n][3]
-		// std::vector<std::vector<double>> basis_atoms;
+		// Array of basis atom positions [3][n_basis_atoms]
+		std::vector<std::vector<double>> basis_atoms;
 		// Number of Spins total
 		const int nos;
 		// number of shells -> moved to Hamiltonian

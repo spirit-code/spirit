@@ -299,7 +299,7 @@ namespace Engine
 		}
 		else { output_to_file.reserve(int(1E+08)); }
 
-		const int buffer_length = 80, name_length = 29;
+		const int buffer_length = 80, name_length = 35;
 		char buffer_file_name[name_length + 2];
 		char buffer_string_conversion[buffer_length + 2];
 		//------------------------ End Init ----------------------------------------
@@ -372,7 +372,7 @@ namespace Engine
 
 		for (shell = 0; shell < n_shells; ++shell)
 		{
-			snprintf(buffer_file_name, name_length, "output/neighbours_in_shell_%03i.dat", shell + 1);
+			snprintf(buffer_file_name, name_length, "output/neighbours_in_shell_%03i.dat", (shell + 1));
 			output_to_file = "List of neighbours in the ";
 			snprintf(buffer_string_conversion, buffer_length, "%03i-th shell\n Spin   Number of |List of   \n number|neighbours|neighbours", shell + 1);
 			output_to_file.append(buffer_string_conversion);

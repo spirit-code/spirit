@@ -204,7 +204,7 @@ namespace Utility
 						t = sin(tmp)*sin(T);
 						t = acos(1.0 - 2.0*t*t);
 						// ...
-						F = atan2(py[n], px[n]);
+						F = atan2(py[n] - pos[1], px[n] - pos[0]);
 						if (T > M_PI / 2.0) {
 							f = F + atan(1.0 / (tan(tmp)*cos(T)));
 						}

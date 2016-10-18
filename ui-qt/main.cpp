@@ -17,7 +17,9 @@ int main(int argc, char ** argv)
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
 	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	const char * cfgfile = "input/example-hopfion-anisotropic.cfg";
+	// const char * cfgfile = "input/example-hopfion-isotropic.cfg";
 	// const char * cfgfile = "input/kagome-spin-ice.cfg";
 	// const char * cfgfile = "input/example-gaussian.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
@@ -31,11 +33,11 @@ int main(int argc, char ** argv)
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
-	Chain_Image_to_Clipboard(state.get());
+	/*Chain_Image_to_Clipboard(state.get());
 	for (int i=1; i<7; ++i)
 	{
 		Chain_Insert_Image_After(state.get());
-	}
+	}*/
 	//-------------------------------------------------------------------------------
 	
 	//----------------------- spin_system_chain -------------------------------------
