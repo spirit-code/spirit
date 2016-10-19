@@ -32,6 +32,20 @@ namespace Utility
 			return out;
 		}
 
+		std::vector<double> split_string_to_double(const std::string& source, const std::string& delimiter) {
+			std::vector<double> result;
+
+			size_t last = 0;
+			size_t next = 0;
+
+			while ((next = source.find(delimiter, last)) != std::string::npos) {
+				result.push_back(std::stod(source.substr(last, next - last)));
+				last = next + delimiter.length();
+			}
+			result.push_back(std::stod(source.substr(last)));
+			return result;
+		}
+
 		/*
 		Reads a configuration file into an existing Spin_System
 		*/
@@ -48,19 +62,17 @@ namespace Utility
 				if (format == VectorFileFormat::CSV_POS_SPIN)
 				{
 					auto& spins = *s->spins;
-					double px, py, pz;
-					while (getline(myfile, line, ','))
+					while (getline(myfile, line))
 					{
 						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
 						found = line.find("#");
 						// Read the line if # is not found (# marks a comment)
 						if (found == std::string::npos)
 						{
-							//double x, y, z;
-							iss.clear();
-							iss.str(line);
-							//iss >> x >> y >> z;
-							iss >> px >> py >> pz >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
+							auto x = split_string_to_double(line, ",");
+							spins[i] = x[3];
+							spins[1*s->nos + i] = x[4];
+							spins[2*s->nos + i] = x[5];
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found

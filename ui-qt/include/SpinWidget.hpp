@@ -17,6 +17,7 @@ class SpinWidget : public QOpenGLWidget
   
 public:
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
+  void update();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();

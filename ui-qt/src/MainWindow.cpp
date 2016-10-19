@@ -480,7 +480,7 @@ void MainWindow::previousImagePressed()
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
-		//this->spinWidget->update();
+		this->spinWidget->update();
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
@@ -501,7 +501,7 @@ void MainWindow::nextImagePressed()
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
-		//this->spinWidget->update();
+		this->spinWidget->update();
 		this->settingsWidget->update();
 		this->plotsWidget->update();
 		this->debugWidget->update();
@@ -673,6 +673,7 @@ void MainWindow::save_Spin_Configuration()
 		Utility::IO::Append_Spin_Configuration(this->state->active_image, 0, string_q2std(fileName));
 	}
 }
+
 void MainWindow::load_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt *.csv)"));
@@ -684,6 +685,7 @@ void MainWindow::load_Spin_Configuration()
 		else type = Utility::IO::VectorFileFormat::WHITESPACE_SPIN;
 		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName), type);
 	}
+	this->spinWidget->update();
 }
 
 void MainWindow::save_SpinChain_Configuration()
@@ -700,6 +702,7 @@ void MainWindow::load_SpinChain_Configuration()
 	if (!fileName.isEmpty()) {
 		Utility::IO::Read_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
 	}
+	this->spinWidget->update();
 }
 
 

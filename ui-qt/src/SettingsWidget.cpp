@@ -95,12 +95,14 @@ void SettingsWidget::randomPressed()
 	Configuration_Random(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 void SettingsWidget::addNoisePressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 void SettingsWidget::minusZ()
 {
@@ -108,6 +110,7 @@ void SettingsWidget::minusZ()
 	Configuration_MinusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 void SettingsWidget::plusZ()
 {
@@ -115,6 +118,7 @@ void SettingsWidget::plusZ()
 	Configuration_PlusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::create_Hopfion()
@@ -130,6 +134,7 @@ void SettingsWidget::create_Hopfion()
 	Configuration_Hopfion(this->state.get(), pos.data(), r);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::create_Skyrmion()
@@ -151,6 +156,7 @@ void SettingsWidget::create_Skyrmion()
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::create_SpinSpiral()
@@ -167,6 +173,7 @@ void SettingsWidget::create_SpinSpiral()
 	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::domainWallPressed()
@@ -177,6 +184,7 @@ void SettingsWidget::domainWallPressed()
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::configurationAddNoise()
@@ -225,6 +233,8 @@ void SettingsWidget::homogeneousTransitionPressed()
 		double temperature = lineEdit_Transition_Noise->text().toDouble();
 		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
+
+	this->_spinWidget->update();
 }
 
 
@@ -1067,20 +1077,20 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 void SettingsWidget::set_visualization()
 {
-  GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
-  if (comboBox_visualizationMode->currentText() == "Surface")
-  {
-    visualization_mode = GLSpins::VisualizationMode::SURFACE;
-  }
-  else if (comboBox_visualizationMode->currentText() == "Isosurface")
-  {
-    visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
-  }
-  else if (comboBox_visualizationMode->currentText() == "Sphere")
-  {
-    visualization_mode = GLSpins::VisualizationMode::SPHERE;
-  }
-  _spinWidget->setVisualizationMode(visualization_mode);
+	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
+	if (comboBox_visualizationMode->currentText() == "Surface")
+	{
+	visualization_mode = GLSpins::VisualizationMode::SURFACE;
+	}
+	else if (comboBox_visualizationMode->currentText() == "Isosurface")
+	{
+	visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
+	}
+	else if (comboBox_visualizationMode->currentText() == "Sphere")
+	{
+	visualization_mode = GLSpins::VisualizationMode::SPHERE;
+	}
+	_spinWidget->setVisualizationMode(visualization_mode);
 
 	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
 	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
@@ -1177,6 +1187,8 @@ void SettingsWidget::set_visualization()
 	}
 	_spinWidget->setBackgroundColor(background_color);
 	_spinWidget->setBoundingBoxColor(bounding_box_color);
+
+	_spinWidget->update();
 }
 
 

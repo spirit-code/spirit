@@ -18,16 +18,23 @@
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
 	this->state = state;
-	this->initialized = false;
 	setFocusPolicy(Qt::StrongFocus);
+
+	
 }
 
-void SpinWidget::initializeGL() {
+void SpinWidget::initializeGL()
+{
+	// Get GL context
 	makeCurrent();
-  std::vector<int> n_cells(3);
-  Geometry_Get_N_Cells(state.get(), n_cells.data());
+	// Initialize the visualisation options
+	std::vector<int> n_cells(3);
+	Geometry_Get_N_Cells(state.get(), n_cells.data());
 	this->gl_spins = std::make_shared<GLSpins>(n_cells);
-  _reset_camera = true;
+	// Initial camera position
+	_reset_camera = true;
+	// Fetch data and update GL arrays
+	this->update();
 }
 
 void SpinWidget::teardownGL() {
@@ -35,62 +42,72 @@ void SpinWidget::teardownGL() {
 }
 
 void SpinWidget::resizeGL(int width, int height) {
-  gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
-  update();
+	gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
+	//update();
+	QTimer::singleShot(1, this, SLOT(update()));
+}
+
+void SpinWidget::update()
+{
+	int nos = System_Get_NOS(state.get());
+	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
+	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
+	std::vector<std::array<int, 4>> tetrahedra_indices;
+
+	// ToDo: Update the pointer to our Data instead of copying Data?
+	// Positions and directions
+	//		get pointer
+	double *spins, *spin_pos;
+	if (true)
+	{
+		spins = System_Get_Spin_Directions(state.get());
+	}
+	else
+	{
+		spins = System_Get_Effective_Field(state.get());
+	}
+	spin_pos = Geometry_Get_Spin_Positions(state.get());
+	//		copy
+	for (int i = 0; i < nos; ++i)
+	{
+		positions[i] = glm::vec3(spin_pos[0 * nos + i], spin_pos[1 * nos + i], spin_pos[2 * nos + i]);
+	}
+	for (int i = 0; i < nos; ++i)
+	{
+		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
+	}
+	//		update GL
+	gl_spins->updateSpins(positions, directions);
+
+	// Triangles and Tetrahedra
+	//		get tetrahedra
+	if (!Geometry_Is_2D(state.get()))
+	{
+		const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
+		int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
+		tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+	}
+	//		get bounds
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
+	//		update GL
+	gl_spins->updateSystemGeometry(bounds_min, center, bounds_max, tetrahedra_indices);
+	if (_reset_camera)
+	{
+		gl_spins->setCameraToDefault();
+		_reset_camera = false;
+	}
 }
 
 void SpinWidget::paintGL() {
 	// ToDo: This does not catch the case that we have no simulation running
 	//		 but we switched between images or chains...
-	if (!initialized || Simulation_Running_Any(state.get()))
+	if (Simulation_Running_Any(state.get()))
 	{
-		// ToDo: Update the pointer to our Data instead of copying Data?
-		int nos = System_Get_NOS(state.get());
-		double *spins, *spin_pos;
-		if (true)
-		{
-			spins = System_Get_Spin_Directions(state.get());
-		}
-		else
-		{
-			spins = System_Get_Effective_Field(state.get());
-		}
-		spin_pos = Geometry_Get_Spin_Positions(state.get());
-
-		std::vector<glm::vec3> positions(nos);
-		for (int i = 0; i < nos; ++i)
-		{
-			positions[i] = glm::vec3(spin_pos[0 * nos + i], spin_pos[1 * nos + i], spin_pos[2 * nos + i]);
-		}
-		std::vector<glm::vec3> directions(nos);
-		for (int i = 0; i < nos; ++i)
-		{
-			directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
-		}
-
-		std::vector<std::array<int, 4>> tetrahedra_indices;
-
-		if (!Geometry_Is_2D(state.get())) {
-			// TODO: only use this if necessary for the current renderer
-			const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
-			int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
-			tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
-		}
-
-		gl_spins->updateSpins(positions, directions);
-
-		float b_min[3], b_max[3];
-		Geometry_Get_Bounds(state.get(), b_min, b_max);
-		glm::vec3 bounds_min = glm::make_vec3(b_min);
-		glm::vec3 bounds_max = glm::make_vec3(b_max);
-		glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
-
-		gl_spins->updateSystemGeometry(bounds_min, center, bounds_max, tetrahedra_indices);
-		if (_reset_camera) {
-			gl_spins->setCameraToDefault();
-			_reset_camera = false;
-		}
-
+		this->update();
 	}
 
 	gl_spins->draw();
