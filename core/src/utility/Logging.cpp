@@ -12,7 +12,7 @@
 
 namespace Utility
 {
-	std::string Utility::LogEntryToString(LogEntry entry, bool braces_separators)
+	std::string LogEntryToString(LogEntry entry, bool braces_separators)
 	{
 		// Format indices
 		auto s_chain = IO::int_to_formatted_string(entry.idx_chain, 2);

@@ -26,7 +26,7 @@
 struct State;
 
 // Send a Log message
-DLLEXPORT void Log_Send(State *state, int level, int sender, std::string message, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Log_Send(State *state, int level, int sender, const char * message, int idx_image=-1, int idx_chain=-1);
 
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?

@@ -378,7 +378,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 					this->threads_llg.erase(threads_llg.begin() + idx);
 				}
 
-				Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, "Deleted image " + std::to_string(System_Get_Index(state.get())));
+				Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 			}
 			break;
 	}
