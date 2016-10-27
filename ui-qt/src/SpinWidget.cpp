@@ -17,10 +17,16 @@
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
-	this->state = state;
-	setFocusPolicy(Qt::StrongFocus);
+    this->state = state;
+    setFocusPolicy(Qt::StrongFocus);
 
-	
+		QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		sizePolicy.setHorizontalStretch(0);
+		sizePolicy.setVerticalStretch(0);
+    this->setSizePolicy(sizePolicy);
+
+    this->setMinimumSize(200,200);
+    this->setBaseSize(600,600);
 }
 
 void SpinWidget::initializeGL()

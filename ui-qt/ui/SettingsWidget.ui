@@ -6,13 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
+    <width>300</width>
     <height>986</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
+    <width>110</width>
     <height>200</height>
    </size>
   </property>
@@ -45,6 +51,18 @@
        <string>Configurations</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QScrollArea" name="scrollArea_3">
          <property name="widgetResizable">
@@ -55,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>795</width>
-            <height>931</height>
+            <width>272</width>
+            <height>961</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1228,6 +1246,18 @@
        <string>Transitions</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_30">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QScrollArea" name="scrollArea_6">
          <property name="widgetResizable">
@@ -1238,8 +1268,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>911</height>
+            <width>296</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1433,6 +1463,18 @@
        <string>Hamiltonian</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QGridLayout" name="gridLayout_31">
          <item row="0" column="1">
@@ -1505,8 +1547,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>857</height>
+            <width>326</width>
+            <height>877</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2084,6 +2126,18 @@
        <string>Hamiltonian</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_38">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_37">
          <item row="0" column="1">
@@ -2156,8 +2210,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>857</height>
+            <width>268</width>
+            <height>877</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2600,6 +2654,18 @@
        <string>Parameters</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QScrollArea" name="scrollArea_2">
          <property name="widgetResizable">
@@ -2610,8 +2676,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>911</height>
+            <width>336</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3000,6 +3066,18 @@
        <string>Visualisation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="2" column="0">
         <widget class="QScrollArea" name="scrollArea_4">
          <property name="widgetResizable">
@@ -3010,8 +3088,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>816</width>
-            <height>911</height>
+            <width>419</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3569,7 +3647,7 @@
             <widget class="QGroupBox" name="groupBox">
              <property name="minimumSize">
               <size>
-               <width>200</width>
+               <width>110</width>
                <height>120</height>
               </size>
              </property>

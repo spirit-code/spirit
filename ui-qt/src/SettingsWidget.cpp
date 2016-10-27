@@ -194,6 +194,7 @@ void SettingsWidget::configurationAddNoise()
 	{
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
+		this->_spinWidget->update();
 	}
 }
 

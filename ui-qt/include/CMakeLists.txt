@@ -2,6 +2,7 @@ set(HEADER_UI_QT_ROOT
     ${HEADER_UI_QT_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}/SpinWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.hpp

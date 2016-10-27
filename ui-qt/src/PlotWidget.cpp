@@ -14,7 +14,9 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
     // Create Chart
 	chart = new QChart();
 	chart->legend()->hide();
-	chart->setTitle("Simple line chart example");
+	chart->setTitle("");
+	// chart->axisX()->setTitleText("Rx");
+	// chart->axisY()->setTitleText("E");
 
     // Use Chart
 	this->setChart(chart);
@@ -53,7 +55,7 @@ void PlotWidget::plotEnergies()
 	for (int i = 0; i < noi; ++i)
 	{
 		double x = 0;
-		if (i > 1) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+		if (i > 0) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
 		*series_E << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
@@ -65,7 +67,7 @@ void PlotWidget::plotEnergies()
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
 	double x = 0;
-	if (i > 1) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+	if (i > 0) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
 	*series_E_current << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 	chart->removeSeries(series_E_current);
 	chart->addSeries(series_E_current);

@@ -8,6 +8,7 @@
 #include <map>
 
 #include "SpinWidget.hpp"
+#include "ControlWidget.hpp"
 #include "SettingsWidget.hpp"
 #include "PlotsWidget.hpp"
 #include "DebugWidget.hpp"
@@ -28,29 +29,16 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
 
 public:
     MainWindow(std::shared_ptr<State> state);
-	//bool eventFilter(QObject *object, QEvent *event);
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
-    //bool eventFilter(QObject *obj, QEvent *event);
 
 private slots:
-    //void newFile();
-    //void open();
-    //bool save();
-    //bool saveAs();
 	void keyPressEvent(QKeyEvent *ev) override;
-	void playpausePressed();
-	void stopallPressed();
-	void previousImagePressed();
-	void nextImagePressed();
-    void resetPressed();
-    void xPressed();
-    void yPressed();
-    void zPressed();
 	void view_toggleDebug();
 	void view_togglePlots();
 	void view_toggleSettings();
+	void view_toggle_fullscreen_spins();
     void about();
 	void keyBindings();
 	void load_Configuration();
@@ -59,11 +47,7 @@ private slots:
 	void save_SpinChain_Configuration();
 	void load_SpinChain_Configuration();
 	void save_Energies();
-	void save_EPressed();
 	void return_focus();
-	//Interactions
-	
-	//void documentWasModified();
 
 private:
     /*void createWidgets(Spin_System * s);
@@ -74,23 +58,19 @@ private:
     void writeSettings();
 	void createStatusBar();
 	void updateStatusBar();
-    /*bool maybeSave();
-    void loadFile(const QString &fileName);
-    bool saveFile(const QString &fileName);
-    void setCurrentFile(const QString &fileName);
-    QString strippedName(const QString &fullFileName);*/
 
-    //SpinWidget *spins;
+	// State
 	std::shared_ptr<State> state;
+	// Widgets
 	SpinWidget *spinWidget;
+	ControlWidget * controlWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;
 	DebugWidget * debugWidget;
-    /*QPlainTextEdit *textEdit;
-    QString curFile;*/
-
+	
 	// Update Timers for all Widgets
 	QTimer * m_timer_spins;
+	QTimer * m_timer_control;
 	QTimer * m_timer_plots;
 	QTimer * m_timer_debug;
 	QTimer * m_timer;
@@ -107,6 +87,8 @@ private:
 	std::vector<std::thread> threads_gneb;
 	std::thread thread_mmf;
 
+	// Fullscreen state
+	bool fullscreen_spins;
 };
 
 #endif
