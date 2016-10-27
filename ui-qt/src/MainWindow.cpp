@@ -145,68 +145,33 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	// Key Sequences
 	if (k->matches(QKeySequence::Copy))
 	{
-		// Copy a Spin System
+		// Copy the current Spin System
 		Chain_Image_to_Clipboard(state.get());
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
-		if (Chain_Get_NOI(state.get()) > 1)
-		{
-			this->controlWidget->stop_current();
-
-			// Cut a Spin System
-			Chain_Image_to_Clipboard(state.get());
-
-			int idx = System_Get_Index(state.get());
-			if (idx > 0) Chain_prev_Image(this->state.get());
-			this->spinWidget->update();			
-			//else this->nextImagePressed();
-
-			if (Chain_Delete_Image(state.get(), idx)) 
-			{
-				// Make the llg_threads vector smaller
-				this->threads_llg.erase(threads_llg.begin() + idx);
-			}
-		}
+		// Cut the current Spin System from the chain
+		this->controlWidget->cut_image();
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
-		// Paste a Spin System
-		this->controlWidget->stop_current();
-		Chain_Replace_Image(state.get());
-		// Update the chain's data (primarily for the plot)
-		Chain_Update_Data(state.get());
-		// Update Visualisation
-		this->spinWidget->update();
+		// Paste clipboard image to current
+		this->controlWidget->paste_image();
 	}
 
 	// Custom Key Sequences
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
-		int idx = System_Get_Index(state.get());
 		switch (k->key())
 		{
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
-				// Insert Image
-				Chain_Insert_Image_Before(state.get());
-				// Update the chain's data (primarily for the plot)
-				Chain_Update_Data(state.get());
-				// Make the llg_threads vector larger
-				this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+				this->controlWidget->paste_image("left");
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
-				// Insert Image
-				Chain_Insert_Image_After(state.get());
-				// Update the chain's data (primarily for the plot)
-				Chain_Update_Data(state.get());
-				// Make the llg_threads vector larger
-				this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
-				// Switch to the inserted image
-				Chain_next_Image(this->state.get());
-				this->spinWidget->update();
+				this->controlWidget->paste_image("right");
 				break;
 			
 			// CTRL+F - Fullscreen mode
@@ -229,13 +194,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			break;
 		// Left: switch to image left of current image
 		case Qt::Key_Left:
-			Chain_prev_Image(this->state.get());
-			this->spinWidget->update();
+			this->controlWidget->prev_image();
 			break;
 		// Left: switch to image left of current image
 		case Qt::Key_Right:
-			Chain_next_Image(this->state.get());
-			this->spinWidget->update();
+			this->controlWidget->next_image();
 			break;
 		// Down: ...
 		case Qt::Key_Down:
@@ -285,22 +248,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			break;
 		// Delete: Delete current image
 		case Qt::Key_Delete:
-			if (Chain_Get_NOI(state.get()) > 1)
-			{
-				this->controlWidget->stop_current();
-
-				int idx = System_Get_Index(state.get());
-				if (idx > 0) Chain_prev_Image(this->state.get());
-				//else this->nextImagePressed();
-				if (Chain_Delete_Image(state.get(), idx)) 
-				{
-					// Make the llg_threads vector smaller
-					this->threads_llg.erase(threads_llg.begin() + idx);
-				}
-
-				Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
-			}
-			this->spinWidget->update();
+			this->controlWidget->delete_image();
 			break;
 	}
 }

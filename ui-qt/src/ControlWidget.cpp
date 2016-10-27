@@ -50,8 +50,8 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	connect(this->pushButton_Save_E, SIGNAL(clicked()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_StopAll, SIGNAL(clicked()), this, SLOT(stop_all()));
 	connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(play_pause()));
-	connect(this->pushButton_PreviousImage, SIGNAL(clicked()), this, SLOT(previousImagePressed()));
-	connect(this->pushButton_NextImage, SIGNAL(clicked()), this, SLOT(nextImagePressed()));
+	connect(this->pushButton_PreviousImage, SIGNAL(clicked()), this, SLOT(prev_image()));
+	connect(this->pushButton_NextImage, SIGNAL(clicked()), this, SLOT(next_image()));
     connect(this->pushButton_Reset, SIGNAL(clicked()), this, SLOT(resetPressed()));
     connect(this->pushButton_X, SIGNAL(clicked()), this, SLOT(xPressed()));
     connect(this->pushButton_Y, SIGNAL(clicked()), this, SLOT(yPressed()));
@@ -163,7 +163,26 @@ void ControlWidget::stop_current()
 
 
 
-void ControlWidget::previousImagePressed()
+void ControlWidget::next_image()
+{
+	if (System_Get_Index(state.get()) < Chain_Get_NOI(this->state.get())-1)
+	{
+		// Change active image
+		Chain_next_Image(this->state.get());
+		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+		// Update Play/Pause Button
+		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
+		else this->pushButton_PlayPause->setText("Play");
+
+		// Update Image-dependent Widgets
+		this->spinWidget->update();
+		// this->settingsWidget->update();
+		// this->plotsWidget->update();
+		// this->debugWidget->update();
+	}
+}
+
+void ControlWidget::prev_image()
 {
 	// this->return_focus();
 	if (System_Get_Index(state.get()) > 0)
@@ -184,24 +203,79 @@ void ControlWidget::previousImagePressed()
 	}
 }
 
-
-void ControlWidget::nextImagePressed()
+void ControlWidget::cut_image()
 {
-	if (System_Get_Index(state.get()) < Chain_Get_NOI(this->state.get())-1)
+	if (Chain_Get_NOI(state.get()) > 1)
 	{
-		// Change active image
-		Chain_next_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
-		// Update Play/Pause Button
-		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
-		else this->pushButton_PlayPause->setText("Play");
+		this->stop_current();
 
-		// Update Image-dependent Widgets
-		this->spinWidget->update();
-		// this->settingsWidget->update();
-		// this->plotsWidget->update();
-		// this->debugWidget->update();
+		// Cut a Spin System
+		Chain_Image_to_Clipboard(state.get());
+
+		int idx = System_Get_Index(state.get());
+		if (idx > 0) Chain_prev_Image(this->state.get());
+		this->spinWidget->update();			
+		//else this->nextImagePressed();
+
+		if (Chain_Delete_Image(state.get(), idx)) 
+		{
+			// Make the llg_threads vector smaller
+			this->threads_llg.erase(threads_llg.begin() + idx);
+		}
 	}
+}
+
+void ControlWidget::paste_image(std::string where)
+{
+	if (where == "current")
+	{
+		// Paste a Spin System into current System
+		this->stop_current();
+		Chain_Replace_Image(state.get());
+	}
+	else if (where == "left")
+	{
+		// Insert Image
+		Chain_Insert_Image_Before(state.get());
+		// Make the llg_threads vector larger
+		int idx = System_Get_Index(state.get());
+		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+	}
+	else if (where == "right")
+	{
+		// Insert Image
+		Chain_Insert_Image_After(state.get());
+		// Make the llg_threads vector larger
+		int idx = System_Get_Index(state.get());
+		this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+		// Switch to the inserted image
+		Chain_next_Image(this->state.get());
+	}
+
+	// Update the chain's data (primarily for the plot)
+	Chain_Update_Data(state.get());
+	// Update Visualisation
+	this->spinWidget->update();
+}
+
+void ControlWidget::delete_image()
+{
+	if (Chain_Get_NOI(state.get()) > 1)
+	{
+		this->stop_current();
+
+		int idx = System_Get_Index(state.get());
+		if (idx > 0) Chain_prev_Image(this->state.get());
+		//else this->nextImagePressed();
+		if (Chain_Delete_Image(state.get(), idx)) 
+		{
+			// Make the llg_threads vector smaller
+			this->threads_llg.erase(threads_llg.begin() + idx);
+		}
+
+		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
+	}
+	this->spinWidget->update();
 }
 
 

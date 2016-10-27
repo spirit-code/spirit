@@ -5,7 +5,6 @@
 
 #include <memory>
 #include <thread>
-#include <map>
 
 #include "SpinWidget.hpp"
 #include "ControlWidget.hpp"
@@ -81,11 +80,6 @@ private:
 	QLabel * m_Label_NOS;
 	QLabel * m_Label_FPS;
 	std::vector<QLabel*> m_Labels_IPS;
-
-	// Image/Chain - Method maps
-	std::vector<std::thread> threads_llg;
-	std::vector<std::thread> threads_gneb;
-	std::thread thread_mmf;
 
 	// Fullscreen state
 	bool fullscreen_spins;
