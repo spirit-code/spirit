@@ -1,10 +1,12 @@
 // #include <QtWidgets>
 
 #include "DebugWidget.hpp"
-#include "Logging.hpp"
 
+///// TODO: Find a way around this...
+#include "Logging.hpp"
 using Utility::Log_Level;
 using Utility::Log_Sender;
+///////////////////////////////////
 
 DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {

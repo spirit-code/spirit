@@ -8,13 +8,8 @@
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
 #include "Interface_Configurations.h"
+#include "Interface_IO.h"
 #include "Interface_Log.h"
-
-
-// TODO: Replace these
-#include "IO.hpp"
-#include "State.hpp"
-/////
 
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
@@ -391,7 +386,8 @@ void MainWindow::save_Spin_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Spin Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Append_Spin_Configuration(this->state->active_image, 0, string_q2std(fileName));
+		auto file = string_q2std(fileName);
+		IO_Image_Write(this->state.get(), file.c_str());
 	}
 }
 
@@ -401,10 +397,11 @@ void MainWindow::load_Spin_Configuration()
 	if (!fileName.isEmpty()) {
 		QFileInfo fi(fileName);
 		auto qs_type = fi.completeSuffix();
-		Utility::IO::VectorFileFormat type;
-		if (qs_type == "csv") type = Utility::IO::VectorFileFormat::CSV_POS_SPIN;
-		else type = Utility::IO::VectorFileFormat::WHITESPACE_SPIN;
-		Utility::IO::Read_Spin_Configuration(this->state->active_image, string_q2std(fileName), type);
+		int type;
+		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+		else type = IO_Fileformat_Regular;
+		auto file = string_q2std(fileName);
+		IO_Image_Read(this->state.get(), file.c_str(), type);
 	}
 	this->spinWidget->update();
 }
@@ -413,7 +410,8 @@ void MainWindow::save_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
+		auto file = string_q2std(fileName);
+		IO_Chain_Write(this->state.get(), file.c_str());
 	}
 }
 
@@ -421,7 +419,8 @@ void MainWindow::load_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Read_SpinChain_Configuration(this->state->active_chain, string_q2std(fileName));
+		auto file = string_q2std(fileName);
+		IO_Chain_Read(this->state.get(), file.c_str());
 	}
 	this->spinWidget->update();
 }
@@ -434,28 +433,18 @@ void MainWindow::load_Configuration()
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
 	if (!fileName.isEmpty())
 	{
-		// TODO: use interface_system function
-		std::shared_ptr<Data::Spin_System> sys = Utility::IO::Spin_System_from_Config(string_q2std(fileName));
-		// Filter for unacceptable differences to other systems in the chain
-		bool acceptable = true;
-		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
-		{
-			if (state->active_chain->images[i]->nos != sys->nos) acceptable = false;
-			// Currently the SettingsWidget does not support different images being isotropic AND anisotropic at the same time
-			if (state->active_chain->images[i]->hamiltonian->Name() != sys->hamiltonian->Name()) acceptable = false;
-		}
+		auto file = string_q2std(fileName);
+		
 		// Set current image
-		if (acceptable)
+		if (!IO_System_From_Config(this->state.get(), file.c_str()))
 		{
-			this->state->active_chain->images[idx_img] = sys;
-			Configuration_Random(state.get());
+			QMessageBox::about(this, tr("About Spirit"),
+				tr("The resulting Spin System would have different NOS\n"
+					"or isotropy status than one or more of the other\n"
+					"images in the chain!\n"
+					"\n"
+					"The system has thus not been reset!"));
 		}
-		else QMessageBox::about(this, tr("About Spirit"),
-			tr("The resulting Spin System would have different NOS\n"
-				"or isotropy status than one or more of the other\n"
-				"images in the chain!\n"
-				"\n"
-				"The system has thus not been reset!"));
 	}
 }
 
@@ -464,7 +453,8 @@ void MainWindow::save_Energies()
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_Energies(*state->active_chain, 0, string_q2std(fileName));
+		auto file = string_q2std(fileName);
+		IO_Energies_Save(this->state.get(), file.c_str());
 	}
 }
 

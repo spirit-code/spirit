@@ -9,6 +9,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include "Interface_IO.h"
+
 #include "Spin_System.hpp"
 #include "Spin_System_Chain.hpp"
 #include "Geometry.hpp"
@@ -26,10 +28,10 @@ namespace Utility
 	{
 		enum class VectorFileFormat
 		{
-			CSV_POS_SPIN,
-			CSV_SPIN,
-			WHITESPACE_POS_SPIN,
-			WHITESPACE_SPIN
+			CSV_POS_SPIN = IO_Fileformat_CSV_Pos,
+			CSV_SPIN = IO_Fileformat_CSV,
+			WHITESPACE_POS_SPIN = IO_Fileformat_Regular_Pos,
+			WHITESPACE_SPIN = IO_Fileformat_Regular
 		};
 
 		// ======================== Configparser ========================

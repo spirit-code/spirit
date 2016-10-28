@@ -14,6 +14,7 @@ set(HEADER_CORE_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Chain.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Collection.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Exception.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_IO.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

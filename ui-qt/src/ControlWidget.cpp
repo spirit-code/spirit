@@ -6,12 +6,9 @@
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
+#include "Interface_IO.h"
 #include "Interface_Log.h"
 
-// TODO: Replace these
-#include "IO.hpp"
-#include "State.hpp"
-/////
 
 std::string string_q2std(QString qs)
 {
@@ -308,7 +305,8 @@ void ControlWidget::save_Energies()
 	// this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
-		Utility::IO::Save_Energies(*state->active_chain, 0, string_q2std(fileName));
+		auto file = string_q2std(fileName);
+		IO_Energies_Save(this->state.get(), file.c_str());
 	}
 }
 
@@ -333,9 +331,9 @@ void ControlWidget::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	Utility::IO::Save_Energies(*state->active_chain, 0, fullName);
-	Utility::IO::Save_Energies_Spins(*state->active_chain, fullNameSpins);
-	Utility::IO::Save_Energies_Interpolated(*state->active_chain, fullNameInterpolated);
+	IO_Energies_Save(this->state.get(), fullName.c_str());
+	IO_Energies_Spins_Save(this->state.get(), fullNameSpins.c_str());
+	IO_Energies_Interpolated_Save(this->state.get(), fullNameInterpolated.c_str());
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");
