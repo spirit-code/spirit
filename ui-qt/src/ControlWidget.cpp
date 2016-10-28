@@ -33,18 +33,6 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	// Setup User Interface
     this->setupUi(this);
 
-
-	// Read Iterate State form Spin System
-	// TODO: into update function
-	if ( Simulation_Running_Any(state.get()) )
-	{
-		this->pushButton_PlayPause->setText("Pause");
-	}
-	else
-	{
-		this->pushButton_PlayPause->setText("Play");
-	}
-
 	// Buttons
 	connect(this->lineEdit_Save_E, SIGNAL(returnPressed()), this, SLOT(save_EPressed()));
 	connect(this->pushButton_Save_E, SIGNAL(clicked()), this, SLOT(save_EPressed()));
@@ -63,6 +51,21 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
 	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
+}
+
+void ControlWidget::update()
+{
+	// Check for running simulations
+	if (Simulation_Running_Any(state.get()))
+	{
+		this->pushButton_PlayPause->setText("Pause");
+	}
+	else
+	{
+		this->pushButton_PlayPause->setText("Play");
+	}
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
 }
 
 void ControlWidget::play_pause()

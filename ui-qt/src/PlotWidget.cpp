@@ -55,7 +55,8 @@ void PlotWidget::plotEnergies()
 	for (int i = 0; i < noi; ++i)
 	{
 		double x = 0;
-		if (i > 0) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+		double Rx_tot = System_Get_Rx(state.get(), noi - 1);
+		if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
 		*series_E << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
@@ -67,7 +68,8 @@ void PlotWidget::plotEnergies()
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
 	double x = 0;
-	if (i > 0) x = System_Get_Rx(state.get(), i) / System_Get_Rx(state.get(), noi - 1);
+	double Rx_tot = System_Get_Rx(state.get(), noi - 1);
+	if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
 	*series_E_current << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 	chart->removeSeries(series_E_current);
 	chart->addSeries(series_E_current);
@@ -78,6 +80,7 @@ void PlotWidget::plotEnergies()
 
 void PlotWidget::plotEnergiesInterpolated()
 {
+	if (Chain_Get_NOI(state.get()) <= 1) return;
 	// TODO: this seems incredibly inefficient, how can we do better??
 	// Clear series
 	series_E_interp->clear();

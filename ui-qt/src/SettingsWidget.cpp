@@ -95,6 +95,7 @@ void SettingsWidget::randomPressed()
 	Configuration_Random(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 void SettingsWidget::addNoisePressed()
@@ -102,6 +103,7 @@ void SettingsWidget::addNoisePressed()
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 void SettingsWidget::minusZ()
@@ -110,6 +112,7 @@ void SettingsWidget::minusZ()
 	Configuration_MinusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 void SettingsWidget::plusZ()
@@ -118,6 +121,7 @@ void SettingsWidget::plusZ()
 	Configuration_PlusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 
@@ -134,6 +138,7 @@ void SettingsWidget::create_Hopfion()
 	Configuration_Hopfion(this->state.get(), pos.data(), r);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 
@@ -156,6 +161,7 @@ void SettingsWidget::create_Skyrmion()
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 
@@ -173,6 +179,7 @@ void SettingsWidget::create_SpinSpiral()
 	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 
@@ -184,6 +191,7 @@ void SettingsWidget::domainWallPressed()
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 
@@ -194,6 +202,7 @@ void SettingsWidget::configurationAddNoise()
 	{
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
+		Chain_Update_Data(this->state.get());
 		this->_spinWidget->update();
 	}
 }
@@ -235,6 +244,8 @@ void SettingsWidget::homogeneousTransitionPressed()
 		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
 
+	// Update
+	Chain_Update_Data(this->state.get());
 	this->_spinWidget->update();
 }
 

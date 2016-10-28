@@ -58,10 +58,6 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	readSettings();
 
 	
-	// Set up Update Timers
-	m_timer = new QTimer(this);
-	//m_timer_plots = new QTimer(this);
-	//m_timer_spins = new QTimer(this);
 
 
 	// File Menu
@@ -99,29 +95,33 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_NOC = new QLabel;
 	this->m_Label_NOC->setText("NOC: 0");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
-	//		Initialisations & connect
+	//		Initialisations
 	this->createStatusBar();
-	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
-
-	// Plots Widget
-	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
-
-	// Spins Widget
-	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
 	
 
-	// Event Filter
-	//this->installEventFilter(this);
+	// Set up Update Timers
+	m_timer = new QTimer(this);
+	m_timer_control = new QTimer(this);
+	//m_timer_plots = new QTimer(this);
+	//m_timer_spins = new QTimer(this);
+	
+	// Connect the Timers
+	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
+	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::update);
+	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
+	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
 
 	// Start Timers
 	m_timer->start(200);
+	m_timer_control->start(200);
 	//m_timer_plots->start(100);
 	//m_timer_spins->start(100);
 	//m_timer_debug->start(100);
 
 
-
+	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
+	this->return_focus();
 }
 
 
@@ -251,6 +251,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			this->controlWidget->delete_image();
 			break;
 	}
+	this->return_focus();
 }
 
 

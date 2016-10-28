@@ -25,6 +25,7 @@ class ControlWidget : public QWidget, private Ui::ControlWidget
 
 public:
 	ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
+	void update();
 
 public slots:
 	void play_pause();

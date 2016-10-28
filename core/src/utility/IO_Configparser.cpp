@@ -623,7 +623,7 @@ namespace Utility
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 0.0 });	// [3][nos]
+			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 1.0 });	// [nos][3]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;

@@ -7,7 +7,14 @@
 
 void Configuration_DomainWall(State *state, const double pos[3], double v[3], bool greater, int idx_image, int idx_chain)
 {
-    Utility::Configurations::DomainWall(*state->active_image, std::vector<double>(pos, pos+3), std::vector<double>(v, v+3), greater);
+	// Get the image
+	std::shared_ptr<Data::Spin_System_Chain> c;
+	if (idx_chain < 0) c = state->active_chain;
+	std::shared_ptr<Data::Spin_System> img;
+	if (idx_image < 0) img = state->active_image;
+	else img = c->images[idx_image];
+	// Apply configuration
+    Utility::Configurations::DomainWall(*img, std::vector<double>(pos, pos+3), std::vector<double>(v, v+3), greater);
 }
 
 void Configuration_Homogeneous(State *state, double v[3], int idx_image, int idx_chain)
@@ -48,12 +55,26 @@ void Configuration_MinusZ(State *state, int idx_image, int idx_chain)
 
 void Configuration_Random(State *state, bool external, int idx_image, int idx_chain)
 {
-    Utility::Configurations::Random(*state->active_image);
+	// Get the image
+	std::shared_ptr<Data::Spin_System_Chain> c;
+	if (idx_chain < 0) c = state->active_chain;
+	std::shared_ptr<Data::Spin_System> img;
+	if (idx_image < 0) img = state->active_image;
+	else img = c->images[idx_image];
+	// Apply configuration
+    Utility::Configurations::Random(*img);
 }
 
 void Configuration_Add_Noise_Temperature(State *state, double temperature, int idx_image, int idx_chain)
 {
-    Utility::Configurations::Add_Noise_Temperature(*state->active_image, temperature);
+	// Get the image
+	std::shared_ptr<Data::Spin_System_Chain> c;
+	if (idx_chain < 0) c = state->active_chain;
+	std::shared_ptr<Data::Spin_System> img;
+	if (idx_image < 0) img = state->active_image;
+	else img = c->images[idx_image];
+	// Apply noise
+    Utility::Configurations::Add_Noise_Temperature(*img, temperature);
 }
 
 void Configuration_Hopfion(State *state, double pos[3], double r, int idx_image, int idx_chain)
