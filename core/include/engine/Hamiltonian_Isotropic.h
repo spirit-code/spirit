@@ -20,8 +20,8 @@ namespace Engine
 		
 		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
 		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
-		double Energy(std::vector<double> & spins) override;
-		std::vector<double> Energy_Array(std::vector<double> & spins) override;
+		double Energy(const std::vector<double> & spins) override;
+		std::vector<double> Energy_Array(const std::vector<double> & spins) override;
 		// Need to implement:
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
@@ -47,19 +47,19 @@ namespace Engine
 
 		// -------------------- Energy Functions ------------------
 		// calculates the Zeeman Energy of spin ispin within system s
-		double E_Zeeman(int nos, std::vector<double> & spins, const int ispin);
+		double E_Zeeman(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the Exchange Energy of spin ispin within system s
-		double E_Exchange(int nos, std::vector<double> & spins, const int ispin);
+		double E_Exchange(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the Anisotropic Energy of spin ispin within system s
-		double E_Anisotropic(int nos, std::vector<double> & spins, const int ispin);
+		double E_Anisotropic(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the Biquadratic Coupling Energy of spin ispin within system s
-		double E_BQC(int nos, std::vector<double> & spins, const int ispin);
+		double E_BQC(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the 4-spin Coupling Energy of spin ispin within system s
-		double E_FourSC(int nos, std::vector<double> & spins, const int ispin);
+		double E_FourSC(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the Dzyaloshinskii-Moriya Interaction Energy of spin ispin within system s
-		double E_DM(int nos, std::vector<double> & spins, const int ispin);
+		double E_DM(int nos, const std::vector<double> & spins, const int ispin);
 		// calculates the Dipole-Dipole Energy of spin ispin within system s
-		double E_DipoleDipole(int nos, std::vector<double> & spins, const int ispin);
+		double E_DipoleDipole(int nos, const std::vector<double> & spins, const int ispin);
 
 
 		// -------------------- Single Spin Interactions ------------------

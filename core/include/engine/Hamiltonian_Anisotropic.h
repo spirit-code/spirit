@@ -30,8 +30,8 @@ namespace Engine
 
 		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
 		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
-		double Energy(std::vector<double> & spins) override;
-		std::vector<double> Energy_Array(std::vector<double> & spins) override;
+		double Energy(const std::vector<double> & spins) override;
+		std::vector<double> Energy_Array(const std::vector<double> & spins) override;
 		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
 
 		// Hamiltonian name as string
@@ -91,17 +91,17 @@ namespace Engine
 
 		// ------------ Energy Functions ------------
 		// Calculate the Zeeman energy of a Spin System
-		void E_Zeeman(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy);
+		void E_Zeeman(int nos, const std::vector<double> & spins, int ispin, std::vector<double> & Energy);
 		// Calculate the Anisotropy energy of a Spin System
-		void E_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & Energy);
+		void E_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & Energy);
 		// Calculate the exchange interaction energy of a Spin System
-		void E_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy);
+		void E_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy);
 		// Calculate the DMI energy of a Spin System
-		void E_DMI(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy);
+		void E_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy);
 		// Calculate the BQC energy of a Spin System
-		void E_BQC(int nos, std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy);
+		void E_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy);
 		// calculates the Dipole-Dipole Energy of spin ispin within system s
-		void E_DD(int nos, std::vector<double>& spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy);
+		void E_DD(int nos, const std::vector<double>& spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy);
 
 	};
 }

@@ -48,13 +48,13 @@ namespace Engine
 		virtual void Effective_Field(const std::vector<double> & spins, std::vector<double> & field);
 
 		// Calculate the Energy of a spin configuration
-		virtual double Energy(std::vector<double> & spins);
+		virtual double Energy(const std::vector<double> & spins);
 
 		// Calculate the Energies of the spins of a configuration
-		virtual std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins);
+		virtual std::vector<std::vector<double>> Energy_Array_per_Spin(const std::vector<double> & spins);
 
 		// Calculate the Effective Field of a spin configuration
-		virtual std::vector<double> Energy_Array(std::vector<double> & spins);
+		virtual std::vector<double> Energy_Array(const std::vector<double> & spins);
 
 		// Hamiltonian name as string
 		virtual std::string Name();

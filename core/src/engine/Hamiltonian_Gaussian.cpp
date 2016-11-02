@@ -84,7 +84,7 @@ namespace Engine
 		}
 	}
 
-	double Hamiltonian_Gaussian::Energy(std::vector<double> & spins)
+	double Hamiltonian_Gaussian::Energy(const std::vector<double> & spins)
 	{
 		int nos = spins.size() / 3;
 		double E = 0;
@@ -104,7 +104,7 @@ namespace Engine
 		return E;
 	}
 
-	std::vector<double> Hamiltonian_Gaussian::Energy_Array(std::vector<double> & spins)
+	std::vector<double> Hamiltonian_Gaussian::Energy_Array(const std::vector<double> & spins)
 	{
 		return std::vector<double>(9, 0.0);
 	}

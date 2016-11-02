@@ -42,12 +42,12 @@ namespace Engine
 		}
 	}
 
-	double Hamiltonian_Anisotropic::Energy(std::vector<double> & spins)
+	double Hamiltonian_Anisotropic::Energy(const std::vector<double> & spins)
 	{
 		return sum(Energy_Array(spins));
 	}
 
-	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(std::vector<double> & spins)
+	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(const std::vector<double> & spins)
 	{
 		//     0           1           2      3    4     5       6
 		// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
@@ -158,7 +158,7 @@ namespace Engine
 	//	return E;
 	//}
 
-	void Hamiltonian_Anisotropic::E_Zeeman(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Zeeman(int nos, const std::vector<double> & spins, int ispin, std::vector<double> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -166,7 +166,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & Energy)
 	{
 		double t = 0;
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
@@ -181,7 +181,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
 	{
 		double ss = 0;
 		for (int i = 0; i < 3; ++i)
@@ -191,7 +191,7 @@ namespace Engine
 		Energy[ENERGY_POS_EXCHANGE] -= J_ij * ss;
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy)
 	{
 		std::vector<double> cross(3);
 		for (int dim = 0; dim < 3; ++dim)
@@ -212,7 +212,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Anisotropic::E_BQC(int nos, std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -220,7 +220,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DD(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DD(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy)
 	{
 		//double mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -403,7 +403,7 @@ namespace Engine
 		// Single Spin elements
 		for (int alpha = 0; alpha < 3; ++alpha)
 		{
-			for (int i = 0; i < anisotropy_index.size(); ++i)
+			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
 			{
 				int idx = anisotropy_index[i];
 				double x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
