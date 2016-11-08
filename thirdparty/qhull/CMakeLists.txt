@@ -328,7 +328,7 @@ set(
         index.htm
 )
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
 if(CMAKE_BUILD_TYPE MATCHES "[dD]ebug")
     set(qhull_CPP qhullcpp_d)
@@ -373,10 +373,6 @@ endif(UNIX)
 add_library(${qhull_CPP} STATIC ${libqhullcpp_SOURCES})
 set_target_properties(${qhull_CPP} PROPERTIES
     VERSION ${qhull_VERSION})
-
-
-######### Export
-set(QHULL_LIBRARIES    ${qhull_CPP} ${qhull_STATICR}          PARENT_SCOPE)
 
 # ---------------------------------------
 # Define qhull executables linked to qhullstatic library

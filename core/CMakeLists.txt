@@ -31,6 +31,36 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/incl
 #############################################
 
 
+######### External Project: QHull ###########
+### unfortunately it seems qhull_TARGETS_INSTALL cannot be specified in a list
+include(ExternalProject)
+
+ExternalProject_add(qhullstatic_r
+	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
+	# GIT_REPOSITORY https://github.com/qhull/qhull
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullstatic_r"
+	PREFIX qhull-prefix
+)
+
+ExternalProject_add(qhullcpp
+	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
+	# GIT_REPOSITORY https://github.com/qhull/qhull
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullcpp"
+	PREFIX qhull-prefix
+	DEPENDS qhullstatic_r
+)
+
+add_library(libqhullstatic_r STATIC IMPORTED)
+set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(libqhullstatic_r qhullstatic_r)
+
+add_library(libqhullcpp STATIC IMPORTED)
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
+add_dependencies(libqhullcpp qhullcpp)
+#############################################
+
+
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
@@ -44,6 +74,7 @@ set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/src/utility )
 include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${QHULL_INCLUDE_DIRS})
 #############################################
+
 
 ######### Declare File groups ###############
 ### Header Gropus
@@ -91,7 +122,7 @@ add_library( core STATIC
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY})
-target_link_libraries( core ${QHULL_LIBRARIES} )
+target_link_libraries( core libqhullcpp)
 #############################################
 
 ######### Tell CMake to create the shared library

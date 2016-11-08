@@ -82,7 +82,6 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ######### Add Subdirectory Projects #########
 ### Core is built in any case
-add_subdirectory( thirdparty/qhull )
 add_subdirectory( core )
 ### Web UI excludes others
 if( NOT BUILD_UI_WEB )
