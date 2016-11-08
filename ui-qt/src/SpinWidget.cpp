@@ -64,6 +64,7 @@ void SpinWidget::update()
 	// Positions and directions
 	//		get pointer
 	double *spins, *spin_pos;
+  bool keep_magnitudes = false;
 	if (true)
 	{
 		spins = System_Get_Spin_Directions(state.get());
@@ -71,6 +72,7 @@ void SpinWidget::update()
 	else
 	{
 		spins = System_Get_Effective_Field(state.get());
+    keep_magnitudes = true;
 	}
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
 	//		copy
@@ -82,6 +84,22 @@ void SpinWidget::update()
 	{
 		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
 	}
+  //    normalize if needed
+  if (keep_magnitudes) {
+    float max_length = 0;
+    for (auto direction : directions) {
+      max_length = std::max(max_length, glm::length(direction));
+    }
+    if (max_length > 0) {
+      for (auto& direction : directions) {
+        direction /= max_length;
+      }
+    }
+  } else {
+    for (auto& direction : directions) {
+      direction = glm::normalize(direction);
+    }
+  }
 	//		update GL
 	gl_spins->updateSpins(positions, directions);
 

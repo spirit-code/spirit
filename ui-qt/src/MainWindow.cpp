@@ -50,6 +50,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->gridLayout_2->addWidget(this->controlWidget, 0, 0, 1, 1);
 
 	// Read Window settings of last session
+	this->fullscreen_spins = false;
 	readSettings();
 
 	
