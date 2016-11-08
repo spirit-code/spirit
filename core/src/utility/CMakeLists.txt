@@ -1,10 +1,9 @@
 set(SOURCE_CORE_UTILITY
     ${SOURCE_CORE_UTILITY}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Delegate.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectoroperators.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Configparser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Fileparser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filedump.cpp
@@ -13,7 +12,7 @@ set(SOURCE_CORE_UTILITY
 	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging_Enums.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

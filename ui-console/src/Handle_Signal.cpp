@@ -1,10 +1,10 @@
-#include "Handle_Signal.h"
+#include "Handle_Signal.hpp"
 
 #include "Interface_Simulation.h"
 #include "Interface_Log.h"
 
 // TODO: Replace this
-#include "Timing.h"
+#include "Timing.hpp"
 
 #include <memory>
 

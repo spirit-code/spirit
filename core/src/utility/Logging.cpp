@@ -1,14 +1,65 @@
-﻿#include "Logging.h"
+﻿#include "Logging.hpp"
 #include "Interface_State.h"
 
 #include <string>
 #include <iostream>
 #include <ctime>
-#include <IO.h>
+#include <IO.hpp>
 #include <signal.h>
+
+#include "Timing.hpp"
+#include "IO.hpp"
 
 namespace Utility
 {
+	std::string LogEntryToString(LogEntry entry, bool braces_separators)
+	{
+		// Format indices
+		auto s_chain = IO::int_to_formatted_string(entry.idx_chain, 2);
+		auto s_image = IO::int_to_formatted_string(entry.idx_image, 2);
+
+		// Time
+		std::string t = Timing::TimePointToString_Pretty(entry.time);
+		std::string result = "";
+		result.append(t);
+		// Message Level
+		if (braces_separators) result.append("  [");
+		else result.append("   ");
+		if      (entry.level == Log_Level::All)    	result.append("  ALL  ");
+		else if (entry.level == Log_Level::Severe) 	result.append("SEVERE ");
+		else if (entry.level == Log_Level::Error)	result.append(" ERROR ");
+		else if (entry.level == Log_Level::Warning)	result.append("WARNING");
+		else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
+		else if (entry.level == Log_Level::Info)    	result.append(" INFO  ");
+		else if (entry.level == Log_Level::Debug)   	result.append(" DEBUG ");
+		// Sender
+		if (braces_separators) result.append("] [");
+		else result.append("  ");
+		if     (entry.sender == Log_Sender::All)  result.append("ALL ");
+		else if(entry.sender == Log_Sender::IO)   result.append("IO  ");
+		else if(entry.sender == Log_Sender::API)  result.append("API ");
+		else if(entry.sender == Log_Sender::GNEB) result.append("GNEB");
+		else if(entry.sender == Log_Sender::LLG)  result.append("LLG ");
+		else if(entry.sender == Log_Sender::MMF)  result.append("MMF ");
+		else if(entry.sender == Log_Sender::UI)   result.append("UI  ");
+		// Chain Index
+		if (braces_separators) result.append("] [");
+		else result.append("  ");
+		if (entry.idx_chain >= 0) result.append(s_chain);
+		else result.append("--");
+		// Image Index
+		if (braces_separators) result.append("] [");
+		else result.append("  ");
+		if (entry.idx_image >= 0) result.append(s_image);
+		else result.append("--");
+		if (braces_separators) result.append("]  ");
+		else result.append("   ");
+		// Message string
+		result.append(entry.message);
+		// Return
+		return result;
+	}
+
 	LoggingHandler::LoggingHandler()
 	{
 		// Set the default Log parameters
@@ -24,13 +75,13 @@ namespace Utility
 		// All messages are saved in the Log
 		LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
 		log_entries.push_back(entry);
-		
+
+		// Increment message count
+		n_entries++;
+
 		// If level <= verbosity, we print to console
 		if (level <= print_level && level <= accept_level)
 			std::cout << LogEntryToString(log_entries.back()) << std::endl;
-		
-		// Increment message count
-		n_entries++;
 	}
 
 	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
@@ -71,9 +122,10 @@ namespace Utility
 		// Gather the string
 		std::string logstring = "";
 		int begin_append = no_dumped;
-		no_dumped = (int)log_entries.size();
-		for (auto entry : log_entries) {
-			logstring.append(LogEntryToString(entry));
+		no_dumped = n_entries;
+		for (int i=begin_append; i<n_entries; ++i)
+		{
+			logstring.append(LogEntryToString(log_entries[i]));
 			logstring.append("\n");
 		}
 
@@ -89,9 +141,9 @@ namespace Utility
 
 		// Gather the string
 		std::string logstring = "";
-		no_dumped = (int)log_entries.size();
-		for (auto entry : log_entries) {
-			logstring.append(LogEntryToString(entry));
+		for (int i=0; i<n_entries; ++i)
+		{
+			logstring.append(LogEntryToString(log_entries[i]));
 			logstring.append("\n");
 		}
 

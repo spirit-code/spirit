@@ -14,16 +14,17 @@
 #include "glm/gtx/string_cast.hpp"
 #include <glm/gtx/transform.hpp>
 
-#include "Camera.h"
-#include "GLSpins.h"
-#include "ISpinRenderer.h"
-#include "ArrowSpinRenderer.h"
-#include "SurfaceSpinRenderer.h"
-#include "SphereSpinRenderer.h"
-#include "BoundingBoxRenderer.h"
-#include "CombinedSpinRenderer.h"
-#include "CoordinateSystemRenderer.h"
-#include "utilities.h"
+#include "Camera.hpp"
+#include "GLSpins.hpp"
+#include "ISpinRenderer.hpp"
+#include "ArrowSpinRenderer.hpp"
+#include "SurfaceSpinRenderer.hpp"
+#include "IsosurfaceSpinRenderer.hpp"
+#include "SphereSpinRenderer.hpp"
+#include "BoundingBoxRenderer.hpp"
+#include "CombinedSpinRenderer.hpp"
+#include "CoordinateSystemRenderer.hpp"
+#include "utilities.hpp"
 
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
@@ -73,11 +74,12 @@ void GLSpins::updateSpins(const std::vector<glm::vec3>& positions, const std::ve
   CHECK_GL_ERROR;
 }
 
-void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max) {
+void GLSpins::updateSystemGeometry(glm::vec3 bounds_min, glm::vec3 center, glm::vec3 bounds_max, const std::vector<std::array<int, 4>>& tetrahedra_indices) {
   Options<GLSpins> options;
   options.set<GLSpins::Option::BOUNDING_BOX_MIN>(bounds_min);
   options.set<GLSpins::Option::BOUNDING_BOX_MAX>(bounds_max);
   options.set<GLSpins::Option::SYSTEM_CENTER>(center);
+  options.set<GLSpins::Option::TETRAHEDRA_INDICES>(tetrahedra_indices);
   updateOptions(options);
 }
 
@@ -159,11 +161,12 @@ void GLSpins::mouseMove(const glm::vec2& position_before, const glm::vec2& posit
 void GLSpins::mouseScroll(const float& wheel_delta) {
   auto forward = _camera.centerPosition() - _camera.cameraPosition();
   float camera_distance = glm::length(forward);
-  if (camera_distance < 2 && wheel_delta < 1) {
-    return;
+  float new_camera_distance = (float)(1+0.02*wheel_delta)*camera_distance;
+  if (new_camera_distance < 2) {
+    new_camera_distance = 2;
   }
   
-  auto camera_position = _camera.centerPosition() - (float)(1+0.02*wheel_delta) * forward;
+  auto camera_position = _camera.centerPosition() - new_camera_distance/camera_distance * forward;
   _camera.lookAt(camera_position,
                  _camera.centerPosition(),
                  _camera.upVector());
@@ -193,9 +196,9 @@ void GLSpins::setCameraToX() {
 void GLSpins::setCameraToY() {
   auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
   float camera_distance = glm::length(_camera.centerPosition() - _camera.cameraPosition());
-  _camera.lookAt(glm::vec3(center.x, center.y+camera_distance, center.z),
+  _camera.lookAt(glm::vec3(center.x, center.y-camera_distance, center.z),
                  center,
-                 glm::vec3(1.0, 0.0, 0.0));
+                 glm::vec3(0.0, 0.0, 1.0));
 }
 
 void GLSpins::setCameraToZ() {
@@ -236,6 +239,9 @@ void GLSpins::updateRenderers() {
       break;
     case VisualizationMode::SURFACE:
       main_renderer = std::make_shared<SurfaceSpinRenderer>();
+      break;
+    case VisualizationMode::ISOSURFACE:
+      main_renderer = std::make_shared<IsosurfaceSpinRenderer>();
       break;
     case VisualizationMode::SPHERE:
       main_renderer = std::make_shared<SphereSpinRenderer>();

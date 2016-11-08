@@ -1,5 +1,5 @@
-#include "Spin_System_Chain.h"
-#include "Manifoldmath.h"
+#include "Spin_System_Chain.hpp"
+#include "Manifoldmath.hpp"
 
 namespace Data
 {
@@ -20,6 +20,5 @@ namespace Data
 		this->Rx_interpolated = std::vector<double>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
 		this->E_interpolated = std::vector<double>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
 		this->E_array_interpolated = std::vector<std::vector<double>>(7, std::vector<double>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0));
-
 	}
 }

@@ -1,5 +1,5 @@
-#include "Manifoldmath.h"
-#include "Vectormath.h"
+#include "Manifoldmath.hpp"
+#include "Vectormath.hpp"
 
 
 namespace Utility
@@ -244,17 +244,31 @@ namespace Utility
 			return sqrt(dist);
 		}
 
-
-		double Dist_Greatcircle(std::vector<double> s1, std::vector<double> s2, int idx_spin)
+		double Dist_Greatcircle_(std::vector<double> v1, std::vector<double> v2)
 		{
-			int nos = s1.size() / 3;
+			double r = 0;
+
+			for (int i = 0; i < 3; ++i)
+			{
+				r += v1[i] * v2[i];
+			}
+			// Prevent NaNs from occurring
+			r = std::fmax(-1.0, std::fmin(1.0, r));
+
+			// Greatcircle distance
+			return std::acos(r);
+		}
+
+		double Dist_Greatcircle(std::vector<double> image1, std::vector<double> image2, int idx_spin)
+		{
+			int nos = image1.size() / 3;
 			double r = 0, norm1 = 0, norm2 = 0;
 
 			// Norm of vectors
 			for (int i = 0; i < 3; ++i)
 			{
-				norm1 += pow(s1[idx_spin + i*nos], 2);
-				norm2 += pow(s2[idx_spin + i*nos], 2);
+				norm1 += pow(image1[idx_spin + i*nos], 2);
+				norm2 += pow(image2[idx_spin + i*nos], 2);
 			}
 			norm1 = sqrt(norm1);
 			norm2 = sqrt(norm2);
@@ -262,7 +276,7 @@ namespace Utility
 			// Scalar product
 			for (int i = 0; i < 3; ++i)
 			{
-				r += s1[idx_spin + i*nos] / norm1 * s2[idx_spin + i*nos] / norm2;
+				r += image1[idx_spin + i*nos] / norm1 * image2[idx_spin + i*nos] / norm2;
 			}
 			// Prevent NaNs from occurring
 			r = std::fmax(-1.0, std::fmin(1.0, r));

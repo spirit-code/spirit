@@ -6,8 +6,12 @@
  */
 #include <memory>
 
-#include "Method_LLG.h"
 #include "Interface_State.h"
+
+// TODO: is there a way to remove these?
+#include "Method_LLG.hpp"
+#include "Optimizer_SIB.hpp"
+/////
 
 int main(void)
 {

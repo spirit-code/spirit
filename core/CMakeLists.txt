@@ -31,16 +31,50 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/incl
 #############################################
 
 
-######### Where to search for library headers
-set(CORE_INCLUDE_DIRS
-	${PROJECT_SOURCE_DIR}/include
-	${PROJECT_SOURCE_DIR}/include/data
-	${PROJECT_SOURCE_DIR}/include/engine
-	${PROJECT_SOURCE_DIR}/include/interface
-	${PROJECT_SOURCE_DIR}/include/utility
-	${PROJECT_SOURCE_DIR}/src/utility)
-include_directories(${CORE_INCLUDE_DIRS})
+######### External Project: QHull ###########
+### unfortunately it seems qhull_TARGETS_INSTALL cannot be specified in a list
+include(ExternalProject)
+
+ExternalProject_add(qhullstatic_r
+	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
+	# GIT_REPOSITORY https://github.com/qhull/qhull
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullstatic_r"
+	PREFIX qhull-prefix
+)
+
+ExternalProject_add(qhullcpp
+	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
+	# GIT_REPOSITORY https://github.com/qhull/qhull
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullcpp"
+	PREFIX qhull-prefix
+	DEPENDS qhullstatic_r
+)
+
+add_library(libqhullstatic_r STATIC IMPORTED)
+set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(libqhullstatic_r qhullstatic_r)
+
+add_library(libqhullcpp STATIC IMPORTED)
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
+add_dependencies(libqhullcpp qhullcpp)
 #############################################
+
+
+######### Where to search for library headers
+set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
+set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
+set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
+set( CORE_INCLUDE_DIRS
+	 ${PROJECT_SOURCE_DIR}/include
+	 ${PROJECT_SOURCE_DIR}/include/data
+	 ${PROJECT_SOURCE_DIR}/include/engine
+	 ${PROJECT_SOURCE_DIR}/include/interface
+	 ${PROJECT_SOURCE_DIR}/include/utility
+	 ${PROJECT_SOURCE_DIR}/src/utility )
+include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${QHULL_INCLUDE_DIRS})
+#############################################
+
 
 ######### Declare File groups ###############
 ### Header Gropus
@@ -88,13 +122,12 @@ add_library( core STATIC
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY})
+target_link_libraries( core libqhullcpp)
 #############################################
 
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
-	### We dont use dll_export directives, so on Windows we just export everything
-	set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
@@ -121,6 +154,35 @@ if( BUILD_UI_PYTHON )
 endif()
 #############################################
 
+######### Tell CMake to create the shared library
+if( BUILD_UI_JULIA )
+	MESSAGE( STATUS ">> Building shared library for Julia" )
+	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
+	add_library( corejl SHARED
+		${HEADER_CORE_ROOT}
+		${HEADER_CORE_DATA}
+		${HEADER_CORE_ENGINE}
+		${HEADER_CORE_INTERFACE}
+		${HEADER_CORE_UTILITY}
+		${SOURCE_CORE_ROOT}
+		${SOURCE_CORE_DATA}
+		${SOURCE_CORE_ENGINE}
+		${SOURCE_CORE_INTERFACE}
+		${SOURCE_CORE_UTILITY})
+	### We want it to be called core, not corejl
+	set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
+	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
+	set( JLLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-julia/core/ )
+    set_target_properties( corejl PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
+    if ( MSVC )
+		foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+			string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+        	set_target_properties( corejl PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${JLLIB_OUTPUT_DIR} )
+		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+    endif ( MSVC )
+endif()
+#############################################
+
 
 ### TODO: Add threading define if we dont use emscripten (which cannot use threads)
 # if (NOT BUILD_UI_WEB)
@@ -130,16 +192,16 @@ endif()
 
 
 ######### Export
-set(CORE_LIBRARIES core PARENT_SCOPE)
-set(CORE_INCLUDE_DIRS   ${CORE_INCLUDE_DIRS} PARENT_SCOPE)
-set(HEADER_CORE_DATA    ${HEADER_CORE_DATA} PARENT_SCOPE)
-set(HEADER_CORE_ENGINE  ${HEADER_CORE_ENGINE} PARENT_SCOPE)
+set(CORE_LIBRARIES        core 				       PARENT_SCOPE)
+set(CORE_INCLUDE_DIRS     ${CORE_INCLUDE_DIRS}     PARENT_SCOPE)
+set(HEADER_CORE_DATA      ${HEADER_CORE_DATA}      PARENT_SCOPE)
+set(HEADER_CORE_ENGINE    ${HEADER_CORE_ENGINE}    PARENT_SCOPE)
 set(HEADER_CORE_INTERFACE ${HEADER_CORE_INTERFACE} PARENT_SCOPE)
-set(HEADER_CORE_UTILITY ${HEADER_CORE_UTILITY} PARENT_SCOPE)
-set(SOURCE_CORE_DATA    ${SOURCE_CORE_DATA} PARENT_SCOPE)
-set(SOURCE_CORE_ENGINE  ${SOURCE_CORE_ENGINE} PARENT_SCOPE)
+set(HEADER_CORE_UTILITY   ${HEADER_CORE_UTILITY}   PARENT_SCOPE)
+set(SOURCE_CORE_DATA      ${SOURCE_CORE_DATA}      PARENT_SCOPE)
+set(SOURCE_CORE_ENGINE    ${SOURCE_CORE_ENGINE}    PARENT_SCOPE)
 set(SOURCE_CORE_INTERFACE ${SOURCE_CORE_INTERFACE} PARENT_SCOPE)
-set(SOURCE_CORE_UTILITY ${SOURCE_CORE_UTILITY} PARENT_SCOPE)
+set(SOURCE_CORE_UTILITY   ${SOURCE_CORE_UTILITY}   PARENT_SCOPE)
 #############################################
 
 

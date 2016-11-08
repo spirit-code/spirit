@@ -1,16 +1,17 @@
 set(SOURCE_CORE_INTERFACE
 	${SOURCE_CORE_INTERFACE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Log.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_State.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Simulation.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Configurations.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Hamiltonian.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Parameters.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Geometry.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Transitions.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_System.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Chain.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Collection.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt  # unfortunately this won't work with IDE folders...
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Log.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_State.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Simulation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Configurations.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Hamiltonian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Parameters.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Geometry.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Transitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_System.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Chain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Collection.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_IO.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

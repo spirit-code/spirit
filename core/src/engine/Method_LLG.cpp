@@ -1,21 +1,21 @@
 
-#include "Method_LLG.h"
+#include "Method_LLG.hpp"
 
-#include "Optimizer_Heun.h"
+#include "Optimizer_Heun.hpp"
 
-#include "Spin_System.h"
-#include "Spin_System_Chain.h"
-#include "Vectormath.h"
-#include "IO.h"
-#include "Configurations.h"
-#include "Timing.h"
-#include "Exception.h"
+#include "Spin_System.hpp"
+#include "Spin_System_Chain.hpp"
+#include "Vectormath.hpp"
+#include "IO.hpp"
+#include "Configurations.hpp"
+#include "Timing.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <ctime>
 #include <math.h>
 
-#include"Logging.h"
+#include"Logging.hpp"
 
 using namespace Utility;
 
@@ -30,6 +30,7 @@ namespace Engine
 
 		// We assume it is not converged before the first iteration
 		this->force_converged = std::vector<bool>(systems.size(), false);
+		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
 		this->F_total = std::vector<std::vector<double>>(systems.size(), std::vector<double>(systems[0]->spins->size()));	// [noi][3nos]
@@ -40,9 +41,8 @@ namespace Engine
 	{
 		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
-		this->force_maxAbsComponent = 0;
+		//this->force_maxAbsComponent = 0;
 
-		// TODO: override Force convergence stuff
 		// Loop over images to calculate the total Effective Field on each Image
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
@@ -82,9 +82,14 @@ namespace Engine
 
 		// --- Image Data Update
 		// Update the system's Energy
+		// ToDo: copy instead of recalculating
 		systems[0]->UpdateEnergy();
+
 		// ToDo: How to update eff_field without numerical overhead?
+		systems[0]->effective_field = F_total[0];
 		// systems[0]->UpdateEffectiveField();
+		
+		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
 
 		// --- Renormalize Spins?
 		// TODO: figure out specialization of members (Method_LLG should hold Parameters_Method_LLG)

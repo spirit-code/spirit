@@ -2,11 +2,11 @@
 #include <cmath>
 #include <iostream>
 
-#include "Hamiltonian_Isotropic.h"
-#include "Vectormath.h"
-#include "Vectoroperators.h"
-#include "Neighbours.h"
-#include "Logging.h"
+#include "Hamiltonian_Isotropic.hpp"
+#include "Vectormath.hpp"
+#include "Vectoroperators.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
 
 using namespace Utility;
@@ -38,12 +38,12 @@ namespace Engine
 	}
 
 
-	double Hamiltonian_Isotropic::Energy(std::vector<double> & spins)
+	double Hamiltonian_Isotropic::Energy(const std::vector<double> & spins)
 	{
 		return sum(Energy_Array(spins));
 	}
 
-	std::vector<double> Hamiltonian_Isotropic::Energy_Array(std::vector<double> & spins)
+	std::vector<double> Hamiltonian_Isotropic::Energy_Array(const std::vector<double> & spins)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size() / 3;
@@ -102,7 +102,7 @@ namespace Engine
 		return energies;
 	};//end Total_Array_
 
-	double Hamiltonian_Isotropic::E_Zeeman(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_Zeeman(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		double dotProduct = 0.0;
 		for (int dim = 0; dim < 3; ++dim) {
@@ -111,7 +111,7 @@ namespace Engine
 		return -dotProduct*this->external_field_magnitude;
 	}//end Zeeman
 
-	double Hamiltonian_Isotropic::E_Exchange(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_Exchange(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		double result = 0.0, dotProduct;
@@ -128,14 +128,14 @@ namespace Engine
 		return result;
 	}//end Exchange
 
-	double Hamiltonian_Isotropic::E_Anisotropic(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_Anisotropic(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		double dotProduct = 0.0;
 		for (int dim = 0; dim < 3; ++dim) { dotProduct += this->anisotropy_normal[dim] * spins[dim*nos + ispin]; }
 		return -this->anisotropy_magnitude * std::pow(dotProduct, 2.0);
 	}//end Anisotropic
 
-	double Hamiltonian_Isotropic::E_BQC(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_BQC(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		double result = 0.0, dotProduct;
@@ -150,7 +150,7 @@ namespace Engine
 		return result;
 	}//end BQC
 
-	double Hamiltonian_Isotropic::E_FourSC(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_FourSC(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		double result = 0.0;
@@ -178,7 +178,7 @@ namespace Engine
 		return result;
 	}//end FourSC
 
-	double Hamiltonian_Isotropic::E_DM(int nos, std::vector<double> & spins, const int ispin)
+	double Hamiltonian_Isotropic::E_DM(int nos, const std::vector<double> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		double result = 0.0, crossProduct, dotProduct;
@@ -197,7 +197,7 @@ namespace Engine
 		}
 		return result;
 	}// end DM
-	double Hamiltonian_Isotropic::E_DipoleDipole(int nos, std::vector<double>& spins, const int ispin)
+	double Hamiltonian_Isotropic::E_DipoleDipole(int nos, const std::vector<double>& spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int jneigh, jspin;
@@ -457,4 +457,23 @@ namespace Engine
 			}
 		}//endfor jneigh
 	}//end Field_DipoleDipole
+
+	void Hamiltonian_Isotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	{
+		int nos = spins.size() / 3;
+
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			double K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
+			for (int i = 0; i < nos; ++i)
+			{
+				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;
+			}
+		}
+	}
+
+	// Hamiltonian name as string
+	static const std::string name = "Isotropic Heisenberg";
+	const std::string& Hamiltonian_Isotropic::Name() { return name; }
 }

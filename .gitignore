@@ -4,9 +4,13 @@ output/*
 output_llg/*
 output_gneb/*
 output_mmf/*
-Debug/*
-*/CMakeFiles/*
-CMakeFiles/*
+
+### Subdirectories ###
+*/build/*
+*/output/*
+*/output_llg/*
+*/output_gneb/*
+*/output_mmf/*
 
 ### Keep Directories ###
 !build/.gitkeep
@@ -14,6 +18,7 @@ CMakeFiles/*
 
 ### Output Logs ###
 Log_*
+*/Log_*
 
 ### Executables and Libraries ###
 spirit

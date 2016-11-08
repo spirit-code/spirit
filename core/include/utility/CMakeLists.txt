@@ -1,16 +1,16 @@
 set(HEADER_CORE_UTILITY
     ${HEADER_CORE_UTILITY}
-	${CMAKE_CURRENT_SOURCE_DIR}/IO.h
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filter_File_Handle.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Vectoroperators.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Configurations.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging_Enums.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Exception.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Timing.h
+	${CMAKE_CURRENT_SOURCE_DIR}/IO.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filter_File_Handle.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectoroperators.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Configurations.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Exception.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

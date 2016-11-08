@@ -1,6 +1,6 @@
-#include "Optimizer.h"
-#include "Timing.h"
-#include"Logging.h"
+#include "Optimizer.hpp"
+#include "Timing.hpp"
+#include"Logging.hpp"
 
 using namespace Utility;
 

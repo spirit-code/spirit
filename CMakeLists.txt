@@ -5,9 +5,10 @@ cmake_minimum_required(VERSION 2.8.11)
 
 ######### Build Flags #######################
 ### These decide which projects are built
-option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."                 OFF  )
+option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."                 OFF )
 option( BUILD_UI_PYTHON "Build the shared library for the Python UI."                  OFF )
-option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                            ON )
+option( BUILD_UI_JULIA  "Build the shared library for the Julia UI."                   OFF )
+option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                            ON  )
 option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
 option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."     OFF )
@@ -22,7 +23,7 @@ option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Clu
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ### Set thirdparty include dirs
-set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include)
+set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include )
 set( GLM_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
 #############################################
 
@@ -47,7 +48,7 @@ string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
 
 ######### Meta information about the project
 set(META_PROJECT_NAME         "Spirit")
-set(META_PROJECT_DESCRIPTION  "Modular Numerical Optimizations Spin Code")
+set(META_PROJECT_DESCRIPTION  "Modular Spin Code")
 set(META_AUTHOR_ORGANIZATION  "")
 set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
 set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")

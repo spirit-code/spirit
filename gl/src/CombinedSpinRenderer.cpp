@@ -1,4 +1,4 @@
-#include "CombinedSpinRenderer.h"
+#include "CombinedSpinRenderer.hpp"
 
 
 CombinedSpinRenderer::CombinedSpinRenderer(const std::vector<std::shared_ptr<ISpinRenderer>>& renderers) : _renderers(renderers) {
