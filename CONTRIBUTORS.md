@@ -6,7 +6,7 @@
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
 General code design.<br />
-Implementation of the core library and it's C API. Especially the addition of the GNEB and MMF methods.<br />
+Implementation of the core library and it's C API. Notably the addition of the GNEB and MMF methods.<br />
 Implementation of Python UI and C++ QT UI and initial OpenGL code.<br />
 
 -----------------
@@ -16,8 +16,8 @@ Implementation of Python UI and C++ QT UI and initial OpenGL code.<br />
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Implementation of the core library, translating from Fortran90 to C++.<br />
-Improvements to Python and QT UIs
+Implementation of the core library, notably translating from Fortran90 to C++ and addition of STT to SIB <br />
+Implementation of QT UI and improvements to Python UI
 
 -----------------
 

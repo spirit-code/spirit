@@ -5,7 +5,7 @@ The code is released under [MIT License](../master/LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results for which you used Spirit,
 please read the [REFERENCE.md](../master/REFERENCE.md)
 
-For contributions and affiliations, see [CONTRIBUTIONS.md](../master/CONTRIBUTIONS.md)
+For contributions and affiliations, see [CONTRIBUTORS.md](../master/CONTRIBUTORS.md)
 
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
 
