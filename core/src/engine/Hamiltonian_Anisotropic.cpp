@@ -42,12 +42,12 @@ namespace Engine
 		}
 	}
 
-	double Hamiltonian_Anisotropic::Energy(std::vector<double> & spins)
+	double Hamiltonian_Anisotropic::Energy(const std::vector<double> & spins)
 	{
 		return sum(Energy_Array(spins));
 	}
 
-	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(std::vector<double> & spins)
+	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(const std::vector<double> & spins)
 	{
 		//     0           1           2      3    4     5       6
 		// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
@@ -158,7 +158,7 @@ namespace Engine
 	//	return E;
 	//}
 
-	void Hamiltonian_Anisotropic::E_Zeeman(int nos, std::vector<double> & spins, int ispin, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Zeeman(int nos, const std::vector<double> & spins, int ispin, std::vector<double> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -166,7 +166,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, std::vector<double> & spins, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & Energy)
 	{
 		double t = 0;
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
@@ -181,7 +181,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Exchange(int nos, std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
 	{
 		double ss = 0;
 		for (int i = 0; i < 3; ++i)
@@ -191,7 +191,7 @@ namespace Engine
 		Energy[ENERGY_POS_EXCHANGE] -= J_ij * ss;
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy)
 	{
 		std::vector<double> cross(3);
 		for (int dim = 0; dim < 3; ++dim)
@@ -212,7 +212,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Anisotropic::E_BQC(int nos, std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -220,7 +220,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DD(int nos, std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DD(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy)
 	{
 		//double mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -374,7 +374,6 @@ namespace Engine
 	}
 	void Hamiltonian_Anisotropic::Field_DD(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & eff_field)
 	{
-		eff_field[0] = 0.0; eff_field[1] = 0.0; eff_field[2] = 0.0;
 		int dim;
 		//double mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -398,12 +397,17 @@ namespace Engine
 	{
 		int nos = spins.size() / 3;
 
+		// Set to zero
+		for (auto& h : hessian) h = 0;
+
 		// Single Spin elements
 		for (int alpha = 0; alpha < 3; ++alpha)
 		{
-			for (int i = 0; i < nos; ++i)
+			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
 			{
-				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[alpha][i],2);
+				int idx = anisotropy_index[i];
+				double x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
+				hessian[idx + alpha*nos + 3 * nos*(idx + alpha*nos)] += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
 			}
 		}
 
@@ -427,7 +431,7 @@ namespace Engine
 					for (int alpha = 0; alpha < 3; ++alpha)
 					{
 						int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
-						hessian[idx_h] = -Exchange_magnitude[i_periodicity][i_pair];
+						hessian[idx_h] += -Exchange_magnitude[i_periodicity][i_pair];
 					}
 				}
 				// DMI
@@ -440,24 +444,46 @@ namespace Engine
 							int idx_h = DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos);
 							if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
 							{
-								hessian[idx_h] =
+								hessian[idx_h] +=
 									DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
 							}
 							else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
 							{
-								hessian[idx_h] =
+								hessian[idx_h] +=
 									-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
 							}
 							else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
 							{
-								hessian[idx_h] =
+								hessian[idx_h] +=
 									DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
 							}
 						}
 					}
 				}
-			}
-		}
+				// Dipole-Dipole
+				for (unsigned int i_pair = 0; i_pair < this->DD_indices[i_periodicity].size(); ++i_pair)
+				{
+					// indices
+					int idx_1 = DD_indices[i_periodicity][i_pair][0];
+					int idx_2 = DD_indices[i_periodicity][i_pair][1];
+					// prefactor
+					double prefactor = 0.0536814951168
+						* this->mu_s[idx_1] * this->mu_s[idx_2]
+						/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
+					// components
+					for (int alpha = 0; alpha < 3; ++alpha)
+					{
+						for (int beta = 0; beta < 3; ++beta)
+						{
+							int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+							if (alpha == beta)
+								hessian[idx_h] += prefactor;
+							hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
+						}
+					}
+				}
+			}// end if periodicity
+		}// end for periodicity
 	}
 
 	// Hamiltonian name as string

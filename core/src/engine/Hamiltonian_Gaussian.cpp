@@ -26,7 +26,8 @@ namespace Engine
 			{
 				for (int beta = 0; beta < 3; ++beta)
 				{
-					hessian[ispin + alpha*nos + 3 * nos*(ispin + alpha*nos)] = 0.0;
+					int idx_h = ispin + alpha*nos + 3 * nos*(ispin + beta*nos);
+					hessian[idx_h] = 0.0;
 				}
 			}
 			// Calculate Hessian
@@ -36,17 +37,19 @@ namespace Engine
 				std::vector<double> n{ spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
 				double l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
-				double nc = 0;
-				for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
+				//double nc = 0;
+				//for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
+				// Prefactor for all alpha, beta
+				double prefactor = this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
+					/ std::pow(this->width[i], 2)
+					* (std::pow(l, 2) / std::pow(this->width[i], 2) - 1);
 				// Effective Field contribution
 				for (int alpha = 0; alpha < 3; ++alpha)
 				{
 					for (int beta = 0; beta < 3; ++beta)
 					{
-						hessian[ispin + alpha*nos + 3 * nos*(ispin + alpha*nos)] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)))
-							/ std::pow(this->width[i], 2)
-							* (std::pow(l, 2) / std::pow(this->width[i], 2) - 1)
-							* this->center[i][alpha] * this->center[i][beta];
+						int idx_h = ispin + alpha*nos + 3 * nos*(ispin + beta*nos);
+						hessian[idx_h] += prefactor * this->center[i][alpha] * this->center[i][beta];
 					}
 				}
 			}
@@ -68,19 +71,20 @@ namespace Engine
 				std::vector<double> n { spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
 				double l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
-				double nc = 0;
-				for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
+				//double nc = 0;
+				//for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
+				// Prefactor
+				double prefactor = this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2))) * l / std::pow(this->width[i],2);
 				// Effective Field contribution
 				for (int dim = 0; dim < 3; ++dim)
 				{
-					field[ispin + dim*nos] -= this->amplitude[i] * std::exp( -std::pow(l, 2)/(2.0*std::pow(this->width[i], 2)) )
-						* l / this->width[i] * this->center[i][dim];
+					field[ispin + dim*nos] -= prefactor * this->center[i][dim];
 				}
 			}
 		}
 	}
 
-	double Hamiltonian_Gaussian::Energy(std::vector<double> & spins)
+	double Hamiltonian_Gaussian::Energy(const std::vector<double> & spins)
 	{
 		int nos = spins.size() / 3;
 		double E = 0;
@@ -100,7 +104,7 @@ namespace Engine
 		return E;
 	}
 
-	std::vector<double> Hamiltonian_Gaussian::Energy_Array(std::vector<double> & spins)
+	std::vector<double> Hamiltonian_Gaussian::Energy_Array(const std::vector<double> & spins)
 	{
 		return std::vector<double>(9, 0.0);
 	}

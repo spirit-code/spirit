@@ -100,7 +100,7 @@ namespace Data
 	void Spin_System::UpdateEnergy()
 	{
 		this->E_array = this->hamiltonian->Energy_Array(*this->spins);
-		this->E = sum(this->E_array);
+		this->E = this->hamiltonian->Energy(*this->spins);
 	}
 
 	void Spin_System::UpdateEffectiveField()

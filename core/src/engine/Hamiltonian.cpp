@@ -15,56 +15,73 @@ namespace Engine
 
     void Hamiltonian::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
     {
-		// Simultaneous perturbation stochastic approximation of the gradient
-		//      (SPSA - see https://en.wikipedia.org/wiki/Simultaneous_perturbation_stochastic_approximation)
-		//      in contrast to regular finite differences (FDSA), it needs only 2, instead of 2n evaluations
-		//      of the energy.
-
+		// This is a regular finite difference implementation (probably not very efficient)
+		// see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
 
 		int nos = spins.size() / 3;
 
-		// Generate random vector
-		std::vector<double> random_vector1(3 * nos, 0);  // inefficient, but nos is not available here...
-		std::vector<double> random_vector2(3 * nos, 0);  // inefficient, but nos is not available here...
-		for (int dim = 0; dim < 3; ++dim) {
-			for (int i = 0; i < nos; ++i) {
-				// PRNG gives RN int [0,1] -> [-1,1] -> multiply with delta
-				random_vector1[dim*nos + i] = (this->distribution_int(this->prng) * 2 - 1)*delta;
-				random_vector2[dim*nos + i] = (this->distribution_int(this->prng) * 2 - 1)*delta;
-			}//endfor i
-		}//enfor dim
-
 		// Calculate finite difference
-		std::vector<double> spins_plus(3 * nos, 0);  // inefficient, but nos is not available here...
-		std::vector<double> spins_minus(3 * nos, 0);  // inefficient, but nos is not available here...
-		std::vector<double> spins_pp(3 * nos, 0);  // inefficient, but nos is not available here...
-		std::vector<double> spins_mp(3 * nos, 0);  // inefficient, but nos is not available here...
-		for (int dim = 0; dim < 3; ++dim)
+		std::vector<double> spins_pp(3 * nos, 0);
+		std::vector<double> spins_mm(3 * nos, 0);
+		std::vector<double> spins_pm(3 * nos, 0);
+		std::vector<double> spins_mp(3 * nos, 0);
+
+		for (int i = 0; i < 3 * nos; ++i)
 		{
-			for (int i = 0; i < nos; ++i)
+			for (int j = 0; j < 3 * nos; ++j)
 			{
-				spins_plus[i + dim*nos] = spins[i + dim*nos] + random_vector1[i + dim*nos];
-				spins_minus[i + dim*nos] = spins[i + dim*nos] - random_vector1[i + dim*nos];
-				spins_pp[i + dim*nos] = spins[i + dim*nos] + random_vector1[i + dim*nos] + random_vector2[i + dim*nos];
-				spins_mp[i + dim*nos] = spins[i + dim*nos] - random_vector1[i + dim*nos] + random_vector2[i + dim*nos];
-			}
-		}
-		Utility::Vectormath::Normalize_3Nos(spins_plus);
-		Utility::Vectormath::Normalize_3Nos(spins_minus);
-		Utility::Vectormath::Normalize_3Nos(spins_pp);
-		Utility::Vectormath::Normalize_3Nos(spins_mp);
-		double E_plus = this->Energy(spins_plus);
-		double E_minus = this->Energy(spins_minus);
-		double E_pp = this->Energy(spins_pp);
-		double E_mp = this->Energy(spins_mp);
-		for (int dim = 0; dim < 3; ++dim)
-		{
-			for (int i = 0; i < nos; ++i)
-			{
-				for (int j = 0; j < nos; ++j)
+				if (i == j)
 				{
-					hessian[i*3*nos + dim*nos + j] = (E_pp - E_plus - E_mp + E_minus)
-						/ (4 * (random_vector1[i + dim*nos] * random_vector2[j + dim*nos] + random_vector1[j + dim*nos] * random_vector2[i + dim*nos]) );
+					spins_pp = spins;
+					spins_mm = spins;
+					spins_pm = spins;
+					spins_mp = spins;
+
+					spins_pp[i] = spins_pp[i] + 2.0*delta;
+					spins_mm[i] = spins_mm[i] - 2.0*delta;
+					spins_pm[i] = spins_mm[i] + delta;
+					spins_mp[i] = spins_mm[i] - delta;
+
+					Utility::Vectormath::Normalize_3Nos(spins_pp);
+					Utility::Vectormath::Normalize_3Nos(spins_mm);
+					Utility::Vectormath::Normalize_3Nos(spins_pm);
+					Utility::Vectormath::Normalize_3Nos(spins_mp);
+
+					double E_pp = this->Energy(spins_pp);
+					double E_mm = this->Energy(spins_mm);
+					double E_pm = this->Energy(spins_pm);
+					double E_mp = this->Energy(spins_mp);
+					double E = this->Energy(spins);
+
+					hessian[i * 3 * nos + j] = (-E_pp +16*E_pm - 30*E + 16*E_mp - E_mm) / (12 * delta*delta);
+				}
+				else
+				{
+					spins_pp = spins;
+					spins_mm = spins;
+					spins_pm = spins;
+					spins_mp = spins;
+
+					spins_pp[i] = spins_pp[i] + delta;
+					spins_pp[j] = spins_pp[j] + delta;
+					spins_mm[i] = spins_mm[i] - delta;
+					spins_mm[j] = spins_mm[j] - delta;
+					spins_pm[i] = spins_mm[i] + delta;
+					spins_pm[j] = spins_mm[j] - delta;
+					spins_mp[i] = spins_mm[i] - delta;
+					spins_mp[j] = spins_mm[j] + delta;
+
+					Utility::Vectormath::Normalize_3Nos(spins_pp);
+					Utility::Vectormath::Normalize_3Nos(spins_mm);
+					Utility::Vectormath::Normalize_3Nos(spins_pm);
+					Utility::Vectormath::Normalize_3Nos(spins_mp);
+
+					double E_pp = this->Energy(spins_pp);
+					double E_mm = this->Energy(spins_mm);
+					double E_pm = this->Energy(spins_pm);
+					double E_mp = this->Energy(spins_mp);
+
+					hessian[i * 3 * nos + j] = (E_pp - E_pm - E_mp + E_mm) / (4 * delta*delta);
 				}
 			}
 		}
@@ -72,48 +89,32 @@ namespace Engine
 
     void Hamiltonian::Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
     {
-        // Simultaneous perturbation stochastic approximation of the gradient
-        //      (SPSA - see https://en.wikipedia.org/wiki/Simultaneous_perturbation_stochastic_approximation)
-        //      in contrast to regular finite differences (FDSA), it needs only 2, instead of 2n evaluations
-        //      of the energy.
-
+		// This is a regular finite difference implementation (probably not very efficient)
 
         int nos = spins.size()/3;
 
-        // Generate random vector
-		std::vector<double> random_vector(3*nos, 0);  // inefficient, but nos is not available here...
-        for (int dim = 0; dim < 3; ++dim) {
-			for (int i = 0; i < nos; ++i) {
-				// PRNG gives RN int [0,1] -> [-1,1] -> multiply with delta
-				random_vector[dim*nos + i] = (this->distribution_int(this->prng) * 2 - 1)*delta;
-			}//endfor i
-		}//enfor dim
+		// Calculate finite difference
+		std::vector<double> spins_plus(3 * nos, 0);
+		std::vector<double> spins_minus(3 * nos, 0);
 
-        // Calculate finite difference
-		std::vector<double> spins_plus(3*nos, 0);  // inefficient, but nos is not available here...
-		std::vector<double> spins_minus(3*nos, 0);  // inefficient, but nos is not available here...
-        for (int dim = 0; dim < 3; ++dim)
-        {
-			for (int i = 0; i < nos; ++i)
-            {
-                spins_plus[i+dim*nos] = spins[i+dim*nos] + random_vector[i+dim*nos];
-                spins_minus[i+dim*nos] = spins[i+dim*nos] - random_vector[i+dim*nos];
-            }
-        }
-		Utility::Vectormath::Normalize_3Nos(spins_plus);
-		Utility::Vectormath::Normalize_3Nos(spins_minus);
-        double E_plus = this->Energy(spins_plus);
-        double E_minus = this->Energy(spins_minus);
-        for (int dim = 0; dim < 3; ++dim)
-        {
-			for (int i = 0; i < nos; ++i)
-            {
-                field[i+dim*nos] = ( E_minus - E_plus) / (2*random_vector[i+dim*nos]);  // Note the order of the Energies (we are calculating eff. field, not gradient)
-            }
-        }
+		for (int i = 0; i < 3 * nos; ++i)
+		{
+			spins_plus = spins;
+			spins_minus = spins;
+			spins_plus[i] = spins_plus[i] + delta;
+			spins_minus[i] = spins_minus[i] - delta;
+
+			Utility::Vectormath::Normalize_3Nos(spins_plus);
+			Utility::Vectormath::Normalize_3Nos(spins_minus);
+
+			double E_plus = this->Energy(spins_plus);
+			double E_minus = this->Energy(spins_minus);
+
+			field[i] = (E_minus - E_plus) / (2 * delta);
+		}
     }
 
-    double Hamiltonian::Energy(std::vector<double> & spins)
+    double Hamiltonian::Energy(const std::vector<double> & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
@@ -121,7 +122,7 @@ namespace Engine
         return 0.0;
     }
 
-    std::vector<std::vector<double>> Hamiltonian::Energy_Array_per_Spin(std::vector<double> & spins)
+    std::vector<std::vector<double>> Hamiltonian::Energy_Array_per_Spin(const std::vector<double> & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
@@ -129,7 +130,7 @@ namespace Engine
         return std::vector<std::vector<double>>(spins.size(), std::vector<double>(7, 0.0));
     }
 
-    std::vector<double> Hamiltonian::Energy_Array(std::vector<double> & spins)
+    std::vector<double> Hamiltonian::Energy_Array(const std::vector<double> & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));

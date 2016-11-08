@@ -810,31 +810,20 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					// N
-					myfile.Read_Single(n_gaussians, "gaussian_n");
+					myfile.Read_Single(n_gaussians, "n_gaussians");
 
-					// Amplitude
+					// Allocate arrays
 					amplitude = std::vector<double>(n_gaussians, 1.0);
-					if (myfile.Find("gaussian_amplitudes"))
-					{
-						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> amplitude[i];
-					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_amplitudes' not found. Using Default: 1.0");
-
-					// Width
 					width = std::vector<double>(n_gaussians, 1.0);
-					if (myfile.Find("gaussian_widths"))
-					{
-						for (int i = 0; i < n_gaussians; ++i) myfile.iss >> width[i];
-					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_widths' not found. Using Default: 1.0");
-
-					// Center
 					center = std::vector<std::vector<double>>(n_gaussians, std::vector<double>{0, 0, 1});
-					if (myfile.Find("gaussian_centers"))
+					// Read arrays
+					if (myfile.Find("gaussians"))
 					{
 						for (int i = 0; i < n_gaussians; ++i)
 						{
 							myfile.GetLine();
+							myfile.iss >> amplitude[i];
+							myfile.iss >> width[i];
 							for (int j = 0; j < 3; ++j)
 							{
 								myfile.iss >> center[i][j];
@@ -842,7 +831,7 @@ namespace Utility
 							Utility::Vectormath::Normalize(center[i]);
 						}
 					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussian_centers' not found. Using Default: {0, 0, 1}");
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}");
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)

@@ -345,8 +345,8 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
 
         // Normal
         normal[0] = (float)ham->anisotropy_normal[0][0];
-        normal[1] = (float)ham->anisotropy_normal[1][0];
-        normal[2] = (float)ham->anisotropy_normal[2][0];
+        normal[1] = (float)ham->anisotropy_normal[0][1];
+        normal[2] = (float)ham->anisotropy_normal[0][2];
     }
 }
 
