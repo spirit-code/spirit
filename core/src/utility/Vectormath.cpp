@@ -1,12 +1,12 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "Vectormath.h"
+#include "Vectormath.hpp"
 
-#include "Logging.h"
+#include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
-#include "Exception.h"
+#include "Exception.hpp"
 
-#include"Logging.h"
+#include"Logging.hpp"
 //extern Utility::LoggingHandler Log;
 
 namespace Utility
@@ -106,14 +106,30 @@ namespace Utility
 				}// endfor j
 			}// endfor dim
 
-			 // Check for erronous input placing two spins on the same location
-			for (i = 0; i < pos; ++i) {
-				for (j = i + 1; j < pos; ++j) {
-					if (std::abs(spin_pos[0*nos+i] - spin_pos[0*nos+j]) < 1.0E-6) {
-						if (std::abs(spin_pos[1*nos+i] - spin_pos[1*nos+j]) < 1.0E-6) {
-							if (std::abs(spin_pos[2*nos+i] - spin_pos[2*nos+j]) < 1.0E-6) {
-								Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-								throw Exception::System_not_Initialized;
+			// Check for erronous input placing two spins on the same location
+			std::vector<double> sp(3);
+			for (int i = 0; i < basis_atoms[0].size(); ++i)
+			{
+				for (int j = 0; j < basis_atoms[0].size(); ++j)
+				{
+					for (int k1 = -2; k1 < 3; ++k1)
+					{
+						for (int k2 = -2; k2 < 3; ++k2)
+						{
+							for (int k3 = -2; k3 < 3; ++k3)
+							{
+								// Norm is zero if translated basis atom is at position of another basis atom
+								for (int dim = 0; dim < 3; ++dim)
+								{
+									sp[dim] = basis_atoms[dim][i] - ( basis_atoms[dim][j]
+										+ k1*translation_vectors[dim][0] + k2*translation_vectors[dim][1] + k3*translation_vectors[dim][2] );
+								}
+								if ( (i!=j || k1!=0 || k2!=0 || k3!=0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
+								{
+									Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+									Log.Append_to_File();
+									throw Exception::System_not_Initialized;
+								}
 							}
 						}
 					}

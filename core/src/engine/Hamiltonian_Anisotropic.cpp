@@ -1,13 +1,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include <engine/Hamiltonian_Anisotropic.h>
+#include <engine/Hamiltonian_Anisotropic.hpp>
 
-#include "Vectormath.h"
-#include <Spin_System.h>
-#include "Vectoroperators.h"
-#include "Vectormath.h"
-#include "Neighbours.h"
+#include "Vectormath.hpp"
+#include <Spin_System.hpp>
+#include "Vectoroperators.hpp"
+#include "Vectormath.hpp"
+#include "Neighbours.hpp"
 
 using std::vector;
 using std::function;
@@ -487,5 +487,6 @@ namespace Engine
 	}
 
 	// Hamiltonian name as string
-	std::string Hamiltonian_Anisotropic::Name() { return "Anisotropic Heisenberg"; }
+	static const std::string name = "Anisotropic Heisenberg";
+	const std::string& Hamiltonian_Anisotropic::Name() { return name; }
 }

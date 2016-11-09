@@ -5,7 +5,7 @@ The code is released under [MIT License](../master/LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results for which you used Spirit,
 please read the [REFERENCE.md](../master/REFERENCE.md)
 
-For contributions and affiliations, see [CONTRIBUTIONS.md](../master/CONTRIBUTIONS.md)
+For contributions and affiliations, see [CONTRIBUTORS.md](../master/CONTRIBUTORS.md)
 
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
 
@@ -173,7 +173,9 @@ Simply call
 	./cmake.sh
 	or
 	cd build && cmake .. && cd ..
-	
+
+Passing `-debug` to the script will cause it to create a debug configuration,
+meaning that you will be able to properly debug the entire application.	
 When on pure **Windows** (no MSys etc), you can simply use the git bash to do this.
 When using MSys etc., CMake will create corresponding MSys makefiles.
 

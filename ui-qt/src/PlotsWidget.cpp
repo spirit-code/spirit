@@ -1,7 +1,7 @@
 #include <QtWidgets>
 
-#include "PlotsWidget.h"
-#include "PlotWidget.h"
+#include "PlotsWidget.hpp"
+#include "PlotWidget.hpp"
 #include "Interface_Chain.h"
 
 PlotsWidget::PlotsWidget(std::shared_ptr<State> state)

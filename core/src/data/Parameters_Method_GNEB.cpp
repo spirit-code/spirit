@@ -1,4 +1,4 @@
-#include <Parameters_Method_GNEB.h>
+#include <Parameters_Method_GNEB.hpp>
 
 namespace Data
 {

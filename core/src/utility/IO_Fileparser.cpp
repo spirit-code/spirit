@@ -1,14 +1,14 @@
-﻿#include "IO.h"
-#include "Vectormath.h"
-#include "IO_Filter_File_Handle.h"
+﻿#include "IO.hpp"
+#include "Vectormath.hpp"
+#include "IO_Filter_File_Handle.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <thread>
 #include <string>
 #include <sstream>
-#include "Logging.h"
-#include "Exception.h"
 
 namespace Utility
 {
@@ -32,10 +32,24 @@ namespace Utility
 			return out;
 		}
 
+		std::vector<double> split_string_to_double(const std::string& source, const std::string& delimiter) {
+			std::vector<double> result;
+
+			size_t last = 0;
+			size_t next = 0;
+
+			while ((next = source.find(delimiter, last)) != std::string::npos) {
+				result.push_back(std::stod(source.substr(last, next - last)));
+				last = next + delimiter.length();
+			}
+			result.push_back(std::stod(source.substr(last)));
+			return result;
+		}
+
 		/*
 		Reads a configuration file into an existing Spin_System
 		*/
-		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file)
+		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format)
 		{
 			std::ifstream myfile(file);
 			if (myfile.is_open())
@@ -45,23 +59,45 @@ namespace Utility
 				std::istringstream iss(line);
 				std::size_t found;
 				int i = 0;
-				while (getline(myfile, line))
+				if (format == VectorFileFormat::CSV_POS_SPIN)
 				{
-					if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
-					found = line.find("#");
-					// Read the line if # is not found (# marks a comment)
-					if (found == std::string::npos)
+					auto& spins = *s->spins;
+					while (getline(myfile, line))
 					{
-						//double x, y, z;
-						iss.clear();
-						iss.str(line);
-						auto& spins = *s->spins;
-						//iss >> x >> y >> z;
-						iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
-						++i;
-					}// endif (# not found)
-					 // discard line if # is found
-				}// endif new line (while)
+						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+						found = line.find("#");
+						// Read the line if # is not found (# marks a comment)
+						if (found == std::string::npos)
+						{
+							auto x = split_string_to_double(line, ",");
+							spins[i] = x[3];
+							spins[1*s->nos + i] = x[4];
+							spins[2*s->nos + i] = x[5];
+							++i;
+						}// endif (# not found)
+						 // discard line if # is found
+					}// endif new line (while)
+				}
+				else
+				{
+					auto& spins = *s->spins;
+					while (getline(myfile, line))
+					{
+						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+						found = line.find("#");
+						// Read the line if # is not found (# marks a comment)
+						if (found == std::string::npos)
+						{
+							//double x, y, z;
+							iss.clear();
+							iss.str(line);
+							//iss >> x >> y >> z;
+							iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
+							++i;
+						}// endif (# not found)
+						 // discard line if # is found
+					}// endif new line (while)
+				}
 				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 				myfile.close();
 				Log(Log_Level::Info, Log_Sender::IO, "Done");
@@ -138,13 +174,13 @@ namespace Utility
 
 
 		/*
-		Read from Pairs file by Markus & Bernd
+		Read from Anisotropy file
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
 			std::vector<int> & anisotropy_index, std::vector<double> & anisotropy_magnitude,
 			std::vector<std::vector<double>> & anisotropy_normal)
 		{
-			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + anisotropyFile);
+			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
 			try {
 				n_indices = 0;
 				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
@@ -175,7 +211,7 @@ namespace Utility
 
 				// Catch horizontal separation Line
 				// file.GetLine();
-				// Get number of pairs
+				// Get number of lines
 				while (file.GetLine()) { ++n_indices; }
 
 				// Indices
@@ -186,7 +222,7 @@ namespace Utility
 				anisotropy_magnitude = std::vector<double>(0);
 				anisotropy_normal = std::vector<std::vector<double>>(0);
 
-				// Get actual Pairs Data
+				// Get actual Data
 				file.ResetStream();
 				int i_pair = 0;
 				std::string sdump;
@@ -194,7 +230,7 @@ namespace Utility
 								//dataHandle.GetLine();	// skip second line
 				while (file.GetLine())
 				{
-					// Read a Pair from the File
+					// Read a line from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
 					{
 						if (i == col_i)
@@ -417,7 +453,7 @@ namespace Utility
 								// analogous for y and z direction with nb, nc
 								periods_a = (na + pair_da) / Na;
 								periods_b = (nb + pair_db) / Nb;
-								periods_c = (nc + pair_dc) / N;
+								periods_c = (nc + pair_dc) / Nc;
 								idx_j = pair_j	+ N*( (((na + pair_da) % Na) + Na) % Na )
 												+ N*Na*( (((nb + pair_db) % Nb) + Nb) % Nb )
 												+ N*Na*Nb*( (((nc + pair_dc) % Nc) + Nc) % Nc );

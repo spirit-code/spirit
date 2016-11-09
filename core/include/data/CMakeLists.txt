@@ -1,13 +1,14 @@
 set(HEADER_CORE_DATA
     ${HEADER_CORE_DATA}
-	${CMAKE_CURRENT_SOURCE_DIR}/Geometry.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain_Collection.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.h
+	${CMAKE_CURRENT_SOURCE_DIR}/State.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Geometry.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain_Collection.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

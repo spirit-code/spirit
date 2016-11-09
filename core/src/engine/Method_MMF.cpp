@@ -1,14 +1,17 @@
-#include "Method_MMF.h"
-#include "Manifoldmath.h"
-#include "Vectormath.h"
-#include "Interface_Log.h"
-#include "IO.h"
+#include "Method_MMF.hpp"
+#include "Manifoldmath.hpp"
+#include "Vectormath.hpp"
+#include "Logging.hpp"
+#include "IO.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 //#include <unsupported/Eigen/CXX11/Tensor>
 #include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
 #include <GenEigsRealShiftSolver.h>
+
+using Utility::Log_Level;
+using Utility::Log_Sender;
 
 namespace Engine
 {

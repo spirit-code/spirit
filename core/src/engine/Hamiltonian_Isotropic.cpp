@@ -2,11 +2,11 @@
 #include <cmath>
 #include <iostream>
 
-#include "Hamiltonian_Isotropic.h"
-#include "Vectormath.h"
-#include "Vectoroperators.h"
-#include "Neighbours.h"
-#include "Logging.h"
+#include "Hamiltonian_Isotropic.hpp"
+#include "Vectormath.hpp"
+#include "Vectoroperators.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
 
 using namespace Utility;
@@ -474,5 +474,6 @@ namespace Engine
 	}
 
 	// Hamiltonian name as string
-	std::string Hamiltonian_Isotropic::Name() { return "Isotropic Heisenberg"; }
+	static const std::string name = "Isotropic Heisenberg";
+	const std::string& Hamiltonian_Isotropic::Name() { return name; }
 }

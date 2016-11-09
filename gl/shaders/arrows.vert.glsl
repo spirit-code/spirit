@@ -34,11 +34,13 @@ mat3 matrixFromDirection(vec3 direction) {
 vec3 colormap(vec3 direction);
 
 void main(void) {
-  vfColor = colormap(normalize(ivInstanceDirection));
-  mat3 instanceMatrix = matrixFromDirection(ivInstanceDirection);
+  float instanceMagnitude = length(ivInstanceDirection);
+  vec3 instanceDirection = normalize(ivInstanceDirection);
+  vfColor = colormap(instanceDirection);
+  mat3 instanceMatrix = matrixFromDirection(instanceDirection);
   vfNormal = (uModelviewMatrix * vec4(instanceMatrix*ivNormal, 0.0)).xyz;
-  vfPosition = (uModelviewMatrix * vec4(instanceMatrix*ivPosition+ivInstanceOffset, 1.0)).xyz;
-  if (ivInstanceDirection.z >= uZRange.x && ivInstanceDirection.z <= uZRange.y) {
+  vfPosition = (uModelviewMatrix * vec4(instanceMatrix*instanceMagnitude*ivPosition+ivInstanceOffset, 1.0)).xyz;
+  if (instanceDirection.z >= uZRange.x && instanceDirection.z <= uZRange.y) {
     gl_Position = uProjectionMatrix * vec4(vfPosition, 1.0);
   } else {
     gl_Position = vec4(2.0, 2.0, 2.0, 0.0);

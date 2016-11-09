@@ -8,8 +8,8 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "SphereSpinRenderer.h"
-#include "utilities.h"
+#include "SphereSpinRenderer.hpp"
+#include "utilities.hpp"
 
 SphereSpinRenderer::SphereSpinRenderer() {
   CHECK_GL_ERROR;

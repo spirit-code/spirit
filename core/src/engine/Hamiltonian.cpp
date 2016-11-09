@@ -1,6 +1,6 @@
-#include <engine/Hamiltonian.h>
+#include <engine/Hamiltonian.hpp>
 
-#include <utility/Vectormath.h>
+#include <utility/Vectormath.hpp>
 
 namespace Engine
 {
@@ -138,9 +138,10 @@ namespace Engine
         return std::vector<double>(7, 0.0);
     }
 
-    std::string Hamiltonian::Name()
+	static const std::string name = "--";
+    const std::string& Hamiltonian::Name()
     {
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Name() of the Hamiltonian base class!"));
-        return "--";
+        return name;
     }
 }

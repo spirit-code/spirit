@@ -1,5 +1,7 @@
 set(HEADER_CORE_INTERFACE
 	${HEADER_CORE_INTERFACE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/DLL_Define_Export.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DLL_Undefine_Export.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Log.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_State.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Simulation.h
@@ -11,6 +13,8 @@ set(HEADER_CORE_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_System.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Chain.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Collection.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Exception.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_IO.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

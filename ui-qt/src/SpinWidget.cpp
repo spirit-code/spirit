@@ -1,31 +1,46 @@
-#include "SpinWidget.h"
+#include "SpinWidget.hpp"
 
 #include <QTimer>
 #include <QMouseEvent>
 
-#include "ISpinRenderer.h"
-#include "BoundingBoxRenderer.h"
-#include "SphereSpinRenderer.h"
-#include "utilities.h"
+#include "ISpinRenderer.hpp"
+#include "BoundingBoxRenderer.hpp"
+#include "SphereSpinRenderer.hpp"
+#include "IsosurfaceSpinRenderer.hpp"
+#include "utilities.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Interface_Geometry.h"
 #include "Interface_System.h"
+#include "Interface_Simulation.h"
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
-	this->state = state;
+    this->state = state;
+    setFocusPolicy(Qt::StrongFocus);
 
-	setFocusPolicy(Qt::StrongFocus);
+		QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		sizePolicy.setHorizontalStretch(0);
+		sizePolicy.setVerticalStretch(0);
+    this->setSizePolicy(sizePolicy);
+
+    this->setMinimumSize(200,200);
+    this->setBaseSize(600,600);
 }
 
-void SpinWidget::initializeGL() {
+void SpinWidget::initializeGL()
+{
+	// Get GL context
 	makeCurrent();
-  std::vector<int> n_cells(3);
-  Geometry_Get_N_Cells(state.get(), n_cells.data());
+	// Initialize the visualisation options
+	std::vector<int> n_cells(3);
+	Geometry_Get_N_Cells(state.get(), n_cells.data());
 	this->gl_spins = std::make_shared<GLSpins>(n_cells);
-  _reset_camera = true;
+	// Initial camera position
+	_reset_camera = true;
+	// Fetch data and update GL arrays
+	this->update();
 }
 
 void SpinWidget::teardownGL() {
@@ -33,50 +48,94 @@ void SpinWidget::teardownGL() {
 }
 
 void SpinWidget::resizeGL(int width, int height) {
-  gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
-  update();
+	gl_spins->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
+	//update();
+	QTimer::singleShot(1, this, SLOT(update()));
+}
+
+void SpinWidget::update()
+{
+	int nos = System_Get_NOS(state.get());
+	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
+	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
+	std::vector<std::array<int, 4>> tetrahedra_indices;
+
+	// ToDo: Update the pointer to our Data instead of copying Data?
+	// Positions and directions
+	//		get pointer
+	double *spins, *spin_pos;
+  bool keep_magnitudes = false;
+	if (true)
+	{
+		spins = System_Get_Spin_Directions(state.get());
+	}
+	else
+	{
+		spins = System_Get_Effective_Field(state.get());
+    keep_magnitudes = true;
+	}
+	spin_pos = Geometry_Get_Spin_Positions(state.get());
+	//		copy
+	for (int i = 0; i < nos; ++i)
+	{
+		positions[i] = glm::vec3(spin_pos[0 * nos + i], spin_pos[1 * nos + i], spin_pos[2 * nos + i]);
+	}
+	for (int i = 0; i < nos; ++i)
+	{
+		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
+	}
+  //    normalize if needed
+  if (keep_magnitudes) {
+    float max_length = 0;
+    for (auto direction : directions) {
+      max_length = std::max(max_length, glm::length(direction));
+    }
+    if (max_length > 0) {
+      for (auto& direction : directions) {
+        direction /= max_length;
+      }
+    }
+  } else {
+    for (auto& direction : directions) {
+      direction = glm::normalize(direction);
+    }
+  }
+	//		update GL
+	gl_spins->updateSpins(positions, directions);
+
+	// Triangles and Tetrahedra
+	//		get tetrahedra
+	if (!Geometry_Is_2D(state.get()))
+	{
+		const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
+		int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
+		tetrahedra_indices = std::vector<std::array<int, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+	}
+	//		get bounds
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
+	//		update GL
+	gl_spins->updateSystemGeometry(bounds_min, center, bounds_max, tetrahedra_indices);
+	if (_reset_camera)
+	{
+		gl_spins->setCameraToDefault();
+		_reset_camera = false;
+	}
 }
 
 void SpinWidget::paintGL() {
-  // ToDo: Update the pointer to our Data instead of copying Data?
-  int nos = System_Get_NOS(state.get());
-  double *spins, *spin_pos;
-  if (true)
-  {
-    spins = System_Get_Spin_Directions(state.get());
-  }
-  else
-  {
-    spins = System_Get_Effective_Field(state.get());
-  }
-  spin_pos = Geometry_Get_Spin_Positions(state.get());
-  
-  std::vector<glm::vec3> positions(nos);
-  for (int i = 0; i < nos; ++i)
-  {
-    positions[i] = glm::vec3(spin_pos[0*nos+i], spin_pos[1*nos+i], spin_pos[2*nos+i]);
-  }
-  std::vector<glm::vec3> directions(nos);
-  for (int i = 0; i < nos; ++i)
-  {
-    directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2*nos + i]);
-  }
+	// ToDo: This does not catch the case that we have no simulation running
+	//		 but we switched between images or chains...
+	if (Simulation_Running_Any(state.get()))
+	{
+		this->update();
+	}
 
-  gl_spins->updateSpins(positions, directions);
-
-  float b_min[3], b_max[3];
-  Geometry_Get_Bounds(state.get(), b_min, b_max);
-  glm::vec3 bounds_min = glm::make_vec3(b_min);
-  glm::vec3 bounds_max = glm::make_vec3(b_max);
-  glm::vec3 center = (bounds_min+bounds_max) * 0.5f;
-
-  gl_spins->updateSystemGeometry(bounds_min, center, bounds_max);
-  if (_reset_camera) {
-    gl_spins->setCameraToDefault();
-    _reset_camera = false;
-  }
-  gl_spins->draw();
-  QTimer::singleShot(1, this, SLOT(update()));
+	gl_spins->draw();
+	QTimer::singleShot(1, this, SLOT(update()));
 }
 
 void SpinWidget::mousePressEvent(QMouseEvent *event) {
@@ -223,8 +282,18 @@ glm::vec2 SpinWidget::zRange() const {
 }
 
 void SpinWidget::setZRange(glm::vec2 z_range) {
-	makeCurrent();
+  makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::Z_RANGE>(z_range);
+  gl_spins->updateOptions(option);
+}
+
+float SpinWidget::isovalue() const {
+  return options().get<IsosurfaceSpinRendererOptions::ISOVALUE>();
+}
+
+void SpinWidget::setIsovalue(float isovalue) {
+  makeCurrent();
+  auto option = Options<GLSpins>::withOption<IsosurfaceSpinRendererOptions::ISOVALUE>(isovalue);
   gl_spins->updateOptions(option);
 }
 
@@ -233,8 +302,12 @@ GLSpins::Colormap SpinWidget::colormap() const {
   auto colormap_implementation = options().get<ISpinRenderer::Option::COLORMAP_IMPLEMENTATION>();
   if (colormap_implementation == getColormapImplementation("hsv")) {
     return GLSpins::Colormap::HSV;
-  } else if (colormap_implementation == getColormapImplementation("redblue")) {
-    return GLSpins::Colormap::RED_BLUE;
+  } else if (colormap_implementation == getColormapImplementation("bluered")) {
+    return GLSpins::Colormap::BLUE_RED;
+  } else if (colormap_implementation == getColormapImplementation("bluegreenred")) {
+    return GLSpins::Colormap::BLUE_GREEN_RED;
+  } else if (colormap_implementation == getColormapImplementation("bluewhitered")) {
+    return GLSpins::Colormap::BLUE_WHITE_RED;
   }
   return GLSpins::Colormap::OTHER;
 }
@@ -245,8 +318,14 @@ void SpinWidget::setColormap(GLSpins::Colormap colormap) {
   switch (colormap) {
     case GLSpins::Colormap::HSV:
       break;
-    case GLSpins::Colormap::RED_BLUE:
-      colormap_implementation = getColormapImplementation("redblue");
+    case GLSpins::Colormap::BLUE_RED:
+      colormap_implementation = getColormapImplementation("bluered");
+      break;
+    case GLSpins::Colormap::BLUE_GREEN_RED:
+      colormap_implementation = getColormapImplementation("bluegreenred");
+      break;
+    case GLSpins::Colormap::BLUE_WHITE_RED:
+      colormap_implementation = getColormapImplementation("bluewhitered");
       break;
     case GLSpins::Colormap::OTHER:
       break;

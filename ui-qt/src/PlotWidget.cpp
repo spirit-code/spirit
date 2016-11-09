@@ -1,4 +1,4 @@
-#include "PlotWidget.h"
+#include "PlotWidget.hpp"
 
 #include "Interface_Chain.h"
 #include "Interface_System.h"
@@ -14,7 +14,9 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
     // Create Chart
 	chart = new QChart();
 	chart->legend()->hide();
-	chart->setTitle("Simple line chart example");
+	chart->setTitle("");
+	// chart->axisX()->setTitleText("Rx");
+	// chart->axisY()->setTitleText("E");
 
     // Use Chart
 	this->setChart(chart);
@@ -52,7 +54,10 @@ void PlotWidget::plotEnergies()
 	int noi = Chain_Get_NOI(state.get());
 	for (int i = 0; i < noi; ++i)
 	{
-		*series_E << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+		double x = 0;
+		double Rx_tot = System_Get_Rx(state.get(), noi - 1);
+		if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
+		*series_E << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
 	// Re-add Series to chart
@@ -62,7 +67,10 @@ void PlotWidget::plotEnergies()
 	// Current image - red dot
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
-	*series_E_current << QPointF(System_Get_Rx(state.get(), i)/System_Get_Rx(state.get(), noi-1), System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+	double x = 0;
+	double Rx_tot = System_Get_Rx(state.get(), noi - 1);
+	if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
+	*series_E_current << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
 	chart->removeSeries(series_E_current);
 	chart->addSeries(series_E_current);
 
@@ -72,6 +80,7 @@ void PlotWidget::plotEnergies()
 
 void PlotWidget::plotEnergiesInterpolated()
 {
+	if (Chain_Get_NOI(state.get()) <= 1) return;
 	// TODO: this seems incredibly inefficient, how can we do better??
 	// Clear series
 	series_E_interp->clear();

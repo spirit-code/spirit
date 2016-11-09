@@ -1,8 +1,8 @@
 // #include <QtWidgets>
 
-#include "MainWindow.h"
-#include "SettingsWidget.h"
-#include "SpinWidget.h"
+#include "MainWindow.hpp"
+#include "SettingsWidget.hpp"
+#include "SpinWidget.hpp"
 
 #include "Interface_Configurations.h"
 #include "Interface_Transitions.h"
@@ -12,16 +12,20 @@
 #include "Interface_Collection.h"
 #include "Interface_Hamiltonian.h"
 #include "Interface_Parameters.h"
+#include "Interface_Exception.h"
 
 #include <iostream>
 #include <memory>
 
-// TODO: Replace these
-#include "Vectormath.h"
-#include "Exception.h"
-/////
-
-struct State;
+// Small function for normalization of vectors
+template <typename T>
+void normalize(T v[3])
+{
+	T len = 0.0;
+	for (int i = 0; i < 3; ++i) len += std::pow(v[i], 2);
+	if (len == 0.0) throw Exception_Division_by_zero;
+	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
+}
 
 SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
 {
@@ -87,27 +91,60 @@ void SettingsWidget::update()
 
 void SettingsWidget::randomPressed()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button Random");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
 	Configuration_Random(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
+}
+void SettingsWidget::addNoisePressed()
+{
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
+	this->configurationAddNoise();
+	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 void SettingsWidget::minusZ()
 {
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Minus Z");
 	Configuration_MinusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 void SettingsWidget::plusZ()
 {
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Plus Z");
 	Configuration_PlusZ(this->state.get());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
+}
+
+void SettingsWidget::create_Hopfion()
+{
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
+	double r = lineEdit_hopf_r->text().toDouble();
+	std::vector<double> pos =
+	{
+		lineEdit_hopf_posx->text().toDouble(),
+		lineEdit_hopf_posy->text().toDouble(),
+		lineEdit_hopf_posz->text().toDouble()
+	};
+	Configuration_Hopfion(this->state.get(), pos.data(), r);
+	this->configurationAddNoise();
+	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::create_Skyrmion()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button createSkyrmion");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
 	double speed = lineEdit_sky_order->text().toDouble();
 	double phase = lineEdit_sky_phase->text().toDouble();
 	bool upDown = checkBox_sky_UpDown->isChecked();
@@ -124,11 +161,13 @@ void SettingsWidget::create_Skyrmion()
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::create_SpinSpiral()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button createSpinSpiral");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
 	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
 	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
 	double period = lineEdit_SS_period->text().toDouble();
@@ -140,16 +179,20 @@ void SettingsWidget::create_SpinSpiral()
 	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::domainWallPressed()
 {
-	Log_Send(state.get(), Log_Level::Debug, Log_Sender::UI, "button DomainWall");
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
 	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
 	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	this->configurationAddNoise();
 	print_Energies_to_console();
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 
 void SettingsWidget::configurationAddNoise()
@@ -159,6 +202,8 @@ void SettingsWidget::configurationAddNoise()
 	{
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
+		Chain_Update_Data(this->state.get());
+		this->_spinWidget->update();
 	}
 }
 
@@ -170,22 +215,22 @@ void SettingsWidget::homogeneousTransitionPressed()
 	// Check the validity of the indices
 	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "First index for homogeneous transition is invalid! setting to 1...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
 	}
 	if (idx_1 == idx_2)
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "Indices are equal in homogeneous transition! Aborting...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Indices are equal in homogeneous transition! Aborting...");
 		return;
 	}
 	if (idx_2 < idx_1)
 	{
-		Log_Send(state.get(), Log_Level::Error, Log_Sender::UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
 		return;
 	}
 
@@ -198,6 +243,10 @@ void SettingsWidget::homogeneousTransitionPressed()
 		double temperature = lineEdit_Transition_Noise->text().toDouble();
 		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
+
+	// Update
+	Chain_Update_Data(this->state.get());
+	this->_spinWidget->update();
 }
 
 
@@ -385,11 +434,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	{
 		case GLSpins::VisualizationMode::SPHERE:
 			visualization_mode = "Sphere";
-			break;
-		case GLSpins::VisualizationMode::SURFACE:
-			visualization_mode = "Surface";
-			break;
-		default:
+      break;
+    case GLSpins::VisualizationMode::SURFACE:
+      visualization_mode = "Surface";
+      break;
+    case GLSpins::VisualizationMode::ISOSURFACE:
+      visualization_mode = "Isosurface";
+      break;
+    default:
 			visualization_mode = "Arrows";
 			break;
 	}
@@ -468,17 +520,27 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_zRangeMax->setRange(-100, 100);
 	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
 	horizontalSlider_zRangeMin->setTracking(true);
-	horizontalSlider_zRangeMax->setTracking(true);
+  horizontalSlider_zRangeMax->setTracking(true);
+  
+  auto isovalue = _spinWidget->isovalue();
+  horizontalSlider_isovalue->setRange(0, 100);
+  horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
 	std::string colormap = "Hue-Saturation-Value";
 	switch (_spinWidget->colormap())
 	{
 		case GLSpins::Colormap::HSV:
-			break;
-		case GLSpins::Colormap::RED_BLUE:
-			colormap = "Z-Component: Red-Blue";
-			break;
-		case GLSpins::Colormap::OTHER:
+      break;
+    case GLSpins::Colormap::BLUE_RED:
+      colormap = "Z-Component: Blue-Red";
+      break;
+    case GLSpins::Colormap::BLUE_GREEN_RED:
+      colormap = "Z-Component: Blue-Green-Red";
+      break;
+    case GLSpins::Colormap::BLUE_WHITE_RED:
+      colormap = "Z-Component: Blue-White-Red";
+      break;
+    case GLSpins::Colormap::OTHER:
 			break;
 		default:
 			break;
@@ -619,14 +681,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_extHy->text().toDouble();
 		vd[2] = lineEdit_extHz->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx->setText(QString::number(0.0));
 				lineEdit_extHy->setText(QString::number(0.0));
 				lineEdit_extHz->setText(QString::number(1.0));
@@ -664,14 +726,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_anisoy->text().toDouble();
 		vd[2] = lineEdit_anisoz->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anisox->setText(QString::number(0.0));
 				lineEdit_anisoy->setText(QString::number(0.0));
 				lineEdit_anisoz->setText(QString::number(1.0));
@@ -702,14 +764,14 @@ void SettingsWidget::set_hamiltonian_iso()
 		vd[1] = lineEdit_spin_torquey->text().toDouble();
 		vd[2] = lineEdit_spin_torquez->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_spin_torquex->setText(QString::number(0.0));
 				lineEdit_spin_torquey->setText(QString::number(0.0));
 				lineEdit_spin_torquez->setText(QString::number(1.0));
@@ -834,14 +896,14 @@ void SettingsWidget::set_hamiltonian_aniso_field()
 		vd[1] = lineEdit_extHy_aniso->text().toDouble();
 		vd[2] = lineEdit_extHz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "B_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_extHx_aniso->setText(QString::number(0.0));
 				lineEdit_extHy_aniso->setText(QString::number(0.0));
 				lineEdit_extHz_aniso->setText(QString::number(1.0));
@@ -890,14 +952,14 @@ void SettingsWidget::set_hamiltonian_aniso_ani()
 		vd[1] = lineEdit_aniy_aniso->text().toDouble();
 		vd[2] = lineEdit_aniz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_anix_aniso->setText(QString::number(0.0));
 				lineEdit_aniy_aniso->setText(QString::number(0.0));
 				lineEdit_aniz_aniso->setText(QString::number(1.0));
@@ -947,14 +1009,14 @@ void SettingsWidget::set_hamiltonian_aniso_stt()
 		vd[1] = lineEdit_stty_aniso->text().toDouble();
 		vd[2] = lineEdit_sttz_aniso->text().toDouble();
 		try {
-			Utility::Vectormath::Normalize(vd, 3);
+			normalize(vd);
 		}
-		catch (Utility::Exception ex) {
-			if (ex == Utility::Exception::Division_by_zero) {
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level::Warning, Log_Sender::UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 				lineEdit_sttx_aniso->setText(QString::number(0.0));
 				lineEdit_stty_aniso->setText(QString::number(0.0));
 				lineEdit_sttz_aniso->setText(QString::number(1.0));
@@ -1030,11 +1092,15 @@ void SettingsWidget::set_visualization()
 	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
 	if (comboBox_visualizationMode->currentText() == "Surface")
 	{
-		visualization_mode = GLSpins::VisualizationMode::SURFACE;
+	visualization_mode = GLSpins::VisualizationMode::SURFACE;
+	}
+	else if (comboBox_visualizationMode->currentText() == "Isosurface")
+	{
+	visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
 	}
 	else if (comboBox_visualizationMode->currentText() == "Sphere")
 	{
-		visualization_mode = GLSpins::VisualizationMode::SPHERE;
+	visualization_mode = GLSpins::VisualizationMode::SPHERE;
 	}
 	_spinWidget->setVisualizationMode(visualization_mode);
 
@@ -1087,13 +1153,24 @@ void SettingsWidget::set_visualization()
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
+  
+  float isovalue = horizontalSlider_isovalue->value()/50.0f-1.0f;
+  _spinWidget->setIsovalue(isovalue);
 
-	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-	if (comboBox_colormap->currentText() == "Z-Component: Red-Blue")
-	{
-		colormap = GLSpins::Colormap::RED_BLUE;
-	}
-	_spinWidget->setColormap(colormap);
+  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_RED;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_GREEN_RED;
+  }
+  if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
+  {
+    colormap = GLSpins::Colormap::BLUE_WHITE_RED;
+  }
+  _spinWidget->setColormap(colormap);
 
 	if (radioButton_orthographicProjection->isChecked())
 	{
@@ -1122,6 +1199,8 @@ void SettingsWidget::set_visualization()
 	}
 	_spinWidget->setBackgroundColor(background_color);
 	_spinWidget->setBoundingBoxColor(bounding_box_color);
+
+	_spinWidget->update();
 }
 
 
@@ -1261,11 +1340,15 @@ void SettingsWidget::Setup_Configurations_Slots()
 {
 	// Random
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
+	// Add Noise
+	connect(this->pushButton_AddNoise, SIGNAL(clicked()), this, SLOT(addNoisePressed()));
 	// Domain Wall
 	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));
+	// Hopfion
+	connect(this->pushButton_hopfion, SIGNAL(clicked()), this, SLOT(create_Hopfion()));
 	// Skyrmion
 	connect(this->pushButton_skyrmion, SIGNAL(clicked()), this, SLOT(create_Skyrmion()));
 	// Spin Spiral
@@ -1278,6 +1361,12 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_posx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
 	connect(this->lineEdit_posz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
+
+	// Hopfion LineEdits
+	connect(this->lineEdit_hopf_posx, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
 	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
@@ -1319,6 +1408,7 @@ void SettingsWidget::Setup_Visualization_Slots()
   connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
   connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
   connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+  connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
@@ -1379,6 +1469,11 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Configurations
 	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
+	//		Hopfion
+	this->lineEdit_hopf_posx->setValidator(this->number_validator);
+	this->lineEdit_hopf_posy->setValidator(this->number_validator);
+	this->lineEdit_hopf_posz->setValidator(this->number_validator);
+	this->lineEdit_hopf_r->setValidator(this->number_validator);
 	//		Skyrmion
 	this->lineEdit_sky_order->setValidator(this->number_validator);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);

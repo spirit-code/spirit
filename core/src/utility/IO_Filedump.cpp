@@ -1,6 +1,6 @@
-#include "IO.h"
-#include "Vectormath.h"
-#include "Logging.h"
+#include "IO.hpp"
+#include "Vectormath.hpp"
+#include "Logging.hpp"
 
 #include <iostream>
 #include <fstream>

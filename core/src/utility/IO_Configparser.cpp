@@ -1,9 +1,9 @@
-﻿#include "IO.h"
-#include "IO_Filter_File_Handle.h"
-#include "Vectormath.h"
-#include "Neighbours.h"
-#include "Logging.h"
-#include "Exception.h"
+﻿#include "IO.hpp"
+#include "IO_Filter_File_Handle.hpp"
+#include "Vectormath.hpp"
+#include "Neighbours.hpp"
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -87,7 +87,7 @@ namespace Utility
 			double lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
 			basis = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
-			// Atoms in the basis
+			// Atoms in the basis [dim][n_basis_atoms]
 			basis_atoms = { std::vector<double>{0}, std::vector<double>{0}, std::vector<double>{0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			no_spins_basic_domain = basis_atoms[0].size();
@@ -173,7 +173,7 @@ namespace Utility
 			std::string basis_file = "";
 			// Basis: vector {a, b, c}
 			std::vector<std::vector<double>> basis = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
-			// Atoms in the basis
+			// Atoms in the basis [dim][n_basis_atoms]
 			std::vector<std::vector<double>> basis_atoms = { std::vector<double>{0}, std::vector<double>{0}, std::vector<double>{0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			int no_spins_basic_domain = basis_atoms[0].size();
@@ -271,7 +271,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 
 			// Return geometry
-			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, spin_pos));
+			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
 		}// end Geometry from Config
@@ -623,7 +623,7 @@ namespace Utility
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, std::vector<double>(3, 0.0));	// [3][nos]
+			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 1.0 });	// [nos][3]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;

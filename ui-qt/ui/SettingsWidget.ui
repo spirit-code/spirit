@@ -6,13 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
+    <width>300</width>
     <height>986</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
+    <width>110</width>
     <height>200</height>
    </size>
   </property>
@@ -45,6 +51,18 @@
        <string>Configurations</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QScrollArea" name="scrollArea_3">
          <property name="widgetResizable">
@@ -55,52 +73,80 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>272</width>
+            <height>961</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QGridLayout" name="gridLayout_9">
-             <item row="0" column="1">
-              <widget class="QPushButton" name="pushButton_plusZ">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>25</height>
-                </size>
+            <layout class="QGridLayout" name="gridLayout_41">
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="checkBox_Configuration_Noise">
+               <property name="text">
+                <string>Add Noise - magnitude:</string>
                </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
                <property name="maximumSize">
                 <size>
-                 <width>70</width>
+                 <width>50</width>
                  <height>16777215</height>
                 </size>
                </property>
                <property name="text">
-                <string>PlusZ</string>
+                <string>1</string>
                </property>
               </widget>
              </item>
              <item row="0" column="2">
-              <widget class="QPushButton" name="pushButton_minusZ">
-               <property name="minimumSize">
+              <spacer name="horizontalSpacer_17">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
                 <size>
-                 <width>70</width>
-                 <height>0</height>
+                 <width>40</width>
+                 <height>20</height>
                 </size>
                </property>
-               <property name="maximumSize">
-                <size>
-                 <width>70</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>MinusZ</string>
-               </property>
-              </widget>
+              </spacer>
              </item>
-             <item row="0" column="0">
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_15">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="1" column="4">
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="1" column="1">
               <widget class="QPushButton" name="pushButton_Random">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -125,57 +171,167 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="3">
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QGridLayout" name="gridLayout_56">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="checkBox_Configuration_Noise">
+             <item row="1" column="2">
+              <widget class="QPushButton" name="pushButton_AddNoise">
                <property name="text">
                 <string>Add Noise</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pushButton_plusZ">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
-                 <width>50</width>
+                 <width>70</width>
                  <height>16777215</height>
                 </size>
                </property>
                <property name="text">
-                <string>1</string>
+                <string>PlusZ</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
+             <item row="2" column="2">
+              <widget class="QPushButton" name="pushButton_minusZ">
+               <property name="minimumSize">
                 <size>
-                 <width>40</width>
-                 <height>20</height>
+                 <width>70</width>
+                 <height>0</height>
                 </size>
                </property>
-              </spacer>
+               <property name="maximumSize">
+                <size>
+                 <width>70</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>MinusZ</string>
+               </property>
+              </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="title">
+              <string>Hopfion</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_56">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton_hopfion">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Create Hopfion</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_57">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_49">
+                  <property name="text">
+                   <string>Position (x,y,z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_50">
+                  <property name="text">
+                   <string>Radius</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_hopf_r">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>3</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QGridLayout" name="gridLayout_58">
+                  <item row="0" column="0">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posx">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posy">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="lineEdit_hopf_posz">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <spacer name="verticalSpacer">
@@ -1090,6 +1246,18 @@
        <string>Transitions</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_30">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QScrollArea" name="scrollArea_6">
          <property name="widgetResizable">
@@ -1100,8 +1268,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>296</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1295,6 +1463,18 @@
        <string>Hamiltonian</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QGridLayout" name="gridLayout_31">
          <item row="0" column="1">
@@ -1367,8 +1547,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>875</height>
+            <width>326</width>
+            <height>877</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -1946,6 +2126,18 @@
        <string>Hamiltonian</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_38">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_37">
          <item row="0" column="1">
@@ -2018,8 +2210,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>875</height>
+            <width>268</width>
+            <height>877</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2462,6 +2654,18 @@
        <string>Parameters</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QScrollArea" name="scrollArea_2">
          <property name="widgetResizable">
@@ -2472,8 +2676,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>336</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2862,6 +3066,18 @@
        <string>Visualisation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="2" column="0">
         <widget class="QScrollArea" name="scrollArea_4">
          <property name="widgetResizable">
@@ -2872,8 +3088,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>824</width>
-            <height>922</height>
+            <width>419</width>
+            <height>937</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -2931,6 +3147,11 @@
                 <item>
                  <property name="text">
                   <string>Surface</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Isosurface</string>
                  </property>
                 </item>
                 <item>
@@ -3090,6 +3311,32 @@
                 </property>
                 <property name="text">
                  <string>Sphere Point Radius</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="5">
+               <widget class="QSlider" name="horizontalSlider_isovalue">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_48">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Isovalue</string>
                 </property>
                </widget>
               </item>
@@ -3336,7 +3583,17 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>Z-Component: Red-Blue</string>
+                  <string>Z-Component: Blue-Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Blue-Green-Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Blue-White-Red</string>
                  </property>
                 </item>
                </widget>
@@ -3390,7 +3647,7 @@
             <widget class="QGroupBox" name="groupBox">
              <property name="minimumSize">
               <size>
-               <width>200</width>
+               <width>110</width>
                <height>120</height>
               </size>
              </property>
@@ -3480,11 +3737,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>pushButton_Random</tabstop>
-  <tabstop>pushButton_plusZ</tabstop>
-  <tabstop>pushButton_minusZ</tabstop>
-  <tabstop>checkBox_Configuration_Noise</tabstop>
-  <tabstop>lineEdit_Configuration_Noise</tabstop>
   <tabstop>pushButton_skyrmion</tabstop>
   <tabstop>lineEdit_sky_posx</tabstop>
   <tabstop>lineEdit_sky_posy</tabstop>
@@ -3610,6 +3862,18 @@
   <tabstop>horizontalSlider</tabstop>
   <tabstop>horizontalSlider_2</tabstop>
   <tabstop>horizontalSlider_3</tabstop>
+  <tabstop>checkBox_Configuration_Noise</tabstop>
+  <tabstop>lineEdit_Configuration_Noise</tabstop>
+  <tabstop>pushButton_Random</tabstop>
+  <tabstop>pushButton_AddNoise</tabstop>
+  <tabstop>pushButton_plusZ</tabstop>
+  <tabstop>pushButton_minusZ</tabstop>
+  <tabstop>pushButton_hopfion</tabstop>
+  <tabstop>lineEdit_hopf_posx</tabstop>
+  <tabstop>lineEdit_hopf_posy</tabstop>
+  <tabstop>lineEdit_hopf_posz</tabstop>
+  <tabstop>lineEdit_hopf_r</tabstop>
+  <tabstop>horizontalSlider_isovalue</tabstop>
  </tabstops>
  <resources/>
  <connections/>

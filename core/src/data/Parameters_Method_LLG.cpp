@@ -1,4 +1,4 @@
-#include <Parameters_Method_LLG.h>
+#include <Parameters_Method_LLG.hpp>
 
 namespace Data
 {
