@@ -17,7 +17,7 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 
 public:
 	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
-	void update();
+	void updateData();
 	void SelectTab(int index);
 
 	std::shared_ptr<State> state;

@@ -67,9 +67,10 @@ void SphereSpinRenderer::optionsHaveChanged(const std::vector<int>& changedOptio
 void SphereSpinRenderer::updateSpins(const std::vector<glm::vec3>& positions,
                                      const std::vector<glm::vec3>& directions) {
   CHECK_GL_ERROR;
-  glBindVertexArray(_vao1);
+  // Binding _vao1 here seems optional, binding it throws a gl error on some systems... idk why
+  glBindVertexArray(0);
+  //glBindVertexArray(_vao1);
   glBindBuffer(GL_ARRAY_BUFFER, _instanceDirectionVbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * directions.size(), directions.data(), GL_STREAM_DRAW);
   _numInstances = directions.size();
   CHECK_GL_ERROR;

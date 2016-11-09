@@ -16,7 +16,7 @@ class DebugWidget : public QWidget, private Ui::DebugWidget
 
 public:
 	DebugWidget(std::shared_ptr<State> state);
-	void update();
+	void updateData();
 
 	void LoadFromLog();
 	void UpdateFromLog();

@@ -37,7 +37,7 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 }
 
 
-void PlotWidget::update()
+void PlotWidget::updateData()
 {
     if( Chain_Get_NOI(state.get()) > 1 && this->plot_interpolated ) this->plotEnergiesInterpolated();
     this->plotEnergies();

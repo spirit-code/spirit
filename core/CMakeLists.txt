@@ -38,7 +38,7 @@ include(ExternalProject)
 ExternalProject_add(qhullstatic_r
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
 	# GIT_REPOSITORY https://github.com/qhull/qhull
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullstatic_r"
+	CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE};-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullstatic_r"
 	PREFIX qhull-prefix
 )
 

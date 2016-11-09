@@ -40,7 +40,7 @@ void SpinWidget::initializeGL()
 	// Initial camera position
 	_reset_camera = true;
 	// Fetch data and update GL arrays
-	this->update();
+	this->updateData();
 }
 
 void SpinWidget::teardownGL() {
@@ -53,7 +53,7 @@ void SpinWidget::resizeGL(int width, int height) {
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
-void SpinWidget::update()
+void SpinWidget::updateData()
 {
 	int nos = System_Get_NOS(state.get());
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
@@ -64,7 +64,7 @@ void SpinWidget::update()
 	// Positions and directions
 	//		get pointer
 	double *spins, *spin_pos;
-  bool keep_magnitudes = false;
+	bool keep_magnitudes = false;
 	if (true)
 	{
 		spins = System_Get_Spin_Directions(state.get());
@@ -72,7 +72,7 @@ void SpinWidget::update()
 	else
 	{
 		spins = System_Get_Effective_Field(state.get());
-    keep_magnitudes = true;
+		keep_magnitudes = true;
 	}
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
 	//		copy
@@ -84,28 +84,35 @@ void SpinWidget::update()
 	{
 		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
 	}
-  //    normalize if needed
-  if (keep_magnitudes) {
-    float max_length = 0;
-    for (auto direction : directions) {
-      max_length = std::max(max_length, glm::length(direction));
-    }
-    if (max_length > 0) {
-      for (auto& direction : directions) {
-        direction /= max_length;
-      }
-    }
-  } else {
-    for (auto& direction : directions) {
-      direction = glm::normalize(direction);
-    }
-  }
+	//    normalize if needed
+	if (keep_magnitudes)
+	{
+		float max_length = 0;
+		for (auto direction : directions)
+		{
+			max_length = std::max(max_length, glm::length(direction));
+		}
+		if (max_length > 0)
+		{
+			for (auto& direction : directions)
+			{
+				direction /= max_length;
+			}
+		}
+	}
+	else
+	{
+		for (auto& direction : directions)
+		{
+			direction = glm::normalize(direction);
+		}
+	}
 	//		update GL
 	gl_spins->updateSpins(positions, directions);
 
 	// Triangles and Tetrahedra
 	//		get tetrahedra
-	if (!Geometry_Is_2D(state.get()))
+	if (Geometry_Get_Dimensionality(state.get()) == 3)
 	{
 		const std::array<int, 4> *tetrahedra_indices_ptr = nullptr;
 		int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
@@ -131,7 +138,7 @@ void SpinWidget::paintGL() {
 	//		 but we switched between images or chains...
 	if (Simulation_Running_Any(state.get()))
 	{
-		this->update();
+		this->updateData();
 	}
 
 	gl_spins->draw();

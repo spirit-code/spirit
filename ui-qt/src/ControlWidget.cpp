@@ -50,7 +50,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	this->lineEdit_ImageNumber->setText(QString::number(1));
 }
 
-void ControlWidget::update()
+void ControlWidget::updateData()
 {
 	// Check for running simulations
 	if (Simulation_Running_Any(state.get()))
@@ -175,10 +175,10 @@ void ControlWidget::next_image()
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
-		this->spinWidget->update();
-		// this->settingsWidget->update();
-		// this->plotsWidget->update();
-		// this->debugWidget->update();
+		this->spinWidget->updateData();
+		// this->settingsWidget->updateData();
+		// this->plotsWidget->updateData();
+		// this->debugWidget->updateData();
 	}
 }
 
@@ -195,11 +195,11 @@ void ControlWidget::prev_image()
 		else this->pushButton_PlayPause->setText("Play");
 
 		// Update Image-dependent Widgets
-		this->spinWidget->update();
-		// this->spinWidget->update();
-		// this->settingsWidget->update();
-		// this->plotsWidget->update();
-		// this->debugWidget->update();
+		this->spinWidget->updateData();
+		// this->spinWidget->updateData();
+		// this->settingsWidget->updateData();
+		// this->plotsWidget->updateData();
+		// this->debugWidget->updateData();
 	}
 }
 
@@ -214,7 +214,7 @@ void ControlWidget::cut_image()
 
 		int idx = System_Get_Index(state.get());
 		if (idx > 0) Chain_prev_Image(this->state.get());
-		this->spinWidget->update();			
+		this->spinWidget->updateData();			
 		//else this->nextImagePressed();
 
 		if (Chain_Delete_Image(state.get(), idx)) 
@@ -255,7 +255,7 @@ void ControlWidget::paste_image(std::string where)
 	// Update the chain's data (primarily for the plot)
 	Chain_Update_Data(state.get());
 	// Update Visualisation
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 void ControlWidget::delete_image()
@@ -275,7 +275,7 @@ void ControlWidget::delete_image()
 
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 	}
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 

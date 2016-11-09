@@ -103,9 +103,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	
 	// Connect the Timers
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
-	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::update);
-	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
-	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
+	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::updateData);
+	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::updateData);	// this currently resets the user's interaction (movement, zoom)
+	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::updateData);
 
 	// Start Timers
 	m_timer->start(200);
@@ -404,7 +404,7 @@ void MainWindow::load_Spin_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Image_Read(this->state.get(), file.c_str(), type);
 	}
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 void MainWindow::save_SpinChain_Configuration()
@@ -423,7 +423,7 @@ void MainWindow::load_SpinChain_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Chain_Read(this->state.get(), file.c_str());
 	}
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 

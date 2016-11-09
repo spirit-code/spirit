@@ -66,7 +66,8 @@ namespace Data
 
     const std::vector<tetrahedron_t>& triangulation();
 
-    bool is2D() const;
+    int dimensionality;
+	int calculateDimensionality() const;
     
   private:
     std::vector<tetrahedron_t> _triangulation;

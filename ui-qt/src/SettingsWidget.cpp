@@ -61,7 +61,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	}
 
 	// Load information from Spin Systems
-	this->update();
+	this->updateData();
 
 	// Connect slots
 	this->Setup_Configurations_Slots();
@@ -72,7 +72,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->Setup_Visualization_Slots();
 }
 
-void SettingsWidget::update()
+void SettingsWidget::updateData()
 {
 	// Load Hamiltonian Contents
 	std::string H_name = Hamiltonian_Get_Name(state.get());
@@ -96,7 +96,7 @@ void SettingsWidget::randomPressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::addNoisePressed()
 {
@@ -104,7 +104,7 @@ void SettingsWidget::addNoisePressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::minusZ()
 {
@@ -113,7 +113,7 @@ void SettingsWidget::minusZ()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::plusZ()
 {
@@ -122,7 +122,7 @@ void SettingsWidget::plusZ()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_Hopfion()
@@ -139,7 +139,7 @@ void SettingsWidget::create_Hopfion()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_Skyrmion()
@@ -162,7 +162,7 @@ void SettingsWidget::create_Skyrmion()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_SpinSpiral()
@@ -180,7 +180,7 @@ void SettingsWidget::create_SpinSpiral()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::domainWallPressed()
@@ -192,7 +192,7 @@ void SettingsWidget::domainWallPressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::configurationAddNoise()
@@ -203,7 +203,7 @@ void SettingsWidget::configurationAddNoise()
 		double temperature = lineEdit_Configuration_Noise->text().toDouble();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
 		Chain_Update_Data(this->state.get());
-		this->_spinWidget->update();
+		this->_spinWidget->updateData();
 	}
 }
 
@@ -246,7 +246,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 
 	// Update
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 
@@ -1200,7 +1200,7 @@ void SettingsWidget::set_visualization()
 	_spinWidget->setBackgroundColor(background_color);
 	_spinWidget->setBoundingBoxColor(bounding_box_color);
 
-	_spinWidget->update();
+	_spinWidget->updateData();
 }
 
 
