@@ -243,9 +243,9 @@ void Simulation_Stop_All(State *state)
 }
 
 // TODO: how to do this correctly??
-std::vector<double> Simulation_Get_IterationsPerSecond(State *state)
+std::vector<float> Simulation_Get_IterationsPerSecond(State *state)
 {
-	std::vector<double> ret;
+	std::vector<float> ret;
 
     // TODO: loop over all chains
     if (Simulation_Running_LLG(state))

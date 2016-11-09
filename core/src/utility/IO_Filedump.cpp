@@ -37,7 +37,7 @@ namespace Utility
 		{
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
-			double nd = 1.0; // nos divide
+			scalar nd = 1.0; // nos divide
 			const int buffer_length = 200;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
@@ -60,7 +60,7 @@ namespace Utility
 			int isystem;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
-			double nd = 1.0; // nos divide
+			scalar nd = 1.0; // nos divide
 			const int buffer_length = 200;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
@@ -95,7 +95,7 @@ namespace Utility
 			int isystem, iinterp, idx;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
-			double nd = 1.0; // nos divide
+			scalar nd = 1.0; // nos divide
 			const int buffer_length = 200;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
@@ -132,7 +132,7 @@ namespace Utility
 			int isystem, ispin, iE;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
-			double nd = 1.0; // nos divide
+			scalar nd = 1.0; // nos divide
 			const int buffer_length = 200;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
@@ -146,8 +146,8 @@ namespace Utility
 
 			int nos = (int)c.images[0]->nos;
 			int noi = (int)c.noi;
-			auto Energies_spins = std::vector<std::vector<double>>(nos, std::vector<double>(7, 0.0));
-			auto E_tot_spins = std::vector<double>(nos, 0.0);
+			auto Energies_spins = std::vector<std::vector<scalar>>(nos, std::vector<scalar>(7, 0.0));
+			auto E_tot_spins = std::vector<scalar>(nos, 0.0);
 			for (isystem = 0; isystem < noi; ++isystem) {
 				// Get Energies
 				Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(*c.images[isystem]->spins);
@@ -183,7 +183,7 @@ namespace Utility
 			int isystem;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
-			double nd = 1.0; // nos divide
+			scalar nd = 1.0; // nos divide
 			const int buffer_length = 200;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));

@@ -9,7 +9,6 @@
 #include <sstream>
 
 #include "Logging.hpp"
-//extern Utility::LoggingHandler Log;
 
 namespace Utility
 {

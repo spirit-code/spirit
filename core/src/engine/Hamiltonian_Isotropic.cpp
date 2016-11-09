@@ -14,9 +14,9 @@ using namespace Utility;
 namespace Engine
 {
 	Hamiltonian_Isotropic::Hamiltonian_Isotropic(
-		std::vector<bool> boundary_conditions, double external_field_magnitude_i, std::vector<double> external_field_normal, double mu_s,
-		double anisotropy_magnitude, std::vector<double> anisotropy_normal,
-		int n_neigh_shells, std::vector<double> jij, double dij, double bij, double kijkl, double dd_radius,
+		std::vector<bool> boundary_conditions, scalar external_field_magnitude_i, std::vector<scalar> external_field_normal, scalar mu_s,
+		scalar anisotropy_magnitude, std::vector<scalar> anisotropy_normal,
+		int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius,
 		Data::Geometry geometry) :
 		Hamiltonian(boundary_conditions),
 		mu_s(mu_s),
@@ -38,18 +38,18 @@ namespace Engine
 	}
 
 
-	double Hamiltonian_Isotropic::Energy(const std::vector<double> & spins)
+	scalar Hamiltonian_Isotropic::Energy(const std::vector<scalar> & spins)
 	{
 		return sum(Energy_Array(spins));
 	}
 
-	std::vector<double> Hamiltonian_Isotropic::Energy_Array(const std::vector<double> & spins)
+	std::vector<scalar> Hamiltonian_Isotropic::Energy_Array(const std::vector<scalar> & spins)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size() / 3;
 		int i = 0, istart = -1, istop = istart + 1;
-		std::vector<double> energies(7, 0.0);
-		double f0 = 1.0;
+		std::vector<scalar> energies(7, 0.0);
+		scalar f0 = 1.0;
 		if (istart == -1) { istart = 0; istop = nos; f0 = 0.5; }
 		//------------------------ End Init ----------------------------------------
 		if (this->dd_radius != 0.0) {
@@ -102,19 +102,19 @@ namespace Engine
 		return energies;
 	};//end Total_Array_
 
-	double Hamiltonian_Isotropic::E_Zeeman(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_Zeeman(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
-		double dotProduct = 0.0;
+		scalar dotProduct = 0.0;
 		for (int dim = 0; dim < 3; ++dim) {
 			dotProduct += spins[dim*nos + ispin] * this->external_field_normal[dim];
 		}
 		return -dotProduct*this->external_field_magnitude;
 	}//end Zeeman
 
-	double Hamiltonian_Isotropic::E_Exchange(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_Exchange(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
-		double result = 0.0, dotProduct;
+		scalar result = 0.0, dotProduct;
 		int shell, jneigh, jspin, dim;
 		//------------------------ End Init ----------------------------------------
 		for (shell = 0; shell < this->n_neigh_shells; ++shell) {
@@ -128,17 +128,17 @@ namespace Engine
 		return result;
 	}//end Exchange
 
-	double Hamiltonian_Isotropic::E_Anisotropic(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_Anisotropic(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
-		double dotProduct = 0.0;
+		scalar dotProduct = 0.0;
 		for (int dim = 0; dim < 3; ++dim) { dotProduct += this->anisotropy_normal[dim] * spins[dim*nos + ispin]; }
 		return -this->anisotropy_magnitude * std::pow(dotProduct, 2.0);
 	}//end Anisotropic
 
-	double Hamiltonian_Isotropic::E_BQC(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_BQC(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
-		double result = 0.0, dotProduct;
+		scalar result = 0.0, dotProduct;
 		int shell = 0, jneigh, jspin, dim;
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh) {
@@ -150,11 +150,11 @@ namespace Engine
 		return result;
 	}//end BQC
 
-	double Hamiltonian_Isotropic::E_FourSC(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_FourSC(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
-		double result = 0.0;
-		std::vector<double> dotProduct = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+		scalar result = 0.0;
+		std::vector<scalar> dotProduct = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		int t, jspin, kspin, lspin, dim;
 		//------------------------ End Init ----------------------------------------
 		for (t = 0; t < this->n_4spin[ispin]; ++t) {
@@ -178,12 +178,12 @@ namespace Engine
 		return result;
 	}//end FourSC
 
-	double Hamiltonian_Isotropic::E_DM(int nos, const std::vector<double> & spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_DM(int nos, const std::vector<scalar> & spins, const int ispin)
 	{
 		//========================= Init local vars ================================
-		double result = 0.0, crossProduct, dotProduct;
+		scalar result = 0.0, crossProduct, dotProduct;
 		int shell = 0, jneigh, jspin, dim;
-		double build_array[3] = { 0 };
+		scalar build_array[3] = { 0 };
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh) {
 			jspin = this->neigh[ispin][shell][jneigh];
@@ -197,12 +197,12 @@ namespace Engine
 		}
 		return result;
 	}// end DM
-	double Hamiltonian_Isotropic::E_DipoleDipole(int nos, const std::vector<double>& spins, const int ispin)
+	scalar Hamiltonian_Isotropic::E_DipoleDipole(int nos, const std::vector<scalar>& spins, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int jneigh, jspin;
-		double mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
-		double result = 0.0;
+		scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar result = 0.0;
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh) {
 			if (dd_distance[ispin][jneigh] > 0.0) {
@@ -224,14 +224,14 @@ namespace Engine
 		return result;
 	}// end DipoleDipole
 
-	void Hamiltonian_Isotropic::Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
+	void Hamiltonian_Isotropic::Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size()/3;
 		int dim, istart = -1, istop = istart + 1, i;
 		if (istart == -1) { istart = 0; istop = nos; }
-		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
-		std::vector<double> build_array_2 = { 0.0, 0.0, 0.0 };
+		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
 		//Initialize field to { 0 }
 		for (i = 0; i < nos; ++i) {
 			field[i] = 0; field[nos + i] = 0; field[2 * nos + i] = 0;
@@ -323,7 +323,7 @@ namespace Engine
 		}//endif kijkl != 0 & dij ==0
 	}
 
-	void Hamiltonian_Isotropic::Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_Zeeman(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		for (int dim = 0; dim < 3; ++dim) {
 			eff_field[dim] = this->external_field_normal[dim] * this->external_field_magnitude;
@@ -331,7 +331,7 @@ namespace Engine
 	}
 
 	//Exchange Interaction
-	void Hamiltonian_Isotropic::Field_Exchange(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_Exchange(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int dim, shell, jneigh, jspin;
@@ -348,13 +348,13 @@ namespace Engine
 	}//end Exchange
 
 	 //Anisotropy
-	void Hamiltonian_Isotropic::Field_Anisotropic(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_Anisotropic(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int dim;
-		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
+		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
 		for (dim = 0; dim < 3; ++dim) { build_array[dim] = spins[dim*nos + ispin]; }
-		double mult = 2.0 * this->anisotropy_magnitude * Vectormath::Dot_Product(this->anisotropy_normal, build_array);
+		scalar mult = 2.0 * this->anisotropy_magnitude * Vectormath::Dot_Product(this->anisotropy_normal, build_array);
 		//------------------------ End Init ----------------------------------------
 		for (dim = 0; dim < 3; ++dim) {
 			eff_field[dim] = this->anisotropy_normal[dim] * mult;
@@ -362,11 +362,11 @@ namespace Engine
 	}//end Anisotropic
 
 	 // Biquadratic Coupling
-	void Hamiltonian_Isotropic::Field_BQC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_BQC(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int shell = 0, jneigh, jspin, dim;
-		double dotProduct = 0.0;
+		scalar dotProduct = 0.0;
 		for (dim = 0; dim < 3; ++dim) { eff_field[dim] = 0; }
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh) {
@@ -382,13 +382,13 @@ namespace Engine
 	}//end BQC
 
 	 // Four Spin Interaction
-	void Hamiltonian_Isotropic::Field_FourSC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_FourSC(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int dim, jspin, kspin, lspin, t;
-		double dp_1, dp_2, dp_3;
-		std::vector<double> build_array = { 0.0, 0.0, 0.0 };
-		std::vector<double> build_array_2 = { 0.0, 0.0, 0.0 };
+		scalar dp_1, dp_2, dp_3;
+		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
 		for (dim = 0; dim < 3; ++dim) { eff_field[dim] = 0; }
 		//------------------------ End Init ----------------------------------------
 		for (t = 0; t < this->n_4spin[ispin]; ++t) {
@@ -419,11 +419,11 @@ namespace Engine
 	}//end FourSC effective field
 
 	 // Dzyaloshinskii-Moriya Interaction 
-	void Hamiltonian_Isotropic::Field_DM(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_DM(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		int dim, shell = 0, jneigh, jspin;
-		double build_array[3] = { 0 };
+		scalar build_array[3] = { 0 };
 		for (dim = 0; dim < 3; ++dim) { eff_field[dim] = 0; }
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh) {
@@ -436,13 +436,13 @@ namespace Engine
 		}//endfor jneigh
 	}//end DM effective Field
 
-	void Hamiltonian_Isotropic::Field_DipoleDipole(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Isotropic::Field_DipoleDipole(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		//========================= Init local vars ================================
 		eff_field[0] = 0.0; eff_field[1] = 0.0; eff_field[2] = 0.0;
 		int dim, jneigh, jspin;
-		double mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
-		double skalar_contrib, dotprod;
+		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar skalar_contrib, dotprod;
 		//------------------------ End Init ----------------------------------------
 		for (jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh) {
 			if (dd_distance[ispin][jneigh] > 0.0) {
@@ -458,14 +458,14 @@ namespace Engine
 		}//endfor jneigh
 	}//end Field_DipoleDipole
 
-	void Hamiltonian_Isotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	void Hamiltonian_Isotropic::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
 	{
 		int nos = spins.size() / 3;
 
 		// Single Spin elements
 		for (int alpha = 0; alpha < 3; ++alpha)
 		{
-			double K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
+			scalar K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
 			for (int i = 0; i < nos; ++i)
 			{
 				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;

@@ -27,21 +27,21 @@ namespace Engine
 		int noi = chain->noi;
 		int nos = chain->images[0]->nos;
 
-		this->energies = std::vector<double>(noi, 0.0);
-		this->Rx = std::vector<double>(noi, 0.0);
+		this->energies = std::vector<scalar>(noi, 0.0);
+		this->Rx = std::vector<scalar>(noi, 0.0);
 
 		// We assume that the chain is not converged before the first iteration
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
 		// Tangents
-		this->tangents = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->tangents = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
 		// Forces
-		this->F_total    = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
-		this->F_gradient = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
-		this->F_spring   = std::vector<std::vector<double>>(noi, std::vector<double>(3 * nos));	// [noi][3nos]
+		this->F_total    = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
+		this->F_gradient = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
+		this->F_spring   = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
 	}
 
-	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces)
 	{
 		int nos = configurations[0]->size()/3;
 
@@ -91,7 +91,7 @@ namespace Engine
 				// We project the gradient force orthogonal to the SPIN
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Get the scalar product of the vectors
-				// double v1v2 = 0.0;
+				// scalar v1v2 = 0.0;
 				// int dim;
 				// // Take out component in direction of v2
 				// for (int i = 0; i < nos; ++i)
@@ -111,7 +111,7 @@ namespace Engine
 				// We project the gradient force orthogonal to the TANGENT
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Get the scalar product of the vectors
-				double v1v2 = 0.0;
+				scalar v1v2 = 0.0;
 				for (int i = 0; i < 3*nos; ++i)
 				{
 					v1v2 += F_gradient[img][i] * tangents[img][i];
@@ -125,7 +125,7 @@ namespace Engine
 
 				// Calculate the spring force
 				//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
-				double d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
+				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
 				for (unsigned int i = 0; i < F_spring[0].size(); ++i)
 				{
 					F_spring[img][i] = d * tangents[img][i];
@@ -166,7 +166,7 @@ namespace Engine
 		this->force_maxAbsComponent = 0;
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
-			double fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
+			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
 			// TODO: how to handle convergence??
 			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
 			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
@@ -174,7 +174,7 @@ namespace Engine
 
 		// --- Chain Data Update
 		// Calculate the inclinations at the data points
-		std::vector<double> dE_dRx(chain->noi, 0);
+		std::vector<scalar> dE_dRx(chain->noi, 0);
 		for (int i = 0; i < chain->noi; ++i)
 		{
 			// dy/dx

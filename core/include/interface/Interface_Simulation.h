@@ -20,7 +20,7 @@ DLLEXPORT void Simulation_PlayPause(State *state, const char * c_method_type, co
 DLLEXPORT void Simulation_Stop_All(State *state);
 
 // Get IPS
-std::vector<double> Simulation_Get_IterationsPerSecond(State *state);
+std::vector<float> Simulation_Get_IterationsPerSecond(State *state);
 
 // Check for running simulations
 DLLEXPORT bool Simulation_Running_Any_Anywhere(State *state);

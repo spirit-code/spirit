@@ -9,11 +9,11 @@ namespace Engine
 	Optimizer_SIB::Optimizer_SIB(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->xi = std::vector<double>(3 * this->nos);
-		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
+		this->xi = std::vector<scalar>(3 * this->nos);
+		this->virtualforce = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
 		
-		this->spins_temp = std::vector<std::shared_ptr<std::vector<double>>>(this->noi);
-		for (int i=0; i<this->noi; ++i) spins_temp[i] = std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * this->nos)); // [noi][3*nos]
+		this->spins_temp = std::vector<std::shared_ptr<std::vector<scalar>>>(this->noi);
+		for (int i=0; i<this->noi; ++i) spins_temp[i] = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(3 * this->nos)); // [noi][3*nos]
     }
 
     void Optimizer_SIB::Iteration()
@@ -49,24 +49,24 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::VirtualForce(const int nos, std::vector<double> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<double> & beff,  std::vector<double> & xi, std::vector<double> & force)
+	void Optimizer_SIB::VirtualForce(const int nos, std::vector<scalar> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<scalar> & beff,  std::vector<scalar> & xi, std::vector<scalar> & force)
 	{
 		//========================= Init local vars ================================
 		int i, dim;
 		// deterministic variables
-		double a1[3], b1[3], asc[3];
+		scalar a1[3], b1[3], asc[3];
 		// stochastic variables
-		double s1[3], f1[3];
+		scalar s1[3], f1[3];
 		// aux variables
-		double A[3];
+		scalar A[3];
 		// time steps
-		double damping = llg_params.damping;
-		double sqrtdt = std::sqrt(llg_params.dt), dtg = llg_params.dt, sqrtdtg = sqrtdt;
+		scalar damping = llg_params.damping;
+		scalar sqrtdt = std::sqrt(llg_params.dt), dtg = llg_params.dt, sqrtdtg = sqrtdt;
 		// integration variables
-		double e1[3];
+		scalar e1[3];
 		// STT
-		double a_j = llg_params.stt_magnitude;
-		std::vector<double> s_c_vec = llg_params.stt_polarisation_normal;
+		scalar a_j = llg_params.stt_magnitude;
+		std::vector<scalar> s_c_vec = llg_params.stt_polarisation_normal;
 		//------------------------ End Init ----------------------------------------
 		for (i = 0; i < nos; ++i)
 		{
@@ -119,13 +119,13 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::FirstStep(const int nos, std::vector<double> & spins, std::vector<double> & force, std::vector<double> & spins_temp)
+	void Optimizer_SIB::FirstStep(const int nos, std::vector<scalar> & spins, std::vector<scalar> & force, std::vector<scalar> & spins_temp)
 	{
 
 		// aux variables
-		double a2[3], A[3], detAi;
+		scalar a2[3], A[3], detAi;
 		// integration variables
-		double e1[3], et[3];
+		scalar e1[3], et[3];
 		int dim = 0;
 
 		for (int i = 0; i < nos; ++i)
@@ -152,12 +152,12 @@ namespace Engine
 		}
 	}
 
-	void Optimizer_SIB::SecondStep(const int nos, std::vector<double> & force, std::vector<double> & spins)
+	void Optimizer_SIB::SecondStep(const int nos, std::vector<scalar> & force, std::vector<scalar> & spins)
 	{
 		// aux variables
-		double a2[3], A[3], detAi;
+		scalar a2[3], A[3], detAi;
 		// integration variables
-		double e1[3], et[3];
+		scalar e1[3], et[3];
 		int dim = 0;
 
 		for (int i = 0; i < nos; ++i) {
@@ -184,7 +184,7 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::Gen_Xi(Data::Spin_System & s, std::vector<double> & xi, double eps)
+	void Optimizer_SIB::Gen_Xi(Data::Spin_System & s, std::vector<scalar> & xi, scalar eps)
 	{
 		//for (int i = 0; i < 3*s.nos; ++i) {
 		//	// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps

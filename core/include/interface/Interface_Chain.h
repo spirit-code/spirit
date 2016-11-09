@@ -24,10 +24,10 @@ DLLEXPORT void Chain_Replace_Image(State * state, int idx_image=-1, int idx_chai
 DLLEXPORT bool Chain_Delete_Image(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Get Data
-std::vector<double> Chain_Get_Rx(State * state, int idx_chain=-1);
-std::vector<double> Chain_Get_Rx_Interpolated(State * state, int idx_chain = -1);
-std::vector<double> Chain_Get_Energy_Interpolated(State * state, int idx_chain = -1);
-std::vector<std::vector<double>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1);
+std::vector<float> Chain_Get_Rx(State * state, int idx_chain=-1);
+std::vector<float> Chain_Get_Rx_Interpolated(State * state, int idx_chain = -1);
+std::vector<float> Chain_Get_Energy_Interpolated(State * state, int idx_chain = -1);
+std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1);
 
 // Update Data (primarily for plots)
 DLLEXPORT void Chain_Update_Data(State * state, int idx_chain=-1);

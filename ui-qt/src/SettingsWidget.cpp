@@ -128,12 +128,12 @@ void SettingsWidget::plusZ()
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
-	double r = lineEdit_hopf_r->text().toDouble();
-	std::vector<double> pos =
+	float r = lineEdit_hopf_r->text().toFloat();
+	std::vector<float> pos =
 	{
-		lineEdit_hopf_posx->text().toDouble(),
-		lineEdit_hopf_posy->text().toDouble(),
-		lineEdit_hopf_posz->text().toDouble()
+		lineEdit_hopf_posx->text().toFloat(),
+		lineEdit_hopf_posy->text().toFloat(),
+		lineEdit_hopf_posz->text().toFloat()
 	};
 	Configuration_Hopfion(this->state.get(), pos.data(), r);
 	this->configurationAddNoise();
@@ -145,19 +145,19 @@ void SettingsWidget::create_Hopfion()
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
-	double speed = lineEdit_sky_order->text().toDouble();
-	double phase = lineEdit_sky_phase->text().toDouble();
+	float speed = lineEdit_sky_order->text().toFloat();
+	float phase = lineEdit_sky_phase->text().toFloat();
 	bool upDown = checkBox_sky_UpDown->isChecked();
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
 	bool experimental = checkBox_sky_experimental->isChecked();
-	std::vector<double> pos =
+	std::vector<float> pos =
 	{
-		lineEdit_sky_posx->text().toDouble(),
-		lineEdit_sky_posy->text().toDouble(),
-		lineEdit_sky_posz->text().toDouble()
+		lineEdit_sky_posx->text().toFloat(),
+		lineEdit_sky_posy->text().toFloat(),
+		lineEdit_sky_posz->text().toFloat()
 	};
-	double rad = lineEdit_sky_rad->text().toDouble();
+	float rad = lineEdit_sky_rad->text().toFloat();
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	this->configurationAddNoise();
 	print_Energies_to_console();
@@ -168,9 +168,9 @@ void SettingsWidget::create_Skyrmion()
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
-	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
-	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
-	double period = lineEdit_SS_period->text().toDouble();
+	float direction[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
+	float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(), lineEdit_SS_axis_z->text().toFloat() };
+	float period = lineEdit_SS_period->text().toFloat();
 	const char * direction_type;
 	// And now an ugly workaround because the QT people are too stupid to fix a Bug with QString::toStdString on Windows...
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
@@ -186,8 +186,8 @@ void SettingsWidget::create_SpinSpiral()
 void SettingsWidget::domainWallPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
-	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
-	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
+	float vec[3] = { lineEdit_vx->text().toFloat(), lineEdit_vy->text().toFloat(), lineEdit_vz->text().toFloat() };
+	float pos[3] = { lineEdit_posx->text().toFloat(), lineEdit_posy->text().toFloat(), lineEdit_posz->text().toFloat() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	this->configurationAddNoise();
 	print_Energies_to_console();
@@ -200,7 +200,7 @@ void SettingsWidget::configurationAddNoise()
 	// Add Noise
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
-		double temperature = lineEdit_Configuration_Noise->text().toDouble();
+		float temperature = lineEdit_Configuration_Noise->text().toFloat();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
 		Chain_Update_Data(this->state.get());
 		this->_spinWidget->update();
@@ -240,7 +240,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 	// Add Noise
 	if (this->checkBox_Transition_Noise->isChecked())
 	{
-		double temperature = lineEdit_Transition_Noise->text().toDouble();
+		float temperature = lineEdit_Transition_Noise->text().toFloat();
 		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
 
@@ -597,17 +597,17 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		double d;
+		float d;
 		bool climbing, falling;
 		int i;
 
 		// Time step [ps]
 		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-		d = this->lineEdit_dt->text().toDouble();
+		d = this->lineEdit_dt->text().toFloat();
 		Parameters_Set_LLG_Time_Step(state.get(), d, idx_image, idx_chain);
 		
 		// Damping
-		d = this->lineEdit_Damping->text().toDouble();
+		d = this->lineEdit_Damping->text().toFloat();
 		Parameters_Set_LLG_Damping(state.get(), d);
 		// n iterations
 		i = this->lineEdit_llg_n_iterations->text().toInt();
@@ -620,7 +620,7 @@ void SettingsWidget::set_parameters()
 		i = this->lineEdit_gneb_log_steps->text().toInt();
 		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
 		// Spring Constant
-		d = this->lineEdit_gneb_springconstant->text().toDouble();
+		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
 		// Climbing/Falling Image
 		climbing = this->radioButton_ClimbingImage->isChecked();
@@ -668,18 +668,18 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image, idx_chain);
 		
 		// mu_s
-		double mu_s = lineEdit_muSpin->text().toDouble();
+		float mu_s = lineEdit_muSpin->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 
 		// External magnetic field
 		//		magnitude
 		if (this->checkBox_extH->isChecked())
-			d = this->lineEdit_extH->text().toDouble();
+			d = this->lineEdit_extH->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_extHx->text().toDouble();
-		vd[1] = lineEdit_extHy->text().toDouble();
-		vd[2] = lineEdit_extHz->text().toDouble();
+		vd[0] = lineEdit_extHx->text().toFloat();
+		vd[1] = lineEdit_extHy->text().toFloat();
+		vd[2] = lineEdit_extHz->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -699,11 +699,11 @@ void SettingsWidget::set_hamiltonian_iso()
 
 		// Exchange
 		i=0;
-		if (lineEdit_exchange1->isEnabled()) { jij[0] = lineEdit_exchange1->text().toDouble(); ++i; }
-		if (lineEdit_exchange2->isEnabled()) { jij[1] = lineEdit_exchange2->text().toDouble(); ++i; }
-		if (lineEdit_exchange3->isEnabled()) { jij[2] = lineEdit_exchange3->text().toDouble(); ++i; }
-		if (lineEdit_exchange4->isEnabled()) { jij[3] = lineEdit_exchange4->text().toDouble(); ++i; }
-		if (lineEdit_exchange5->isEnabled()) { jij[4] = lineEdit_exchange5->text().toDouble(); ++i; }
+		if (lineEdit_exchange1->isEnabled()) { jij[0] = lineEdit_exchange1->text().toFloat(); ++i; }
+		if (lineEdit_exchange2->isEnabled()) { jij[1] = lineEdit_exchange2->text().toFloat(); ++i; }
+		if (lineEdit_exchange3->isEnabled()) { jij[2] = lineEdit_exchange3->text().toFloat(); ++i; }
+		if (lineEdit_exchange4->isEnabled()) { jij[3] = lineEdit_exchange4->text().toFloat(); ++i; }
+		if (lineEdit_exchange5->isEnabled()) { jij[4] = lineEdit_exchange5->text().toFloat(); ++i; }
 		if (!checkBox_exchange->isChecked())
 		{
 			for (int shell = 0; shell < i; ++shell) {
@@ -713,18 +713,18 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Exchange(state.get(), i, jij, idx_image, idx_chain);
 		
 		// DMI
-		if (this->checkBox_dmi->isChecked()) d = this->lineEdit_dmi->text().toDouble();
+		if (this->checkBox_dmi->isChecked()) d = this->lineEdit_dmi->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_DMI(state.get(), d, idx_image, idx_chain);
 
 		// Anisotropy
 		//		magnitude
-		if (this->checkBox_aniso->isChecked()) d = this->lineEdit_aniso->text().toDouble();
+		if (this->checkBox_aniso->isChecked()) d = this->lineEdit_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_anisox->text().toDouble();
-		vd[1] = lineEdit_anisoy->text().toDouble();
-		vd[2] = lineEdit_anisoz->text().toDouble();
+		vd[0] = lineEdit_anisox->text().toFloat();
+		vd[1] = lineEdit_anisoy->text().toFloat();
+		vd[2] = lineEdit_anisoz->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -743,26 +743,26 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
 
 		// BQE
-		if (this->checkBox_bqe->isChecked()) d = this->lineEdit_bqe->text().toDouble();
+		if (this->checkBox_bqe->isChecked()) d = this->lineEdit_bqe->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_BQE(state.get(), d, idx_image, idx_chain);
 
 		// FSC
-		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toDouble();
+		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_FSC(state.get(), d, idx_image, idx_chain);
 
 		// These belong in Parameters, not Hamiltonian
 		// Spin polarised current
 		if (this->checkBox_spin_torque->isChecked()) {
-			d = this->lineEdit_spin_torque->text().toDouble();
+			d = this->lineEdit_spin_torque->text().toFloat();
 		}
 		else {
 			d = 0.0;
 		}
-		vd[0] = lineEdit_spin_torquex->text().toDouble();
-		vd[1] = lineEdit_spin_torquey->text().toDouble();
-		vd[2] = lineEdit_spin_torquez->text().toDouble();
+		vd[0] = lineEdit_spin_torquex->text().toFloat();
+		vd[1] = lineEdit_spin_torquey->text().toFloat();
+		vd[2] = lineEdit_spin_torquez->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -782,7 +782,7 @@ void SettingsWidget::set_hamiltonian_iso()
 
 		// Temperature
 		if (this->checkBox_Temperature->isChecked())
-			d = this->lineEdit_temper->text().toDouble();
+			d = this->lineEdit_temper->text().toFloat();
 		else
 			d = 0.0;
 		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
@@ -853,7 +853,7 @@ void SettingsWidget::set_hamiltonian_aniso_mu_s()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		// mu_s
-		float mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
+		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 	};
 	
@@ -889,12 +889,12 @@ void SettingsWidget::set_hamiltonian_aniso_field()
 
 		// External magnetic field
 		//		magnitude
-		if (this->checkBox_extH_aniso->isChecked()) d = this->lineEdit_extH_aniso->text().toDouble();
+		if (this->checkBox_extH_aniso->isChecked()) d = this->lineEdit_extH_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_extHx_aniso->text().toDouble();
-		vd[1] = lineEdit_extHy_aniso->text().toDouble();
-		vd[2] = lineEdit_extHz_aniso->text().toDouble();
+		vd[0] = lineEdit_extHx_aniso->text().toFloat();
+		vd[1] = lineEdit_extHy_aniso->text().toFloat();
+		vd[2] = lineEdit_extHz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -945,12 +945,12 @@ void SettingsWidget::set_hamiltonian_aniso_ani()
 
 		// Anisotropy
 		//		magnitude
-		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toDouble();
+		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_anix_aniso->text().toDouble();
-		vd[1] = lineEdit_aniy_aniso->text().toDouble();
-		vd[2] = lineEdit_aniz_aniso->text().toDouble();
+		vd[0] = lineEdit_anix_aniso->text().toFloat();
+		vd[1] = lineEdit_aniy_aniso->text().toFloat();
+		vd[2] = lineEdit_aniz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -1003,11 +1003,11 @@ void SettingsWidget::set_hamiltonian_aniso_stt()
 		//		 or move them to Parameters...
 		// Spin polarised current
 		if (this->checkBox_stt_aniso->isChecked())
-			d = this->lineEdit_stt_aniso->text().toDouble();
+			d = this->lineEdit_stt_aniso->text().toFloat();
 		else d = 0.0;
-		vd[0] = lineEdit_sttx_aniso->text().toDouble();
-		vd[1] = lineEdit_stty_aniso->text().toDouble();
-		vd[2] = lineEdit_sttz_aniso->text().toDouble();
+		vd[0] = lineEdit_sttx_aniso->text().toFloat();
+		vd[1] = lineEdit_stty_aniso->text().toFloat();
+		vd[2] = lineEdit_sttz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -1058,7 +1058,7 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 		// Temperature
 		if (this->checkBox_T_aniso->isChecked())
-			d = this->lineEdit_T_aniso->text().toDouble();
+			d = this->lineEdit_T_aniso->text().toFloat();
 		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
 	};
 	
@@ -1219,7 +1219,7 @@ void SettingsWidget::print_Energies_to_console()
 {
 	System_Update_Data(state.get());
 	auto E = System_Get_Energy(state.get());
-	double E_array[7];
+	float E_array[7];
 	auto NOS = System_Get_NOS(this->state.get());
 	System_Get_Energy_Array(state.get(), E_array);
 

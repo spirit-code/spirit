@@ -16,6 +16,8 @@ option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app
 option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+### Set the scalar type used in the core library
+set(CORE_SCALAR_TYPE double)
 #############################################
 
 

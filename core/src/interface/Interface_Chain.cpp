@@ -204,7 +204,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     }
 }
 
-std::vector<double> Chain_Get_Rx(State * state, int idx_chain_i)
+std::vector<float> Chain_Get_Rx(State * state, int idx_chain_i)
 {
 	int idx_image = -1, idx_chain = idx_chain_i;
 	std::shared_ptr<Data::Spin_System> image;
@@ -212,32 +212,47 @@ std::vector<double> Chain_Get_Rx(State * state, int idx_chain_i)
 	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	return chain->Rx;
+	std::vector<float> Rx(chain->Rx.size());
+	for (unsigned int i = 0; i < chain->Rx.size(); ++i)
+	{
+		Rx[i] = (float)chain->Rx[i];
+	}
+	return Rx;
 }
 
-std::vector<double> Chain_Get_Rx_Interpolated(State * state, int idx_chain_i)
+std::vector<float> Chain_Get_Rx_Interpolated(State * state, int idx_chain_i)
 {
 	int idx_image = -1, idx_chain = idx_chain_i;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-
-	return chain->Rx_interpolated;
+	
+	std::vector<float> Rx_interpolated(chain->Rx_interpolated.size());
+	for (unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i)
+	{
+		Rx_interpolated[i] = (float)chain->Rx_interpolated[i];
+	}
+	return Rx_interpolated;
 }
 
-std::vector<double> Chain_Get_Energy_Interpolated(State * state, int idx_chain_i)
+std::vector<float> Chain_Get_Energy_Interpolated(State * state, int idx_chain_i)
 {
 	int idx_image = -1, idx_chain = idx_chain_i;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-
-	return chain->E_interpolated;
+	
+	std::vector<float> E_interpolated(chain->E_interpolated.size());
+	for (unsigned int i = 0; i < chain->E_interpolated.size(); ++i)
+	{
+		E_interpolated[i] = (float)chain->E_interpolated[i];
+	}
+	return E_interpolated;
 }
 
-std::vector<std::vector<double>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain_i)
+std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain_i)
 {
 	int idx_image = -1, idx_chain = idx_chain_i;
 	std::shared_ptr<Data::Spin_System> image;
@@ -245,7 +260,16 @@ std::vector<std::vector<double>> Chain_Get_Energy_Array_Interpolated(State * sta
 	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	return chain->E_array_interpolated;
+	std::vector<std::vector<float>> E_array_interpolated(chain->E_array_interpolated.size());
+	for (unsigned int i = 0; i < chain->E_array_interpolated.size(); ++i)
+	{
+		E_array_interpolated[i] = std::vector<float>(chain->E_array_interpolated[i].size());
+		for (unsigned j = 0; j < chain->E_array_interpolated[i].size(); ++j)
+		{
+			E_array_interpolated[i][j] = (float)chain->E_array_interpolated[i][j];
+		}
+	}
+	return E_array_interpolated;
 }
 
 
@@ -277,10 +301,10 @@ void Chain_Setup_Data(State * state, int idx_chain_i)
     from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply
-    chain->Rx = std::vector<double>(state->noi, 0);
-    chain->Rx_interpolated = std::vector<double>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_interpolated = std::vector<double>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_array_interpolated = std::vector<std::vector<double>>(7, std::vector<double>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+    chain->Rx = std::vector<scalar>(state->noi, 0);
+    chain->Rx_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
     // Initial data update
     Chain_Update_Data(state, idx_chain);

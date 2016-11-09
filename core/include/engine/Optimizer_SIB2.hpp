@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Optimizer.hpp"
 #include "Spin_System_Chain.hpp"
 
@@ -26,9 +27,9 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<double>> spins_temp;
+		std::vector<std::vector<scalar>> spins_temp;
 
-		void Gen_Xi(Data::Spin_System & s, std::vector<double> & xi, double eps);
+		void Gen_Xi(Data::Spin_System & s, std::vector<scalar> & xi, scalar eps);
     };
 }
 

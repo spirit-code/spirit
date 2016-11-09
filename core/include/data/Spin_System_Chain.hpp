@@ -2,6 +2,7 @@
 #ifndef DATA_SPIN_SYSTEM_CHAIN_H
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
+#include "Core_Defines.h"
 #include "Spin_System.hpp"
 #include "Parameters_Method_GNEB.hpp"
 
@@ -28,14 +29,14 @@ namespace Data
 		std::vector<bool> falling_image;
 
 		// Reaction coordinates of images in the chain
-		std::vector<double> Rx;
+		std::vector<scalar> Rx;
 
 		// Reaction coordinates of interpolated points
-		std::vector<double> Rx_interpolated;
+		std::vector<scalar> Rx_interpolated;
 
 		// Total Energy of the spin systems and interpolated values
-		std::vector<double> E_interpolated;
-		std::vector<std::vector<double>> E_array_interpolated;
+		std::vector<scalar> E_interpolated;
+		std::vector<std::vector<scalar>> E_array_interpolated;
 
 
 	private:

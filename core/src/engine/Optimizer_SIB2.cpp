@@ -9,8 +9,8 @@ namespace Engine
 	Optimizer_SIB2::Optimizer_SIB2(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		//this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
+		//this->virtualforce = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
+		this->spins_temp = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
 		//if (systems.size() > 1) Log(Log_Level::ERROR, Log_Sender::LLG, "THE OPTIMIZER_SIB2 CANNOT HANDLE MORE THAN 1 IMAGE CORRECTLY !!");
     }
 	
@@ -23,21 +23,21 @@ namespace Engine
 		{
 			s = method->systems[img];
 
-			double h = s->llg_parameters->dt;
-			double rh = std::sqrt(h);
-			double alpha = s->llg_parameters->damping;
-			double temperature = s->llg_parameters->temperature;
+			scalar h = s->llg_parameters->dt;
+			scalar rh = std::sqrt(h);
+			scalar alpha = s->llg_parameters->damping;
+			scalar temperature = s->llg_parameters->temperature;
 
-			double nx, ny, nz;
-			double Hx, Hy, Hz;
-			double Cx, Cy, Cz;
-			double Rx, Ry, Rz;
-			double ax, ay, az;
-			double Ax, Ay, Az;
-			double detMi;
-			double D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Vectormath::kB());
+			scalar nx, ny, nz;
+			scalar Hx, Hy, Hz;
+			scalar Cx, Cy, Cz;
+			scalar Rx, Ry, Rz;
+			scalar ax, ay, az;
+			scalar Ax, Ay, Az;
+			scalar detMi;
+			scalar D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Vectormath::kB());
 
-			auto R = std::vector<double>(3 * nos);
+			auto R = std::vector<scalar>(3 * nos);
 			this->Gen_Xi(*s, R, D);
 
 			Cx = s->llg_parameters->stt_polarisation_normal[0] * s->llg_parameters->stt_magnitude;
@@ -129,7 +129,7 @@ namespace Engine
 		}
 	}
 
-	void Optimizer_SIB2::Gen_Xi(Data::Spin_System & s, std::vector<double> & xi, double eps)
+	void Optimizer_SIB2::Gen_Xi(Data::Spin_System & s, std::vector<scalar> & xi, scalar eps)
 	{
 		//for (int i = 0; i < 3*s.nos; ++i) {
 		//	// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps

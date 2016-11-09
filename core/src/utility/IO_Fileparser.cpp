@@ -32,8 +32,8 @@ namespace Utility
 			return out;
 		}
 
-		std::vector<double> split_string_to_double(const std::string& source, const std::string& delimiter) {
-			std::vector<double> result;
+		std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter) {
+			std::vector<scalar> result;
 
 			size_t last = 0;
 			size_t next = 0;
@@ -69,7 +69,7 @@ namespace Utility
 						// Read the line if # is not found (# marks a comment)
 						if (found == std::string::npos)
 						{
-							auto x = split_string_to_double(line, ",");
+							auto x = split_string_to_scalar(line, ",");
 							spins[i] = x[3];
 							spins[1*s->nos + i] = x[4];
 							spins[2*s->nos + i] = x[5];
@@ -88,7 +88,7 @@ namespace Utility
 						// Read the line if # is not found (# marks a comment)
 						if (found == std::string::npos)
 						{
-							//double x, y, z;
+							//scalar x, y, z;
 							iss.clear();
 							iss.str(line);
 							//iss >> x >> y >> z;
@@ -167,7 +167,7 @@ namespace Utility
 			}
 		}
 
-		/*std::vector<std::vector<double>> External_Field_from_File(int nos, const std::string externalFieldFile)
+		/*std::vector<std::vector<scalar>> External_Field_from_File(int nos, const std::string externalFieldFile)
 		{
 
 		}*/
@@ -177,8 +177,8 @@ namespace Utility
 		Read from Anisotropy file
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
-			std::vector<int> & anisotropy_index, std::vector<double> & anisotropy_magnitude,
-			std::vector<std::vector<double>> & anisotropy_normal)
+			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
+			std::vector<std::vector<scalar>> & anisotropy_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
 			try {
@@ -187,7 +187,7 @@ namespace Utility
 				// column indices of pair indices and interactions
 				int col_i = -1, col_K = -1, col_Kx = -1, col_Ky = -1, col_Kz = -1, col_Ka = -1, col_Kb = -1, col_Kc = -1;
 				bool K_magnitude = false, K_xyz = false, K_abc = false;
-				std::vector<double> K_temp = { 0, 0, 0 };
+				std::vector<scalar> K_temp = { 0, 0, 0 };
 				// Get column indices
 				IO::Filter_File_Handle file(anisotropyFile);
 				file.GetLine(); // first line contains the columns
@@ -216,11 +216,11 @@ namespace Utility
 
 				// Indices
 				int spin_i = 0;
-				double spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0;
+				scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0;
 				// Arrays
 				anisotropy_index = std::vector<int>(0);
-				anisotropy_magnitude = std::vector<double>(0);
-				anisotropy_normal = std::vector<std::vector<double>>(0);
+				anisotropy_magnitude = std::vector<scalar>(0);
+				anisotropy_normal = std::vector<std::vector<scalar>>(0);
 
 				// Get actual Data
 				file.ResetStream();
@@ -263,7 +263,7 @@ namespace Utility
 					// Anisotropy vector normalisation
 					if (K_magnitude)
 					{
-						double dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
+						scalar dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
 						if (dnorm != 0)
 						{
 							spin_K1 = spin_K1 / dnorm;
@@ -288,7 +288,7 @@ namespace Utility
 					{
 						anisotropy_index.push_back(spin_i);
 						anisotropy_magnitude.push_back(spin_K);
-						anisotropy_normal.push_back(std::vector<double>{spin_K1, spin_K2, spin_K3});
+						anisotropy_normal.push_back(std::vector<scalar>{spin_K1, spin_K2, spin_K3});
 					}
 
 				}// end while getline
@@ -303,9 +303,9 @@ namespace Utility
 		Read from Pairs file by Markus & Bernd
 		*/
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<double>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<double>> & DMI_magnitude, std::vector<std::vector<std::vector<double>>> & DMI_normal,
-			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<double>> & BQC_magnitude)
+			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
+			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<std::vector<scalar>>> & DMI_normal,
+			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<scalar>> & BQC_magnitude)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
 			try {
@@ -317,7 +317,7 @@ namespace Utility
 					col_Dij = -1, col_DMIa = -1, col_DMIb = -1, col_DMIc = -1;
 				bool J = false, DMI_xyz = false, DMI_abc = false, Dij = false, BQC = false;
 				int pair_periodicity = 0;
-				std::vector<double> pair_D_temp = { 0, 0, 0 };
+				std::vector<scalar> pair_D_temp = { 0, 0, 0 };
 				// Get column indices
 				IO::Filter_File_Handle file(pairsFile);
 				file.GetLine(); // first line contains the columns
@@ -356,7 +356,7 @@ namespace Utility
 
 				// Pair Indices
 				int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
-				double pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0, pair_Bij = 0;
+				scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0, pair_Bij = 0;
 				// Get actual Pairs Data
 				file.ResetStream();
 				int i_pair = 0;
@@ -411,7 +411,7 @@ namespace Utility
 					// DMI vector normalisation
 					if (Dij)
 					{
-						double dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
+						scalar dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
 						if (dnorm != 0)
 						{
 							pair_D1 = pair_D1 / dnorm;
@@ -509,14 +509,14 @@ namespace Utility
 								{
 									DMI_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
 									DMI_magnitude[pair_periodicity].push_back(pair_Dij);
-									DMI_normal[pair_periodicity].push_back(std::vector<double>{pair_D1, pair_D2, pair_D3});
+									DMI_normal[pair_periodicity].push_back(std::vector<scalar>{pair_D1, pair_D2, pair_D3});
 								}
 								if (pair_Bij != 0)
 								{
 									BQC_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
 									BQC_magnitude[pair_periodicity].push_back(pair_Bij);
 								}
-								//pairs.push_back(Data::Spin_Pair(idx_i, idx_j, pair_Jij, pair_Dij, std::vector<double>{pair_Dx, pair_Dy, pair_Dz}, pair_Bij));
+								//pairs.push_back(Data::Spin_Pair(idx_i, idx_j, pair_Jij, pair_Dij, std::vector<scalar>{pair_Dx, pair_Dy, pair_Dz}, pair_Bij));
 							}
 						}
 					}// end for translations

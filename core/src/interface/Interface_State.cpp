@@ -1,7 +1,7 @@
 #include "Interface_State.h"
 
 #include "State.hpp"
-#include "Version.h"
+#include "Core_Defines.h"
 #include "Logging.hpp"
 #include "IO.hpp"
 #include "Configurations.hpp"
@@ -32,13 +32,8 @@ State * State_Setup(const char * config_file)
         state->active_image = IO::Spin_System_from_Config(config_file);
         //-------------------------------------------------------------------------------
 
-        //---------------------- set images configuration -------------------------------
-        // Parameters
-        double dir[3] = { 0,0,1 };
-        std::vector<double> pos = { 14.5, 14.5, 0 };
-        // First image is homogeneous with a Skyrmion at pos
+        //---------------------- set image configuration --------------------------------
         Configurations::Random(*state->active_image);
-        //Configurations::Skyrmion(*s1, pos, 6.0, 1.0, -90.0, false, false, false, false);
         //-------------------------------------------------------------------------------
 
         //----------------------- initialize spin system chain --------------------------

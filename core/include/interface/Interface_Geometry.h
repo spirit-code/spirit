@@ -4,8 +4,10 @@
 #include "DLL_Define_Export.h"
 struct State;
 
+#include "Core_Defines.h"
+
 // Get Positions of Spins
-DLLEXPORT double * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Get Bounds as array (x,y,z)
 DLLEXPORT void Geometry_Get_Bounds(State *state, float * min, float * max, int idx_image=-1, int idx_chain=-1);

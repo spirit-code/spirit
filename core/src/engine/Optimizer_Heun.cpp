@@ -8,8 +8,8 @@ namespace Engine
 	Optimizer_Heun::Optimizer_Heun(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->virtualforce = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
+		this->virtualforce = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
+		this->spins_temp = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
     }
 
     void Optimizer_Heun::Iteration()
@@ -20,8 +20,8 @@ namespace Engine
 		this->method->Calculate_Force(configurations, force);
 
 		int dim;
-		double dt, s2;
-		std::vector <double> c1(3), c2(3), c3(3), c4(3);
+		scalar dt, s2;
+		std::vector <scalar> c1(3), c2(3), c3(3), c4(3);
 
 		// Optimization for each image
 		for (int i = 0; i < this->noi; ++i)
@@ -29,7 +29,7 @@ namespace Engine
 			s = method->systems[i];
 			auto& conf = *configurations[i];
 
-			std::vector<double> temp1(3), temp2(3);
+			std::vector<scalar> temp1(3), temp2(3);
 			dt = s->llg_parameters->dt;
 
 			for (int j = 0; j < nos; ++j)

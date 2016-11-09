@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Method.hpp"
 #include <Spin_System_Chain.hpp>
 
@@ -19,7 +20,7 @@ namespace Engine
 		Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain);
     
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -43,15 +44,15 @@ namespace Engine
 		std::shared_ptr<Data::Spin_System_Chain> chain;
 
 		// Last calculated energies
-		std::vector<double> energies;
+		std::vector<scalar> energies;
 		// Last calculated Reaction coordinates
-		std::vector<double> Rx;
+		std::vector<scalar> Rx;
 		// Last calculated forces
-		std::vector<std::vector<double>> F_total;
-		std::vector<std::vector<double>> F_gradient;
-		std::vector<std::vector<double>> F_spring;
+		std::vector<std::vector<scalar>> F_total;
+		std::vector<std::vector<scalar>> F_gradient;
+		std::vector<std::vector<scalar>> F_spring;
 		// Last calculated tangents
-		std::vector<std::vector<double>> tangents;
+		std::vector<std::vector<scalar>> tangents;
     };
 }
 

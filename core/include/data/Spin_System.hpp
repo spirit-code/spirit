@@ -5,6 +5,8 @@
 #include <random>
 #include <thread>
 #include <memory>
+
+#include "Core_Defines.h"
 #include "data/Geometry.hpp"
 #include "engine/Hamiltonian.hpp"
 #include "engine/Hamiltonian_Isotropic.hpp"
@@ -36,7 +38,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::shared_ptr<std::vector<double>> spins;
+		std::shared_ptr<std::vector<scalar>> spins;
 		// Spin Hamiltonian
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
@@ -47,10 +49,10 @@ namespace Data
 		bool iteration_allowed;
 
 		// Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
-		double E;
-		std::vector<double> E_array;
+		scalar E;
+		std::vector<scalar> E_array;
 		// Total effective field of the spins [3][nos]
-		std::vector<double> effective_field;
+		std::vector<scalar> effective_field;
 
 
 	//private:

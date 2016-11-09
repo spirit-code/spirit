@@ -2,6 +2,7 @@
 #ifndef METHOD_MMF_H
 #define METHOD_MMF_H
 
+#include "Core_Defines.h"
 #include "Method.hpp"
 #include "Parameters_Method_MMF.hpp"
 #include "Spin_System_Chain_Collection.hpp"
@@ -13,14 +14,13 @@ namespace Engine
 	*/
 	class Method_MMF : public Method
 	{
-
 	public:
  		// Constructor
 		Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain);
     
 	//public override:
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -44,24 +44,24 @@ namespace Engine
 		bool switched1, switched2;
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
-		std::vector<std::vector<double>> hessian;
+		std::vector<std::vector<scalar>> hessian;
 		// Last calculated forces
-		std::vector<std::vector<double>> F_gradient;
+		std::vector<std::vector<scalar>> F_gradient;
 		// Last calculated minimum mode
-		std::vector<std::vector<double>> minimum_mode;
+		std::vector<std::vector<scalar>> minimum_mode;
 
 		// Last iterations spins and reaction coordinate
-		double Rx_last;
-		std::vector<std::vector<double>> spins_last;
+		scalar Rx_last;
+		std::vector<std::vector<scalar>> spins_last;
 
 		// Which minimum mode function to use
 		// ToDo: move into parameters
 		std::string mm_function;
 
 		// Functions for getting the minimum mode of a Hessian
-		void Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
-		void Calculate_Force_Spectra_Prefactor(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
-		void Calculate_Force_Lanczos(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
+		void Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces);
+		void Calculate_Force_Spectra_Prefactor(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces);
+		void Calculate_Force_Lanczos(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces);
 	};
 }
 

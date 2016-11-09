@@ -19,15 +19,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #############################################
-# set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated version.h
+# set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated Core_Defines.h
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 #############################################
 
 
-######### Generate Version.h ################
+######### Generate Core_Defines.h ################
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
-configure_file(${CMAKE_SOURCE_DIR}/CMake/Version.h.in ${PROJECT_SOURCE_DIR}/include/Version.h)
+configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Core_Defines.h)
 #############################################
 
 

@@ -63,8 +63,8 @@ void SpinWidget::update()
 	// ToDo: Update the pointer to our Data instead of copying Data?
 	// Positions and directions
 	//		get pointer
-	double *spins, *spin_pos;
-  bool keep_magnitudes = false;
+	scalar *spins, *spin_pos;
+	bool keep_magnitudes = false;
 	if (true)
 	{
 		spins = System_Get_Spin_Directions(state.get());
@@ -84,22 +84,29 @@ void SpinWidget::update()
 	{
 		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
 	}
-  //    normalize if needed
-  if (keep_magnitudes) {
-    float max_length = 0;
-    for (auto direction : directions) {
-      max_length = std::max(max_length, glm::length(direction));
-    }
-    if (max_length > 0) {
-      for (auto& direction : directions) {
-        direction /= max_length;
-      }
-    }
-  } else {
-    for (auto& direction : directions) {
-      direction = glm::normalize(direction);
-    }
-  }
+	//    normalize if needed
+	if (keep_magnitudes)
+	{
+		float max_length = 0;
+		for (auto direction : directions)
+		{
+			max_length = std::max(max_length, glm::length(direction));
+		}
+		if (max_length > 0)
+		{
+			for (auto& direction : directions)
+			{
+				direction /= max_length;
+			}
+		}
+	}
+	else
+	{
+		for (auto& direction : directions)
+		{
+			direction = glm::normalize(direction);
+		}
+	}
 	//		update GL
 	gl_spins->updateSpins(positions, directions);
 
@@ -170,12 +177,12 @@ void SpinWidget::setCameraToZ() {
   gl_spins->setCameraToZ();
 }
 
-double SpinWidget::getFramesPerSecond() const {
+float SpinWidget::getFramesPerSecond() const {
   return gl_spins->getFramerate();
 }
 
 void SpinWidget::wheelEvent(QWheelEvent *event) {
-  double wheel_delta = event->delta();
+  float wheel_delta = event->delta();
   gl_spins->mouseScroll(wheel_delta*0.1);
 }
 
@@ -187,11 +194,11 @@ const Options<GLSpins>& SpinWidget::options() const {
   
 }
 
-double SpinWidget::verticalFieldOfView() const {
+float SpinWidget::verticalFieldOfView() const {
   return options().get<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>();
 }
 
-void SpinWidget::setVerticalFieldOfView(double vertical_field_of_view) {
+void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view) {
 	makeCurrent();
   auto option = Options<GLSpins>::withOption<ISpinRenderer::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
   gl_spins->updateOptions(option);

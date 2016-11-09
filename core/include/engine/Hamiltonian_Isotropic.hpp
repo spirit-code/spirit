@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Hamiltonian.hpp"
 #include "Geometry.hpp"
 
@@ -14,16 +15,16 @@ namespace Engine
 	{
 	public:
 		// Constructor
-		Hamiltonian_Isotropic(std::vector<bool> boundary_conditions, double external_field_magnitude, std::vector<double> external_field_normal, double mu_s,
-			double anisotropy_magnitude, std::vector<double> anisotropy_normal,
-			int n_neigh_shells, std::vector<double> jij, double dij, double bij, double kijkl, double dd_radius, Data::Geometry geometry);
+		Hamiltonian_Isotropic(std::vector<bool> boundary_conditions, scalar external_field_magnitude, std::vector<scalar> external_field_normal, scalar mu_s,
+			scalar anisotropy_magnitude, std::vector<scalar> anisotropy_normal,
+			int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
 		
-		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
-		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
-		double Energy(const std::vector<double> & spins) override;
-		std::vector<double> Energy_Array(const std::vector<double> & spins) override;
+		void Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian) override;
+		void Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field) override;
+		scalar Energy(const std::vector<scalar> & spins) override;
+		std::vector<scalar> Energy_Array(const std::vector<scalar> & spins) override;
 		// Need to implement:
-		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
+		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
@@ -31,45 +32,45 @@ namespace Engine
 	//private:// these are currently needed by the to-be-removed Energy and Eff_Field
 		// -------------------- Effective Field Functions ------------------
 		// Calculates the Zeeman contribution to the effective field of spin ispin within system s
-		void Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Zeeman(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the Exchange contribution to the effective field of spin ispin within system s
-		void Field_Exchange(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Exchange(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the Anisotropic contribution to the effective field of spin ispin within system s
-		void Field_Anisotropic(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_Anisotropic(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the Biquadratic Coupling contribution to the effective field of spin ispin within system s
-		void Field_BQC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_BQC(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the 4-spin Coupling contribution to the effective field of spin ispin within system s
-		void Field_FourSC(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_FourSC(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the Dzyaloshinskii-Moriya Interaction contribution to the effective field of spin ispin within system s
-		void Field_DM(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_DM(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DipoleDipole(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin);
+		void Field_DipoleDipole(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin);
 
 		// -------------------- Energy Functions ------------------
 		// calculates the Zeeman Energy of spin ispin within system s
-		double E_Zeeman(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_Zeeman(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the Exchange Energy of spin ispin within system s
-		double E_Exchange(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_Exchange(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the Anisotropic Energy of spin ispin within system s
-		double E_Anisotropic(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_Anisotropic(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the Biquadratic Coupling Energy of spin ispin within system s
-		double E_BQC(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_BQC(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the 4-spin Coupling Energy of spin ispin within system s
-		double E_FourSC(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_FourSC(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the Dzyaloshinskii-Moriya Interaction Energy of spin ispin within system s
-		double E_DM(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_DM(int nos, const std::vector<scalar> & spins, const int ispin);
 		// calculates the Dipole-Dipole Energy of spin ispin within system s
-		double E_DipoleDipole(int nos, const std::vector<double> & spins, const int ispin);
+		scalar E_DipoleDipole(int nos, const std::vector<scalar> & spins, const int ispin);
 
 
 		// -------------------- Single Spin Interactions ------------------
 		// External Magnetic Field
-		double external_field_magnitude;
-		std::vector<double> external_field_normal;
-		double mu_s;
+		scalar external_field_magnitude;
+		std::vector<scalar> external_field_normal;
+		scalar mu_s;
 		// Anisotropy
-		double anisotropy_magnitude;
-		std::vector<double> anisotropy_normal;
+		scalar anisotropy_magnitude;
+		std::vector<scalar> anisotropy_normal;
 
 		// -------------------- Two Spin Interactions ------------------
 		// number of pairwise interaction shells
@@ -80,27 +81,27 @@ namespace Engine
 		std::vector<std::vector<std::vector<int>>> neigh;
 
 		// Exchange Interaction
-		std::vector<double> jij;
+		std::vector<scalar> jij;
 		// DMI
-		double dij;
+		scalar dij;
 		// DM normal vectors [dim][nos][max_n_in_shell[n_shell]]
-		std::vector<std::vector<std::vector<double>>> dm_normal;
+		std::vector<std::vector<std::vector<scalar>>> dm_normal;
 		// Biquadratic Exchange
-		double bij;
+		scalar bij;
 		// Dipole Dipole radius
-		double dd_radius;
+		scalar dd_radius;
 		// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 		std::vector<std::vector<int>> dd_neigh;
 		// Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
-		std::vector<std::vector<std::vector<double>>> dd_neigh_pos;
+		std::vector<std::vector<std::vector<scalar>>> dd_neigh_pos;
 		// Dipole Dipole normal vectors [dim][nos][max_n]
-		std::vector<std::vector<std::vector<double>>> dd_normal;
+		std::vector<std::vector<std::vector<scalar>>> dd_normal;
 		// Dipole Dipole distance [nos][max_n]
-		std::vector<std::vector<double>> dd_distance;
+		std::vector<std::vector<scalar>> dd_distance;
 		
 		// -------------------- Four Spin Interactions ------------------
 		// Four Spin
-		double kijkl;
+		scalar kijkl;
 		// Maximum number of 4-Spin interactions per spin
 		int max_n_4spin;
 		// actual number of 4-Spin interactions for each spin number_t4_spin[nos]
@@ -111,7 +112,7 @@ namespace Engine
 		// segments[nos][4]
 		std::vector<std::vector<int>> segments;
 		// Position of the Segments: segments_pos[dim][nos][4]
-		std::vector<std::vector<std::vector<double>>> segments_pos;
+		std::vector<std::vector<std::vector<scalar>>> segments_pos;
 	};
 }
 #endif

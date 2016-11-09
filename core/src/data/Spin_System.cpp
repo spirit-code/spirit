@@ -23,12 +23,12 @@ namespace Data
 		this->nos = this->geometry->nos;
 
 		// Initialize Spins Array
-		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(3 * nos));
+		this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(3 * nos));
 
 		// ...
 		this->E = 0;
-		this->E_array = std::vector<double>(7, 0.0);
-		this->effective_field = std::vector<double>(3 * this->nos, 0);
+		this->E_array = std::vector<scalar>(7, 0.0);
+		this->effective_field = std::vector<scalar>(3 * this->nos, 0);
 
 	}//end Spin_System constructor
 
@@ -36,7 +36,7 @@ namespace Data
 	Spin_System::Spin_System(Spin_System const & other)
 	{
 		this->nos = other.nos;
-		this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
+		this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(*other.spins));
 
 		this->E = other.E;
 		this->E_array = other.E_array;
@@ -68,7 +68,7 @@ namespace Data
 		if (this != &other)
 		{
 			this->nos = other.nos;
-			this->spins = std::shared_ptr<std::vector<double>>(new std::vector<double>(*other.spins));
+			this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(*other.spins));
 
 			this->E = other.E;
 			this->E_array = other.E_array;

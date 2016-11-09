@@ -7,10 +7,10 @@ namespace Engine
     Optimizer_VP::Optimizer_VP(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->spins_temp = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos));	// [noi][3*nos]
-		this->velocity = std::vector<std::vector<double>>(this->noi, std::vector<double>(3 * this->nos, 0));	// [noi][3*nos]
-		this->projection = std::vector<double>(this->noi, 0);	// [noi]
-		this->force_norm2 = std::vector<double>(this->noi, 0);	// [noi]
+		this->spins_temp = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
+		this->velocity = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos, 0));	// [noi][3*nos]
+		this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
+		this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
     }
 
     void Optimizer_VP::Iteration()
@@ -31,7 +31,7 @@ namespace Engine
 			auto& l_force_prev = force_previous[i];
 
 			s = method->systems[i];
-			double dt = s->llg_parameters->dt;
+			scalar dt = s->llg_parameters->dt;
 
 			// Calculate the new velocity
 			for (int j = 0; j < 3 * nos; ++j)

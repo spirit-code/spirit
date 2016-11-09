@@ -33,7 +33,7 @@ enum IsosurfaceSpinRendererOptions {
 
 template<> template<>
 struct Options<GLSpins>::Option<IsosurfaceSpinRendererOptions::ISOVALUE> {
-  double default_value = 0;
+  float default_value = 0;
 };
 
 #endif

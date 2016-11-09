@@ -21,14 +21,14 @@ public:
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
-  double getFramesPerSecond() const;
+  float getFramesPerSecond() const;
   
   void setCameraToDefault();
   void setCameraToX();
   void setCameraToY();
   void setCameraToZ();
-  double verticalFieldOfView() const;
-  void setVerticalFieldOfView(double vertical_field_of_view);
+  float verticalFieldOfView() const;
+  void setVerticalFieldOfView(float vertical_field_of_view);
   glm::vec3 backgroundColor() const;
   void setBackgroundColor(glm::vec3 background_color);
   glm::vec3 boundingBoxColor() const;
