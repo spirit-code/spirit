@@ -43,7 +43,8 @@ public:
     TETRAHEDRA_INDICES
   };
   enum Colormap {
-    HSV,
+	HSV,
+	HSV_NO_Z,
     BLUE_RED,
     BLUE_GREEN_RED,
     BLUE_WHITE_RED,
@@ -60,6 +61,12 @@ public:
   void setCameraToX();
   void setCameraToY();
   void setCameraToZ();
+  void setCameraPositionTo(float x, float y, float z);
+  void setCameraFocusTo(float x, float y, float z);
+  void setCameraUpvectorTo(float x, float y, float z);
+  glm::vec3 getCameraPosition();
+  glm::vec3 getCameraFocus();
+  glm::vec3 getCameraUpvector();
   void setFramebufferSize(float width, float height);
   float getFramerate() const;
   

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>643</width>
     <height>986</height>
    </rect>
   </property>
@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>272</width>
-            <height>961</height>
+            <width>617</width>
+            <height>940</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1268,8 +1268,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>296</width>
-            <height>937</height>
+            <width>617</width>
+            <height>940</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1547,8 +1547,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>326</width>
-            <height>877</height>
+            <width>617</width>
+            <height>893</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2210,8 +2210,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>268</width>
-            <height>877</height>
+            <width>617</width>
+            <height>893</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2676,8 +2676,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>336</width>
-            <height>937</height>
+            <width>617</width>
+            <height>940</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3088,8 +3088,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>419</width>
-            <height>937</height>
+            <width>617</width>
+            <height>940</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3314,19 +3314,6 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="5">
-               <widget class="QSlider" name="horizontalSlider_isovalue">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
               <item row="6" column="0">
                <widget class="QLabel" name="label_48">
                 <property name="minimumSize">
@@ -3352,6 +3339,42 @@
                  <string>Show Bounding Box</string>
                 </property>
                </widget>
+              </item>
+              <item row="6" column="5">
+               <layout class="QGridLayout" name="gridLayout_59">
+                <item row="0" column="1">
+                 <widget class="QSlider" name="horizontalSlider_isovalue">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLineEdit" name="lineEdit_isovalue">
+                  <property name="minimumSize">
+                   <size>
+                    <width>30</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -3583,6 +3606,11 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>HSV, no z-component</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Z-Component: Blue-Red</string>
                  </property>
                 </item>
@@ -3639,6 +3667,201 @@
               <size>
                <width>20</width>
                <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_12">
+             <property name="title">
+              <string>Camera</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_60">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_62">
+                <item row="0" column="0">
+                 <widget class="QPushButton" name="pushButton_set_camera">
+                  <property name="text">
+                   <string>Set Camera</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="pushButton_read_camera">
+                  <property name="text">
+                   <string>Read Camera</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="4">
+               <spacer name="horizontalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_63">
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_52">
+                  <property name="text">
+                   <string>Focus (x y z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_51">
+                  <property name="text">
+                   <string>Position (x y z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLineEdit" name="lineEdit_camera_focus_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_camera_pos_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLineEdit" name="lineEdit_camera_pos_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLineEdit" name="lineEdit_camera_pos_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>20</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLineEdit" name="lineEdit_camera_focus_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_camera_focus_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_53">
+                  <property name="text">
+                   <string>Up-vector (x y z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="lineEdit_camera_upvector_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QLineEdit" name="lineEdit_camera_upvector_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="3">
+                 <widget class="QLineEdit" name="lineEdit_camera_upvector_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_16">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
               </size>
              </property>
             </spacer>
@@ -3859,8 +4082,22 @@
   <tabstop>comboBox_coordinateSystemPosition</tabstop>
   <tabstop>comboBox_colormap</tabstop>
   <tabstop>comboBox_backgroundColor</tabstop>
-  <tabstop>horizontalSlider</tabstop>
-  <tabstop>horizontalSlider_2</tabstop>
+  <tabstop>pushButton_set_camera</tabstop>
+  <tabstop>pushButton_read_camera</tabstop>
+  <tabstop>lineEdit_camera_pos_x</tabstop>
+  <tabstop>lineEdit_camera_pos_y</tabstop>
+  <tabstop>lineEdit_camera_pos_z</tabstop>
+  <tabstop>lineEdit_camera_focus_x</tabstop>
+  <tabstop>lineEdit_camera_focus_y</tabstop>
+  <tabstop>lineEdit_camera_focus_z</tabstop>
+  <tabstop>lineEdit_camera_upvector_x</tabstop>
+  <tabstop>lineEdit_camera_upvector_y</tabstop>
+  <tabstop>lineEdit_camera_upvector_z</tabstop>
+  <tabstop>lineEdit_hopf_posy</tabstop>
+  <tabstop>lineEdit_hopf_posz</tabstop>
+  <tabstop>lineEdit_hopf_r</tabstop>
+  <tabstop>horizontalSlider_isovalue</tabstop>
+  <tabstop>lineEdit_isovalue</tabstop>
   <tabstop>horizontalSlider_3</tabstop>
   <tabstop>checkBox_Configuration_Noise</tabstop>
   <tabstop>lineEdit_Configuration_Noise</tabstop>
@@ -3870,10 +4107,8 @@
   <tabstop>pushButton_minusZ</tabstop>
   <tabstop>pushButton_hopfion</tabstop>
   <tabstop>lineEdit_hopf_posx</tabstop>
-  <tabstop>lineEdit_hopf_posy</tabstop>
-  <tabstop>lineEdit_hopf_posz</tabstop>
-  <tabstop>lineEdit_hopf_r</tabstop>
-  <tabstop>horizontalSlider_isovalue</tabstop>
+  <tabstop>horizontalSlider</tabstop>
+  <tabstop>horizontalSlider_2</tabstop>
  </tabstops>
  <resources/>
  <connections/>

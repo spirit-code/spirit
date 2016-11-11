@@ -27,6 +27,12 @@ public:
   void setCameraToX();
   void setCameraToY();
   void setCameraToZ();
+  void setCameraPositonTo(float x, float y, float z);
+  void setCameraFocusTo(float x, float y, float z);
+  void setCameraUpvectorTo(float x, float y, float z);
+  std::vector<float> getCameraPositon();
+  std::vector<float> getCameraFocus();
+  std::vector<float> getCameraUpvector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
   glm::vec3 backgroundColor() const;

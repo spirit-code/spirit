@@ -91,6 +91,10 @@ add_custom_target (shaders
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
     ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
+                     -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.noz.glsl
+                     -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.hsv.noz.txt
+                     -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake
+    ${CMAKE_COMMAND} -D CFG=${PROJECT_SOURCE_DIR}/shaders/shader.in
                      -D SRC=${PROJECT_SOURCE_DIR}/shaders/colormap.bluered.glsl
                      -D DST=${PROJECT_SOURCE_DIR}/shaders/colormap.bluered.txt
                      -P ${PROJECT_SOURCE_DIR}/shaders/shader.cmake

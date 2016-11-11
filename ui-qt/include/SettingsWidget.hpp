@@ -55,7 +55,17 @@ private slots:
 	void set_hamiltonian_aniso_stt();
 	void set_hamiltonian_aniso_temp();
 	// Visualization
-	void set_visualization();
+	void set_visualization_mode();
+	void set_visualization_mode_parameters();
+	void set_visualization_zrange();
+	void set_visualization_isovalue_fromslider();
+	void set_visualization_isovalue_fromlineedit();
+	void set_visualization_colormap();
+	void set_camera();
+	void read_camera();
+	void set_camera_position();
+	void set_camera_focus();
+	void set_camera_upvector();
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();

@@ -209,6 +209,47 @@ void GLSpins::setCameraToZ() {
                  glm::vec3(0.0, 1.0, 0.0));
 }
 
+void GLSpins::setCameraPositionTo(float x, float y, float z) {
+	auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
+	_camera.lookAt(glm::vec3(x, y, z)+center,
+		_camera.centerPosition(),
+		_camera.upVector());
+}
+
+void GLSpins::setCameraFocusTo(float x, float y, float z) {
+	auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
+	_camera.lookAt(_camera.cameraPosition(),
+		glm::vec3(x, y, z)+center,
+		_camera.upVector());
+}
+
+void GLSpins::setCameraUpvectorTo(float x, float y, float z) {
+	auto v = glm::vec3(x, y, z);
+	if (glm::length(v) > 1e-5)
+	{
+		_camera.lookAt(_camera.cameraPosition(),
+			_camera.centerPosition(),
+			v);
+	}
+}
+
+glm::vec3 GLSpins::getCameraPosition()
+{
+	auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
+	return _camera.cameraPosition() - center;
+}
+
+glm::vec3 GLSpins::getCameraFocus()
+{
+	auto center = _options.get<GLSpins::Option::SYSTEM_CENTER>();
+	return _camera.centerPosition() - center;
+}
+
+glm::vec3 GLSpins::getCameraUpvector()
+{
+	return _camera.upVector();
+}
+
 static std::array<float, 4> locationToViewport(GLSpins::WidgetLocation location) {
   switch(location) {
     case GLSpins::WidgetLocation::BOTTOM_LEFT:

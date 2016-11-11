@@ -73,6 +73,10 @@ std::string getColormapImplementation(const std::string& colormapName) {
     return
 #include "colormap.hsv.txt"
     ;
+  } else if (colormapName == "hsv.noz") {
+	  return
+#include "colormap.hsv.noz.txt"
+		  ;
   } else if (colormapName == "bluered") {
     return
 #include "colormap.bluered.txt"

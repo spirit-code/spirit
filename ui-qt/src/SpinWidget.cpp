@@ -177,6 +177,51 @@ void SpinWidget::setCameraToZ() {
   gl_spins->setCameraToZ();
 }
 
+void SpinWidget::setCameraPositonTo(float x, float y, float z)
+{
+	gl_spins->setCameraPositionTo(x, y, z);
+}
+
+void SpinWidget::setCameraFocusTo(float x, float y, float z)
+{
+	gl_spins->setCameraFocusTo(x, y, z);
+}
+
+void SpinWidget::setCameraUpvectorTo(float x, float y, float z)
+{
+	gl_spins->setCameraUpvectorTo(x, y, z);
+}
+
+std::vector<float> SpinWidget::getCameraPositon()
+{
+	std::vector<float> v(3);
+	glm::vec3 _v = gl_spins->getCameraPosition();
+	v[0] = _v[0];
+	v[1] = _v[1];
+	v[2] = _v[2];
+	return v;
+}
+
+std::vector<float> SpinWidget::getCameraFocus()
+{
+	std::vector<float> v(3);
+	glm::vec3 _v = gl_spins->getCameraFocus();
+	v[0] = _v[0];
+	v[1] = _v[1];
+	v[2] = _v[2];
+	return v;
+}
+
+std::vector<float> SpinWidget::getCameraUpvector()
+{
+	std::vector<float> v(3);
+	glm::vec3 _v = gl_spins->getCameraUpvector();
+	v[0] = _v[0];
+	v[1] = _v[1];
+	v[2] = _v[2];
+	return v;
+}
+
 float SpinWidget::getFramesPerSecond() const {
   return gl_spins->getFramerate();
 }
@@ -325,9 +370,12 @@ void SpinWidget::setColormap(GLSpins::Colormap colormap) {
   switch (colormap) {
     case GLSpins::Colormap::HSV:
       break;
-    case GLSpins::Colormap::BLUE_RED:
-      colormap_implementation = getColormapImplementation("bluered");
-      break;
+	case GLSpins::Colormap::HSV_NO_Z:
+	  colormap_implementation = getColormapImplementation("hsv.noz");
+	  break;
+	case GLSpins::Colormap::BLUE_RED:
+	  colormap_implementation = getColormapImplementation("bluered");
+	  break;
     case GLSpins::Colormap::BLUE_GREEN_RED:
       colormap_implementation = getColormapImplementation("bluegreenred");
       break;

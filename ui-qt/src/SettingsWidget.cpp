@@ -429,6 +429,7 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
+	// Mode
 	std::string visualization_mode;
 	switch (_spinWidget->visualizationMode())
 	{
@@ -454,6 +455,7 @@ void SettingsWidget::Load_Visualization_Contents()
 		}
 	}
   
+	// Miniview
 	std::string miniview_position;
 	switch (_spinWidget->miniviewPosition())
 	{
@@ -478,6 +480,9 @@ void SettingsWidget::Load_Visualization_Contents()
 			break;
 		}
 	}
+	checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	
+	// Coordinate System
 	std::string coordinatesystem_position;
 	switch (_spinWidget->coordinateSystemPosition())
 	{
@@ -502,9 +507,9 @@ void SettingsWidget::Load_Visualization_Contents()
 			break;
 		}
 	}
-	checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
 	checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
-
+	
+	// Z Range
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
 		z_range.x = -1;
@@ -520,12 +525,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_zRangeMax->setRange(-100, 100);
 	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
 	horizontalSlider_zRangeMin->setTracking(true);
-  horizontalSlider_zRangeMax->setTracking(true);
+	horizontalSlider_zRangeMax->setTracking(true);
   
-  auto isovalue = _spinWidget->isovalue();
-  horizontalSlider_isovalue->setRange(0, 100);
-  horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
+	// Isovalue
+	auto isovalue = _spinWidget->isovalue();
+	horizontalSlider_isovalue->setRange(0, 100);
+	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
+	// Colormap
 	std::string colormap = "Hue-Saturation-Value";
 	switch (_spinWidget->colormap())
 	{
@@ -554,6 +561,7 @@ void SettingsWidget::Load_Visualization_Contents()
 		}
 	}
 
+	// Perspective / FOV
 	if (_spinWidget->verticalFieldOfView() == 0)
 	{
 		radioButton_orthographicProjection->setChecked(true);
@@ -563,11 +571,14 @@ void SettingsWidget::Load_Visualization_Contents()
 		radioButton_perspectiveProjection->setChecked(true);
 	}
 
+	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
 
+	// Bounding Box
 	checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
+	// Background
 	std::string background_color = "Black";
 	if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
 	{
@@ -579,12 +590,12 @@ void SettingsWidget::Load_Visualization_Contents()
 	}
 	for (int i = 0; i < comboBox_backgroundColor->count(); i++)
 	{
-	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-	{
-		comboBox_backgroundColor->setCurrentIndex(i);
-		break;
-    }
-  }
+		if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
+		{
+			comboBox_backgroundColor->setCurrentIndex(i);
+			break;
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------------
@@ -1086,26 +1097,31 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 }
 
 
-
-void SettingsWidget::set_visualization()
+void SettingsWidget::set_visualization_mode()
 {
 	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
 	if (comboBox_visualizationMode->currentText() == "Surface")
 	{
-	visualization_mode = GLSpins::VisualizationMode::SURFACE;
+		visualization_mode = GLSpins::VisualizationMode::SURFACE;
 	}
 	else if (comboBox_visualizationMode->currentText() == "Isosurface")
 	{
-	visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
+		visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
 	}
 	else if (comboBox_visualizationMode->currentText() == "Sphere")
 	{
-	visualization_mode = GLSpins::VisualizationMode::SPHERE;
+		visualization_mode = GLSpins::VisualizationMode::SPHERE;
 	}
 	_spinWidget->setVisualizationMode(visualization_mode);
 
+	_spinWidget->update();
+}
+
+
+void SettingsWidget::set_visualization_mode_parameters()
+{
+	// MiniView
 	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
-	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
 	GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
 	if (comboBox_miniViewPosition->currentText() == "Top Left")
 	{
@@ -1119,6 +1135,10 @@ void SettingsWidget::set_visualization()
 	{
 		miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
 	}
+	_spinWidget->setMiniviewPosition(miniview_position);
+
+	// Coordinate System
+	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
 	GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
 	if (comboBox_coordinateSystemPosition->currentText() == "Top Left")
 	{
@@ -1132,59 +1152,21 @@ void SettingsWidget::set_visualization()
 	{
 		coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
 	}
-	_spinWidget->setMiniviewPosition(miniview_position);
 	_spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
 
-
-	float z_range_min = -horizontalSlider_zRangeMin->value()/100.0;
-	float z_range_max = horizontalSlider_zRangeMax->value()/100.0;
-	if (z_range_min > z_range_max)
-	{
-		float t = z_range_min;
-		z_range_min = z_range_max;
-		z_range_max = t;
-	}
-	horizontalSlider_zRangeMin->blockSignals(true);
-	horizontalSlider_zRangeMax->blockSignals(true);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
-	horizontalSlider_zRangeMin->blockSignals(false);
-	horizontalSlider_zRangeMax->blockSignals(false);
-
-	glm::vec2 z_range(z_range_min, z_range_max);
-	_spinWidget->setZRange(z_range);
-  
-  float isovalue = horizontalSlider_isovalue->value()/50.0f-1.0f;
-  _spinWidget->setIsovalue(isovalue);
-
-  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_RED;
-  }
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_GREEN_RED;
-  }
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_WHITE_RED;
-  }
-  _spinWidget->setColormap(colormap);
-
-	if (radioButton_orthographicProjection->isChecked())
-	{
-		_spinWidget->setVerticalFieldOfView(0.0);
-	}
-	else
-	{
-		_spinWidget->setVerticalFieldOfView(45.0);
-	}
-
+	// Bounding Box
 	_spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
 
+	// Projection / FOV
+	if (radioButton_orthographicProjection->isChecked())
+		_spinWidget->setVerticalFieldOfView(0.0);
+	else
+		_spinWidget->setVerticalFieldOfView(45.0);
+
+	// Sphere
 	_spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
 
+	// Background
 	glm::vec3 background_color(0.0, 0.0, 0.0);
 	glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
 	if (comboBox_backgroundColor->currentText() == "White")
@@ -1201,6 +1183,124 @@ void SettingsWidget::set_visualization()
 	_spinWidget->setBoundingBoxColor(bounding_box_color);
 
 	_spinWidget->update();
+}
+
+
+void SettingsWidget::set_visualization_zrange()
+{
+	float z_range_min = -horizontalSlider_zRangeMin->value() / 100.0;
+	float z_range_max = horizontalSlider_zRangeMax->value() / 100.0;
+	if (z_range_min > z_range_max)
+	{
+		float t = z_range_min;
+		z_range_min = z_range_max;
+		z_range_max = t;
+	}
+	horizontalSlider_zRangeMin->blockSignals(true);
+	horizontalSlider_zRangeMax->blockSignals(true);
+	horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
+	horizontalSlider_zRangeMin->blockSignals(false);
+	horizontalSlider_zRangeMax->blockSignals(false);
+
+	glm::vec2 z_range(z_range_min, z_range_max);
+	_spinWidget->setZRange(z_range);
+
+	_spinWidget->update();
+}
+
+
+void SettingsWidget::set_visualization_isovalue_fromslider()
+{
+	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
+	this->lineEdit_isovalue->setText(QString::number(isovalue));
+	_spinWidget->setIsovalue(isovalue);
+
+	_spinWidget->update();
+}
+
+void SettingsWidget::set_visualization_isovalue_fromlineedit()
+{
+	float isovalue = this->lineEdit_isovalue->text().toFloat();
+	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
+	_spinWidget->setIsovalue(isovalue);
+
+	_spinWidget->update();
+}
+
+
+void SettingsWidget::set_visualization_colormap()
+{
+	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+	if (comboBox_colormap->currentText() == "HSV, no z-component")
+	{
+		colormap = GLSpins::Colormap::HSV_NO_Z;
+	}
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
+	{
+		colormap = GLSpins::Colormap::BLUE_RED;
+	}
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
+	{
+		colormap = GLSpins::Colormap::BLUE_GREEN_RED;
+	}
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
+	{
+		colormap = GLSpins::Colormap::BLUE_WHITE_RED;
+	}
+	_spinWidget->setColormap(colormap);
+
+	_spinWidget->update();
+}
+
+void SettingsWidget::set_camera()
+{
+	set_camera_position();
+	set_camera_focus();
+	set_camera_upvector();
+}
+
+void SettingsWidget::read_camera()
+{
+	std::vector<float> pos(3), focus(3), up(3);
+
+	pos = _spinWidget->getCameraPositon();
+	focus = _spinWidget->getCameraFocus();
+	up = _spinWidget->getCameraUpvector();
+
+	this->lineEdit_camera_pos_x->setText(QString::number(pos[0], 'f', 2));
+	this->lineEdit_camera_pos_y->setText(QString::number(pos[1], 'f', 2));
+	this->lineEdit_camera_pos_z->setText(QString::number(pos[2], 'f', 2));
+	this->lineEdit_camera_focus_x->setText(QString::number(focus[0], 'f', 2));
+	this->lineEdit_camera_focus_y->setText(QString::number(focus[1], 'f', 2));
+	this->lineEdit_camera_focus_z->setText(QString::number(focus[2], 'f', 2));
+	this->lineEdit_camera_upvector_x->setText(QString::number(up[0], 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(up[1], 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(up[2], 'f', 2));
+}
+
+void SettingsWidget::set_camera_position()
+{
+	float x = this->lineEdit_camera_pos_x->text().toFloat();
+	float y = this->lineEdit_camera_pos_y->text().toFloat();
+	float z = this->lineEdit_camera_pos_z->text().toFloat();
+	this->_spinWidget->setCameraPositonTo(x, y, z);
+}
+
+void SettingsWidget::set_camera_focus()
+{
+	float x = this->lineEdit_camera_focus_x->text().toFloat();
+	float y = this->lineEdit_camera_focus_y->text().toFloat();
+	float z = this->lineEdit_camera_focus_z->text().toFloat();
+	this->_spinWidget->setCameraFocusTo(x, y, z);
+}
+
+void SettingsWidget::set_camera_upvector()
+{
+	float x = this->lineEdit_camera_upvector_x->text().toFloat();
+	float y = this->lineEdit_camera_upvector_y->text().toFloat();
+	float z = this->lineEdit_camera_upvector_z->text().toFloat();
+	this->_spinWidget->setCameraUpvectorTo(x, y, z);
 }
 
 
@@ -1395,20 +1495,43 @@ void SettingsWidget::Setup_Transitions_Slots()
 
 void SettingsWidget::Setup_Visualization_Slots()
 {
-  connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
-  connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
-  connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+	// Mode
+	connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	// Miniview
+	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	// Coordinate System
+	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	// Bounding Box
+	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	// Perspective / FOV
+	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
+	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
+	// Background
+	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	// Sphere
+	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	// Z-range
+	connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	// Colormap
+	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	// Isovalue
+	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
+	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	// Camera
+	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_pos_z, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_focus_x, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_focus_y, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_focus_z, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_upvector_x, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->lineEdit_camera_upvector_y, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->lineEdit_camera_upvector_z, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->pushButton_set_camera, SIGNAL(clicked()), this, SLOT(set_camera()));
+	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
@@ -1508,4 +1631,15 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_dt->setValidator(this->number_validator);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
+
+	// Visualisation
+	//		Isovalue
+	this->lineEdit_isovalue->setValidator(this->number_validator);
+	//		Camera
+	this->lineEdit_camera_pos_x->setValidator(this->number_validator);
+	this->lineEdit_camera_pos_y->setValidator(this->number_validator);
+	this->lineEdit_camera_pos_z->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_x->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_y->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_z->setValidator(this->number_validator);
 }
