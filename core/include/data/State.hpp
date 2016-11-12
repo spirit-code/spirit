@@ -27,12 +27,12 @@ struct State
 	int idx_active_image, idx_active_chain;
 
 	// The Methods
-	//    max. noi*noc LLG methods
-	std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>> methods_llg; // [noc][noi]
-																			   //    max. noc GNEB methods
-	std::vector<std::shared_ptr<Engine::Method_GNEB>> methods_gneb; // [noc]
-																	//    max. 1 MMF method
-	std::shared_ptr<Engine::Method_MMF> method_mmf;
+	//    max. noi*noc LLG methods [noc][noi]
+	std::vector<std::vector<std::shared_ptr<Engine::Optimizer>>> optimizers_llg;
+	//    max. noc GNEB methods [noc]
+	std::vector<std::shared_ptr<Engine::Optimizer>> optimizers_gneb;
+	//    max. 1 MMF method
+	std::shared_ptr<Engine::Optimizer> optimizer_mmf;
 };
 
 

@@ -90,6 +90,9 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         chain->climbing_image.insert(chain->climbing_image.begin() + idx_image, false);
         chain->falling_image.insert(chain->falling_image.begin() + idx_image, false);
 
+		// Add to state
+		state->optimizers_llg[idx_chain].insert(state->optimizers_llg[idx_chain].begin() + idx_image, std::shared_ptr<Engine::Optimizer>());
+
         // Update state
         State_Update(state);
 
@@ -131,6 +134,10 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         //     chain->climbing_image.push_back(false);
         //     chain->falling_image.push_back(false);
         // }
+
+		// Add to state
+		state->optimizers_llg[idx_chain].insert(state->optimizers_llg[idx_chain].begin() + idx_image, std::shared_ptr<Engine::Optimizer>());
+
         // Update state
         State_Update(state);
 
@@ -189,6 +196,10 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         chain->climbing_image.erase(chain->climbing_image.begin() + idx_image);
         chain->falling_image.erase(chain->falling_image.begin() + idx_image);
 
+		// Remove from state
+		state->optimizers_llg[idx_chain].erase(state->optimizers_llg[idx_chain].begin() + idx_image);
+
+		// Update State
         State_Update(state);
 
         // Update array lengths

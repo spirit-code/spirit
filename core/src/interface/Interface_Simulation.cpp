@@ -211,8 +211,19 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			return;
 		}
 
-        // TODO: how to add to list of optimizers?? how to remove when stopping??
-        // state->optimizers.push_back(optim);
+        // Add to correct optimizer list
+		if (method_type == "LLG")
+		{
+			state->optimizers_llg[idx_chain][idx_image] = optim;
+		}
+		else if (method_type == "GNEB")
+		{
+			state->optimizers_gneb[idx_chain] = optim;
+		}
+		else if (method_type == "MMF")
+		{
+			state->optimizer_mmf = optim;
+		}
 
         // Start the simulation
         optim->Iterate();
@@ -242,36 +253,32 @@ void Simulation_Stop_All(State *state)
     }
 }
 
-// TODO: how to do this correctly??
-std::vector<float> Simulation_Get_IterationsPerSecond(State *state)
-{
-	std::vector<float> ret;
 
-    // TODO: loop over all chains
+float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
+{
+	// Fetch correct indices and pointers for image and chain
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	
     if (Simulation_Running_LLG(state))
 	{
-        // ret.push_back(state->optimizers[state->active_chain]->getIterationsPerSecond());
+		if (state->optimizers_llg[idx_chain][idx_image])
+			return (float)state->optimizers_llg[idx_chain][idx_image]->getIterationsPerSecond();
 	}
 	else if (Simulation_Running_GNEB(state))
     {
-        
+		if (state->optimizers_gneb[idx_chain])
+			return (float)state->optimizers_gneb[idx_chain]->getIterationsPerSecond();
     }
-	else if (Simulation_Running_GNEB(state))
+	else if (Simulation_Running_MMF(state))
     {
-
+		if (state->optimizer_mmf)
+			return (float)state->optimizer_mmf->getIterationsPerSecond();
     }
-	// {
-	// 	for (unsigned int i = 0; i < this->llg_methods.size(); ++i)
-	// 	{
-	// 		if (state->active_chain->images[i]->iteration_allowed)
-	// 		{
-	// 			// TODO:
-	// 			// ret.push_back(this->llg_methods[state->active_chain->images[i]]->getIterationsPerSecond());
-	// 		}
-	// 	}
-	// }
 
-	return ret;
+	return 0;
 }
 
 bool Simulation_Running_Any_Anywhere(State *state)

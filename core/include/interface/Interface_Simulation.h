@@ -20,7 +20,10 @@ DLLEXPORT void Simulation_PlayPause(State *state, const char * c_method_type, co
 DLLEXPORT void Simulation_Stop_All(State *state);
 
 // Get IPS
-std::vector<float> Simulation_Get_IterationsPerSecond(State *state);
+//		If an LLG simulation is running this returns the IPS on the current image.
+//		If a GNEB simulation is running this returns the IPS on the current chain.
+//		IF a MMF simulation is running this returns the IPS on the current collection.
+DLLEXPORT float Simulation_Get_IterationsPerSecond(State *state, int idx_image = -1, int idx_chain = -1);
 
 // Check for running simulations
 DLLEXPORT bool Simulation_Running_Any_Anywhere(State *state);

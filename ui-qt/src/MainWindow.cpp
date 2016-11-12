@@ -278,16 +278,37 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
 
-	// Get Methods' IPS
-	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
-
 	// Create IPS Labels and add them to the statusBar
-	this->m_Labels_IPS = std::vector<QLabel*>();
-	for (unsigned int i = 0; i < v_ips.size(); ++i)
+	this->m_Labels_IPS = std::vector<QLabel*>(0);
+	if (Simulation_Running_LLG_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+		{
+			if (Simulation_Running_LLG(state.get(), i))
+			{
+				this->m_Labels_IPS.push_back(new QLabel);
+				this->m_Labels_IPS.back()->setText("IPS [-]: -");
+				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+			}
+		}
+	}
+	else if (Simulation_Running_GNEB_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
+		{
+			if (Simulation_Running_GNEB(state.get(), i))
+			{
+				this->m_Labels_IPS.push_back(new QLabel);
+				this->m_Labels_IPS.back()->setText("IPS [-]: -");
+				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+			}
+		}
+	}
+	else if (Simulation_Running_MMF(state.get()))
 	{
 		this->m_Labels_IPS.push_back(new QLabel);
-		this->m_Labels_IPS[i]->setText("IPS [-]: -");
-		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
+		this->m_Labels_IPS.back()->setText("IPS: -");
+		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 	}
 
 	//		FPS
@@ -319,10 +340,53 @@ void MainWindow::createStatusBar()
 void MainWindow::updateStatusBar()
 {
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
-	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
-	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
+
+	float ips;
+	QString qstr_ips;
+	std::vector<QString> v_str(0);
+
+	if (Simulation_Running_LLG_Anywhere(state.get()))
 	{
-		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i+1) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+		{
+			if (Simulation_Running_LLG(state.get(), i))
+			{
+				ips = Simulation_Get_IterationsPerSecond(state.get(), i);
+				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				else qstr_ips = QString::fromLatin1("> 100k");
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+			}
+		}
+	}
+	else if (Simulation_Running_GNEB_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
+		{
+			if (Simulation_Running_GNEB(state.get(), i))
+			{
+				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, i);
+				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				else qstr_ips = QString::fromLatin1("> 100k");
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+			}
+		}
+	}
+	else if (Simulation_Running_MMF(state.get()))
+	{
+		ips = Simulation_Get_IterationsPerSecond(state.get());
+		if (ips < 1e5) qstr_ips = QString::number((int)ips);
+		else qstr_ips = QString::fromLatin1("> 100k");
+		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips);
+	}
+
+	//auto v_ips = std::vector<float>{ Simulation_Get_IterationsPerSecond(state.get()) };
+	if (v_str.size() != m_Labels_IPS.size()) createStatusBar();
+	else
+	{
+		for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_str.size(); ++i)
+		{
+			this->m_Labels_IPS[i]->setText(v_str[i]);
+		}
 	}
 }
 
