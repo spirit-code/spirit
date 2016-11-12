@@ -76,9 +76,9 @@ State * State_Setup(const char * config_file)
     state->nos = state->active_image->nos;
 
     // Methods
-    state->optimizers_llg = std::vector<std::vector<std::shared_ptr<Engine::Optimizer>>>(state->noc, std::vector<std::shared_ptr<Engine::Optimizer>>(state->noi));
-    state->optimizers_gneb = std::vector<std::shared_ptr<Engine::Optimizer>>(state->noc);
-    state->optimizer_mmf = std::shared_ptr<Engine::Optimizer>();
+    state->simulation_information_llg = std::vector<std::vector<std::shared_ptr<Simulation_Information>>>(state->noc, std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
+    state->simulation_information_gneb = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
+    state->simulation_information_mmf = std::shared_ptr<Simulation_Information>();
 
     // Log
     Log(Log_Level::All, Log_Sender::All, "=====================================================");

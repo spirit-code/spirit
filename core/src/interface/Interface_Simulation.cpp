@@ -211,18 +211,21 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			return;
 		}
 
-        // Add to correct optimizer list
+		// Create Simulation Information
+		auto info = std::shared_ptr<Simulation_Information>(new Simulation_Information{ optim, method } );
+
+        // Add to correct list
 		if (method_type == "LLG")
 		{
-			state->optimizers_llg[idx_chain][idx_image] = optim;
+			state->simulation_information_llg[idx_chain][idx_image] = info;
 		}
 		else if (method_type == "GNEB")
 		{
-			state->optimizers_gneb[idx_chain] = optim;
+			state->simulation_information_gneb[idx_chain] = info;
 		}
 		else if (method_type == "MMF")
 		{
-			state->optimizer_mmf = optim;
+			state->simulation_information_mmf = info;
 		}
 
         // Start the simulation
@@ -264,18 +267,18 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 	
     if (Simulation_Running_LLG(state))
 	{
-		if (state->optimizers_llg[idx_chain][idx_image])
-			return (float)state->optimizers_llg[idx_chain][idx_image]->getIterationsPerSecond();
+		if (state->simulation_information_llg[idx_chain][idx_image])
+			return (float)state->simulation_information_llg[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
 	}
 	else if (Simulation_Running_GNEB(state))
     {
-		if (state->optimizers_gneb[idx_chain])
-			return (float)state->optimizers_gneb[idx_chain]->getIterationsPerSecond();
+		if (state->simulation_information_gneb[idx_chain])
+			return (float)state->simulation_information_gneb[idx_chain]->optimizer->getIterationsPerSecond();
     }
 	else if (Simulation_Running_MMF(state))
     {
-		if (state->optimizer_mmf)
-			return (float)state->optimizer_mmf->getIterationsPerSecond();
+		if (state->simulation_information_mmf)
+			return (float)state->simulation_information_mmf->optimizer->getIterationsPerSecond();
     }
 
 	return 0;
