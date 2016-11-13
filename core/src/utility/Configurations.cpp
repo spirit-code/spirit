@@ -158,7 +158,7 @@ namespace Utility
 			Vectormath::Normalize_3Nos(*s.spins);
 		}
 
-		void Hopfion(Data::Spin_System & s, std::vector<scalar> pos, scalar r)
+		void Hopfion(Data::Spin_System & s, std::vector<scalar> pos, scalar r, int order)
 		{
 			using std::pow;
 			using std::sqrt;
@@ -212,8 +212,8 @@ namespace Utility
 							f = F + atan(1.0 / (tan(tmp)*cos(T))) + M_PI;
 						}
 						// Spin orientation
-						Sx[n] = sin(t)*cos(f);
-						Sy[n] = sin(t)*sin(f);
+						Sx[n] = sin(t)*cos(order * f);
+						Sy[n] = sin(t)*sin(order * f);
 						Sz[n] = cos(t);
 					}
 				}

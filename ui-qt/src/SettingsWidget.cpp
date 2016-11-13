@@ -40,6 +40,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->number_validator = new QRegularExpressionValidator(re);
 	QRegularExpression re2("[\\d]*[\\.]?[\\d]*");
 	this->number_validator_unsigned = new QRegularExpressionValidator(re2);
+	QRegularExpression re3("[+|-]?[\\d]*");
+	this->number_validator_int = new QRegularExpressionValidator(re3);
+	QRegularExpression re4("[\\d]*");
+	this->number_validator_int_unsigned = new QRegularExpressionValidator(re4);
 	// Setup the validators for the various input fields
 	this->Setup_Input_Validators();
 
@@ -129,13 +133,14 @@ void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
 	float r = lineEdit_hopf_r->text().toFloat();
+	int order = lineEdit_hopfion_order->text().toInt();
 	std::vector<float> pos =
 	{
 		lineEdit_hopf_posx->text().toFloat(),
 		lineEdit_hopf_posy->text().toFloat(),
 		lineEdit_hopf_posz->text().toFloat()
 	};
-	Configuration_Hopfion(this->state.get(), pos.data(), r);
+	Configuration_Hopfion(this->state.get(), pos.data(), r, order);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -1467,6 +1472,7 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopfion_order, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
 	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
@@ -1597,8 +1603,9 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_hopf_posy->setValidator(this->number_validator);
 	this->lineEdit_hopf_posz->setValidator(this->number_validator);
 	this->lineEdit_hopf_r->setValidator(this->number_validator);
+	this->lineEdit_hopfion_order->setValidator(this->number_validator_int_unsigned);
 	//		Skyrmion
-	this->lineEdit_sky_order->setValidator(this->number_validator);
+	this->lineEdit_sky_order->setValidator(this->number_validator_int_unsigned);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);
 	this->lineEdit_sky_rad->setValidator(this->number_validator);
 	this->lineEdit_sky_posx->setValidator(this->number_validator);
@@ -1622,13 +1629,13 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Transitions
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
-	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_unsigned);
-	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_unsigned);
+	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_int_unsigned);
+	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_int_unsigned);
 
 	// Parameters
 	//		LLG
 	this->lineEdit_Damping->setValidator(this->number_validator);
-	this->lineEdit_dt->setValidator(this->number_validator);
+	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
 

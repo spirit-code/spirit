@@ -21,7 +21,7 @@ DLLEXPORT void Configuration_Random(State *state, bool external = false, int idx
 DLLEXPORT void Configuration_Add_Noise_Temperature(State *state, float temperature, int idx_image=-1, int idx_chain=-1);
 
 // Create a toroidal Hopfion
-DLLEXPORT void Configuration_Hopfion(State *state, float pos[3], float r, int idx_image = -1, int idx_chain = -1);
+DLLEXPORT void Configuration_Hopfion(State *state, float pos[3], float r, int order = 1,  int idx_image = -1, int idx_chain = -1);
 
 // Points a sperical region of spins of radius r
 // into direction of vec at position pos

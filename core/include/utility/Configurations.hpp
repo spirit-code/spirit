@@ -33,7 +33,7 @@ namespace Utility
 		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed=0);
 
 		// Creates a toroid
-		void Hopfion(Data::Spin_System & s, std::vector<scalar> pos, scalar r);
+		void Hopfion(Data::Spin_System & s, std::vector<scalar> pos, scalar r, int order=1);
 		// points a sperical region of spins of radius r
 		// into direction of vec at position pos
 		void Skyrmion(Data::Spin_System & s, std::vector<scalar> pos, scalar r, scalar speed, scalar order, bool upDown, bool achiral, bool rl, bool experimental);

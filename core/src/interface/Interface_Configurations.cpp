@@ -65,7 +65,7 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, int id
     Utility::Configurations::Add_Noise_Temperature(*image, temperature);
 }
 
-void Configuration_Hopfion(State *state, float pos[3], float r, int idx_image, int idx_chain)
+void Configuration_Hopfion(State *state, float pos[3], float r, int order, int idx_image, int idx_chain)
 {
 	std::vector<scalar> position = { pos[0], pos[1], pos[2] };
 
@@ -74,7 +74,7 @@ void Configuration_Hopfion(State *state, float pos[3], float r, int idx_image, i
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Apply configuration
-	Utility::Configurations::Hopfion(*image, position, r);
+	Utility::Configurations::Hopfion(*image, position, r, order);
 }
 
 void Configuration_Skyrmion(State *state, float pos[3], float r, float order, float phase, bool upDown, bool achiral, bool rl, int idx_image, int idx_chain)

@@ -40,6 +40,8 @@ private:
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;
 	QRegularExpressionValidator * number_validator_unsigned;
+	QRegularExpressionValidator * number_validator_int;
+	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
 
 private slots:
