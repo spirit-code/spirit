@@ -1,4 +1,10 @@
 #include <Geometry.hpp>
+#include <Neighbours.hpp>
+#include <Exception.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 #include <glm/vec3.hpp>
 #include <glm/glm.hpp>
 #include "Qhull.h"
@@ -33,6 +39,9 @@ namespace Data
 		{
 			this->center[dim] = (this->bounds_min[dim] + this->bounds_max[dim]) / 2.0;
 		}
+
+		// Calculate dimensionality
+		this->dimensionality = calculateDimensionality();
 	}
 
     std::vector<tetrahedron_t> compute_delaunay_triangulation(const std::vector<vector_t> &points) {
@@ -57,61 +66,188 @@ namespace Data
         return tetrahedra;
     }
 
-  const std::vector<tetrahedron_t>& Geometry::triangulation() {
-    if (is2D()) {
-      _triangulation.clear();
-      return _triangulation;
-    }
-    if (_triangulation.size() == 0) {
-      bool is_simple_regular_geometry = true;
-      if (is_simple_regular_geometry) {
-        _triangulation.clear();
-        int cell_indices[] = {
-          0, 1, 5, 3,
-          1, 3, 2, 5,
-          3, 2, 5, 6,
-          7, 6, 5, 3,
-          4, 7, 5, 3,
-          0, 4, 3, 5
-        };
-        int x_offset = 1;
-        int y_offset = n_cells[0];
-        int z_offset = n_cells[0]*n_cells[1];
-        int offsets[] = {
-          0, x_offset, x_offset+y_offset, y_offset,
-          z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
-        };
+	const std::vector<tetrahedron_t>& Geometry::triangulation()
+	{
+		if (dimensionality == 2)
+		{
+			_triangulation.clear();
+			return _triangulation;
+		}
+		if (_triangulation.size() == 0)
+		{
+			bool is_simple_regular_geometry = true;
+			if (is_simple_regular_geometry)
+			{
+				_triangulation.clear();
+				int cell_indices[] = {
+					0, 1, 5, 3,
+					1, 3, 2, 5,
+					3, 2, 5, 6,
+					7, 6, 5, 3,
+					4, 7, 5, 3,
+					0, 4, 3, 5
+					};
+				int x_offset = 1;
+				int y_offset = n_cells[0];
+				int z_offset = n_cells[0]*n_cells[1];
+				int offsets[] = {
+					0, x_offset, x_offset+y_offset, y_offset,
+					z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
+					};
         
-        for (int ix = 0; ix < n_cells[0]-1; ix++) {
-          for (int iy = 0; iy < n_cells[1]-1; iy++) {
-            for (int iz = 0; iz < n_cells[2]-1; iz++) {
-              int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
-              for (int j = 0; j < 6; j++) {
-                tetrahedron_t tetrahedron;
-                for (int k = 0; k < 4; k++) {
-                  int index = base_index + offsets[cell_indices[j*4+k]];
-                  tetrahedron[k] = index;
-                }
-                _triangulation.push_back(tetrahedron);
-              }
-            }
-          }
-        }
-      } else {
-        std::vector<vector_t> points;
-        points.resize(spin_pos.size()/3);
-        for (std::vector<vector_t>::size_type i = 0; i < points.size(); i++) {
-          points[i].x = spin_pos[i];
-          points[i].y = spin_pos[points.size()+i];
-          points[i].z = spin_pos[points.size()*2+i];
-        }
-        _triangulation = compute_delaunay_triangulation(points);
-      }
-    }
-    return _triangulation;
-  }
-  bool Geometry::is2D() const {
-    return (n_spins_basic_domain == 1) && (n_cells[0] == 1 || n_cells[1] == 1 || n_cells[2] == 1);
-  }
+				for (int ix = 0; ix < n_cells[0]-1; ix++)
+				{
+					for (int iy = 0; iy < n_cells[1]-1; iy++)
+					{
+						for (int iz = 0; iz < n_cells[2]-1; iz++)
+						{
+							int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
+							for (int j = 0; j < 6; j++)
+							{
+								tetrahedron_t tetrahedron;
+								for (int k = 0; k < 4; k++)
+								{
+									int index = base_index + offsets[cell_indices[j*4+k]];
+									tetrahedron[k] = index;
+								}
+								_triangulation.push_back(tetrahedron);
+							}
+						}
+					}
+				}
+			}
+			else 
+			{
+				std::vector<vector_t> points;
+				points.resize(spin_pos.size()/3);
+				for (std::vector<vector_t>::size_type i = 0; i < points.size(); i++)
+				{
+					points[i].x = spin_pos[i];
+					points[i].y = spin_pos[points.size()+i];
+					points[i].z = spin_pos[points.size()*2+i];
+				}
+				_triangulation = compute_delaunay_triangulation(points);
+			}
+		}
+	return _triangulation;
+	}
+
+	int Geometry::calculateDimensionality() const
+	{
+		int dims_basis = 0, dims_translations = 0;
+		Eigen::Vector3d test_vec_basis, test_vec_translations;
+
+		// ----- Find dimensionality of the basis -----
+		if (n_spins_basic_domain == 1) dims_basis = 0;
+		else if (n_spins_basic_domain == 2) dims_basis = 1;
+		else if (n_spins_basic_domain == 3) dims_basis = 2;
+		else
+		{
+			// Get basis atoms relative to the first atom
+			Eigen::Vector3d v0 = { basis_atoms[0][0], basis_atoms[1][0], basis_atoms[2][0] };
+			std::vector<Eigen::Vector3d> b_vectors(n_spins_basic_domain-1);
+			for (int i = 1; i < n_spins_basic_domain; ++i)
+			{
+				b_vectors[i-1] = Eigen::Vector3d{ basis_atoms[0][i], basis_atoms[1][i], basis_atoms[2][i] } - v0;
+			}
+			// Calculate basis dimensionality
+			// test vec is along line
+			test_vec_basis = b_vectors[0];
+			//		is it 1D?
+			int n_parallel = 0;
+			for (unsigned int i = 1; i < b_vectors.size(); ++i)
+			{
+				if (std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < 1e-9) ++n_parallel;
+				// else n_parallel will give us the last parallel vector
+				// also the if-statement for dims_basis=1 wont be met
+				else break;
+			}
+			if (n_parallel == b_vectors.size() - 1)
+			{
+				dims_basis = 1;
+			}
+			else
+			{
+				// test vec is normal to plane
+				test_vec_basis = b_vectors[0].cross(b_vectors[n_parallel+1]);
+				//		is it 2D?
+				int n_in_plane = 0;
+				for (unsigned int i = 2; i < b_vectors.size(); ++i)
+				{
+					if (std::abs(b_vectors[i].dot(test_vec_basis)) < 1e-9) ++n_in_plane;
+				}
+				if (n_in_plane == b_vectors.size() - 2)
+				{
+					dims_basis = 2;
+				}
+				else return 3;
+			}
+		}
+
+
+		// ----- Find dimensionality of the translations -----
+		std::vector<Eigen::Vector3d> t_vectors(3);
+		for (int i = 0; i < 3; ++i)
+		{
+			t_vectors[i] = { translation_vectors[0][i], translation_vectors[1][i], translation_vectors[2][i] };
+		}
+		//		The following are zero if the corresponding pair is parallel
+		double t01, t02, t12;
+		t01 = std::abs(t_vectors[0].dot(t_vectors[1]) - 1.0);
+		t02 = std::abs(t_vectors[0].dot(t_vectors[2]) - 1.0);
+		t12 = std::abs(t_vectors[1].dot(t_vectors[2]) - 1.0);
+		//		Check if pairs are linearly independent
+		int n_independent_pairs = 0;
+		if (t01>1e-9 && n_cells[0] > 1 && n_cells[1] > 1) ++n_independent_pairs;
+		if (t02>1e-9 && n_cells[0] > 1 && n_cells[2] > 1) ++n_independent_pairs;
+		if (t12>1e-9 && n_cells[1] > 1 && n_cells[2] > 1) ++n_independent_pairs;
+		//		Calculate translations dimensionality
+		if (n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1) dims_translations = 0;
+		else if (n_independent_pairs == 0)
+		{
+			dims_translations = 1;
+			// test vec is along the line
+			for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = t_vectors[i];
+		}
+		else if (n_independent_pairs < 3)
+		{
+			dims_translations = 2;
+			// test vec is normal to plane
+			int n = 0;
+			std::vector<Eigen::Vector3d> plane(2);
+			for (int i = 0; i < 3; ++i)
+			{
+				if (n_cells[i] > 1) plane[n] = t_vectors[i];
+				++n;
+			}
+			test_vec_translations = plane[0].cross(plane[1]);
+		}
+		else return 3;
+
+
+		// ----- Calculate dimensionality of system -----
+		test_vec_basis.normalize();
+		test_vec_translations.normalize();
+		//		If one dimensionality is zero, only the other counts
+		if (dims_basis == 0) return dims_translations;
+		else if (dims_translations == 0) return dims_basis;
+		//		If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
+		else if (dims_basis == dims_translations)
+		{
+			if (std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < 1e-9) return dims_basis;
+			else if (dims_basis == 1) return 2;
+			else if (dims_basis == 2) return 3;
+		}
+		//		If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
+		else if ( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
+		{
+			if (std::abs(test_vec_basis.dot(test_vec_translations)) < 1e-9) return 2;
+			else return 3;
+		}
+
+		// We should never get here
+		throw Utility::Exception::Unknown_Exception;
+		return 0;
+	}
 }
 

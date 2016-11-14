@@ -15,7 +15,7 @@ class PlotWidget : public QtCharts::QChartView	// We need a proper 2D plotting s
 
 public:
 	PlotWidget(std::shared_ptr<State> state, bool plot_interpolated=false);
-	void update();
+	void updateData();
 	void set_interpolating(bool b);
 
 private:

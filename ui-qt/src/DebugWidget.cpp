@@ -36,7 +36,7 @@ DebugWidget::DebugWidget(std::shared_ptr<State> state)
 	this->UpdateFromLog();
 }
 
-void DebugWidget::update()
+void DebugWidget::updateData()
 {
 	// Update the list of log entries
 	if (n_log_entries < Log_Get_N_Entries(state.get()))

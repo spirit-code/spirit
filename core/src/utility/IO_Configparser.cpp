@@ -272,6 +272,7 @@ namespace Utility
 
 			// Return geometry
 			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
 		}// end Geometry from Config
@@ -623,7 +624,7 @@ namespace Utility
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<scalar>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 1.0 });	// [nos][3]
+			std::vector<std::vector<scalar>> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;

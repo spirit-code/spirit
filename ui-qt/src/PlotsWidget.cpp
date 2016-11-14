@@ -26,7 +26,7 @@ PlotsWidget::PlotsWidget(std::shared_ptr<State> state)
 void PlotsWidget::updatePlots()
 {
 	// TODO: check which plot is active -> which we should update
-	this->energyPlot->update();
+	this->energyPlot->updateData();
 }
 
 void PlotsWidget::RefreshClicked()

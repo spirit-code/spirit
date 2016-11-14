@@ -91,14 +91,14 @@ void Geometry_Get_Translation_Vectors(State *state, float * ta, float * tb, floa
     }
 }
 
-bool Geometry_Is_2D(State * state, int idx_image, int idx_chain)
+int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-  auto g = image->geometry;
-  return g->is2D();
+	auto g = image->geometry;
+	return g->dimensionality;
 }
 
 

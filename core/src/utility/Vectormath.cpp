@@ -108,9 +108,9 @@ namespace Utility
 
 			// Check for erronous input placing two spins on the same location
 			std::vector<scalar> sp(3);
-			for (int i = 0; i < basis_atoms[0].size(); ++i)
+			for (unsigned int i = 0; i < basis_atoms[0].size(); ++i)
 			{
-				for (int j = 0; j < basis_atoms[0].size(); ++j)
+				for (unsigned int j = 0; j < basis_atoms[0].size(); ++j)
 				{
 					for (int k1 = -2; k1 < 3; ++k1)
 					{

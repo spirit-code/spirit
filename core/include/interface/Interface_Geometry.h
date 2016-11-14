@@ -24,8 +24,8 @@ DLLEXPORT void Geometry_Get_N_Cells(State *state, int * n_cells, int idx_image=-
 // Get translation vectors ta, tb, tc
 DLLEXPORT void Geometry_Get_Translation_Vectors(State *state, float * ta, float * tb, float * tc, int idx_image=-1, int idx_chain=-1);
 
-// Find out if the system is a true 2D system
-DLLEXPORT bool Geometry_Is_2D(State * state, int idx_image=-1, int idx_chain=-1);
+// Retrieve dimensionality of the system (0, 1, 2, 3)
+DLLEXPORT int Geometry_Get_Dimensionality(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Get the 3D Delaunay triangulation. Returns the number of tetrahedrons and
 // sets *indices_ptr to point to a list of index 4-tuples.
