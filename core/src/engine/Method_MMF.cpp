@@ -220,7 +220,7 @@ namespace Engine
 						switched2 = true;
 					// Create the Minimum Mode
 					// 		Retrieve the Eigenvectors
-					Eigen::MatrixXd evectors = -hessian_spectrum.eigenvectors().real();
+					Eigen::MatrixXd evectors = hessian_spectrum.eigenvectors().real();
 					Eigen::Ref<Eigen::VectorXd> evec = evectors.col(0);
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment

@@ -17,11 +17,11 @@ int main(int argc, char ** argv)
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
 	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
-	const char * cfgfile = "input/example-hopfion-anisotropic.cfg";
-	// const char * cfgfile = "input/example-hopfion-isotropic.cfg";
+	 const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/example-hopfion-anisotropic.cfg";
 	// const char * cfgfile = "input/kagome-spin-ice.cfg";
-	// const char * cfgfile = "input/example-gaussian.cfg";
+	// const char * cfgfile = "input/gaussian/example-1.cfg";
+	// const char * cfgfile = "input/gaussian/gideon-paper.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
