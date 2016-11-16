@@ -7,7 +7,51 @@
 #include <QOpenGLWidget>
 #include "glm/glm.hpp"
 
-#include "GLSpins.hpp"
+#include <VFRendering/View.hxx>
+
+
+// TODO: remove this
+class GLSpins
+{
+public:
+  enum CameraMovementModes {
+    TRANSLATE,
+    ROTATE
+  };
+  enum WidgetLocation {
+    BOTTOM_LEFT,
+    BOTTOM_RIGHT,
+    TOP_LEFT,
+    TOP_RIGHT
+  };
+  enum VisualizationMode {
+    SURFACE,
+    ISOSURFACE,
+    ARROWS,
+    SPHERE
+  };
+  enum Option {
+    SHOW_BOUNDING_BOX,
+    BOUNDING_BOX_MIN,
+    BOUNDING_BOX_MAX,
+    SYSTEM_CENTER,
+    SHOW_MINIVIEW,
+    MINIVIEW_LOCATION,
+    SHOW_COORDINATE_SYSTEM,
+    COORDINATE_SYSTEM_LOCATION,
+    VISUALIZATION_MODE,
+    TETRAHEDRA_INDICES
+  };
+  enum Colormap {
+    HSV,
+    HSV_NO_Z,
+    BLUE_RED,
+    BLUE_GREEN_RED,
+    BLUE_WHITE_RED,
+    OTHER
+  };
+  
+};
 
 struct State;
 
@@ -70,15 +114,18 @@ protected:
   
 private:
   std::shared_ptr<State> state;
-  QPoint _previous_pos;
+  QPoint m_previous_mouse_position;
   bool _reset_camera;
   bool initialized;
   
-  const Options<GLSpins>& options() const;
-  const Options<GLSpins> default_options;
+  const VFRendering::Options& options() const;
+  VFRendering::Options default_options;
+  
+  GLSpins::Colormap m_colormap;
+    glm::vec2 m_z_range;
   
   // Visualisation
-  std::shared_ptr<GLSpins> gl_spins;
+  std::shared_ptr<VFRendering::View> m_view;
 };
 
 #endif

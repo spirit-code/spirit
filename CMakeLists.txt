@@ -90,7 +90,6 @@ if( NOT BUILD_UI_WEB )
 	### Build CXX UI
 	if( BUILD_UI_CXX )
 		if (UI_CXX_USE_QT)
-			add_subdirectory(gl)
 			add_subdirectory(ui-qt)
 		else()
 			add_subdirectory(ui-console)

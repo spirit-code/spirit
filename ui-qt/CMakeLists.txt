@@ -12,6 +12,17 @@ SET( EXECUTABLE_NAME spirit )
 #############################################
 
 
+include(ExternalProject)
+
+externalproject_add(VFRendering
+	GIT_REPOSITORY https://github.com/FlorianRhiem/VFRendering.git
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
+)
+
+add_library(libVFRendering STATIC IMPORTED)
+set_property(TARGET libVFRendering PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}VFRendering${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(libVFRendering VFRendering)
+
 ### Find includes in corresponding build directories
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 ### Let CMake run moc on QT ui files automatically
@@ -128,9 +139,10 @@ add_executable( ${EXECUTABLE_NAME}
     resources.qrc )
 #############################################
 
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include/)
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL )
+target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL libVFRendering )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )
