@@ -34,10 +34,10 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
   
     setColormap(Colormap::HSV);
     
-    default_options.set<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
-    default_options.set<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
-    default_options.set<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(0.0625f);
-    default_options.set<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(0.35f);
+    m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
+    m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
+    m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(0.0625f);
+    m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(0.35f);
     
     setZRange({-1, 1});
 }
@@ -53,26 +53,23 @@ void SpinWidget::initializeGL()
     _reset_camera = true;
     // Fetch data and update GL arrays
     this->updateData();
-
-    m_view = std::make_shared<VFRendering::View>();
-    m_view->options(default_options);
   
-    auto isosurface_renderer_ptr = std::make_shared<VFRendering::IsosurfaceRenderer>(*m_view);
+    auto isosurface_renderer_ptr = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
     isosurface_renderer_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
         (void)position;
         return direction.z;
     });
     isosurface_renderer_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
-    auto arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>(*m_view);
+    auto arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>(m_view);
 
     std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
         isosurface_renderer_ptr,
         arrow_renderer_ptr
     };
-    m_view->renderers({
-        {std::make_shared<VFRendering::CombinedRenderer>(*m_view, renderers), {{0, 0, 1, 1}}},
-        {std::make_shared<VFRendering::VectorSphereRenderer>(*m_view), {{0, 0, 0.2, 0.2}}},
-        {std::make_shared<VFRendering::CoordinateSystemRenderer>(*m_view), {{0.8, 0, 0.2, 0.2}}}
+    m_view.renderers({
+        {std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers), {{0, 0, 1, 1}}},
+        {std::make_shared<VFRendering::VectorSphereRenderer>(m_view), {{0, 0, 0.2, 0.2}}},
+        {std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view), {{0.8, 0, 0.2, 0.2}}}
     });
     updateData();
 }
@@ -82,9 +79,7 @@ void SpinWidget::teardownGL() {
 }
 
 void SpinWidget::resizeGL(int width, int height) {
-  if (m_view) {
-    m_view->setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
-  }
+  m_view.setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
   //update();
 	QTimer::singleShot(1, this, SLOT(update()));
 }
@@ -159,22 +154,16 @@ void SpinWidget::updateData()
 	glm::vec3 bounds_min = glm::make_vec3(b_min);
 	glm::vec3 bounds_max = glm::make_vec3(b_max);
     glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
-    if (m_view) {
-        m_view->setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
-    } else {
-        default_options.set<VFRendering::View::Option::SYSTEM_CENTER>(center);
-    }
+    m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
 	if (_reset_camera)
 	{
 		setCameraToDefault();
     _reset_camera = false;
 	}
   
-  if (m_view) {
-    bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
-    VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
-    m_view->update(geometry, directions);
-  }
+  bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
+  VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
+  m_view.update(geometry, directions);
 }
 
 void SpinWidget::paintGL() {
@@ -185,9 +174,7 @@ void SpinWidget::paintGL() {
 		this->updateData();
 	}
   
-  if (m_view) {
-    m_view->draw();
-  }
+    m_view.draw();
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -200,15 +187,13 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event) {
   glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio();
   m_previous_mouse_position = event->pos();
   
-  if (m_view) {
-    if (event->buttons() & Qt::LeftButton) {
-      auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
-      if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier) {
-        movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-      }
-      m_view->mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
-      ((QWidget *)this)->update();
+  if (event->buttons() & Qt::LeftButton) {
+    auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
+    if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier) {
+      movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
     }
+    m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
+    ((QWidget *)this)->update();
   }
 }
 
@@ -222,11 +207,7 @@ void SpinWidget::setCameraToDefault() {
     options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
     options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    if (m_view) {
-        m_view->updateOptions(options);
-    } else {
-        default_options.update(options);
-    }
+    m_view.updateOptions(options);
 }
 
 void SpinWidget::setCameraToX() {
@@ -239,11 +220,7 @@ void SpinWidget::setCameraToX() {
     options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
     options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    if (m_view) {
-        m_view->updateOptions(options);
-    } else {
-        default_options.update(options);
-    }
+    m_view.updateOptions(options);
 }
 
 void SpinWidget::setCameraToY() {
@@ -256,11 +233,7 @@ void SpinWidget::setCameraToY() {
     options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
     options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    if (m_view) {
-        m_view->updateOptions(options);
-    } else {
-        default_options.update(options);
-    }
+    m_view.updateOptions(options);
 }
 
 void SpinWidget::setCameraToZ() {
@@ -273,38 +246,22 @@ void SpinWidget::setCameraToZ() {
     options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
     options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    if (m_view) {
-        m_view->updateOptions(options);
-    } else {
-        default_options.update(options);
-    }
+    m_view.updateOptions(options);
 }
 
 void SpinWidget::setCameraPositon(const glm::vec3& camera_position)
 {
-    if (m_view) {
-        m_view->setOption<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
-    } else {
-        default_options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
-    }
+    m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
 }
 
 void SpinWidget::setCameraFocus(const glm::vec3& center_position)
 {
-    if (m_view) {
-        m_view->setOption<VFRendering::View::Option::CENTER_POSITION>(center_position);
-    } else {
-        default_options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
-    }
+    m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(center_position);
 }
 
 void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
 {
-    if (m_view) {
-        m_view->setOption<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    } else {
-        default_options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-    }
+    m_view.setOption<VFRendering::View::Option::UP_VECTOR>(up_vector);
 }
 
 glm::vec3 SpinWidget::getCameraPositon()
@@ -323,42 +280,27 @@ glm::vec3 SpinWidget::getCameraUpVector()
 }
 
 float SpinWidget::getFramesPerSecond() const {
-  if (m_view) {
-    return m_view->getFramerate();
-  }
-  return 0;
+  return m_view.getFramerate();
 }
 
 void SpinWidget::wheelEvent(QWheelEvent *event) {
   float wheel_delta = event->angleDelta().y();
-  if (m_view) {
-    m_view->mouseScroll(wheel_delta * 0.1);
-    ((QWidget *)this)->update();
-  }
+  m_view.mouseScroll(wheel_delta * 0.1);
+  ((QWidget *)this)->update();
 }
 
 const VFRendering::Options& SpinWidget::options() const {
-  if (m_view) {
-    return m_view->options();
-  }
-  return default_options;
+  return m_view.options();
+
 }
 
 float SpinWidget::verticalFieldOfView() const {
-  if (m_view) {
-    return m_view->options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
-  } else {
-    return VFRendering::Options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
-  }
+  return m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
 }
 
 void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view) {
 	makeCurrent();
-  if (m_view) {
-    m_view->setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
-  } else {
-      default_options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
-  }
+    m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
 }
 
 glm::vec3 SpinWidget::backgroundColor() const {
@@ -366,29 +308,17 @@ glm::vec3 SpinWidget::backgroundColor() const {
 }
 
 void SpinWidget::setBackgroundColor(glm::vec3 background_color) {
-  makeCurrent();
-  if (m_view) {
-    m_view->setOption<VFRendering::View::Option::BACKGROUND_COLOR>(background_color);
-  } else {
-    default_options.set<VFRendering::View::Option::BACKGROUND_COLOR>(background_color);
-  }
+    makeCurrent();
+    m_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(background_color);
 }
 
 glm::vec3 SpinWidget::boundingBoxColor() const {
-  if (m_view) {
-    return m_view->options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
-  } else {
-    return VFRendering::Options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
-  }
+    return m_view.options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
 }
 
 void SpinWidget::setBoundingBoxColor(glm::vec3 bounding_box_color) {
-  makeCurrent();
-  if (m_view) {
-    m_view->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
-  } else {
-    default_options.set<VFRendering::BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
-  }
+    makeCurrent();
+    m_view.setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
 }
 
 bool SpinWidget::isMiniviewEnabled() const {
@@ -487,12 +417,8 @@ void SpinWidget::setZRange(glm::vec2 z_range) {
         sstream << "; float z = normalize(direction).z;  return z >= z_min && z <= z_max; }";
         is_visible_implementation = sstream.str();
     }
-    if (m_view) {
-        makeCurrent();
-        m_view->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
-    } else {
-        default_options.set<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
-    }
+    makeCurrent();
+    m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
 }
 
 float SpinWidget::isovalue() const {
@@ -501,11 +427,7 @@ float SpinWidget::isovalue() const {
 
 void SpinWidget::setIsovalue(float isovalue) {
   makeCurrent();
-  if (m_view) {
-    m_view->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(isovalue);
-  } else {
-    default_options.set<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(isovalue);
-  }
+  m_view.setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(isovalue);
 }
 
 
@@ -552,12 +474,8 @@ void SpinWidget::setColormap(Colormap colormap) {
       colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
       break;
   }
-  if (m_view) {
-    makeCurrent();
-    m_view->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
-  } else {
-    default_options.set<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
-  }
+  makeCurrent();
+  m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
 }
 
 glm::vec2 SpinWidget::spherePointSizeRange() const {
@@ -566,9 +484,5 @@ glm::vec2 SpinWidget::spherePointSizeRange() const {
 
 void SpinWidget::setSpherePointSizeRange(glm::vec2 sphere_point_size_range) {
 	makeCurrent();
-  if (m_view) {
-    m_view->setOption<VFRendering::VectorSphereRenderer::Option::POINT_SIZE_RANGE>(sphere_point_size_range);
-  } else {
-    default_options.set<VFRendering::VectorSphereRenderer::Option::POINT_SIZE_RANGE>(sphere_point_size_range);
-  }
+    m_view.setOption<VFRendering::VectorSphereRenderer::Option::POINT_SIZE_RANGE>(sphere_point_size_range);
 }

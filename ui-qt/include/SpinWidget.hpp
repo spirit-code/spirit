@@ -102,16 +102,14 @@ private:
   std::shared_ptr<State> state;
   QPoint m_previous_mouse_position;
   bool _reset_camera;
-  bool initialized;
   
   const VFRendering::Options& options() const;
-  VFRendering::Options default_options;
   
   Colormap m_colormap;
     glm::vec2 m_z_range;
   
   // Visualisation
-  std::shared_ptr<VFRendering::View> m_view;
+  VFRendering::View m_view;
 };
 
 #endif

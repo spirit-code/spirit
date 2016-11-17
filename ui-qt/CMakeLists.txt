@@ -16,6 +16,7 @@ include(ExternalProject)
 
 externalproject_add(VFRendering
 	GIT_REPOSITORY https://github.com/FlorianRhiem/VFRendering.git
+	GIT_TAG develop
 	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
 )
 
