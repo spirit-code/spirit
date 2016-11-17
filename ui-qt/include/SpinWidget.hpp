@@ -14,10 +14,6 @@
 class GLSpins
 {
 public:
-  enum CameraMovementModes {
-    TRANSLATE,
-    ROTATE
-  };
   enum WidgetLocation {
     BOTTOM_LEFT,
     BOTTOM_RIGHT,
@@ -30,27 +26,6 @@ public:
     ARROWS,
     SPHERE
   };
-  enum Option {
-    SHOW_BOUNDING_BOX,
-    BOUNDING_BOX_MIN,
-    BOUNDING_BOX_MAX,
-    SYSTEM_CENTER,
-    SHOW_MINIVIEW,
-    MINIVIEW_LOCATION,
-    SHOW_COORDINATE_SYSTEM,
-    COORDINATE_SYSTEM_LOCATION,
-    VISUALIZATION_MODE,
-    TETRAHEDRA_INDICES
-  };
-  enum Colormap {
-    HSV,
-    HSV_NO_Z,
-    BLUE_RED,
-    BLUE_GREEN_RED,
-    BLUE_WHITE_RED,
-    OTHER
-  };
-  
 };
 
 struct State;
@@ -60,6 +35,17 @@ class SpinWidget : public QOpenGLWidget
   Q_OBJECT
   
 public:
+
+    enum Colormap {
+        HSV,
+        HSV_NO_Z,
+        BLUE_RED,
+        BLUE_GREEN_RED,
+        BLUE_WHITE_RED,
+        OTHER
+    };
+
+
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
   void initializeGL();
@@ -71,12 +57,12 @@ public:
   void setCameraToX();
   void setCameraToY();
   void setCameraToZ();
-  void setCameraPositonTo(float x, float y, float z);
-  void setCameraFocusTo(float x, float y, float z);
-  void setCameraUpvectorTo(float x, float y, float z);
-  std::vector<float> getCameraPositon();
-  std::vector<float> getCameraFocus();
-  std::vector<float> getCameraUpvector();
+  void setCameraPositon(const glm::vec3& camera_position);
+  void setCameraFocus(const glm::vec3& center_position);
+  void setCameraUpVector(const glm::vec3& up_vector);
+  glm::vec3 getCameraPositon();
+  glm::vec3 getCameraFocus();
+  glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
   glm::vec3 backgroundColor() const;
@@ -99,8 +85,8 @@ public:
   void setZRange(glm::vec2 z_range);
   float isovalue() const;
   void setIsovalue(float isovalue);
-  GLSpins::Colormap colormap() const;
-  void setColormap(GLSpins::Colormap colormap);
+  Colormap colormap() const;
+  void setColormap(Colormap colormap);
   glm::vec2 spherePointSizeRange() const;
   void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
   
@@ -121,7 +107,7 @@ private:
   const VFRendering::Options& options() const;
   VFRendering::Options default_options;
   
-  GLSpins::Colormap m_colormap;
+  Colormap m_colormap;
     glm::vec2 m_z_range;
   
   // Visualisation

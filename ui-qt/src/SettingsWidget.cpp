@@ -541,18 +541,18 @@ void SettingsWidget::Load_Visualization_Contents()
 	std::string colormap = "Hue-Saturation-Value";
 	switch (_spinWidget->colormap())
 	{
-		case GLSpins::Colormap::HSV:
+		case SpinWidget::Colormap::HSV:
       break;
-    case GLSpins::Colormap::BLUE_RED:
+    case SpinWidget::Colormap::BLUE_RED:
       colormap = "Z-Component: Blue-Red";
       break;
-    case GLSpins::Colormap::BLUE_GREEN_RED:
+    case SpinWidget::Colormap::BLUE_GREEN_RED:
       colormap = "Z-Component: Blue-Green-Red";
       break;
-    case GLSpins::Colormap::BLUE_WHITE_RED:
+    case SpinWidget::Colormap::BLUE_WHITE_RED:
       colormap = "Z-Component: Blue-White-Red";
       break;
-    case GLSpins::Colormap::OTHER:
+    case SpinWidget::Colormap::OTHER:
 			break;
 		default:
 			break;
@@ -1236,22 +1236,22 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 
 void SettingsWidget::set_visualization_colormap()
 {
-	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+	SpinWidget::Colormap colormap = SpinWidget::Colormap::HSV;
 	if (comboBox_colormap->currentText() == "HSV, no z-component")
 	{
-		colormap = GLSpins::Colormap::HSV_NO_Z;
+		colormap = SpinWidget::Colormap::HSV_NO_Z;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_RED;
+		colormap = SpinWidget::Colormap::BLUE_RED;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_GREEN_RED;
+		colormap = SpinWidget::Colormap::BLUE_GREEN_RED;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_WHITE_RED;
+		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
 	_spinWidget->setColormap(colormap);
 
@@ -1267,21 +1267,19 @@ void SettingsWidget::set_camera()
 
 void SettingsWidget::read_camera()
 {
-	std::vector<float> pos(3), focus(3), up(3);
+    auto camera_position = _spinWidget->getCameraPositon();
+	auto center_position = _spinWidget->getCameraFocus();
+	auto up_vector = _spinWidget->getCameraUpVector();
 
-	pos = _spinWidget->getCameraPositon();
-	focus = _spinWidget->getCameraFocus();
-	up = _spinWidget->getCameraUpvector();
-
-	this->lineEdit_camera_pos_x->setText(QString::number(pos[0], 'f', 2));
-	this->lineEdit_camera_pos_y->setText(QString::number(pos[1], 'f', 2));
-	this->lineEdit_camera_pos_z->setText(QString::number(pos[2], 'f', 2));
-	this->lineEdit_camera_focus_x->setText(QString::number(focus[0], 'f', 2));
-	this->lineEdit_camera_focus_y->setText(QString::number(focus[1], 'f', 2));
-	this->lineEdit_camera_focus_z->setText(QString::number(focus[2], 'f', 2));
-	this->lineEdit_camera_upvector_x->setText(QString::number(up[0], 'f', 2));
-	this->lineEdit_camera_upvector_y->setText(QString::number(up[1], 'f', 2));
-	this->lineEdit_camera_upvector_z->setText(QString::number(up[2], 'f', 2));
+	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
+	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
+	this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
+	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
+	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
+	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
+	this->lineEdit_camera_upvector_x->setText(QString::number(up_vector.x, 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(up_vector.y, 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(up_vector.z, 'f', 2));
 }
 
 void SettingsWidget::set_camera_position()
@@ -1289,7 +1287,7 @@ void SettingsWidget::set_camera_position()
 	float x = this->lineEdit_camera_pos_x->text().toFloat();
 	float y = this->lineEdit_camera_pos_y->text().toFloat();
 	float z = this->lineEdit_camera_pos_z->text().toFloat();
-	this->_spinWidget->setCameraPositonTo(x, y, z);
+    this->_spinWidget->setCameraPositon({x, y, z});
 }
 
 void SettingsWidget::set_camera_focus()
@@ -1297,7 +1295,7 @@ void SettingsWidget::set_camera_focus()
 	float x = this->lineEdit_camera_focus_x->text().toFloat();
 	float y = this->lineEdit_camera_focus_y->text().toFloat();
 	float z = this->lineEdit_camera_focus_z->text().toFloat();
-	this->_spinWidget->setCameraFocusTo(x, y, z);
+    this->_spinWidget->setCameraFocus({x, y, z});
 }
 
 void SettingsWidget::set_camera_upvector()
@@ -1305,7 +1303,7 @@ void SettingsWidget::set_camera_upvector()
 	float x = this->lineEdit_camera_upvector_x->text().toFloat();
 	float y = this->lineEdit_camera_upvector_y->text().toFloat();
 	float z = this->lineEdit_camera_upvector_z->text().toFloat();
-	this->_spinWidget->setCameraUpvectorTo(x, y, z);
+    this->_spinWidget->setCameraUpVector({x, y, z});
 }
 
 

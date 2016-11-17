@@ -32,7 +32,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
     this->setMinimumSize(200,200);
     this->setBaseSize(600,600);
   
-    setColormap(GLSpins::Colormap::HSV);
+    setColormap(Colormap::HSV);
     
     default_options.set<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
     default_options.set<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
@@ -280,49 +280,46 @@ void SpinWidget::setCameraToZ() {
     }
 }
 
-void SpinWidget::setCameraPositonTo(float x, float y, float z)
+void SpinWidget::setCameraPositon(const glm::vec3& camera_position)
 {
     if (m_view) {
-        m_view->setOption<VFRendering::View::Option::CAMERA_POSITION>({x, y, z});
+        m_view->setOption<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     } else {
-        default_options.set<VFRendering::View::Option::CAMERA_POSITION>({x, y, z});
+        default_options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
     }
 }
 
-void SpinWidget::setCameraFocusTo(float x, float y, float z)
+void SpinWidget::setCameraFocus(const glm::vec3& center_position)
 {
     if (m_view) {
-        m_view->setOption<VFRendering::View::Option::CENTER_POSITION>({x, y, z});
+        m_view->setOption<VFRendering::View::Option::CENTER_POSITION>(center_position);
     } else {
-        default_options.set<VFRendering::View::Option::CENTER_POSITION>({x, y, z});
+        default_options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
     }
 }
 
-void SpinWidget::setCameraUpvectorTo(float x, float y, float z)
+void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
 {
     if (m_view) {
-        m_view->setOption<VFRendering::View::Option::UP_VECTOR>({x, y, z});
+        m_view->setOption<VFRendering::View::Option::UP_VECTOR>(up_vector);
     } else {
-        default_options.set<VFRendering::View::Option::UP_VECTOR>({x, y, z});
+        default_options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
     }
 }
 
-std::vector<float> SpinWidget::getCameraPositon()
+glm::vec3 SpinWidget::getCameraPositon()
 {
-    glm::vec3 camera_position = options().get<VFRendering::View::Option::CAMERA_POSITION>();
-    return {camera_position.x, camera_position.y, camera_position.z};
+    return options().get<VFRendering::View::Option::CAMERA_POSITION>();
 }
 
-std::vector<float> SpinWidget::getCameraFocus()
+glm::vec3 SpinWidget::getCameraFocus()
 {
-    glm::vec3 center_position = options().get<VFRendering::View::Option::CENTER_POSITION>();
-    return {center_position.x, center_position.y, center_position.z};
+    return options().get<VFRendering::View::Option::CENTER_POSITION>();
 }
 
-std::vector<float> SpinWidget::getCameraUpvector()
+glm::vec3 SpinWidget::getCameraUpVector()
 {
-	glm::vec3 up_vector = options().get<VFRendering::View::Option::UP_VECTOR>();
-    return {up_vector.x, up_vector.y, up_vector.z};
+	return options().get<VFRendering::View::Option::UP_VECTOR>();
 }
 
 float SpinWidget::getFramesPerSecond() const {
@@ -512,29 +509,29 @@ void SpinWidget::setIsovalue(float isovalue) {
 }
 
 
-GLSpins::Colormap SpinWidget::colormap() const {
+SpinWidget::Colormap SpinWidget::colormap() const {
   return m_colormap;
 }
 
-void SpinWidget::setColormap(GLSpins::Colormap colormap) {
+void SpinWidget::setColormap(Colormap colormap) {
   m_colormap = colormap;
   
   std::string colormap_implementation;
   switch (colormap) {
-    case GLSpins::Colormap::HSV:
+    case Colormap::HSV:
       colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
       break;
-    case GLSpins::Colormap::BLUE_RED:
+    case Colormap::BLUE_RED:
       colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUERED);
 	  break;
-    case GLSpins::Colormap::BLUE_GREEN_RED:
+    case Colormap::BLUE_GREEN_RED:
       colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEGREENRED);
       break;
-    case GLSpins::Colormap::BLUE_WHITE_RED:
+    case Colormap::BLUE_WHITE_RED:
       colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEWHITERED);
       break;
     // Custom color maps not included in VFRendering:
-    case GLSpins::Colormap::HSV_NO_Z:
+    case Colormap::HSV_NO_Z:
       colormap_implementation = R"(
       float atan2(float y, float x) {
         return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
