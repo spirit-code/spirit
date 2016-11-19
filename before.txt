@@ -1,0 +1,151 @@
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  ============ Spirit State Initialising ==============
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  ============     Version:  1.1.0
+2016-11-19 21:52:36  [ INFO  ] [ALL ] [--] [--]  ============     Revision: 0dcecc7fbc2a
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Building Log_Levels
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Log accept level  = 5
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Log print level   = 3
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Log output folder = .
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  -------------- Initialising Spin System ------------
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Geometry: building
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Reading Geometry Parameters
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Basis: building
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/basis_sc.cfg
+2016-11-19 21:52:36  [ ERROR ] [IO  ] [--] [--]  Keyword 'lattice_constant' not found. Using Default: 1.000000
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/basis_sc.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Lattice constant = 1.000000 angstrom
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]  Basis: vectors in units of lattice constant
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]          a = 1.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]          b = 0.000000 1.000000 0.000000
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]          c = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Basis: vectors
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          a = 1.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          b = 0.000000 1.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          c = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Basis: 1 atom(s) at the following positions:
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]              0 = 0.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Basis: built
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Translation: vectors
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          a = 1.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          b = 0.000000 1.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          c = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Translation: vectors transformed by basis
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          a = 1.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          b = 0.000000 1.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          c = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Translation: n_cells
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          na = 60
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          nb = 60
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          nc = 60
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Geometry: 216000 spins
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Geometry is 3-dimensional
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Geometry: built
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters LLG: building
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Parameters LLG:
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          seed              = 20006
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          temperature       = 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          damping           = 0.300000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          time step         = 0.003042
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          stt magnitude     = 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          stt normal        = 1.000000 0.000000 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          force convergence = 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations      = 2000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations_log  = 2000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          output_folder     = output
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters LLG: built
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Hamiltonian: building
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Hamiltonian: deciding type
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Hamiltonian_Anisotropic: building
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Reading spin pairs from file input/anisotropic/pairs_gideon-master-thesis.txt
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/anisotropic/pairs_gideon-master-thesis.txt
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Done reading 2 spin pairs from file input/anisotropic/pairs_gideon-master-thesis.txt
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/anisotropic/pairs_gideon-master-thesis.txt
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Hamiltonian_Anisotropic:
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          boundary conditions = 1 1 0
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          B[0]                = 25.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          B_normal[0]         = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          mu_s[0]             = 2.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          K[0]                = 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          K_normal[0]         = 0.000000 0.000000 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          dd_radius           = 0.000000
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Hamiltonian_Anisotropic: built
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Hamiltonian: built hamiltonian of type: anisotropic
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  -------------- Spin System Initialised -------------
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters GNEB: building
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Parameters GNEB:
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          spring_constant    = 1.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          force_convergence  = 0.000001
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_E_interpolations = 10
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations       = 200000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations_log   = 200
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          output_folder      = output
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters GNEB: built
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters MMF: building
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Reading from Config File input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ ERROR ] [IO  ] [--] [--]  Keyword 'mmf_force_convergence' not found. Using Default: 0.000000
+2016-11-19 21:52:36  [ ERROR ] [IO  ] [--] [--]  Keyword 'mmf_n_iterations' not found. Using Default: 2000000
+2016-11-19 21:52:36  [ ERROR ] [IO  ] [--] [--]  Keyword 'mmf_n_iterations_log' not found. Using Default: 100
+2016-11-19 21:52:36  [ DEBUG ] [IO  ] [--] [--]    Config File Closed: input/gideon-master-thesis-anisotropic.cfg
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]  Parameters MMF:
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          force_convergence  = 0.000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations       = 2000000
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          n_iterations_log   = 100
+2016-11-19 21:52:36  [ PARAM ] [IO  ] [--] [--]          output_folder      = output
+2016-11-19 21:52:36  [ INFO  ] [IO  ] [--] [--]  Parameters MMF: built
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  ============ Spirit State Initialised ===============
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  ============     NOS=216000 NOI=1 NOC=1
+2016-11-19 21:52:36  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:52:37  [ INFO  ] [UI  ] [--] [--]  QSurfaceFormat version: 3.3
+2016-11-19 21:52:45  [ DEBUG ] [UI  ] [--] [--]  button Random
+2016-11-19 21:52:55  [ DEBUG ] [UI  ] [--] [--]  Button: playpause
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]  -------------- Started LLG Simulation --------------
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]  Going to iterate 1 steps
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]              with 2000 iterations per step
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]      Force convergence parameter: 0,000000
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]      Maximum force component:     1,000000
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]  Optimizer: Semi-implicit B
+2016-11-19 21:52:55  [  ALL  ] [LLG ] [00] [00]  -----------------------------------------------------
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Spins_00_000_initial.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Spins_00_000_initial.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Energy_00_000_initial.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Energy_00_000_initial.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Energy_00_000_initial.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Energy_00_000_initial.txt
+2016-11-19 21:52:56  [ INFO  ] [ALL ] [--] [--]  Appending Log to file ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Started writing ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:52:56  [ DEBUG ] [ALL ] [--] [--]  Finished writing ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:54:37  [ DEBUG ] [UI  ] [--] [--]  Button: stopall
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]  -------------- Finished LLG Simulation --------------
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]  Terminated at                   93 / 2000 iterations.
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]      LLG Simulation ran for     1,704834 minutes.
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]      Force convergence parameter: 0,000000
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]      Maximum force component:     38,392136
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]  Optimizer: Semi-implicit B
+2016-11-19 21:54:37  [  ALL  ] [LLG ] [00] [00]  ------------------------------------------------------
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Spins_00_093_final.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Spins_00_093_final.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Energy_00_093_final.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Energy_00_093_final.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Started writing output/2016-11-19_21-52-55_Energy_00_093_final.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Finished writing output/2016-11-19_21-52-55_Energy_00_093_final.txt
+2016-11-19 21:54:38  [ INFO  ] [ALL ] [--] [--]  Appending Log to file ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Started writing ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:54:38  [ DEBUG ] [ALL ] [--] [--]  Finished writing ./Log_2016-11-19_21-52-36.txt
+2016-11-19 21:54:38  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:54:38  [  ALL  ] [ALL ] [--] [--]  ================= Spirit Finished ===================
+2016-11-19 21:54:38  [  ALL  ] [ALL ] [--] [--]  =====================================================
+2016-11-19 21:54:38  [ INFO  ] [ALL ] [--] [--]  Appending Log to file ./Log_2016-11-19_21-52-36.txt
