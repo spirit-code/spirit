@@ -1,6 +1,6 @@
 #include "Configurations.hpp"
 #include "Spin_System.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "Logging.hpp"
 #include "Exception.hpp"
 

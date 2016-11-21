@@ -1,5 +1,5 @@
 #include "Manifoldmath.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 
 
 namespace Utility

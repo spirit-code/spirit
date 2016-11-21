@@ -3,7 +3,7 @@
 
 #include <engine/Hamiltonian_Anisotropic.hpp>
 
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include <Spin_System.hpp>
 #include "Vectormath.hpp"
 #include "Neighbours.hpp"

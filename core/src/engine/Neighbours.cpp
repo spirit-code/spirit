@@ -1,5 +1,5 @@
 #include "Neighbours.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "IO.hpp"
 #include "Logging.hpp"
 

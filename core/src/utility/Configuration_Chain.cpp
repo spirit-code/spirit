@@ -1,7 +1,7 @@
 #include "Configuration_Chain.hpp"
 #include "Configurations.hpp"
 #include "Spin_System.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "Manifoldmath.hpp"
 
 #include <random>

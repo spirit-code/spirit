@@ -1,6 +1,6 @@
 #include "Optimizer_SIB2.hpp"
 
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 
 using namespace Utility;
 

@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 
 #include "Logging.hpp"
 //extern Utility::LoggingHandler Log;

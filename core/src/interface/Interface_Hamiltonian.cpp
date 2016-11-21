@@ -4,7 +4,7 @@
 #include "State.hpp"
 #include "Spin_System.hpp"
 #include "Spin_System_Chain.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "Hamiltonian_Isotropic.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "Neighbours.hpp"
 #include "Logging.hpp"
 //extern Utility::LoggingHandler Log;

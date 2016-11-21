@@ -1,8 +1,9 @@
 #include "Method_MMF.hpp"
 #include "Manifoldmath.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "Logging.hpp"
 #include "IO.hpp"
+#include "Vectormath_Defines.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -12,13 +13,6 @@
 
 using Utility::Log_Level;
 using Utility::Log_Sender;
-
-typedef Eigen::Matrix<scalar, -1, 1> Vector;
-typedef Eigen::Matrix<scalar, 1, -1> RowVector;
-typedef Eigen::Matrix<scalar, 3, 1> Vector3;
-typedef Eigen::Matrix<scalar, 1, 3> RowVector3;
-typedef Eigen::Matrix<scalar, -1, -1> Matrix;
-typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
 
 namespace Engine
 {
@@ -73,9 +67,9 @@ namespace Engine
     }
 
 
-	Matrix deorder_matrix(Matrix m)
+	MatrixX deorder_matrix(MatrixX m)
 	{
-		Matrix r(m.rows(), m.rows());
+		MatrixX r(m.rows(), m.rows());
 		int nos = m.rows() / 3;
 
 		for (int i = 0; i < nos; ++i)
@@ -94,7 +88,7 @@ namespace Engine
 		return r;
 	}
 
-	Matrix projector(std::vector<scalar> & image)
+	MatrixX projector(std::vector<scalar> & image)
 	{
 		int size = image.size();
 		int nos = size / 3;
@@ -103,7 +97,7 @@ namespace Engine
 		// 		Get basis change matrix M=1-S, S=x*x^T
 		//Log(Log_Level::Debug, Log_Sender::MMF, "before basis matrix creation");
 
-		Matrix proj = Matrix::Identity(size, size);// -e_image*e_image.transpose();
+		MatrixX proj = MatrixX::Identity(size, size);// -e_image*e_image.transpose();
 		// TODO: do this with stride, instead of deordering later
 		Vector3 spin;
 		for (int i = 0; i < nos; ++i)
@@ -120,9 +114,9 @@ namespace Engine
 		return deorder_matrix(proj);
 	}
 
-	Matrix reorder_matrix(Matrix m)
+	MatrixX reorder_matrix(MatrixX m)
 	{
-		Matrix r(m.rows(), m.rows());
+		MatrixX r(m.rows(), m.rows());
 		int nos = m.rows() / 3;
 
 		for (int i = 0; i < nos; ++i)
@@ -141,9 +135,9 @@ namespace Engine
 		return r;
 	}
 
-	Vector reorder_vector(Vector m)
+	VectorX reorder_vector(VectorX m)
 	{
-		Vector r(m.rows());
+		VectorX r(m.rows());
 		int nos = m.rows() / 3;
 
 		for (int i = 0; i < nos; ++i)
@@ -166,11 +160,11 @@ namespace Engine
 		{
 			auto& image = *configurations[ichain];
 
-			Vector x = Eigen::Map<Vector>(configurations[ichain]->data(), 3 * nos);
+			VectorX x = Eigen::Map<VectorX>(configurations[ichain]->data(), 3 * nos);
 
 			// The gradient force (unprojected) is simply minus the effective field
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
-			Vector grad = Eigen::Map<Vector>(F_gradient[ichain].data(), 3 * nos);
+			VectorX grad = Eigen::Map<VectorX>(F_gradient[ichain].data(), 3 * nos);
 			//std::cerr << F_gradient[0][0] << std::endl;
 			//std::cerr << grad[0] << std::endl;
 			grad = -grad;
@@ -179,7 +173,7 @@ namespace Engine
 
 			// Get the unprojected Hessian
 			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
-			Matrix H = Eigen::Map<Matrix>(hessian[ichain].data(), 3 * nos, 3 * nos);
+			MatrixX H = Eigen::Map<MatrixX>(hessian[ichain].data(), 3 * nos, 3 * nos);
 
 
 			// Remove Hessian's components in the basis of the image (project it into tangent space)
@@ -218,7 +212,7 @@ namespace Engine
 			{
 				// Calculate the Force
 				// 		Retrieve the Eigenvalues
-				Vector evalues = hessian_spectrum.eigenvalues().real();
+				VectorX evalues = hessian_spectrum.eigenvalues().real();
 				//std::cerr << "spectra val: " << std::endl << hessian_spectrum.eigenvalues() << std::endl;
 				//std::cerr << "spectra vec: " << std::endl << -reorder_vector(hessian_spectrum.eigenvectors().col(0).real()) << std::endl;
 				// 		Check if the lowest eigenvalue is negative
@@ -228,8 +222,8 @@ namespace Engine
 						switched2 = true;
 					// Create the Minimum Mode
 					// 		Retrieve the Eigenvectors
-					Matrix evectors = hessian_spectrum.eigenvectors().real();
-					Eigen::Ref<Vector> evec = evectors.col(0);
+					MatrixX evectors = hessian_spectrum.eigenvectors().real();
+					Eigen::Ref<VectorX> evec = evectors.col(0);
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment
 					this->minimum_mode[ichain] = std::vector<scalar>(evec.data(), evec.data() + evec.rows()*evec.cols());
@@ -363,11 +357,11 @@ namespace Engine
 		}
 	}
 
-	std::vector<Matrix> gamma(std::vector<scalar> & image)
+	std::vector<MatrixX> gamma(std::vector<scalar> & image)
 	{
 		int nos = image.size() / 3;
 
-		Matrix a_x(3 * nos, 3 * nos), a_y(3 * nos, 3 * nos), a_z(3 * nos, 3 * nos);
+		MatrixX a_x(3 * nos, 3 * nos), a_y(3 * nos, 3 * nos), a_z(3 * nos, 3 * nos);
 		Matrix3 A_x, A_y, A_z;
 		for (int i = 0; i < nos; ++i)
 		{
@@ -385,10 +379,10 @@ namespace Engine
 			a_y.block<3, 3>(3*i, 3*i) = A_y;
 			a_z.block<3, 3>(3*i, 3*i) = A_z;
 		}
-		return std::vector<Matrix>({ a_x, a_y, a_z });
+		return std::vector<MatrixX>({ a_x, a_y, a_z });
 	}
 
-	void printmatrix(Matrix & m)
+	void printmatrix(MatrixX & m)
 	{
 		std::cerr << m << std::endl;
 	}
@@ -406,12 +400,12 @@ namespace Engine
 			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
 
 
-			Vector e_gradient = Eigen::Map<Vector>(F_gradient[ichain].data(), 3 * nos);
+			VectorX e_gradient = Eigen::Map<VectorX>(F_gradient[ichain].data(), 3 * nos);
 			e_gradient = -e_gradient;
 
 			// Get the unprojected Hessian
 			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
-			Matrix e_hessian = Eigen::Map<Matrix>(hessian[ichain].data(), 3 * nos, 3 * nos);
+			MatrixX e_hessian = Eigen::Map<MatrixX>(hessian[ichain].data(), 3 * nos, 3 * nos);
 
 			// std::cerr << "------------------------" << std::endl;
 			// std::cerr << "gradient:      " << std::endl << e_gradient.transpose() << std::endl;
@@ -463,7 +457,7 @@ namespace Engine
 			{
 				// Calculate the Force
 				// 		Retrieve the Eigenvalues
-				Vector evalues = hessian_spectrum.eigenvalues().real();
+				VectorX evalues = hessian_spectrum.eigenvalues().real();
 				// std::cerr << "spectra val: " << std::endl << hessian_spectrum.eigenvalues() << std::endl;
 				// std::cerr << "spectra vec: " << std::endl << hessian_spectrum.eigenvectors().real() << std::endl;
 				// 		Check if the lowest eigenvalue is negative
@@ -471,8 +465,8 @@ namespace Engine
 				{
 					// Create the Minimum Mode
 					// 		Retrieve the Eigenvectors
-					Matrix evectors = hessian_spectrum.eigenvectors().real();
-					Eigen::Ref<Vector> x = evectors.col(0);
+					MatrixX evectors = hessian_spectrum.eigenvectors().real();
+					Eigen::Ref<VectorX> x = evectors.col(0);
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment
 					this->minimum_mode[ichain] = std::vector<scalar>(x.data(), x.data() + x.rows()*x.cols());
@@ -491,7 +485,7 @@ namespace Engine
 				{
 					/////////////////////////////////
 					// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
-					Eigen::EigenSolver<Matrix> estest(e_hessian);
+					Eigen::EigenSolver<MatrixX> estest(e_hessian);
 					auto evals = estest.eigenvalues().real();
 					// std::cerr << "eigen vals: " << std::endl << estest.eigenvalues() << std::endl;
 					// std::cerr << "eigen vecs: " << std::endl << estest.eigenvectors().real() << std::endl;
@@ -542,7 +536,7 @@ namespace Engine
 				for (scalar x : forces[ichain]) x = 0;*/
 				/////////////////////////////////
 				// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
-				Eigen::EigenSolver<Matrix> estest(e_hessian);
+				Eigen::EigenSolver<MatrixX> estest(e_hessian);
 				auto evals = estest.eigenvalues().real();
 				// std::cerr << "eigen vals: " << std::endl << estest.eigenvalues() << std::endl;
 				// std::cerr << "eigen vecs: " << std::endl << estest.eigenvectors().real() << std::endl;

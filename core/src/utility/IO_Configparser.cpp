@@ -1,6 +1,6 @@
 ﻿#include "IO.hpp"
 #include "IO_Filter_File_Handle.hpp"
-#include "Vectormath.hpp"
+#include "utility/Vectormath.hpp"
 #include "Neighbours.hpp"
 #include "Logging.hpp"
 #include "Exception.hpp"
