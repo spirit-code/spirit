@@ -203,11 +203,11 @@ namespace Engine
 				- spins[dp2*nos + indices[0]] * spins[dp1*nos + indices[1]];
 		}
 		/*for (int i = 0; i < 3; ++i)
-		  {
-		  cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
-		  cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
-		  cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
-		  }*/
+		{
+			cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
+			cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
+			cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
+		}*/
 		for (int i = 0; i < 3; ++i)
 		{
 			Energy[ENERGY_POS_DMI] -= DMI_magnitude * DMI_normal[i] * cross[i];
@@ -230,9 +230,9 @@ namespace Engine
 		scalar result = 0.0;
 
 		Energy[ENERGY_POS_DD] -= mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0) *
-			(3  *   ( spins[indices[1]]           * DD_normal[0]
-					  + spins[indices[1] + 1 * nos] * DD_normal[1]
-					  + spins[indices[1] + 2 * nos] * DD_normal[2])
+			(3 * ( spins[indices[1]]           * DD_normal[0]
+				 + spins[indices[1] + 1 * nos] * DD_normal[1]
+				 + spins[indices[1] + 2 * nos] * DD_normal[2])
 			 *   ( spins[indices[0]]           * DD_normal[0]
 				 + spins[indices[0] + 1 * nos] * DD_normal[1]
 				 + spins[indices[0] + 2 * nos] * DD_normal[2])
@@ -263,13 +263,13 @@ namespace Engine
 		{
 			// Check if boundary conditions contain this periodicity
 			if ((i_periodicity == 0)
-					|| (i_periodicity == 1 && this->boundary_conditions[0])
-					|| (i_periodicity == 2 && this->boundary_conditions[1])
-					|| (i_periodicity == 3 && this->boundary_conditions[2])
-					|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-					|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-					|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-					|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+				|| (i_periodicity == 1 && this->boundary_conditions[0])
+				|| (i_periodicity == 2 && this->boundary_conditions[1])
+				|| (i_periodicity == 3 && this->boundary_conditions[2])
+				|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+				|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
 			{
 				//		Loop over pairs of this periodicity
 				// Exchange
@@ -422,13 +422,13 @@ namespace Engine
 		{
 			//		Check if boundary conditions contain this periodicity
 			if ((i_periodicity == 0)
-					|| (i_periodicity == 1 && this->boundary_conditions[0])
-					|| (i_periodicity == 2 && this->boundary_conditions[1])
-					|| (i_periodicity == 3 && this->boundary_conditions[2])
-					|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-					|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-					|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-					|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+				|| (i_periodicity == 1 && this->boundary_conditions[0])
+				|| (i_periodicity == 2 && this->boundary_conditions[1])
+				|| (i_periodicity == 3 && this->boundary_conditions[2])
+				|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+				|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
 			{
 				//		Loop over pairs of this periodicity
 				// Exchange
