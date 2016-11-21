@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Core_Defines.h"
+#include "engine/Vectormath_Defines.hpp"
 #include "data/Geometry.hpp"
 #include "engine/Hamiltonian.hpp"
 #include "engine/Hamiltonian_Isotropic.hpp"
@@ -38,7 +39,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::shared_ptr<std::vector<scalar>> spins;
+		std::shared_ptr<std::vector<Vector3>> spins;
 		// Spin Hamiltonian
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
@@ -52,7 +53,7 @@ namespace Data
 		scalar E;
 		std::vector<scalar> E_array;
 		// Total effective field of the spins [3][nos]
-		std::vector<scalar> effective_field;
+		std::vector<Vector3> effective_field;
 
 
 	//private:

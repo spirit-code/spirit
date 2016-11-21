@@ -38,7 +38,7 @@ namespace Engine
 			override it if you want to get proper performance.
 			This function is the fallback for derived classes where it has not been overridden.
 		*/
-		virtual void Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian);
+		virtual void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian);
 
 		/*
 			Calculate the effective field of a spin configuration.
@@ -46,16 +46,16 @@ namespace Engine
 			override it if you want to get proper performance.
 			This function is the fallback for derived classes where it has not been overridden.
 		*/
-		virtual void Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field);
+		virtual void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field);
 
 		// Calculate the Energy of a spin configuration
-		virtual scalar Energy(const std::vector<scalar> & spins);
+		virtual scalar Energy(const std::vector<Vector3> & spins);
 
 		// Calculate the Energies of the spins of a configuration
-		virtual std::vector<std::vector<scalar>> Energy_Array_per_Spin(const std::vector<scalar> & spins);
+		virtual std::vector<std::vector<scalar>> Energy_Array_per_Spin(const std::vector<Vector3> & spins);
 
 		// Calculate the Effective Field of a spin configuration
-		virtual std::vector<scalar> Energy_Array(const std::vector<scalar> & spins);
+		virtual std::vector<scalar> Energy_Array(const std::vector<Vector3> & spins);
 
 		// Hamiltonian name as string
 		virtual const std::string& Name();
