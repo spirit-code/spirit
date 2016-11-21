@@ -5,7 +5,6 @@
 
 #include "Vectormath.hpp"
 #include <Spin_System.hpp>
-#include "Vectoroperators.hpp"
 #include "Vectormath.hpp"
 #include "Neighbours.hpp"
 
@@ -44,7 +43,10 @@ namespace Engine
 
 	scalar Hamiltonian_Anisotropic::Energy(const std::vector<scalar> & spins)
 	{
-		return sum(Energy_Array(spins));
+		scalar sum = 0;
+		auto e = Energy_Array(spins);
+		for (auto E : e) sum += E;
+		return sum;
 	}
 
 	std::vector<scalar> Hamiltonian_Anisotropic::Energy_Array(const std::vector<scalar> & spins)

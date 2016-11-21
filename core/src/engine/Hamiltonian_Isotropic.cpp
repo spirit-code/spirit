@@ -4,7 +4,6 @@
 
 #include "Hamiltonian_Isotropic.hpp"
 #include "Vectormath.hpp"
-#include "Vectoroperators.hpp"
 #include "Neighbours.hpp"
 #include "Logging.hpp"
 //extern Utility::LoggingHandler Log;
@@ -40,7 +39,10 @@ namespace Engine
 
 	scalar Hamiltonian_Isotropic::Energy(const std::vector<scalar> & spins)
 	{
-		return sum(Energy_Array(spins));
+		scalar sum = 0;
+		auto e = Energy_Array(spins);
+		for (auto E : e) sum += E;
+		return sum;
 	}
 
 	std::vector<scalar> Hamiltonian_Isotropic::Energy_Array(const std::vector<scalar> & spins)

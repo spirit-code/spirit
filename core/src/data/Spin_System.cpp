@@ -1,7 +1,6 @@
 #include "Spin_System.hpp"
 #include "Neighbours.hpp"
 #include "Vectormath.hpp"
-#include "Vectoroperators.hpp"
 #include "IO.hpp"
 
 #include <numeric>
