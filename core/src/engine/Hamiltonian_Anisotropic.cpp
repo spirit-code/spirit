@@ -193,17 +193,20 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::E_DMI(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DMI_magnitude, std::vector<scalar> & DMI_normal, std::vector<scalar> & Energy)
 	{
-		std::vector<scalar> cross(3);
+		scalar cross[3];
+		
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			cross[dim] = spins[((dim + 1) % 3)*nos + indices[0]] * spins[((dim + 2) % 3)*nos + indices[1]]
-				- spins[((dim + 2) % 3)*nos + indices[0]] * spins[((dim + 1) % 3)*nos + indices[1]];
+			auto dp1 = (dim + 1) % 3;
+			auto dp2 = (dim + 2) % 3;
+			cross[dim] = spins[dp1*nos + indices[0]] * spins[dp2*nos + indices[1]]
+				- spins[dp2*nos + indices[0]] * spins[dp1*nos + indices[1]];
 		}
 		/*for (int i = 0; i < 3; ++i)
 		{
-		cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
-		cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
-		cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
+			cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
+			cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
+			cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
 		}*/
 		for (int i = 0; i < 3; ++i)
 		{
@@ -227,15 +230,15 @@ namespace Engine
 		scalar result = 0.0;
 
 		Energy[ENERGY_POS_DD] -= mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0) *
-			(3  *   ( spins[indices[1]]           * DD_normal[0]
-					+ spins[indices[1] + 1 * nos] * DD_normal[1]
-					+ spins[indices[1] + 2 * nos] * DD_normal[2])
-			   	*   ( spins[indices[0]]           * DD_normal[0]
-					+ spins[indices[0] + 1 * nos] * DD_normal[1]
-					+ spins[indices[0] + 2 * nos] * DD_normal[2])
-				-   ( spins[indices[0]]           * spins[indices[1]]
-					+ spins[indices[0] + 1 * nos] * spins[indices[1] + 1 * nos]
-					+ spins[indices[0] + 2 * nos] * spins[indices[1] + 2 * nos]));
+			(3 * ( spins[indices[1]]           * DD_normal[0]
+				 + spins[indices[1] + 1 * nos] * DD_normal[1]
+				 + spins[indices[1] + 2 * nos] * DD_normal[2])
+			 *   ( spins[indices[0]]           * DD_normal[0]
+				 + spins[indices[0] + 1 * nos] * DD_normal[1]
+				 + spins[indices[0] + 2 * nos] * DD_normal[2])
+			 -   ( spins[indices[0]]           * spins[indices[1]]
+				 + spins[indices[0] + 1 * nos] * spins[indices[1] + 1 * nos]
+				 + spins[indices[0] + 2 * nos] * spins[indices[1] + 2 * nos]));
 	}// end DipoleDipole
 
 
@@ -335,13 +338,16 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Field_DMI(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DMI_magnitude, std::vector<scalar> & DMI_normal, std::vector<scalar> & eff_field)
 	{
-		std::vector<scalar> cross1(3), cross2(3);
+		scalar cross1[3], cross2[3];
+
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			cross1[dim] = spins[((dim + 1) % 3)*nos + indices[1]] * DMI_normal[((dim + 2) % 3)]
-				- spins[((dim + 2) % 3)*nos + indices[1]] * DMI_normal[((dim + 1) % 3)];
-			cross2[dim] = -spins[((dim + 1) % 3)*nos + indices[0]] * DMI_normal[((dim + 2) % 3)]
-				+ spins[((dim + 2) % 3)*nos + indices[0]] * DMI_normal[((dim + 1) % 3)];
+			auto dp1 = (dim + 1) % 3;
+			auto dp2 = (dim + 2) % 3;
+			cross1[dim] = spins[dp1*nos + indices[1]] * DMI_normal[dp2]
+				- spins[dp2*nos + indices[1]] * DMI_normal[dp1];
+			cross2[dim] = -spins[dp1*nos + indices[0]] * DMI_normal[dp2]
+				+ spins[dp2*nos + indices[0]] * DMI_normal[dp1];
 		}
 
 		//cross1[0] = s.spins[pair.idx_2 + s.nos] * pair.D_ij_normal[2] - s.spins[pair.idx_2 + 2*s.nos] * pair.D_ij_normal[1];
@@ -378,7 +384,7 @@ namespace Engine
 		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar skalar_contrib, dotprod1, dotprod0;
-		
+
 		skalar_contrib = mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0);
 		dotprod1 = spins[indices[1]] * DD_normal[0]
 			+ spins[1 * nos + indices[1]] * DD_normal[1]
