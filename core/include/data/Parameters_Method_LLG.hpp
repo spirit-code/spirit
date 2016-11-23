@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Core_Defines.h"
+#include "Vectormath_Defines.hpp"
 #include "Parameters_Method.hpp"
 
 namespace Data
@@ -18,7 +19,7 @@ namespace Data
 		Parameters_Method_LLG(std::string output_folder, scalar force_convergence, long int n_iterations, long int n_iterations_log,
 			int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i,
 			bool renorm_sd_i, bool save_single_configurations_i,
-			scalar stt_magnitude_i, std::vector<scalar> stt_polarisation_normal_i);
+			scalar stt_magnitude_i, Vector3 stt_polarisation_normal_i);
 
 		//PRNG Seed
 		const int seed;
@@ -42,7 +43,7 @@ namespace Data
 		// spin-transfer-torque parameter (prop to injected current density)
 		scalar stt_magnitude;
 		// spin_current polarisation normal vector
-		std::vector<scalar> stt_polarisation_normal;
+		Vector3 stt_polarisation_normal;
 	};
 }
 #endif

@@ -30,10 +30,10 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<scalar>> spins_temp;
+		std::vector<std::vector<Vector3>> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
-		std::vector<std::vector<scalar>> virtualforce;
+		std::vector<std::vector<Vector3>> virtualforce;
 
 		// TODO: THE HEUN METHOD CAN BE REWRITTEN TO BE NICER:
 		//// Calculate the virtual Heun force to be used in the Steps

@@ -19,11 +19,11 @@ namespace Engine
         this->n_log             = this->n_iterations/this->n_iterations_log;
 
         // Create shared pointers to the method's systems' configurations
-	    this->configurations = std::vector<std::shared_ptr<std::vector<scalar>>>(noi);
+	    this->configurations = std::vector<std::shared_ptr<std::vector<Vector3>>>(noi);
         for (int i=0; i<noi; ++i) this->configurations[i] = this->method->systems[i]->spins;
         
         // Allocate force array
-        this->force = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos, 0));	// [noi][3*nos]
+        this->force = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][3*nos]
 
         // Setup Timings
         for (int i=0; i<7; ++i) this->t_iterations.push_back(system_clock::now());

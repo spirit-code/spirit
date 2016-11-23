@@ -56,9 +56,9 @@ namespace Engine
 		int n_log;
 
 		// Pointers to Configurations
-		std::vector<std::shared_ptr<std::vector<scalar>>> configurations;
+		std::vector<std::shared_ptr<std::vector<Vector3>>> configurations;
 		// Actual Forces on the configurations
-		std::vector<std::vector<scalar>> force;
+		std::vector<std::vector<Vector3>> force;
 
 		// The time at which this Solver's Iterate() was last called
 		std::string starttime;
