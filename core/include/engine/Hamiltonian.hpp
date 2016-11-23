@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "Core_Defines.h"
+#include "Vectormath_Defines.hpp"
 #include "Logging.hpp"
 #include "Exception.hpp"
 

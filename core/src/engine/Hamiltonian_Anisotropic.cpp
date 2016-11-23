@@ -19,10 +19,10 @@ namespace Engine
 		std::vector<scalar> mu_s,
 		std::vector<int> external_field_index, std::vector<scalar> external_field_magnitude, std::vector<Vector3> external_field_normal,
 		std::vector<int> anisotropy_index, std::vector<scalar> anisotropy_magnitude, std::vector<Vector3> anisotropy_normal,
-		std::vector<std::vector<int[2]>> Exchange_indices, std::vector<std::vector<scalar>> Exchange_magnitude,
-		std::vector<std::vector<int[2]>> DMI_indices, std::vector<std::vector<scalar>> DMI_magnitude, std::vector<std::vector<Vector3>> DMI_normal,
-		std::vector<std::vector<int[2]>> BQC_indices, std::vector<std::vector<scalar>> BQC_magnitude,
-		std::vector<std::vector<int[2]>> DD_indices, std::vector<std::vector<scalar>> DD_magnitude, std::vector<std::vector<Vector3>> DD_normal,
+		std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<scalar>> Exchange_magnitude,
+		std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<scalar>> DMI_magnitude, std::vector<std::vector<Vector3>> DMI_normal,
+		std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<scalar>> BQC_magnitude,
+		std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<scalar>> DD_magnitude, std::vector<std::vector<Vector3>> DD_normal,
 		std::vector<bool> boundary_conditions
 	) :
 		Hamiltonian(boundary_conditions),
@@ -160,7 +160,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Exchange(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & J_ij, std::vector<scalar> & Energy)
+	void Hamiltonian_Anisotropic::E_Exchange(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, std::vector<scalar> & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -168,7 +168,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, std::vector<scalar> & Energy)
+	void Hamiltonian_Anisotropic::E_DMI(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, std::vector<scalar> & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -177,7 +177,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Anisotropic::E_BQC(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & B_ij, std::vector<scalar> & Energy)
+	void Hamiltonian_Anisotropic::E_BQC(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & B_ij, std::vector<scalar> & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -185,7 +185,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DD(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<scalar> & Energy)
+	void Hamiltonian_Anisotropic::E_DD(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<scalar> & Energy)
 	{
 		//scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -265,7 +265,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Exchange(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & J_ij, std::vector<Vector3> & eff_field)
+	void Hamiltonian_Anisotropic::Field_Exchange(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, std::vector<Vector3> & eff_field)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -274,7 +274,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DMI(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, std::vector<Vector3> & eff_field)
+	void Hamiltonian_Anisotropic::Field_DMI(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, std::vector<Vector3> & eff_field)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -283,7 +283,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_BQC(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & B_ij, std::vector<Vector3> & eff_field)
+	void Hamiltonian_Anisotropic::Field_BQC(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & B_ij, std::vector<Vector3> & eff_field)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
@@ -291,7 +291,7 @@ namespace Engine
 			eff_field[indices[i_pair][1]] += 2 * B_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]) * spins[indices[i_pair][0]];
 		}
 	}
-	void Hamiltonian_Anisotropic::Field_DD(const std::vector<Vector3> & spins, std::vector<int[2]> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<Vector3> & eff_field)
+	void Hamiltonian_Anisotropic::Field_DD(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<Vector3> & eff_field)
 	{
 		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10

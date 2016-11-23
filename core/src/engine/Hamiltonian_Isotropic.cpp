@@ -197,7 +197,7 @@ namespace Engine
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size()/3;
-		int dim, istart = -1, istop = istart + 1, i;
+		int istart = -1, istop = istart + 1, i;
 		if (istart == -1) { istart = 0; istop = nos; }
 		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
 		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
@@ -342,17 +342,17 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::Hessian(const std::vector<Vector3> & spins, MatrixX & hessian)
 	{
-		int nos = spins.size() / 3;
+		//int nos = spins.size() / 3;
 
-		// Single Spin elements
-		for (int alpha = 0; alpha < 3; ++alpha)
-		{
-			scalar K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
-			for (int i = 0; i < nos; ++i)
-			{
-				hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;
-			}
-		}
+		//// Single Spin elements
+		//for (int alpha = 0; alpha < 3; ++alpha)
+		//{
+		//	scalar K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
+		//	for (int i = 0; i < nos; ++i)
+		//	{
+		//		hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;
+		//	}
+		//}
 	}
 
 	// Hamiltonian name as string

@@ -93,8 +93,8 @@ namespace Engine
 		scalar dd_radius;
 		// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 		std::vector<std::vector<int>> dd_neigh;
-		// Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
-		std::vector<std::vector<std::vector<Vector3>>> dd_neigh_pos;
+		// Dipole Dipole neighbour positions of each spin neigh_dd[nos][max_n]
+		std::vector<std::vector<Vector3>> dd_neigh_pos;
 		// Dipole Dipole normal vectors [nos][max_n]
 		std::vector<std::vector<Vector3>> dd_normal;
 		// Dipole Dipole distance [nos][max_n]

@@ -17,7 +17,7 @@ namespace Engine
 
 		void Normalize_3Nos(std::vector<Vector3> & spins);
 
-		scalar Engine::Vectormath::dist_greatcircle(Vector3 v1, Vector3 v2);
+		scalar dist_greatcircle(Vector3 v1, Vector3 v2);
 	}
 }
 
