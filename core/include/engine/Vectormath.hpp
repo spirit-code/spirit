@@ -23,6 +23,7 @@ namespace Engine
 		//Prints a 1-d array of ints to console
 		void Array_to_Console(const int *array, const int length);
 
+		void Build_Spins(std::vector<Vector3> &spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> &translation_vectors, std::vector<int> &n_cells, const int nos_basic);
 
 
 		std::vector<scalar> scalar_product(std::vector<Vector3> vector_v1, std::vector<Vector3> vector_v2);
@@ -34,6 +35,8 @@ namespace Engine
 		scalar dist_geodesic(std::vector<Vector3> v1, std::vector<Vector3> v2);
 
 		void Project_Reverse(std::vector<Vector3> v1, std::vector<Vector3> v2);
+
+		void Rotate_Spin(const Vector3 & v, const Vector3 & axis, scalar angle, Vector3 & v_out);
 
 		void Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<scalar> energies, std::vector<std::vector<Vector3>> & tangents);
 	}

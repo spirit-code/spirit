@@ -1,6 +1,6 @@
 ﻿#include "IO.hpp"
 #include "IO_Filter_File_Handle.hpp"
-#include "utility/Vectormath.hpp"
+#include "engine/Vectormath.hpp"
 #include "Neighbours.hpp"
 #include "Logging.hpp"
 #include "Exception.hpp"
@@ -79,16 +79,16 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<std::vector<scalar>> & basis, std::vector<std::vector<scalar>> & basis_atoms,
+		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms,
 			int & no_spins_basic_domain)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
 			scalar lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
-			basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
+			basis_atoms = { Vector3{0,0,0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			no_spins_basic_domain = basis_atoms[0].size();
 			
@@ -102,34 +102,31 @@ namespace Utility
 					myfile.Read_Single(lattice_constant, "lattice_constant");
 
 					// Utility 1D array to build vectors and use Vectormath
-					std::vector<scalar> build_array = { 0, 0, 0 };
+					Vector3 build_array = { 0, 0, 0 };
 
 					if (myfile.Find("basis"))
 					{
 						// Read the basis vectors a, b, c
 						myfile.GetLine();
-						myfile.iss >> basis[0][0] >> basis[1][0] >> basis[2][0];
+						myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
 						myfile.GetLine();
-						myfile.iss >> basis[0][1] >> basis[1][1] >> basis[2][1];
+						myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
 						myfile.GetLine();
-						myfile.iss >> basis[0][2] >> basis[1][2] >> basis[2][2];
+						myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
 
 						// Read no_spins_basic_domain and atoms in basis
 						myfile.GetLine();
 						myfile.iss >> no_spins_basic_domain;
-						basis_atoms = std::vector<std::vector<scalar>>(3, std::vector<scalar>(no_spins_basic_domain));
+						basis_atoms = std::vector<Vector3>(no_spins_basic_domain);
 
 						// Read spins per basic domain
 						for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
 						{
 							myfile.GetLine();
-							myfile.iss >> basis_atoms[0][iatom] >> basis_atoms[1][iatom] >> basis_atoms[2][iatom];
+							myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
 							// Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
-							for (int i = 0; i < 3; ++i)
-							{
-								build_array[i] = basis[i][0] * basis_atoms[0][iatom] + basis[i][1] * basis_atoms[1][iatom] + basis[i][2] * basis_atoms[2][iatom];
-							}
-							for (int i=0; i<3; ++i) basis_atoms[i][iatom] = lattice_constant * build_array[i];
+							build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
+							basis_atoms[iatom] = lattice_constant * build_array;
 						}// endfor iatom
 
 					}// end find "basis"
@@ -172,21 +169,21 @@ namespace Utility
 			// Basis from separate file?
 			std::string basis_file = "";
 			// Basis: vector {a, b, c}
-			std::vector<std::vector<scalar>> basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			std::vector<std::vector<scalar>> basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
+			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			int no_spins_basic_domain = basis_atoms[0].size();
 			// Translation vectors [dim][nov]
-			std::vector<std::vector<scalar>> translation_vectors = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
 			std::vector<int> n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
-			std::vector<scalar> spin_pos;
+			std::vector<Vector3> spin_pos;
 
 			// Utility 1D array to build vectors and use Vectormath
-			std::vector<scalar> build_array = { 0, 0, 0 };
+			Vector3 build_array = { 0, 0, 0 };
 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: building");
 			//------------------------------- Parser --------------------------------
@@ -203,11 +200,11 @@ namespace Utility
 					{
 						// Read translation vectors into translation_vectors & nTa, nTb, nTc
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][0] >> translation_vectors[1][0] >> translation_vectors[2][0] >> n_cells[0];
+						myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][1] >> translation_vectors[1][1] >> translation_vectors[2][1] >> n_cells[1];
+						myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][2] >> translation_vectors[1][2] >> translation_vectors[2][2] >> n_cells[2];
+						myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
 					}// finish Reading Shape in terms of basis
 					else {
 						Log(Log_Level::Error, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
@@ -256,8 +253,8 @@ namespace Utility
 			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
-			spin_pos = std::vector<scalar>(3*nos);
-			Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
+			spin_pos = std::vector<Vector3>(nos);
+			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
@@ -269,7 +266,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        nc = " + std::to_string(n_cells[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
-
+			
 			// Return geometry
 			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
@@ -301,7 +298,7 @@ namespace Utility
 			// spin transfer torque vector
 			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
-			std::vector<scalar> stt_polarisation_normal = { 1.0, -1.0, 0.0 };
+			Vector3 stt_polarisation_normal = { 1.0, -1.0, 0.0 };
 			// Force convergence parameter
 			scalar force_convergence = 10e-9;
 
@@ -320,11 +317,11 @@ namespace Utility
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Vectormath::MuB()*1.760859644*std::pow(10, 11);
+					dt = dt*std::pow(10, -12) / Engine::Vectormath::MuB()*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
 					myfile.Read_Single(save_single_configurations, "llg_save_single_configurations");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
-					myfile.Read_3Vector(stt_polarisation_normal, "llg_stt_polarisation_normal");
+					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
 				}// end try
 				catch (Exception ex) {
@@ -511,15 +508,15 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Magnetic field magnitude
-			scalar external_field_magnitude = 25.0;
+			scalar external_field_magnitude = 25;
 			// Magnetic field vector
-			std::vector<scalar> external_field_normal = { 0.0, 0.0, 1.0 };
+			Vector3 external_field_normal = { 0, 0, 1 };
 			// mu_spin
-			scalar mu_s = 2.0;
+			scalar mu_s = 2;
 			// Anisotropy constant
-			scalar anisotropy_magnitude = 0.0;
+			scalar anisotropy_magnitude = 0;
 			// Anisotropy vector
-			std::vector<scalar> anisotropy_normal = { 0.0, 0.0, 1.0 };
+			Vector3 anisotropy_normal = { 0, 0, 1 };
 
 			// Number of shells in which we calculate neighbours
 			int n_neigh_shells = 4;
@@ -549,10 +546,10 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					myfile.Read_Single(external_field_magnitude, "external_field_magnitude");
-					myfile.Read_3Vector(external_field_normal, "external_field_normal");
+					myfile.Read_Vector3(external_field_normal, "external_field_normal");
 					myfile.Read_Single(mu_s, "mu_s");
 					myfile.Read_Single(anisotropy_magnitude, "anisotropy_magnitude");
-					myfile.Read_3Vector(anisotropy_normal, "anisotropy_normal");
+					myfile.Read_Vector3(anisotropy_normal, "anisotropy_normal");
 					myfile.Read_Single(n_neigh_shells, "n_neigh_shells");
 
 					jij = std::vector<scalar>(n_neigh_shells);
@@ -609,31 +606,32 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Spin moment
-			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2.0);	// [nos]
+			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
 			scalar B = 0;
-			std::vector<scalar> B_normal = { 0.0, 0.0, 1.0 };
-			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<scalar>> external_field_normal(3, std::vector<scalar>(geometry.nos, 0.0));	// [3][nos]
+			Vector3 B_normal = { 0.0, 0.0, 1.0 };
+			std::vector<int> external_field_index(geometry.nos);				// [nos]
+			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0);	// [nos]
+			std::vector<Vector3> external_field_normal(geometry.nos, B_normal);	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
 			scalar K = 0;
-			std::vector<scalar> K_normal = { 0.0, 0.0, 1.0 };
+			Vector3 K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<scalar>> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
+			std::vector<Vector3> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
 			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DMI_normal(8);
+			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<Vector3>> DMI_normal(8);
 			std::vector<std::vector<std::vector<int>>> BQC_indices(8); std::vector<std::vector<scalar>> BQC_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DD_normal(8);
+			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<Vector3>> DD_normal(8);
 
 			scalar dd_radius = 0.0;
 
@@ -679,16 +677,14 @@ namespace Utility
 					{
 						// Read parameters from config if available
 						myfile.Read_Single(B, "external_field_magnitude");
-						myfile.Read_3Vector(B_normal, "external_field_normal");
+						myfile.Read_Vector3(B_normal, "external_field_normal");
 
 						// Fill the arrays
 						for (int i = 0; i < geometry.nos; ++i)
 						{
+							external_field_index[i] = i;
 							external_field_magnitude[i] = B;
-							for (int dim = 0; dim < 3; ++dim)
-							{
-								external_field_normal[dim][i] = B_normal[dim];
-							}
+							external_field_normal[i] = B_normal;
 						}
 					}
 
@@ -704,17 +700,14 @@ namespace Utility
 					{
 						// Read parameters from config
 						myfile.Read_Single(K, "anisotropy_magnitude");
-						myfile.Read_3Vector(K_normal, "anisotropy_normal");
+						myfile.Read_Vector3(K_normal, "anisotropy_normal");
 						
 						// Fill the arrays
 						for (int i = 0; i < geometry.nos; ++i)
 						{
 							anisotropy_index[i] = i;
 							anisotropy_magnitude[i] = K;
-							for (int dim = 0; dim < 3; ++dim)
-							{
-								anisotropy_normal[i][dim] = K_normal[dim];
-							}
+							anisotropy_normal[i] = K_normal;
 						}
 					}
 
@@ -777,7 +770,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,
-				external_field_magnitude, external_field_normal,
+				external_field_index, external_field_magnitude, external_field_normal,
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
 				Exchange_indices, Exchange_magnitude,
 				DMI_indices, DMI_magnitude, DMI_normal,
@@ -800,7 +793,7 @@ namespace Utility
 			// Widths
 			std::vector<scalar> width = { 1 };
 			// Centers
-			std::vector<std::vector<scalar>> center = { std::vector<scalar>{ 0, 0, 1 } };
+			std::vector<Vector3> center = { Vector3{ 0, 0, 1 } };
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
@@ -816,7 +809,7 @@ namespace Utility
 					// Allocate arrays
 					amplitude = std::vector<scalar>(n_gaussians, 1.0);
 					width = std::vector<scalar>(n_gaussians, 1.0);
-					center = std::vector<std::vector<scalar>>(n_gaussians, std::vector<scalar>{0, 0, 1});
+					center = std::vector<Vector3>(n_gaussians, Vector3{0, 0, 1});
 					// Read arrays
 					if (myfile.Find("gaussians"))
 					{
@@ -829,7 +822,7 @@ namespace Utility
 							{
 								myfile.iss >> center[i][j];
 							}
-							Utility::Vectormath::Normalize(center[i]);
+							center[i].normalize();
 						}
 					}
 					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}");

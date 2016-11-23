@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "Logging.hpp"
+#include "Vectormath_Defines.hpp"
 
 namespace Utility
 {
@@ -45,6 +46,10 @@ namespace Utility
 				else Log(Utility::Log_Level::Error, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
 			};
 			// Reads a vector into var, with logging in case of failure.
+			void Read_Vector3(Vector3 & var, const std::string name) {
+				if (Find(name)) iss >> var[0] >> var[1] >> var[2];
+				else Log(Utility::Log_Level::Error, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+			};
 			template <typename T> void Read_3Vector(T & var, const std::string name) {
 				if (Find(name)) iss >> var[0] >> var[1] >> var[2];
 				else Log(Utility::Log_Level::Error, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");

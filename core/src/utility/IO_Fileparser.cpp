@@ -70,9 +70,9 @@ namespace Utility
 						if (found == std::string::npos)
 						{
 							auto x = split_string_to_scalar(line, ",");
-							spins[i] = x[3];
-							spins[1*s->nos + i] = x[4];
-							spins[2*s->nos + i] = x[5];
+							spins[i][0] = x[3];
+							spins[i][1] = x[4];
+							spins[i][2] = x[5];
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -92,7 +92,7 @@ namespace Utility
 							iss.clear();
 							iss.str(line);
 							//iss >> x >> y >> z;
-							iss >> spins[i] >> spins[1 * s->nos + i] >> spins[2 * s->nos + i];
+							iss >> spins[i][0] >> spins[i][1] >> spins[i][2];
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -153,7 +153,7 @@ namespace Utility
 								iss.str(line);
 								auto& spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> spins[i] >> spins[1 * nos + i] >> spins[2 * nos + i];
+								iss >> spins[i][0] >> spins[i][1] >> spins[i][2];
 							}
 							++i;
 						}//end else
@@ -178,7 +178,7 @@ namespace Utility
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
 			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
-			std::vector<std::vector<scalar>> & anisotropy_normal)
+			std::vector<Vector3> & anisotropy_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
 			try {
@@ -187,7 +187,7 @@ namespace Utility
 				// column indices of pair indices and interactions
 				int col_i = -1, col_K = -1, col_Kx = -1, col_Ky = -1, col_Kz = -1, col_Ka = -1, col_Kb = -1, col_Kc = -1;
 				bool K_magnitude = false, K_xyz = false, K_abc = false;
-				std::vector<scalar> K_temp = { 0, 0, 0 };
+				Vector3 K_temp = { 0, 0, 0 };
 				// Get column indices
 				IO::Filter_File_Handle file(anisotropyFile);
 				file.GetLine(); // first line contains the columns
@@ -220,7 +220,7 @@ namespace Utility
 				// Arrays
 				anisotropy_index = std::vector<int>(0);
 				anisotropy_magnitude = std::vector<scalar>(0);
-				anisotropy_normal = std::vector<std::vector<scalar>>(0);
+				anisotropy_normal = std::vector<Vector3>(0);
 
 				// Get actual Data
 				file.ResetStream();
@@ -256,9 +256,9 @@ namespace Utility
 					if (K_abc)
 					{
 						K_temp = { spin_K1, spin_K2, spin_K3 };
-						spin_K1 = K_temp[0] * geometry.basis[0][0] + K_temp[1] * geometry.basis[0][1] + K_temp[2] * geometry.basis[0][2];
-						spin_K2 = K_temp[0] * geometry.basis[1][0] + K_temp[1] * geometry.basis[1][1] + K_temp[2] * geometry.basis[1][2];
-						spin_K3 = K_temp[0] * geometry.basis[2][0] + K_temp[1] * geometry.basis[2][1] + K_temp[2] * geometry.basis[2][2];
+						spin_K1 = K_temp.dot(geometry.basis[0]);
+						spin_K2 = K_temp.dot(geometry.basis[1]);
+						spin_K3 = K_temp.dot(geometry.basis[2]);
 					}
 					// Anisotropy vector normalisation
 					if (K_magnitude)
@@ -288,7 +288,7 @@ namespace Utility
 					{
 						anisotropy_index.push_back(spin_i);
 						anisotropy_magnitude.push_back(spin_K);
-						anisotropy_normal.push_back(std::vector<scalar>{spin_K1, spin_K2, spin_K3});
+						anisotropy_normal.push_back(Vector3{spin_K1, spin_K2, spin_K3});
 					}
 
 				}// end while getline
@@ -304,7 +304,7 @@ namespace Utility
 		*/
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<std::vector<scalar>>> & DMI_normal,
+			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<Vector3>> & DMI_normal,
 			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<scalar>> & BQC_magnitude)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
@@ -317,7 +317,7 @@ namespace Utility
 					col_Dij = -1, col_DMIa = -1, col_DMIb = -1, col_DMIc = -1;
 				bool J = false, DMI_xyz = false, DMI_abc = false, Dij = false, BQC = false;
 				int pair_periodicity = 0;
-				std::vector<scalar> pair_D_temp = { 0, 0, 0 };
+				Vector3 pair_D_temp = { 0, 0, 0 };
 				// Get column indices
 				IO::Filter_File_Handle file(pairsFile);
 				file.GetLine(); // first line contains the columns
@@ -404,9 +404,9 @@ namespace Utility
 					if (DMI_abc)
 					{
 						pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-						pair_D1 = pair_D_temp[0] * geometry.basis[0][0] + pair_D_temp[1] * geometry.basis[0][1] + pair_D_temp[2] * geometry.basis[0][2];
-						pair_D2 = pair_D_temp[0] * geometry.basis[1][0] + pair_D_temp[1] * geometry.basis[1][1] + pair_D_temp[2] * geometry.basis[1][2];
-						pair_D3 = pair_D_temp[0] * geometry.basis[2][0] + pair_D_temp[1] * geometry.basis[2][1] + pair_D_temp[2] * geometry.basis[2][2];
+						pair_D1 = pair_D_temp.dot(geometry.basis[0]);
+						pair_D2 = pair_D_temp.dot(geometry.basis[1]);
+						pair_D3 = pair_D_temp.dot(geometry.basis[2]);
 					}
 					// DMI vector normalisation
 					if (Dij)
@@ -509,7 +509,7 @@ namespace Utility
 								{
 									DMI_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
 									DMI_magnitude[pair_periodicity].push_back(pair_Dij);
-									DMI_normal[pair_periodicity].push_back(std::vector<scalar>{pair_D1, pair_D2, pair_D3});
+									DMI_normal[pair_periodicity].push_back(Vector3{pair_D1, pair_D2, pair_D3});
 								}
 								if (pair_Bij != 0)
 								{

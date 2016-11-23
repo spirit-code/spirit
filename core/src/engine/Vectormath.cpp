@@ -1,6 +1,7 @@
 #include "engine/Vectormath.hpp"
 
-#include <stdio.h>
+#include "Logging.hpp"
+#include "Exception.hpp"
 
 // Returns the Bohr Magneton [meV / T]
 scalar Engine::Vectormath::MuB()
@@ -31,6 +32,59 @@ void Engine::Vectormath::Array_to_Console(const int *array, const int length) {
 	std::cout << std::endl;
 };//end Array_to_Console
   /////////////////////
+
+
+
+void Engine::Vectormath::Build_Spins(std::vector<Vector3> &spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> &translation_vectors, std::vector<int> &n_cells, const int nos_basic)
+{
+	Vector3 a = translation_vectors[0];
+	Vector3 b = translation_vectors[1];
+	Vector3 c = translation_vectors[2];
+
+	int i, j, k, s, pos, dim, nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+	Vector3 build_array;
+	for (k = 0; k < n_cells[2]; ++k) {
+		for (j = 0; j < n_cells[1]; ++j) {
+			for (i = 0; i < n_cells[0]; ++i) {
+				for (s = 0; s < nos_basic; ++s) {
+					pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
+					build_array = i*a + j*b + k*c;
+					// paste initial spin orientations across the lattice translations
+					//spins[dim*nos + pos] = spins[dim*nos + s];
+					// calculate the spin positions
+					spin_pos[pos] = basis_atoms[s] + build_array;
+				}// endfor s
+			}// endfor k
+		}// endfor j
+	}// endfor dim
+
+	 // Check for erronous input placing two spins on the same location
+	Vector3 sp;
+	for (unsigned int i = 0; i < basis_atoms.size(); ++i)
+	{
+		for (unsigned int j = 0; j < basis_atoms.size(); ++j)
+		{
+			for (int k1 = -2; k1 < 3; ++k1)
+			{
+				for (int k2 = -2; k2 < 3; ++k2)
+				{
+					for (int k3 = -2; k3 < 3; ++k3)
+					{
+						// Norm is zero if translated basis atom is at position of another basis atom
+						sp = basis_atoms[i] - (basis_atoms[j]
+							+ k1*translation_vectors[0] + k2*translation_vectors[1] + k3*translation_vectors[2]);
+						if ((i != j || k1 != 0 || k2 != 0 || k3 != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
+						{
+							Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+							Log.Append_to_File();
+							throw Utility::Exception::System_not_Initialized;
+						}
+					}
+				}
+			}
+		}
+	}
+};// end Build_Spins
 
 
 std::vector<scalar> Engine::Vectormath::scalar_product(std::vector<Vector3> vector_v1, std::vector<Vector3> vector_v2)
@@ -103,6 +157,11 @@ void Engine::Vectormath::Project_Reverse(std::vector<Vector3> v1, std::vector<Ve
 	}
 }
 
+
+void Engine::Vectormath::Rotate_Spin(const Vector3 & v, const Vector3 & axis, scalar angle, Vector3 & v_out)
+{
+	v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
+}
 
 
 /*

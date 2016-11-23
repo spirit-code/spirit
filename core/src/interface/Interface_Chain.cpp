@@ -2,7 +2,7 @@
 #include "Interface_State.h"
 
 #include "State.hpp"
-#include "Manifoldmath.hpp"
+#include "engine/Vectormath.hpp"
 
 int Chain_Get_Index(State * state)
 {
@@ -299,7 +299,7 @@ void Chain_Update_Data(State * state, int idx_chain_i)
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
         chain->images[i]->UpdateEnergy();
-        if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
+        if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Engine::Vectormath::dist_geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
     }
 }
 
