@@ -222,7 +222,7 @@ namespace Utility
 
 			for (iatom = 0; iatom < s->nos; ++iatom) {
 				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-					(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
+					(*s->spins)[iatom][0], (*s->spins)[iatom][1], (*s->spins)[iatom][2]);
 				output_to_file.append(buffer_string_conversion);
 			}
 			output_to_file.append("\n");
@@ -246,7 +246,7 @@ namespace Utility
 				auto& spins = *c->images[iimage]->spins;
 				for (iatom = 0; iatom < nos; ++iatom) {
 					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-						spins[0 * nos + iatom], spins[1 * nos + iatom], spins[2 * nos + iatom]);
+						spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 					output_to_file.append(buffer_string_conversion);
 				}
 			}

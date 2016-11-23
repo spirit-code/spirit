@@ -2,6 +2,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <Eigen/Dense>
+
 #include "Hamiltonian_Isotropic.hpp"
 #include "utility/Vectormath.hpp"
 #include "Neighbours.hpp"

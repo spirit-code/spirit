@@ -13,7 +13,7 @@ void Configuration_DomainWall(State *state, const float pos[3], float v[3], bool
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Apply configuration
-	Utility::Configurations::DomainWall(*image, std::vector<scalar>({ pos[0],pos[1],pos[2] }), std::vector<scalar>({ v[0],v[1],v[2] }), greater);
+	Utility::Configurations::DomainWall(*image, Vector3{ pos[0],pos[1],pos[2] }, Vector3{ v[0],v[1],v[2] }, greater);
 }
 
 void Configuration_Homogeneous(State *state, float v[3], int idx_image, int idx_chain)
@@ -23,7 +23,7 @@ void Configuration_Homogeneous(State *state, float v[3], int idx_image, int idx_
 	from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply configuration
-    Utility::Configurations::Homogeneous(*image, std::vector<scalar>(v, v+3));
+    Utility::Configurations::Homogeneous(*image, Vector3{ v[0],v[1],v[2] });
 }
 
 void Configuration_PlusZ(State *state, int idx_image, int idx_chain)
@@ -67,7 +67,7 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, int id
 
 void Configuration_Hopfion(State *state, float pos[3], float r, int order, int idx_image, int idx_chain)
 {
-	std::vector<scalar> position = { pos[0], pos[1], pos[2] };
+	Vector3 position = { pos[0], pos[1], pos[2] };
 
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -79,7 +79,7 @@ void Configuration_Hopfion(State *state, float pos[3], float r, int order, int i
 
 void Configuration_Skyrmion(State *state, float pos[3], float r, float order, float phase, bool upDown, bool achiral, bool rl, int idx_image, int idx_chain)
 {
-    std::vector<scalar> position = {pos[0], pos[1], pos[2]};
+    Vector3 position = {pos[0], pos[1], pos[2]};
 
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -98,5 +98,5 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
 	from_indices(state, idx_image, idx_chain, image, chain);
 
     // Apply configuration
-    Utility::Configurations::SpinSpiral(*image, dir_type, std::vector<scalar>(q, q+3), std::vector<scalar>(axis, axis+3), theta);
+	Utility::Configurations::SpinSpiral(*image, dir_type, Vector3{ q[0], q[1], q[2] }, Vector3{ axis[0], axis[1], axis[2] }, theta);
 }

@@ -2,6 +2,8 @@
 
 #include "engine/Hamiltonian.hpp"
 
+#include <Eigen/Dense>
+
 
 namespace Engine
 {

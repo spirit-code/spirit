@@ -3,13 +3,15 @@
 #include "engine/Vectormath.hpp"
 #include "IO.hpp"
 #include "Logging.hpp"
+#include "Exception.hpp"
+
+#include <Eigen/Dense>
 
 #include <numeric>
 #include <iostream>
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
-#include "Exception.hpp"
 
 using namespace Utility;
 

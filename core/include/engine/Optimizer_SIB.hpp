@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include <Eigen/Dense>
+
 #include "Core_Defines.h"
 #include "Optimizer.hpp"
 #include "Spin_System_Chain.hpp"

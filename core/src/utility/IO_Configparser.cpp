@@ -148,17 +148,17 @@ namespace Utility
 			// Log the parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Lattice constant = " + std::to_string(lattice_constant) + " angstrom");
 			Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-			Log(Log_Level::Debug, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[2][0]/lattice_constant));
-			Log(Log_Level::Debug, Log_Sender::IO, "        b = " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant));
-			Log(Log_Level::Debug, Log_Sender::IO, "        c = " + std::to_string(basis[0][2]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[0][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[1][0]) + " " + std::to_string(basis[2][0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[0][1]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[2][1]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[0][2]) + " " + std::to_string(basis[1][2]) + " " + std::to_string(basis[2][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[0][1]) + " " + std::to_string(basis[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[1][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]) + " " + std::to_string(basis[2][1]) + " " + std::to_string(basis[2][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: " + std::to_string(no_spins_basic_domain) + " atom(s) at the following positions:");
 			for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
 			{
-				Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[0][iatom]) + " " + std::to_string(basis_atoms[1][iatom]) + " " + std::to_string(basis_atoms[2][iatom]));
+				Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[iatom][0]) + " " + std::to_string(basis_atoms[iatom][1]) + " " + std::to_string(basis_atoms[iatom][2]));
 			}
 			Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 		}// End Basis_from_Config

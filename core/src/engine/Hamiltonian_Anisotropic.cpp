@@ -1,6 +1,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <Eigen/Dense>
+
 #include <engine/Hamiltonian_Anisotropic.hpp>
 
 #include "utility/Vectormath.hpp"

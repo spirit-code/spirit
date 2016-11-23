@@ -3,6 +3,8 @@
 #include "Logging.hpp"
 #include "Exception.hpp"
 
+#include <Eigen/Dense>
+
 // Returns the Bohr Magneton [meV / T]
 scalar Engine::Vectormath::MuB()
 {
@@ -41,7 +43,7 @@ void Engine::Vectormath::Build_Spins(std::vector<Vector3> &spin_pos, std::vector
 	Vector3 b = translation_vectors[1];
 	Vector3 c = translation_vectors[2];
 
-	int i, j, k, s, pos, dim, nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+	int i, j, k, s, pos, nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
 	Vector3 build_array;
 	for (k = 0; k < n_cells[2]; ++k) {
 		for (j = 0; j < n_cells[1]; ++j) {
@@ -101,7 +103,7 @@ std::vector<scalar> Engine::Vectormath::scalar_product(std::vector<Vector3> vect
 void Engine::Vectormath::Normalize(std::vector<Vector3> & spins)
 {
 	scalar norm = 0;
-	for (int i = 0; i < spins.size(); ++i)
+	for (unsigned int i = 0; i < spins.size(); ++i)
 	{
 		for (int dim = 0; dim < 3; ++dim)
 		{
@@ -109,7 +111,7 @@ void Engine::Vectormath::Normalize(std::vector<Vector3> & spins)
 		}
 	}
 	scalar norm1 = 1.0 / norm;
-	for (int i = 0; i < spins.size(); ++i)
+	for (unsigned int i = 0; i < spins.size(); ++i)
 	{
 		spins[i] *= norm1;
 	}
@@ -151,7 +153,7 @@ void Engine::Vectormath::Project_Reverse(std::vector<Vector3> v1, std::vector<Ve
 	}
 
 	// Take out component in direction of v2
-	for (int i = 0; i < v1.size(); ++i)
+	for (unsigned int i = 0; i < v1.size(); ++i)
 	{
 		v1[i] -= 2 * v1v2 * v2[i];
 	}

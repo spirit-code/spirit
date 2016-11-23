@@ -4,6 +4,8 @@
 #include "engine/Vectormath.hpp"
 #include "Manifoldmath.hpp"
 
+#include <Eigen/Dense>
+
 #include <random>
 #include <iostream>
 #include <string>
@@ -31,7 +33,7 @@ namespace Utility
 			int nos = c->images[0]->nos;
 			int noi = idx_2 - idx_1 + 1;
 
-			scalar angle, r, rot_angle;
+			scalar angle, rot_angle;
 			Vector3 axis, rot_axis, a, b, temp;
 
 			for (int i = 0; i < nos; ++i)
@@ -74,7 +76,7 @@ namespace Utility
 
 			int nos = c->images[0]->nos;
 
-			scalar angle, r, rot_angle;
+			scalar angle, rot_angle;
 			Vector3 axis, rot_axis, a, b, temp;
 
 			for (int i = 0; i < c->images[0]->nos; ++i)

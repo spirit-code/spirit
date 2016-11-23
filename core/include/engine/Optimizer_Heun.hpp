@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Core_Defines.h"
+#include "Vectormath_Defines.hpp"
 #include "Optimizer.hpp"
 #include "Spin_System_Chain.hpp"
 
