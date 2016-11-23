@@ -20,7 +20,7 @@ namespace Engine
 		Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain);
     
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -48,11 +48,11 @@ namespace Engine
 		// Last calculated Reaction coordinates
 		std::vector<scalar> Rx;
 		// Last calculated forces
-		std::vector<std::vector<scalar>> F_total;
-		std::vector<std::vector<scalar>> F_gradient;
-		std::vector<std::vector<scalar>> F_spring;
+		std::vector<std::vector<Vector3>> F_total;
+		std::vector<std::vector<Vector3>> F_gradient;
+		std::vector<std::vector<Vector3>> F_spring;
 		// Last calculated tangents
-		std::vector<std::vector<scalar>> tangents;
+		std::vector<std::vector<Vector3>> tangents;
     };
 }
 

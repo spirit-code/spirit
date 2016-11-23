@@ -34,16 +34,16 @@ namespace Engine
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
 		// Tangents
-		this->tangents = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
+		this->tangents = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
 		// Forces
-		this->F_total    = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
-		this->F_gradient = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
-		this->F_spring   = std::vector<std::vector<scalar>>(noi, std::vector<scalar>(3 * nos));	// [noi][3nos]
+		this->F_total    = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
+		this->F_gradient = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
+		this->F_spring   = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
 	}
 
-	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces)
+	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
 	{
-		int nos = configurations[0]->size()/3;
+		int nos = configurations[0]->size();
 
 		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
 		//		The Optimizer shuld respect this, but there is no way to enforce it.
@@ -52,11 +52,11 @@ namespace Engine
 		{
 			// Calculate the Energy of the image
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
-			if (i>0) Rx[i] = Rx[i - 1] + Utility::Manifoldmath::Dist_Geodesic(*configurations[i], *configurations[i - 1]);
+			if (i>0) Rx[i] = Rx[i - 1] + Engine::Vectormath::dist_geodesic(*configurations[i], *configurations[i - 1]);
 		}
 
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
-		Utility::Manifoldmath::Tangents(configurations, energies, tangents);
+		Engine::Vectormath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
 		// Loop over images to calculate the total Effective Field on each Image
@@ -74,7 +74,7 @@ namespace Engine
 			if (chain->climbing_image[img])
 			{
 				// We reverse the component in tangent direction
-				Utility::Manifoldmath::Project_Reverse(F_gradient[img], tangents[img]);
+				Engine::Vectormath::Project_Reverse(F_gradient[img], tangents[img]);
 				// And Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
@@ -112,14 +112,14 @@ namespace Engine
 				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Get the scalar product of the vectors
 				scalar v1v2 = 0.0;
-				for (int i = 0; i < 3*nos; ++i)
+				for (int i = 0; i < nos; ++i)
 				{
-					v1v2 += F_gradient[img][i] * tangents[img][i];
+					v1v2 += F_gradient[img][i].dot(tangents[img][i]);
 				}
 				// Take out component in direction of v2
-				for (int i = 0; i < 3 * nos; ++i)
+				for (int i = 0; i < nos; ++i)
 				{
-					F_gradient[img][i] = F_gradient[img][i] - v1v2 * tangents[img][i];
+					F_gradient[img][i] -= v1v2 * tangents[img][i];
 				}
 
 
@@ -178,9 +178,9 @@ namespace Engine
 		for (int i = 0; i < chain->noi; ++i)
 		{
 			// dy/dx
-			for (int j = 0; j < 3 * chain->images[i]->nos; ++j)
+			for (int j = 0; j < chain->images[i]->nos; ++j)
 			{
-				dE_dRx[i] += this->chain->images[i]->effective_field[j] * this->tangents[i][j];
+				dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
 			}
 		}
 		// Interpolate data points

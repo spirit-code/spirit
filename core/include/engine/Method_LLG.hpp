@@ -24,7 +24,7 @@ namespace Engine
 		Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
     
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -44,7 +44,7 @@ namespace Engine
 
 	private:
 		// Last calculated forces
-		std::vector<std::vector<scalar>> F_total;
+		std::vector<std::vector<Vector3>> F_total;
 		// Convergence parameters
 		std::vector<bool> force_converged;
     };

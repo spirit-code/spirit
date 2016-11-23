@@ -52,7 +52,7 @@ namespace Engine
 	void Optimizer_SIB::VirtualForce(const int nos, std::vector<Vector3> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<Vector3> & eff_field,  std::vector<Vector3> & xi, std::vector<Vector3> & force)
 	{
 		//========================= Init local vars ================================
-		int i, dim;
+		int i;
 		// deterministic variables
 		Vector3 a1, b1, asc;
 		// stochastic variables
