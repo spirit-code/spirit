@@ -44,7 +44,7 @@ namespace Engine
 		bool switched1, switched2;
 		std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
-		std::vector<std::vector<scalar>> hessian;
+		std::vector<MatrixX> hessian;
 		// Last calculated forces
 		std::vector<std::vector<Vector3>> F_gradient;
 		// Last calculated minimum mode
