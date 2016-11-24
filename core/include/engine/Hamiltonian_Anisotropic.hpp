@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Vectormath_Defines.hpp"
-#include "Hamiltonian.hpp"
-#include "Geometry.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Hamiltonian.hpp>
+#include <data/Geometry.hpp>
 
 namespace Engine
 {

@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Method.hpp"
-#include <Spin_System_Chain.hpp>
+#include <engine/Method.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Vectormath_Defines.hpp"
-#include "Parameters_Method.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <data/Parameters_Method.hpp>
 
 namespace Data
 {

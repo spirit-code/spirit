@@ -4,10 +4,10 @@
 
 #include <Eigen/Dense>
 
-#include "Hamiltonian_Isotropic.hpp"
-#include "utility/Vectormath.hpp"
-#include "Neighbours.hpp"
-#include "Logging.hpp"
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Neighbours.hpp>
+#include <utility/Logging.hpp>
 
 using namespace Utility;
 
@@ -25,7 +25,7 @@ namespace Engine
 		n_neigh_shells(n_neigh_shells), jij(jij), dij(dij), bij(bij), kijkl(kijkl), dd_radius(dd_radius)
 	{
 		// Rescale magnetic field from Tesla to meV
-		external_field_magnitude = external_field_magnitude * Utility::Vectormath::MuB() * mu_s;
+		external_field_magnitude = external_field_magnitude * Vectormath::MuB() * mu_s;
 		external_field_normal.normalize();
 
 		// Calculate Neighbours
@@ -180,7 +180,7 @@ namespace Engine
 
 	scalar Hamiltonian_Isotropic::E_DipoleDipole(int nos, const std::vector<Vector3>& spins, const int ispin)
 	{
-		scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar mult = -std::pow(Vectormath::MuB(),2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
 		scalar result = 0.0;
 
 		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)

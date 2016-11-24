@@ -3,9 +3,9 @@
 #define OPTIMIZER_H
 
 #include "Core_Defines.h"
-#include "Spin_System.hpp"
-#include "Method.hpp"
-#include "Logging.hpp"
+#include <data/Spin_System.hpp>
+#include <engine/Method.hpp>
+#include <utility/Logging.hpp>
 
 #include <vector>
 #include <algorithm>

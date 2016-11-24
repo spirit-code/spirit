@@ -1,6 +1,5 @@
-#include <Optimizer_Heun.hpp>
-
-#include "engine/Hamiltonian.hpp"
+#include <engine/Optimizer_Heun.hpp>
+#include <engine/Hamiltonian.hpp>
 
 #include <Eigen/Dense>
 

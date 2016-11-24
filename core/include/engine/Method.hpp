@@ -3,10 +3,10 @@
 #define METHOD_H
 
 #include "Core_Defines.h"
-#include "Parameters_Method.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Parameters_Method.hpp"
-#include "Timing.hpp"
+#include <data/Parameters_Method.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method.hpp>
+#include <utility/Timing.hpp>
 
 #include <deque>
 #include <fstream>

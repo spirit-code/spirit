@@ -3,12 +3,12 @@
 #define METHOD_LLG_H
 
 #include "Core_Defines.h"
-#include "Method.hpp"
-#include "Parameters_Method_LLG.hpp"
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Optimizer.hpp"
-#include "Optimizer_SIB.hpp"
+#include <engine/Method.hpp>
+#include <engine/Optimizer.hpp>
+#include <engine/Optimizer_SIB.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method_LLG.hpp>
 
 #include <vector>
 

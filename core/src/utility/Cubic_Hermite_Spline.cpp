@@ -1,4 +1,5 @@
-#include "Cubic_Hermite_Spline.hpp"
+#include <utility/Cubic_Hermite_Spline.hpp>
+
 #include <cmath>
 
 namespace Utility

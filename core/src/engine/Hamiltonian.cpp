@@ -1,7 +1,5 @@
 #include <engine/Hamiltonian.hpp>
-
 #include <engine/Vectormath.hpp>
-#include <utility/Manifoldmath.hpp>
 
 namespace Engine
 {

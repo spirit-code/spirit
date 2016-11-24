@@ -7,7 +7,7 @@
 
 #include <Eigen/Core>
 
-#include "Vectormath_Defines.hpp"
+#include <engine/Vectormath_Defines.hpp>
 
 namespace Engine
 {

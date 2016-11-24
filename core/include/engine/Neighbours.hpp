@@ -3,8 +3,8 @@
 #define NEIGHBOURS_H
 
 #include "Core_Defines.h"
-#include "Geometry.hpp"
-#include "engine/Vectormath_Defines.hpp"
+#include <data/Geometry.hpp>
+#include <engine/Vectormath_Defines.hpp>
 
 #include <vector>
 #include <memory>

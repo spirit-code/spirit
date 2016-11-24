@@ -1,10 +1,7 @@
-#include "Method_MMF.hpp"
-#include "Manifoldmath.hpp"
-#include "engine/Vectormath.hpp"
-#include "utility/Vectormath.hpp"
-#include "Logging.hpp"
-#include "IO.hpp"
-#include "Vectormath_Defines.hpp"
+#include <engine/Method_MMF.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/IO.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>

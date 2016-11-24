@@ -1,11 +1,10 @@
-#include "Interface_State.h"
-
-#include "State.hpp"
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
 #include "Core_Defines.h"
-#include "Logging.hpp"
-#include "IO.hpp"
-#include "Configurations.hpp"
-#include "Configuration_Chain.hpp"
+#include <utility/Logging.hpp>
+#include <utility/IO.hpp>
+#include <utility/Configurations.hpp>
+#include <utility/Configuration_Chain.hpp>
 
 using namespace Utility;
 

@@ -1,7 +1,6 @@
-#include "engine/Vectormath.hpp"
-
-#include "Logging.hpp"
-#include "Exception.hpp"
+#include <engine/Vectormath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <Eigen/Dense>
 

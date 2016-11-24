@@ -1,9 +1,8 @@
-#include "Interface_Configurations.h"
-#include "Interface_State.h"
-
+#include <interface/Interface_Configurations.h>
+#include <interface/Interface_State.h>
 #include "Core_Defines.h"
-#include "State.hpp"
-#include "Configurations.hpp"
+#include <data/State.hpp>
+#include <utility/Configurations.hpp>
 
 
 void Configuration_DomainWall(State *state, const float pos[3], float v[3], bool greater, int idx_image, int idx_chain)

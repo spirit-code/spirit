@@ -2,8 +2,8 @@
 #ifndef DATA_SPIN_SYSTEM_CHAIN_COLLECTION_H
 #define DATA_SPIN_SYSTEM_CHAIN_COLLECTION_H
 
-#include "Spin_System_Chain.hpp"
-#include "Parameters_Method_MMF.hpp"
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method_MMF.hpp>
 
 namespace Data
 {

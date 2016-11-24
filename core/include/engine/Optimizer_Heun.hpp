@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Vectormath_Defines.hpp"
-#include "Optimizer.hpp"
-#include "Spin_System_Chain.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Optimizer.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {

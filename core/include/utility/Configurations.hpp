@@ -3,7 +3,7 @@
 #define UTILITY_CONFIGURATIONS_H
 
 #include "Core_Defines.h"
-#include "Spin_System.hpp"
+#include <data/Spin_System.hpp>
 
 #include <vector>
 #include <random>

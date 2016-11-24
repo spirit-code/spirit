@@ -7,8 +7,8 @@
 #include <Eigen/Dense>
 
 #include "Core_Defines.h"
-#include "Optimizer.hpp"
-#include "Spin_System_Chain.hpp"
+#include <engine/Optimizer.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {

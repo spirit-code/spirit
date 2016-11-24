@@ -1,7 +1,6 @@
-#include "Interface_Collection.h"
-#include "Interface_State.h"
-
-#include "State.hpp"
+#include <interface/Interface_Collection.h>
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
 
 int Collection_Get_NOC(State * state)
 {

@@ -1,7 +1,7 @@
-#include "Spin_System.hpp"
-#include "Neighbours.hpp"
-#include "Vectormath.hpp"
-#include "IO.hpp"
+#include <data/Spin_System.hpp>
+#include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/IO.hpp>
 
 #include <numeric>
 #include <iostream>

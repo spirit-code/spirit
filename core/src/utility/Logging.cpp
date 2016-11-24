@@ -1,5 +1,6 @@
-﻿#include "Logging.hpp"
-#include "Interface_State.h"
+﻿#include <utility/Logging.hpp>
+#include <utility/Timing.hpp>
+#include <utility/IO.hpp>
 
 #include <string>
 #include <iostream>
@@ -7,8 +8,6 @@
 #include <IO.hpp>
 #include <signal.h>
 
-#include "Timing.hpp"
-#include "IO.hpp"
 
 namespace Utility
 {

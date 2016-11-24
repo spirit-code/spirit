@@ -7,14 +7,14 @@
 #include <memory>
 
 #include "Core_Defines.h"
-#include "engine/Vectormath_Defines.hpp"
-#include "data/Geometry.hpp"
-#include "engine/Hamiltonian.hpp"
-#include "engine/Hamiltonian_Isotropic.hpp"
-#include "engine/Hamiltonian_Anisotropic.hpp"
-#include "engine/Hamiltonian_Gaussian.hpp"
-#include "data/Parameters_Method_LLG.hpp"
-#include "data/Parameters_Method_GNEB.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Hamiltonian.hpp>
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Gaussian.hpp>
+#include <data/Geometry.hpp>
+#include <data/Parameters_Method_LLG.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
 
 namespace Data
 {

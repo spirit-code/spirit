@@ -1,9 +1,8 @@
-#include "Neighbours.hpp"
-#include "utility/Vectormath.hpp"
-#include "engine/Vectormath.hpp"
-#include "IO.hpp"
-#include "Logging.hpp"
-#include "Exception.hpp"
+#include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/IO.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <Eigen/Dense>
 

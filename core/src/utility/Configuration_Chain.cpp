@@ -1,8 +1,7 @@
-#include "Configuration_Chain.hpp"
-#include "Configurations.hpp"
-#include "Spin_System.hpp"
-#include "engine/Vectormath.hpp"
-#include "Manifoldmath.hpp"
+#include <utility/Configuration_Chain.hpp>
+#include <utility/Configurations.hpp>
+#include <data/Spin_System.hpp>
+#include <engine/Vectormath.hpp>
 
 #include <Eigen/Dense>
 

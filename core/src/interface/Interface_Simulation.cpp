@@ -1,15 +1,14 @@
-#include "Interface_Simulation.h"
-#include "Interface_State.h"
-
-#include "State.hpp"
-#include "Logging.hpp"
-#include "Optimizer.hpp"
-#include "Optimizer_Heun.hpp"
-#include "Optimizer_SIB.hpp"
-#include "Optimizer_SIB2.hpp"
-#include "Optimizer_CG.hpp"
-#include "Optimizer_VP.hpp"
-#include "Method.hpp"
+#include <interface/Interface_Simulation.h>
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
+#include <utility/Logging.hpp>
+#include <engine/Optimizer.hpp>
+#include <engine/Optimizer_Heun.hpp>
+#include <engine/Optimizer_SIB.hpp>
+#include <engine/Optimizer_SIB2.hpp>
+#include <engine/Optimizer_CG.hpp>
+#include <engine/Optimizer_VP.hpp>
+#include <engine/Method.hpp>
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 

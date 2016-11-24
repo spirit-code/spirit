@@ -10,17 +10,16 @@
 #include <type_traits>
 
 #include "Core_Defines.h"
-#include "Interface_IO.h"
-
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Geometry.hpp"
-#include "Hamiltonian_Isotropic.hpp"
-#include "Hamiltonian_Anisotropic.hpp"
-#include "Hamiltonian_Gaussian.hpp"
-#include "Parameters_Method_LLG.hpp"
-#include "Parameters_Method_GNEB.hpp"
-#include "Parameters_Method_MMF.hpp"
+#include <interface/Interface_IO.h>
+#include <data/Geometry.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method_LLG.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
+#include <data/Parameters_Method_MMF.hpp>
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Gaussian.hpp>
 
 
 namespace Utility

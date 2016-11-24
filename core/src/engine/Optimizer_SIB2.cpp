@@ -1,8 +1,5 @@
-#include "Optimizer_SIB2.hpp"
-
-#include "utility/Vectormath.hpp"
-
-using namespace Utility;
+#include <engine/Optimizer_SIB2.hpp>
+#include <engine/Vectormath.hpp>
 
 namespace Engine
 {

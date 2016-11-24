@@ -1,7 +1,5 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
-
-#include <utility/Manifoldmath.hpp>
-#include <utility/Vectormath.hpp>
+#include <engine/Vectormath.hpp>
 
 using namespace Data;
 

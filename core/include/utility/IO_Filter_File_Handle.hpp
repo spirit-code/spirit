@@ -8,8 +8,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "Logging.hpp"
-#include "Vectormath_Defines.hpp"
+#include <utility/Logging.hpp>
+#include <engine/Vectormath_Defines.hpp>
 
 namespace Utility
 {

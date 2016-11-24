@@ -2,7 +2,7 @@
 #ifndef OPTIMIZER_CG_H
 #define OPTIMIZER_CG_H
 
-#include "Optimizer.hpp"
+#include <engine/Optimizer.hpp>
 
 namespace Engine
 {

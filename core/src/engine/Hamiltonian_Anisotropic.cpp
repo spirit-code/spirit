@@ -4,11 +4,9 @@
 #include <Eigen/Dense>
 
 #include <engine/Hamiltonian_Anisotropic.hpp>
-
-#include "utility/Vectormath.hpp"
-#include <Spin_System.hpp>
-#include "Vectormath.hpp"
-#include "Neighbours.hpp"
+#include <engine/Vectormath.hpp>
+#include <engine/Neighbours.hpp>
+#include <data/Spin_System.hpp>
 
 using std::vector;
 using std::function;
@@ -39,7 +37,7 @@ namespace Engine
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
 		{
-			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Utility::Vectormath::MuB() * mu_s[i];
+			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Vectormath::MuB() * mu_s[i];
 		}
 	}
 

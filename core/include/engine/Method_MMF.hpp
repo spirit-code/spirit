@@ -3,9 +3,9 @@
 #define METHOD_MMF_H
 
 #include "Core_Defines.h"
-#include "Method.hpp"
-#include "Parameters_Method_MMF.hpp"
-#include "Spin_System_Chain_Collection.hpp"
+#include <engine/Method.hpp>
+#include <data/Parameters_Method_MMF.hpp>
+#include <data/Spin_System_Chain_Collection.hpp>
 
 namespace Engine
 {

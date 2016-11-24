@@ -1,8 +1,7 @@
-#include "Interface_Chain.h"
-#include "Interface_State.h"
-
-#include "State.hpp"
-#include "engine/Vectormath.hpp"
+#include <interface/Interface_Chain.h>
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
+#include <engine/Vectormath.hpp>
 
 int Chain_Get_Index(State * state)
 {

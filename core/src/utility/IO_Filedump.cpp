@@ -1,6 +1,6 @@
-#include "IO.hpp"
-#include "Vectormath.hpp"
-#include "Logging.hpp"
+#include <utility/IO.hpp>
+#include <utility/Logging.hpp>
+#include <engine/Vectormath.hpp>
 
 #include <iostream>
 #include <fstream>

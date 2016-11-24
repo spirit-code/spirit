@@ -1,8 +1,8 @@
-#include "Configurations.hpp"
-#include "Spin_System.hpp"
-#include "engine/Vectormath.hpp"
-#include "Logging.hpp"
-#include "Exception.hpp"
+#include <utility/Configurations.hpp>
+#include <data/Spin_System.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <Eigen/Dense>
 

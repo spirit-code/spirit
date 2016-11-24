@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Vectormath_Defines.hpp"
-#include "Logging.hpp"
-#include "Exception.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 namespace Engine
 {

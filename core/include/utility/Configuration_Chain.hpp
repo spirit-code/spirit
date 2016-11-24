@@ -3,7 +3,7 @@
 #define UTILITY_CONFIGURATION_CHAIN_H
 
 #include "Core_Defines.h"
-#include "Spin_System_Chain.hpp"
+#include <data/Spin_System_Chain.hpp>
 
 #include <vector>
 

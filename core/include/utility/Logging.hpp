@@ -2,8 +2,8 @@
 #ifndef UTILITY_LOGGING_H
 #define UTILITY_LOGGING_H
 
-#include "Interface_Log.h"
-#include "Timing.hpp"
+#include <interface/Interface_Log.h>
+#include <utility/Timing.hpp>
 
 #include <iostream>
 #include <vector>
