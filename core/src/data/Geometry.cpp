@@ -20,6 +20,9 @@ namespace Data
 		n_spins_basic_domain(n_spins_basic_domain_i), basis_atoms(basis_atoms_i),
 		spin_pos(spin_pos_i), nos( n_spins_basic_domain_i * n_cells_i[0] * n_cells_i[1] * n_cells_i[2])
 	{
+		this->bounds_max.setZero();
+		this->bounds_min.setZero();
+
 		// Calculate Bounds of the System
 		for (int iatom = 0; iatom < nos; ++iatom)
 		{

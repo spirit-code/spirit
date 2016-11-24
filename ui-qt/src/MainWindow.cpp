@@ -342,6 +342,7 @@ void MainWindow::updateStatusBar()
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
 	float ips;
+	int precision;
 	QString qstr_ips;
 	std::vector<QString> v_str(0);
 
@@ -352,7 +353,10 @@ void MainWindow::updateStatusBar()
 			if (Simulation_Running_LLG(state.get(), i))
 			{
 				ips = Simulation_Get_IterationsPerSecond(state.get(), i);
-				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				if (ips < 1) precision = 4;
+				else if (ips > 99) precision = 0;
+				else precision = 2;
+				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
 				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
 			}
@@ -365,7 +369,10 @@ void MainWindow::updateStatusBar()
 			if (Simulation_Running_GNEB(state.get(), i))
 			{
 				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, i);
-				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				if (ips < 1) precision = 4;
+				else if (ips > 99) precision = 0;
+				else precision = 2;
+				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
 				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
 			}
@@ -374,7 +381,10 @@ void MainWindow::updateStatusBar()
 	else if (Simulation_Running_MMF(state.get()))
 	{
 		ips = Simulation_Get_IterationsPerSecond(state.get());
-		if (ips < 1e5) qstr_ips = QString::number((int)ips);
+		if (ips < 1) precision = 4;
+		else if (ips > 99) precision = 0;
+		else precision = 2;
+		if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 		else qstr_ips = QString::fromLatin1("> 100k");
 		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips);
 	}
