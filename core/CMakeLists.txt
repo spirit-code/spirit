@@ -27,6 +27,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 ######### Generate Core_Defines.h ################
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
+string(TOUPPER ${CORE_SCALAR_TYPE} CORE_SCALAR_TYPE_UPPERCASE)
 configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Core_Defines.h)
 #############################################
 

@@ -68,6 +68,9 @@ namespace Engine
 
 		// Check if a stop file is present -> Stop the iterations
 		virtual bool StopFilePresent() final;
+
+		// Precision for the conversion of scalar to string
+		int print_precision;
 	};
 }
 #endif
