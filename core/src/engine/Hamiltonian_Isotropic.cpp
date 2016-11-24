@@ -49,7 +49,7 @@ namespace Engine
 	std::vector<scalar> Hamiltonian_Isotropic::Energy_Array(const std::vector<Vector3> & spins)
 	{
 		//========================= Init local vars ================================
-		int nos = spins.size() / 3;
+		int nos = spins.size();
 		int i = 0, istart = -1, istop = istart + 1;
 		std::vector<scalar> energies(7, 0.0);
 		scalar f0 = 1.0;
@@ -198,7 +198,7 @@ namespace Engine
 	void Hamiltonian_Isotropic::Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field)
 	{
 		//========================= Init local vars ================================
-		int nos = spins.size()/3;
+		int nos = spins.size();
 		int istart = -1, istop = istart + 1, i;
 		if (istart == -1) { istart = 0; istop = nos; }
 		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };

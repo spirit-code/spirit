@@ -6,7 +6,7 @@ namespace Engine
         Optimizer(method)
     {
 		this->spins_temp = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos]
-		this->velocity = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos]
+		this->velocity = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos, Vector3::Zero()));	// [noi][nos]
 		this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
 		this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
     }
@@ -43,7 +43,7 @@ namespace Engine
 			for (int j = 0; j < nos; ++j)
 			{
 				projection[i] += l_velocity[j].dot(l_force[j]);
-				force_norm2[i] += l_force[j].norm();
+				force_norm2[i] += l_force[j].dot(l_force[j]);
 			}
 
 			// Calculate the projected velocity

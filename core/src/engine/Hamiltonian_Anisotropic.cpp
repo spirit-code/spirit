@@ -5,7 +5,6 @@
 
 #include <engine/Hamiltonian_Anisotropic.hpp>
 #include <engine/Vectormath.hpp>
-#include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 
 using std::vector;
@@ -279,7 +278,7 @@ namespace Engine
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
 			eff_field[indices[i_pair][0]] += DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
-			eff_field[indices[i_pair][1]] += DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
+			eff_field[indices[i_pair][1]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
 		}
 	}
 

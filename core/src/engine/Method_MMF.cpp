@@ -89,7 +89,7 @@ namespace Engine
 	MatrixX projector(std::vector<Vector3> & image)
 	{
 		int size = image.size();
-		int nos = size / 3;
+		int nos = size;
 		//		Get the image as Eigen vector
 		//Eigen::VectorXd e_image = Eigen::Map<Eigen::VectorXd>(image.data(), size);
 		// 		Get basis change matrix M=1-S, S=x*x^T

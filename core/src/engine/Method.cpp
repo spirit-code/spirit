@@ -63,7 +63,7 @@ namespace Engine
 
 	std::pair<scalar, scalar> minmax_component(std::vector<Vector3> v1)
 	{
-		scalar min=0, max=0;
+		scalar min=1e6, max=-1e6;
 		std::pair<scalar, scalar> minmax;
 		for (unsigned int i = 0; i < v1.size(); ++i)
 		{
@@ -81,11 +81,10 @@ namespace Engine
     // Return the maximum of absolute values of force components for an image
     scalar  Method::Force_on_Image_MaxAbsComponent(const std::vector<Vector3> & image, std::vector<Vector3> force)
     {
-        int nos = image.size()/3;
+        int nos = image.size();
         // We project the force orthogonal to the SPIN
         //Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
-        // Get the scalar product of the vectors
-        scalar v1v2 = 0.0;
+        
         // Take out component in direction of v2
         for (int i = 0; i < nos; ++i)
         {

@@ -94,7 +94,7 @@ namespace Engine
 		// using the differences between gradient values (not function)
 		// see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
 
-		int nos = spins.size() / 3;
+		int nos = spins.size();
 
 		// Calculate finite difference
 		std::vector<Vector3> spins_p(nos);
@@ -149,7 +149,7 @@ namespace Engine
     {
 		// This is a regular finite difference implementation (probably not very efficient)
 
-        int nos = spins.size()/3;
+        int nos = spins.size();
 
 		// Calculate finite difference
 		std::vector<Vector3> spins_plus(nos);

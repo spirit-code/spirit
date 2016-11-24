@@ -23,7 +23,7 @@ namespace Engine
         for (int i=0; i<noi; ++i) this->configurations[i] = this->method->systems[i]->spins;
         
         // Allocate force array
-        this->force = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][3*nos]
+        this->force = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
         // Setup Timings
         for (int i=0; i<7; ++i) this->t_iterations.push_back(system_clock::now());

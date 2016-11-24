@@ -126,7 +126,7 @@ namespace Engine
 				}
 
 				// Calculate the total force
-				for (int j = 0; j < 3 * nos; ++j)
+				for (int j = 0; j < nos; ++j)
 				{
 					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
 				}
