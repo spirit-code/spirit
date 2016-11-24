@@ -76,13 +76,12 @@ void SpinWidget::updateData()
 	}
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
 	//		copy
+	/*positions.assign(spin_pos, spin_pos + 3*nos);
+	directions.assign(spins, spins + 3*nos);*/
 	for (int i = 0; i < nos; ++i)
 	{
-		positions[i] = glm::vec3(spin_pos[0 * nos + i], spin_pos[1 * nos + i], spin_pos[2 * nos + i]);
-	}
-	for (int i = 0; i < nos; ++i)
-	{
-		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
+		positions[i] = glm::vec3(spin_pos[3*i], spin_pos[1 + 3*i], spin_pos[2 + 3*i]);
+		directions[i] = glm::vec3(spins[3*i], spins[1 + 3*i], spins[2 + 3*i]);
 	}
 	//    normalize if needed
 	if (keep_magnitudes)

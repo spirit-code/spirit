@@ -9,7 +9,7 @@ scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    return (scalar *)image->geometry->spin_pos.data();
+    return (scalar *)image->geometry->spin_pos[0].data();
 }
 
 void Geometry_Get_Bounds(State *state, float * min, float * max, int idx_image, int idx_chain)
