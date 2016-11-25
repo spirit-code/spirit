@@ -40,6 +40,7 @@ ExternalProject_add(qhullstatic_r
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
 	# GIT_REPOSITORY https://github.com/qhull/qhull
 	CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE};-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullstatic_r"
+	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
 	PREFIX qhull-prefix
 )
 
@@ -47,6 +48,7 @@ ExternalProject_add(qhullcpp
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
 	# GIT_REPOSITORY https://github.com/qhull/qhull
 	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-Dqhull_TARGETS_INSTALL=qhullcpp"
+	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
 	PREFIX qhull-prefix
 	DEPENDS qhullstatic_r
 )
@@ -129,6 +131,7 @@ target_link_libraries( core libqhullcpp)
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
+	set(CORE_SCALAR_TYPE float)
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
@@ -141,6 +144,7 @@ if( BUILD_UI_PYTHON )
 		${SOURCE_CORE_ENGINE}
 		${SOURCE_CORE_INTERFACE}
 		${SOURCE_CORE_UTILITY})
+	target_link_libraries( pycore libqhullcpp )
 	### We want it to be called core, not pycore
 	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
@@ -158,6 +162,7 @@ endif()
 ######### Tell CMake to create the shared library
 if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
+	set(CORE_SCALAR_TYPE float)
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( corejl SHARED
 		${HEADER_CORE_ROOT}
@@ -170,6 +175,7 @@ if( BUILD_UI_JULIA )
 		${SOURCE_CORE_ENGINE}
 		${SOURCE_CORE_INTERFACE}
 		${SOURCE_CORE_UTILITY})
+	target_link_libraries( corejl libqhullcpp)
 	### We want it to be called core, not corejl
 	set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
