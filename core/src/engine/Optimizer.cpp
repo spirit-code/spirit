@@ -55,15 +55,18 @@ namespace Engine
         std::stringstream maxforce_stream;
         maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
         std::string maxforce = maxforce_stream.str();
+        std::stringstream force_param_stream;
+        force_param_stream << std::fixed << std::setprecision(this->print_precision) << this->method->parameters->force_convergence;
+        std::string force_param = force_param_stream.str();
 		//------------------------ End Init ----------------------------------------
 
         //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Started " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "            with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "------------  Started  " + this->method->Name() + " Calculation  ------------", this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "    Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "                with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
+        // Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "    Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
 		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
 
         //---- Start Timings
@@ -101,11 +104,13 @@ namespace Engine
                 maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
                 maxforce = maxforce_stream.str();
 
-				Log(Log_Level::All, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.", this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Iterations / sec:        " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Maximum force component: " + maxforce, this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "----- " + this->Name() + " Calculation", this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Iteration step               " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "                               = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Time since last step:        " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds", this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)), this->method->idx_image, this->method->idx_chain);
+                Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
+				Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
 
 				this->method->Save_Current(this->starttime, i, false, false);
 
@@ -122,20 +127,24 @@ namespace Engine
         maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
         maxforce = maxforce_stream.str();
 
-        //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.", this->method->idx_image, this->method->idx_chain);
+        //---- Termination Reason
+        std::string reason = "";
         if (this->StopFilePresent())
-			Log(Log_Level::All, sender, "    A STOP file has been found.", this->method->idx_image, this->method->idx_chain);
-        else
-        Log(Log_Level::All, sender,     "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
-        if (this->method->Force_Converged())
-			Log(Log_Level::All, sender, "    The transition has converged to a maximum force component of " + maxforce, this->method->idx_image, this->method->idx_chain);
-		else
-			Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "------------------------------------------------------", this->method->idx_image, this->method->idx_chain);
+			reason = "A STOP file has been found";
+        else if (this->method->Force_Converged())
+            reason = "The force converged";
+
+        //---- Log messages
+		Log(Log_Level::All, sender, "------------ Terminated " + this->method->Name() + " Calculation ------------", this->method->idx_image, this->method->idx_chain);
+		if (reason.length() > 0)
+            Log(Log_Level::All, sender, "----- Reason:   " + reason, this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "----- Duration: " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.", this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Iteration step " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "                 = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "    Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
+		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
 		this->method->Save_Current(this->starttime, i, false, true);
