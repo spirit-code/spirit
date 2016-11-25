@@ -16,27 +16,8 @@ scalar Engine::Vectormath::kB()
 	return 0.08617330350;
 }
 
-///////////// Quick Debug Method that is used occasionally to print some arrays -> move to Utility_IO?!
-void Engine::Vectormath::Array_to_Console(const scalar *array, const int length) {
-	std::cout << std::endl;
-	for (int i = 0; i < length; ++i) {
-		std::cout << array[i] << ' ';
-	}
-	std::cout << std::endl;
-};//end Array_to_Console
 
-void Engine::Vectormath::Array_to_Console(const int *array, const int length) {
-	std::cout << std::endl;
-	for (int i = 0; i < length; ++i) {
-		std::cout << array[i] << ' ';
-	}
-	std::cout << std::endl;
-};//end Array_to_Console
-  /////////////////////
-
-
-
-void Engine::Vectormath::Build_Spins(std::vector<Vector3> &spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> &translation_vectors, std::vector<int> &n_cells, const int nos_basic)
+void Engine::Vectormath::Build_Spins(std::vector<Vector3> & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic)
 {
 	Vector3 a = translation_vectors[0];
 	Vector3 b = translation_vectors[1];
@@ -88,7 +69,7 @@ void Engine::Vectormath::Build_Spins(std::vector<Vector3> &spin_pos, std::vector
 };// end Build_Spins
 
 
-std::vector<scalar> Engine::Vectormath::scalar_product(std::vector<Vector3> vector_v1, std::vector<Vector3> vector_v2)
+std::vector<scalar> Engine::Vectormath::scalar_product(const std::vector<Vector3> & vector_v1, const std::vector<Vector3> & vector_v2)
 {
     std::vector<scalar> result(vector_v1.size());
     for (unsigned int i=0; i<vector_v1.size(); ++i)
@@ -109,7 +90,7 @@ void Engine::Vectormath::Normalize(std::vector<Vector3> & spins)
 			norm += std::pow(spins[i][dim], 2);
 		}
 	}
-	scalar norm1 = 1.0 / norm;
+	scalar norm1 = 1.0 / std::sqrt(norm);
 	for (unsigned int i = 0; i < spins.size(); ++i)
 	{
 		spins[i] *= norm1;
@@ -118,7 +99,7 @@ void Engine::Vectormath::Normalize(std::vector<Vector3> & spins)
 
 
 
-scalar Engine::Vectormath::dist_greatcircle(Vector3 v1, Vector3 v2)
+scalar Engine::Vectormath::dist_greatcircle(const Vector3 & v1, const Vector3 & v2)
 {
 	scalar r = v1.dot(v2);
 
@@ -130,7 +111,7 @@ scalar Engine::Vectormath::dist_greatcircle(Vector3 v1, Vector3 v2)
 }
 
 
-scalar Engine::Vectormath::dist_geodesic(std::vector<Vector3> v1, std::vector<Vector3> v2)
+scalar Engine::Vectormath::dist_geodesic(const std::vector<Vector3> & v1, const std::vector<Vector3> & v2)
 {
 	scalar dist = 0;
 	for (unsigned int i = 0; i < v1.size(); ++i)
@@ -142,7 +123,7 @@ scalar Engine::Vectormath::dist_geodesic(std::vector<Vector3> v1, std::vector<Ve
 
 
 
-void Engine::Vectormath::Project_Reverse(std::vector<Vector3> v1, std::vector<Vector3> v2)
+void Engine::Vectormath::Project_Reverse(std::vector<Vector3> & v1, const std::vector<Vector3> & v2)
 {
 	// Get the scalar product of the vectors
 	scalar v1v2 = 0.0;
@@ -159,7 +140,7 @@ void Engine::Vectormath::Project_Reverse(std::vector<Vector3> v1, std::vector<Ve
 }
 
 
-void Engine::Vectormath::Rotate_Spin(const Vector3 & v, const Vector3 & axis, scalar angle, Vector3 & v_out)
+void Engine::Vectormath::Rotate_Spin(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
 {
 	v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
 }
@@ -168,7 +149,7 @@ void Engine::Vectormath::Rotate_Spin(const Vector3 & v, const Vector3 & axis, sc
 /*
 	Calculates the 'tangent' vectors, i.e.in crudest approximation the difference between an image and the neighbouring
 */
-void Engine::Vectormath::Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<scalar> energies, std::vector<std::vector<Vector3>> & tangents)
+void Engine::Vectormath::Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, const std::vector<scalar> & energies, std::vector<std::vector<Vector3>> & tangents)
 {
 	int noi = configurations.size();
 	int nos = (*configurations[0]).size();

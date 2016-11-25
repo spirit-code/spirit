@@ -18,27 +18,22 @@ namespace Engine
 		scalar MuB();
 		scalar kB();
 
-		//Prints a 1-d array of scalars to console
-		void Array_to_Console(const scalar *array, const int length);
-		//Prints a 1-d array of ints to console
-		void Array_to_Console(const int *array, const int length);
-
-		void Build_Spins(std::vector<Vector3> &spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> &translation_vectors, std::vector<int> &n_cells, const int nos_basic);
+		void Build_Spins(std::vector<Vector3> & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic);
 
 
-		std::vector<scalar> scalar_product(std::vector<Vector3> vector_v1, std::vector<Vector3> vector_v2);
+		std::vector<scalar> scalar_product(const std::vector<Vector3> & vector_v1, const std::vector<Vector3> & vector_v2);
 
 
 		void Normalize(std::vector<Vector3> & spins);
 
-		scalar dist_greatcircle(Vector3 v1, Vector3 v2);
-		scalar dist_geodesic(std::vector<Vector3> v1, std::vector<Vector3> v2);
+		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2);
+		scalar dist_geodesic(const std::vector<Vector3> & v1, const std::vector<Vector3> & v2);
 
-		void Project_Reverse(std::vector<Vector3> v1, std::vector<Vector3> v2);
+		void Project_Reverse(std::vector<Vector3> & v1, const std::vector<Vector3> & v2);
 
-		void Rotate_Spin(const Vector3 & v, const Vector3 & axis, scalar angle, Vector3 & v_out);
+		void Rotate_Spin(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
 
-		void Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<scalar> energies, std::vector<std::vector<Vector3>> & tangents);
+		void Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, const std::vector<scalar> & energies, std::vector<std::vector<Vector3>> & tangents);
 	}
 }
 

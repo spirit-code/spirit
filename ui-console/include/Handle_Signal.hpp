@@ -2,7 +2,7 @@
 #ifndef UTILITY_SIGNAL_H
 #define UTILITY_SIGNAL_H
 
-#include <signal.hpp>
+#include <signal.h>
 
 namespace Utility
 {

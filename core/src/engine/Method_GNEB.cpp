@@ -120,7 +120,7 @@ namespace Engine
 				// Calculate the spring force
 				//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
 				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
-				for (unsigned int i = 0; i < F_spring[0].size(); ++i)
+				for (int i = 0; i < nos; ++i)
 				{
 					F_spring[img][i] = d * tangents[img][i];
 				}

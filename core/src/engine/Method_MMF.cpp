@@ -64,32 +64,10 @@ namespace Engine
 		}*/
     }
 
-
-	MatrixX deorder_matrix(MatrixX m)
-	{
-		MatrixX r(m.rows(), m.rows());
-		int nos = m.rows() / 3;
-
-		for (int i = 0; i < nos; ++i)
-		{
-			for (int dim1 = 0; dim1 < 3; ++dim1)
-			{
-				for (int j = 0; j < nos; ++j)
-				{
-					for (int dim2 = 0; dim2 < 3; ++dim2)
-					{
-						 r(i + dim1*nos, j + dim2*nos) = m(dim1 + 3 * i, dim2 + 3 * j);
-					}
-				}
-			}
-		}
-		return r;
-	}
-
 	MatrixX projector(std::vector<Vector3> & image)
 	{
-		int size = image.size();
-		int nos = size;
+		int nos = image.size();
+		int size = 3*nos;
 		//		Get the image as Eigen vector
 		//Eigen::VectorXd e_image = Eigen::Map<Eigen::VectorXd>(image.data(), size);
 		// 		Get basis change matrix M=1-S, S=x*x^T
@@ -104,43 +82,7 @@ namespace Engine
 		//std::cerr << "projector orig: " << std::endl << proj << std::endl;
 		// 		Change the basis of the Hessian: H -> H - SHS
 		//Log(Log_Level::Debug, Log_Sender::MMF, "after basis matrix creation");
-		return deorder_matrix(proj);
-	}
-
-	MatrixX reorder_matrix(MatrixX m)
-	{
-		MatrixX r(m.rows(), m.rows());
-		int nos = m.rows() / 3;
-
-		for (int i = 0; i < nos; ++i)
-		{
-			for (int dim1 = 0; dim1 < 3; ++dim1)
-			{
-				for (int j = 0; j < nos; ++j)
-				{
-					for (int dim2 = 0; dim2 < 3; ++dim2)
-					{
-						r(dim1 + 3 * i, dim2 + 3 * j) = m(i + dim1*nos, j + dim2*nos);
-					}
-				}
-			}
-		}
-		return r;
-	}
-
-	VectorX reorder_vector(VectorX m)
-	{
-		VectorX r(m.rows());
-		int nos = m.rows() / 3;
-
-		for (int i = 0; i < nos; ++i)
-		{
-			for (int dim = 0; dim < 3; ++dim)
-			{
-				r(dim + 3 * i) = m(i + dim*nos);
-			}
-		}
-		return r;
+		return proj;
 	}
 
 	void Method_MMF::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
@@ -300,9 +242,9 @@ namespace Engine
 			else
 			{
 				Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
-				for (int _i = 0; _i < 6; ++_i) std::cerr << minimum_mode[ichain][_i] << " "; std::cerr << std::endl;
-				for (int _i = 0; _i < 6; ++_i) std::cerr << F_gradient[ichain][_i] << " "; std::cerr << std::endl;
-				std::cerr << reorder_matrix(H) << std::endl;
+				// for (int _i = 0; _i < 6; ++_i) std::cerr << minimum_mode[ichain][_i] << " "; std::cerr << std::endl;
+				// for (int _i = 0; _i < 6; ++_i) std::cerr << F_gradient[ichain][_i] << " "; std::cerr << std::endl;
+				// std::cerr << H << std::endl;
 				Log(Log_Level::Info, Log_Sender::MMF, "Zeroing the MMF force...");
 				for (Vector3 x : forces[ichain]) x.setZero();
 			}
