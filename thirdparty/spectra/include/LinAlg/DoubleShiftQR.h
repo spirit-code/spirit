@@ -11,7 +11,6 @@
 #include <vector>     // std::vector
 #include <algorithm>  // std::min, std::fill, std::copy
 #include <cmath>      // std::abs, std::sqrt, std::pow
-#include <limits>     // std::numeric_limits
 #include <stdexcept>  // std::invalid_argument, std::logic_error
 
 namespace Spectra {
@@ -40,37 +39,43 @@ private:
                           // 3 - A general reflector
                           // 2 - A Givens rotation
                           // 1 - An identity transformation
-    const Scalar m_prec;  // Approximately zero
+    const Scalar m_eps;   // the machine precision,
+                          // e.g. ~= 1e-16 for the "double" type
     const Scalar m_eps_rel;
     const Scalar m_eps_abs;
     bool m_computed;      // Whether matrix has been factorized
 
     void compute_reflector(const Scalar& x1, const Scalar& x2, const Scalar& x3, Index ind)
     {
+        using std::abs;
+
         Scalar* u = m_ref_u.data() + 3 * ind;
         unsigned char* nr = m_ref_nr.data();
         // In general case the reflector affects 3 rows
         nr[ind] = 3;
+        Scalar x2x3 = Scalar(0);
         // If x3 is zero, decrease nr by 1
-        if(std::abs(x3) < m_prec)
+        if(abs(x3) < m_eps)
         {
             // If x2 is also zero, nr will be 1, and we can exit this function
-            if(std::abs(x2) < m_prec)
+            if(abs(x2) < m_eps)
             {
                 nr[ind] = 1;
                 return;
             } else {
                 nr[ind] = 2;
             }
+            x2x3 = abs(x2);
+        } else {
+            x2x3 = Eigen::numext::hypot(x2, x3);
         }
 
         // x1' = x1 - rho * ||x||
         // rho = -sign(x1), if x1 == 0, we choose rho = 1
-        Scalar tmp = x2 * x2 + x3 * x3;
-        Scalar x1_new = x1 - ((x1 <= 0) - (x1 > 0)) * std::sqrt(x1 * x1 + tmp);
-        Scalar x_norm = std::sqrt(x1_new * x1_new + tmp);
+        Scalar x1_new = x1 - ((x1 <= 0) - (x1 > 0)) * Eigen::numext::hypot(x1, x2x3);
+        Scalar x_norm = Eigen::numext::hypot(x1_new, x2x3);
         // Double check the norm of new x
-        if(x_norm < m_prec)
+        if(x_norm < m_eps)
         {
             nr[ind] = 1;
             return;
@@ -246,9 +251,9 @@ private:
 public:
     DoubleShiftQR(Index size) :
         m_n(size),
-        m_prec(std::numeric_limits<Scalar>::epsilon()),
-        m_eps_rel(std::pow(m_prec, Scalar(0.75))),
-        m_eps_abs(std::min(std::pow(m_prec, Scalar(0.75)), m_n * m_prec)),
+        m_eps(Eigen::NumTraits<Scalar>::epsilon()),
+        m_eps_rel(m_eps),
+        m_eps_abs(m_eps),
         m_computed(false)
     {}
 
@@ -259,9 +264,9 @@ public:
         m_shift_t(t),
         m_ref_u(3, m_n),
         m_ref_nr(m_n),
-        m_prec(std::numeric_limits<Scalar>::epsilon()),
-        m_eps_rel(std::pow(m_prec, Scalar(0.75))),
-        m_eps_abs(std::min(std::pow(m_prec, Scalar(0.75)), m_n * m_prec)),
+        m_eps(Eigen::NumTraits<Scalar>::epsilon()),
+        m_eps_rel(m_eps),
+        m_eps_abs(m_eps),
         m_computed(false)
     {
         compute(mat, s, t);
@@ -269,6 +274,8 @@ public:
 
     void compute(ConstGenericMatrix& mat, Scalar s, Scalar t)
     {
+        using std::abs;
+
         if(mat.rows() != mat.cols())
             throw std::invalid_argument("DoubleShiftQR: matrix must be square");
 
@@ -291,8 +298,8 @@ public:
         for(Index i = 0; i < m_n - 2; i++, Hii += (m_n + 1))
         {
             // Hii[1] => m_mat_H(i + 1, i)
-            const Scalar h = std::abs(Hii[1]);
-            if(h <= m_eps_abs || h <= m_eps_rel * (std::abs(Hii[0]) + std::abs(Hii[m_n + 1])))
+            const Scalar h = abs(Hii[1]);
+            if(h <= m_eps_abs || h <= m_eps_rel * (abs(Hii[0]) + abs(Hii[m_n + 1])))
             {
                 Hii[1] = 0;
                 zero_ind.push_back(i + 1);

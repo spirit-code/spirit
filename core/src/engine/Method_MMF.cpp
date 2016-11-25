@@ -222,7 +222,8 @@ namespace Engine
 					Eigen::Ref<VectorX> evec = evectors.col(0);
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment
-					this->minimum_mode[ichain] = std::vector<Vector3>(evec.data(), evec.data() + evec.rows()*evec.cols());
+		// 			// The following line does not seem to work with Eigen3.3
+		//			this->minimum_mode[ichain] = std::vector<Vector3>(evec.data(), evec.data() + evec.rows()*evec.cols());
 					//for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
 					// 		Normalize the mode vector in 3N dimensions
 					Engine::Vectormath::Normalize(this->minimum_mode[ichain]);
