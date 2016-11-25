@@ -5,19 +5,22 @@ cmake_minimum_required(VERSION 2.8.11)
 
 ######### Build Flags #######################
 ### These decide which projects are built
-option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."                 OFF )
-option( BUILD_UI_PYTHON "Build the shared library for the Python UI."                  OFF )
-option( BUILD_UI_JULIA  "Build the shared library for the Julia UI."                   OFF )
-option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                            ON  )
-option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."      ON  )
+option( BUILD_UI_WEB     "Build the JavaScript library for the Web UI."                 OFF )
+option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  OFF )
+option( BUILD_UI_JULIA   "Build the shared library for the Julia UI."                   OFF )
+option( BUILD_UI_CXX     "Build the C++ UIs (console or QT)"                            ON  )
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
-option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."     OFF )
+option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
 ### CMake Verbosity
-option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                        OFF )
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+### Options for the usage of CUDA and threads
+option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              OFF )
+option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code."       OFF )
 ### Set the scalar type used in the core library
-set(CORE_SCALAR_TYPE double)
+set( CORE_SCALAR_TYPE double )
 #############################################
 
 

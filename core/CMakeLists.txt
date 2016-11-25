@@ -28,6 +28,12 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
 string(TOUPPER ${CORE_SCALAR_TYPE} CORE_SCALAR_TYPE_UPPERCASE)
+if ( CORE_USE_CUDA )
+	set ( CORE_DEFINE_CUDA "#define CORE_USE_CUDA")
+endif()
+if ( CORE_USE_THREADS )
+	set ( CORE_DEFINE_THREADS "#define CORE_USE_THREADS")
+endif()
 configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Core_Defines.h)
 #############################################
 

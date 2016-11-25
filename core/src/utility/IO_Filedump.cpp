@@ -4,15 +4,13 @@
 
 #include <iostream>
 #include <fstream>
-//#define USE_THREADS
-#ifdef USE_THREADS
-#include <thread>
-#endif
 #include <string>
 #include <cstring>
 #include <sstream>
 #include <algorithm>
-
+#ifdef CORE_USE_THREADS
+#include <thread>
+#endif
 
 namespace Utility
 {
@@ -260,7 +258,7 @@ namespace Utility
 		void Dump_to_File(const std::string text, const std::string name)
 		{
 			
-			#ifdef USE_THREADS
+			#ifdef CORE_USE_THREADS
 			// thread:      method       args  args    args   detatch thread
 			std::thread(String_to_File, text, name).detach();
 			#else
@@ -269,7 +267,7 @@ namespace Utility
 		}
 		void Dump_to_File(const std::vector<std::string> text, const std::string name, const int no)
 		{
-			#ifdef USE_THREADS
+			#ifdef CORE_USE_THREADS
 			std::thread(Strings_to_File, text, name, no).detach();
 			#else
 			Strings_to_File(text, name, no);

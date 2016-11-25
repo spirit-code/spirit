@@ -3,7 +3,6 @@
 #define DATA_SPIN_SYSTEM_H
 
 #include <random>
-#include <thread>
 #include <memory>
 
 #include "Core_Defines.h"
