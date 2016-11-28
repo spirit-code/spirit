@@ -208,7 +208,7 @@ namespace Engine
 		// Loop over Spins
 		for (int i = 0; i < nos; ++i)
 		{
-			field[i] = { 0,0,0 };
+			field[i].setZero();
 		}
 
 		// External field
@@ -308,95 +308,107 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Hessian(const std::vector<Vector3> & spins, MatrixX & hessian)
 	{
-		//int nos = spins.size() / 3;
+		int nos = spins.size();
 
-		//// Set to zero
-		//for (auto& h : hessian) h = 0;
+		// Set to zero
+		// for (auto& h : hessian) h = 0;
+		hessian.setZero();
 
-		//// Single Spin elements
-		//for (int alpha = 0; alpha < 3; ++alpha)
-		//{
-		//	for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
-		//	{
-		//		int idx = anisotropy_index[i];
-		//		scalar x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
-		//		hessian[idx + alpha*nos + 3 * nos*(idx + alpha*nos)] += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
-		//	}
-		//}
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
+			{
+				int idx = anisotropy_index[i];
+				// scalar x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
+				hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
+			}
+		}
 
-		//// Spin Pair elements
-		//for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		//{
-		//	//		Check if boundary conditions contain this periodicity
-		//	if ((i_periodicity == 0)
-		//		|| (i_periodicity == 1 && this->boundary_conditions[0])
-		//		|| (i_periodicity == 2 && this->boundary_conditions[1])
-		//		|| (i_periodicity == 3 && this->boundary_conditions[2])
-		//		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-		//		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-		//		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-		//		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
-		//	{
-		//		//		Loop over pairs of this periodicity
-		//		// Exchange
-		//		for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
-		//		{
-		//			for (int alpha = 0; alpha < 3; ++alpha)
-		//			{
-		//				int idx_h = Exchange_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(Exchange_indices[i_periodicity][i_pair][1] + alpha*nos);
-		//				hessian[idx_h] += -Exchange_magnitude[i_periodicity][i_pair];
-		//			}
-		//		}
-		//		// DMI
-		//		for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
-		//		{
-		//			for (int alpha = 0; alpha < 3; ++alpha)
-		//			{
-		//				for (int beta = 0; beta < 3; ++beta)
-		//				{
-		//					int idx_h = DMI_indices[i_periodicity][i_pair][0] + alpha*nos + 3 * nos*(DMI_indices[i_periodicity][i_pair][1] + beta*nos);
-		//					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
-		//					{
-		//						hessian[idx_h] +=
-		//							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
-		//					}
-		//					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
-		//					{
-		//						hessian[idx_h] +=
-		//							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
-		//					}
-		//					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
-		//					{
-		//						hessian[idx_h] +=
-		//							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
-		//					}
-		//				}
-		//			}
-		//		}
-		//		// Dipole-Dipole
-		//		for (unsigned int i_pair = 0; i_pair < this->DD_indices[i_periodicity].size(); ++i_pair)
-		//		{
-		//			// indices
-		//			int idx_1 = DD_indices[i_periodicity][i_pair][0];
-		//			int idx_2 = DD_indices[i_periodicity][i_pair][1];
-		//			// prefactor
-		//			scalar prefactor = 0.0536814951168
-		//				* this->mu_s[idx_1] * this->mu_s[idx_2]
-		//				/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
-		//			// components
-		//			for (int alpha = 0; alpha < 3; ++alpha)
-		//			{
-		//				for (int beta = 0; beta < 3; ++beta)
-		//				{
-		//					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
-		//					if (alpha == beta)
-		//						hessian[idx_h] += prefactor;
-		//					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
-		//				}
-		//			}
-		//		}
-		//	}// end if periodicity
-		//}// end for periodicity
+		// std::cerr << "calculated hessian" << std::endl;
+
+		// // Spin Pair elements
+		// for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		// {
+		// 	//		Check if boundary conditions contain this periodicity
+		// 	if ((i_periodicity == 0)
+		// 		|| (i_periodicity == 1 && this->boundary_conditions[0])
+		// 		|| (i_periodicity == 2 && this->boundary_conditions[1])
+		// 		|| (i_periodicity == 3 && this->boundary_conditions[2])
+		// 		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+		// 		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+		// 		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+		// 		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+		// 	{
+		// 		//		Loop over pairs of this periodicity
+		// 		// Exchange
+		// 		for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
+		// 		{
+		// 			for (int alpha = 0; alpha < 3; ++alpha)
+		// 			{
+		// 				int idx_i = 3*Exchange_indices[i_periodicity][i_pair][0] + alpha;
+		// 				int idx_j = 3*Exchange_indices[i_periodicity][i_pair][1] + alpha;
+		// 				hessian(idx_i,idx_j) += -Exchange_magnitude[i_periodicity][i_pair];
+		// 				hessian(idx_j,idx_i) += -Exchange_magnitude[i_periodicity][i_pair];
+		// 			}
+		// 		}
+		// 		// DMI
+		// 		for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
+		// 		{
+		// 			for (int alpha = 0; alpha < 3; ++alpha)
+		// 			{
+		// 				for (int beta = 0; beta < 3; ++beta)
+		// 				{
+		// 					int idx_i = 3*DMI_indices[i_periodicity][i_pair][0] + alpha;
+		// 					int idx_j = 3*DMI_indices[i_periodicity][i_pair][1] + beta;
+		// 					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+		// 					{
+		// 						hessian(idx_i,idx_j) +=
+		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		// 						hessian(idx_j,idx_i) +=
+		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		// 					}
+		// 					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+		// 					{
+		// 						hessian(idx_i,idx_j) +=
+		// 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		// 						hessian(idx_j,idx_i) +=
+		// 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		// 					}
+		// 					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+		// 					{
+		// 						hessian(idx_i,idx_j) +=
+		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		// 						hessian(idx_j,idx_i) +=
+		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// //		// Dipole-Dipole
+		// //		for (unsigned int i_pair = 0; i_pair < this->DD_indices[i_periodicity].size(); ++i_pair)
+		// //		{
+		// //			// indices
+		// //			int idx_1 = DD_indices[i_periodicity][i_pair][0];
+		// //			int idx_2 = DD_indices[i_periodicity][i_pair][1];
+		// //			// prefactor
+		// //			scalar prefactor = 0.0536814951168
+		// //				* this->mu_s[idx_1] * this->mu_s[idx_2]
+		// //				/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
+		// //			// components
+		// //			for (int alpha = 0; alpha < 3; ++alpha)
+		// //			{
+		// //				for (int beta = 0; beta < 3; ++beta)
+		// //				{
+		// //					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+		// //					if (alpha == beta)
+		// //						hessian[idx_h] += prefactor;
+		// //					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
+		// //				}
+		// //			}
+		// //		}
+		// 	}// end if periodicity
+		// }// end for periodicity
 	}
 
 	// Hamiltonian name as string

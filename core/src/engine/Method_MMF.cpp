@@ -88,8 +88,9 @@ namespace Engine
 	void Method_MMF::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
 	{
 		//std::cerr << "calculating force" << std::endl;
-		const int nos = configurations[0]->size() / 3;
-
+		const int nos = configurations[0]->size();
+		// std::cerr << "mmf iteration" << std::endl;
+		
 		// Loop over chains and calculate the forces
 		for (int ichain = 0; ichain < collection->noc; ++ichain)
 		{
@@ -104,8 +105,8 @@ namespace Engine
 			//std::cerr << F_gradient[0][0] << std::endl;
 			//std::cerr << grad[0] << std::endl;
 			grad = -grad;
-			//std::cerr << F_gradient[0][0] << std::endl;
-			//std::cerr << grad[0] << std::endl;
+			// std::cerr << "grad1 " << F_gradient[0][0] << std::endl;
+			// std::cerr << "grad2 " << grad[0] << " " << grad[1] << " " << grad[2] << std::endl;
 
 			// Get the unprojected Hessian
 			this->systems[ichain]->hamiltonian->Hessian(image, hessian[ichain]);
@@ -116,24 +117,25 @@ namespace Engine
 			//		and add the gradient contributions (inner and outer product)
 			auto P = projector(*configurations[ichain]);
 
-			//std::cerr << "------------------------" << std::endl;
-			//std::cerr << "gradient:      " << reorder_vector(grad).transpose() << std::endl;
-			//std::cerr << "hessian:       " << std::endl << reorder_matrix(H) << std::endl;
-			//std::cerr << "projector:     " << std::endl << reorder_matrix(P) << std::endl;
-			//std::cerr << "hessian proj:  " << std::endl << reorder_matrix(P.transpose()*H*P) << std::endl;
+			// std::cerr << "------------------------" << std::endl;
+			// std::cerr << "x:             " << x.transpose() << std::endl;
+			// std::cerr << "gradient:      " << grad.transpose() << std::endl;
+			// std::cerr << "hessian:       " << std::endl << hessian[ichain] << std::endl;
+			// std::cerr << "projector:     " << std::endl << P << std::endl;
+			// std::cerr << "hessian proj:  " << std::endl << P*hessian[ichain]*P << std::endl;
 
 			// TODO: the follwing expression can be optimized, as P is a block-matrix! P*grad can be split up into spin-wise blocks
 			// TODO: also x.dot(grad) can be split into spin-wise parts
-			MatrixX H = P.transpose()*H*P - P*(x.dot(grad)) - (P*grad)*x.transpose(); //- P*(x.dot(grad));// -(P*grad)*x.transpose();
-
+			MatrixX H = P*hessian[ichain]*P - P*(x.dot(grad)) - (P*grad)*x.transpose(); //- P*(x.dot(grad));// -(P*grad)*x.transpose();
+			
 			//Log(Log_Level::Debug, Log_Sender::MMF, "after basis change");
 			
-			//std::cerr << "gradient proj: " << std::endl << reorder_vector(P*grad).transpose() << std::endl;
-			//std::cerr << "hessian final: " << std::endl << reorder_matrix(H) << std::endl;
+			// std::cerr << "gradient proj: " << std::endl << (P*grad).transpose() << std::endl;
+			// std::cerr << "hessian final: " << std::endl << H << std::endl;
 			
 
 			//Eigen::EigenSolver<Eigen::MatrixXd> estest1(reorder_matrix(H));
-			//std::cerr << "hessian:    " << std::endl << reorder_matrix(H) << std::endl;
+			// std::cerr << "hessian:    " << std::endl << H << std::endl;
 			//std::cerr << "eigen vals: " << std::endl << estest1.eigenvalues() << std::endl;
 			//std::cerr << "eigen vecs: " << std::endl << estest1.eigenvectors().real() << std::endl;
 			//Eigen::EigenSolver<Eigen::MatrixXd> estest2(H);
@@ -154,7 +156,7 @@ namespace Engine
 				//std::cerr << "spectra val: " << std::endl << hessian_spectrum.eigenvalues() << std::endl;
 				//std::cerr << "spectra vec: " << std::endl << -reorder_vector(hessian_spectrum.eigenvectors().col(0).real()) << std::endl;
 				// 		Check if the lowest eigenvalue is negative
-				if (evalues[0] < -1e-2)// || switched2)
+				if (evalues[0] < -1e-5)// || switched2)
 				{
 					if (switched1)
 						switched2 = true;
@@ -162,10 +164,15 @@ namespace Engine
 					// 		Retrieve the Eigenvectors
 					MatrixX evectors = hessian_spectrum.eigenvectors().real();
 					Eigen::Ref<VectorX> evec = evectors.col(0);
+					// std::cerr << "min mode:   " << std::endl << evec << std::endl;
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment
-		// 			// The following line does not seem to work with Eigen3.3
-		//			this->minimum_mode[ichain] = std::vector<Vector3>(evec.data(), evec.data() + evec.rows()*evec.cols());
+					// The following line does not seem to work with Eigen3.3
+					// this->minimum_mode[ichain] = std::vector<Vector3>(evec.data(), evec.data() + evec.rows()*evec.cols());
+					for (int n=0; n<nos; ++n)
+					{
+						this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
+					}
 					//for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
 					// 		Normalize the mode vector in 3N dimensions
 					Engine::Vectormath::Normalize(this->minimum_mode[ichain]);
@@ -182,7 +189,7 @@ namespace Engine
 				else
 				{
 					switched1 = true;
-					//std::cerr << "sticky region " << evalues[0] << std::endl;
+					// std::cerr << "sticky region " << evalues[0] << std::endl;
 					///////////////////////////////////
 					//// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
 					//Eigen::EigenSolver<Eigen::MatrixXd> estest1(H);
@@ -195,21 +202,28 @@ namespace Engine
 					//std::cerr << "eigen vecs: " << std::endl << estest2.eigenvectors().real() << std::endl << std::endl;
 					///////////////////////////////////
 
-					//// Create the Minimum Mode
-					//Spectra::DenseGenRealShiftSolve<scalar> op_pos(H);
-					//Spectra::GenEigsRealShiftSolver< scalar, Spectra::LARGEST_REAL, Spectra::DenseGenRealShiftSolve<scalar> > hessian_spectrum_pos(&op_pos, 1, 3 * nos, 1.0e-9);
-					//hessian_spectrum_pos.init();
-					////		Compute the specified spectrum
-					//int nconv = hessian_spectrum_pos.compute();
-					//// 		Retrieve the Eigenvectors
+					// Create the Minimum Mode
+					Spectra::DenseGenRealShiftSolve<scalar> op_pos(H);
+					Spectra::GenEigsRealShiftSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenRealShiftSolve<scalar> > hessian_spectrum_pos(&op_pos, 1, 3 * nos, 1.0e-5);
+					hessian_spectrum_pos.init();
+					//		Compute the specified spectrum
+					int nconv = hessian_spectrum_pos.compute();
+					// 		Retrieve the Eigenvectors
 					//std::cerr << "-----" << std::endl;
 					//std::cerr << "spectra:" << std::endl;
 					//std::cerr << hessian_spectrum_pos.eigenvalues() << std::endl;
 					//std::cerr << hessian_spectrum_pos.eigenvectors().real() << std::endl;
 					//std::cerr << "-----" << std::endl;
-					//Eigen::MatrixXd evectors = hessian_spectrum_pos.eigenvectors().real();
-					////auto evec = evectors.col(0);
-					//Eigen::Ref<Eigen::VectorXd> evec = evectors.col(0);
+					Eigen::MatrixXd evectors = hessian_spectrum_pos.eigenvectors().real();
+					//auto evec = evectors.col(0);
+					Eigen::Ref<Eigen::VectorXd> evec = evectors.col(0);
+
+					for (int n=0; n<nos; ++n)
+					{
+						this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
+					}
+
+					Engine::Vectormath::Normalize(this->minimum_mode[ichain]);
 
 
 					//this->minimum_mode[ichain] = std::vector<scalar>(evec.data(), evec.data() + evec.rows()*evec.cols());
@@ -223,15 +237,15 @@ namespace Engine
 					////Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
 					////// We are too close to the local minimum so we have to use a strong force
 					//////		We apply the force against the minimum mode of the positive eigenvalue
-					//scalar v1v2 = 0.0;
-					//for (int i = 0; i < 3 * nos; ++i)
-					//{
-					//	v1v2 += F_gradient[ichain][i] * minimum_mode[ichain][i];
-					//}
-					// Take out component in direction of v2
-					for (int i = 0; i < 3 * nos; ++i)
+					scalar v1v2 = 0.0;
+					for (int i = 0; i < nos; ++i)
 					{
-						F_gradient[ichain][i] = -F_gradient[ichain][i]; //-v1v2 * minimum_mode[ichain][i]; //
+						v1v2 += F_gradient[ichain][i].dot(minimum_mode[ichain][i]);
+					}
+					// Take out component in direction of v2
+					for (int i = 0; i < nos; ++i)
+					{
+						F_gradient[ichain][i] =  -v1v2 * minimum_mode[ichain][i]; // -F_gradient[ichain][i]
 					}
 
 					// Copy out the forces
@@ -249,6 +263,7 @@ namespace Engine
 				for (Vector3 x : forces[ichain]) x.setZero();
 			}
 		}
+		// std::cerr << "mmf iteration done" << std::endl;
 	}
 
 	

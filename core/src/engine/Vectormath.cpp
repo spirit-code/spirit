@@ -80,20 +80,20 @@ std::vector<scalar> Engine::Vectormath::scalar_product(const std::vector<Vector3
 }
 
 
-void Engine::Vectormath::Normalize(std::vector<Vector3> & spins)
+void Engine::Vectormath::Normalize(std::vector<Vector3> & vectorfield)
 {
-	scalar norm = 0;
-	for (unsigned int i = 0; i < spins.size(); ++i)
+	scalar tmp = 0;
+	for (unsigned int i = 0; i < vectorfield.size(); ++i)
 	{
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			norm += std::pow(spins[i][dim], 2);
+			tmp += std::pow(vectorfield[i][dim], 2);
 		}
 	}
-	scalar norm1 = 1.0 / std::sqrt(norm);
-	for (unsigned int i = 0; i < spins.size(); ++i)
+	scalar norm = 1.0 / std::sqrt(tmp);
+	for (unsigned int i = 0; i < vectorfield.size(); ++i)
 	{
-		spins[i] *= norm1;
+		vectorfield[i] *= norm;
 	}
 }
 
