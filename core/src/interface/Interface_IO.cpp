@@ -79,12 +79,22 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 
 void IO_Chain_Read(State * state, const char * file, int idx_image, int idx_chain)
 {
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
+	// Read the data
+	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
 }
 
 void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_chain)
 {
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
+	// Read the data
+	Utility::IO::Save_SpinChain_Configuration(chain, std::string(file));
 }
 
 

@@ -37,7 +37,7 @@ namespace Engine
 		
 		// Calculate boundary vectors
 		boundary_vectors = Get_Boundary_Vectors(geometry, boundary_conditions);
-		n_boundary_vectors = boundary_vectors[0].size();
+		n_boundary_vectors = boundary_vectors.size();
 
 		// Calculate shell radii
 		shell_radius = Get_Shell_Radius(geometry, n_shells);
@@ -285,7 +285,7 @@ namespace Engine
 		Vector3 ipos = { 0, 0, 0 };
 		Vector3 jpos = { 0, 0, 0 };
 		scalar dist;
-		unsigned int bvector, number_b_vectors = boundary_vectors[0].size();
+		unsigned int bvector, number_b_vectors = boundary_vectors.size();
 		int iatom, jatom, jspin, shell;
 		Vector3 build_array = { 0, 0, 0 };
 
@@ -813,7 +813,7 @@ namespace Engine
 		int n_boundaries=0, n_boundary_vectors=0;
 		for (int i = 0; i < 3; ++i) if (boundary_conditions[i]) n_boundaries++;
 		n_boundary_vectors = (int)std::pow(3, n_boundaries);
-		auto boundary_vectors = std::vector<Vector3>(n_boundary_vectors);
+		auto boundary_vectors = std::vector<Vector3>(n_boundary_vectors, { 0,0,0 });
 		
 		// Determine the runs we take over the basis directions
 		std::vector<int> list_ia(1, 0), list_ib(1, 0), list_ic(1, 0);
