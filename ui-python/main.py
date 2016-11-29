@@ -1,6 +1,7 @@
 ### Make sure to find the core modules
 import os
 core_dir = os.path.dirname(os.path.realpath(__file__)) + '/core'
+# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', '..', 'code/MonoSpin/ui-python'))
 import sys
 sys.path.insert(0, core_dir)
 
@@ -11,6 +12,7 @@ from core import chain
 from core import configuration
 from core import transition
 from core import simulation
+from core import io
 
 
 # cfgfile = b'input/markus-paper.cfg'
@@ -36,6 +38,9 @@ configuration.PlusZ(p_state, 0)
 configuration.Skyrmion(p_state, [0,0,0], 5.0, 1, -90.0, False, False, False, 0)
 ### Last image is homogeneous
 configuration.PlusZ(p_state, noi-1)
+
+# spinsfile = b'input/spins.txt'
+# io.Image_Read(p_state, spinsfile)
 
 ### Create transition of images between first and last
 transition.Homogeneous(p_state, 0, noi-1)

@@ -257,9 +257,9 @@ namespace Utility
 			
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[1][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[2][0]) + " " + std::to_string(translation_vectors[2][1]) + " " + std::to_string(translation_vectors[2][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        na = " + std::to_string(n_cells[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
