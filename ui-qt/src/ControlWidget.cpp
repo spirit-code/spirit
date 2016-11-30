@@ -17,10 +17,11 @@ std::string string_q2std(QString qs)
 	return std::string(c_fileName);
 }
 
-ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
+ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget)
 {
 	this->state = state;
 	this->spinWidget = spinWidget;
+	this->settingsWidget = settingsWidget;
     
 	// Create threads
 	threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
@@ -176,7 +177,7 @@ void ControlWidget::next_image()
 
 		// Update Image-dependent Widgets
 		this->spinWidget->updateData();
-		// this->settingsWidget->updateData();
+		this->settingsWidget->updateData();
 		// this->plotsWidget->updateData();
 		// this->debugWidget->updateData();
 	}
@@ -196,8 +197,7 @@ void ControlWidget::prev_image()
 
 		// Update Image-dependent Widgets
 		this->spinWidget->updateData();
-		// this->spinWidget->updateData();
-		// this->settingsWidget->updateData();
+		this->settingsWidget->updateData();
 		// this->plotsWidget->updateData();
 		// this->debugWidget->updateData();
 	}
@@ -214,7 +214,8 @@ void ControlWidget::cut_image()
 
 		int idx = System_Get_Index(state.get());
 		if (idx > 0) Chain_prev_Image(this->state.get());
-		this->spinWidget->updateData();			
+		this->spinWidget->updateData();
+		this->settingsWidget->updateData();		
 		//else this->nextImagePressed();
 
 		if (Chain_Delete_Image(state.get(), idx)) 
@@ -256,6 +257,8 @@ void ControlWidget::paste_image(std::string where)
 	Chain_Update_Data(state.get());
 	// Update Visualisation
 	this->spinWidget->updateData();
+	// Update settings
+	this->settingsWidget->updateData();
 }
 
 void ControlWidget::delete_image()
@@ -276,6 +279,7 @@ void ControlWidget::delete_image()
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 	}
 	this->spinWidget->updateData();
+	this->settingsWidget->updateData();
 }
 
 

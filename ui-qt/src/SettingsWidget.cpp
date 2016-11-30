@@ -155,7 +155,7 @@ void SettingsWidget::create_Skyrmion()
 	bool upDown = checkBox_sky_UpDown->isChecked();
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
-	bool experimental = checkBox_sky_experimental->isChecked();
+	// bool experimental = checkBox_sky_experimental->isChecked();
 	std::vector<float> pos =
 	{
 		lineEdit_sky_posx->text().toFloat(),
@@ -163,7 +163,7 @@ void SettingsWidget::create_Skyrmion()
 		lineEdit_sky_posz->text().toFloat()
 	};
 	float rad = lineEdit_sky_rad->text().toFloat();
-	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
+	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());

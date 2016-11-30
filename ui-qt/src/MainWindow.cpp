@@ -18,10 +18,10 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->state = state;
 	// Widgets
 	this->spinWidget = new SpinWidget(this->state);
-	this->controlWidget = new ControlWidget(this->state, this->spinWidget);
 	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
 	this->plotsWidget = new PlotsWidget(this->state);
 	this->debugWidget = new DebugWidget(this->state);
+	this->controlWidget = new ControlWidget(this->state, this->spinWidget, this->settingsWidget);
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
