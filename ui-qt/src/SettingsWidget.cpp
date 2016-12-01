@@ -524,13 +524,13 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	horizontalSlider_zRangeMin->setInvertedAppearance(true);
-	horizontalSlider_zRangeMin->setRange(-100, 100);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_zRangeMax->setRange(-100, 100);
-	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
-	horizontalSlider_zRangeMin->setTracking(true);
-	horizontalSlider_zRangeMax->setTracking(true);
+	horizontalSlider_arrows_zmin->setInvertedAppearance(true);
+	horizontalSlider_arrows_zmin->setRange(-100, 100);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_arrows_zmax->setRange(-100, 100);
+	horizontalSlider_arrows_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_arrows_zmin->setTracking(true);
+	horizontalSlider_arrows_zmax->setTracking(true);
   
 	// Isovalue
 	auto isovalue = _spinWidget->isovalue();
@@ -1193,20 +1193,20 @@ void SettingsWidget::set_visualization_mode_parameters()
 
 void SettingsWidget::set_visualization_zrange()
 {
-	float z_range_min = -horizontalSlider_zRangeMin->value() / 100.0;
-	float z_range_max = horizontalSlider_zRangeMax->value() / 100.0;
+	float z_range_min = -horizontalSlider_arrows_zmin->value() / 100.0;
+	float z_range_max = horizontalSlider_arrows_zmax->value() / 100.0;
 	if (z_range_min > z_range_max)
 	{
 		float t = z_range_min;
 		z_range_min = z_range_max;
 		z_range_max = t;
 	}
-	horizontalSlider_zRangeMin->blockSignals(true);
-	horizontalSlider_zRangeMax->blockSignals(true);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
-	horizontalSlider_zRangeMin->blockSignals(false);
-	horizontalSlider_zRangeMax->blockSignals(false);
+	horizontalSlider_arrows_zmin->blockSignals(true);
+	horizontalSlider_arrows_zmax->blockSignals(true);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_arrows_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_arrows_zmin->blockSignals(false);
+	horizontalSlider_arrows_zmax->blockSignals(false);
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
@@ -1517,8 +1517,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_mode_parameters()));
 	// Z-range
-	connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	// Colormap
 	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	// Isovalue

@@ -68,8 +68,8 @@ void SpinWidget::initializeGL()
     };
     m_view.renderers({
         {std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers), {{0, 0, 1, 1}}},
-        {std::make_shared<VFRendering::VectorSphereRenderer>(m_view), {{0, 0, 0.2, 0.2}}},
-        {std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view), {{0.8, 0, 0.2, 0.2}}}
+        {std::make_shared<VFRendering::VectorSphereRenderer>(m_view), {{0, 0, 0.2f, 0.2f}}},
+        {std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view), {{0.8f, 0, 0.2f, 0.2f}}}
     });
     updateData();
 }
