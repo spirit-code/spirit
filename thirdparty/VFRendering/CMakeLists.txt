@@ -4,22 +4,6 @@ project(VFRendering VERSION 0.1.1)
 
 option(BUILD_DEMO "Whether or not a demo executable should be built" OFF)
 
-include(ExternalProject)
-ExternalProject_add(qhull
-	GIT_REPOSITORY https://github.com/qhull/qhull.git
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
-	PREFIX qhull-prefix
-)
-
-add_library(libqhullstatic_r STATIC IMPORTED)
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_dependencies(libqhullstatic_r qhull)
-
-add_library(libqhullcpp STATIC IMPORTED)
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
-add_dependencies(libqhullcpp qhull)
-
 set(SOURCE_FILES
     src/ArrowRenderer.cxx
     src/BoundingBoxRenderer.cxx
@@ -82,8 +66,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/glm/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/glad/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include/libqhullcpp)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/thirdparty-install/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 install(DIRECTORY include/VFRendering DESTINATION include)

@@ -18,7 +18,7 @@ externalproject_add(VFRendering
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/VFRendering"
 	# GIT_REPOSITORY https://github.com/FlorianRhiem/VFRendering.git
 	GIT_TAG develop
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
 )
 
 add_library(libVFRendering STATIC IMPORTED)
