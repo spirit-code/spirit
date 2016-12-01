@@ -33,6 +33,10 @@ namespace Engine
 		this->F_total    = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
 		this->F_gradient = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
 		this->F_spring   = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
+
+		// Calculate Data for the border images, which will not be updated
+		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
+		this->chain->images[noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 	}
 
 	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
@@ -61,7 +65,8 @@ namespace Engine
 			//this->chain->images[img]->hamiltonian->Effective_Field(image, F_gradient[img]);
 			// We do it the following way so that the effective field can be e.g. displayed,
 			//		while the gradient force is manipulated (e.g. projected)
-			this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
+			this->chain->images[img]->UpdateEffectiveField();
+			//this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
 			F_gradient[img] = this->chain->images[img]->effective_field;
 
 			// Calculate Force
