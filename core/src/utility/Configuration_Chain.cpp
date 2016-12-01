@@ -48,9 +48,9 @@ namespace Utility
 				{
 					rot_axis.normalize();
 
-					for (int img = idx_1; img <= idx_2; ++img)
+					for (int img = idx_1+1; img < idx_2; ++img)
 					{
-						angle = (img)*rot_angle / (noi - 1);
+						angle = img/noi*rot_angle ;
 						Engine::Vectormath::Rotate_Spin(a, rot_axis, angle, temp);
 
 						(*c->images[img]->spins)[i] = temp;
@@ -59,7 +59,7 @@ namespace Utility
 				// Otherwise we simply leave the spin untouched
 				else
 				{
-					for (int img = 1; img < noi - 1; ++img)
+					for (int img = idx_1+1; img < idx_2; ++img)
 					{
 						(*c->images[img]->spins)[i] = a;
 					}

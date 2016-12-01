@@ -1,7 +1,7 @@
 ### Make sure to find the core modules
 import os
-core_dir = os.path.dirname(os.path.realpath(__file__)) + '/core'
-# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', '..', 'code/MonoSpin/ui-python'))
+core_dir = os.path.dirname(os.path.realpath(__file__)) + '/ui-python'
+# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '/ui-python/core'))
 import sys
 sys.path.insert(0, core_dir)
 
@@ -49,13 +49,7 @@ transition.Homogeneous(p_state, 0, noi-1)
 ###     We use a thread, so that KeyboardInterrupt can be forwarded to the CDLL call
 ###     We might want to think about using PyDLL and about a signal handler in the core library
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
-import threading
-t = threading.Thread(target=simulation.PlayPause, args=[p_state, b"LLG", b"SIB"])
-t.daemon = True
-t.start()
-while t.is_alive(): # wait for the thread to exit
-    t.join(.1)
-# simulation.PlayPause(p_state, "LLG", "SIB")
+simulation.PlayPause(p_state, b"LLG", b"SIB")
 
 ### ...
 # // Finish

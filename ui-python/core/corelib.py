@@ -23,3 +23,12 @@ def LoadCoreLibrary():
 
     ### Return
     return _core
+
+### Wrap a function in a thread for it to be interruptible
+def WrapFunction(function, args):
+    import threading
+    t = threading.Thread(target=function, args=[*args])
+    t.daemon = True
+    t.start()
+    while t.is_alive(): # wait for the thread to exit
+        t.join(.1)

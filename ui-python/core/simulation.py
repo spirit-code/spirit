@@ -11,22 +11,16 @@ _SingleShot          = _core.Simulation_SingleShot
 _SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _SingleShot.restype  = None
 def SingleShot(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
-    _SingleShot(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    # _SingleShot(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    corelib.WrapFunction(_SingleShot, [p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
 
 ### Play/Pause
 _PlayPause          = _core.Simulation_PlayPause
 _PlayPause.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _PlayPause.restype  = None
 def PlayPause(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
-    _PlayPause(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-
-### Python thread which calls PlayPause
-def ThreadedPlayPause(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
-    t = threading.Thread(target=PlayPause, args=[p_state, b"LLG", b"SIB", n_iterations, n_iterations_log, idx_image, idx_chain])
-    t.daemon = True
-    t.start()
-    while t.is_alive(): # wait for the thread to exit
-        t.join(.1)
+    corelib.WrapFunction(_PlayPause, [p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    #_PlayPause(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Stop All
 _Stop_All           = _core.Simulation_Stop_All

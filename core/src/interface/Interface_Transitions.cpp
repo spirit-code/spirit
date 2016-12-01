@@ -14,7 +14,7 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
 	from_indices(state, idx_image, idx_chain, image, chain);
 
     // Use this when State implements chain collection: else c = state->collection[idx_chain];
-    Utility::Configuration_Chain::Homogeneous_Rotation(chain, *chain->images[idx_1]->spins, *chain->images[idx_2]->spins);
+    Utility::Configuration_Chain::Homogeneous_Rotation(chain, idx_1, idx_2);
 }
 
 void Transition_Add_Noise_Temperature(State *state, float temperature, int idx_1, int idx_2, int idx_chain)
