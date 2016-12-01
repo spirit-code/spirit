@@ -217,16 +217,20 @@ void SettingsWidget::homogeneousTransitionPressed()
 	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt() - 1;
 	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
 
+	int noi = Chain_Get_NOI(this->state.get());
+
 	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_1 < 0 || idx_1 >= noi)
 	{
 		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		return;
 	}
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_2 < 0 || idx_2 >= noi)
 	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Second index for homogeneous transition is invalid! setting to NOI...");
+		this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(noi));
+		return;
 	}
 	if (idx_1 == idx_2)
 	{

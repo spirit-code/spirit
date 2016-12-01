@@ -50,7 +50,7 @@ namespace Utility
 
 					for (int img = idx_1+1; img < idx_2; ++img)
 					{
-						angle = img/noi*rot_angle ;
+						angle = img*rot_angle/noi;
 						Engine::Vectormath::Rotate_Spin(a, rot_axis, angle, temp);
 
 						(*c->images[img]->spins)[i] = temp;

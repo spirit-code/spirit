@@ -1,4 +1,5 @@
 import core.corelib as corelib
+import core.parameters as parameters
 import ctypes
 
 ### Load Library
@@ -91,3 +92,52 @@ _Setup_Data.argtypes    = [ctypes.c_void_p, ctypes.c_int]
 _Setup_Data.restype     = None
 def Setup_Data(p_state, idx_chain=-1):
     _Setup_Data(p_state, idx_chain)
+
+
+### Get Rx
+_Get_Rx          = _core.Chain_Get_Rx
+_Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Rx.restype  = None
+def Get_Rx(p_state, idx_chain=-1):
+    noi = Get_NOI(p_state, idx_chain)
+    arrayX = ctypes.c_float * noi
+    Rx = [0]*noi
+    _Get_Rx(p_state, arrayX(*Rx), idx_chain)
+    return Rx
+
+### Get Rx interpolated
+_Get_Rx_Interpolated          = _core.Chain_Get_Rx_Interpolated
+_Get_Rx_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Rx_Interpolated.restype  = None
+def Get_Rx_Interpolated(p_state, idx_chain=-1):
+    noi = Get_NOI(p_state, idx_chain)
+    n_interp = Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
+    len_Rx = (noi-1)*n_interp
+    arrayX = ctypes.c_float * len_Rx
+    Rx = [0]*len_Rx
+    _Get_Rx_Interpolated(p_state, arrayX(*Rx), idx_chain)
+    return Rx
+
+### Get Energy
+_Get_Energy          = _core.Chain_Get_Energy
+_Get_Energy.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Energy.restype  = None
+def Get_Energy(p_state, idx_chain=-1):
+    noi = Get_NOI(p_state, idx_chain)
+    arrayX = ctypes.c_float * noi
+    Energy = [0]*noi
+    _Get_Energy(p_state, arrayX(*Energy), idx_chain)
+    return Rx
+
+### Get Energy Interpolated
+_Get_Energy_Interpolated          = _core.Chain_Get_Energy_Interpolated
+_Get_Energy_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Energy_Interpolated.restype  = None
+def Get_Energy_Interpolated(p_state, idx_chain=-1):
+    noi = Get_NOI(p_state, idx_chain)
+    n_interp = Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
+    len_Energy = (noi-1)*n_interp
+    arrayX = ctypes.c_float * len_Energy
+    Energy_interp = [0]*len_Energy
+    _Get_Energy_Interpolated(p_state, arrayX(*Energy_interp), idx_chain)
+    return Rx

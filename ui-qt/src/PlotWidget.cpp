@@ -2,6 +2,7 @@
 
 #include "Interface_Chain.h"
 #include "Interface_System.h"
+#include "Interface_Parameters.h"
 
 
 using namespace QtCharts;
@@ -88,11 +89,14 @@ void PlotWidget::plotEnergiesInterpolated()
 	// Add data to series
 	int noi = Chain_Get_NOI(state.get());
 	int nos = System_Get_NOS(state.get());
-	auto Rx = Chain_Get_Rx_Interpolated(state.get());
-	auto E = Chain_Get_Energy_Interpolated(state.get());
-	for (unsigned int i = 0; i < Rx.size(); ++i)
+	int size_interp = (noi-1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+	float *Rx = new float[size_interp];
+	float *E = new float[size_interp];
+	Chain_Get_Rx_Interpolated(state.get(), Rx);
+	Chain_Get_Energy_Interpolated(state.get(), E);
+	for (int i = 0; i < size_interp; ++i)
 	{
-		*series_E_interp << QPointF(Rx[i]/Rx.back(), E[i] / nos);
+		*series_E_interp << QPointF(Rx[i]/Rx[size_interp-1], E[i] / nos);
 	}
 
 	// Re-add Series to chart

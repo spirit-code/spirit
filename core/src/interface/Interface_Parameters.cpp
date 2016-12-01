@@ -68,8 +68,9 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, bool climbing, bool fall
     chain->falling_image[idx_image] = falling;
 }
 
-void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int idx_chain)
 {
+	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
@@ -77,8 +78,9 @@ void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int idx_im
     chain->gneb_parameters->n_iterations = n_iterations;
 }
 
-void Parameters_Set_GNEB_N_Iterations_Log(State *state, int n_iterations_log, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_N_Iterations_Log(State *state, int n_iterations_log,  int idx_chain)
 {
+	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
@@ -153,8 +155,9 @@ void Parameters_Get_GNEB_Climbing_Falling(State *state, bool * climbing, bool * 
     *falling = state->active_chain->falling_image[idx_image];
 }
 
-int Parameters_Get_GNEB_N_Iterations(State *state, int idx_image, int idx_chain)
+int Parameters_Get_GNEB_N_Iterations(State *state, int idx_chain)
 {
+	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
@@ -163,12 +166,24 @@ int Parameters_Get_GNEB_N_Iterations(State *state, int idx_image, int idx_chain)
     return p->n_iterations;
 }
 
-int Parameters_Get_GNEB_N_Iterations_Log(State *state, int idx_image, int idx_chain)
+int Parameters_Get_GNEB_N_Iterations_Log(State *state,int idx_chain)
 {
+	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = chain->gneb_parameters;
     return p->n_iterations_log;
+}
+
+int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
+{
+	int idx_image = -1;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	auto p = chain->gneb_parameters;
+	return p->n_E_interpolations;
 }

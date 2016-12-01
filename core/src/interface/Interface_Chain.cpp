@@ -214,52 +214,57 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     }
 }
 
-std::vector<float> Chain_Get_Rx(State * state, int idx_chain_i)
+
+void Chain_Get_Rx(State * state, float * Rx, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	std::vector<float> Rx(chain->Rx.size());
 	for (unsigned int i = 0; i < chain->Rx.size(); ++i)
 	{
 		Rx[i] = (float)chain->Rx[i];
 	}
-	return Rx;
 }
 
-std::vector<float> Chain_Get_Rx_Interpolated(State * state, int idx_chain_i)
+void Chain_Get_Rx_Interpolated(State * state, float * Rx_interpolated, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-	
-	std::vector<float> Rx_interpolated(chain->Rx_interpolated.size());
+
 	for (unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i)
 	{
 		Rx_interpolated[i] = (float)chain->Rx_interpolated[i];
 	}
-	return Rx_interpolated;
 }
 
-std::vector<float> Chain_Get_Energy_Interpolated(State * state, int idx_chain_i)
+void Chain_Get_Energy(State * state, float * Energy, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-	
-	std::vector<float> E_interpolated(chain->E_interpolated.size());
+
+	for (int i = 0; i < chain->noi; ++i)
+	{
+		Energy[i] = (float)chain->images[i]->E;
+	}
+}
+
+void Chain_Get_Energy_Interpolated(State * state, float * E_interpolated, int idx_chain)
+{
+	int idx_image = -1;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
 	for (unsigned int i = 0; i < chain->E_interpolated.size(); ++i)
 	{
 		E_interpolated[i] = (float)chain->E_interpolated[i];
 	}
-	return E_interpolated;
 }
 
 std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain_i)
