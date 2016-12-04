@@ -17,12 +17,14 @@ include(ExternalProject)
 externalproject_add(VFRendering
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/VFRendering"
 	# GIT_REPOSITORY https://github.com/FlorianRhiem/VFRendering.git
-	GIT_TAG develop
+	# GIT_TAG develop
+	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/vfrendering
+    # INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
 	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
 )
 
 add_library(libVFRendering STATIC IMPORTED)
-set_property(TARGET libVFRendering PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}VFRendering${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libVFRendering PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}VFRendering${CMAKE_STATIC_LIBRARY_SUFFIX})
 add_dependencies(libVFRendering VFRendering)
 
 ### Find includes in corresponding build directories
@@ -94,7 +96,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${CORE_INCLUDE_DIRS}
 					${GLAD_INCLUDE_DIRS}
 					${GLM_INCLUDE_DIRS}
-					${GL_INCLUDE_DIRS})
+					${GL_INCLUDE_DIRS}
+                    ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include)
 ###########################
 
 

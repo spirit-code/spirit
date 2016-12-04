@@ -32,14 +32,14 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 
 
 ######### External Project: QHull ###########
-### unfortunately it seems qhull_TARGETS_INSTALL cannot be specified in a list
 include(ExternalProject)
 ExternalProject_add(qhull
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
 	# GIT_REPOSITORY https://github.com/qhull/qhull.git
+	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
+	# INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
 	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
 	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
-	PREFIX qhull-prefix
 )
 
 add_library(libqhullstatic_r STATIC IMPORTED)
