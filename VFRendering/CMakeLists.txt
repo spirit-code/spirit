@@ -19,7 +19,7 @@ set(SOURCE_FILES
     src/VectorfieldIsosurface.cxx
     src/VectorSphereRenderer.cxx
     src/View.cxx
-    ${CMAKE_SOURCE_DIR}/thirdparty/glad/src/glad.c
+    ${PROJECT_SOURCE_DIR}/thirdparty/glad/src/glad.c
 )
 
 set(HEADER_FILES
@@ -57,7 +57,7 @@ set(HEADER_FILES
 )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} libqhullcpp libqhullstatic_r)
+target_link_libraries(${PROJECT_NAME} libqhullcpp)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -66,8 +66,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/glm/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/glad/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/thirdparty-install/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp)
+# target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include/libqhullcpp)
+MESSAGE( STATUS ">> xxxxxxxxxxx Include:        ${INSTALL_DIR}/include/" )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 install(DIRECTORY include/VFRendering DESTINATION include)

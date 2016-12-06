@@ -12,20 +12,6 @@ SET( EXECUTABLE_NAME spirit )
 #############################################
 
 
-include(ExternalProject)
-
-externalproject_add(VFRendering
-	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/VFRendering"
-	# GIT_REPOSITORY https://github.com/FlorianRhiem/VFRendering.git
-	# GIT_TAG develop
-	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/vfrendering
-    # INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
-)
-
-add_library(libVFRendering STATIC IMPORTED)
-set_property(TARGET libVFRendering PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-install/lib/${CMAKE_STATIC_LIBRARY_PREFIX}VFRendering${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_dependencies(libVFRendering VFRendering)
 
 ### Find includes in corresponding build directories
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -97,7 +83,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${GLAD_INCLUDE_DIRS}
 					${GLM_INCLUDE_DIRS}
 					${GL_INCLUDE_DIRS}
-                    ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include)
+                    ${CMAKE_SOURCE_DIR}/VFRendering/include)
 ###########################
 
 
@@ -147,7 +133,7 @@ add_executable( ${EXECUTABLE_NAME}
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include/)
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL libVFRendering )
+target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )

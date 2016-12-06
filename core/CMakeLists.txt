@@ -31,32 +31,6 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 #############################################
 
 
-######### External Project: QHull ###########
-include(ExternalProject)
-ExternalProject_add(qhull
-	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
-	# GIT_REPOSITORY https://github.com/qhull/qhull.git
-	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
-	# INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
-	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
-)
-
-add_library(libqhullstatic_r STATIC IMPORTED)
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_dependencies(libqhullstatic_r qhull)
-
-add_library(libqhullcpp STATIC IMPORTED)
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
-add_dependencies(libqhullcpp qhull)
-#############################################
-
-
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
