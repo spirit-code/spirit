@@ -451,14 +451,14 @@ void SettingsWidget::Load_Visualization_Contents()
 			visualization_mode = "Arrows";
 			break;
 	}
-	for (int i = 0; i < comboBox_visualizationMode->count(); i++)
+	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
 	{
 		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
 		{
 			comboBox_visualizationMode->setCurrentIndex(i);
 			break;
 		}
-	}
+	}*/
   
 	// Miniview
 	std::string miniview_position;
@@ -1104,7 +1104,7 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 void SettingsWidget::set_visualization_mode()
 {
-	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
+	/*GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
 	if (comboBox_visualizationMode->currentText() == "Surface")
 	{
 		visualization_mode = GLSpins::VisualizationMode::SURFACE;
@@ -1118,7 +1118,7 @@ void SettingsWidget::set_visualization_mode()
 		visualization_mode = GLSpins::VisualizationMode::SPHERE;
 	}
 	_spinWidget->setVisualizationMode(visualization_mode);
-
+*/
 	_spinWidget->update();
 }
 
@@ -1500,7 +1500,7 @@ void SettingsWidget::Setup_Transitions_Slots()
 void SettingsWidget::Setup_Visualization_Slots()
 {
 	// Mode
-	connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	//connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
 	// Miniview
 	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
 	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));

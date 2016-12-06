@@ -2,12 +2,12 @@ MESSAGE( STATUS ">> ------------------------------------------------------------
 MESSAGE( STATUS ">> --------------------- Core ----------------------------------------- <<" )
 
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 #############################################
 
 
 ######### Project Name ######################
-project(SpiritCore)
+project(SpiritCore VERSION ${META_VERSION})
 #############################################
 
 ######### Have the binary placed into the source head
