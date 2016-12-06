@@ -187,9 +187,9 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event) {
   glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio();
   m_previous_mouse_position = event->pos();
   
-  if (event->buttons() & Qt::LeftButton) {
+  if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) {
     auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
-    if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier) {
+    if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton) {
       movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
     }
     m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
