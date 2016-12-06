@@ -73,14 +73,13 @@ public:
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
   // Mode
-  GLSpins::VisualizationMode visualizationMode() const;
-  void updateVisualizationMode(GLSpins::VisualizationMode visualization_mode, bool miniview, bool coordinatesystem, bool arrows, bool boundingbox, bool surface, bool isosurface);
+  void setVisualizationMode(GLSpins::VisualizationMode visualization_mode);
+  bool show_miniview, show_coordinatesystem;
   // MiniView
-  bool isMiniviewEnabled() const;
-  void enableMiniview(bool enabled);
-  GLSpins::WidgetLocation miniviewPosition() const;
-  void setMiniviewPosition(GLSpins::WidgetLocation miniview_position);
+  void setVisualizationMiniview(bool show, std::array<float, 4> position);
   // System
+  void setVisualizationSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
+  bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Bounding Box
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
@@ -94,6 +93,7 @@ public:
   glm::vec2 spherePointSizeRange() const;
   void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
   // Coordinate System
+  void setVisualizationCoordinatesystem(bool show, std::array<float, 4> position);
   bool isCoordinateSystemEnabled() const;
   void enableCoordinateSystem(bool enabled);
   GLSpins::WidgetLocation coordinateSystemPosition() const;
@@ -120,9 +120,11 @@ private:
   bool _reset_camera;
   
   // Renderers
-  std::shared_ptr<VFRendering::RendererBase> m_miniview;
   std::shared_ptr<VFRendering::RendererBase> m_mainview;
+  std::shared_ptr<VFRendering::RendererBase> m_miniview;
+  std::array<float, 4> m_miniview_position;
   std::shared_ptr<VFRendering::CoordinateSystemRenderer> m_coordinatecross;
+  std::array<float, 4> m_coordinatecross_position;
   std::shared_ptr<VFRendering::VectorSphereRenderer> m_sphere;
 
   std::shared_ptr<VFRendering::CombinedRenderer> m_system;
@@ -130,6 +132,8 @@ private:
   std::shared_ptr<VFRendering::BoundingBoxRenderer> m_renderer_boundingbox;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_isosurface;
+
+  void setupRenderers();
 
   const VFRendering::Options& options() const;
   

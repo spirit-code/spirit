@@ -57,7 +57,10 @@ private slots:
 	void set_hamiltonian_aniso_stt();
 	void set_hamiltonian_aniso_temp();
 	// Visualization
-	void set_visualization_mode();/*
+	void set_visualization_mode();
+	void set_visualization_system();
+	void set_visualization_miniview();
+	void set_visualization_coordinatesystem();/*
 	void set_visualization_parameters_system();
 	void set_visualization_parameters_sphere();
 	void set_visualization_parameters_arrows();

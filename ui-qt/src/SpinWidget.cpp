@@ -38,6 +38,15 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(0.0625f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(0.35f);
+
+	this->m_coordinatecross_position = { 0.8f, 0, 0.2f, 0.2f };
+	this->m_miniview_position = { 0, 0, 0.2f, 0.2f };
+	this->show_arrows = true;
+	this->show_boundingbox = true;
+	this->show_isosurface = false;
+	this->show_surface = false;
+	this->show_miniview = true;
+	this->show_coordinatesystem = true;
     
     setZRange({-1, 1});
 }
@@ -61,28 +70,29 @@ void SpinWidget::initializeGL()
 	this->m_renderer_surface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 	this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 	std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
-		m_renderer_isosurface,
-		m_renderer_arrows
+		m_renderer_arrows,
+		m_renderer_boundingbox
 	};
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
+
+	// Isosurface options
+	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+		(void)position;
+		return direction.z;
+	});
+	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+
 	//	Sphere
 	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view);
+
 	//	Coordinate cross
 	this->m_coordinatecross = std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view);
 
-	// Isosurface options
-	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-        (void)position;
-        return direction.z;
-    });
-	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+	// Setup the View
+	this->m_mainview = this->m_system;
+	this->m_miniview = this->m_sphere;
+	this->setupRenderers();
 
-	// Update the View's Renderers
-    m_view.renderers({
-        {m_system, {{0, 0, 1, 1}}},
-        {m_sphere, {{0, 0, 0.2f, 0.2f}}},
-        {m_coordinatecross, {{0.8f, 0, 0.2f, 0.2f}}}
-    });
     updateData();
 }
 
@@ -333,17 +343,6 @@ void SpinWidget::setBoundingBoxColor(glm::vec3 bounding_box_color) {
     m_view.setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
 }
 
-bool SpinWidget::isMiniviewEnabled() const {
-  // TODO: return options().get<GLSpins::Option::SHOW_MINIVIEW>();
-  return false;
-}
-
-void SpinWidget::enableMiniview(bool enabled) {
-	makeCurrent();
-  // TODO: auto option = Options<GLSpins>::withOption<GLSpins::Option::SHOW_MINIVIEW>(enabled);
-  // TODO: gl_spins->updateOptions(option);
-}
-
 bool SpinWidget::isCoordinateSystemEnabled() const {
   // TODO: return options().get<GLSpins::Option::SHOW_COORDINATE_SYSTEM>();
   return false;
@@ -366,17 +365,6 @@ void SpinWidget::enableBoundingBox(bool enabled) {
   // TODO: gl_spins->updateOptions(option);
 }
 
-GLSpins::WidgetLocation SpinWidget::miniviewPosition() const {
-  // TODO: return options().get<GLSpins::Option::MINIVIEW_LOCATION>();
-  return GLSpins::WidgetLocation::BOTTOM_LEFT;
-}
-
-void SpinWidget::setMiniviewPosition(GLSpins::WidgetLocation miniview_position) {
-	makeCurrent();
-  // TODO: auto option = Options<GLSpins>::withOption<GLSpins::Option::MINIVIEW_LOCATION>(miniview_position);
-  // TODO: gl_spins->updateOptions(option);
-}
-
 GLSpins::WidgetLocation SpinWidget::coordinateSystemPosition() const {
   // TODO: return options().get<GLSpins::Option::COORDINATE_SYSTEM_LOCATION>();
   return GLSpins::WidgetLocation::BOTTOM_LEFT;
@@ -388,30 +376,26 @@ void SpinWidget::setCoordinateSystemPosition(GLSpins::WidgetLocation coordinates
   // TODO: gl_spins->updateOptions(option);
 }
 
-GLSpins::VisualizationMode SpinWidget::visualizationMode() const {
-  // TODO: return options().get<GLSpins::Option::VISUALIZATION_MODE>();
-  return GLSpins::VisualizationMode::SYSTEM;
-}
 
-void SpinWidget::updateVisualizationMode(GLSpins::VisualizationMode visualization_mode, bool miniview, bool coordinatesystem, bool arrows, bool boundingbox, bool surface, bool isosurface)
+
+void SpinWidget::setupRenderers()
 {
 	makeCurrent();
 
-	// Create System
-	std::vector<std::shared_ptr<VFRendering::RendererBase>> system(0);
-	if (arrows)
-		system.push_back(this->m_renderer_arrows);
-	if (boundingbox)
-		system.push_back(this->m_renderer_boundingbox);
-	if (surface)
-		system.push_back(this->m_renderer_surface);
-	if (isosurface)
-		system.push_back(this->m_renderer_isosurface);
-	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, system);
-
-
 	// Create renderers vector
 	std::vector<std::pair<std::shared_ptr<VFRendering::RendererBase>, std::array<float, 4>>> renderers;
+	renderers.push_back({ this->m_mainview,{ 0, 0, 1, 1 } });
+	if (show_miniview)
+		renderers.push_back({ this->m_miniview, this->m_miniview_position });
+	if (show_coordinatesystem)
+		renderers.push_back({ this->m_coordinatecross, this->m_coordinatecross_position });
+
+	// Update View
+	m_view.renderers(renderers);
+}
+
+void SpinWidget::setVisualizationMode(GLSpins::VisualizationMode visualization_mode)
+{
 	if (visualization_mode == GLSpins::VisualizationMode::SYSTEM)
 	{
 		this->m_mainview = this->m_system;
@@ -422,14 +406,53 @@ void SpinWidget::updateVisualizationMode(GLSpins::VisualizationMode visualizatio
 		this->m_mainview = this->m_sphere;
 		this->m_miniview = this->m_system;
 	}
-	renderers.push_back({ this->m_mainview,{ 0, 0, 1, 1 } });
-	if (miniview)
-		renderers.push_back({ this->m_miniview,{ 0, 0, 0.2f, 0.2f } });	// this should come out of options
-	if (coordinatesystem)
-		renderers.push_back({ this->m_coordinatecross,{ 0.8f, 0, 0.2f, 0.2f } });	// this should come out of options
 
-	// Update View
-	m_view.renderers(renderers);
+	this->setupRenderers();
+}
+
+
+void SpinWidget::setVisualizationSystem(bool arrows, bool boundingbox, bool surface, bool isosurface)
+{
+	bool system_is_mainview = false;
+	if (this->m_system == this->m_mainview) system_is_mainview = true;
+
+	this->show_arrows = arrows;
+	this->show_boundingbox = boundingbox;
+	this->show_surface = surface;
+	this->show_isosurface = isosurface;
+
+	// Create System
+	std::vector<std::shared_ptr<VFRendering::RendererBase>> system(0);
+	if (show_arrows)
+		system.push_back(this->m_renderer_arrows);
+	if (show_boundingbox)
+		system.push_back(this->m_renderer_boundingbox);
+	if (show_surface)
+		system.push_back(this->m_renderer_surface);
+	if (show_isosurface)
+		system.push_back(this->m_renderer_isosurface);
+	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, system);
+	//*this->m_system = VFRendering::CombinedRenderer(m_view, system);
+
+	if (system_is_mainview) this->m_mainview = this->m_system;
+	else this->m_miniview = this->m_system;
+
+	this->setupRenderers();
+}
+
+
+void SpinWidget::setVisualizationMiniview(bool show, std::array<float, 4> position)
+{
+	this->show_miniview = show;
+	this->m_miniview_position = position;
+	this->setupRenderers();
+}
+
+void SpinWidget::setVisualizationCoordinatesystem(bool show, std::array<float, 4> position)
+{
+	this->show_coordinatesystem = show;
+	this->m_coordinatecross_position = position;
+	this->setupRenderers();
 }
 
 
