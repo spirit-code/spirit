@@ -54,22 +54,34 @@ void SpinWidget::initializeGL()
     // Fetch data and update GL arrays
     this->updateData();
   
-    auto isosurface_renderer_ptr = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
-    isosurface_renderer_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+	// Create renderers
+	//	System
+	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view);
+	this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(m_view);
+	this->m_renderer_surface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+	this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+	std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
+		m_renderer_isosurface,
+		m_renderer_arrows
+	};
+	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
+	//	Sphere
+	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view);
+	//	Coordinate cross
+	this->m_coordinatecross = std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view);
+
+	// Isosurface options
+	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
         (void)position;
         return direction.z;
     });
-    isosurface_renderer_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
-    auto arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>(m_view);
+	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 
-    std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
-        isosurface_renderer_ptr,
-        arrow_renderer_ptr
-    };
+	// Update the View's Renderers
     m_view.renderers({
-        {std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers), {{0, 0, 1, 1}}},
-        {std::make_shared<VFRendering::VectorSphereRenderer>(m_view), {{0, 0, 0.2f, 0.2f}}},
-        {std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view), {{0.8f, 0, 0.2f, 0.2f}}}
+        {m_system, {{0, 0, 1, 1}}},
+        {m_sphere, {{0, 0, 0.2f, 0.2f}}},
+        {m_coordinatecross, {{0.8f, 0, 0.2f, 0.2f}}}
     });
     updateData();
 }
@@ -378,14 +390,48 @@ void SpinWidget::setCoordinateSystemPosition(GLSpins::WidgetLocation coordinates
 
 GLSpins::VisualizationMode SpinWidget::visualizationMode() const {
   // TODO: return options().get<GLSpins::Option::VISUALIZATION_MODE>();
-  return GLSpins::VisualizationMode::ARROWS;
+  return GLSpins::VisualizationMode::SYSTEM;
 }
 
-void SpinWidget::setVisualizationMode(GLSpins::VisualizationMode visualization_mode) {
+void SpinWidget::updateVisualizationMode(GLSpins::VisualizationMode visualization_mode, bool miniview, bool coordinatesystem, bool arrows, bool boundingbox, bool surface, bool isosurface)
+{
 	makeCurrent();
-  // TODO: auto option = Options<GLSpins>::withOption<GLSpins::Option::VISUALIZATION_MODE>(visualization_mode);
-  // TODO: gl_spins->updateOptions(option);
+
+	// Create System
+	std::vector<std::shared_ptr<VFRendering::RendererBase>> system(0);
+	if (arrows)
+		system.push_back(this->m_renderer_arrows);
+	if (boundingbox)
+		system.push_back(this->m_renderer_boundingbox);
+	if (surface)
+		system.push_back(this->m_renderer_surface);
+	if (isosurface)
+		system.push_back(this->m_renderer_isosurface);
+	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, system);
+
+
+	// Create renderers vector
+	std::vector<std::pair<std::shared_ptr<VFRendering::RendererBase>, std::array<float, 4>>> renderers;
+	if (visualization_mode == GLSpins::VisualizationMode::SYSTEM)
+	{
+		this->m_mainview = this->m_system;
+		this->m_miniview = this->m_sphere;
+	}
+	else if (visualization_mode == GLSpins::VisualizationMode::SPHERE)
+	{
+		this->m_mainview = this->m_sphere;
+		this->m_miniview = this->m_system;
+	}
+	renderers.push_back({ this->m_mainview,{ 0, 0, 1, 1 } });
+	if (miniview)
+		renderers.push_back({ this->m_miniview,{ 0, 0, 0.2f, 0.2f } });	// this should come out of options
+	if (coordinatesystem)
+		renderers.push_back({ this->m_coordinatecross,{ 0.8f, 0, 0.2f, 0.2f } });	// this should come out of options
+
+	// Update View
+	m_view.renderers(renderers);
 }
+
 
 glm::vec2 SpinWidget::zRange() const {
     return m_z_range;

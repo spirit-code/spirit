@@ -434,23 +434,23 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
-	// Mode
-	std::string visualization_mode;
-	switch (_spinWidget->visualizationMode())
-	{
-		case GLSpins::VisualizationMode::SPHERE:
-			visualization_mode = "Sphere";
-      break;
-    case GLSpins::VisualizationMode::SURFACE:
-      visualization_mode = "Surface";
-      break;
-    case GLSpins::VisualizationMode::ISOSURFACE:
-      visualization_mode = "Isosurface";
-      break;
-    default:
-			visualization_mode = "Arrows";
-			break;
-	}
+	//// Mode
+	//std::string visualization_mode;
+	//switch (_spinWidget->visualizationMode())
+	//{
+	//	case GLSpins::VisualizationMode::SPHERE:
+	//		visualization_mode = "Sphere";
+ //     break;
+ //   case GLSpins::VisualizationMode::SURFACE:
+ //     visualization_mode = "Surface";
+ //     break;
+ //   case GLSpins::VisualizationMode::ISOSURFACE:
+ //     visualization_mode = "Isosurface";
+ //     break;
+ //   default:
+	//		visualization_mode = "Arrows";
+	//		break;
+	//}
 	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
 	{
 		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
@@ -1104,6 +1104,23 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 void SettingsWidget::set_visualization_mode()
 {
+	GLSpins::VisualizationMode mode;
+	bool miniview, coordinatesystem, arrows, boundingbox, surface, isosurface;
+
+	if (this->radioButton_vismode_sphere->isChecked())
+		mode = GLSpins::VisualizationMode::SPHERE;
+	else
+		mode = GLSpins::VisualizationMode::SYSTEM;
+
+	miniview = this->checkBox_showMiniView->isChecked();
+	coordinatesystem = this->checkBox_showCoordinateSystem->isChecked();
+	arrows = this->checkBox_show_arrows->isChecked();
+	boundingbox = this->checkBox_showBoundingBox->isChecked();
+	surface = this->checkBox_show_surface->isChecked();
+	isosurface = this->checkBox_show_isosurface->isChecked();
+	this->_spinWidget->updateVisualizationMode(mode, miniview, coordinatesystem, arrows, boundingbox, surface, isosurface);
+
+
 	/*GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
 	if (comboBox_visualizationMode->currentText() == "Surface")
 	{
@@ -1119,75 +1136,70 @@ void SettingsWidget::set_visualization_mode()
 	}
 	_spinWidget->setVisualizationMode(visualization_mode);
 */
-	_spinWidget->update();
-}
 
+	//// MiniView
+	//_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
+	//GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
+	//if (comboBox_miniViewPosition->currentText() == "Top Left")
+	//{
+	//	miniview_position = GLSpins::WidgetLocation::TOP_LEFT;
+	//}
+	//else if (comboBox_miniViewPosition->currentText() == "Bottom Left")
+	//{
+	//	miniview_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
+	//}
+	//else if (comboBox_miniViewPosition->currentText() == "Top Right")
+	//{
+	//	miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
+	//}
+	//_spinWidget->setMiniviewPosition(miniview_position);
 
-void SettingsWidget::set_visualization_mode_parameters()
-{
-	// MiniView
-	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
-	GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_miniViewPosition->currentText() == "Top Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Bottom Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Top Right")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	_spinWidget->setMiniviewPosition(miniview_position);
+	//// Coordinate System
+	//_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
+	//GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
+	//if (comboBox_coordinateSystemPosition->currentText() == "Top Left")
+	//{
+	//	coordinatesystem_position = GLSpins::WidgetLocation::TOP_LEFT;
+	//}
+	//else if (comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
+	//{
+	//	coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
+	//}
+	//else if (comboBox_coordinateSystemPosition->currentText() == "Top Right")
+	//{
+	//	coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
+	//}
+	//_spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
 
-	// Coordinate System
-	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
-	GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_coordinateSystemPosition->currentText() == "Top Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Top Right")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	_spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
+	//// Bounding Box
+	//_spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
 
-	// Bounding Box
-	_spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
+	//// Projection / FOV
+	//if (radioButton_orthographicProjection->isChecked())
+	//	_spinWidget->setVerticalFieldOfView(0.0);
+	//else
+	//	_spinWidget->setVerticalFieldOfView(45.0);
 
-	// Projection / FOV
-	if (radioButton_orthographicProjection->isChecked())
-		_spinWidget->setVerticalFieldOfView(0.0);
-	else
-		_spinWidget->setVerticalFieldOfView(45.0);
+	//// Sphere
+	//_spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
 
-	// Sphere
-	_spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
+	//// Background
+	//glm::vec3 background_color(0.0, 0.0, 0.0);
+	//glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
+	//if (comboBox_backgroundColor->currentText() == "White")
+	//{
+	//	background_color = glm::vec3(1.0, 1.0, 1.0);
+	//	bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
+	//}
+	//else if (comboBox_backgroundColor->currentText() == "Gray")
+	//{
+	//	background_color = glm::vec3(0.5, 0.5, 0.5);
+	//	bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
+	//}
+	//_spinWidget->setBackgroundColor(background_color);
+	//_spinWidget->setBoundingBoxColor(bounding_box_color);
 
-	// Background
-	glm::vec3 background_color(0.0, 0.0, 0.0);
-	glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
-	if (comboBox_backgroundColor->currentText() == "White")
-	{
-		background_color = glm::vec3(1.0, 1.0, 1.0);
-		bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
-	}
-	else if (comboBox_backgroundColor->currentText() == "Gray")
-	{
-		background_color = glm::vec3(0.5, 0.5, 0.5);
-		bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
-	}
-	_spinWidget->setBackgroundColor(background_color);
-	_spinWidget->setBoundingBoxColor(bounding_box_color);
-
-	_spinWidget->update();
+	// _spinWidget->update();
 }
 
 
@@ -1501,29 +1513,32 @@ void SettingsWidget::Setup_Visualization_Slots()
 {
 	// Mode
 	//connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	// System
+	connect(checkBox_show_arrows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(checkBox_show_surface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(checkBox_show_isosurface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	// Miniview
-	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
 	// Coordinate System
-	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Bounding Box
-	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Perspective / FOV
-	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
-	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
-	// Background
-	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
 	// Sphere
-	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_mode()));
 	// Z-range
 	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	// Colormap
-	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	// Isovalue
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	// Colors
+	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	// Camera
 	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
 	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
