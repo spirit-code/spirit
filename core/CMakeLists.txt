@@ -32,15 +32,15 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 
 
 ######### Where to search for library headers
-set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
-set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
-set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
+set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
+set( SPECTRA_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty ${PROJECT_SOURCE_DIR}/thirdparty/spectra/include )
+set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include/libqhullcpp )
 set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data
 	 ${PROJECT_SOURCE_DIR}/include/engine
 	 ${PROJECT_SOURCE_DIR}/include/interface
-	 ${PROJECT_SOURCE_DIR}/include/utility
+	 ${PROJECT_SOURCE_DIR}/include/utility 
 	 ${PROJECT_SOURCE_DIR}/src/utility )
 include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${QHULL_INCLUDE_DIRS})
 #############################################

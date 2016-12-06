@@ -21,12 +21,9 @@ set(CORE_SCALAR_TYPE double)
 #############################################
 
 
-######### Paths #############################
+######### General Paths #####################
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
-#############################################
-
-
 ######### User Paths ########################
 include(PathsIFF)
 ### Set these if you do not want cmake to choose your compiler
