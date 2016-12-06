@@ -1,5 +1,5 @@
-#ifndef VFRENDERING_FPS_COUNTER_H
-#define VFRENDERING_FPS_COUNTER_H
+#ifndef VFRENDERING_FPS_COUNTER_HXX
+#define VFRENDERING_FPS_COUNTER_HXX
 
 #include <chrono>
 #include <queue>

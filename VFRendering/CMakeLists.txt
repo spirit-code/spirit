@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VFRendering VERSION 0.1.1)
+project(VFRendering VERSION 0.1.2)
 
 option(BUILD_DEMO "Whether or not a demo executable should be built" OFF)
 

@@ -1,5 +1,5 @@
-#ifndef VFRENDERING_VIEW_H
-#define VFRENDERING_VIEW_H
+#ifndef VFRENDERING_VIEW_HXX
+#define VFRENDERING_VIEW_HXX
 
 #include <array>
 #include <memory>
@@ -80,13 +80,13 @@ private:
     void optionsHaveChanged(const std::vector<int>& changed_options);
     void initialize();
 
-    bool m_is_initialized;
+    bool m_is_initialized = false;
     Geometry m_geometry;
     std::vector<glm::vec3> m_vectors;
     std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>> m_renderers;
     Utilities::FPSCounter m_fps_counter;
     glm::vec2 m_framebuffer_size;
-    bool m_is_centered;
+    bool m_is_centered = false;
 
     Options m_options;
 };
