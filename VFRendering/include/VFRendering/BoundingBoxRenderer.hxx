@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_BOUNDING_BOX_RENDERER_H
 #define VFRENDERING_BOUNDING_BOX_RENDERER_H
-#define NOMINMAX
+
 #include <VFRendering/RendererBase.hxx>
 
 namespace VFRendering {

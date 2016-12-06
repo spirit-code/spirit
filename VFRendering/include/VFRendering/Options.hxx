@@ -1,6 +1,6 @@
 #ifndef VECTORFIELDRENDERING_OPTIONS_H
 #define VECTORFIELDRENDERING_OPTIONS_H
-#define NOMINMAX
+
 #include <vector>
 #include <unordered_map>
 #include <memory>

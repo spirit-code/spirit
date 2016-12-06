@@ -1,7 +1,6 @@
 #ifndef VFRENDERING_GEOMETRY_HXX
 #define VFRENDERING_GEOMETRY_HXX
 
-#define NOMINMAX
 #include <vector>
 #include <array>
 

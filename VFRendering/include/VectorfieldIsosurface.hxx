@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_VECTORFIELD_ISOSURFACE_HXX
 #define VFRENDERING_VECTORFIELD_ISOSURFACE_HXX
-#define NOMINMAX
+
 #include <vector>
 #include <array>
 #include <glm/glm.hpp>

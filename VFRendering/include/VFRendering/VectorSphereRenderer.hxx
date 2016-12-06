@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_VECTOR_SPHERE_RENDERER_H
 #define VFRENDERING_VECTOR_SPHERE_RENDERER_H
-#define NOMINMAX
+
 #include <VFRendering/RendererBase.hxx>
 
 namespace VFRendering {

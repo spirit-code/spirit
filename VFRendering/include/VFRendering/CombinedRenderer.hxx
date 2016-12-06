@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_COMBINED_RENDERER_H
 #define VFRENDERING_COMBINED_RENDERER_H
-#define NOMINMAX
+
 #include <vector>
 #include <memory>
 

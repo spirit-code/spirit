@@ -1,7 +1,5 @@
 #include "VFRendering/Geometry.hxx"
 
-#define NOMINMAX
-
 #ifndef NO_QHULL
 #include "Qhull.h"
 #include "QhullFacetList.h"

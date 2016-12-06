@@ -1,8 +1,6 @@
 #ifndef VFRENDERING_RENDERER_BASE_H
 #define VFRENDERING_RENDERER_BASE_H
 
-#define NOMINMAX
-
 #include <vector>
 
 #include <glm/glm.hpp>

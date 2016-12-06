@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_VIEW_H
 #define VFRENDERING_VIEW_H
-#define NOMINMAX
+
 #include <array>
 #include <memory>
 

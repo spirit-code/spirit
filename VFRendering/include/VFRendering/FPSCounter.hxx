@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_FPS_COUNTER_H
 #define VFRENDERING_FPS_COUNTER_H
-#define NOMINMAX
+
 #include <chrono>
 #include <queue>
 

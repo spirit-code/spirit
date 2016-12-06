@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_COORDINATE_SYSTEM_RENDERER_H
 #define VFRENDERING_COORDINATE_SYSTEM_RENDERER_H
-#define NOMINMAX
+
 #include <VFRendering/RendererBase.hxx>
 
 namespace VFRendering {

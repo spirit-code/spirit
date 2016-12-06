@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_ISOSURFACE_RENDERER_H
 #define VFRENDERING_ISOSURFACE_RENDERER_H
-#define NOMINMAX
+
 #include <functional>
 
 #include <VFRendering/RendererBase.hxx>

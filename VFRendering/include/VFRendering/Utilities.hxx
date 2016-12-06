@@ -1,6 +1,6 @@
 #ifndef VFRENDERING_UTILITIES_H
 #define VFRENDERING_UTILITIES_H
-#define NOMINMAX
+
 #include <vector>
 
 #include <glm/glm.hpp>
