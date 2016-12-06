@@ -12,9 +12,11 @@ public:
 
     CoordinateSystemRenderer(const View& view);
     virtual ~CoordinateSystemRenderer();
-    virtual void update(bool keep_geometry) override;
     virtual void draw(float aspect_ratio) override;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;
+
+protected:
+    virtual void update(bool keep_geometry) override;
 
 private:
     void updateShaderProgram();

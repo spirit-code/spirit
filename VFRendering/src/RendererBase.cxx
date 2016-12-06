@@ -40,4 +40,15 @@ void RendererBase::updateOptions(const Options& options) {
     optionsHaveChanged(changed_options);
 }
 
+void RendererBase::updateIfNecessary() {
+    if (m_geometry_update_id != m_view.geometryUpdateId()) {
+        update(false);
+        m_geometry_update_id = m_view.geometryUpdateId();
+        m_vectors_update_id = m_view.vectorsUpdateId();
+    } else if (m_vectors_update_id != m_view.vectorsUpdateId()) {
+        update(true);
+        m_vectors_update_id = m_view.vectorsUpdateId();
+    }
+}
+
 }

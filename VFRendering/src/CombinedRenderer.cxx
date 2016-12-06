@@ -11,6 +11,12 @@ void CombinedRenderer::update(bool keep_geometry) {
     }
 }
 
+void CombinedRenderer::updateIfNecessary() {
+    for (auto renderer : m_renderers) {
+        renderer->updateIfNecessary();
+    }
+}
+
 void CombinedRenderer::draw(float aspect_ratio) {
     for (auto renderer : m_renderers) {
         renderer->draw(aspect_ratio);

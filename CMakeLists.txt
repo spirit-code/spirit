@@ -100,8 +100,10 @@ set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_
 set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
 add_dependencies(libqhullcpp qhull)
+set(qhull_LIBS libqhullcpp)
 ### Add corresponding include directories
-include_directories( ${CMAKE_BINARY_DIR}/thirdparty-install/include ${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp )
+set(qhull_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/thirdparty-install/include;${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp")
+include_directories( ${qhull_INCLUDE_DIRS} )
 #############################################
 
 

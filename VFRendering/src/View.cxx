@@ -40,18 +40,13 @@ View::~View() {}
 void View::update(const Geometry& geometry, const std::vector<glm::vec3>& vectors) {
     m_geometry = geometry;
     m_vectors = vectors;
-    for (auto it : m_renderers) {
-        auto renderer = it.first;
-        renderer->update(false);
-    }
+    m_vectors_update_id++;
+    m_geometry_update_id++;
 }
 
 void View::updateVectors(const std::vector<glm::vec3>& vectors) {
     m_vectors = vectors;
-    for (auto it : m_renderers) {
-        auto renderer = it.first;
-        renderer->update(true);
-    }
+    m_vectors_update_id++;
 }
 
 void View::draw() {
@@ -76,6 +71,7 @@ void View::draw() {
         float height = m_framebuffer_size.y;
         glViewport((GLint)(viewport[0] * width), (GLint)(viewport[1] * height), (GLsizei)(viewport[2] * width), (GLsizei)(viewport[3] * height));
         glClear(GL_DEPTH_BUFFER_BIT);
+        renderer->updateIfNecessary();
         renderer->draw(viewport[2] * width / viewport[3] / height);
     }
     m_fps_counter.tick();
@@ -288,6 +284,14 @@ void View::optionsHaveChanged(const std::vector<int>& changed_options) {
         center_position = options().get<Option::SYSTEM_CENTER>();
         setCamera(camera_position, center_position, up_vector);
     }
+}
+
+unsigned long View::geometryUpdateId() const {
+    return m_geometry_update_id;
+}
+
+unsigned long View::vectorsUpdateId() const {
+    return m_vectors_update_id;
 }
 
 const std::vector<glm::vec3>& View::positions() const {

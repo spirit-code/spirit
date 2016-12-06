@@ -74,6 +74,9 @@ public:
 
     void renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers);
     void renderers(const VisualizationMode& mode, bool show_bounding_box, bool show_miniview, WidgetLocation miniview_location, bool show_coordinate_system, WidgetLocation coordinate_system_location);
+
+    unsigned long geometryUpdateId() const;
+    unsigned long vectorsUpdateId() const;
     
 private:
     void setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::vec3 up_vector);
@@ -87,6 +90,8 @@ private:
     Utilities::FPSCounter m_fps_counter;
     glm::vec2 m_framebuffer_size;
     bool m_is_centered = false;
+    unsigned long m_geometry_update_id = 0;
+    unsigned long m_vectors_update_id = 0;
 
     Options m_options;
 };
