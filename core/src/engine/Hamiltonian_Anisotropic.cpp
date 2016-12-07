@@ -20,8 +20,8 @@ namespace Engine
 		std::vector<int> anisotropy_index, std::vector<scalar> anisotropy_magnitude, std::vector<Vector3> anisotropy_normal,
 		std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<scalar>> Exchange_magnitude,
 		std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<scalar>> DMI_magnitude, std::vector<std::vector<Vector3>> DMI_normal,
-		std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<scalar>> BQC_magnitude,
 		std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<scalar>> DD_magnitude, std::vector<std::vector<Vector3>> DD_normal,
+		std::vector<std::vector<std::array<int,4>>> quadruplet_indices, std::vector<std::vector<scalar>> quadruplet_magnitude,
 		std::vector<bool> boundary_conditions
 	) :
 		Hamiltonian(boundary_conditions),
@@ -30,8 +30,8 @@ namespace Engine
 		anisotropy_index(anisotropy_index), anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
 		Exchange_indices(Exchange_indices), Exchange_magnitude(Exchange_magnitude),
 		DMI_indices(DMI_indices), DMI_magnitude(DMI_magnitude), DMI_normal(DMI_normal),
-		BQC_indices(BQC_indices), BQC_magnitude(BQC_magnitude),
-		DD_indices(DD_indices), DD_magnitude(DD_magnitude), DD_normal(DD_normal)
+		DD_indices(DD_indices), DD_magnitude(DD_magnitude), DD_normal(DD_normal),
+		Quadruplet_indices(quadruplet_indices), Quadruplet_magnitude(quadruplet_magnitude)
 	{
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
@@ -50,9 +50,9 @@ namespace Engine
 
 	std::vector<scalar> Hamiltonian_Anisotropic::Energy_Array(const std::vector<Vector3> & spins)
 	{
-		//     0           1           2      3    4     5       6
-		// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
-		std::vector<scalar> E(7, 0); // initialized with zeros
+		//     0           1           2      3     4          5            6
+		// ext. field; anisotropy; exchange; dmi; 4spin; dipole-dipole  quadruplet
+		std::vector<scalar> E(8, 0); // initialized with zeros
 		//int nos = spins.size() / 3;
 
 		// External field
@@ -80,16 +80,12 @@ namespace Engine
 				this->E_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], E);
 				// DMI
 				this->E_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], E);
-				// BQC
-				this->E_BQC(spins, BQC_indices[i_periodicity], BQC_magnitude[i_periodicity], E);
 				// DD
 				this->E_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], E);
+				// Quadruplet
+				this->E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], E);
 			}
 		}
-
-		// Triplet Interactions
-
-		// Quadruplet Interactions
 
 		// Return
 		return E;
@@ -98,8 +94,8 @@ namespace Engine
 	//std::vector<std::vector<scalar>> Hamiltonian_Anisotropic::Energy_Array_per_Spin(std::vector<scalar> & spins)
 	//{
 	//	int nos = spins.size() / 3;
-	//	//     0           1           2      3    4   6     7
-	//	// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
+	//	//     0           1           2      3     4          5            6
+	//	// ext. field; anisotropy; exchange; dmi; 4spin; dipole-dipole; quadruplet
 	//	std::vector<std::vector<scalar>> E(nos, std::vector<scalar>(7, 0)); // [nos][6], initialized with zeros
 	//	std::vector<scalar> E_temp(7, 0);
 
@@ -163,7 +159,7 @@ namespace Engine
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			Energy[ENERGY_POS_EXCHANGE] -= J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);;
+			Energy[ENERGY_POS_EXCHANGE] -= J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
 		}
 	}
 
@@ -172,15 +168,6 @@ namespace Engine
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
 			Energy[ENERGY_POS_DMI] -= DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
-		}
-	}
-
-
-	void Hamiltonian_Anisotropic::E_BQC(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & B_ij, std::vector<scalar> & Energy)
-	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
-		{
-			Energy[ENERGY_POS_BQC] -= B_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
 		}
 	}
 
@@ -200,6 +187,16 @@ namespace Engine
 
 		}
 	}// end DipoleDipole
+
+
+	void Hamiltonian_Anisotropic::E_Quadruplet(const std::vector<Vector3> & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, std::vector<scalar> & Energy)
+	{
+		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
+		{
+			Energy[ENERGY_POS_QUADRUPLET] -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+		}
+	}
+
 
 
 	void Hamiltonian_Anisotropic::Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field)
@@ -236,10 +233,10 @@ namespace Engine
 				this->Field_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], field);
 				// DMI
 				this->Field_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], field);
-				// BQC
-				this->Field_BQC(spins, BQC_indices[i_periodicity], BQC_magnitude[i_periodicity], field);
 				// DD
 				this->Field_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], field);
+				// Quadruplet
+				this->Field_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], field);
 			}
 		}
 
@@ -282,14 +279,6 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_BQC(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & B_ij, std::vector<Vector3> & eff_field)
-	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
-		{
-			eff_field[indices[i_pair][0]] += 2 * B_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]) * spins[indices[i_pair][1]];
-			eff_field[indices[i_pair][1]] += 2 * B_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]) * spins[indices[i_pair][0]];
-		}
-	}
 	void Hamiltonian_Anisotropic::Field_DD(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<Vector3> & eff_field)
 	{
 		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
@@ -305,6 +294,19 @@ namespace Engine
 			}
 		}
 	}//end Field_DipoleDipole
+
+
+	void Hamiltonian_Anisotropic::Field_Quadruplet(const std::vector<Vector3> & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, std::vector<Vector3> & eff_field)
+	{
+		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
+		{
+			eff_field[indices[i_pair][0]] += magnitude[i_pair] * spins[indices[i_pair][1]] * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			eff_field[indices[i_pair][1]] += magnitude[i_pair] * spins[indices[i_pair][0]] *  (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			eff_field[indices[i_pair][2]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][3]];
+			eff_field[indices[i_pair][3]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][2]];
+		}
+	}
+
 
 	void Hamiltonian_Anisotropic::Hessian(const std::vector<Vector3> & spins, MatrixX & hessian)
 	{

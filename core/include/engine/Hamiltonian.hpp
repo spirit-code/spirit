@@ -12,6 +12,7 @@
 #define ENERGY_POS_BQC 4
 #define ENERGY_POS_FSC 5
 #define ENERGY_POS_DD 6
+#define ENERGY_POS_QUADRUPLET 7
 
 
 #include <random>

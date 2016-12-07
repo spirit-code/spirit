@@ -623,16 +623,21 @@ namespace Utility
 			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
 			std::vector<Vector3> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
-			// ------------ Two Spin Interactions ------------
+			// ------------ Pair Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
 			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
 			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<Vector3>> DMI_normal(8);
-			std::vector<std::vector<std::vector<int>>> BQC_indices(8); std::vector<std::vector<scalar>> BQC_magnitude(8);
 			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<Vector3>> DD_normal(8);
 
 			scalar dd_radius = 0.0;
+
+			// ------------ Quadruplet Interactions ------------
+			int n_quadruplets = 0;
+			std::string quadruplets_file = "";
+			bool quadruplets_from_file = false;
+			std::vector<std::vector<std::array<int,4>>> quadruplet_indices(8); std::vector<std::vector<scalar>> quadruplet_magnitude(8);
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: building");
@@ -717,8 +722,7 @@ namespace Utility
 						// The file name should be valid so we try to read it
 						Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
 							Exchange_indices, Exchange_magnitude,
-							DMI_indices, DMI_magnitude, DMI_normal,
-							BQC_indices, BQC_magnitude);
+							DMI_indices, DMI_magnitude, DMI_normal);
 					}
 					//else
 					//{
@@ -747,6 +751,16 @@ namespace Utility
 					
 					Engine::Neighbours::Create_Dipole_Pairs(geometry, dd_radius, DD_indices, DD_magnitude, DD_normal);
 
+
+					// Interaction Quadruplets
+					if (myfile.Find("interaction_quadruplets_file")) myfile.iss >> quadruplets_file;
+					if (quadruplets_file.length() > 0)
+					{
+						// The file name should be valid so we try to read it
+						Quadruplets_from_File(quadruplets_file, geometry, n_quadruplets,
+							quadruplet_indices, quadruplet_magnitude);
+					}
+
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
@@ -773,8 +787,8 @@ namespace Utility
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
 				Exchange_indices, Exchange_magnitude,
 				DMI_indices, DMI_magnitude, DMI_normal,
-				BQC_indices, BQC_magnitude,
 				DD_indices, DD_magnitude, DD_normal,
+				quadruplet_indices, quadruplet_magnitude,
 				boundary_conditions
 			));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: built");

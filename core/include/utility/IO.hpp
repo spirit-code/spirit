@@ -58,8 +58,9 @@ namespace Utility
 			std::vector<Vector3> & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<Vector3>> & DMI_normal,
-			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<scalar>> & BQC_magnitude);
+			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<Vector3>> & DMI_normal);
+		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
+			std::vector<std::vector<std::array<int,4>>> & quadruplet_indices, std::vector<std::vector<scalar>> & quadruplet_magnitude);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
