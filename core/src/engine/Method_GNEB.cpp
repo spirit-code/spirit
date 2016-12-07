@@ -218,10 +218,6 @@ namespace Engine
 
 		// Save current Energies with reaction coordinates
 		auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
-		//		Check if Energy File exists and write Header if it doesn't
-		std::ifstream f(energiesFile);
-		if (!f.good()) Utility::IO::Write_Energy_Header(energiesFile);
-		//		Save
 		Utility::IO::Save_Energies(*this->chain, iteration, energiesFile);
 
 		// Save interpolated Energies

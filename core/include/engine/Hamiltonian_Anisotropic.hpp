@@ -33,7 +33,7 @@ namespace Engine
 		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
 		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
 		scalar Energy(const std::vector<Vector3> & spins) override;
-		std::vector<scalar> Energy_Array(const std::vector<Vector3> & spins) override;
+		std::vector<std::pair<std::string, scalar>> Energy_Array(const std::vector<Vector3> & spins) override;
 		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 		// Hamiltonian name as string
@@ -87,18 +87,22 @@ namespace Engine
 		void Field_Quadruplet(const std::vector<Vector3> & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, std::vector<Vector3> & eff_field);
 
 		// ------------ Energy Functions ------------
+		// Indices for Energy vector
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_dd, idx_quadruplet;
+		// Energy vector
+		std::vector<std::pair<std::string, scalar>> E;
 		// Calculate the Zeeman energy of a Spin System
-		void E_Zeeman(const std::vector<Vector3> & spins, std::vector<scalar> & Energy);
+		void E_Zeeman(const std::vector<Vector3> & spins, scalar & Energy);
 		// Calculate the Anisotropy energy of a Spin System
-		void E_Anisotropy(const std::vector<Vector3> & spins, std::vector<scalar> & Energy);
+		void E_Anisotropy(const std::vector<Vector3> & spins, scalar & Energy);
 		// Calculate the exchange interaction energy of a Spin System
-		void E_Exchange(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, std::vector<scalar> & Energy);
+		void E_Exchange(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, scalar & Energy);
 		// Calculate the DMI energy of a Spin System
-		void E_DMI(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, std::vector<scalar> & Energy);
+		void E_DMI(const std::vector<Vector3> & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, std::vector<Vector3> & DMI_normal, scalar & Energy);
 		// calculates the Dipole-Dipole Energy
-		void E_DD(const std::vector<Vector3>& spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, std::vector<scalar> & Energy);
+		void E_DD(const std::vector<Vector3>& spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, std::vector<Vector3> & DD_normal, scalar & Energy);
 		// Quadruplet
-		void E_Quadruplet(const std::vector<Vector3> & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, std::vector<scalar> & Energy);
+		void E_Quadruplet(const std::vector<Vector3> & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, scalar & Energy);
 
 	};
 }

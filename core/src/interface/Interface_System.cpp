@@ -58,9 +58,9 @@ void System_Get_Energy_Array(State * state, float * energies, int idx_image, int
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    for (int i=0; i<7; ++i)
+    for (int i=0; i<image->E_array.size(); ++i)
     {
-        energies[i] = (float)image->E_array[i];
+        energies[i] = (float)image->E_array[i].second;
     }
 }
 

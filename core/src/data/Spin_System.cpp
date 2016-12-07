@@ -26,7 +26,7 @@ namespace Data
 
 		// ...
 		this->E = 0;
-		this->E_array = std::vector<scalar>(7, 0.0);
+		this->E_array = std::vector<std::pair<std::string, scalar>>(0);
 		this->effective_field = std::vector<Vector3>(this->nos);
 
 	}//end Spin_System constructor

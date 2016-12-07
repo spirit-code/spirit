@@ -89,7 +89,7 @@ void PlotWidget::plotEnergiesInterpolated()
 	// Add data to series
 	int noi = Chain_Get_NOI(state.get());
 	int nos = System_Get_NOS(state.get());
-	int size_interp = (noi-1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+	int size_interp = noi + (noi-1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
 	float *Rx = new float[size_interp];
 	float *E = new float[size_interp];
 	Chain_Get_Rx_Interpolated(state.get(), Rx);

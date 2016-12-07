@@ -29,7 +29,7 @@ namespace Engine
 		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
 		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
 		scalar Energy(const std::vector<Vector3> & spins) override;
-		std::vector<scalar> Energy_Array(const std::vector<Vector3> & spins) override;
+		std::vector<std::pair<std::string, scalar>> Energy_Array(const std::vector<Vector3> & spins) override;
 		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 		// Hamiltonian name as string

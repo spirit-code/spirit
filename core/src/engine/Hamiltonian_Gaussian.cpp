@@ -96,9 +96,9 @@ namespace Engine
 		return E;
 	}
 
-	std::vector<scalar> Hamiltonian_Gaussian::Energy_Array(const std::vector<Vector3> & spins)
+	std::vector<std::pair<std::string, scalar>> Hamiltonian_Gaussian::Energy_Array(const std::vector<Vector3> & spins)
 	{
-		return std::vector<scalar>(9, 0.0);
+		return std::vector<std::pair<std::string, scalar>>(1, {"Gaussian", Energy(spins)});
 	}
 
 	//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;

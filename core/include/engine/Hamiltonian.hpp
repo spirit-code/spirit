@@ -2,19 +2,6 @@
 #ifndef HAMILTONIAN_H
 #define HAMILTONIAN_H
 
-
-// Defines for the Positions of Energy Contributions inside the Energy Array.
-// This way we may arbitrarily rearrange the array or add more interactions without rewriting code.
-#define ENERGY_POS_ZEEMAN 0
-#define ENERGY_POS_ANISOTROPY 1
-#define ENERGY_POS_EXCHANGE 2
-#define ENERGY_POS_DMI 3
-#define ENERGY_POS_BQC 4
-#define ENERGY_POS_FSC 5
-#define ENERGY_POS_DD 6
-#define ENERGY_POS_QUADRUPLET 7
-
-
 #include <random>
 #include <vector>
 
@@ -57,7 +44,7 @@ namespace Engine
 		virtual std::vector<std::vector<scalar>> Energy_Array_per_Spin(const std::vector<Vector3> & spins);
 
 		// Calculate the Effective Field of a spin configuration
-		virtual std::vector<scalar> Energy_Array(const std::vector<Vector3> & spins);
+		virtual std::vector<std::pair<std::string, scalar>> Energy_Array(const std::vector<Vector3> & spins);
 
 		// Hamiltonian name as string
 		virtual const std::string& Name();

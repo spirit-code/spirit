@@ -28,6 +28,62 @@ namespace Engine
 		external_field_magnitude = external_field_magnitude * Vectormath::MuB() * mu_s;
 		external_field_normal.normalize();
 
+		this->E = std::vector<std::pair<std::string, scalar>>(0);
+		// External field
+		if (this->external_field_magnitude != 0)
+		{
+			this->E.push_back({"Zeeman", 0});
+			this->idx_zeeman = this->E.size()-1;
+		}
+		else this->idx_zeeman = -1;
+		// Anisotropy
+		if (this->anisotropy_magnitude != 0)
+		{
+			this->E.push_back({"Anisotropy", 0});
+			this->idx_anisotropy = this->E.size()-1;
+		}
+		else this->idx_anisotropy = -1;
+		// Exchange
+		for (auto _j : jij)
+		{
+			if (_j != 0)
+			{
+				this->E.push_back({"Exchange", 0});
+				this->idx_exchange = this->E.size()-1;
+				break;
+			}
+			else this->idx_exchange = -1;
+		}
+		// DMI
+		if (dij != 0)
+		{
+			this->E.push_back({"DMI", 0});
+			this->idx_dmi = this->E.size()-1;
+		}
+		else this->idx_dmi = -1;
+		// BQC
+		if (bij != 0)
+		{
+			this->E.push_back({"BQC", 0});
+			this->idx_bqc = this->E.size()-1;
+		}
+		else this->idx_bqc = -1;
+		// FSC
+		if (kijkl != 0)
+		{
+			this->E.push_back({"FSC", 0});
+			this->idx_fsc = this->E.size()-1;
+		}
+		else this->idx_fsc = -1;
+		// Dipole-Dipole
+		if (this->dd_radius > 0)
+		{
+			this->E.push_back({"DD", 0});
+			this->idx_dd = this->E.size()-1;
+		}
+		else this->idx_dd = -1;
+
+
 		// Calculate Neighbours
 		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
 		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
@@ -42,67 +98,70 @@ namespace Engine
 	{
 		scalar sum = 0;
 		auto e = Energy_Array(spins);
-		for (auto E : e) sum += E;
+		for (auto E : e) sum += E.second;
 		return sum;
 	}
 
-	std::vector<scalar> Hamiltonian_Isotropic::Energy_Array(const std::vector<Vector3> & spins)
+	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Array(const std::vector<Vector3> & spins)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
 		int i = 0, istart = -1, istop = istart + 1;
-		std::vector<scalar> energies(7, 0.0);
 		scalar f0 = 1.0;
 		if (istart == -1) { istart = 0; istop = nos; f0 = 0.5; }
 		//------------------------ End Init ----------------------------------------
+
+		// Set to zero
+		for (auto& pair : this->E) pair.second = 0;
+
 		if (this->dd_radius != 0.0) {
 			for (i = istart; i < istop; ++i) {
-				energies[ENERGY_POS_ZEEMAN] = energies[ENERGY_POS_ZEEMAN] + E_Zeeman(nos, spins, i);
-				energies[ENERGY_POS_EXCHANGE] = energies[ENERGY_POS_EXCHANGE] + E_Exchange(nos, spins, i) *f0;
-				energies[ENERGY_POS_ANISOTROPY] = energies[ENERGY_POS_ANISOTROPY] + E_Anisotropic(nos, spins, i);
-				energies[ENERGY_POS_BQC] = energies[ENERGY_POS_BQC] + E_BQC(nos, spins, i)*f0;
-				energies[ENERGY_POS_FSC] = energies[ENERGY_POS_FSC] + E_FourSC(nos, spins, i)*f0*f0;
-				energies[ENERGY_POS_DMI] = energies[ENERGY_POS_DMI] + E_DM(nos, spins, i)*f0;
-				energies[ENERGY_POS_DD] = energies[ENERGY_POS_DD] + E_DipoleDipole(nos, spins, i);
+				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
+				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
+				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
+				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
+				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
+				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
+				if (idx_dd >= 0) E[idx_dd].second += E_DipoleDipole(nos, spins, i);
 			}//endfor i
 		}
 		else if (this->kijkl != 0.0 && this->dij != 0.0) {
 			for (i = istart; i < istop; ++i) {
-				energies[ENERGY_POS_ZEEMAN] = energies[ENERGY_POS_ZEEMAN] + E_Zeeman(nos, spins, i);
-				energies[ENERGY_POS_EXCHANGE] = energies[ENERGY_POS_EXCHANGE] + E_Exchange(nos, spins, i) *f0;
-				energies[ENERGY_POS_ANISOTROPY] = energies[ENERGY_POS_ANISOTROPY] + E_Anisotropic(nos, spins, i);
-				energies[ENERGY_POS_BQC] = energies[ENERGY_POS_BQC] + E_BQC(nos, spins, i)*f0;
-				energies[ENERGY_POS_FSC] = energies[ENERGY_POS_FSC] + E_FourSC(nos, spins, i)*f0*f0;
-				energies[ENERGY_POS_DMI] = energies[ENERGY_POS_DMI] + E_DM(nos, spins, i)*f0;
+				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
+				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
+				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
+				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
+				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
+				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
 			}//endfor i
 		}//endif kijkl != 0 & dij !=0
 		else if (this->kijkl == 0.0 && this->dij == 0.0) {
 			for (i = istart; i < istop; ++i) {
-				energies[ENERGY_POS_ZEEMAN] = energies[ENERGY_POS_ZEEMAN] + E_Zeeman(nos, spins, i);
-				energies[ENERGY_POS_EXCHANGE] = energies[ENERGY_POS_EXCHANGE] + E_Exchange(nos, spins, i) *f0;
-				energies[ENERGY_POS_ANISOTROPY] = energies[ENERGY_POS_ANISOTROPY] + E_Anisotropic(nos, spins, i);
-				energies[ENERGY_POS_BQC] = energies[ENERGY_POS_BQC] + E_BQC(nos, spins, i)*f0;
+				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
+				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
+				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
+				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
 			}//endfor i
 		}//endif kijkl == 0 & dij ==0
 		else if (this->kijkl == 0.0 && this->dij != 0.0) {
 			for (i = istart; i < istop; ++i) {
-				energies[ENERGY_POS_ZEEMAN] = energies[ENERGY_POS_ZEEMAN] + E_Zeeman(nos, spins, i);
-				energies[ENERGY_POS_EXCHANGE] = energies[ENERGY_POS_EXCHANGE] + E_Exchange(nos, spins, i) *f0;
-				energies[ENERGY_POS_ANISOTROPY] = energies[ENERGY_POS_ANISOTROPY] + E_Anisotropic(nos, spins, i);
-				energies[ENERGY_POS_BQC] = energies[ENERGY_POS_BQC] + E_BQC(nos, spins, i)*f0;
-				energies[ENERGY_POS_DMI] = energies[ENERGY_POS_DMI] + E_DM(nos, spins, i)*f0;
+				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
+				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
+				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
+				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
+				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
 			}//endfor i
 		}//endif kijkl == 0 & dij !=0
 		else if (this->kijkl != 0.0 && this->dij == 0.0) {
 			for (i = istart; i < istop; ++i) {
-				energies[ENERGY_POS_ZEEMAN] = energies[ENERGY_POS_ZEEMAN] + E_Zeeman(nos, spins, i);
-				energies[ENERGY_POS_EXCHANGE] = energies[ENERGY_POS_EXCHANGE] + E_Exchange(nos, spins, i) *f0;
-				energies[ENERGY_POS_ANISOTROPY] = energies[ENERGY_POS_ANISOTROPY] + E_Anisotropic(nos, spins, i);
-				energies[ENERGY_POS_BQC] = energies[ENERGY_POS_BQC] + E_BQC(nos, spins, i)*f0;
-				energies[ENERGY_POS_FSC] = energies[ENERGY_POS_FSC] + E_FourSC(nos, spins, i)*f0*f0;
+				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
+				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
+				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
+				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
+				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
 			}//endfor i
 		}//endif kijkl != 0 & Utility::Vectormath::Length(s->dij, s->n_shells) ==0
-		return energies;
+		return this->E;
 	};//end Total_Array_
 
 	scalar Hamiltonian_Isotropic::E_Zeeman(int nos, const std::vector<Vector3> & spins, const int ispin)

@@ -676,6 +676,9 @@ namespace Utility
 						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Read external field file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
 						// Not yet implemented!
+
+						B = external_field_magnitude[0];
+						B_normal = external_field_normal[0];
 					}
 					else 
 					{
@@ -683,12 +686,21 @@ namespace Utility
 						myfile.Read_Single(B, "external_field_magnitude");
 						myfile.Read_Vector3(B_normal, "external_field_normal");
 
-						// Fill the arrays
-						for (int i = 0; i < geometry.nos; ++i)
+						if (B != 0)
 						{
-							external_field_index[i] = i;
-							external_field_magnitude[i] = B;
-							external_field_normal[i] = B_normal;
+							// Fill the arrays
+							for (int i = 0; i < geometry.nos; ++i)
+							{
+								external_field_index[i] = i;
+								external_field_magnitude[i] = B;
+								external_field_normal[i] = B_normal;
+							}
+						}
+						else
+						{
+							external_field_index = std::vector<int>(0);
+							external_field_magnitude = std::vector<scalar>(0);
+							external_field_normal = std::vector<Vector3>(0);
 						}
 					}
 
@@ -699,6 +711,8 @@ namespace Utility
 						// The file name should be valid so we try to read it
 						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
+						K = anisotropy_magnitude[0];
+						K_normal = anisotropy_normal[0];
 					}
 					else
 					{
@@ -706,12 +720,21 @@ namespace Utility
 						myfile.Read_Single(K, "anisotropy_magnitude");
 						myfile.Read_Vector3(K_normal, "anisotropy_normal");
 						
-						// Fill the arrays
-						for (int i = 0; i < geometry.nos; ++i)
+						if (K != 0)
 						{
-							anisotropy_index[i] = i;
-							anisotropy_magnitude[i] = K;
-							anisotropy_normal[i] = K_normal;
+							// Fill the arrays
+							for (int i = 0; i < geometry.nos; ++i)
+							{
+								anisotropy_index[i] = i;
+								anisotropy_magnitude[i] = K;
+								anisotropy_normal[i] = K_normal;
+							}
+						}
+						else
+						{
+							anisotropy_index = std::vector<int>(0);
+							anisotropy_magnitude = std::vector<scalar>(0);
+							anisotropy_normal = std::vector<Vector3>(0);
 						}
 					}
 
@@ -775,11 +798,11 @@ namespace Utility
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Anisotropic:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(external_field_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[0][1]) + " " + std::to_string(anisotropy_normal[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,

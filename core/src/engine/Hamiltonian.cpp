@@ -197,12 +197,12 @@ namespace Engine
         return std::vector<std::vector<scalar>>(spins.size(), std::vector<scalar>(7, 0.0));
     }
 
-    std::vector<scalar> Hamiltonian::Energy_Array(const std::vector<Vector3> & spins)
+    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const std::vector<Vector3> & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
         throw Utility::Exception::Not_Implemented;
-        return std::vector<scalar>(7, 0.0);
+        return std::vector<std::pair<std::string, scalar>>(0);
     }
 
 	static const std::string name = "--";

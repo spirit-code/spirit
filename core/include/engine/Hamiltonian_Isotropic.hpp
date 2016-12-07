@@ -23,7 +23,7 @@ namespace Engine
 		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
 		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
 		scalar Energy(const std::vector<Vector3> & spins) override;
-		std::vector<scalar> Energy_Array(const std::vector<Vector3> & spins) override;
+		std::vector<std::pair<std::string, scalar>> Energy_Array(const std::vector<Vector3> & spins) override;
 		// Need to implement:
 		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
@@ -48,6 +48,10 @@ namespace Engine
 		void Field_DipoleDipole(int nos, const std::vector<Vector3> & spins, std::vector<Vector3> & eff_field, const int ispin);
 
 		// -------------------- Energy Functions ------------------
+		// Indices for Energy vector
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_bqc, idx_fsc, idx_dd;
+		// Energy vector
+		std::vector<std::pair<std::string, scalar>> E;
 		// calculates the Zeeman Energy of spin ispin within system s
 		scalar E_Zeeman(int nos, const std::vector<Vector3> & spins, const int ispin);
 		// calculates the Exchange Energy of spin ispin within system s

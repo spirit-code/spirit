@@ -135,7 +135,7 @@ namespace Engine
 			// Check if Energy File exists and write Header if it doesn't
 			auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
 			std::ifstream f(energyFile);
-			if (!f.good()) Utility::IO::Write_Energy_Header(energyFile);
+			if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
 			// Append Energy to File
 			Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
         };

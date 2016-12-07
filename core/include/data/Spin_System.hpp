@@ -50,7 +50,7 @@ namespace Data
 
 		// Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
 		scalar E;
-		std::vector<scalar> E_array;
+		std::vector<std::pair<std::string, scalar>> E_array;
 		// Total effective field of the spins [3][nos]
 		std::vector<Vector3> effective_field;
 

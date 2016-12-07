@@ -266,13 +266,16 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
 
-        // Magnitude
-        *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Engine::Vectormath::MuB());
+        if (ham->external_field_index.size() > 0)
+        {
+            // Magnitude
+            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Engine::Vectormath::MuB());
 
-        // Normal
-        normal[0] = (float)ham->external_field_normal[0][0];
-        normal[1] = (float)ham->external_field_normal[1][0];
-        normal[2] = (float)ham->external_field_normal[2][0];
+            // Normal
+            normal[0] = (float)ham->external_field_normal[0][0];
+            normal[1] = (float)ham->external_field_normal[1][0];
+            normal[2] = (float)ham->external_field_normal[2][0];
+        }
     }
 }
 
@@ -321,14 +324,17 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        
+        if (ham->anisotropy_index.size() > 0)
+        {
+            // Magnitude
+            *magnitude = (float)ham->anisotropy_magnitude[0];
 
-        // Magnitude
-        *magnitude = (float)ham->anisotropy_magnitude[0];
-
-        // Normal
-        normal[0] = (float)ham->anisotropy_normal[0][0];
-        normal[1] = (float)ham->anisotropy_normal[0][1];
-        normal[2] = (float)ham->anisotropy_normal[0][2];
+            // Normal
+            normal[0] = (float)ham->anisotropy_normal[0][0];
+            normal[1] = (float)ham->anisotropy_normal[0][1];
+            normal[2] = (float)ham->anisotropy_normal[0][2];
+        }
     }
 }
 

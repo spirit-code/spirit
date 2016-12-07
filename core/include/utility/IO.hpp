@@ -69,7 +69,7 @@ namespace Utility
 		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const std::string fileName);
 
 		// =========================== Saving Energies ===========================
-		void Write_Energy_Header(const std::string fileName);
+		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true);
 		// Appends the current Energy of the current image with energy contributions, without header
 		void Append_Energy(Data::Spin_System &s, const int iteration, const std::string fileName);
 		// Saves Energies of all images with header and contributions
