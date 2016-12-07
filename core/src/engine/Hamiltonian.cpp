@@ -13,6 +13,14 @@ namespace Engine
     }
 
 
+	void Hamiltonian::Update_Energy_Contributions()
+	{
+		// Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Update_Energy_Contributions() of the Hamiltonian base class!"));
+        throw Utility::Exception::Not_Implemented;
+	}
+
+
     // void Hamiltonian::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
     // {
 	// 	// This is a regular finite difference implementation (probably not very efficient)

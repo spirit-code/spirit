@@ -39,6 +39,11 @@ namespace Engine
 			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Vectormath::MuB() * mu_s[i];
 		}
 
+		this->Update_Energy_Contributions();
+	}
+
+	void Hamiltonian_Anisotropic::Update_Energy_Contributions()
+	{
 		this->E = std::vector<std::pair<std::string, scalar>>(0);
 		// External field
 		if (this->external_field_index.size() > 0)

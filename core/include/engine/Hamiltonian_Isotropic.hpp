@@ -20,6 +20,8 @@ namespace Engine
 			scalar anisotropy_magnitude, Vector3 anisotropy_normal,
 			int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
 		
+		void Update_Energy_Contributions() override;
+		
 		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
 		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
 		scalar Energy(const std::vector<Vector3> & spins) override;

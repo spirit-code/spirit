@@ -1327,19 +1327,7 @@ void SettingsWidget::SelectTab(int index)
 void SettingsWidget::print_Energies_to_console()
 {
 	System_Update_Data(state.get());
-	auto E = System_Get_Energy(state.get());
-	float E_array[7];
-	auto NOS = System_Get_NOS(this->state.get());
-	System_Get_Energy_Array(state.get(), E_array);
-
-	std::cout << "E_tot = " << E / NOS << "  ||| Zeeman = ";
-	std::cout << E_array[0] / NOS << "  | Aniso = "
-		<< E_array[1] / NOS << "  | Exchange = "
-		<< E_array[2] / NOS << "  | DMI = "
-		<< E_array[3] / NOS << "  | BQC = "
-		<< E_array[4] / NOS << "  | FourSC = "
-		<< E_array[5] / NOS << "  | DD = "
-		<< E_array[6] / NOS << std::endl;
+	System_Print_Energy_Array(state.get());
 }
 
 

@@ -62,31 +62,12 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
 			Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
 		}
 		else ham->external_field_normal.normalize();
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        // TODO
-    }
-}
-
-void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
-{
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
-    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
-    {
-        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
-
-        for (int i=0; i<n_shells; ++i)
-        {
-            ham->jij[i] = jij[i];
-        }
-    }
-    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
-    {
-        // TODO
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting external field is not yet implemented in Hamiltonian_Anisotropic!");
     }
 }
 
@@ -112,10 +93,35 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 			Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
 		}
 		else ham->anisotropy_normal.normalize();
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        // TODO
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Anisotropy is not yet implemented in Hamiltonian_Anisotropic!");
+    }
+}
+
+void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        for (int i=0; i<n_shells; ++i)
+        {
+            ham->jij[i] = jij[i];
+        }
+
+        ham->Update_Energy_Contributions();
+    }
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Exchange is not yet implemented in Hamiltonian_Anisotropic!");
     }
 }
 
@@ -130,10 +136,12 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->dij = dij;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting DMI is not yet implemented in Hamiltonian_Anisotropic!");
     }
 }
 
@@ -148,10 +156,12 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->bij = bij;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "BQE is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
 }
 
@@ -166,10 +176,12 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->kijkl = kijkl;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "FSC is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
 }
 

@@ -28,6 +28,20 @@ namespace Engine
 		external_field_magnitude = external_field_magnitude * Vectormath::MuB() * mu_s;
 		external_field_normal.normalize();
 
+		this->Update_Energy_Contributions();
+
+		// Calculate Neighbours
+		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
+		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
+			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, segments, segments_pos);
+		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
+			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
+		Log(Log_Level::Info, Log_Sender::All, "Done Caclulating Neighbours");
+	}
+
+
+	void Hamiltonian_Isotropic::Update_Energy_Contributions()
+	{
 		this->E = std::vector<std::pair<std::string, scalar>>(0);
 		// External field
 		if (this->external_field_magnitude != 0)
@@ -82,15 +96,6 @@ namespace Engine
 			this->idx_dd = this->E.size()-1;
 		}
 		else this->idx_dd = -1;
-
-
-		// Calculate Neighbours
-		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
-		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
-			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, segments, segments_pos);
-		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
-			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-		Log(Log_Level::Info, Log_Sender::All, "Done Caclulating Neighbours");
 	}
 
 

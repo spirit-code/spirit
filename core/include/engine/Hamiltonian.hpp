@@ -22,6 +22,13 @@ namespace Engine
 		Hamiltonian(std::vector<bool> boundary_conditions);
 
 		/*
+			Update the Energy array.
+			This needs to be done every time the parameters are changed, in case an energy
+			contribution is now non-zero or vice versa.
+		*/
+		virtual void Update_Energy_Contributions();
+
+		/*
 			Calculate the Hessian matrix of a spin configuration.
 			This function uses finite differences and may thus be quite inefficient. You should
 			override it if you want to get proper performance.

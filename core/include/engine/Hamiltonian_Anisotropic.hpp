@@ -30,6 +30,8 @@ namespace Engine
 			std::vector<bool> boundary_conditions
 		);
 
+		void Update_Energy_Contributions() override;
+
 		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
 		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
 		scalar Energy(const std::vector<Vector3> & spins) override;

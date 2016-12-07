@@ -64,6 +64,24 @@ void System_Get_Energy_Array(State * state, float * energies, int idx_image, int
     }
 }
 
+void System_Print_Energy_Array(State * state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    scalar nd = 1/(scalar)image->nos;
+
+    std::cerr << "E_tot = " << image->E*nd << "  ||  ";
+
+    for (int i=0; i<image->E_array.size(); ++i)
+    {
+        std::cerr << image->E_array[i].first << " = " << image->E_array[i].second*nd;
+        if (i < image->E_array.size()-1) std::cerr << "  |  ";
+    }
+    std::cerr << std::endl;
+}
+
 void System_Update_Data(State * state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
