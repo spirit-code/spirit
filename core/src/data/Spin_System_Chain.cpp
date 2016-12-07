@@ -16,8 +16,8 @@ namespace Data
 		this->falling_image = std::vector<bool>(this->noi, false);
 
 		this->Rx = std::vector<scalar>(this->noi, 0);
-		this->Rx_interpolated = std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_interpolated = std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0));
+		this->Rx_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
+		this->E_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
+		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(this->noi + (this->noi-1)*gneb_parameters->n_E_interpolations, 0));
 	}
 }

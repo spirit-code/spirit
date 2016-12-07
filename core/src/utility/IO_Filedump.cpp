@@ -9,6 +9,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <cctype>
 #ifdef CORE_USE_THREADS
 #include <thread>
 #endif

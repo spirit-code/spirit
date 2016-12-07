@@ -317,9 +317,9 @@ void Chain_Setup_Data(State * state, int idx_chain_i)
 
     // Apply
     chain->Rx = std::vector<scalar>(state->noi, 0);
-    chain->Rx_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+    chain->Rx_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
     // Initial data update
     Chain_Update_Data(state, idx_chain);
