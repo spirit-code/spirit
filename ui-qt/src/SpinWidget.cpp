@@ -494,22 +494,38 @@ void SpinWidget::setColormap(Colormap colormap) {
   m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
 }
 
-glm::vec3 SpinWidget::backgroundColor() const {
-	return options().get<VFRendering::View::Option::BACKGROUND_COLOR>();
+SpinWidget::Color SpinWidget::backgroundColor() const {
+	glm::vec3 color = m_view.options().get<VFRendering::View::Option::BACKGROUND_COLOR>();
+	if (color == glm::vec3{ 0, 0, 0 }) return Color::BLACK;
+	else if (color == glm::vec3{ 0.5, 0.5, 0.5 }) return Color::GRAY;
+	else if (color == glm::vec3{ 1, 1, 1 }) return Color::WHITE;
+	else return Color::OTHER;
 }
 
-void SpinWidget::setBackgroundColor(glm::vec3 background_color) {
+void SpinWidget::setBackgroundColor(Color background_color) {
+	glm::vec3 color;
+	if (background_color == Color::BLACK) color = { 0, 0, 0 };
+	else if (background_color == Color::GRAY) color = { 0.5, 0.5, 0.5 };
+	else if (background_color == Color::WHITE) color = { 1, 1, 1 };
 	makeCurrent();
-	m_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(background_color);
+	m_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(color);
 }
 
-glm::vec3 SpinWidget::boundingBoxColor() const {
-	return m_view.options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
+SpinWidget::Color SpinWidget::boundingBoxColor() const {
+	glm::vec3 color = m_view.options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
+	if (color == glm::vec3{ 0, 0, 0 }) return Color::BLACK;
+	else if (color == glm::vec3{ 0.5, 0.5, 0.5 }) return Color::GRAY;
+	else if (color == glm::vec3{ 1, 1, 1 }) return Color::WHITE;
+	else return Color::OTHER;
 }
 
-void SpinWidget::setBoundingBoxColor(glm::vec3 bounding_box_color) {
+void SpinWidget::setBoundingBoxColor(Color bounding_box_color) {
+	glm::vec3 color;
+	if (bounding_box_color == Color::BLACK) color = { 0, 0, 0 };
+	else if (bounding_box_color == Color::GRAY) color = { 0.5, 0.5, 0.5 };
+	else if (bounding_box_color == Color::WHITE) color = { 1, 1, 1 };
 	makeCurrent();
-	m_view.setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(bounding_box_color);
+	m_view.setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(color);
 }
 
 

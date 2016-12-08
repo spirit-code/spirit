@@ -1119,6 +1119,20 @@ void SettingsWidget::set_visualization_mode()
 	this->_spinWidget->setVisualizationMode(mode);
 }
 
+void SettingsWidget::set_visualization_perspective()
+{
+	// Perspective / FOV
+	if (radioButton_orthographicProjection->isChecked())
+	{
+		_spinWidget->setVerticalFieldOfView(0);
+	}
+	else
+	{
+		_spinWidget->setVerticalFieldOfView(45);
+	}
+
+}
+
 void SettingsWidget::set_visualization_miniview()
 {
 	bool miniview;
@@ -1185,6 +1199,7 @@ void SettingsWidget::set_visualization_system()
 
 void SettingsWidget::set_visualization_system_arrows()
 {
+	float arrowsize = horizontalSlider_arrowsize->value() / 100.0;
 
 }
 void SettingsWidget::set_visualization_system_boundingbox()
@@ -1278,6 +1293,28 @@ void SettingsWidget::set_visualization_colormap()
 	_spinWidget->updateData();
 }
 
+void SettingsWidget::set_visualization_background()
+{
+	SpinWidget::Color color;
+	SpinWidget::Color invcolor;
+	if (comboBox_backgroundColor->currentText() == "Black")
+	{
+		color = SpinWidget::Color::BLACK;
+		invcolor = SpinWidget::Color::WHITE;
+	}
+	else if (comboBox_backgroundColor->currentText() == "Gray")
+	{
+		color = SpinWidget::Color::GRAY;
+		invcolor = SpinWidget::Color::WHITE;
+	}
+	else
+	{
+		color = SpinWidget::Color::WHITE;
+		invcolor = SpinWidget::Color::BLACK;
+	}
+	_spinWidget->setBackgroundColor(color);
+	_spinWidget->setBoundingBoxColor(invcolor);
+}
 
 // -----------------------------------------------------------------------------------
 // --------------------- Camera ------------------------------------------------------
@@ -1527,8 +1564,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	// Mode
 	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
-	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
-	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
+	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
 	// Miniview
 	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_miniview()));
 	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_miniview()));
@@ -1551,7 +1588,7 @@ void SettingsWidget::Setup_Visualization_Slots()
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
-	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
 	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	// Camera
 	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));

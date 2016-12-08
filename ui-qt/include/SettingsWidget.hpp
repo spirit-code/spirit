@@ -58,6 +58,7 @@ private slots:
 	void set_hamiltonian_aniso_temp();
 	// Visualization
 	void set_visualization_mode();
+	void set_visualization_perspective();
 	void set_visualization_miniview();
 	void set_visualization_coordinatesystem();
 	void set_visualization_system();
@@ -73,6 +74,7 @@ private slots:
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();
 	void set_visualization_colormap();
+	void set_visualization_background();
 
 	// Visualisation - Camera
 	void set_camera();

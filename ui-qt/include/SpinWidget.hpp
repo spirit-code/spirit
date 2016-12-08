@@ -25,7 +25,7 @@ class SpinWidget : public QOpenGLWidget
   
 public:
 
-    enum Colormap {
+    enum class Colormap {
         HSV,
         HSV_NO_Z,
         BLUE_RED,
@@ -33,6 +33,13 @@ public:
         BLUE_WHITE_RED,
         OTHER
     };
+
+	enum class Color {
+		BLACK,
+		GRAY,
+		WHITE,
+		OTHER
+	};
 
 	enum class WidgetLocation {
 		BOTTOM_LEFT,
@@ -93,10 +100,10 @@ public:
   // --- Colors
   Colormap colormap() const;
   void setColormap(Colormap colormap);
-  glm::vec3 backgroundColor() const;
-  void setBackgroundColor(glm::vec3 background_color);
-  glm::vec3 boundingBoxColor() const;
-  void setBoundingBoxColor(glm::vec3 bounding_box_color);
+  Color backgroundColor() const;
+  void setBackgroundColor(Color background_color);
+  Color boundingBoxColor() const;
+  void setBoundingBoxColor(Color bounding_box_color);
 
   // --- Camera
   void setCameraToDefault();
