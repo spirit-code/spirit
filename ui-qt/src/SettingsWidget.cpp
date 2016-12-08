@@ -1274,7 +1274,7 @@ void SettingsWidget::set_visualization_sphere()
 }
 void SettingsWidget::set_visualization_sphere_pointsize()
 {
-
+	this->_spinWidget->setSpherePointSizeRange({ 0.2, this->horizontalSlider_spherePointSize->value() });
 }
 
 void SettingsWidget::set_visualization_colormap()
