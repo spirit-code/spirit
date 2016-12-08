@@ -3513,32 +3513,6 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="2">
-               <widget class="QSlider" name="horizontalSlider_arrowsize">
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_35">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Arrow Size</string>
-                </property>
-               </widget>
-              </item>
               <item row="4" column="0">
                <widget class="QLabel" name="label_46">
                 <property name="minimumSize">
@@ -4003,31 +3977,34 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_68">
-                <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_zmin">
+              <item row="3" column="1">
+               <layout class="QGridLayout" name="gridLayout_71">
+                <item row="2" column="0">
+                 <widget class="QRadioButton" name="radioButton_arrows_lesser">
                   <property name="maximumSize">
                    <size>
-                    <width>200</width>
+                    <width>100</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                  <property name="text">
+                   <string>lesser</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_zmax">
+                <item row="2" column="1">
+                 <widget class="QRadioButton" name="radioButton_arrows_greater">
                   <property name="maximumSize">
                    <size>
-                    <width>200</width>
+                    <width>100</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                  <property name="text">
+                   <string>greater</string>
                   </property>
                  </widget>
                 </item>
@@ -4063,6 +4040,13 @@
                 </item>
                </layout>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_60">
+                <property name="text">
+                 <string>x filter</string>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="2">
                <spacer name="horizontalSpacer_38">
                 <property name="orientation">
@@ -4076,45 +4060,35 @@
                 </property>
                </spacer>
               </item>
-              <item row="3" column="1">
-               <layout class="QGridLayout" name="gridLayout_71">
-                <item row="2" column="0">
-                 <widget class="QRadioButton" name="radioButton_arrows_lesser">
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_68">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_arrows_zmin">
                   <property name="maximumSize">
                    <size>
-                    <width>100</width>
+                    <width>200</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="text">
-                   <string>lesser</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
-                 <widget class="QRadioButton" name="radioButton_arrows_greater">
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_arrows_zmax">
                   <property name="maximumSize">
                    <size>
-                    <width>100</width>
+                    <width>200</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="text">
-                   <string>greater</string>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
                </layout>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_60">
-                <property name="text">
-                 <string>x filter</string>
-                </property>
-               </widget>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_7">
@@ -4127,6 +4101,52 @@
                <widget class="QLabel" name="label_59">
                 <property name="text">
                  <string>y filter</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QSlider" name="horizontalSlider_arrowsize">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_35">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>LOD</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="lineEdit_arrows_lod">
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>20</string>
                 </property>
                </widget>
               </item>
@@ -4726,7 +4746,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

@@ -81,6 +81,8 @@ public:
   void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
   bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Arrows
+  void setArrows(float size=1, int lod=20);
+  float arrowSize() const;
   glm::vec2 zRange() const;
   void setZRange(glm::vec2 z_range);
   //    Bounding Box

@@ -347,6 +347,32 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
 	this->setupRenderers();
 }
 
+/////	Arrows
+void SpinWidget::setArrows(float size, int lod)
+{
+	if (lod < 3) lod = 3;
+	
+	// defaults
+	float coneradius = 0.25f;
+	float coneheight = 0.6f;
+	float cylinderradius = 0.125f;
+	float cylinderheight = 0.7f;
+
+	makeCurrent();
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(coneheight * size);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(coneradius * size);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(cylinderheight* size);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>(lod);
+
+	this->setupRenderers();
+}
+
+float SpinWidget::arrowSize() const {
+	float size = options().get<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>() / 0.6f;
+	return size;
+}
+
 /////	Z Range (Arrows?)
 glm::vec2 SpinWidget::zRange() const {
 	return m_z_range;

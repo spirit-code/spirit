@@ -577,6 +577,12 @@ void SettingsWidget::Load_Visualization_Contents()
 	//	radioButton_perspectiveProjection->setChecked(true);
 	//}
 
+
+	// Arrowsize
+	horizontalSlider_arrowsize->setRange(0, 20);
+	float logs = std::log10(_spinWidget->arrowSize());
+	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
+
 	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
@@ -1199,8 +1205,10 @@ void SettingsWidget::set_visualization_system()
 
 void SettingsWidget::set_visualization_system_arrows()
 {
-	float arrowsize = horizontalSlider_arrowsize->value() / 100.0;
-
+	float exponent = horizontalSlider_arrowsize->value() / 10.0f - 1.0f;
+	float arrowsize = std::pow(10.0f, exponent);
+	int arrowlod = lineEdit_arrows_lod->text().toInt();
+	this->_spinWidget->setArrows(arrowsize, arrowlod);
 }
 void SettingsWidget::set_visualization_system_boundingbox()
 {
@@ -1578,6 +1586,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(checkBox_show_surface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
 	connect(checkBox_show_isosurface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
 	//		arrows
+	connect(horizontalSlider_arrowsize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_arrows()));
+	connect(lineEdit_arrows_lod, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_arrows()));
 	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	//		bounding box
@@ -1704,6 +1714,8 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
 
 	// Visualisation
+	//		Arrows
+	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
 	//		Isovalue
 	this->lineEdit_isovalue->setValidator(this->number_validator);
 	//		Camera
