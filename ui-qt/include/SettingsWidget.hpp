@@ -58,23 +58,29 @@ private slots:
 	void set_hamiltonian_aniso_temp();
 	// Visualization
 	void set_visualization_mode();
-	void set_visualization_system();
 	void set_visualization_miniview();
-	void set_visualization_coordinatesystem();/*
-	void set_visualization_parameters_system();
-	void set_visualization_parameters_sphere();
-	void set_visualization_parameters_arrows();
-	void set_visualization_parameters_surface();
-	void set_visualization_parameters_isosurface();*/
-	void set_visualization_zrange();
-	void set_visualization_isovalue_fromslider();
-	void set_visualization_isovalue_fromlineedit();
+	void set_visualization_coordinatesystem();
+	void set_visualization_system();
+	// TODO: replace
+		void set_visualization_zrange();
+		void set_visualization_isovalue_fromslider();
+		void set_visualization_isovalue_fromlineedit();
+	//////
+	void set_visualization_system_arrows();
+	void set_visualization_system_boundingbox();
+	void set_visualization_system_surface();
+	void set_visualization_system_isosurface();
+	void set_visualization_sphere();
+	void set_visualization_sphere_pointsize();
 	void set_visualization_colormap();
+
+	// Visualisation - Camera
 	void set_camera();
 	void read_camera();
 	void set_camera_position();
 	void set_camera_focus();
 	void set_camera_upvector();
+
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();

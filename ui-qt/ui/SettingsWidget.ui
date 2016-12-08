@@ -1304,8 +1304,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>278</width>
+            <height>283</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1583,8 +1583,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1425</height>
+            <width>433</width>
+            <height>460</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2246,8 +2246,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1425</height>
+            <width>308</width>
+            <height>349</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2712,8 +2712,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>330</width>
+            <height>374</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3307,6 +3307,9 @@
                     <width>100</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="currentIndex">
+                   <number>1</number>
                   </property>
                   <item>
                    <property name="text">
@@ -4125,7 +4128,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>100</height>
+               <height>130</height>
               </size>
              </property>
              <property name="title">
@@ -4697,7 +4700,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

@@ -2,7 +2,6 @@
 #ifndef SPIN_WIDGET_H
 #define SPIN_WIDGET_H
 
-
 #include <memory>
 #include <QOpenGLWidget>
 #include "glm/glm.hpp"
@@ -17,22 +16,6 @@
 #include <VFRendering/SurfaceRenderer.hxx>
 #include <VFRendering/VectorSphereRenderer.hxx>
 
-
-// TODO: remove this
-class GLSpins
-{
-public:
-  enum WidgetLocation {
-    BOTTOM_LEFT,
-    BOTTOM_RIGHT,
-    TOP_LEFT,
-    TOP_RIGHT
-  };
-  enum VisualizationMode {
-    SYSTEM,
-    SPHERE
-  };
-};
 
 struct State;
 
@@ -51,6 +34,18 @@ public:
         OTHER
     };
 
+	enum class WidgetLocation {
+		BOTTOM_LEFT,
+		BOTTOM_RIGHT,
+		TOP_LEFT,
+		TOP_RIGHT
+	};
+
+	enum class VisualizationMode {
+		SYSTEM,
+		SPHERE
+	};
+
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
@@ -59,7 +54,51 @@ public:
   void paintGL();
   float getFramesPerSecond() const;
   
-  // Camera
+  // --- Mode
+  void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
+  bool show_miniview, show_coordinatesystem;
+  // --- MiniView
+  void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);
+  bool isMiniviewEnabled() const;
+  void enableMiniview(bool enabled);
+  WidgetLocation miniviewPosition() const;
+  void setMiniviewPosition(WidgetLocation position);
+  // --- Coordinate System
+  void setVisualizationCoordinatesystem(bool show, SpinWidget::WidgetLocation location);
+  bool isCoordinateSystemEnabled() const;
+  void enableCoordinateSystem(bool enabled);
+  WidgetLocation coordinateSystemPosition() const;
+  void setCoordinateSystemPosition(WidgetLocation position);
+
+  // --- System
+  void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
+  bool show_arrows, show_boundingbox, show_surface, show_isosurface;
+  //    Arrows
+  glm::vec2 zRange() const;
+  void setZRange(glm::vec2 z_range);
+  //    Bounding Box
+  bool isBoundingBoxEnabled() const;
+  void enableBoundingBox(bool enabled);
+  //    Surface
+  //float isovalue() const;
+  //void setIsovalue(float isovalue);
+  //    Isosurface
+  float isovalue() const;
+  void setIsovalue(float isovalue);
+
+  // --- Sphere
+  glm::vec2 spherePointSizeRange() const;
+  void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
+
+  // --- Colors
+  Colormap colormap() const;
+  void setColormap(Colormap colormap);
+  glm::vec3 backgroundColor() const;
+  void setBackgroundColor(glm::vec3 background_color);
+  glm::vec3 boundingBoxColor() const;
+  void setBoundingBoxColor(glm::vec3 bounding_box_color);
+
+  // --- Camera
   void setCameraToDefault();
   void setCameraToX();
   void setCameraToY();
@@ -72,39 +111,6 @@ public:
   glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
-  // Mode
-  void setVisualizationMode(GLSpins::VisualizationMode visualization_mode);
-  bool show_miniview, show_coordinatesystem;
-  // MiniView
-  void setVisualizationMiniview(bool show, std::array<float, 4> position);
-  // System
-  void setVisualizationSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
-  bool show_arrows, show_boundingbox, show_surface, show_isosurface;
-  //    Bounding Box
-  bool isBoundingBoxEnabled() const;
-  void enableBoundingBox(bool enabled);
-  //    Arrows
-  glm::vec2 zRange() const;
-  void setZRange(glm::vec2 z_range);
-  //    Isosurface
-  float isovalue() const;
-  void setIsovalue(float isovalue);
-  // Sphere
-  glm::vec2 spherePointSizeRange() const;
-  void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
-  // Coordinate System
-  void setVisualizationCoordinatesystem(bool show, std::array<float, 4> position);
-  bool isCoordinateSystemEnabled() const;
-  void enableCoordinateSystem(bool enabled);
-  GLSpins::WidgetLocation coordinateSystemPosition() const;
-  void setCoordinateSystemPosition(GLSpins::WidgetLocation coordinatesystem_position);
-  // Colors
-  glm::vec3 backgroundColor() const;
-  void setBackgroundColor(glm::vec3 background_color);
-  Colormap colormap() const;
-  void setColormap(Colormap colormap);
-  glm::vec3 boundingBoxColor() const;
-  void setBoundingBoxColor(glm::vec3 bounding_box_color);
   
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
@@ -122,9 +128,9 @@ private:
   // Renderers
   std::shared_ptr<VFRendering::RendererBase> m_mainview;
   std::shared_ptr<VFRendering::RendererBase> m_miniview;
-  std::array<float, 4> m_miniview_position;
-  std::shared_ptr<VFRendering::CoordinateSystemRenderer> m_coordinatecross;
-  std::array<float, 4> m_coordinatecross_position;
+  WidgetLocation m_location_miniview;
+  std::shared_ptr<VFRendering::CoordinateSystemRenderer> m_coordinatesystem;
+  WidgetLocation m_location_coordinatesystem;
   std::shared_ptr<VFRendering::VectorSphereRenderer> m_sphere;
 
   std::shared_ptr<VFRendering::CombinedRenderer> m_system;
