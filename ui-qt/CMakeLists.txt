@@ -12,6 +12,7 @@ SET( EXECUTABLE_NAME spirit )
 #############################################
 
 
+
 ### Find includes in corresponding build directories
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 ### Let CMake run moc on QT ui files automatically
@@ -81,7 +82,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					${CORE_INCLUDE_DIRS}
 					${GLAD_INCLUDE_DIRS}
 					${GLM_INCLUDE_DIRS}
-					${GL_INCLUDE_DIRS})
+					${GL_INCLUDE_DIRS}
+                    ${CMAKE_SOURCE_DIR}/VFRendering/include)
 ###########################
 
 
@@ -128,9 +130,10 @@ add_executable( ${EXECUTABLE_NAME}
     resources.qrc )
 #############################################
 
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include/)
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL )
+target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )

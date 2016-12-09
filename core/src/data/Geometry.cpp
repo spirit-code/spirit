@@ -5,8 +5,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include <glm/vec3.hpp>
-#include <glm/glm.hpp>
 #include "Qhull.h"
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
