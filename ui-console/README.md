@@ -1,7 +1,7 @@
 UI - Console
 ------------
 
-This is a very simplistic User Interface implementing the **core** library.
+This is a very simplistic command line user interface implementing the **core** library.
 It has no non-standard library dependencies and should thus run almost anywhere,
 where a compiler with C++11 support is available.
 

@@ -1,6 +1,6 @@
 Spirit
 ========
-**Modular Numerical Optimizations Spin Code**<br />
+**Spin Simulation Framework**<br />
 The code is released under [MIT License](../master/LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results for which you used Spirit,
 please read the [REFERENCE.md](../master/REFERENCE.md)
@@ -9,12 +9,15 @@ For contributions and affiliations, see [CONTRIBUTORS.md](../master/CONTRIBUTORS
 
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
 
-Please note that the Spirit Web interface is hosted at the Research Centre Jülich:
-http://iffwww.iff.kfa-juelich.de/pub/spiritdemo/
+Please note that a version of the Spirit Web interface is hosted by the Research Centre Jülich at
+http://juspin.de
 
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
 -->
+
+
+![Skyrmions](http://imgur.com/BInvmEs.jpg "Skyrmions on a 2D grid")
 
 Contents
 --------
@@ -51,21 +54,22 @@ More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/
 
 User Interfaces <a name="UserInterfaces"></a>
 ---------------------------------------------
-The code is separated into several folders, representing the 'core' physics code
+The overall code is separated into several folders, representing the 'core' physics code
 and the various user interfaces you may build.
 * **core**:        Core Physics code
-* **ui-console**:  Console version
+* **ui-console**:  C++ command line interface
+* **ui-python**:   Python command line interface
 * **ui-qt**:       OpenGL visualisation inside QT
 * **ui-web**:      WebGL visualisation inside a website
-* **gl**:          Reusable OpenGL code
-* **thirdparty**:  Third party libraries the code uses
 
-Due to this modularisation, arbitrary user interfaces may be placed on top of the core physics code.
-The console version may be useful to be run on clusters, whereas the GUI-versions are useful to
-provide live visualisations of the simulations to the user.
-Note that the current web interface is primarily meant for educational purposes. Since the core needs to be
-transpiled to JavaScript (which does not support threads) and is executed user-side, it is necessarily slower
-than the regular code.
+Due to this modularisation and the fact that the core library exposes an API written
+in C, arbitrary user interfaces may be placed on top of the core physics code.
+The command-line versions may be useful to be run on clusters or for repetitive tasks,
+whereas the GUI-versions are useful to provide live visualisations of the simulations
+to the user.
+Note that the current web interface is primarily meant for educational purposes and has
+less features. Since the core needs to be transpiled to JavaScript and is executed
+user-side, it is necessarily slower than the regular code.
 
 ----------------------------------------
 
@@ -98,22 +102,24 @@ Most *external* dependencies are included in the thirdparty folder.
 The following lists all *external* dependencies which are not included: 
 
 ### Core
-* gcc >= 4.8.1 (C++11 stdlib)
-* cmake >= 2.8.12
+* gcc >= 4.8.1 (C++11 stdlib) or any modern compiler
+* CMake >= 2.8.12
 
-This is pretty much a standalone library and should be easy to implement into existing projects
-in which CMake is already used.
+This is pretty much a standalone library and should be easy to implement into existing
+projects in which CMake is already used.
 
-### GL
+### VFRendering
 * OpenGL Drivers >= 3.3
+* CMake >= 3.5
 
-Necessary OpenGL drivers *should* be available through the regular drivers for any remotely modern graphics card.
+Necessary OpenGL drivers *should* be available through the regular drivers for any
+remotely modern graphics card.
 
 ### UI-QT
 * QT >= 5.7
 
 Building and installing QT manually can be a big pain, but usually their installers or packages should work fine.
-Unfortunately, at time of writing, Ubuntu has only QT5.5 in it's package repository.
+This UI needs at least version 5.7 due to the usage of the **QTCharts** library.
 
 **Note** that you must install QTCharts (it may be deactivated by default).
 
@@ -143,14 +149,18 @@ Installation Instructions <a name="Installation"></a>
 Please be aware that our CMake scripts are written for our use cases and
 you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
 
-The **Options** you can set under *### Build Flags ###* are:
+The important **Options** you can set under *### Build Flags ###* are:
 * BUILD_UI_WEB - build the web interface instead of others
 * BUILD_UI_PYTHON - build the python library
+* BUILD_UI_JULIA - build the julia library
 * BUILD_UI_CXX - build the C++ interfaces (console or QT) instead of others
 * UI_CXX_USE_QT - build qt user interface instead of console version
+
+Further Options include:
 * OSX_BUNDLE_APP - not yet functional
 * PRINT_SOURCES - print all source files (for debugging)
 * USER_PATHS_IFF - use default IFF (FZJ) cluster paths
+* CORE_SCALAR_TYPE - should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc.
 
 The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
 * USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
@@ -200,6 +210,8 @@ relative to this folder.
 
 Contributing <a name="Contributing"></a>
 -----------------------------------------
+
+Contributions are always welcome!
 
 1. Fork this repository
 2. Check out the develop branch: `git checkout develop`

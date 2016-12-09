@@ -1,18 +1,18 @@
 UI - QT
 ------------
 
-This is a QT5 user interface implementing the **core** and the **gl** library.
-It enables the user to control parameters during simulations and provides
-a live visualisation of the spin systems.
+This is a QT5 user interface making use of the **core** and the **VFRendering**
+libraries. It enables the user to control parameters during simulations and provides
+a powerful live visualisation of the spin systems.
 
 ### Widgets
-This UI implements *MainWindow*, which is derived from *QMainWindow* as the
-central element. The simulation can be chosen and started and stopped from
-there. Via the file menu, one can also import and export e.e. spin configurations.
-The *Spin Widget* wraps the **gl** librarys visualisation
+The available calculation methods and optimizers, starting and stopping the calculation
+as well as the switching between images are implemented in `ControlWidget`. Via the file
+menu, one can import and export e.g. spin configurations.
+The `Spin Widget` wraps the **VFRendering** library's visualisation capabilities
 and provides user interaction.
-The remaining widgets are used to control parameters and are packed into a
-*QDockWidget*, meaning they are repositionable and can be toggled. 
+The remaining widgets are used to control parameters and view output. They are packed
+into a `QDockWidget`, meaning they are repositionable and can be toggled. 
 
 ### ui files
 The *ui* folder contains QT-specific xml files, which can be edited using
