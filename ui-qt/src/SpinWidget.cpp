@@ -410,6 +410,19 @@ void SpinWidget::setZRange(glm::vec2 z_range) {
 	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
 }
 
+/////   Surface
+void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
+{
+	makeCurrent();
+	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+	{
+		if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
+		else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
+		else return -1;
+	});
+	//this->setupRenderers();
+}
+
 /////	Isosurface
 float SpinWidget::isovalue() const {
 	return options().get<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>();

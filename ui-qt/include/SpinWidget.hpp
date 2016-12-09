@@ -89,6 +89,7 @@ public:
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
   //    Surface
+  void setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
   //float isovalue() const;
   //void setIsovalue(float isovalue);
   //    Isosurface
