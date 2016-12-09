@@ -2,12 +2,12 @@ MESSAGE( STATUS ">> ------------------------------------------------------------
 MESSAGE( STATUS ">> --------------------- Core ----------------------------------------- <<" )
 
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 #############################################
 
 
 ######### Project Name ######################
-project(SpiritCore)
+project(SpiritCore VERSION ${META_VERSION})
 #############################################
 
 ######### Have the binary placed into the source head
@@ -38,42 +38,16 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 #############################################
 
 
-######### External Project: QHull ###########
-### unfortunately it seems qhull_TARGETS_INSTALL cannot be specified in a list
-include(ExternalProject)
-ExternalProject_add(qhull
-	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
-	# GIT_REPOSITORY https://github.com/qhull/qhull.git
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
-	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
-	PREFIX qhull-prefix
-)
-
-add_library(libqhullstatic_r STATIC IMPORTED)
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_dependencies(libqhullstatic_r qhull)
-
-add_library(libqhullcpp STATIC IMPORTED)
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
-add_dependencies(libqhullcpp qhull)
-#############################################
-
-
 ######### Where to search for library headers
-set( EIGEN_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
-set( SPECTRA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/spectra/include )
-set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src ${CMAKE_SOURCE_DIR}/thirdparty/qhull/src/libqhullcpp )
+set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
+set( SPECTRA_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty ${PROJECT_SOURCE_DIR}/thirdparty/spectra/include )
+set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include/libqhullcpp )
 set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data
 	 ${PROJECT_SOURCE_DIR}/include/engine
 	 ${PROJECT_SOURCE_DIR}/include/interface
-	 ${PROJECT_SOURCE_DIR}/include/utility
+	 ${PROJECT_SOURCE_DIR}/include/utility 
 	 ${PROJECT_SOURCE_DIR}/src/utility )
 include_directories( ${CORE_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${QHULL_INCLUDE_DIRS})
 #############################################

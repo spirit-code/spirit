@@ -8,6 +8,7 @@
 #include "Interface_Transitions.h"
 #include "Interface_Log.h"
 #include "Interface_System.h"
+#include "Interface_Geometry.h"
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Hamiltonian.h"
@@ -66,6 +67,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 
 	// Load information from Spin Systems
 	this->updateData();
+	//this->set_visualization_mode();
 
 	// Connect slots
 	this->Setup_Configurations_Slots();
@@ -438,87 +440,87 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
-	// Mode
-	std::string visualization_mode;
-	switch (_spinWidget->visualizationMode())
-	{
-		case GLSpins::VisualizationMode::SPHERE:
-			visualization_mode = "Sphere";
-      break;
-    case GLSpins::VisualizationMode::SURFACE:
-      visualization_mode = "Surface";
-      break;
-    case GLSpins::VisualizationMode::ISOSURFACE:
-      visualization_mode = "Isosurface";
-      break;
-    default:
-			visualization_mode = "Arrows";
-			break;
-	}
-	for (int i = 0; i < comboBox_visualizationMode->count(); i++)
+	//// Mode
+	//std::string visualization_mode;
+	//switch (_spinWidget->visualizationMode())
+	//{
+	//	case GLSpins::VisualizationMode::SPHERE:
+	//		visualization_mode = "Sphere";
+ //     break;
+ //   case GLSpins::VisualizationMode::SURFACE:
+ //     visualization_mode = "Surface";
+ //     break;
+ //   case GLSpins::VisualizationMode::ISOSURFACE:
+ //     visualization_mode = "Isosurface";
+ //     break;
+ //   default:
+	//		visualization_mode = "Arrows";
+	//		break;
+	//}
+	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
 	{
 		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
 		{
 			comboBox_visualizationMode->setCurrentIndex(i);
 			break;
 		}
-	}
+	}*/
   
-	// Miniview
-	std::string miniview_position;
-	switch (_spinWidget->miniviewPosition())
-	{
-		case GLSpins::WidgetLocation::TOP_LEFT:
-			miniview_position = "Top Left";
-			break;
-		case GLSpins::WidgetLocation::BOTTOM_LEFT:
-			miniview_position = "Bottom Left";
-			break;
-		case GLSpins::WidgetLocation::TOP_RIGHT:
-			miniview_position = "Top Right";
-			break;
-		default:
-			miniview_position = "Bottom Right";
-			break;
-	}
-	for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
-	{
-		if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
-		{
-			comboBox_miniViewPosition->setCurrentIndex(i);
-			break;
-		}
-	}
-	checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	//// Miniview
+	//std::string miniview_position;
+	//switch (_spinWidget->miniviewPosition())
+	//{
+	//	case GLSpins::WidgetLocation::TOP_LEFT:
+	//		miniview_position = "Top Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
+	//		miniview_position = "Bottom Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::TOP_RIGHT:
+	//		miniview_position = "Top Right";
+	//		break;
+	//	default:
+	//		miniview_position = "Bottom Right";
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
+	//	{
+	//		comboBox_miniViewPosition->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
+	//checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
 	
-	// Coordinate System
-	std::string coordinatesystem_position;
-	switch (_spinWidget->coordinateSystemPosition())
-	{
-		case GLSpins::WidgetLocation::TOP_LEFT:
-			coordinatesystem_position = "Top Left";
-			break;
-		case GLSpins::WidgetLocation::BOTTOM_LEFT:
-			coordinatesystem_position = "Bottom Left";
-			break;
-		case GLSpins::WidgetLocation::TOP_RIGHT:
-			coordinatesystem_position = "Top Right";
-			break;
-		default:
-			coordinatesystem_position = "Bottom Right";
-			break;
-	}
-	for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
-	{
-		if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
-		{
-			comboBox_coordinateSystemPosition->setCurrentIndex(i);
-			break;
-		}
-	}
-	checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	//// Coordinate System
+	//std::string coordinatesystem_position;
+	//switch (_spinWidget->coordinateSystemPosition())
+	//{
+	//	case GLSpins::WidgetLocation::TOP_LEFT:
+	//		coordinatesystem_position = "Top Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
+	//		coordinatesystem_position = "Bottom Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::TOP_RIGHT:
+	//		coordinatesystem_position = "Top Right";
+	//		break;
+	//	default:
+	//		coordinatesystem_position = "Bottom Right";
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
+	//	{
+	//		comboBox_coordinateSystemPosition->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
+	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
 	
-	// Z Range
+	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
 		z_range.x = -1;
@@ -528,83 +530,112 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	horizontalSlider_zRangeMin->setInvertedAppearance(true);
-	horizontalSlider_zRangeMin->setRange(-100, 100);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_zRangeMax->setRange(-100, 100);
-	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
-	horizontalSlider_zRangeMin->setTracking(true);
-	horizontalSlider_zRangeMax->setTracking(true);
+	horizontalSlider_arrows_zmin->setInvertedAppearance(true);
+	horizontalSlider_arrows_zmin->setRange(-100, 100);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_arrows_zmax->setRange(-100, 100);
+	horizontalSlider_arrows_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_arrows_zmin->setTracking(true);
+	horizontalSlider_arrows_zmax->setTracking(true);
+
+
+	// X Range Surface
+	horizontalSlider_surface_xmin->setRange(1, 99);
+	horizontalSlider_surface_xmin->setValue((int)(0));
+	horizontalSlider_surface_xmax->setRange(1, 99);
+	horizontalSlider_surface_xmax->setValue((int)(99));
+	horizontalSlider_surface_xmin->setTracking(true);
+	horizontalSlider_surface_xmax->setTracking(true);
+	// Y Range Surface
+	horizontalSlider_surface_ymin->setRange(1, 99);
+	horizontalSlider_surface_ymin->setValue((int)(0));
+	horizontalSlider_surface_ymax->setRange(1, 99);
+	horizontalSlider_surface_ymax->setValue((int)(99));
+	horizontalSlider_surface_ymin->setTracking(true);
+	horizontalSlider_surface_ymax->setTracking(true);
+	// Z Range Surface
+	horizontalSlider_surface_zmin->setRange(1, 99);
+	horizontalSlider_surface_zmin->setValue((int)(0));
+	horizontalSlider_surface_zmax->setRange(1, 99);
+	horizontalSlider_surface_zmax->setValue((int)(99));
+	horizontalSlider_surface_zmin->setTracking(true);
+	horizontalSlider_surface_zmax->setTracking(true);
   
 	// Isovalue
 	auto isovalue = _spinWidget->isovalue();
 	horizontalSlider_isovalue->setRange(0, 100);
 	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
-	// Colormap
-	std::string colormap = "Hue-Saturation-Value";
-	switch (_spinWidget->colormap())
-	{
-		case GLSpins::Colormap::HSV:
-      break;
-    case GLSpins::Colormap::BLUE_RED:
-      colormap = "Z-Component: Blue-Red";
-      break;
-    case GLSpins::Colormap::BLUE_GREEN_RED:
-      colormap = "Z-Component: Blue-Green-Red";
-      break;
-    case GLSpins::Colormap::BLUE_WHITE_RED:
-      colormap = "Z-Component: Blue-White-Red";
-      break;
-    case GLSpins::Colormap::OTHER:
-			break;
-		default:
-			break;
-	}
-	for (int i = 0; i < comboBox_colormap->count(); i++)
-	{
-		if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
-		{
-			comboBox_colormap->setCurrentIndex(i);
-			break;
-		}
-	}
+	//// Colormap
+	//std::string colormap = "Hue-Saturation-Value";
+	//switch (_spinWidget->colormap())
+	//{
+	//	case SpinWidget::Colormap::HSV:
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_RED:
+ //     colormap = "Z-Component: Blue-Red";
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_GREEN_RED:
+ //     colormap = "Z-Component: Blue-Green-Red";
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_WHITE_RED:
+ //     colormap = "Z-Component: Blue-White-Red";
+ //     break;
+ //   case SpinWidget::Colormap::OTHER:
+	//		break;
+	//	default:
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_colormap->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
+	//	{
+	//		comboBox_colormap->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
 
-	// Perspective / FOV
-	if (_spinWidget->verticalFieldOfView() == 0)
-	{
-		radioButton_orthographicProjection->setChecked(true);
-	}
-	else
-	{
-		radioButton_perspectiveProjection->setChecked(true);
-	}
+	//// Perspective / FOV
+	//if (_spinWidget->verticalFieldOfView() == 0)
+	//{
+	//	radioButton_orthographicProjection->setChecked(true);
+	//}
+	//else
+	//{
+	//	radioButton_perspectiveProjection->setChecked(true);
+	//}
+
+
+	// Arrowsize
+	horizontalSlider_arrowsize->setRange(0, 20);
+	float logs = std::log10(_spinWidget->arrowSize());
+	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
 
 	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
 
 	// Bounding Box
-	checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
+	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
-	// Background
-	std::string background_color = "Black";
-	if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
-	{
-		background_color = "White";
-	}
-	else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
-	{
-		background_color = "Gray";
-	}
-	for (int i = 0; i < comboBox_backgroundColor->count(); i++)
-	{
-		if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-		{
-			comboBox_backgroundColor->setCurrentIndex(i);
-			break;
-		}
-	}
+	//// Background
+	//std::string background_color = "Black";
+	//if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
+	//{
+	//	background_color = "White";
+	//}
+	//else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
+	//{
+	//	background_color = "Gray";
+	//}
+	//for (int i = 0; i < comboBox_backgroundColor->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
+	//	{
+	//		comboBox_backgroundColor->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
 }
 
 // -----------------------------------------------------------------------------------
@@ -1106,111 +1137,197 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 }
 
 
+// -----------------------------------------------------------------------------------
+// --------------------- Visualization -----------------------------------------------
+// -----------------------------------------------------------------------------------
+
 void SettingsWidget::set_visualization_mode()
 {
-	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
-	if (comboBox_visualizationMode->currentText() == "Surface")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Isosurface")
-	{
-		visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Sphere")
-	{
-		visualization_mode = GLSpins::VisualizationMode::SPHERE;
-	}
-	_spinWidget->setVisualizationMode(visualization_mode);
+	SpinWidget::VisualizationMode mode;
 
-	_spinWidget->update();
-}
-
-
-void SettingsWidget::set_visualization_mode_parameters()
-{
-	// MiniView
-	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
-	GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_miniViewPosition->currentText() == "Top Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Bottom Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Top Right")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	_spinWidget->setMiniviewPosition(miniview_position);
-
-	// Coordinate System
-	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
-	GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_coordinateSystemPosition->currentText() == "Top Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Top Right")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	_spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
-
-	// Bounding Box
-	_spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
-
-	// Projection / FOV
-	if (radioButton_orthographicProjection->isChecked())
-		_spinWidget->setVerticalFieldOfView(0.0);
+	if (this->radioButton_vismode_sphere->isChecked())
+		mode = SpinWidget::VisualizationMode::SPHERE;
 	else
-		_spinWidget->setVerticalFieldOfView(45.0);
+		mode = SpinWidget::VisualizationMode::SYSTEM;
+	
+	this->_spinWidget->setVisualizationMode(mode);
+}
 
-	// Sphere
-	_spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
+void SettingsWidget::set_visualization_perspective()
+{
+	// Perspective / FOV
+	if (radioButton_orthographicProjection->isChecked())
+	{
+		_spinWidget->setVerticalFieldOfView(0);
+	}
+	else
+	{
+		_spinWidget->setVerticalFieldOfView(45);
+	}
 
-	// Background
-	glm::vec3 background_color(0.0, 0.0, 0.0);
-	glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
-	if (comboBox_backgroundColor->currentText() == "White")
+}
+
+void SettingsWidget::set_visualization_miniview()
+{
+	bool miniview;
+	SpinWidget::WidgetLocation pos;
+
+	miniview = this->checkBox_showMiniView->isChecked();
+	if (this->comboBox_miniViewPosition->currentText() == "Bottom Left")
 	{
-		background_color = glm::vec3(1.0, 1.0, 1.0);
-		bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
+		pos = SpinWidget::WidgetLocation::BOTTOM_LEFT;
 	}
-	else if (comboBox_backgroundColor->currentText() == "Gray")
+	else if (this->comboBox_miniViewPosition->currentText() == "Bottom Right")
 	{
-		background_color = glm::vec3(0.5, 0.5, 0.5);
-		bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
+		pos = SpinWidget::WidgetLocation::BOTTOM_RIGHT;
 	}
-	_spinWidget->setBackgroundColor(background_color);
-	_spinWidget->setBoundingBoxColor(bounding_box_color);
+	else if (this->comboBox_miniViewPosition->currentText() == "Top Left")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_LEFT;
+	}
+	else if (this->comboBox_miniViewPosition->currentText() == "Top Right")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_RIGHT;
+	}
+
+	this->_spinWidget->setVisualizationMiniview(miniview, pos);
+}
+
+void SettingsWidget::set_visualization_coordinatesystem()
+{
+	bool coordinatesystem;
+	SpinWidget::WidgetLocation pos;
+
+	coordinatesystem = this->checkBox_showCoordinateSystem->isChecked();
+	if (this->comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_LEFT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Bottom Right")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_RIGHT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Top Left")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_LEFT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Top Right")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_RIGHT;
+	}
+
+	this->_spinWidget->setVisualizationCoordinatesystem(coordinatesystem, pos);
+}
+
+void SettingsWidget::set_visualization_system()
+{
+	bool arrows, boundingbox, surface, isosurface;
+
+	arrows = this->checkBox_show_arrows->isChecked();
+	boundingbox = this->checkBox_showBoundingBox->isChecked();
+	surface = this->checkBox_show_surface->isChecked();
+	isosurface = this->checkBox_show_isosurface->isChecked();
+
+	this->_spinWidget->enableSystem(arrows, boundingbox, surface, isosurface);
+}
+
+void SettingsWidget::set_visualization_system_arrows()
+{
+	float exponent = horizontalSlider_arrowsize->value() / 10.0f - 1.0f;
+	float arrowsize = std::pow(10.0f, exponent);
+	int arrowlod = lineEdit_arrows_lod->text().toInt();
+	this->_spinWidget->setArrows(arrowsize, arrowlod);
+}
+void SettingsWidget::set_visualization_system_boundingbox()
+{
+
+}
+void SettingsWidget::set_visualization_system_surface()
+{
+	float bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	float s_min, s_max;
+
+	// X
+	s_min = horizontalSlider_surface_xmin->value();
+	s_max = horizontalSlider_surface_xmax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_xmin->blockSignals(true);
+	horizontalSlider_surface_xmax->blockSignals(true);
+	horizontalSlider_surface_xmin->setValue((int)(s_min));
+	horizontalSlider_surface_xmax->setValue((int)(s_max));
+	horizontalSlider_surface_xmin->blockSignals(false);
+	horizontalSlider_surface_xmax->blockSignals(false);
+	float x_min = bounds_min[0] + (s_min / 100.0) * (bounds_max[0] - bounds_min[0]);
+	float x_max = bounds_min[0] + (s_max / 100.0) * (bounds_max[0] - bounds_min[0]);
+	// Y
+	s_min = horizontalSlider_surface_ymin->value();
+	s_max = horizontalSlider_surface_ymax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_ymin->blockSignals(true);
+	horizontalSlider_surface_ymax->blockSignals(true);
+	horizontalSlider_surface_ymin->setValue((int)(s_min));
+	horizontalSlider_surface_ymax->setValue((int)(s_max));
+	horizontalSlider_surface_ymin->blockSignals(false);
+	horizontalSlider_surface_ymax->blockSignals(false);
+	float y_min = bounds_min[1] + (s_min / 100.0) * (bounds_max[1] - bounds_min[1]);
+	float y_max = bounds_min[1] + (s_max / 100.0) * (bounds_max[1] - bounds_min[1]);
+	// Z
+	s_min = horizontalSlider_surface_zmin->value();
+	s_max = horizontalSlider_surface_zmax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_zmin->blockSignals(true);
+	horizontalSlider_surface_zmax->blockSignals(true);
+	horizontalSlider_surface_zmin->setValue((int)(s_min));
+	horizontalSlider_surface_zmax->setValue((int)(s_max));
+	horizontalSlider_surface_zmin->blockSignals(false);
+	horizontalSlider_surface_zmax->blockSignals(false);
+	float z_min = bounds_min[2] + (s_min / 100.0) * (bounds_max[2] - bounds_min[2]);
+	float z_max = bounds_min[2] + (s_max / 100.0) * (bounds_max[2] - bounds_min[2]);
+
+	glm::vec2 x_range(x_min, x_max);
+	glm::vec2 y_range(y_min, y_max);
+	glm::vec2 z_range(z_min, z_max);
+	_spinWidget->setSurface(x_range, y_range, z_range);
 
 	_spinWidget->update();
 }
+void SettingsWidget::set_visualization_system_isosurface()
+{
 
+}
 
 void SettingsWidget::set_visualization_zrange()
 {
-	float z_range_min = -horizontalSlider_zRangeMin->value() / 100.0;
-	float z_range_max = horizontalSlider_zRangeMax->value() / 100.0;
+	float z_range_min = -horizontalSlider_arrows_zmin->value() / 100.0;
+	float z_range_max = horizontalSlider_arrows_zmax->value() / 100.0;
 	if (z_range_min > z_range_max)
 	{
 		float t = z_range_min;
 		z_range_min = z_range_max;
 		z_range_max = t;
 	}
-	horizontalSlider_zRangeMin->blockSignals(true);
-	horizontalSlider_zRangeMax->blockSignals(true);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
-	horizontalSlider_zRangeMin->blockSignals(false);
-	horizontalSlider_zRangeMax->blockSignals(false);
+	horizontalSlider_arrows_zmin->blockSignals(true);
+	horizontalSlider_arrows_zmax->blockSignals(true);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_arrows_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_arrows_zmin->blockSignals(false);
+	horizontalSlider_arrows_zmax->blockSignals(false);
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
@@ -1238,29 +1355,67 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 }
 
 
+
+void SettingsWidget::set_visualization_sphere()
+{
+	// This function does not make any sense, does it?
+	// Only possibility: draw/dont draw the sphere, only draw the points
+}
+void SettingsWidget::set_visualization_sphere_pointsize()
+{
+	this->_spinWidget->setSpherePointSizeRange({ 0.2, this->horizontalSlider_spherePointSize->value() });
+}
+
 void SettingsWidget::set_visualization_colormap()
 {
-	GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
+	SpinWidget::Colormap colormap = SpinWidget::Colormap::HSV;
 	if (comboBox_colormap->currentText() == "HSV, no z-component")
 	{
-		colormap = GLSpins::Colormap::HSV_NO_Z;
+		colormap = SpinWidget::Colormap::HSV_NO_Z;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_RED;
+		colormap = SpinWidget::Colormap::BLUE_RED;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_GREEN_RED;
+		colormap = SpinWidget::Colormap::BLUE_GREEN_RED;
 	}
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
 	{
-		colormap = GLSpins::Colormap::BLUE_WHITE_RED;
+		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
 	_spinWidget->setColormap(colormap);
 
 	_spinWidget->updateData();
 }
+
+void SettingsWidget::set_visualization_background()
+{
+	SpinWidget::Color color;
+	SpinWidget::Color invcolor;
+	if (comboBox_backgroundColor->currentText() == "Black")
+	{
+		color = SpinWidget::Color::BLACK;
+		invcolor = SpinWidget::Color::WHITE;
+	}
+	else if (comboBox_backgroundColor->currentText() == "Gray")
+	{
+		color = SpinWidget::Color::GRAY;
+		invcolor = SpinWidget::Color::WHITE;
+	}
+	else
+	{
+		color = SpinWidget::Color::WHITE;
+		invcolor = SpinWidget::Color::BLACK;
+	}
+	_spinWidget->setBackgroundColor(color);
+	_spinWidget->setBoundingBoxColor(invcolor);
+}
+
+// -----------------------------------------------------------------------------------
+// --------------------- Camera ------------------------------------------------------
+// -----------------------------------------------------------------------------------
 
 void SettingsWidget::set_camera()
 {
@@ -1271,21 +1426,19 @@ void SettingsWidget::set_camera()
 
 void SettingsWidget::read_camera()
 {
-	std::vector<float> pos(3), focus(3), up(3);
+    auto camera_position = _spinWidget->getCameraPositon();
+	auto center_position = _spinWidget->getCameraFocus();
+	auto up_vector = _spinWidget->getCameraUpVector();
 
-	pos = _spinWidget->getCameraPositon();
-	focus = _spinWidget->getCameraFocus();
-	up = _spinWidget->getCameraUpvector();
-
-	this->lineEdit_camera_pos_x->setText(QString::number(pos[0], 'f', 2));
-	this->lineEdit_camera_pos_y->setText(QString::number(pos[1], 'f', 2));
-	this->lineEdit_camera_pos_z->setText(QString::number(pos[2], 'f', 2));
-	this->lineEdit_camera_focus_x->setText(QString::number(focus[0], 'f', 2));
-	this->lineEdit_camera_focus_y->setText(QString::number(focus[1], 'f', 2));
-	this->lineEdit_camera_focus_z->setText(QString::number(focus[2], 'f', 2));
-	this->lineEdit_camera_upvector_x->setText(QString::number(up[0], 'f', 2));
-	this->lineEdit_camera_upvector_y->setText(QString::number(up[1], 'f', 2));
-	this->lineEdit_camera_upvector_z->setText(QString::number(up[2], 'f', 2));
+	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
+	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
+	this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
+	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
+	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
+	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
+	this->lineEdit_camera_upvector_x->setText(QString::number(up_vector.x, 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(up_vector.y, 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(up_vector.z, 'f', 2));
 }
 
 void SettingsWidget::set_camera_position()
@@ -1293,7 +1446,7 @@ void SettingsWidget::set_camera_position()
 	float x = this->lineEdit_camera_pos_x->text().toFloat();
 	float y = this->lineEdit_camera_pos_y->text().toFloat();
 	float z = this->lineEdit_camera_pos_z->text().toFloat();
-	this->_spinWidget->setCameraPositonTo(x, y, z);
+    this->_spinWidget->setCameraPositon({x, y, z});
 }
 
 void SettingsWidget::set_camera_focus()
@@ -1301,7 +1454,7 @@ void SettingsWidget::set_camera_focus()
 	float x = this->lineEdit_camera_focus_x->text().toFloat();
 	float y = this->lineEdit_camera_focus_y->text().toFloat();
 	float z = this->lineEdit_camera_focus_z->text().toFloat();
-	this->_spinWidget->setCameraFocusTo(x, y, z);
+    this->_spinWidget->setCameraFocus({x, y, z});
 }
 
 void SettingsWidget::set_camera_upvector()
@@ -1309,7 +1462,7 @@ void SettingsWidget::set_camera_upvector()
 	float x = this->lineEdit_camera_upvector_x->text().toFloat();
 	float y = this->lineEdit_camera_upvector_y->text().toFloat();
 	float z = this->lineEdit_camera_upvector_z->text().toFloat();
-	this->_spinWidget->setCameraUpvectorTo(x, y, z);
+    this->_spinWidget->setCameraUpVector({x, y, z});
 }
 
 
@@ -1494,30 +1647,42 @@ void SettingsWidget::Setup_Transitions_Slots()
 void SettingsWidget::Setup_Visualization_Slots()
 {
 	// Mode
-	connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
+	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
 	// Miniview
-	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
+	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_miniview()));
+	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_miniview()));
 	// Coordinate System
-	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Bounding Box
-	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Perspective / FOV
-	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
-	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode_parameters()));
-	// Background
-	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Sphere
-	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_mode_parameters()));
-	// Z-range
-	connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	// Colormap
-	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
-	// Isovalue
+	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_coordinatesystem()));
+	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_coordinatesystem()));
+	// System
+	connect(checkBox_show_arrows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_show_surface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_show_isosurface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	//		arrows
+	connect(horizontalSlider_arrowsize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_arrows()));
+	connect(lineEdit_arrows_lod, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_arrows()));
+	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	//		bounding box
+	//		surface
+	connect(horizontalSlider_surface_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	// Sphere
+	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
+	// Colors
+	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
+	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	// Camera
 	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
 	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
@@ -1632,6 +1797,8 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
 
 	// Visualisation
+	//		Arrows
+	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
 	//		Isovalue
 	this->lineEdit_isovalue->setValidator(this->number_validator);
 	//		Camera
