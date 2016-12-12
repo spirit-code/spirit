@@ -41,8 +41,6 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	float bounds_min[3], bounds_max[3];
 	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
-	m_view.setOption<VFRendering::View::Option::BOUNDING_BOX_MIN>({ bounds_min[0], bounds_min[1], bounds_min[2] });
-	m_view.setOption<VFRendering::View::Option::BOUNDING_BOX_MAX>({ bounds_max[0], bounds_max[1], bounds_max[2] });
 
 	this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
 	this->m_location_miniview = WidgetLocation::BOTTOM_LEFT;
@@ -67,11 +65,16 @@ void SpinWidget::initializeGL()
     _reset_camera = true;
     // Fetch data and update GL arrays
     this->updateData();
-  
+
+    float bounds_min[3], bounds_max[3];
+    Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+    glm::vec3 bounding_box_center = {(bounds_min[0]+bounds_max[0])/2, (bounds_min[1]+bounds_max[1])/2, (bounds_min[2]+bounds_max[2])/2};
+    glm::vec3 bounding_box_side_lengths = {bounds_max[0]-bounds_min[0], bounds_max[1]-bounds_min[1], bounds_max[2]-bounds_min[2]};
+
 	// Create renderers
 	//	System
 	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view);
-	this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(m_view);
+    this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths));
 	this->m_renderer_surface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 	this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 	std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {

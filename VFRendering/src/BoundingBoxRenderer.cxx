@@ -11,7 +11,7 @@
 #include "shaders/boundingbox.frag.glsl.hxx"
 
 namespace VFRendering {
-BoundingBoxRenderer::BoundingBoxRenderer(const View& view) : RendererBase(view) {}
+BoundingBoxRenderer::BoundingBoxRenderer(const View& view, const std::vector<glm::vec3>& vertices) : RendererBase(view), m_vertices(vertices) {}
 
 void BoundingBoxRenderer::initialize() {
     if (m_is_initialized) {
@@ -23,10 +23,9 @@ void BoundingBoxRenderer::initialize() {
     glBindVertexArray(m_vao);
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
     glEnableVertexAttribArray(0);
-    
-    updateVertexData();
     
     std::string vertex_shader_source = BOUNDINGBOX_VERT_GLSL;
     std::string fragment_shader_source = BOUNDINGBOX_FRAG_GLSL;
@@ -46,18 +45,7 @@ void BoundingBoxRenderer::optionsHaveChanged(const std::vector<int>& changed_opt
     if (!m_is_initialized) {
         return;
     }
-    bool update_vertices = false;
-    for (auto option_index : changed_options) {
-        switch (option_index) {
-        case View::Option::BOUNDING_BOX_MIN:
-        case View::Option::BOUNDING_BOX_MAX:
-            update_vertices = true;
-            break;
-        }
-    }
-    if (update_vertices) {
-        updateVertexData();
-    }
+    (void)changed_options;
 }
 
 void BoundingBoxRenderer::update(bool keep_geometry) {
@@ -66,7 +54,11 @@ void BoundingBoxRenderer::update(bool keep_geometry) {
 
 void BoundingBoxRenderer::draw(float aspect_ratio) {
     initialize();
-    
+
+    if (m_vertices.size() == 0) {
+        return;
+    }
+
     glUseProgram(m_program);
     glBindVertexArray(m_vao);
 
@@ -80,31 +72,73 @@ void BoundingBoxRenderer::draw(float aspect_ratio) {
     glUniform3f(glGetUniformLocation(m_program, "uColor"), color.r, color.g, color.b);
 
     glDisable(GL_CULL_FACE);
-    glDrawArrays(GL_LINES, 0, 24);
+    glDrawArrays(GL_LINES, 0, m_vertices.size());
     glEnable(GL_CULL_FACE);
 }
 
-void BoundingBoxRenderer::updateVertexData() {
-    if (!m_is_initialized) {
-        return;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    auto min = options().get<View::Option::BOUNDING_BOX_MIN>();
-    auto max = options().get<View::Option::BOUNDING_BOX_MAX>();
-    std::vector<GLfloat> vertices = {
-        min[0], min[1], min[2], max[0], min[1], min[2],
-        max[0], min[1], min[2], max[0], max[1], min[2],
-        max[0], max[1], min[2], min[0], max[1], min[2],
-        min[0], max[1], min[2], min[0], min[1], min[2],
-        min[0], min[1], max[2], max[0], min[1], max[2],
-        max[0], min[1], max[2], max[0], max[1], max[2],
-        max[0], max[1], max[2], min[0], max[1], max[2],
-        min[0], max[1], max[2], min[0], min[1], max[2],
-        min[0], min[1], min[2], min[0], min[1], max[2],
-        max[0], min[1], min[2], max[0], min[1], max[2],
-        max[0], max[1], min[2], max[0], max[1], max[2],
-        min[0], max[1], min[2], min[0], max[1], max[2]
+BoundingBoxRenderer BoundingBoxRenderer::forCuboid(const View& view, const glm::vec3& center, const glm::vec3& side_lengths) {
+    glm::vec3 min = center - 0.5f*side_lengths;
+    glm::vec3 max = center + 0.5f*side_lengths;
+    std::vector<glm::vec3> bounding_box_vertices = {
+        {min[0], min[1], min[2]}, {max[0], min[1], min[2]},
+        {max[0], min[1], min[2]}, {max[0], max[1], min[2]},
+        {max[0], max[1], min[2]}, {min[0], max[1], min[2]},
+        {min[0], max[1], min[2]}, {min[0], min[1], min[2]},
+        {min[0], min[1], max[2]}, {max[0], min[1], max[2]},
+        {max[0], min[1], max[2]}, {max[0], max[1], max[2]},
+        {max[0], max[1], max[2]}, {min[0], max[1], max[2]},
+        {min[0], max[1], max[2]}, {min[0], min[1], max[2]},
+        {min[0], min[1], min[2]}, {min[0], min[1], max[2]},
+        {max[0], min[1], min[2]}, {max[0], min[1], max[2]},
+        {max[0], max[1], min[2]}, {max[0], max[1], max[2]},
+        {min[0], max[1], min[2]}, {min[0], max[1], max[2]}
     };
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    return BoundingBoxRenderer(view, bounding_box_vertices);
+}
+
+BoundingBoxRenderer BoundingBoxRenderer::forParallelepiped(const View& view, const glm::vec3& center, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3) {
+    glm::vec3 min = center - 0.5f*v1-0.5f*v2-0.5f*v3;
+    std::vector<glm::vec3> bounding_box_vertices = {
+        min, min+v1,
+        min+v1, min+v1+v2,
+        min+v1+v2, min+v2,
+        min+v2, min,
+        min+v3, min+v1+v3,
+        min+v1+v3, min+v1+v2+v3,
+        min+v1+v2+v3, min+v2+v3,
+        min+v2+v3, min+v3,
+        min, min+v3,
+        min+v1, min+v1+v3,
+        min+v2, min+v2+v3,
+        min+v1+v2, min+v1+v2+v3
+    };
+    return BoundingBoxRenderer(view, bounding_box_vertices);
+}
+
+BoundingBoxRenderer BoundingBoxRenderer::forHexagonalCell(const View& view, const glm::vec3& center, float radius, float height) {
+    glm::vec3 v1 = {radius, 0, 0};
+    glm::vec3 v2 = {radius*0.5f, radius*0.8660254f, 0};
+    glm::vec3 v3 = {0, 0, height/2};
+    std::vector<glm::vec3> bounding_box_vertices = {
+        center+v3+v1, center+v3+v2,
+        center+v3+v2, center+v3+v2-v1,
+        center+v3+v2-v1, center+v3-v1,
+        center+v3-v1, center+v3-v2,
+        center+v3-v2, center+v3+v1-v2,
+        center+v3+v1-v2, center+v3+v1,
+        center-v3+v1, center-v3+v2,
+        center-v3+v2, center-v3+v2-v1,
+        center-v3+v2-v1, center-v3-v1,
+        center-v3-v1, center-v3-v2,
+        center-v3-v2, center-v3+v1-v2,
+        center-v3+v1-v2, center-v3+v1,
+        center-v3+v1, center+v3+v1,
+        center-v3+v2, center+v3+v2,
+        center-v3+v2-v1, center+v3+v2-v1,
+        center-v3-v1, center+v3-v1,
+        center-v3-v2, center+v3-v2,
+        center-v3+v1-v2, center+v3+v1-v2
+    };
+    return BoundingBoxRenderer(view, bounding_box_vertices);
 }
 }

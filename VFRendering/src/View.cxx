@@ -16,7 +16,7 @@
 
 namespace VFRendering {
 View::View() {
-    renderers(VisualizationMode::ARROWS, true, true, WidgetLocation::BOTTOM_LEFT, true, WidgetLocation::BOTTOM_RIGHT);
+    renderers({{std::make_shared<ArrowRenderer>(*this), {{0, 0, 1, 1}}}});
 }
 
 void View::initialize() {
@@ -54,16 +54,6 @@ void View::draw() {
     auto background_color = m_options.get<View::Option::BACKGROUND_COLOR>();
     glClearColor(background_color.x, background_color.y, background_color.z, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    Options options;
-    auto bounds_max = m_options.get<View::Option::BOUNDING_BOX_MAX>();
-    auto center = m_options.get<View::Option::SYSTEM_CENTER>();
-    options.set<CoordinateSystemRenderer::Option::AXIS_LENGTH>({
-            fmax(fabs(bounds_max[0] - center[0]), 1.0), fmax(fabs(bounds_max[1] - center[1]), 1.0), fmax(fabs(bounds_max[2] - center[2]), 1.0)
-        });
-    updateOptions(options);
-
-    glClear(GL_COLOR_BUFFER_BIT);
     for (auto it : m_renderers) {
         auto renderer = it.first;
         auto viewport = it.second;
@@ -147,90 +137,6 @@ void View::setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::
     options.set<Option::UP_VECTOR>(up_vector);
     updateOptions(options);
     m_is_centered = false;
-}
-
-static std::array<float, 4> locationToViewport(WidgetLocation location) {
-    switch (location) {
-    case WidgetLocation::BOTTOM_LEFT:
-        return {
-                   {
-                       0.0f, 0.0f, 0.2f, 0.2f
-                   }
-        };
-    case WidgetLocation::BOTTOM_RIGHT:
-        return {
-                   {
-                       0.8f, 0.0f, 0.2f, 0.2f
-                   }
-        };
-    case WidgetLocation::TOP_LEFT:
-        return {
-                   {
-                       0.0f, 0.8f, 0.2f, 0.2f
-                   }
-        };
-    case WidgetLocation::TOP_RIGHT:
-        return {
-                   {
-                       0.8f, 0.8f, 0.2f, 0.2f
-                   }
-        };
-    }
-    return {
-               {
-                   0, 0, 1, 1
-               }
-    };
-}
-
-/** Convenience function that creates the std::vector of renderers and viewports for the most common use cases */
-void View::renderers(const VisualizationMode& mode, bool show_bounding_box, bool show_miniview, WidgetLocation miniview_location, bool show_coordinate_system, WidgetLocation coordinate_system_location) {
-    std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>> renderers;
-
-    std::shared_ptr<RendererBase> main_renderer;
-    switch (mode) {
-    case VisualizationMode::ARROWS:
-        main_renderer = std::make_shared<ArrowRenderer>(*this);
-        break;
-    case VisualizationMode::SURFACE:
-        main_renderer = std::make_shared<SurfaceRenderer>(*this);
-        break;
-    case VisualizationMode::ISOSURFACE:
-        main_renderer = std::make_shared<IsosurfaceRenderer>(*this);
-        break;
-    case VisualizationMode::SPHERE:
-        main_renderer = std::make_shared<VectorSphereRenderer>(*this);
-        break;
-    }
-    if (show_bounding_box && mode != VisualizationMode::SPHERE) {
-        std::vector<std::shared_ptr<RendererBase>> r = {
-            main_renderer, std::make_shared<BoundingBoxRenderer>(*this)
-        };
-        main_renderer = std::make_shared<CombinedRenderer>(*this, r);
-    }
-    renderers.push_back({main_renderer, {{0, 0, 1, 1}}});
-
-    if (show_coordinate_system) {
-        std::shared_ptr<RendererBase> renderer = std::make_shared<CoordinateSystemRenderer>(*this);
-        renderers.push_back({renderer, locationToViewport(coordinate_system_location)});
-    }
-    if (show_miniview) {
-        std::shared_ptr<RendererBase> renderer;
-        if (mode == VisualizationMode::SPHERE) {
-            renderer = std::make_shared<SurfaceRenderer>(*this);
-            if (show_bounding_box) {
-                std::vector<std::shared_ptr<RendererBase>> r = {
-                    renderer, std::make_shared<BoundingBoxRenderer>(*this)
-                };
-                renderer = std::make_shared<CombinedRenderer>(*this, r);
-            }
-        } else {
-            renderer = std::make_shared<VectorSphereRenderer>(*this);
-        }
-        renderers.push_back({renderer, locationToViewport(miniview_location)});
-    }
-
-    this->renderers(renderers);
 }
 
 void View::renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers) {

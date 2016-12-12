@@ -19,26 +19,9 @@ enum class CameraMovementModes {
     ROTATE
 };
 
-enum class WidgetLocation {
-    BOTTOM_LEFT,
-    BOTTOM_RIGHT,
-    TOP_LEFT,
-    TOP_RIGHT
-};
-
-enum class VisualizationMode {
-    SURFACE,
-    ISOSURFACE,
-    ARROWS,
-    SPHERE
-};
-
-
 class View {
 public:
     enum Option {
-        BOUNDING_BOX_MIN,
-        BOUNDING_BOX_MAX,
         SYSTEM_CENTER,
         VERTICAL_FIELD_OF_VIEW,
         BACKGROUND_COLOR,
@@ -73,7 +56,6 @@ public:
     const std::vector<std::array<Geometry::index_type, 4>>& volumeIndices() const;
 
     void renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers);
-    void renderers(const VisualizationMode& mode, bool show_bounding_box, bool show_miniview, WidgetLocation miniview_location, bool show_coordinate_system, WidgetLocation coordinate_system_location);
 
     unsigned long geometryUpdateId() const;
     unsigned long vectorsUpdateId() const;
@@ -102,18 +84,6 @@ void View::setOption(const typename Options::Type<index>::type& value) {
 }
 
 namespace Utilities {
-/** Option to set the position of the lower left front corner of the bounding box. */
-template<>
-struct Options::Option<View::Option::BOUNDING_BOX_MIN> {
-    glm::vec3 default_value = {-1, -1, -1};
-};
-
-/** Option to set the position of the upper right back corner of the bounding box. */
-template<>
-struct Options::Option<View::Option::BOUNDING_BOX_MAX> {
-    glm::vec3 default_value = {1, 1, 1};
-};
-
 /** Option to set the position of the system center. */
 template<>
 struct Options::Option<View::Option::SYSTEM_CENTER> {
