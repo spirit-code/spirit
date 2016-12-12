@@ -105,7 +105,6 @@ target_link_libraries( core libqhullcpp)
 ######### Tell CMake to create the shared library
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
-	set(CORE_SCALAR_TYPE float)
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( pycore SHARED
 		${HEADER_CORE_ROOT}
@@ -136,7 +135,6 @@ endif()
 ######### Tell CMake to create the shared library
 if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
-	set(CORE_SCALAR_TYPE float)
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( corejl SHARED
 		${HEADER_CORE_ROOT}
