@@ -6,6 +6,8 @@
 #include <ctime>
 #include <chrono>
 
+#include "Core_Defines.h"
+
 // Use the System Clock (Wall Time) to handle Timing
 using std::chrono::system_clock;
 using std::chrono::time_point;
@@ -24,13 +26,13 @@ namespace Utility
         const std::string DateTimePassed(system_clock::time_point t1, system_clock::time_point t2);
         
         // Returns the difference between two DateTimes in seconds
-        const double MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
+        const scalar MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
         // Returns the difference between two DateTimes in seconds
-		const double SecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
+		const scalar SecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
         // Returns the difference between two DateTimes in minutes
-        const double MinutesPassed(system_clock::time_point t1, system_clock::time_point t2);
+        const scalar MinutesPassed(system_clock::time_point t1, system_clock::time_point t2);
         // Returns the difference between two DateTimes in hours
-        const double HoursPassed(system_clock::time_point t1, system_clock::time_point t2);
+        const scalar HoursPassed(system_clock::time_point t1, system_clock::time_point t2);
     }
 }
 #endif

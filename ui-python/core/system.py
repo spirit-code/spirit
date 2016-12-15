@@ -23,20 +23,20 @@ def Get_NOS(p_state, idx_image=-1, idx_chain=-1):
 ### Get Pointer to Spin Directions
 _Get_Spin_Directions            = _core.System_Get_Spin_Directions
 _Get_Spin_Directions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Spin_Directions.restype    = ctypes.POINTER(ctypes.c_double)
+_Get_Spin_Directions.restype    = ctypes.POINTER(ctypes.c_float)
 def Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1):
-    return ctypes.POINTER(ctypes.c_double)(_Get_Spin_Directions(p_state, idx_image, idx_chain))
+    return ctypes.POINTER(ctypes.c_float)(_Get_Spin_Directions(p_state, idx_image, idx_chain))
 
 ### Get total Energy
 _Get_Energy          = _core.System_Get_Energy
 _Get_Energy.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Energy.restype  = ctypes.c_double
+_Get_Energy.restype  = ctypes.c_float
 def Get_Energy(p_state, idx_image=-1, idx_chain=-1):
-    return double(_Get_Energy(p_state, idx_image, idx_chain))
+    return float(_Get_Energy(p_state, idx_image, idx_chain))
 
 ### Get Energy array
 _Get_Energy_Array          = _core.System_Get_Energy_Array
-_Get_Energy_Array.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.c_int]
+_Get_Energy_Array.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
 _Get_Energy_Array.restype  = None
 def Get_Energy_Array(p_state, energies, idx_image=-1, idx_chain=-1):
     _Get_Energy_Array(p_state, energies, idx_image, idx_chain)

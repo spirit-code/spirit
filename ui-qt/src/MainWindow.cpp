@@ -103,9 +103,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	
 	// Connect the Timers
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
-	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::update);
-	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::update);	// this currently resets the user's interaction (movement, zoom)
-	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::update);
+	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::updateData);
+	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::updateData);	// this currently resets the user's interaction (movement, zoom)
+	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::updateData);
 
 	// Start Timers
 	m_timer->start(200);
@@ -278,16 +278,37 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
 
-	// Get Methods' IPS
-	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
-
 	// Create IPS Labels and add them to the statusBar
-	this->m_Labels_IPS = std::vector<QLabel*>();
-	for (unsigned int i = 0; i < v_ips.size(); ++i)
+	this->m_Labels_IPS = std::vector<QLabel*>(0);
+	if (Simulation_Running_LLG_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+		{
+			if (Simulation_Running_LLG(state.get(), i))
+			{
+				this->m_Labels_IPS.push_back(new QLabel);
+				this->m_Labels_IPS.back()->setText("IPS [-]: -");
+				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+			}
+		}
+	}
+	else if (Simulation_Running_GNEB_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
+		{
+			if (Simulation_Running_GNEB(state.get(), i))
+			{
+				this->m_Labels_IPS.push_back(new QLabel);
+				this->m_Labels_IPS.back()->setText("IPS [-]: -");
+				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+			}
+		}
+	}
+	else if (Simulation_Running_MMF(state.get()))
 	{
 		this->m_Labels_IPS.push_back(new QLabel);
-		this->m_Labels_IPS[i]->setText("IPS [-]: -");
-		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS[i]);
+		this->m_Labels_IPS.back()->setText("IPS: -");
+		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 	}
 
 	//		FPS
@@ -319,10 +340,53 @@ void MainWindow::createStatusBar()
 void MainWindow::updateStatusBar()
 {
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
-	auto v_ips = Simulation_Get_IterationsPerSecond(state.get());
-	for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_ips.size(); ++i)
+
+	float ips;
+	QString qstr_ips;
+	std::vector<QString> v_str(0);
+
+	if (Simulation_Running_LLG_Anywhere(state.get()))
 	{
-		this->m_Labels_IPS[i]->setText(QString::fromLatin1("IPS [") + QString::number(i+1) + QString::fromLatin1("]: ") + QString::number((int)v_ips[i]));
+		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+		{
+			if (Simulation_Running_LLG(state.get(), i))
+			{
+				ips = Simulation_Get_IterationsPerSecond(state.get(), i);
+				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				else qstr_ips = QString::fromLatin1("> 100k");
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+			}
+		}
+	}
+	else if (Simulation_Running_GNEB_Anywhere(state.get()))
+	{
+		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
+		{
+			if (Simulation_Running_GNEB(state.get(), i))
+			{
+				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, i);
+				if (ips < 1e5) qstr_ips = QString::number((int)ips);
+				else qstr_ips = QString::fromLatin1("> 100k");
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+			}
+		}
+	}
+	else if (Simulation_Running_MMF(state.get()))
+	{
+		ips = Simulation_Get_IterationsPerSecond(state.get());
+		if (ips < 1e5) qstr_ips = QString::number((int)ips);
+		else qstr_ips = QString::fromLatin1("> 100k");
+		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips);
+	}
+
+	//auto v_ips = std::vector<float>{ Simulation_Get_IterationsPerSecond(state.get()) };
+	if (v_str.size() != m_Labels_IPS.size()) createStatusBar();
+	else
+	{
+		for (unsigned int i = 0; i < m_Labels_IPS.size() && i < v_str.size(); ++i)
+		{
+			this->m_Labels_IPS[i]->setText(v_str[i]);
+		}
 	}
 }
 
@@ -404,7 +468,7 @@ void MainWindow::load_Spin_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Image_Read(this->state.get(), file.c_str(), type);
 	}
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 void MainWindow::save_SpinChain_Configuration()
@@ -423,7 +487,7 @@ void MainWindow::load_SpinChain_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Chain_Read(this->state.get(), file.c_str());
 	}
-	this->spinWidget->update();
+	this->spinWidget->updateData();
 }
 
 

@@ -2,7 +2,6 @@ set(SOURCE_CORE_UTILITY
     ${SOURCE_CORE_UTILITY}
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Vectoroperators.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Configparser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Fileparser.cpp

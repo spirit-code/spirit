@@ -42,8 +42,8 @@ int main(int argc, char ** argv)
 	
 	//----------------------- spin_system_chain -------------------------------------
 	// Parameters
-	double dir[3] = { 0,0,1 };
-	double pos[3] = { 0,0,0 };
+	float dir[3] = { 0,0,1 };
+	float pos[3] = { 0,0,0 };
 
 	// Read Image from file
 	//Configuration_from_File(state.get(), spinsfile, 0);

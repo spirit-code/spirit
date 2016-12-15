@@ -1,0 +1,9 @@
+.*
+!.gitignore
+!.gitlab-ci.yml
+build/
+demo
+*.o
+thirdparty/qhull
+docs/html
+docs/latex

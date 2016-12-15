@@ -5,7 +5,6 @@
 
 #include "Vectormath.hpp"
 #include <Spin_System.hpp>
-#include "Vectoroperators.hpp"
 #include "Vectormath.hpp"
 #include "Neighbours.hpp"
 
@@ -17,13 +16,13 @@ using namespace Data;
 namespace Engine
 {
 	Hamiltonian_Anisotropic::Hamiltonian_Anisotropic(
-		std::vector<double> mu_s,
-		std::vector<double> external_field_magnitude, std::vector<std::vector<double>> external_field_normal,
-		std::vector<int> anisotropy_index, std::vector<double> anisotropy_magnitude, std::vector<std::vector<double>> anisotropy_normal,
-		std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<double>> Exchange_magnitude,
-		std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<double>> DMI_magnitude, std::vector<std::vector<std::vector<double>>> DMI_normal,
-		std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<double>> BQC_magnitude,
-		std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<double>> DD_magnitude, std::vector<std::vector<std::vector<double>>> DD_normal,
+		std::vector<scalar> mu_s,
+		std::vector<scalar> external_field_magnitude, std::vector<std::vector<scalar>> external_field_normal,
+		std::vector<int> anisotropy_index, std::vector<scalar> anisotropy_magnitude, std::vector<std::vector<scalar>> anisotropy_normal,
+		std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<scalar>> Exchange_magnitude,
+		std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<scalar>> DMI_magnitude, std::vector<std::vector<std::vector<scalar>>> DMI_normal,
+		std::vector<std::vector<std::vector<int>>> BQC_indices, std::vector<std::vector<scalar>> BQC_magnitude,
+		std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<scalar>> DD_magnitude, std::vector<std::vector<std::vector<scalar>>> DD_normal,
 		std::vector<bool> boundary_conditions
 	) :
 		Hamiltonian(boundary_conditions),
@@ -42,16 +41,19 @@ namespace Engine
 		}
 	}
 
-	double Hamiltonian_Anisotropic::Energy(const std::vector<double> & spins)
+	scalar Hamiltonian_Anisotropic::Energy(const std::vector<scalar> & spins)
 	{
-		return sum(Energy_Array(spins));
+		scalar sum = 0;
+		auto e = Energy_Array(spins);
+		for (auto E : e) sum += E;
+		return sum;
 	}
 
-	std::vector<double> Hamiltonian_Anisotropic::Energy_Array(const std::vector<double> & spins)
+	std::vector<scalar> Hamiltonian_Anisotropic::Energy_Array(const std::vector<scalar> & spins)
 	{
 		//     0           1           2      3    4     5       6
 		// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
-		std::vector<double> E(7, 0); // initialized with zeros
+		std::vector<scalar> E(7, 0); // initialized with zeros
 		int nos = spins.size() / 3;
 
 		// Loop over Spins
@@ -110,13 +112,13 @@ namespace Engine
 		return E;
 	}
 
-	//std::vector<std::vector<double>> Hamiltonian_Anisotropic::Energy_Array_per_Spin(std::vector<double> & spins)
+	//std::vector<std::vector<scalar>> Hamiltonian_Anisotropic::Energy_Array_per_Spin(std::vector<scalar> & spins)
 	//{
 	//	int nos = spins.size() / 3;
 	//	//     0           1           2      3    4   6     7
 	//	// ext. field; anisotropy; exchange; dmi; bqc; 4spin; dipole-dipole
-	//	std::vector<std::vector<double>> E(nos, std::vector<double>(7, 0)); // [nos][6], initialized with zeros
-	//	std::vector<double> E_temp(7, 0);
+	//	std::vector<std::vector<scalar>> E(nos, std::vector<scalar>(7, 0)); // [nos][6], initialized with zeros
+	//	std::vector<scalar> E_temp(7, 0);
 
 	//	//// Loop over Spins
 	//	//for (int i = 0; i<nos; ++i)
@@ -158,7 +160,7 @@ namespace Engine
 	//	return E;
 	//}
 
-	void Hamiltonian_Anisotropic::E_Zeeman(int nos, const std::vector<double> & spins, int ispin, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Zeeman(int nos, const std::vector<scalar> & spins, int ispin, std::vector<scalar> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -166,9 +168,9 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Anisotropy(int nos, const std::vector<scalar> & spins, std::vector<scalar> & Energy)
 	{
-		double t = 0;
+		scalar t = 0;
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
 			t = 0;
@@ -181,9 +183,9 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_Exchange(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar J_ij, std::vector<scalar> & Energy)
 	{
-		double ss = 0;
+		scalar ss = 0;
 		for (int i = 0; i < 3; ++i)
 		{
 			ss += spins[indices[0] + i*nos] * spins[indices[1] + i*nos];
@@ -191,19 +193,22 @@ namespace Engine
 		Energy[ENERGY_POS_EXCHANGE] -= J_ij * ss;
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DMI(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DMI_magnitude, std::vector<scalar> & DMI_normal, std::vector<scalar> & Energy)
 	{
-		std::vector<double> cross(3);
+		scalar cross[3];
+		
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			cross[dim] = spins[((dim + 1) % 3)*nos + indices[0]] * spins[((dim + 2) % 3)*nos + indices[1]]
-				- spins[((dim + 2) % 3)*nos + indices[0]] * spins[((dim + 1) % 3)*nos + indices[1]];
+			auto dp1 = (dim + 1) % 3;
+			auto dp2 = (dim + 2) % 3;
+			cross[dim] = spins[dp1*nos + indices[0]] * spins[dp2*nos + indices[1]]
+				- spins[dp2*nos + indices[0]] * spins[dp1*nos + indices[1]];
 		}
 		/*for (int i = 0; i < 3; ++i)
 		{
-		cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
-		cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
-		cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
+			cross[0] = s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2 + 2*s.nos] - s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2 + s.nos];
+			cross[1] = s.spins[pair.idx_1 + 2*s.nos] * s.spins[pair.idx_2] - s.spins[pair.idx_1] * s.spins[pair.idx_2 + 2*s.nos];
+			cross[2] = s.spins[pair.idx_1] * s.spins[pair.idx_2 + s.nos] - s.spins[pair.idx_1 + s.nos] * s.spins[pair.idx_2];
 		}*/
 		for (int i = 0; i < 3; ++i)
 		{
@@ -212,7 +217,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Anisotropic::E_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_BQC(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar B_ij, std::vector<scalar> & Energy)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -220,26 +225,26 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DD(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & Energy)
+	void Hamiltonian_Anisotropic::E_DD(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DD_magnitude, std::vector<scalar> & DD_normal, std::vector<scalar> & Energy)
 	{
-		//double mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
-		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-		double result = 0.0;
+		//scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		scalar result = 0.0;
 
 		Energy[ENERGY_POS_DD] -= mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0) *
-			(3  *   ( spins[indices[1]]           * DD_normal[0]
-					+ spins[indices[1] + 1 * nos] * DD_normal[1]
-					+ spins[indices[1] + 2 * nos] * DD_normal[2])
-			   	*   ( spins[indices[0]]           * DD_normal[0]
-					+ spins[indices[0] + 1 * nos] * DD_normal[1]
-					+ spins[indices[0] + 2 * nos] * DD_normal[2])
-				-   ( spins[indices[0]]           * spins[indices[1]]
-					+ spins[indices[0] + 1 * nos] * spins[indices[1] + 1 * nos]
-					+ spins[indices[0] + 2 * nos] * spins[indices[1] + 2 * nos]));
+			(3 * ( spins[indices[1]]           * DD_normal[0]
+				 + spins[indices[1] + 1 * nos] * DD_normal[1]
+				 + spins[indices[1] + 2 * nos] * DD_normal[2])
+			 *   ( spins[indices[0]]           * DD_normal[0]
+				 + spins[indices[0] + 1 * nos] * DD_normal[1]
+				 + spins[indices[0] + 2 * nos] * DD_normal[2])
+			 -   ( spins[indices[0]]           * spins[indices[1]]
+				 + spins[indices[0] + 1 * nos] * spins[indices[1] + 1 * nos]
+				 + spins[indices[0] + 2 * nos] * spins[indices[1] + 2 * nos]));
 	}// end DipoleDipole
 
 
-	void Hamiltonian_Anisotropic::Effective_Field(const std::vector<double> & spins, std::vector<double> & field)
+	void Hamiltonian_Anisotropic::Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field)
 	{
 		int nos = spins.size()/3;
 		// Loop over Spins
@@ -297,7 +302,7 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Field_Zeeman(int nos, const std::vector<double> & spins, std::vector<double> & eff_field, const int ispin)
+	void Hamiltonian_Anisotropic::Field_Zeeman(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field, const int ispin)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -305,9 +310,9 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Anisotropy(int nos, const std::vector<double> & spins, std::vector<double> & eff_field)
+	void Hamiltonian_Anisotropic::Field_Anisotropy(int nos, const std::vector<scalar> & spins, std::vector<scalar> & eff_field)
 	{
-		double t = 0;
+		scalar t = 0;
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
 			int index = this->anisotropy_index[i];
@@ -324,7 +329,7 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Exchange(int nos, const std::vector<double> & spins, std::vector<int> & indices, double J_ij, std::vector<double> & eff_field)
+	void Hamiltonian_Anisotropic::Field_Exchange(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar J_ij, std::vector<scalar> & eff_field)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
@@ -333,15 +338,18 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DMI(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DMI_magnitude, std::vector<double> & DMI_normal, std::vector<double> & eff_field)
+	void Hamiltonian_Anisotropic::Field_DMI(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DMI_magnitude, std::vector<scalar> & DMI_normal, std::vector<scalar> & eff_field)
 	{
-		std::vector<double> cross1(3), cross2(3);
+		scalar cross1[3], cross2[3];
+
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			cross1[dim] = spins[((dim + 1) % 3)*nos + indices[1]] * DMI_normal[((dim + 2) % 3)]
-				- spins[((dim + 2) % 3)*nos + indices[1]] * DMI_normal[((dim + 1) % 3)];
-			cross2[dim] = -spins[((dim + 1) % 3)*nos + indices[0]] * DMI_normal[((dim + 2) % 3)]
-				+ spins[((dim + 2) % 3)*nos + indices[0]] * DMI_normal[((dim + 1) % 3)];
+			auto dp1 = (dim + 1) % 3;
+			auto dp2 = (dim + 2) % 3;
+			cross1[dim] = spins[dp1*nos + indices[1]] * DMI_normal[dp2]
+				- spins[dp2*nos + indices[1]] * DMI_normal[dp1];
+			cross2[dim] = -spins[dp1*nos + indices[0]] * DMI_normal[dp2]
+				+ spins[dp2*nos + indices[0]] * DMI_normal[dp1];
 		}
 
 		//cross1[0] = s.spins[pair.idx_2 + s.nos] * pair.D_ij_normal[2] - s.spins[pair.idx_2 + 2*s.nos] * pair.D_ij_normal[1];
@@ -359,9 +367,9 @@ namespace Engine
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_BQC(int nos, const std::vector<double> & spins, std::vector<int> & indices, double B_ij, std::vector<double> & eff_field)
+	void Hamiltonian_Anisotropic::Field_BQC(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar B_ij, std::vector<scalar> & eff_field)
 	{
-		double ss = 0.0;
+		scalar ss = 0.0;
 		for (int i = 0; i < 3; ++i)
 		{
 			ss += spins[indices[0] + i*nos] * spins[indices[1] + i*nos];
@@ -372,13 +380,13 @@ namespace Engine
 			eff_field[indices[1] + i*nos] += 2.0 * B_ij * ss * spins[indices[0] + i*nos];
 		}
 	}
-	void Hamiltonian_Anisotropic::Field_DD(int nos, const std::vector<double> & spins, std::vector<int> & indices, double & DD_magnitude, std::vector<double> & DD_normal, std::vector<double> & eff_field)
+	void Hamiltonian_Anisotropic::Field_DD(int nos, const std::vector<scalar> & spins, std::vector<int> & indices, scalar & DD_magnitude, std::vector<scalar> & DD_normal, std::vector<scalar> & eff_field)
 	{
 		int dim;
-		//double mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
-		double mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-		double skalar_contrib, dotprod1, dotprod0;
-		
+		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		scalar skalar_contrib, dotprod1, dotprod0;
+
 		skalar_contrib = mult * this->mu_s[indices[0]] * this->mu_s[indices[1]] / std::pow(DD_magnitude, 3.0);
 		dotprod1 = spins[indices[1]] * DD_normal[0]
 			+ spins[1 * nos + indices[1]] * DD_normal[1]
@@ -393,7 +401,7 @@ namespace Engine
 		}
 	}//end Field_DipoleDipole
 
-	void Hamiltonian_Anisotropic::Hessian(const std::vector<double> & spins, std::vector<double> & hessian)
+	void Hamiltonian_Anisotropic::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
 	{
 		int nos = spins.size() / 3;
 
@@ -406,7 +414,7 @@ namespace Engine
 			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
 			{
 				int idx = anisotropy_index[i];
-				double x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
+				scalar x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
 				hessian[idx + alpha*nos + 3 * nos*(idx + alpha*nos)] += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
 			}
 		}
@@ -467,7 +475,7 @@ namespace Engine
 					int idx_1 = DD_indices[i_periodicity][i_pair][0];
 					int idx_2 = DD_indices[i_periodicity][i_pair][1];
 					// prefactor
-					double prefactor = 0.0536814951168
+					scalar prefactor = 0.0536814951168
 						* this->mu_s[idx_1] * this->mu_s[idx_2]
 						/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
 					// components

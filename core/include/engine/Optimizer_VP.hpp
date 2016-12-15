@@ -2,6 +2,7 @@
 #ifndef Optimizer_VP_H
 #define Optimizer_VP_H
 
+#include "Core_Defines.h"
 #include "Optimizer.hpp"
 
 namespace Engine
@@ -22,20 +23,20 @@ namespace Engine
 
 	private:
 		// "Mass of our particle" which we accelerate
-		double m = 1.0;
+		scalar m = 1.0;
 
 		// Temporary Spins arrays
-		std::vector<std::vector<double>> spins_temp;
+		std::vector<std::vector<scalar>> spins_temp;
 		// Force in previous step [noi][3nos]
-		std::vector<std::vector<double>> force_previous;
+		std::vector<std::vector<scalar>> force_previous;
 		// Velocity in previous step [noi][3nos]
-		std::vector<std::vector<double>> velocity_previous;
+		std::vector<std::vector<scalar>> velocity_previous;
 		// Velocity used in the Steps [noi][3nos]
-		std::vector<std::vector<double>> velocity;
+		std::vector<std::vector<scalar>> velocity;
 		// Projection of velocities onto the forces [noi]
-		std::vector<double> projection;
+		std::vector<scalar> projection;
 		// |force|^2
-		std::vector<double> force_norm2;
+		std::vector<scalar> force_norm2;
     };
 }
 

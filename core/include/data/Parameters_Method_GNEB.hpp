@@ -5,6 +5,7 @@
 #include <random>
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Parameters_Method.hpp"
 
 namespace Data
@@ -14,10 +15,10 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method_GNEB(std::string output_folder, double force_convergence, long int n_iterations, long int n_iterations_log, double spring_constant, int n_E_interpolations);
+		Parameters_Method_GNEB(std::string output_folder, scalar force_convergence, long int n_iterations, long int n_iterations_log, scalar spring_constant, int n_E_interpolations);
 
 		// Strength of springs between images
-		double spring_constant;
+		scalar spring_constant;
 
 		// Number of Energy interpolations between Images
 		int n_E_interpolations;

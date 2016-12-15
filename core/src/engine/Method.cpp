@@ -11,7 +11,7 @@ namespace Engine
 		this->force_maxAbsComponent = parameters->force_convergence + 1.0;
     }
 
-    void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces)
+    void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces)
     {
 
     }
@@ -62,13 +62,13 @@ namespace Engine
     }
 
     // Return the maximum of absolute values of force components for an image
-    double  Method::Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force)
+    scalar  Method::Force_on_Image_MaxAbsComponent(const std::vector<scalar> & image, std::vector<scalar> force)
     {
         int nos = image.size()/3;
         // We project the force orthogonal to the SPIN
         //Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
         // Get the scalar product of the vectors
-        double v1v2 = 0.0;
+        scalar v1v2 = 0.0;
         int dim;
         // Take out component in direction of v2
         for (int i = 0; i < nos; ++i)
@@ -85,7 +85,7 @@ namespace Engine
         }
 
         // We want the Maximum of Absolute Values of all force components on all images
-        double absmax = 0;
+        scalar absmax = 0;
         // Find minimum and maximum values
         auto minmax = std::minmax_element(force.begin(), force.end());
         // Mamimum of absolute values

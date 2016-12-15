@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Optimizer.hpp"
 #include "Spin_System_Chain.hpp"
 
@@ -29,18 +30,18 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<double>> spins_temp;
+		std::vector<std::vector<scalar>> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
-		std::vector<std::vector<double>> virtualforce;
+		std::vector<std::vector<scalar>> virtualforce;
 
 		// TODO: THE HEUN METHOD CAN BE REWRITTEN TO BE NICER:
 		//// Calculate the virtual Heun force to be used in the Steps
-		//void VirtualForce(const int nos, std::vector<double> & spins, std::vector<double> & beff, double dt, std::vector<double> & force);
+		//void VirtualForce(const int nos, std::vector<scalar> & spins, std::vector<scalar> & beff, scalar dt, std::vector<scalar> & force);
 		//// First Part of one Optimization step
-		//void FirstStep(const int nos, std::vector<double> & spins, double dt, std::vector<double> & force, std::vector<double> & spins_temp);
+		//void FirstStep(const int nos, std::vector<scalar> & spins, scalar dt, std::vector<scalar> & force, std::vector<scalar> & spins_temp);
 		//// Second Part of one Optimization step
-		//void SecondStep(const int nos, std::vector<double> & spins, double dt, std::vector<double> & force);
+		//void SecondStep(const int nos, std::vector<scalar> & spins, scalar dt, std::vector<scalar> & force);
     };
 }
 

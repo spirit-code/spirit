@@ -27,7 +27,7 @@ core.js.mem
 
 ### Generated Files
 VERSION.txt
-Version.h
+Core_Defines.h
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

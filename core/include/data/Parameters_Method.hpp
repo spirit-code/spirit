@@ -2,6 +2,8 @@
 #ifndef DATA_PARAMETERS_METHOD_H
 #define DATA_PARAMETERS_METHOD_H
 
+#include "Core_Defines.h"
+
 #include <string>
 
 namespace Data
@@ -11,13 +13,13 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, double force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method(std::string output_folder, scalar force_convergence, long int n_iterations, long int n_iterations_log);
 
 		// Data output folder
 		std::string output_folder;
 
 		// Force convergence criterium
-		double force_convergence;
+		scalar force_convergence;
 
 		// Number of iterations carried out when pressing "play" or calling "iterate"
 		long int n_iterations;

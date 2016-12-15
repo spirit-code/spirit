@@ -17,11 +17,10 @@ int main(int argc, char ** argv)
 	// const char * cfgfile = "markus.cfg";
 	// const char * cfgfile = "input/markus-paper.cfg";
 	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
-	const char * cfgfile = "input/example-hopfion-anisotropic.cfg";
-	// const char * cfgfile = "input/example-hopfion-isotropic.cfg";
+	const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
 	// const char * cfgfile = "input/kagome-spin-ice.cfg";
-	// const char * cfgfile = "input/example-gaussian.cfg";
+	// const char * cfgfile = "input/gaussian/example-1.cfg";
+	// const char * cfgfile = "input/gaussian/gideon-paper.cfg";
 	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
@@ -42,8 +41,8 @@ int main(int argc, char ** argv)
 	
 	//----------------------- spin_system_chain -------------------------------------
 	// Parameters
-	double dir[3] = { 0,0,1 };
-	double pos[3] = { 0,0,0 };
+	float dir[3] = { 0,0,1 };
+	float pos[3] = { 0,0,0 };
 
 	// Read Image from file
 	//Configuration_from_File(state.get(), spinsfile, 0);

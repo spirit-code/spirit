@@ -2,9 +2,9 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
+#include "Core_Defines.h"
 #include "Spin_System.hpp"
 #include "Method.hpp"
-// #include "Parameters_Method.hpp"
 #include "Logging.hpp"
 
 #include <vector>
@@ -34,7 +34,7 @@ namespace Engine
 		virtual void Iterate() final;
 
 		// Calculate a smooth but current IPS value
-		virtual double getIterationsPerSecond() final;
+		virtual scalar getIterationsPerSecond() final;
 
 		// Optimizer name as string
 		virtual std::string Name();
@@ -56,14 +56,14 @@ namespace Engine
 		int n_log;
 
 		// Pointers to Configurations
-		std::vector<std::shared_ptr<std::vector<double>>> configurations;
+		std::vector<std::shared_ptr<std::vector<scalar>>> configurations;
 		// Actual Forces on the configurations
-		std::vector<std::vector<double>> force;
+		std::vector<std::vector<scalar>> force;
 
 		// The time at which this Solver's Iterate() was last called
 		std::string starttime;
 		// Timings and Iterations per Second
-		double ips;
+		scalar ips;
 		std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
 
 		// Check if a stop file is present -> Stop the iterations

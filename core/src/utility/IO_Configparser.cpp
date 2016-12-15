@@ -79,16 +79,16 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<std::vector<double>> & basis, std::vector<std::vector<double>> & basis_atoms,
+		void Basis_from_Config(const std::string configFile, std::vector<std::vector<scalar>> & basis, std::vector<std::vector<scalar>> & basis_atoms,
 			int & no_spins_basic_domain)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
-			double lattice_constant = 1.0;
+			scalar lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
-			basis = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
+			basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			basis_atoms = { std::vector<double>{0}, std::vector<double>{0}, std::vector<double>{0} };
+			basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			no_spins_basic_domain = basis_atoms[0].size();
 			
@@ -102,7 +102,7 @@ namespace Utility
 					myfile.Read_Single(lattice_constant, "lattice_constant");
 
 					// Utility 1D array to build vectors and use Vectormath
-					std::vector<double> build_array = { 0, 0, 0 };
+					std::vector<scalar> build_array = { 0, 0, 0 };
 
 					if (myfile.Find("basis"))
 					{
@@ -117,7 +117,7 @@ namespace Utility
 						// Read no_spins_basic_domain and atoms in basis
 						myfile.GetLine();
 						myfile.iss >> no_spins_basic_domain;
-						basis_atoms = std::vector<std::vector<double>>(3, std::vector<double>(no_spins_basic_domain));
+						basis_atoms = std::vector<std::vector<scalar>>(3, std::vector<scalar>(no_spins_basic_domain));
 
 						// Read spins per basic domain
 						for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
@@ -172,21 +172,21 @@ namespace Utility
 			// Basis from separate file?
 			std::string basis_file = "";
 			// Basis: vector {a, b, c}
-			std::vector<std::vector<double>> basis = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
+			std::vector<std::vector<scalar>> basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			std::vector<std::vector<double>> basis_atoms = { std::vector<double>{0}, std::vector<double>{0}, std::vector<double>{0} };
+			std::vector<std::vector<scalar>> basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			int no_spins_basic_domain = basis_atoms[0].size();
 			// Translation vectors [dim][nov]
-			std::vector<std::vector<double>> translation_vectors = { std::vector<double>{1,0,0}, std::vector<double>{0,1,0}, std::vector<double>{0,0,1} };
+			std::vector<std::vector<scalar>> translation_vectors = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
 			// Number of translations nT for each basis direction
 			std::vector<int> n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
-			std::vector<double> spin_pos;
+			std::vector<scalar> spin_pos;
 
 			// Utility 1D array to build vectors and use Vectormath
-			std::vector<double> build_array = { 0, 0, 0 };
+			std::vector<scalar> build_array = { 0, 0, 0 };
 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: building");
 			//------------------------------- Parser --------------------------------
@@ -256,7 +256,7 @@ namespace Utility
 			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
-			spin_pos = std::vector<double>(3*nos);
+			spin_pos = std::vector<scalar>(3*nos);
 			Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters
@@ -272,6 +272,7 @@ namespace Utility
 
 			// Return geometry
 			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
 		}// end Geometry from Config
@@ -288,21 +289,21 @@ namespace Utility
 			// Number of iterations after which the system is logged to file
 			int n_iterations_log = 100;
 			// Temperature in K
-			double temperature = 0.0;
+			scalar temperature = 0.0;
 			// Damping constant
-			double damping = 0.5;
+			scalar damping = 0.5;
 			// iteration time step
-			double dt = 1.0E-02;
+			scalar dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
 			// Whether to save a single "spins"
 			bool save_single_configurations = true;
 			// spin transfer torque vector
-			double stt_magnitude = 1.5;
+			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
-			std::vector<double> stt_polarisation_normal = { 1.0, -1.0, 0.0 };
+			std::vector<scalar> stt_polarisation_normal = { 1.0, -1.0, 0.0 };
 			// Force convergence parameter
-			double force_convergence = 10e-9;
+			scalar force_convergence = 10e-9;
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: building");
@@ -359,9 +360,9 @@ namespace Utility
 			// Output folder for results
 			std::string output_folder = "output_gneb";
 			// Spring constant
-			double spring_constant = 1.0;
+			scalar spring_constant = 1.0;
 			// Force convergence parameter
-			double force_convergence = 10e-9;
+			scalar force_convergence = 10e-9;
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
 			// Number of iterations after which the system is logged to file
@@ -411,7 +412,7 @@ namespace Utility
 			// Output folder for results
 			std::string output_folder = "output_mmf";
 			// Force convergence parameter
-			double force_convergence = 10e-9;
+			scalar force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
 			// Number of iterations after which the system is logged to file
@@ -510,28 +511,28 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Magnetic field magnitude
-			double external_field_magnitude = 25.0;
+			scalar external_field_magnitude = 25.0;
 			// Magnetic field vector
-			std::vector<double> external_field_normal = { 0.0, 0.0, 1.0 };
+			std::vector<scalar> external_field_normal = { 0.0, 0.0, 1.0 };
 			// mu_spin
-			double mu_s = 2.0;
+			scalar mu_s = 2.0;
 			// Anisotropy constant
-			double anisotropy_magnitude = 0.0;
+			scalar anisotropy_magnitude = 0.0;
 			// Anisotropy vector
-			std::vector<double> anisotropy_normal = { 0.0, 0.0, 1.0 };
+			std::vector<scalar> anisotropy_normal = { 0.0, 0.0, 1.0 };
 
 			// Number of shells in which we calculate neighbours
 			int n_neigh_shells = 4;
 			// Jij
-			std::vector<double> jij = { 10.0, 0.0, 0.0, 0.0 };
+			std::vector<scalar> jij = { 10.0, 0.0, 0.0, 0.0 };
 			// DM constant
-			double dij = 6.0;
+			scalar dij = 6.0;
 			// Biquidratic exchange constant
-			double bij = 0.0;
+			scalar bij = 0.0;
 			// 4 Spin Interaction constant
-			double kijkl = 0.0;
+			scalar kijkl = 0.0;
 			// Dipole-Dipole interaction radius
-			double dd_radius = 0.0;
+			scalar dd_radius = 0.0;
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Isotropic: building");
@@ -554,7 +555,7 @@ namespace Utility
 					myfile.Read_3Vector(anisotropy_normal, "anisotropy_normal");
 					myfile.Read_Single(n_neigh_shells, "n_neigh_shells");
 
-					jij = std::vector<double>(n_neigh_shells);
+					jij = std::vector<scalar>(n_neigh_shells);
 					if (myfile.Find("jij"))
 					{
 						for (iatom = 0; iatom < n_neigh_shells; ++iatom) {
@@ -608,33 +609,33 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Spin moment
-			std::vector<double> mu_s = std::vector<double>(geometry.nos, 2.0);	// [nos]
+			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2.0);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
-			double B = 0;
-			std::vector<double> B_normal = { 0.0, 0.0, 1.0 };
-			std::vector<double> external_field_magnitude = std::vector<double>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> external_field_normal(3, std::vector<double>(geometry.nos, 0.0));	// [3][nos]
+			scalar B = 0;
+			std::vector<scalar> B_normal = { 0.0, 0.0, 1.0 };
+			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0.0);	// [nos]
+			std::vector<std::vector<scalar>> external_field_normal(3, std::vector<scalar>(geometry.nos, 0.0));	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
-			double K = 0;
-			std::vector<double> K_normal = { 0.0, 0.0, 1.0 };
+			scalar K = 0;
+			std::vector<scalar> K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
-			std::vector<double> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<double>> anisotropy_normal(geometry.nos, { 0.0, 0.0, 1.0 });	// [nos][3]
+			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
+			std::vector<std::vector<scalar>> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
 			// ------------ Two Spin Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
-			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<double>> Exchange_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<double>> DMI_magnitude(8); std::vector<std::vector<std::vector<double>>> DMI_normal(8);
-			std::vector<std::vector<std::vector<int>>> BQC_indices(8); std::vector<std::vector<double>> BQC_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<double>> DD_magnitude(8); std::vector<std::vector<std::vector<double>>> DD_normal(8);
+			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
+			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DMI_normal(8);
+			std::vector<std::vector<std::vector<int>>> BQC_indices(8); std::vector<std::vector<scalar>> BQC_magnitude(8);
+			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DD_normal(8);
 
-			double dd_radius = 0.0;
+			scalar dd_radius = 0.0;
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: building");
@@ -652,7 +653,7 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					// Spin moment
-					mu_s = std::vector<double>(geometry.nos, 2.0);
+					mu_s = std::vector<scalar>(geometry.nos, 2.0);
 					if (myfile.Find("mu_s"))
 					{
 						for (iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
@@ -741,11 +742,11 @@ namespace Utility
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 					// std::vector<std::vector<int>> dd_neigh;
 					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
-					// std::vector<std::vector<std::vector<double>>> dd_neigh_pos;
+					// std::vector<std::vector<std::vector<scalar>>> dd_neigh_pos;
 					// // Dipole Dipole normal vectors [dim][nos][max_n]
-					// std::vector<std::vector<std::vector<double>>> dd_normal;
+					// std::vector<std::vector<std::vector<scalar>>> dd_normal;
 					// // Dipole Dipole distance [nos][max_n]
-					// std::vector<std::vector<double>> dd_distance;
+					// std::vector<std::vector<scalar>> dd_distance;
 					// // Create the DD neighbours
 					// Engine::Neighbours::Create_Dipole_Neighbours(geometry, std::vector<bool>{ true, true, true }, dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
 					// // Get the DD pairs from the neighbours
@@ -795,11 +796,11 @@ namespace Utility
 			// Number of Gaussians
 			int n_gaussians = 1;
 			// Amplitudes
-			std::vector<double> amplitude = { 1 };
+			std::vector<scalar> amplitude = { 1 };
 			// Widths
-			std::vector<double> width = { 1 };
+			std::vector<scalar> width = { 1 };
 			// Centers
-			std::vector<std::vector<double>> center = { std::vector<double>{ 0, 0, 1 } };
+			std::vector<std::vector<scalar>> center = { std::vector<scalar>{ 0, 0, 1 } };
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
@@ -813,9 +814,9 @@ namespace Utility
 					myfile.Read_Single(n_gaussians, "n_gaussians");
 
 					// Allocate arrays
-					amplitude = std::vector<double>(n_gaussians, 1.0);
-					width = std::vector<double>(n_gaussians, 1.0);
-					center = std::vector<std::vector<double>>(n_gaussians, std::vector<double>{0, 0, 1});
+					amplitude = std::vector<scalar>(n_gaussians, 1.0);
+					width = std::vector<scalar>(n_gaussians, 1.0);
+					center = std::vector<std::vector<scalar>>(n_gaussians, std::vector<scalar>{0, 0, 1});
 					// Read arrays
 					if (myfile.Find("gaussians"))
 					{

@@ -211,8 +211,22 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			return;
 		}
 
-        // TODO: how to add to list of optimizers?? how to remove when stopping??
-        // state->optimizers.push_back(optim);
+		// Create Simulation Information
+		auto info = std::shared_ptr<Simulation_Information>(new Simulation_Information{ optim, method } );
+
+        // Add to correct list
+		if (method_type == "LLG")
+		{
+			state->simulation_information_llg[idx_chain][idx_image] = info;
+		}
+		else if (method_type == "GNEB")
+		{
+			state->simulation_information_gneb[idx_chain] = info;
+		}
+		else if (method_type == "MMF")
+		{
+			state->simulation_information_mmf = info;
+		}
 
         // Start the simulation
         optim->Iterate();
@@ -242,36 +256,32 @@ void Simulation_Stop_All(State *state)
     }
 }
 
-// TODO: how to do this correctly??
-std::vector<double> Simulation_Get_IterationsPerSecond(State *state)
-{
-	std::vector<double> ret;
 
-    // TODO: loop over all chains
+float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
+{
+	// Fetch correct indices and pointers for image and chain
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	
     if (Simulation_Running_LLG(state))
 	{
-        // ret.push_back(state->optimizers[state->active_chain]->getIterationsPerSecond());
+		if (state->simulation_information_llg[idx_chain][idx_image])
+			return (float)state->simulation_information_llg[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
 	}
 	else if (Simulation_Running_GNEB(state))
     {
-        
+		if (state->simulation_information_gneb[idx_chain])
+			return (float)state->simulation_information_gneb[idx_chain]->optimizer->getIterationsPerSecond();
     }
-	else if (Simulation_Running_GNEB(state))
+	else if (Simulation_Running_MMF(state))
     {
-
+		if (state->simulation_information_mmf)
+			return (float)state->simulation_information_mmf->optimizer->getIterationsPerSecond();
     }
-	// {
-	// 	for (unsigned int i = 0; i < this->llg_methods.size(); ++i)
-	// 	{
-	// 		if (state->active_chain->images[i]->iteration_allowed)
-	// 		{
-	// 			// TODO:
-	// 			// ret.push_back(this->llg_methods[state->active_chain->images[i]]->getIterationsPerSecond());
-	// 		}
-	// 	}
-	// }
 
-	return ret;
+	return 0;
 }
 
 bool Simulation_Running_Any_Anywhere(State *state)

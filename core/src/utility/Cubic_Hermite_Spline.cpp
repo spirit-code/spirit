@@ -6,12 +6,12 @@ namespace Utility
 	namespace Cubic_Hermite_Spline
 	{
 		// see http://de.wikipedia.org/wiki/Kubisch_Hermitescher_Spline
-		std::vector<std::vector<double>> Interpolate(std::vector<double> x, std::vector<double> p, std::vector<double> m, int n_interpolations)
+		std::vector<std::vector<scalar>> Interpolate(std::vector<scalar> x, std::vector<scalar> p, std::vector<scalar> m, int n_interpolations)
 		{
-			double x0, x1, p0, p1, m0, m1, t, h00, h10, h01, h11;
+			scalar x0, x1, p0, p1, m0, m1, t, h00, h10, h01, h11;
 			int idx;
 
-			std::vector<std::vector<double>> result(2, std::vector<double>((p.size()-1)*n_interpolations));
+			std::vector<std::vector<scalar>> result(2, std::vector<scalar>((p.size()-1)*n_interpolations));
 
 			for (unsigned int i = 0; i < p.size()-1; ++i)
 			{
@@ -24,7 +24,7 @@ namespace Utility
 				
 				for (int j = 0; j < n_interpolations; ++j)
 				{
-					t = j / (double)n_interpolations;
+					t = j / (scalar)n_interpolations;
 					h00 = 2*std::pow(t,3) - 3 * std::pow(t,2) + 1;
 					h10 = -2 * std::pow(t, 3) + 3 * std::pow(t, 2);
 					h01 = std::pow(t, 3) - 2 * std::pow(t, 2) + t;

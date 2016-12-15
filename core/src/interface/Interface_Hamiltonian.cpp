@@ -66,7 +66,11 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
                 ham->external_field_normal[2] = 1.0;
                 Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
             }
-            else { throw(ex); }
+            else
+            {
+                Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
+                exit(0);
+            }
         }
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
@@ -122,7 +126,11 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
                 ham->anisotropy_normal[2] = 1.0;
                 Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
             }
-            else { throw(ex); }
+            else
+            {
+                Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
+                exit(0);
+            }
         }
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
@@ -207,7 +215,11 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
             image->llg_parameters->stt_polarisation_normal[2] = 1.0;
             Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
         }
-        else { throw(ex); }
+        else
+        {
+            Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
+            exit(0);
+        }
     }
 }
 

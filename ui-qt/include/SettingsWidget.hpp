@@ -17,7 +17,7 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 
 public:
 	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
-	void update();
+	void updateData();
 	void SelectTab(int index);
 
 	std::shared_ptr<State> state;
@@ -40,6 +40,8 @@ private:
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;
 	QRegularExpressionValidator * number_validator_unsigned;
+	QRegularExpressionValidator * number_validator_int;
+	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
 
 private slots:
@@ -55,7 +57,32 @@ private slots:
 	void set_hamiltonian_aniso_stt();
 	void set_hamiltonian_aniso_temp();
 	// Visualization
-	void set_visualization();
+	void set_visualization_mode();
+	void set_visualization_perspective();
+	void set_visualization_miniview();
+	void set_visualization_coordinatesystem();
+	void set_visualization_system();
+	// TODO: replace
+		void set_visualization_zrange();
+		void set_visualization_isovalue_fromslider();
+		void set_visualization_isovalue_fromlineedit();
+	//////
+	void set_visualization_system_arrows();
+	void set_visualization_system_boundingbox();
+	void set_visualization_system_surface();
+	void set_visualization_system_isosurface();
+	void set_visualization_sphere();
+	void set_visualization_sphere_pointsize();
+	void set_visualization_colormap();
+	void set_visualization_background();
+
+	// Visualisation - Camera
+	void set_camera();
+	void read_camera();
+	void set_camera_position();
+	void set_camera_focus();
+	void set_camera_upvector();
+
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();

@@ -48,7 +48,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	### Message
 	MESSAGE( STATUS ">> Chose compiler:                gcc" )
 	### Compiler Flags
-	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 -DEIGEN_NO_DEBUG" )
+	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -DEIGEN_NO_DEBUG" )
 	### Linker Flags
 	if (APPLE)
 		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -Wl,-no_compact_unwind -pthread" )
@@ -83,6 +83,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	### Message
 	MESSAGE( STATUS ">> Chose compiler:                MSVC" )
 	### Compiler Flags
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX" )
 	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2")
 ######################################################################
 

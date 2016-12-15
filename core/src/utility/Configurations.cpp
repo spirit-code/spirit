@@ -18,7 +18,7 @@ namespace Utility
 {
 	namespace Configurations
 	{
-		void DomainWall(Data::Spin_System & s, const std::vector<double> pos, std::vector<double> v, bool greater)
+		void DomainWall(Data::Spin_System & s, const std::vector<scalar> pos, std::vector<scalar> v, bool greater)
 		{
 			try {
 				Vectormath::Normalize(v);				// try normalizing v
@@ -65,21 +65,21 @@ namespace Utility
 
 		}//endfor DomainWall
 
-		void Homogeneous(Data::Spin_System & s, std::vector<double> v)
+		void Homogeneous(Data::Spin_System & s, std::vector<scalar> v)
 		{
-			std::vector<double> pos{ -1.0E+20, -1.0E+20, -1.0E+20 };
+			std::vector<scalar> pos{ -1.0E+10, -1.0E+10, -1.0E+10 };
 			DomainWall(s, pos, v, true);
 		}//endfor Homogeneous
 
 		void PlusZ(Data::Spin_System & s)
 		{
-			std::vector<double> v { 0.0 , 0.0, 1.0 };
+			std::vector<scalar> v { 0.0 , 0.0, 1.0 };
 			Homogeneous(s, v);
 		}//endfor PlusZ
 
 		void MinusZ(Data::Spin_System & s)
 		{
-			std::vector<double> v { 0.0 , 0.0, -1.0 };
+			std::vector<scalar> v { 0.0 , 0.0, -1.0 };
 			Homogeneous(s, v);
 		}//endfor MinusZ
 
@@ -101,7 +101,7 @@ namespace Utility
 		void Random(Data::Spin_System & s, int no, std::mt19937 & prng)
 		{
 			auto& spins = *s.spins;
-			std::vector<double> v = { 0.0, 0.0, 0.0 };			// declare v= 0,0,0
+			std::vector<scalar> v = { 0.0, 0.0, 0.0 };			// declare v= 0,0,0
 			while (true) {
 				for (int dim = 0; dim < 3; ++dim) {		// use spin_system's PRNG
 					v[dim] = s.llg_parameters->distribution_minus_plus_one(prng);		// roll random for v in 3 dimensions
@@ -120,11 +120,11 @@ namespace Utility
 		}// end Random
 
 
-		void Add_Noise_Temperature(Data::Spin_System & s, double temperature, int delta_seed)
+		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed)
 		{
 			if (temperature == 0.0) return;
 
-			std::vector<double> v = { 0.0, 0.0, 0.0 };
+			std::vector<scalar> v = { 0.0, 0.0, 0.0 };
 			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Vectormath::kB());
 			
 			std::mt19937 * prng;
@@ -141,7 +141,7 @@ namespace Utility
 					}
 					try
 					{
-						double l = Vectormath::Length(v);
+						scalar l = Vectormath::Length(v);
 						//Vectormath::Normalize(v);			// try normalizing v
 						for (int dim = 0; dim < 3; ++dim)
 						{
@@ -158,7 +158,7 @@ namespace Utility
 			Vectormath::Normalize_3Nos(*s.spins);
 		}
 
-		void Hopfion(Data::Spin_System & s, std::vector<double> pos, double r)
+		void Hopfion(Data::Spin_System & s, std::vector<scalar> pos, scalar r, int order)
 		{
 			using std::pow;
 			using std::sqrt;
@@ -171,18 +171,18 @@ namespace Utility
 			// pos=(0,0,0) is the center of the system
 			for (int i = 0; i<3; ++i) pos[i] += s.geometry->center[i];
 
-			const double* px = s.geometry->spin_pos.data();
-			const double* py = s.geometry->spin_pos.data()+s.nos;
-			const double* pz = s.geometry->spin_pos.data()+2*s.nos;
+			const scalar* px = s.geometry->spin_pos.data();
+			const scalar* py = s.geometry->spin_pos.data()+s.nos;
+			const scalar* pz = s.geometry->spin_pos.data()+2*s.nos;
 
-			double* Sx = s.spins->data();
-			double* Sy = s.spins->data() + s.nos;
-			double* Sz = s.spins->data() + 2 * s.nos;
+			scalar* Sx = s.spins->data();
+			scalar* Sy = s.spins->data() + s.nos;
+			scalar* Sz = s.spins->data() + 2 * s.nos;
 
 			if (r != 0.0)
 			{
-				double tmp;
-				double d, T, t, F, f;
+				scalar tmp;
+				scalar d, T, t, F, f;
 				for (int n = 0; n<s.nos; n++)
 				{
 					// Distance of spin from center
@@ -212,15 +212,15 @@ namespace Utility
 							f = F + atan(1.0 / (tan(tmp)*cos(T))) + M_PI;
 						}
 						// Spin orientation
-						Sx[n] = sin(t)*cos(f);
-						Sy[n] = sin(t)*sin(f);
+						Sx[n] = sin(t)*cos(order * f);
+						Sy[n] = sin(t)*sin(order * f);
 						Sz[n] = cos(t);
 					}
 				}
 			}
 		}
 
-		void Skyrmion(Data::Spin_System & s, std::vector<double> pos, double r, double order, double phase, bool upDown, bool achiral, bool rl, bool experimental)
+		void Skyrmion(Data::Spin_System & s, std::vector<scalar> pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, bool experimental)
 		{
 			// pos=(0,0,0) is the center of the system
 			for (int i=0; i<3; ++i) pos[i] += s.geometry->center[i];
@@ -228,10 +228,10 @@ namespace Utility
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 			auto& spins = *s.spins;
 			// skaled to fit with 
-			double r_new = r;
+			scalar r_new = r;
 			if (experimental) { r_new = r*1.2; }
 			int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
-			double distance, phi_i, theta_i;
+			scalar distance, phi_i, theta_i;
 			for (iatom = 0; iatom < s.nos; ++iatom) {
 				distance = std::sqrt(std::pow(s.geometry->spin_pos[0 * s.geometry->nos + iatom] - pos[0], 2) + std::pow(s.geometry->spin_pos[1 * s.geometry->nos + iatom] - pos[1], 2));
 				distance = distance / r_new;
@@ -252,11 +252,11 @@ namespace Utility
 		}
 		// end Skyrmion
 
-		void SpinSpiral(Data::Spin_System & s, std::string direction_type, std::vector<double> q, std::vector<double> axis, double theta)
+		void SpinSpiral(Data::Spin_System & s, std::string direction_type, std::vector<scalar> q, std::vector<scalar> axis, scalar theta)
 		{
-			double phase;
-			std::vector<double> vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0, 0, 1 };
-			std::vector<double> e1(3), e2(3);
+			scalar phase;
+			std::vector<scalar> vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0, 0, 1 };
+			std::vector<scalar> e1(3), e2(3);
 			
 			// -------------------- Preparation --------------------
 			Vectormath::Normalize(axis);
@@ -309,19 +309,19 @@ namespace Utility
 			{
 				q[dim] = q[dim] * 2.0 * M_PI;
 			}
-			double qnorm = std::sqrt(std::pow(q[0], 2) + std::pow(q[1], 2) + std::pow(q[2], 2));
-			double axnorm = std::sqrt(std::pow(axis[0],2) + std::pow(axis[1], 2) + std::pow(axis[2], 2));
+			scalar qnorm = std::sqrt(std::pow(q[0], 2) + std::pow(q[1], 2) + std::pow(q[2], 2));
+			scalar axnorm = std::sqrt(std::pow(axis[0],2) + std::pow(axis[1], 2) + std::pow(axis[2], 2));
 			for (int dim = 0; dim < 3; ++dim)
 			{
 				axis[dim] = axis[dim] / axnorm;
 			}
 
 			// Grahm-Schmidt orthogonalization: two vectors orthogonal to an axis
-			double v1[3], v2[3];
+			scalar v1[3], v2[3];
 			//u1 = axis
 			//u2 = v1 = vx - vx*axis/|axis|^2 * axis
 			//u3 = v2 = vy - vy*axis/|axis|^2 * axis - vy*v1/|v1|^2 * v1
-			double proj1 = 0, proj2 = 0, proj3 = 0, proj1a=0, proj2a=0, proj3a=0, proj1b=0, proj2b=0, proj3b=0;
+			scalar proj1 = 0, proj2 = 0, proj3 = 0, proj1a=0, proj2a=0, proj3a=0, proj1b=0, proj2b=0, proj3b=0;
 			// Projections
 			for (int dim = 0; dim < 3; ++dim)
 			{
@@ -370,7 +370,7 @@ namespace Utility
 					//phase = phase / 180.0 * M_PI;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
-					double norms = 0.0;
+					scalar norms = 0.0;
 					for (int dim = 0; dim < 3; ++dim)
 					{
 						spins[dim * s.nos + iatom] = axis[dim] * std::cos(theta)
@@ -403,12 +403,12 @@ namespace Utility
 			}
 		}
 
-		//void SpinSpiral(Data::Spin_System & s, std::string direction_type, double q[3], double axis[3], double theta)
+		//void SpinSpiral(Data::Spin_System & s, std::string direction_type, scalar q[3], scalar axis[3], scalar theta)
 		//{
-		//	double gamma, rho, r1[3], r2[3], r3[3];
+		//	scalar gamma, rho, r1[3], r2[3], r3[3];
 
-		//	double cross[3];
-		//	double sabs;
+		//	scalar cross[3];
+		//	scalar sabs;
 
 		//	if (direction_type == "Real Lattice")
 		//	{

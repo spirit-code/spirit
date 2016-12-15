@@ -8,6 +8,7 @@
 #include "Interface_Transitions.h"
 #include "Interface_Log.h"
 #include "Interface_System.h"
+#include "Interface_Geometry.h"
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Hamiltonian.h"
@@ -40,6 +41,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->number_validator = new QRegularExpressionValidator(re);
 	QRegularExpression re2("[\\d]*[\\.]?[\\d]*");
 	this->number_validator_unsigned = new QRegularExpressionValidator(re2);
+	QRegularExpression re3("[+|-]?[\\d]*");
+	this->number_validator_int = new QRegularExpressionValidator(re3);
+	QRegularExpression re4("[\\d]*");
+	this->number_validator_int_unsigned = new QRegularExpressionValidator(re4);
 	// Setup the validators for the various input fields
 	this->Setup_Input_Validators();
 
@@ -61,7 +66,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	}
 
 	// Load information from Spin Systems
-	this->update();
+	this->updateData();
+	//this->set_visualization_mode();
 
 	// Connect slots
 	this->Setup_Configurations_Slots();
@@ -72,7 +78,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->Setup_Visualization_Slots();
 }
 
-void SettingsWidget::update()
+void SettingsWidget::updateData()
 {
 	// Load Hamiltonian Contents
 	std::string H_name = Hamiltonian_Get_Name(state.get());
@@ -96,7 +102,7 @@ void SettingsWidget::randomPressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::addNoisePressed()
 {
@@ -104,7 +110,7 @@ void SettingsWidget::addNoisePressed()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::minusZ()
 {
@@ -113,7 +119,7 @@ void SettingsWidget::minusZ()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 void SettingsWidget::plusZ()
 {
@@ -122,55 +128,56 @@ void SettingsWidget::plusZ()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
-	double r = lineEdit_hopf_r->text().toDouble();
-	std::vector<double> pos =
+	float r = lineEdit_hopf_r->text().toFloat();
+	int order = lineEdit_hopfion_order->text().toInt();
+	std::vector<float> pos =
 	{
-		lineEdit_hopf_posx->text().toDouble(),
-		lineEdit_hopf_posy->text().toDouble(),
-		lineEdit_hopf_posz->text().toDouble()
+		lineEdit_hopf_posx->text().toFloat(),
+		lineEdit_hopf_posy->text().toFloat(),
+		lineEdit_hopf_posz->text().toFloat()
 	};
-	Configuration_Hopfion(this->state.get(), pos.data(), r);
+	Configuration_Hopfion(this->state.get(), pos.data(), r, order);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
-	double speed = lineEdit_sky_order->text().toDouble();
-	double phase = lineEdit_sky_phase->text().toDouble();
+	float speed = lineEdit_sky_order->text().toFloat();
+	float phase = lineEdit_sky_phase->text().toFloat();
 	bool upDown = checkBox_sky_UpDown->isChecked();
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
 	bool experimental = checkBox_sky_experimental->isChecked();
-	std::vector<double> pos =
+	std::vector<float> pos =
 	{
-		lineEdit_sky_posx->text().toDouble(),
-		lineEdit_sky_posy->text().toDouble(),
-		lineEdit_sky_posz->text().toDouble()
+		lineEdit_sky_posx->text().toFloat(),
+		lineEdit_sky_posy->text().toFloat(),
+		lineEdit_sky_posz->text().toFloat()
 	};
-	double rad = lineEdit_sky_rad->text().toDouble();
+	float rad = lineEdit_sky_rad->text().toFloat();
 	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
-	double direction[3] = { lineEdit_SS_dir_x->text().toDouble(), lineEdit_SS_dir_y->text().toDouble(), lineEdit_SS_dir_z->text().toDouble() };
-	double axis[3] = { lineEdit_SS_axis_x->text().toDouble(), lineEdit_SS_axis_y->text().toDouble(), lineEdit_SS_axis_z->text().toDouble() };
-	double period = lineEdit_SS_period->text().toDouble();
+	float direction[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
+	float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(), lineEdit_SS_axis_z->text().toFloat() };
+	float period = lineEdit_SS_period->text().toFloat();
 	const char * direction_type;
 	// And now an ugly workaround because the QT people are too stupid to fix a Bug with QString::toStdString on Windows...
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
@@ -180,19 +187,19 @@ void SettingsWidget::create_SpinSpiral()
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::domainWallPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
-	double vec[3] = { lineEdit_vx->text().toDouble(), lineEdit_vy->text().toDouble(), lineEdit_vz->text().toDouble() };
-	double pos[3] = { lineEdit_posx->text().toDouble(), lineEdit_posy->text().toDouble(), lineEdit_posz->text().toDouble() };
+	float vec[3] = { lineEdit_vx->text().toFloat(), lineEdit_vy->text().toFloat(), lineEdit_vz->text().toFloat() };
+	float pos[3] = { lineEdit_posx->text().toFloat(), lineEdit_posy->text().toFloat(), lineEdit_posz->text().toFloat() };
 	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 void SettingsWidget::configurationAddNoise()
@@ -200,10 +207,10 @@ void SettingsWidget::configurationAddNoise()
 	// Add Noise
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
-		double temperature = lineEdit_Configuration_Noise->text().toDouble();
+		float temperature = lineEdit_Configuration_Noise->text().toFloat();
 		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
 		Chain_Update_Data(this->state.get());
-		this->_spinWidget->update();
+		this->_spinWidget->updateData();
 	}
 }
 
@@ -240,13 +247,13 @@ void SettingsWidget::homogeneousTransitionPressed()
 	// Add Noise
 	if (this->checkBox_Transition_Noise->isChecked())
 	{
-		double temperature = lineEdit_Transition_Noise->text().toDouble();
+		float temperature = lineEdit_Transition_Noise->text().toFloat();
 		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
 	}
 
 	// Update
 	Chain_Update_Data(this->state.get());
-	this->_spinWidget->update();
+	this->_spinWidget->updateData();
 }
 
 
@@ -429,82 +436,87 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
-	std::string visualization_mode;
-	switch (_spinWidget->visualizationMode())
-	{
-		case GLSpins::VisualizationMode::SPHERE:
-			visualization_mode = "Sphere";
-      break;
-    case GLSpins::VisualizationMode::SURFACE:
-      visualization_mode = "Surface";
-      break;
-    case GLSpins::VisualizationMode::ISOSURFACE:
-      visualization_mode = "Isosurface";
-      break;
-    default:
-			visualization_mode = "Arrows";
-			break;
-	}
-	for (int i = 0; i < comboBox_visualizationMode->count(); i++)
+	//// Mode
+	//std::string visualization_mode;
+	//switch (_spinWidget->visualizationMode())
+	//{
+	//	case GLSpins::VisualizationMode::SPHERE:
+	//		visualization_mode = "Sphere";
+ //     break;
+ //   case GLSpins::VisualizationMode::SURFACE:
+ //     visualization_mode = "Surface";
+ //     break;
+ //   case GLSpins::VisualizationMode::ISOSURFACE:
+ //     visualization_mode = "Isosurface";
+ //     break;
+ //   default:
+	//		visualization_mode = "Arrows";
+	//		break;
+	//}
+	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
 	{
 		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
 		{
 			comboBox_visualizationMode->setCurrentIndex(i);
 			break;
 		}
-	}
+	}*/
   
-	std::string miniview_position;
-	switch (_spinWidget->miniviewPosition())
-	{
-		case GLSpins::WidgetLocation::TOP_LEFT:
-			miniview_position = "Top Left";
-			break;
-		case GLSpins::WidgetLocation::BOTTOM_LEFT:
-			miniview_position = "Bottom Left";
-			break;
-		case GLSpins::WidgetLocation::TOP_RIGHT:
-			miniview_position = "Top Right";
-			break;
-		default:
-			miniview_position = "Bottom Right";
-			break;
-	}
-	for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
-	{
-		if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
-		{
-			comboBox_miniViewPosition->setCurrentIndex(i);
-			break;
-		}
-	}
-	std::string coordinatesystem_position;
-	switch (_spinWidget->coordinateSystemPosition())
-	{
-		case GLSpins::WidgetLocation::TOP_LEFT:
-			coordinatesystem_position = "Top Left";
-			break;
-		case GLSpins::WidgetLocation::BOTTOM_LEFT:
-			coordinatesystem_position = "Bottom Left";
-			break;
-		case GLSpins::WidgetLocation::TOP_RIGHT:
-			coordinatesystem_position = "Top Right";
-			break;
-		default:
-			coordinatesystem_position = "Bottom Right";
-			break;
-	}
-	for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
-	{
-		if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
-		{
-			comboBox_coordinateSystemPosition->setCurrentIndex(i);
-			break;
-		}
-	}
-	checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
-	checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
-
+	//// Miniview
+	//std::string miniview_position;
+	//switch (_spinWidget->miniviewPosition())
+	//{
+	//	case GLSpins::WidgetLocation::TOP_LEFT:
+	//		miniview_position = "Top Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
+	//		miniview_position = "Bottom Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::TOP_RIGHT:
+	//		miniview_position = "Top Right";
+	//		break;
+	//	default:
+	//		miniview_position = "Bottom Right";
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
+	//	{
+	//		comboBox_miniViewPosition->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
+	//checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	
+	//// Coordinate System
+	//std::string coordinatesystem_position;
+	//switch (_spinWidget->coordinateSystemPosition())
+	//{
+	//	case GLSpins::WidgetLocation::TOP_LEFT:
+	//		coordinatesystem_position = "Top Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
+	//		coordinatesystem_position = "Bottom Left";
+	//		break;
+	//	case GLSpins::WidgetLocation::TOP_RIGHT:
+	//		coordinatesystem_position = "Top Right";
+	//		break;
+	//	default:
+	//		coordinatesystem_position = "Bottom Right";
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
+	//	{
+	//		comboBox_coordinateSystemPosition->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
+	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	
+	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
 		z_range.x = -1;
@@ -514,77 +526,112 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	horizontalSlider_zRangeMin->setInvertedAppearance(true);
-	horizontalSlider_zRangeMin->setRange(-100, 100);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_zRangeMax->setRange(-100, 100);
-	horizontalSlider_zRangeMax->setValue((int)(z_range.y * 100));
-	horizontalSlider_zRangeMin->setTracking(true);
-  horizontalSlider_zRangeMax->setTracking(true);
+	horizontalSlider_arrows_zmin->setInvertedAppearance(true);
+	horizontalSlider_arrows_zmin->setRange(-100, 100);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_arrows_zmax->setRange(-100, 100);
+	horizontalSlider_arrows_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_arrows_zmin->setTracking(true);
+	horizontalSlider_arrows_zmax->setTracking(true);
+
+
+	// X Range Surface
+	horizontalSlider_surface_xmin->setRange(1, 99);
+	horizontalSlider_surface_xmin->setValue((int)(0));
+	horizontalSlider_surface_xmax->setRange(1, 99);
+	horizontalSlider_surface_xmax->setValue((int)(99));
+	horizontalSlider_surface_xmin->setTracking(true);
+	horizontalSlider_surface_xmax->setTracking(true);
+	// Y Range Surface
+	horizontalSlider_surface_ymin->setRange(1, 99);
+	horizontalSlider_surface_ymin->setValue((int)(0));
+	horizontalSlider_surface_ymax->setRange(1, 99);
+	horizontalSlider_surface_ymax->setValue((int)(99));
+	horizontalSlider_surface_ymin->setTracking(true);
+	horizontalSlider_surface_ymax->setTracking(true);
+	// Z Range Surface
+	horizontalSlider_surface_zmin->setRange(1, 99);
+	horizontalSlider_surface_zmin->setValue((int)(0));
+	horizontalSlider_surface_zmax->setRange(1, 99);
+	horizontalSlider_surface_zmax->setValue((int)(99));
+	horizontalSlider_surface_zmin->setTracking(true);
+	horizontalSlider_surface_zmax->setTracking(true);
   
-  auto isovalue = _spinWidget->isovalue();
-  horizontalSlider_isovalue->setRange(0, 100);
-  horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
+	// Isovalue
+	auto isovalue = _spinWidget->isovalue();
+	horizontalSlider_isovalue->setRange(0, 100);
+	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
-	std::string colormap = "Hue-Saturation-Value";
-	switch (_spinWidget->colormap())
-	{
-		case GLSpins::Colormap::HSV:
-      break;
-    case GLSpins::Colormap::BLUE_RED:
-      colormap = "Z-Component: Blue-Red";
-      break;
-    case GLSpins::Colormap::BLUE_GREEN_RED:
-      colormap = "Z-Component: Blue-Green-Red";
-      break;
-    case GLSpins::Colormap::BLUE_WHITE_RED:
-      colormap = "Z-Component: Blue-White-Red";
-      break;
-    case GLSpins::Colormap::OTHER:
-			break;
-		default:
-			break;
-	}
-	for (int i = 0; i < comboBox_colormap->count(); i++)
-	{
-		if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
-		{
-			comboBox_colormap->setCurrentIndex(i);
-			break;
-		}
-	}
+	//// Colormap
+	//std::string colormap = "Hue-Saturation-Value";
+	//switch (_spinWidget->colormap())
+	//{
+	//	case SpinWidget::Colormap::HSV:
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_RED:
+ //     colormap = "Z-Component: Blue-Red";
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_GREEN_RED:
+ //     colormap = "Z-Component: Blue-Green-Red";
+ //     break;
+ //   case SpinWidget::Colormap::BLUE_WHITE_RED:
+ //     colormap = "Z-Component: Blue-White-Red";
+ //     break;
+ //   case SpinWidget::Colormap::OTHER:
+	//		break;
+	//	default:
+	//		break;
+	//}
+	//for (int i = 0; i < comboBox_colormap->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
+	//	{
+	//		comboBox_colormap->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
 
-	if (_spinWidget->verticalFieldOfView() == 0)
-	{
-		radioButton_orthographicProjection->setChecked(true);
-	}
-	else
-	{
-		radioButton_perspectiveProjection->setChecked(true);
-	}
+	//// Perspective / FOV
+	//if (_spinWidget->verticalFieldOfView() == 0)
+	//{
+	//	radioButton_orthographicProjection->setChecked(true);
+	//}
+	//else
+	//{
+	//	radioButton_perspectiveProjection->setChecked(true);
+	//}
 
+
+	// Arrowsize
+	horizontalSlider_arrowsize->setRange(0, 20);
+	float logs = std::log10(_spinWidget->arrowSize());
+	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
+
+	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
 
-	checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
+	// Bounding Box
+	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
-	std::string background_color = "Black";
-	if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
-	{
-		background_color = "White";
-	}
-	else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
-	{
-		background_color = "Gray";
-	}
-	for (int i = 0; i < comboBox_backgroundColor->count(); i++)
-	{
-	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-	{
-		comboBox_backgroundColor->setCurrentIndex(i);
-		break;
-    }
-  }
+	//// Background
+	//std::string background_color = "Black";
+	//if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
+	//{
+	//	background_color = "White";
+	//}
+	//else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
+	//{
+	//	background_color = "Gray";
+	//}
+	//for (int i = 0; i < comboBox_backgroundColor->count(); i++)
+	//{
+	//	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
+	//	{
+	//		comboBox_backgroundColor->setCurrentIndex(i);
+	//		break;
+	//	}
+	//}
 }
 
 // -----------------------------------------------------------------------------------
@@ -597,17 +644,17 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		double d;
+		float d;
 		bool climbing, falling;
 		int i;
 
 		// Time step [ps]
 		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-		d = this->lineEdit_dt->text().toDouble();
+		d = this->lineEdit_dt->text().toFloat();
 		Parameters_Set_LLG_Time_Step(state.get(), d, idx_image, idx_chain);
 		
 		// Damping
-		d = this->lineEdit_Damping->text().toDouble();
+		d = this->lineEdit_Damping->text().toFloat();
 		Parameters_Set_LLG_Damping(state.get(), d);
 		// n iterations
 		i = this->lineEdit_llg_n_iterations->text().toInt();
@@ -620,7 +667,7 @@ void SettingsWidget::set_parameters()
 		i = this->lineEdit_gneb_log_steps->text().toInt();
 		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
 		// Spring Constant
-		d = this->lineEdit_gneb_springconstant->text().toDouble();
+		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
 		// Climbing/Falling Image
 		climbing = this->radioButton_ClimbingImage->isChecked();
@@ -668,18 +715,18 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image, idx_chain);
 		
 		// mu_s
-		double mu_s = lineEdit_muSpin->text().toDouble();
+		float mu_s = lineEdit_muSpin->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 
 		// External magnetic field
 		//		magnitude
 		if (this->checkBox_extH->isChecked())
-			d = this->lineEdit_extH->text().toDouble();
+			d = this->lineEdit_extH->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_extHx->text().toDouble();
-		vd[1] = lineEdit_extHy->text().toDouble();
-		vd[2] = lineEdit_extHz->text().toDouble();
+		vd[0] = lineEdit_extHx->text().toFloat();
+		vd[1] = lineEdit_extHy->text().toFloat();
+		vd[2] = lineEdit_extHz->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -699,11 +746,11 @@ void SettingsWidget::set_hamiltonian_iso()
 
 		// Exchange
 		i=0;
-		if (lineEdit_exchange1->isEnabled()) { jij[0] = lineEdit_exchange1->text().toDouble(); ++i; }
-		if (lineEdit_exchange2->isEnabled()) { jij[1] = lineEdit_exchange2->text().toDouble(); ++i; }
-		if (lineEdit_exchange3->isEnabled()) { jij[2] = lineEdit_exchange3->text().toDouble(); ++i; }
-		if (lineEdit_exchange4->isEnabled()) { jij[3] = lineEdit_exchange4->text().toDouble(); ++i; }
-		if (lineEdit_exchange5->isEnabled()) { jij[4] = lineEdit_exchange5->text().toDouble(); ++i; }
+		if (lineEdit_exchange1->isEnabled()) { jij[0] = lineEdit_exchange1->text().toFloat(); ++i; }
+		if (lineEdit_exchange2->isEnabled()) { jij[1] = lineEdit_exchange2->text().toFloat(); ++i; }
+		if (lineEdit_exchange3->isEnabled()) { jij[2] = lineEdit_exchange3->text().toFloat(); ++i; }
+		if (lineEdit_exchange4->isEnabled()) { jij[3] = lineEdit_exchange4->text().toFloat(); ++i; }
+		if (lineEdit_exchange5->isEnabled()) { jij[4] = lineEdit_exchange5->text().toFloat(); ++i; }
 		if (!checkBox_exchange->isChecked())
 		{
 			for (int shell = 0; shell < i; ++shell) {
@@ -713,18 +760,18 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Exchange(state.get(), i, jij, idx_image, idx_chain);
 		
 		// DMI
-		if (this->checkBox_dmi->isChecked()) d = this->lineEdit_dmi->text().toDouble();
+		if (this->checkBox_dmi->isChecked()) d = this->lineEdit_dmi->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_DMI(state.get(), d, idx_image, idx_chain);
 
 		// Anisotropy
 		//		magnitude
-		if (this->checkBox_aniso->isChecked()) d = this->lineEdit_aniso->text().toDouble();
+		if (this->checkBox_aniso->isChecked()) d = this->lineEdit_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_anisox->text().toDouble();
-		vd[1] = lineEdit_anisoy->text().toDouble();
-		vd[2] = lineEdit_anisoz->text().toDouble();
+		vd[0] = lineEdit_anisox->text().toFloat();
+		vd[1] = lineEdit_anisoy->text().toFloat();
+		vd[2] = lineEdit_anisoz->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -743,26 +790,26 @@ void SettingsWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
 
 		// BQE
-		if (this->checkBox_bqe->isChecked()) d = this->lineEdit_bqe->text().toDouble();
+		if (this->checkBox_bqe->isChecked()) d = this->lineEdit_bqe->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_BQE(state.get(), d, idx_image, idx_chain);
 
 		// FSC
-		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toDouble();
+		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_FSC(state.get(), d, idx_image, idx_chain);
 
 		// These belong in Parameters, not Hamiltonian
 		// Spin polarised current
 		if (this->checkBox_spin_torque->isChecked()) {
-			d = this->lineEdit_spin_torque->text().toDouble();
+			d = this->lineEdit_spin_torque->text().toFloat();
 		}
 		else {
 			d = 0.0;
 		}
-		vd[0] = lineEdit_spin_torquex->text().toDouble();
-		vd[1] = lineEdit_spin_torquey->text().toDouble();
-		vd[2] = lineEdit_spin_torquez->text().toDouble();
+		vd[0] = lineEdit_spin_torquex->text().toFloat();
+		vd[1] = lineEdit_spin_torquey->text().toFloat();
+		vd[2] = lineEdit_spin_torquez->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -782,7 +829,7 @@ void SettingsWidget::set_hamiltonian_iso()
 
 		// Temperature
 		if (this->checkBox_Temperature->isChecked())
-			d = this->lineEdit_temper->text().toDouble();
+			d = this->lineEdit_temper->text().toFloat();
 		else
 			d = 0.0;
 		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
@@ -853,7 +900,7 @@ void SettingsWidget::set_hamiltonian_aniso_mu_s()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		// mu_s
-		float mu_s = this->lineEdit_muSpin_aniso->text().toDouble();
+		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 	};
 	
@@ -889,12 +936,12 @@ void SettingsWidget::set_hamiltonian_aniso_field()
 
 		// External magnetic field
 		//		magnitude
-		if (this->checkBox_extH_aniso->isChecked()) d = this->lineEdit_extH_aniso->text().toDouble();
+		if (this->checkBox_extH_aniso->isChecked()) d = this->lineEdit_extH_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_extHx_aniso->text().toDouble();
-		vd[1] = lineEdit_extHy_aniso->text().toDouble();
-		vd[2] = lineEdit_extHz_aniso->text().toDouble();
+		vd[0] = lineEdit_extHx_aniso->text().toFloat();
+		vd[1] = lineEdit_extHy_aniso->text().toFloat();
+		vd[2] = lineEdit_extHz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -945,12 +992,12 @@ void SettingsWidget::set_hamiltonian_aniso_ani()
 
 		// Anisotropy
 		//		magnitude
-		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toDouble();
+		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_anix_aniso->text().toDouble();
-		vd[1] = lineEdit_aniy_aniso->text().toDouble();
-		vd[2] = lineEdit_aniz_aniso->text().toDouble();
+		vd[0] = lineEdit_anix_aniso->text().toFloat();
+		vd[1] = lineEdit_aniy_aniso->text().toFloat();
+		vd[2] = lineEdit_aniz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -1003,11 +1050,11 @@ void SettingsWidget::set_hamiltonian_aniso_stt()
 		//		 or move them to Parameters...
 		// Spin polarised current
 		if (this->checkBox_stt_aniso->isChecked())
-			d = this->lineEdit_stt_aniso->text().toDouble();
+			d = this->lineEdit_stt_aniso->text().toFloat();
 		else d = 0.0;
-		vd[0] = lineEdit_sttx_aniso->text().toDouble();
-		vd[1] = lineEdit_stty_aniso->text().toDouble();
-		vd[2] = lineEdit_sttz_aniso->text().toDouble();
+		vd[0] = lineEdit_sttx_aniso->text().toFloat();
+		vd[1] = lineEdit_stty_aniso->text().toFloat();
+		vd[2] = lineEdit_sttz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -1058,7 +1105,7 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 
 		// Temperature
 		if (this->checkBox_T_aniso->isChecked())
-			d = this->lineEdit_T_aniso->text().toDouble();
+			d = this->lineEdit_T_aniso->text().toFloat();
 		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
 	};
 	
@@ -1086,121 +1133,332 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 }
 
 
+// -----------------------------------------------------------------------------------
+// --------------------- Visualization -----------------------------------------------
+// -----------------------------------------------------------------------------------
 
-void SettingsWidget::set_visualization()
+void SettingsWidget::set_visualization_mode()
 {
-	GLSpins::VisualizationMode visualization_mode = GLSpins::VisualizationMode::ARROWS;
-	if (comboBox_visualizationMode->currentText() == "Surface")
-	{
-	visualization_mode = GLSpins::VisualizationMode::SURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Isosurface")
-	{
-	visualization_mode = GLSpins::VisualizationMode::ISOSURFACE;
-	}
-	else if (comboBox_visualizationMode->currentText() == "Sphere")
-	{
-	visualization_mode = GLSpins::VisualizationMode::SPHERE;
-	}
-	_spinWidget->setVisualizationMode(visualization_mode);
+	SpinWidget::VisualizationMode mode;
 
-	_spinWidget->enableMiniview(checkBox_showMiniView->isChecked());
-	_spinWidget->enableCoordinateSystem(checkBox_showCoordinateSystem->isChecked());
-	GLSpins::WidgetLocation miniview_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_miniViewPosition->currentText() == "Top Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Bottom Left")
-	{
-		miniview_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_miniViewPosition->currentText() == "Top Right")
-	{
-		miniview_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	GLSpins::WidgetLocation coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_RIGHT;
-	if (comboBox_coordinateSystemPosition->currentText() == "Top Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::BOTTOM_LEFT;
-	}
-	else if (comboBox_coordinateSystemPosition->currentText() == "Top Right")
-	{
-		coordinatesystem_position = GLSpins::WidgetLocation::TOP_RIGHT;
-	}
-	_spinWidget->setMiniviewPosition(miniview_position);
-	_spinWidget->setCoordinateSystemPosition(coordinatesystem_position);
+	if (this->radioButton_vismode_sphere->isChecked())
+		mode = SpinWidget::VisualizationMode::SPHERE;
+	else
+		mode = SpinWidget::VisualizationMode::SYSTEM;
+	
+	this->_spinWidget->setVisualizationMode(mode);
+}
 
+void SettingsWidget::set_visualization_perspective()
+{
+	// Perspective / FOV
+	if (radioButton_orthographicProjection->isChecked())
+	{
+		_spinWidget->setVerticalFieldOfView(0);
+	}
+	else
+	{
+		_spinWidget->setVerticalFieldOfView(45);
+	}
 
-	float z_range_min = -horizontalSlider_zRangeMin->value()/100.0;
-	float z_range_max = horizontalSlider_zRangeMax->value()/100.0;
+}
+
+void SettingsWidget::set_visualization_miniview()
+{
+	bool miniview;
+	SpinWidget::WidgetLocation pos;
+
+	miniview = this->checkBox_showMiniView->isChecked();
+	if (this->comboBox_miniViewPosition->currentText() == "Bottom Left")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_LEFT;
+	}
+	else if (this->comboBox_miniViewPosition->currentText() == "Bottom Right")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_RIGHT;
+	}
+	else if (this->comboBox_miniViewPosition->currentText() == "Top Left")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_LEFT;
+	}
+	else if (this->comboBox_miniViewPosition->currentText() == "Top Right")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_RIGHT;
+	}
+
+	this->_spinWidget->setVisualizationMiniview(miniview, pos);
+}
+
+void SettingsWidget::set_visualization_coordinatesystem()
+{
+	bool coordinatesystem;
+	SpinWidget::WidgetLocation pos;
+
+	coordinatesystem = this->checkBox_showCoordinateSystem->isChecked();
+	if (this->comboBox_coordinateSystemPosition->currentText() == "Bottom Left")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_LEFT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Bottom Right")
+	{
+		pos = SpinWidget::WidgetLocation::BOTTOM_RIGHT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Top Left")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_LEFT;
+	}
+	else if (this->comboBox_coordinateSystemPosition->currentText() == "Top Right")
+	{
+		pos = SpinWidget::WidgetLocation::TOP_RIGHT;
+	}
+
+	this->_spinWidget->setVisualizationCoordinatesystem(coordinatesystem, pos);
+}
+
+void SettingsWidget::set_visualization_system()
+{
+	bool arrows, boundingbox, surface, isosurface;
+
+	arrows = this->checkBox_show_arrows->isChecked();
+	boundingbox = this->checkBox_showBoundingBox->isChecked();
+	surface = this->checkBox_show_surface->isChecked();
+	isosurface = this->checkBox_show_isosurface->isChecked();
+
+	this->_spinWidget->enableSystem(arrows, boundingbox, surface, isosurface);
+}
+
+void SettingsWidget::set_visualization_system_arrows()
+{
+	float exponent = horizontalSlider_arrowsize->value() / 10.0f - 1.0f;
+	float arrowsize = std::pow(10.0f, exponent);
+	int arrowlod = lineEdit_arrows_lod->text().toInt();
+	this->_spinWidget->setArrows(arrowsize, arrowlod);
+}
+void SettingsWidget::set_visualization_system_boundingbox()
+{
+
+}
+void SettingsWidget::set_visualization_system_surface()
+{
+	float bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	float s_min, s_max;
+
+	// X
+	s_min = horizontalSlider_surface_xmin->value();
+	s_max = horizontalSlider_surface_xmax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_xmin->blockSignals(true);
+	horizontalSlider_surface_xmax->blockSignals(true);
+	horizontalSlider_surface_xmin->setValue((int)(s_min));
+	horizontalSlider_surface_xmax->setValue((int)(s_max));
+	horizontalSlider_surface_xmin->blockSignals(false);
+	horizontalSlider_surface_xmax->blockSignals(false);
+	float x_min = bounds_min[0] + (s_min / 100.0) * (bounds_max[0] - bounds_min[0]);
+	float x_max = bounds_min[0] + (s_max / 100.0) * (bounds_max[0] - bounds_min[0]);
+	// Y
+	s_min = horizontalSlider_surface_ymin->value();
+	s_max = horizontalSlider_surface_ymax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_ymin->blockSignals(true);
+	horizontalSlider_surface_ymax->blockSignals(true);
+	horizontalSlider_surface_ymin->setValue((int)(s_min));
+	horizontalSlider_surface_ymax->setValue((int)(s_max));
+	horizontalSlider_surface_ymin->blockSignals(false);
+	horizontalSlider_surface_ymax->blockSignals(false);
+	float y_min = bounds_min[1] + (s_min / 100.0) * (bounds_max[1] - bounds_min[1]);
+	float y_max = bounds_min[1] + (s_max / 100.0) * (bounds_max[1] - bounds_min[1]);
+	// Z
+	s_min = horizontalSlider_surface_zmin->value();
+	s_max = horizontalSlider_surface_zmax->value();
+	if (s_min > s_max)
+	{
+		float t = s_min;
+		s_min = s_max;
+		s_max = t;
+	}
+	horizontalSlider_surface_zmin->blockSignals(true);
+	horizontalSlider_surface_zmax->blockSignals(true);
+	horizontalSlider_surface_zmin->setValue((int)(s_min));
+	horizontalSlider_surface_zmax->setValue((int)(s_max));
+	horizontalSlider_surface_zmin->blockSignals(false);
+	horizontalSlider_surface_zmax->blockSignals(false);
+	float z_min = bounds_min[2] + (s_min / 100.0) * (bounds_max[2] - bounds_min[2]);
+	float z_max = bounds_min[2] + (s_max / 100.0) * (bounds_max[2] - bounds_min[2]);
+
+	glm::vec2 x_range(x_min, x_max);
+	glm::vec2 y_range(y_min, y_max);
+	glm::vec2 z_range(z_min, z_max);
+	_spinWidget->setSurface(x_range, y_range, z_range);
+
+	_spinWidget->update();
+}
+void SettingsWidget::set_visualization_system_isosurface()
+{
+
+}
+
+void SettingsWidget::set_visualization_zrange()
+{
+	float z_range_min = -horizontalSlider_arrows_zmin->value() / 100.0;
+	float z_range_max = horizontalSlider_arrows_zmax->value() / 100.0;
 	if (z_range_min > z_range_max)
 	{
 		float t = z_range_min;
 		z_range_min = z_range_max;
 		z_range_max = t;
 	}
-	horizontalSlider_zRangeMin->blockSignals(true);
-	horizontalSlider_zRangeMax->blockSignals(true);
-	horizontalSlider_zRangeMin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_zRangeMax->setValue((int)(z_range_max * 100));
-	horizontalSlider_zRangeMin->blockSignals(false);
-	horizontalSlider_zRangeMax->blockSignals(false);
+	horizontalSlider_arrows_zmin->blockSignals(true);
+	horizontalSlider_arrows_zmax->blockSignals(true);
+	horizontalSlider_arrows_zmin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_arrows_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_arrows_zmin->blockSignals(false);
+	horizontalSlider_arrows_zmax->blockSignals(false);
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
-  
-  float isovalue = horizontalSlider_isovalue->value()/50.0f-1.0f;
-  _spinWidget->setIsovalue(isovalue);
 
-  GLSpins::Colormap colormap = GLSpins::Colormap::HSV;
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_RED;
-  }
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_GREEN_RED;
-  }
-  if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
-  {
-    colormap = GLSpins::Colormap::BLUE_WHITE_RED;
-  }
-  _spinWidget->setColormap(colormap);
+	_spinWidget->update();
+}
 
-	if (radioButton_orthographicProjection->isChecked())
+
+void SettingsWidget::set_visualization_isovalue_fromslider()
+{
+	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
+	this->lineEdit_isovalue->setText(QString::number(isovalue));
+	_spinWidget->setIsovalue(isovalue);
+
+	_spinWidget->update();
+}
+
+void SettingsWidget::set_visualization_isovalue_fromlineedit()
+{
+	float isovalue = this->lineEdit_isovalue->text().toFloat();
+	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
+	_spinWidget->setIsovalue(isovalue);
+
+	_spinWidget->update();
+}
+
+
+
+void SettingsWidget::set_visualization_sphere()
+{
+	// This function does not make any sense, does it?
+	// Only possibility: draw/dont draw the sphere, only draw the points
+}
+void SettingsWidget::set_visualization_sphere_pointsize()
+{
+	this->_spinWidget->setSpherePointSizeRange({ 0.2, this->horizontalSlider_spherePointSize->value() });
+}
+
+void SettingsWidget::set_visualization_colormap()
+{
+	SpinWidget::Colormap colormap = SpinWidget::Colormap::HSV;
+	if (comboBox_colormap->currentText() == "HSV, no z-component")
 	{
-		_spinWidget->setVerticalFieldOfView(0.0);
+		colormap = SpinWidget::Colormap::HSV_NO_Z;
 	}
-	else
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
 	{
-		_spinWidget->setVerticalFieldOfView(45.0);
+		colormap = SpinWidget::Colormap::BLUE_RED;
 	}
-
-	_spinWidget->enableBoundingBox(checkBox_showBoundingBox->isChecked());
-
-	_spinWidget->setSpherePointSizeRange(glm::vec2(1.0f, 1.0f*horizontalSlider_spherePointSize->value()));
-
-	glm::vec3 background_color(0.0, 0.0, 0.0);
-	glm::vec3 bounding_box_color(1.0, 1.0, 1.0);
-	if (comboBox_backgroundColor->currentText() == "White")
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
 	{
-		background_color = glm::vec3(1.0, 1.0, 1.0);
-		bounding_box_color = glm::vec3(0.0, 0.0, 0.0);
+		colormap = SpinWidget::Colormap::BLUE_GREEN_RED;
+	}
+	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
+	{
+		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
+	}
+	_spinWidget->setColormap(colormap);
+
+	_spinWidget->updateData();
+}
+
+void SettingsWidget::set_visualization_background()
+{
+	SpinWidget::Color color;
+	SpinWidget::Color invcolor;
+	if (comboBox_backgroundColor->currentText() == "Black")
+	{
+		color = SpinWidget::Color::BLACK;
+		invcolor = SpinWidget::Color::WHITE;
 	}
 	else if (comboBox_backgroundColor->currentText() == "Gray")
 	{
-		background_color = glm::vec3(0.5, 0.5, 0.5);
-		bounding_box_color = glm::vec3(1.0, 1.0, 1.0);
+		color = SpinWidget::Color::GRAY;
+		invcolor = SpinWidget::Color::WHITE;
 	}
-	_spinWidget->setBackgroundColor(background_color);
-	_spinWidget->setBoundingBoxColor(bounding_box_color);
+	else
+	{
+		color = SpinWidget::Color::WHITE;
+		invcolor = SpinWidget::Color::BLACK;
+	}
+	_spinWidget->setBackgroundColor(color);
+	_spinWidget->setBoundingBoxColor(invcolor);
+}
 
-	_spinWidget->update();
+// -----------------------------------------------------------------------------------
+// --------------------- Camera ------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+void SettingsWidget::set_camera()
+{
+	set_camera_position();
+	set_camera_focus();
+	set_camera_upvector();
+}
+
+void SettingsWidget::read_camera()
+{
+    auto camera_position = _spinWidget->getCameraPositon();
+	auto center_position = _spinWidget->getCameraFocus();
+	auto up_vector = _spinWidget->getCameraUpVector();
+
+	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
+	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
+	this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
+	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
+	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
+	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
+	this->lineEdit_camera_upvector_x->setText(QString::number(up_vector.x, 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(up_vector.y, 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(up_vector.z, 'f', 2));
+}
+
+void SettingsWidget::set_camera_position()
+{
+	float x = this->lineEdit_camera_pos_x->text().toFloat();
+	float y = this->lineEdit_camera_pos_y->text().toFloat();
+	float z = this->lineEdit_camera_pos_z->text().toFloat();
+    this->_spinWidget->setCameraPositon({x, y, z});
+}
+
+void SettingsWidget::set_camera_focus()
+{
+	float x = this->lineEdit_camera_focus_x->text().toFloat();
+	float y = this->lineEdit_camera_focus_y->text().toFloat();
+	float z = this->lineEdit_camera_focus_z->text().toFloat();
+    this->_spinWidget->setCameraFocus({x, y, z});
+}
+
+void SettingsWidget::set_camera_upvector()
+{
+	float x = this->lineEdit_camera_upvector_x->text().toFloat();
+	float y = this->lineEdit_camera_upvector_y->text().toFloat();
+	float z = this->lineEdit_camera_upvector_z->text().toFloat();
+    this->_spinWidget->setCameraUpVector({x, y, z});
 }
 
 
@@ -1219,7 +1477,7 @@ void SettingsWidget::print_Energies_to_console()
 {
 	System_Update_Data(state.get());
 	auto E = System_Get_Energy(state.get());
-	double E_array[7];
+	float E_array[7];
 	auto NOS = System_Get_NOS(this->state.get());
 	System_Get_Energy_Array(state.get(), E_array);
 
@@ -1367,6 +1625,7 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopfion_order, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
 	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
@@ -1395,20 +1654,55 @@ void SettingsWidget::Setup_Transitions_Slots()
 
 void SettingsWidget::Setup_Visualization_Slots()
 {
-  connect(comboBox_visualizationMode, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_zRangeMin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_zRangeMax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
-  connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization()));
-  connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
-  connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization()));
+	// Mode
+	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
+	connect(radioButton_perspectiveProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
+	connect(radioButton_orthographicProjection, SIGNAL(toggled(bool)), this, SLOT(set_visualization_perspective()));
+	// Miniview
+	connect(checkBox_showMiniView, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_miniview()));
+	connect(comboBox_miniViewPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_miniview()));
+	// Coordinate System
+	connect(checkBox_showCoordinateSystem, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_coordinatesystem()));
+	connect(comboBox_coordinateSystemPosition, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_coordinatesystem()));
+	// System
+	connect(checkBox_show_arrows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_showBoundingBox, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_show_surface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	connect(checkBox_show_isosurface, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system()));
+	//		arrows
+	connect(horizontalSlider_arrowsize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_arrows()));
+	connect(lineEdit_arrows_lod, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_arrows()));
+	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
+	//		bounding box
+	//		surface
+	connect(horizontalSlider_surface_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	//		isosurface
+	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
+	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	// Sphere
+	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
+	// Colors
+	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
+	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	// Camera
+	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_pos_z, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
+	connect(this->lineEdit_camera_focus_x, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_focus_y, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_focus_z, SIGNAL(returnPressed()), this, SLOT(set_camera_focus()));
+	connect(this->lineEdit_camera_upvector_x, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->lineEdit_camera_upvector_y, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->lineEdit_camera_upvector_z, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
+	connect(this->pushButton_set_camera, SIGNAL(clicked()), this, SLOT(set_camera()));
+	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
@@ -1474,8 +1768,9 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_hopf_posy->setValidator(this->number_validator);
 	this->lineEdit_hopf_posz->setValidator(this->number_validator);
 	this->lineEdit_hopf_r->setValidator(this->number_validator);
+	this->lineEdit_hopfion_order->setValidator(this->number_validator_int_unsigned);
 	//		Skyrmion
-	this->lineEdit_sky_order->setValidator(this->number_validator);
+	this->lineEdit_sky_order->setValidator(this->number_validator_int_unsigned);
 	this->lineEdit_sky_phase->setValidator(this->number_validator);
 	this->lineEdit_sky_rad->setValidator(this->number_validator);
 	this->lineEdit_sky_posx->setValidator(this->number_validator);
@@ -1499,13 +1794,26 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Transitions
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
-	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_unsigned);
-	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_unsigned);
+	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_int_unsigned);
+	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_int_unsigned);
 
 	// Parameters
 	//		LLG
 	this->lineEdit_Damping->setValidator(this->number_validator);
-	this->lineEdit_dt->setValidator(this->number_validator);
+	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
+
+	// Visualisation
+	//		Arrows
+	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
+	//		Isovalue
+	this->lineEdit_isovalue->setValidator(this->number_validator);
+	//		Camera
+	this->lineEdit_camera_pos_x->setValidator(this->number_validator);
+	this->lineEdit_camera_pos_y->setValidator(this->number_validator);
+	this->lineEdit_camera_pos_z->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_x->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_y->setValidator(this->number_validator);
+	this->lineEdit_camera_focus_z->setValidator(this->number_validator);
 }

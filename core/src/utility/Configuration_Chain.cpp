@@ -18,7 +18,7 @@ namespace Utility
 {
 	namespace Configuration_Chain
 	{
-		void Add_Noise_Temperature(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, double temperature)
+		void Add_Noise_Temperature(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, scalar temperature)
 		{
 			for (int img = idx_1 + 1; img <= idx_2 - 1; ++img)
 			{
@@ -31,8 +31,8 @@ namespace Utility
 			int nos = c->images[0]->nos;
 			int noi = idx_2 - idx_1 + 1;
 
-			double angle, r, rot_angle;
-			std::vector<double> axis(3), rot_axis(3), a(3), b(3), temp(3);
+			scalar angle, r, rot_angle;
+			std::vector<scalar> axis(3), rot_axis(3), a(3), b(3), temp(3);
 
 			for (int i = 0; i < nos; ++i)
 			{
@@ -77,15 +77,15 @@ namespace Utility
 
 		}
 
-		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<double> A, std::vector<double> B)
+		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<scalar> A, std::vector<scalar> B)
 		{
 			(*c->images[0]->spins) = A;
 			(*c->images[c->noi - 1]->spins) = B;
 
 			int nos = c->images[0]->nos;
 
-			double angle, r, rot_angle;
-			std::vector<double> axis(3), rot_axis(3), a(3), b(3), temp(3);
+			scalar angle, r, rot_angle;
+			std::vector<scalar> axis(3), rot_axis(3), a(3), b(3), temp(3);
 
 			for (int i = 0; i < c->images[0]->nos; ++i)
 			{

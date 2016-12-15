@@ -16,18 +16,14 @@ option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app
 option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+### Set the scalar type used in the core library
+set(CORE_SCALAR_TYPE double)
 #############################################
 
 
-######### Paths #############################
+######### General Paths #####################
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
-### Set thirdparty include dirs
-set( GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty/glad/include )
-set( GLM_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/thirdparty )
-#############################################
-
-
 ######### User Paths ########################
 include(PathsIFF)
 ### Set these if you do not want cmake to choose your compiler
@@ -53,7 +49,7 @@ set(META_AUTHOR_ORGANIZATION  "")
 set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
 set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "1")
+set(META_VERSION_MINOR        "2")
 set(META_VERSION_PATCH        "0")
 set(META_VERSION_REVISION     "${GIT_REV}")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
@@ -80,6 +76,37 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 #############################################
 
 
+
+######### External Project: QHull ###########
+include(ExternalProject)
+ExternalProject_add(qhull
+	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
+	# GIT_REPOSITORY https://github.com/qhull/qhull.git
+	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
+	# INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
+	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
+)
+### qhullstatic reentrant library
+add_library(libqhullstatic_r STATIC IMPORTED)
+set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(libqhullstatic_r qhull)
+### qhullcpp library
+add_library(libqhullcpp STATIC IMPORTED)
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
+add_dependencies(libqhullcpp qhull)
+set(qhull_LIBS libqhullcpp)
+### Add corresponding include directories
+set(qhull_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/thirdparty-install/include;${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp")
+include_directories( ${qhull_INCLUDE_DIRS} )
+#############################################
+
+
 ######### Add Subdirectory Projects #########
 ### Core is built in any case
 add_subdirectory( core )
@@ -88,7 +115,7 @@ if( NOT BUILD_UI_WEB )
 	### Build CXX UI
 	if( BUILD_UI_CXX )
 		if (UI_CXX_USE_QT)
-			add_subdirectory(gl)
+			add_subdirectory(VFRendering)
 			add_subdirectory(ui-qt)
 		else()
 			add_subdirectory(ui-console)

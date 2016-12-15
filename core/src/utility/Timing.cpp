@@ -52,27 +52,27 @@ namespace Utility
             return TimePointToString(dt);
         }
         
-        const double MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
+        const scalar MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
         {
-            duration<double> dt = t2 - t1; 
+            duration<scalar> dt = t2 - t1; 
             return  dt.count() * 10e-3;
         }
         
-        const double SecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
+        const scalar SecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
         {
-            duration<double> dt = t2 - t1;
+            duration<scalar> dt = t2 - t1;
             return dt.count();
         }
         
-        const double MinutesPassed(system_clock::time_point t1, system_clock::time_point t2)
+        const scalar MinutesPassed(system_clock::time_point t1, system_clock::time_point t2)
         {
-            duration<double> dt = t2 - t1;
+            duration<scalar> dt = t2 - t1;
 			return dt.count() / 60.0;
         }
         
-        const double HoursPassed(system_clock::time_point t1, system_clock::time_point t2)
+        const scalar HoursPassed(system_clock::time_point t1, system_clock::time_point t2)
         {
-            duration<double> dt = t2 - t1;
+            duration<scalar> dt = t2 - t1;
 			return dt.count() / 360.0;
         }
     }

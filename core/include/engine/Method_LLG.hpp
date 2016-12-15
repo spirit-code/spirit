@@ -2,6 +2,7 @@
 #ifndef METHOD_LLG_H
 #define METHOD_LLG_H
 
+#include "Core_Defines.h"
 #include "Method.hpp"
 #include "Parameters_Method_LLG.hpp"
 #include "Spin_System.hpp"
@@ -23,7 +24,7 @@ namespace Engine
 		Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
     
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -43,7 +44,7 @@ namespace Engine
 
 	private:
 		// Last calculated forces
-		std::vector<std::vector<double>> F_total;
+		std::vector<std::vector<scalar>> F_total;
 		// Convergence parameters
 		std::vector<bool> force_converged;
     };

@@ -2,6 +2,7 @@
 #ifndef METHOD_H
 #define METHOD_H
 
+#include "Core_Defines.h"
 #include "Parameters_Method.hpp"
 #include "Spin_System_Chain.hpp"
 #include "Parameters_Method.hpp"
@@ -22,9 +23,9 @@ namespace Engine
 		Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
 		// Calculate Forces onto Systems
-		virtual void Calculate_Force(std::vector<std::shared_ptr<std::vector<double>>> configurations, std::vector<std::vector<double>> & forces);
+		virtual void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces);
 		// Maximum of the absolutes of all components of the force - needs to be updated at each calculation
-		double force_maxAbsComponent;
+		scalar force_maxAbsComponent;
 		// Check if the Forces are converged
 		virtual bool Force_Converged();
 
@@ -57,7 +58,7 @@ namespace Engine
 		
 	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
-		virtual double Force_on_Image_MaxAbsComponent(const std::vector<double> & image, std::vector<double> force) final;
+		virtual scalar Force_on_Image_MaxAbsComponent(const std::vector<scalar> & image, std::vector<scalar> force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
 	};

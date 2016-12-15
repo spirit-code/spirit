@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Core_Defines.h"
 #include "Hamiltonian.hpp"
 #include "Geometry.hpp"
 
@@ -20,24 +21,24 @@ namespace Engine
 	public:
 		// Constructor
 		Hamiltonian_Gaussian(
-			std::vector<double> amplitude, std::vector<double> width, std::vector<std::vector<double>> center
+			std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<std::vector<scalar>> center
 		);
 
 		// General Hamiltonian functions
-		void Hessian(const std::vector<double> & spins, std::vector<double> & hessian) override;
-		void Effective_Field(const std::vector<double> & spins, std::vector<double> & field) override;
-		double Energy(const std::vector<double> & spins) override;
-		std::vector<double> Energy_Array(const std::vector<double> & spins) override;
-		//std::vector<std::vector<double>> Energy_Array_per_Spin(std::vector<double> & spins) override;
+		void Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian) override;
+		void Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field) override;
+		scalar Energy(const std::vector<scalar> & spins) override;
+		std::vector<scalar> Energy_Array(const std::vector<scalar> & spins) override;
+		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
 
 		// Parameters of the energy landscape
 		int n_gaussians;
-		std::vector<double> amplitude;
-		std::vector<double> width;
-		std::vector<std::vector<double>> center;
+		std::vector<scalar> amplitude;
+		std::vector<scalar> width;
+		std::vector<std::vector<scalar>> center;
 	};
 }
 #endif

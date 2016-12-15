@@ -5,6 +5,19 @@
 #include "Method_MMF.hpp"
 
 /*
+	Simulation_Information
+		This struct contains the necessary instances to extract information
+		during a running simulation.
+		The Play_Pause function will insert this information in to the state
+		appropriately.
+*/
+struct Simulation_Information
+{
+	std::shared_ptr<Engine::Optimizer> optimizer;
+	std::shared_ptr<Engine::Method> method;
+};
+
+/*
 	State
       The State struct is passed around in an application to make the
       simulation's state available.
@@ -27,12 +40,12 @@ struct State
 	int idx_active_image, idx_active_chain;
 
 	// The Methods
-	//    max. noi*noc LLG methods
-	std::vector<std::vector<std::shared_ptr<Engine::Method_LLG>>> methods_llg; // [noc][noi]
-																			   //    max. noc GNEB methods
-	std::vector<std::shared_ptr<Engine::Method_GNEB>> methods_gneb; // [noc]
-																	//    max. 1 MMF method
-	std::shared_ptr<Engine::Method_MMF> method_mmf;
+	//    max. noi*noc LLG methods [noc][noi]
+	std::vector<std::vector<std::shared_ptr<Simulation_Information>>> simulation_information_llg;
+	//    max. noc GNEB methods [noc]
+	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_gneb;
+	//    max. 1 MMF method
+	std::shared_ptr<Simulation_Information> simulation_information_mmf;
 };
 
 
