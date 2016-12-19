@@ -8,6 +8,7 @@
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
 #include "Interface_Configurations.h"
+#include "Interface_Quantities.h"
 #include "Interface_IO.h"
 #include "Interface_Log.h"
 
@@ -75,6 +76,10 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
 	// Status Bar
+	//		M_z
+	this->m_Label_Mz = new QLabel;
+	this->m_Label_Mz->setText("M_z: 0");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
 	//		FPS
 	this->m_Label_FPS = new QLabel;
 	this->m_Label_FPS->setText("FPS: 0");
@@ -311,6 +316,12 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 	}
 
+	//		M_z
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Mz);
+	this->m_Label_Mz = new QLabel;
+	this->m_Label_Mz->setText("M_z: -");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Mz);
+
 	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
 	this->m_Label_FPS = new QLabel;
@@ -340,6 +351,10 @@ void MainWindow::createStatusBar()
 void MainWindow::updateStatusBar()
 {
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
+
+	float M[3];
+	Quantity_Get_Magnetization(state.get(), M);
+	this->m_Label_Mz->setText(QString::fromLatin1("M_z: ") + QString::number(M[2], 'f', 6));
 
 	float ips;
 	int precision;

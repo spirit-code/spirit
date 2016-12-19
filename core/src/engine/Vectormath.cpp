@@ -4,6 +4,8 @@
 
 #include <Eigen/Dense>
 
+#include <array>
+
 // Returns the Bohr Magneton [meV / T]
 scalar Engine::Vectormath::MuB()
 {
@@ -68,6 +70,20 @@ void Engine::Vectormath::Build_Spins(std::vector<Vector3> & spin_pos, std::vecto
 	}
 };// end Build_Spins
 
+
+std::array<scalar,3> Engine::Vectormath::Magnetization(const std::vector<Vector3> & vf)
+{
+	std::array<scalar, 3> M{0, 0, 0};
+	int nos = vf.size();
+	scalar scale = 1/(scalar)nos;
+	for (int i=0; i<nos; ++i)
+	{
+		M[0] += vf[i][0]*scale;
+		M[1] += vf[i][1]*scale;
+		M[2] += vf[i][2]*scale;
+	}
+	return M;
+}
 
 std::vector<scalar> Engine::Vectormath::scalar_product(const std::vector<Vector3> & vector_v1, const std::vector<Vector3> & vector_v2)
 {

@@ -75,6 +75,7 @@ private:
 	QTimer * m_timer;
 
 	// Status Bar labels
+	QLabel * m_Label_Mz;
 	QLabel * m_Label_NOC;
 	QLabel * m_Label_NOI;
 	QLabel * m_Label_NOS;

@@ -20,6 +20,7 @@ namespace Engine
 
 		void Build_Spins(std::vector<Vector3> & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic);
 
+		std::array<scalar,3> Magnetization(const std::vector<Vector3> & vf);
 
 		std::vector<scalar> scalar_product(const std::vector<Vector3> & vector_v1, const std::vector<Vector3> & vector_v2);
 

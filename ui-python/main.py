@@ -16,6 +16,7 @@ from core import chain
 from core import configuration
 from core import transition
 from core import simulation
+from core import quantities
 from core import io
 from core import log
 
@@ -80,6 +81,8 @@ simulation.PlayPause(p_state, "LLG", "SIB")
 # for i in range(n_layer_spins):
 #     thefile.write("%s, %s, %s, %s, %s, %s,\n" % (slice_positions[i,0], slice_positions[i,1], 0, slice_spins[i,0], slice_spins[i,1], slice_spins[i,2]))
 
+# ### Order Parameter: total magnetization
+# M = quantities.Get_Magnetization(p_state)
 
 
 ### Finish
