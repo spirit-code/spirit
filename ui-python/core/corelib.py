@@ -10,13 +10,13 @@ def LoadCoreLibrary():
     ### Get the Operating System and set lib name accordingly
     if _platform == "linux" or _platform == "linux2":
         # Linux
-        libname = 'libcore.so'
+        libname = 'libpycore.so'
     elif _platform == "darwin":
         # OS X
-        libname = 'libcore.dylib'
+        libname = 'libpycore.dylib'
     elif _platform == "win32":
         # Windows
-        libname = 'core.dll'
+        libname = 'pycore.dll'
 
     ### Load the core library
     _core = ctypes.CDLL(core_dir + '/' + libname)

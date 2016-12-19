@@ -71,13 +71,14 @@ simulation.PlayPause(p_state, "LLG", "SIB")
 #     layer = 1
 # print(n_layers, " ", layer)
 
-# slice = spins[n_layer_spins*(layer-1):n_layer_spins*layer]
-# print(slice)
+# slice_spins = spins[n_layer_spins*(layer-1):n_layer_spins*layer]
+# slice_positions = positions[n_layer_spins*(layer-1):n_layer_spins*layer]
+# print(slice_spins)
 
 
 # thefile = open("test.txt", "w")
-# for i, spin in enumerate(slice):
-#     thefile.write("%s, %s, %s, %s, %s, %s,\n" % (positions[i,0], positions[i,1], positions[i,2], spin[0], spin[1], spin[2]))
+# for i in range(n_layer_spins):
+#     thefile.write("%s, %s, %s, %s, %s, %s,\n" % (slice_positions[i,0], slice_positions[i,1], 0, slice_spins[i,0], slice_spins[i,1], slice_spins[i,2]))
 
 
 

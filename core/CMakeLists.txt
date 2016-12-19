@@ -87,8 +87,8 @@ source_group("src\\interface" FILES ${SOURCE_CORE_INTERFACE})
 #############################################
 
 
-######### Tell CMake to create the static library
-add_library( core STATIC
+######### Tell CMake to create the object files
+add_library( coreobj OBJECT
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
     ${HEADER_CORE_ENGINE}
@@ -98,28 +98,24 @@ add_library( core STATIC
 	${SOURCE_CORE_DATA}
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
-	${SOURCE_CORE_UTILITY})
-target_link_libraries( core libqhullcpp)
+	${SOURCE_CORE_UTILITY} )
 #############################################
 
-######### Tell CMake to create the shared library
+######### Tell CMake to create the static core library for the QT UI
+if( BUILD_UI_CXX )
+	add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
+	target_link_libraries( core libqhullcpp )
+endif()
+#############################################
+
+######### Tell CMake to create the shared library for the Python UI
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-	add_library( pycore SHARED
-		${HEADER_CORE_ROOT}
-		${HEADER_CORE_DATA}
-		${HEADER_CORE_ENGINE}
-		${HEADER_CORE_INTERFACE}
-		${HEADER_CORE_UTILITY}
-		${SOURCE_CORE_ROOT}
-		${SOURCE_CORE_DATA}
-		${SOURCE_CORE_ENGINE}
-		${SOURCE_CORE_INTERFACE}
-		${SOURCE_CORE_UTILITY})
+	add_library( pycore SHARED $<TARGET_OBJECTS:coreobj> )
 	target_link_libraries( pycore libqhullcpp )
 	### We want it to be called core, not pycore
-	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
+	# set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
 	set( PYLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-python/core/ )
     set_target_properties( pycore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
@@ -129,27 +125,19 @@ if( BUILD_UI_PYTHON )
         	set_target_properties( pycore PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
 		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
     endif ( MSVC )
+
+	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${CORE_SCALAR_TYPE}")
 endif()
 #############################################
 
-######### Tell CMake to create the shared library
+######### Tell CMake to create the shared library for the Julia UI
 if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-	add_library( corejl SHARED
-		${HEADER_CORE_ROOT}
-		${HEADER_CORE_DATA}
-		${HEADER_CORE_ENGINE}
-		${HEADER_CORE_INTERFACE}
-		${HEADER_CORE_UTILITY}
-		${SOURCE_CORE_ROOT}
-		${SOURCE_CORE_DATA}
-		${SOURCE_CORE_ENGINE}
-		${SOURCE_CORE_INTERFACE}
-		${SOURCE_CORE_UTILITY})
+	add_library( corejl SHARED $<TARGET_OBJECTS:coreobj> )
 	target_link_libraries( corejl libqhullcpp)
 	### We want it to be called core, not corejl
-	set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
+	# set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
 	set( JLLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-julia/core/ )
     set_target_properties( corejl PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )

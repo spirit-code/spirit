@@ -1,4 +1,5 @@
 import core.corelib as corelib
+from core.scalar import scalar
 import core.system as system
 import ctypes
 import numpy as np
@@ -73,14 +74,12 @@ def Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1):
     return int(_Get_Dimensionality(p_state, idx_image, idx_chain))
 
 ### Get Pointer to Spin Positions
-_TYPE = ctypes.c_double
-####### TODO: _TYPE depends on how the lib was compiled!
 _Get_Spin_Positions            = _core.Geometry_Get_Spin_Positions
 _Get_Spin_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Spin_Positions.restype    = ctypes.POINTER(_TYPE)
+_Get_Spin_Positions.restype    = ctypes.POINTER(scalar)
 def Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1):
     nos = system.Get_NOS(p_state, idx_image, idx_chain)
-    ArrayType = _TYPE*3*nos
+    ArrayType = scalar*3*nos
     Data = _Get_Spin_Positions(p_state, idx_image, idx_chain)
     array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
     array = np.frombuffer(array_pointer.contents)
