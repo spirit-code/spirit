@@ -1,5 +1,7 @@
 import core.corelib as corelib
+import core.system as system
 import ctypes
+import numpy as np
 
 ### Load Library
 _core = corelib.LoadCoreLibrary()
@@ -66,3 +68,19 @@ _Get_Dimensionality.restype  = ctypes.c_int
 def Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     return int(_Get_Dimensionality(p_state, idx_image, idx_chain))
+
+### Get Pointer to Spin Positions
+_TYPE = ctypes.c_double
+####### TODO: _TYPE depends on how the lib was compiled!
+_Get_Spin_Positions            = _core.Geometry_Get_Spin_Positions
+_Get_Spin_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Spin_Positions.restype    = ctypes.POINTER(_TYPE)
+def Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1):
+    nos = system.Get_NOS(p_state, idx_image, idx_chain)
+    ArrayType = _TYPE*3*nos
+    Data = _Get_Spin_Positions(p_state, idx_image, idx_chain)
+    array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
+    array = np.frombuffer(array_pointer.contents)
+    array_view = array.view()
+    array_view.shape = (nos, 3)
+    return array_view

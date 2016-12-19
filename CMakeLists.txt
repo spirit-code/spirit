@@ -76,6 +76,12 @@ include(CompilerFlags)
 ### Prevent in-source builds
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated VERSION.txt
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+### Position independent code
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+### Installation Prefix
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "default install path" FORCE )
+endif()
 #############################################
 
 

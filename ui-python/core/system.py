@@ -1,5 +1,6 @@
 import core.corelib as corelib
 import ctypes
+import numpy as np
 
 ### Load Library
 _core = corelib.LoadCoreLibrary()
@@ -21,11 +22,20 @@ def Get_NOS(p_state, idx_image=-1, idx_chain=-1):
     return int(_Get_NOS(p_state, idx_image, idx_chain))
 
 ### Get Pointer to Spin Directions
+_TYPE = ctypes.c_double
+####### TODO: _TYPE depends on how the lib was compiled!
 _Get_Spin_Directions            = _core.System_Get_Spin_Directions
 _Get_Spin_Directions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Spin_Directions.restype    = ctypes.POINTER(ctypes.c_float)
+_Get_Spin_Directions.restype    = ctypes.POINTER(_TYPE)
 def Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1):
-    return ctypes.POINTER(ctypes.c_float)(_Get_Spin_Directions(p_state, idx_image, idx_chain))
+    nos = Get_NOS(p_state, idx_image, idx_chain)
+    ArrayType = _TYPE*3*nos
+    Data = _Get_Spin_Directions(p_state, idx_image, idx_chain)
+    array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
+    array = np.frombuffer(array_pointer.contents)
+    array_view = array.view()
+    array_view.shape = (nos, 3)
+    return array_view
 
 ### Get total Energy
 _Get_Energy          = _core.System_Get_Energy
