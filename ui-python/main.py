@@ -1,23 +1,28 @@
 ### Make sure to find the core modules
 import os
-core_dir = os.path.dirname(os.path.realpath(__file__)) + '/ui-python'
-# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '/ui-python/core'))
+core_dir = os.path.dirname(os.path.realpath(__file__)) + "/ui-python"
+# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "..", "/ui-python/core"))
 import sys
 sys.path.insert(0, core_dir)
 
+### Import numpy
+import numpy as np
 
 ### Import core library
 from core import state
+from core import system
+from core import geometry
 from core import chain
 from core import configuration
 from core import transition
 from core import simulation
 from core import io
+from core import log
 
 
-# cfgfile = b'input/markus-paper.cfg'
-cfgfile = b'input/gideon-master-thesis-isotropic.cfg'
-# cfgfile = b'input/daniel-master-thesis-isotropic.cfg'
+# cfgfile = "input/markus-paper.cfg"
+cfgfile = "input/gideon-master-thesis-anisotropic.cfg"
+# cfgfile = "input/daniel-master-thesis-isotropic.cfg"
 
 ### Get a State pointer
 p_state = state.setup(cfgfile)
@@ -39,7 +44,7 @@ configuration.Skyrmion(p_state, [0,0,0], 5.0, 1, -90.0, False, False, False, 0)
 ### Last image is homogeneous
 configuration.PlusZ(p_state, noi-1)
 
-# spinsfile = b'input/spins.txt'
+# spinsfile = "input/spins.txt"
 # io.Image_Read(p_state, spinsfile)
 
 ### Create transition of images between first and last
@@ -49,11 +54,35 @@ transition.Homogeneous(p_state, 0, noi-1)
 ###     We use a thread, so that KeyboardInterrupt can be forwarded to the CDLL call
 ###     We might want to think about using PyDLL and about a signal handler in the core library
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
-simulation.PlayPause(p_state, b"LLG", b"SIB")
+simulation.PlayPause(p_state, "LLG", "SIB")
 
-### ...
-# // Finish
-# Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-# Log(Log_Level::ALL, Log_Sender::ALL, "================= Spirit Finished ===================");
-# Log(Log_Level::ALL, Log_Sender::ALL, "=====================================================");
-# Log.Append_to_File();
+# ### Save some data
+# nos = system.Get_NOS(p_state)
+# spins = system.Get_Spin_Directions(p_state)
+# positions = geometry.Get_Spin_Positions(p_state)
+
+# # get the n'th layer in z-direction
+# na, nb, nc = geometry.Get_N_Cells(p_state)
+# n_layer_spins = na*nb
+# n_layers = nc
+# if(n_layers > 2):
+#     layer = n_layers/2
+# else:
+#     layer = 1
+# print(n_layers, " ", layer)
+
+# slice = spins[n_layer_spins*(layer-1):n_layer_spins*layer]
+# print(slice)
+
+
+# thefile = open("test.txt", "w")
+# for i, spin in enumerate(slice):
+#     thefile.write("%s, %s, %s, %s, %s, %s,\n" % (positions[i,0], positions[i,1], positions[i,2], spin[0], spin[1], spin[2]))
+
+
+
+### Finish
+log.Send(p_state, 0, 0, "=====================================================")
+log.Send(p_state, 0, 0, "================= Spirit Finished ===================")
+log.Send(p_state, 0, 0, "=====================================================")
+log.Append(p_state)

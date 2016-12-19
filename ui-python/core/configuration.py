@@ -70,4 +70,4 @@ _SpinSpiral.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_float, cty
 _SpinSpiral.restype     = None
 def SpinSpiral(p_state, direction_type, q_vector, axis, theta, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _SpinSpiral(p_state, ctypes.c_char_p(direction_type), vec3(*q_vector), vec3(*axis), theta, idx_image, idx_chain)
+    _SpinSpiral(p_state, ctypes.c_char_p(direction_type.encode('utf-8')), vec3(*q_vector), vec3(*axis), theta, idx_image, idx_chain)

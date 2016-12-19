@@ -48,10 +48,13 @@ def Get_Basis_Vectors(p_state, a, b, c, idx_image=-1, idx_chain=-1):
 
 ### Get N Cells
 _Get_N_Cells          = _core.Geometry_Get_N_Cells
-_Get_N_Cells.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.c_int, ctypes.c_int]
+_Get_N_Cells.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.c_int, ctypes.c_int]
 _Get_N_Cells.restype  = None
-def Get_N_Cells(p_state, na, nb, nc, idx_image=-1, idx_chain=-1):
-    _Get_N_Cells(p_state, na, nb, nc, idx_image, idx_chain)
+def Get_N_Cells(p_state, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_int * 3
+    n_cells = vec3(*[-1,-1,-1])
+    _Get_N_Cells(p_state, n_cells, idx_image, idx_chain)
+    return int(n_cells[0]), int(n_cells[1]), int(n_cells[2])
 
 ### Get Translation Vectors
 _Get_Translation_Vectors          = _core.Geometry_Get_Translation_Vectors
