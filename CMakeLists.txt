@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 ### These decide which projects are built
 option( BUILD_UI_WEB     "Build the JavaScript library for the Web UI."                 OFF )
 option( BUILD_UI_JULIA   "Build the shared library for the Julia UI."                   OFF )
-option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  ON )
+option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  ON  )
 option( BUILD_UI_CXX     "Build the C++ UIs (console or QT)"                            ON  )
 option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option

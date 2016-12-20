@@ -57,6 +57,14 @@ transition.Homogeneous(p_state, 0, noi-1)
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
 simulation.PlayPause(p_state, "LLG", "SIB")
 
+
+# ### Order Parameter: total magnetization
+# M = quantities.Get_Magnetization(p_state)
+# # TODO: save order parameter
+
+# ### Total Energy
+# # TODO
+
 # ### Save some data
 # nos = system.Get_NOS(p_state)
 # spins = system.Get_Spin_Directions(p_state)
@@ -77,16 +85,25 @@ simulation.PlayPause(p_state, "LLG", "SIB")
 # print(slice_spins)
 
 
-# thefile = open("test.txt", "w")
-# for i in range(n_layer_spins):
-#     thefile.write("%s, %s, %s, %s, %s, %s,\n" % (slice_positions[i,0], slice_positions[i,1], 0, slice_spins[i,0], slice_spins[i,1], slice_spins[i,2]))
-
-# ### Order Parameter: total magnetization
-# M = quantities.Get_Magnetization(p_state)
+# with open("data.txt", "w") as outfile:
+#     for i in range(n_layer_spins):
+#         outfile.write("%s, %s, %s, %s, %s, %s,\n" % (slice_positions[i,0], slice_positions[i,1], 0.0, slice_spins[i,0], slice_spins[i,1], slice_spins[i,2]))
 
 
 ### Finish
-log.Send(p_state, 0, 0, "=====================================================")
-log.Send(p_state, 0, 0, "================= Spirit Finished ===================")
-log.Send(p_state, 0, 0, "=====================================================")
-log.Append(p_state)
+state.delete(p_state)
+
+# ### Save snapshot of the system slice
+# def Run_PovRay_Script(scriptname, w=1000, h=1000):
+#     from subprocess import call
+#     # create tmp folder
+#     command = "mkdir -p /tmp/PovRay/"
+#     call(command, shell=True)
+#     # create the image
+#     command = "povray "+scriptname+".pov -w"+str(w)+" -h"+str(h)+" +aa0.3 -O/tmp/PovRay/"+scriptname+".png"
+#     call(command, shell=True)
+#     # copy to folder
+#     command = "cp /tmp/PovRay/"+scriptname+".png ."
+#     call(command, shell=True)
+
+# Run_PovRay_Script("Show_Spins", 1000, 1000)

@@ -76,11 +76,5 @@ int main(int argc, char ** argv)
 	Simulation_PlayPause(state.get(), "LLG", "SIB");
 	//-------------------------------------------------------------------------------
 
-
-	// Finish
-	Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
-	Log_Send(state.get(), Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
-	Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
-	Log_Append(state.get());
 	return 0;
 }

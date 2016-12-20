@@ -89,14 +89,7 @@ int main(int argc, char ** argv)
 	// Open the Application
 	int exec = app.exec();
 	// If Application is closed normally
-	if (exec == 0)
-	{
-		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
-		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
-		Log_Send(state.get(), Log_Level_All, Log_Sender_All, "=====================================================");
-		Log_Append(state.get());
-	}
-	else throw exec;
+	if (exec != 0) throw exec;
 	// Finish
 	return exec;
 	//-------------------------------------------------------------------------------
