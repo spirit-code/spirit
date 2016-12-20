@@ -5,6 +5,9 @@ import threading
 ### Load Library
 _core = corelib.LoadCoreLibrary()
 
+###     We use a thread for PlayPause, so that KeyboardInterrupt can be forwarded to the CDLL call
+###     We might want to think about using PyDLL and about a signal handler in the core library
+###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
 
 ### SingleShot Iteration
 _SingleShot          = _core.Simulation_SingleShot
