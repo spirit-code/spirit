@@ -19,6 +19,8 @@ output_mmf/*
 ### Output Logs ###
 Log_*
 */Log_*
+input_*
+*/input_*
 
 ### Executables and Libraries ###
 spirit

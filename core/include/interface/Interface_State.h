@@ -23,5 +23,12 @@ DLLEXPORT void State_Delete(State * state);
 */
 void State_Update(State * state);
 
+/*
+	State_To_Config
+	  Write a config file which should give the same state again when
+	  used in State_Setup (modulo the number of chains and images)
+*/
+DLLEXPORT void State_To_Config(State * state, const char * config_file, const char * original_config_file="");
+
 #include "DLL_Undefine_Export.h"
 #endif

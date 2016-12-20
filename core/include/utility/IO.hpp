@@ -34,6 +34,18 @@ namespace Utility
 			WHITESPACE_SPIN = IO_Fileformat_Regular
 		};
 
+		// ------------------------------------------------------------
+		// Helpers for centering strings
+		std::string center(const std::string s, const int w);
+		// trim from start
+		static inline std::string &ltrim(std::string &s);
+		// trim from end
+		static inline std::string &rtrim(std::string &s);
+		// trim from both ends
+		static inline std::string &trim(std::string &s);
+		std::string center(const scalar s, const int precision, const int w);
+		// ------------------------------------------------------------
+
 		// ======================== Configparser ========================
 		// Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
 		// Input may be given incomplete. In this case a log entry is created and default values are used.
@@ -47,6 +59,21 @@ namespace Utility
 		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
+
+		// ======================== Configwriter ========================
+		void Folders_to_Config(const std::string configFile,
+				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
+				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf);
+		void Log_Levels_to_Config(const std::string configFile);
+		void Geometry_to_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
+		void Parameters_Method_LLG_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_LLG> parameters);
+		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
+		void Parameters_Method_MMF_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MMF> parameters);
+		void Hamiltonian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Isotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
+		void Hamiltonian_Anisotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
 
 		// ========================= Fileparser =========================
 		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
