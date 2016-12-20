@@ -179,7 +179,7 @@ namespace Utility
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
 			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
-			std::vector<Vector3> & anisotropy_normal)
+			vectorfield & anisotropy_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
 			try {
@@ -221,7 +221,7 @@ namespace Utility
 				// Arrays
 				anisotropy_index = std::vector<int>(0);
 				anisotropy_magnitude = std::vector<scalar>(0);
-				anisotropy_normal = std::vector<Vector3>(0);
+				anisotropy_normal = vectorfield(0);
 
 				// Get actual Data
 				file.ResetStream();
@@ -305,7 +305,7 @@ namespace Utility
 		*/
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<Vector3>> & DMI_normal)
+			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<vectorfield> & DMI_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
 			try {

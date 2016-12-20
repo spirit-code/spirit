@@ -29,11 +29,11 @@ namespace Engine
 		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
-		this->F_total = std::vector<std::vector<Vector3>>(systems.size(), std::vector<Vector3>(systems[0]->spins->size()));	// [noi][3nos]
+		this->F_total = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
 	}
 
 
-	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
+	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
 	{
 		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);

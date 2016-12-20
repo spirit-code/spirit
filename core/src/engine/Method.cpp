@@ -11,7 +11,7 @@ namespace Engine
 		this->force_maxAbsComponent = parameters->force_convergence + 1.0;
     }
 
-    void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
+    void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
     {
 
     }
@@ -61,7 +61,7 @@ namespace Engine
         throw Utility::Exception::Not_Implemented;
     }
 
-	std::pair<scalar, scalar> minmax_component(std::vector<Vector3> v1)
+	std::pair<scalar, scalar> minmax_component(vectorfield v1)
 	{
 		scalar min=1e6, max=-1e6;
 		std::pair<scalar, scalar> minmax;
@@ -79,7 +79,7 @@ namespace Engine
 	}
 
     // Return the maximum of absolute values of force components for an image
-    scalar  Method::Force_on_Image_MaxAbsComponent(const std::vector<Vector3> & image, std::vector<Vector3> force)
+    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force)
     {
         int nos = image.size();
         // We project the force orthogonal to the SPIN

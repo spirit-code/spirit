@@ -33,24 +33,24 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::shared_ptr<std::vector<Vector3>>> spins_temp;
+		std::vector<std::shared_ptr<vectorfield>> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
-		std::vector<std::vector<Vector3>> virtualforce;
+		std::vector<vectorfield> virtualforce;
 
 		// Random vector array
-		std::vector<Vector3> xi;
+		vectorfield xi;
 		// Some variable
 		scalar epsilon;
 
 		// Generate an array of random spins?
-		void Gen_Xi(Data::Spin_System & s, std::vector<Vector3> & xi, scalar eps);
+		void Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps);
 		// Calculate the virtual Heun force to be used in the Steps
-		void VirtualForce(const int nos, std::vector<Vector3> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<Vector3> & eff_field, std::vector<Vector3> & xi, std::vector<Vector3> & force);
+		void VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & eff_field, vectorfield & xi, vectorfield & force);
 		// First Part of one Optimization step
-		void FirstStep(const int nos, std::vector<Vector3> & spins, std::vector<Vector3> & force, std::vector<Vector3> & spins_temp);
+		void FirstStep(const int nos, vectorfield & spins, vectorfield & force, vectorfield & spins_temp);
 		// Second Part of one Optimization step
-		void SecondStep(const int nos, std::vector<Vector3> & force, std::vector<Vector3> & spins);
+		void SecondStep(const int nos, vectorfield & force, vectorfield & spins);
 
     };
 }

@@ -38,7 +38,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::shared_ptr<std::vector<Vector3>> spins;
+		std::shared_ptr<vectorfield> spins;
 		// Spin Hamiltonian
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
@@ -52,7 +52,7 @@ namespace Data
 		scalar E;
 		std::vector<std::pair<std::string, scalar>> E_array;
 		// Total effective field of the spins [3][nos]
-		std::vector<Vector3> effective_field;
+		vectorfield effective_field;
 
 
 	//private:

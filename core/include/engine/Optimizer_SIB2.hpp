@@ -28,9 +28,9 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<Vector3>> spins_temp;
+		std::vector<vectorfield> spins_temp;
 
-		void Gen_Xi(Data::Spin_System & s, std::vector<Vector3> & xi, scalar eps);
+		void Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps);
     };
 }
 

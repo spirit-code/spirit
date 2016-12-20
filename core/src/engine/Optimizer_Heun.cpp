@@ -9,8 +9,8 @@ namespace Engine
 	Optimizer_Heun::Optimizer_Heun(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->virtualforce = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos][3]
-		this->spins_temp = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos][3]
+		this->virtualforce = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos][3]
+		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos][3]
     }
 
     void Optimizer_Heun::Iteration()

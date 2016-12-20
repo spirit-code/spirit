@@ -28,18 +28,18 @@ namespace Engine
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
 		// Tangents
-		this->tangents = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
+		this->tangents = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
 		// Forces
-		this->F_total    = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
-		this->F_gradient = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
-		this->F_spring   = std::vector<std::vector<Vector3>>(noi, std::vector<Vector3>(nos));	// [noi][nos]
+		this->F_total    = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->F_gradient = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->F_spring   = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
 
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 		this->chain->images[noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 	}
 
-	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
+	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
 	{
 		int nos = configurations[0]->size();
 

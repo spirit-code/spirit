@@ -6,11 +6,11 @@ namespace Engine
 	Optimizer_SIB::Optimizer_SIB(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->xi = std::vector<Vector3>(this->nos);
-		this->virtualforce = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos]
+		this->xi = vectorfield(this->nos);
+		this->virtualforce = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
 		
-		this->spins_temp = std::vector<std::shared_ptr<std::vector<Vector3>>>(this->noi);
-		for (int i=0; i<this->noi; ++i) spins_temp[i] = std::shared_ptr<std::vector<Vector3>>(new std::vector<Vector3>(this->nos)); // [noi][nos]
+		this->spins_temp = std::vector<std::shared_ptr<vectorfield>>(this->noi);
+		for (int i=0; i<this->noi; ++i) spins_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos)); // [noi][nos]
     }
 
     void Optimizer_SIB::Iteration()
@@ -46,7 +46,7 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::VirtualForce(const int nos, std::vector<Vector3> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<Vector3> & eff_field,  std::vector<Vector3> & xi, std::vector<Vector3> & force)
+	void Optimizer_SIB::VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & eff_field,  vectorfield & xi, vectorfield & force)
 	{
 		//========================= Init local vars ================================
 		int i;
@@ -101,7 +101,7 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::FirstStep(const int nos, std::vector<Vector3> & spins, std::vector<Vector3> & force, std::vector<Vector3> & spins_temp)
+	void Optimizer_SIB::FirstStep(const int nos, vectorfield & spins, vectorfield & force, vectorfield & spins_temp)
 	{
 		// aux variables
 		Vector3 a2, A;
@@ -129,7 +129,7 @@ namespace Engine
 		}
 	}
 
-	void Optimizer_SIB::SecondStep(const int nos, std::vector<Vector3> & force, std::vector<Vector3> & spins)
+	void Optimizer_SIB::SecondStep(const int nos, vectorfield & force, vectorfield & spins)
 	{
 		// aux variables
 		Vector3 a2, A;
@@ -158,7 +158,7 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::Gen_Xi(Data::Spin_System & s, std::vector<Vector3> & xi, scalar eps)
+	void Optimizer_SIB::Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps)
 	{
 		//for (int i = 0; i < 3*s.nos; ++i) {
 		//	// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps

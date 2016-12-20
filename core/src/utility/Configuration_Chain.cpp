@@ -68,7 +68,7 @@ namespace Utility
 
 		}
 
-		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<Vector3> A, std::vector<Vector3> B)
+		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, vectorfield A, vectorfield B)
 		{
 			(*c->images[0]->spins) = A;
 			(*c->images[c->noi - 1]->spins) = B;

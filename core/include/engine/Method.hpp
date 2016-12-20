@@ -23,7 +23,7 @@ namespace Engine
 		Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
 		// Calculate Forces onto Systems
-		virtual void Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces);
+		virtual void Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
 		// Maximum of the absolutes of all components of the force - needs to be updated at each calculation
 		scalar force_maxAbsComponent;
 		// Check if the Forces are converged
@@ -58,7 +58,7 @@ namespace Engine
 		
 	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
-		virtual scalar Force_on_Image_MaxAbsComponent(const std::vector<Vector3> & image, std::vector<Vector3> force) final;
+		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
 	};

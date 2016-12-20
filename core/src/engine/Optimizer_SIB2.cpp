@@ -7,7 +7,7 @@ namespace Engine
         Optimizer(method)
     {
 		//this->virtualforce = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
-		this->spins_temp = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos]
+		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
 		//if (systems.size() > 1) Log(Log_Level::ERROR, Log_Sender::LLG, "THE OPTIMIZER_SIB2 CANNOT HANDLE MORE THAN 1 IMAGE CORRECTLY !!");
     }
 	
@@ -34,7 +34,7 @@ namespace Engine
 			scalar detMi;
 			scalar D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Vectormath::kB());
 
-			auto R = std::vector<Vector3>(nos);
+			auto R = vectorfield(nos);
 			this->Gen_Xi(*s, R, D);
 
 			Cx = s->llg_parameters->stt_polarisation_normal[0] * s->llg_parameters->stt_magnitude;
@@ -126,7 +126,7 @@ namespace Engine
 		}
 	}
 
-	void Optimizer_SIB2::Gen_Xi(Data::Spin_System & s, std::vector<Vector3> & xi, scalar eps)
+	void Optimizer_SIB2::Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps)
 	{
 		//for (int i = 0; i < 3*s.nos; ++i) {
 		//	// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps

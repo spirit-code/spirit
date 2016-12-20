@@ -5,8 +5,8 @@ namespace Engine
     Optimizer_VP::Optimizer_VP(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->spins_temp = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos));	// [noi][nos]
-		this->velocity = std::vector<std::vector<Vector3>>(this->noi, std::vector<Vector3>(this->nos, Vector3::Zero()));	// [noi][nos]
+		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
+		this->velocity = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
 		this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
 		this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
     }

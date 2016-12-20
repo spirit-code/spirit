@@ -96,7 +96,7 @@ namespace Engine
 	// 	}
     // }
 
-	void Hamiltonian::Hessian(const std::vector<Vector3> & spins, MatrixX & hessian)
+	void Hamiltonian::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
 		// This is a regular finite difference implementation (probably not very efficient)
 		// using the differences between gradient values (not function)
@@ -105,11 +105,11 @@ namespace Engine
 		int nos = spins.size();
 
 		// Calculate finite difference
-		std::vector<Vector3> spins_p(nos);
-		std::vector<Vector3> spins_m(nos);
+		vectorfield spins_p(nos);
+		vectorfield spins_m(nos);
 
-		std::vector<std::vector<Vector3>> grad_p(3*nos, std::vector<Vector3>(nos));
-		std::vector<std::vector<Vector3>> grad_m(3*nos, std::vector<Vector3>(nos));
+		std::vector<vectorfield> grad_p(3*nos, vectorfield(nos));
+		std::vector<vectorfield> grad_m(3*nos, vectorfield(nos));
 
 		std::vector<scalar> d(3 * nos);
 
@@ -153,15 +153,15 @@ namespace Engine
 		}
 	}
 
-    void Hamiltonian::Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field)
+    void Hamiltonian::Effective_Field(const vectorfield & spins, vectorfield & field)
     {
 		// This is a regular finite difference implementation (probably not very efficient)
 
         int nos = spins.size();
 
 		// Calculate finite difference
-		std::vector<Vector3> spins_plus(nos);
-		std::vector<Vector3> spins_minus(nos);
+		vectorfield spins_plus(nos);
+		vectorfield spins_minus(nos);
 
 		for (int i = 0; i < nos; ++i)
 		{
@@ -189,7 +189,7 @@ namespace Engine
 		}
     }
 
-    scalar Hamiltonian::Energy(const std::vector<Vector3> & spins)
+    scalar Hamiltonian::Energy(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
@@ -197,7 +197,7 @@ namespace Engine
         return 0.0;
     }
 
-    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const std::vector<Vector3> & spins)
+    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
@@ -205,7 +205,7 @@ namespace Engine
         return std::vector<std::vector<scalar>>(spins.size(), std::vector<scalar>(7, 0.0));
     }
 
-    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const std::vector<Vector3> & spins)
+    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));

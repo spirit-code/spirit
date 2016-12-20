@@ -19,7 +19,7 @@ scalar Engine::Vectormath::kB()
 }
 
 
-void Engine::Vectormath::Build_Spins(std::vector<Vector3> & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic)
+void Engine::Vectormath::Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic)
 {
 	Vector3 a = translation_vectors[0];
 	Vector3 b = translation_vectors[1];
@@ -71,7 +71,7 @@ void Engine::Vectormath::Build_Spins(std::vector<Vector3> & spin_pos, std::vecto
 };// end Build_Spins
 
 
-std::array<scalar,3> Engine::Vectormath::Magnetization(const std::vector<Vector3> & vf)
+std::array<scalar,3> Engine::Vectormath::Magnetization(const vectorfield & vf)
 {
 	std::array<scalar, 3> M{0, 0, 0};
 	int nos = vf.size();
@@ -85,7 +85,7 @@ std::array<scalar,3> Engine::Vectormath::Magnetization(const std::vector<Vector3
 	return M;
 }
 
-std::vector<scalar> Engine::Vectormath::scalar_product(const std::vector<Vector3> & vector_v1, const std::vector<Vector3> & vector_v2)
+std::vector<scalar> Engine::Vectormath::scalar_product(const vectorfield & vector_v1, const vectorfield & vector_v2)
 {
     std::vector<scalar> result(vector_v1.size());
     for (unsigned int i=0; i<vector_v1.size(); ++i)
@@ -96,7 +96,7 @@ std::vector<scalar> Engine::Vectormath::scalar_product(const std::vector<Vector3
 }
 
 
-void Engine::Vectormath::Normalize(std::vector<Vector3> & vectorfield)
+void Engine::Vectormath::Normalize(vectorfield & vectorfield)
 {
 	scalar tmp = 0;
 	for (unsigned int i = 0; i < vectorfield.size(); ++i)
@@ -127,7 +127,7 @@ scalar Engine::Vectormath::dist_greatcircle(const Vector3 & v1, const Vector3 & 
 }
 
 
-scalar Engine::Vectormath::dist_geodesic(const std::vector<Vector3> & v1, const std::vector<Vector3> & v2)
+scalar Engine::Vectormath::dist_geodesic(const vectorfield & v1, const vectorfield & v2)
 {
 	scalar dist = 0;
 	for (unsigned int i = 0; i < v1.size(); ++i)
@@ -139,7 +139,7 @@ scalar Engine::Vectormath::dist_geodesic(const std::vector<Vector3> & v1, const 
 
 
 
-void Engine::Vectormath::Project_Reverse(std::vector<Vector3> & v1, const std::vector<Vector3> & v2)
+void Engine::Vectormath::Project_Reverse(vectorfield & v1, const vectorfield & v2)
 {
 	// Get the scalar product of the vectors
 	scalar v1v2 = 0.0;
@@ -165,7 +165,7 @@ void Engine::Vectormath::Rotate_Spin(const Vector3 & v, const Vector3 & axis, co
 /*
 	Calculates the 'tangent' vectors, i.e.in crudest approximation the difference between an image and the neighbouring
 */
-void Engine::Vectormath::Tangents(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, const std::vector<scalar> & energies, std::vector<std::vector<Vector3>> & tangents)
+void Engine::Vectormath::Tangents(std::vector<std::shared_ptr<vectorfield>> configurations, const std::vector<scalar> & energies, std::vector<vectorfield> & tangents)
 {
 	int noi = configurations.size();
 	int nos = (*configurations[0]).size();
@@ -209,7 +209,7 @@ void Engine::Vectormath::Tangents(std::vector<std::shared_ptr<std::vector<Vector
 			E_minus = energies[idx_img - 1];
 
 			// Vectors to neighbouring images
-			std::vector<Vector3> t_plus(nos), t_minus(nos);
+			vectorfield t_plus(nos), t_minus(nos);
 			for (int i = 0; i < nos; ++i)
 			{
 				t_plus[i] = image_plus[i] - image[i];

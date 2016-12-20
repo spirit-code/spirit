@@ -20,7 +20,7 @@ namespace Engine
     
 	//public override:
 		// Calculate Forces onto Systems
-		void Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces) override;
+		void Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces) override;
 		
 		// Check if the Forces are converged
 		bool Force_Converged() override;
@@ -46,20 +46,20 @@ namespace Engine
 
 		std::vector<MatrixX> hessian;
 		// Last calculated forces
-		std::vector<std::vector<Vector3>> F_gradient;
+		std::vector<vectorfield> F_gradient;
 		// Last calculated minimum mode
-		std::vector<std::vector<Vector3>> minimum_mode;
+		std::vector<vectorfield> minimum_mode;
 
 		// Last iterations spins and reaction coordinate
 		scalar Rx_last;
-		std::vector<std::vector<Vector3>> spins_last;
+		std::vector<vectorfield> spins_last;
 
 		// Which minimum mode function to use
 		// ToDo: move into parameters
 		std::string mm_function;
 
 		// Functions for getting the minimum mode of a Hessian
-		void Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces);
+		void Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
 	};
 }
 

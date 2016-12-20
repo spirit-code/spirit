@@ -179,7 +179,7 @@ namespace Utility
 			std::vector<int> n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
-			std::vector<Vector3> spin_pos;
+			vectorfield spin_pos;
 
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
@@ -252,7 +252,7 @@ namespace Utility
 			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
-			spin_pos = std::vector<Vector3>(nos);
+			spin_pos = vectorfield(nos);
 			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters
@@ -612,7 +612,7 @@ namespace Utility
 			Vector3 B_normal = { 0.0, 0.0, 1.0 };
 			std::vector<int> external_field_index(geometry.nos);				// [nos]
 			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0);	// [nos]
-			std::vector<Vector3> external_field_normal(geometry.nos, B_normal);	// [3][nos]
+			vectorfield external_field_normal(geometry.nos, B_normal);	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
@@ -621,15 +621,15 @@ namespace Utility
 			bool anisotropy_from_file = false;
 			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
 			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<Vector3> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
+			vectorfield anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
 			// ------------ Pair Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
 			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<Vector3>> DMI_normal(8);
-			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<Vector3>> DD_normal(8);
+			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<vectorfield> DMI_normal(8);
+			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<vectorfield> DD_normal(8);
 
 			scalar dd_radius = 0.0;
 
@@ -700,7 +700,7 @@ namespace Utility
 						{
 							external_field_index = std::vector<int>(0);
 							external_field_magnitude = std::vector<scalar>(0);
-							external_field_normal = std::vector<Vector3>(0);
+							external_field_normal = vectorfield(0);
 						}
 					}
 
@@ -734,7 +734,7 @@ namespace Utility
 						{
 							anisotropy_index = std::vector<int>(0);
 							anisotropy_magnitude = std::vector<scalar>(0);
-							anisotropy_normal = std::vector<Vector3>(0);
+							anisotropy_normal = vectorfield(0);
 						}
 					}
 
@@ -829,7 +829,7 @@ namespace Utility
 			// Widths
 			std::vector<scalar> width = { 1 };
 			// Centers
-			std::vector<Vector3> center = { Vector3{ 0, 0, 1 } };
+			vectorfield center = { Vector3{ 0, 0, 1 } };
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");

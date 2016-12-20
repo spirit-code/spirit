@@ -26,13 +26,13 @@ namespace Engine
 		scalar m = 1.0;
 
 		// Temporary Spins arrays
-		std::vector<std::vector<Vector3>> spins_temp;
+		std::vector<vectorfield> spins_temp;
 		// Force in previous step [noi][nos]
-		std::vector<std::vector<Vector3>> force_previous;
+		std::vector<vectorfield> force_previous;
 		// Velocity in previous step [noi][nos]
-		std::vector<std::vector<Vector3>> velocity_previous;
+		std::vector<vectorfield> velocity_previous;
 		// Velocity used in the Steps [noi][nos]
-		std::vector<std::vector<Vector3>> velocity;
+		std::vector<vectorfield> velocity;
 		// Projection of velocities onto the forces [noi]
 		std::vector<scalar> projection;
 		// |force|^2

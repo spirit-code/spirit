@@ -34,11 +34,11 @@ namespace Engine
 
 		this->hessian = std::vector<MatrixX>(noc, MatrixX(3*nos, 3*nos));	// [noc][3nos]
 		// Forces
-		this->F_gradient   = std::vector<std::vector<Vector3>>(noc, std::vector<Vector3>(nos));	// [noc][3nos]
-		this->minimum_mode = std::vector<std::vector<Vector3>>(noc, std::vector<Vector3>(nos));	// [noc][3nos]
+		this->F_gradient   = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
+		this->minimum_mode = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
 
 		// Last iteration
-		this->spins_last = std::vector<std::vector<Vector3>>(noc, std::vector<Vector3>(nos));	// [noc][3nos]
+		this->spins_last = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
 		this->spins_last[0] = *this->systems[0]->spins;
 		this->Rx_last = 0.0;
 
@@ -48,7 +48,7 @@ namespace Engine
     }
 	
 
-    void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
+    void Method_MMF::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
     {
 		if (this->mm_function == "Spectra Matrix")
 		{
@@ -64,7 +64,7 @@ namespace Engine
 		}*/
     }
 
-	MatrixX projector(std::vector<Vector3> & image)
+	MatrixX projector(vectorfield & image)
 	{
 		int nos = image.size();
 		int size = 3*nos;
@@ -85,7 +85,7 @@ namespace Engine
 		return proj;
 	}
 
-	void Method_MMF::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<std::vector<Vector3>>> configurations, std::vector<std::vector<Vector3>> & forces)
+	void Method_MMF::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
 	{
 		//std::cerr << "calculating force" << std::endl;
 		const int nos = configurations[0]->size();
@@ -168,7 +168,7 @@ namespace Engine
 					// We have found the mode towards a saddle point
 					// 		Copy via assignment
 					// The following line does not seem to work with Eigen3.3
-					// this->minimum_mode[ichain] = std::vector<Vector3>(evec.data(), evec.data() + evec.rows()*evec.cols());
+					// this->minimum_mode[ichain] = vectorfield(evec.data(), evec.data() + evec.rows()*evec.cols());
 					for (int n=0; n<nos; ++n)
 					{
 						this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};

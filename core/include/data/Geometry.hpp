@@ -26,7 +26,7 @@ namespace Data
 		// Constructor
 		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
 			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<Vector3> basis_atoms,
-			const std::vector<Vector3> spin_pos);
+			const vectorfield spin_pos);
 		// Destructor
 		//~Geometry();
 
@@ -57,7 +57,7 @@ namespace Data
 		//const std::vector<std::vector<scalar>> boundary_vectors;
 
 		// Positions of the Spins: spin_pos[dim][nos]
-		const std::vector<Vector3> spin_pos;
+		const vectorfield spin_pos;
 
 		// //////  What are the segments used for??
 		// segments[nos][4]
