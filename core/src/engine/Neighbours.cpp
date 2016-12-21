@@ -599,7 +599,7 @@ namespace Engine
 	}//end Neighbours::Create_Segments
 
 	void Neighbours::Create_Dipole_Pairs(const Data::Geometry & geometry, scalar dd_radius,
-		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<Vector3>> & DD_normal)
+		std::vector<indexPairs> & DD_indices, std::vector<scalarfield> & DD_magnitude, std::vector<vectorfield> & DD_normal)
 	{
 		// Get the boundary vectors
 		// auto boundary_vectors = Engine::Neighbours::Get_Boundary_Vectors(geometry, std::vector<bool>{ true, true, true });
@@ -733,7 +733,7 @@ namespace Engine
 												if (idx_i < idx_j)
 												{
 													// std::cerr << "   made pair " << idx_i << " " << idx_j << std::endl;
-													DD_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
+													DD_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
 													DD_magnitude[pair_periodicity].push_back(magnitude);
 													DD_normal[pair_periodicity].push_back(vector_ij);
 												}

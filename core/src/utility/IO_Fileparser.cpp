@@ -178,7 +178,7 @@ namespace Utility
 		Read from Anisotropy file
 		*/
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
-			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
+			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
@@ -219,8 +219,8 @@ namespace Utility
 				int spin_i = 0;
 				scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0;
 				// Arrays
-				anisotropy_index = std::vector<int>(0);
-				anisotropy_magnitude = std::vector<scalar>(0);
+				anisotropy_index = intfield(0);
+				anisotropy_magnitude = scalarfield(0);
 				anisotropy_normal = vectorfield(0);
 
 				// Get actual Data
@@ -304,8 +304,8 @@ namespace Utility
 		Read from Pairs file by Markus & Bernd
 		*/
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<vectorfield> & DMI_normal)
+			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
+			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
 			try {
@@ -499,12 +499,12 @@ namespace Utility
 								// Add the indices and parameters to the corresponding lists
 								if (pair_Jij != 0)
 								{
-									Exchange_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
+									Exchange_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
 									Exchange_magnitude[pair_periodicity].push_back(pair_Jij);
 								}
 								if (pair_Dij != 0)
 								{
-									DMI_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
+									DMI_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
 									DMI_magnitude[pair_periodicity].push_back(pair_Dij);
 									DMI_normal[pair_periodicity].push_back(Vector3{pair_D1, pair_D2, pair_D3});
 								}
@@ -528,7 +528,7 @@ namespace Utility
 		Read from Quadruplet file
 		*/
 		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
-			std::vector<std::vector<std::array<int,4>>> & quadruplet_indices, std::vector<std::vector<scalar>> & quadruplet_magnitude)
+			std::vector<indexQuadruplets> & quadruplet_indices, std::vector<scalarfield> & quadruplet_magnitude)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin quadruplets from file " + quadrupletsFile);
 			try {
@@ -735,7 +735,7 @@ namespace Utility
 								// Add the indices and parameter to the corresponding list
 								if (q_Q != 0)
 								{
-									quadruplet_indices[quadruplet_periodicity].push_back(std::array<int, 4>{ idx_i, idx_j, idx_k, idx_l });
+									quadruplet_indices[quadruplet_periodicity].push_back(indexQuadruplet{ idx_i, idx_j, idx_k, idx_l });
 									quadruplet_magnitude[quadruplet_periodicity].push_back(q_Q);
 								}
 							}

@@ -81,13 +81,13 @@ namespace Utility
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
 		//External_Field_from_File ....
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
-			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
+			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<vectorfield> & DMI_normal);
+			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
+			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal);
 		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
-			std::vector<std::vector<std::array<int,4>>> & quadruplet_indices, std::vector<std::vector<scalar>> & quadruplet_magnitude);
+			std::vector<indexQuadruplets> & quadruplet_indices, std::vector<scalarfield> & quadruplet_magnitude);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file

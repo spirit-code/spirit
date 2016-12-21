@@ -610,8 +610,8 @@ namespace Utility
 			std::string external_field_file = "";
 			scalar B = 0;
 			Vector3 B_normal = { 0.0, 0.0, 1.0 };
-			std::vector<int> external_field_index(geometry.nos);				// [nos]
-			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0);	// [nos]
+			intfield    external_field_index(geometry.nos);				// [nos]
+			scalarfield external_field_magnitude(geometry.nos, 0);	// [nos]
 			vectorfield external_field_normal(geometry.nos, B_normal);	// [3][nos]
 			
 			// Anisotropy
@@ -619,17 +619,17 @@ namespace Utility
 			scalar K = 0;
 			Vector3 K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
-			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
-			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
+			intfield    anisotropy_index(geometry.nos);				// [nos]
+			scalarfield anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
 			vectorfield anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
 			// ------------ Pair Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
-			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<vectorfield> DMI_normal(8);
-			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<vectorfield> DD_normal(8);
+			std::vector<indexPairs> Exchange_indices(8); std::vector<scalarfield> Exchange_magnitude(8);
+			std::vector<indexPairs> DMI_indices(8); std::vector<scalarfield> DMI_magnitude(8); std::vector<vectorfield> DMI_normal(8);
+			std::vector<indexPairs> DD_indices(8); std::vector<scalarfield> DD_magnitude(8); std::vector<vectorfield> DD_normal(8);
 
 			scalar dd_radius = 0.0;
 
@@ -637,7 +637,7 @@ namespace Utility
 			int n_quadruplets = 0;
 			std::string quadruplets_file = "";
 			bool quadruplets_from_file = false;
-			std::vector<std::vector<std::array<int,4>>> quadruplet_indices(8); std::vector<std::vector<scalar>> quadruplet_magnitude(8);
+			std::vector<indexQuadruplets> quadruplet_indices(8); std::vector<scalarfield> quadruplet_magnitude(8);
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: building");
@@ -655,7 +655,7 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					// Spin moment
-					mu_s = std::vector<scalar>(geometry.nos, 2.0);
+					mu_s = scalarfield(geometry.nos, 2.0);
 					if (myfile.Find("mu_s"))
 					{
 						for (iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
@@ -698,8 +698,8 @@ namespace Utility
 						}
 						else
 						{
-							external_field_index = std::vector<int>(0);
-							external_field_magnitude = std::vector<scalar>(0);
+							external_field_index = intfield(0);
+							external_field_magnitude = scalarfield(0);
 							external_field_normal = vectorfield(0);
 						}
 					}
@@ -732,8 +732,8 @@ namespace Utility
 						}
 						else
 						{
-							anisotropy_index = std::vector<int>(0);
-							anisotropy_magnitude = std::vector<scalar>(0);
+							anisotropy_index = intfield(0);
+							anisotropy_magnitude = scalarfield(0);
 							anisotropy_normal = vectorfield(0);
 						}
 					}

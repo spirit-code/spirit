@@ -60,7 +60,7 @@ namespace Engine
 			std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos);
 
 		void Create_Dipole_Pairs(const Data::Geometry & geometry, scalar dd_radius,
-		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<Vector3>> & DD_normal);
+		std::vector<indexPairs> & DD_indices, std::vector<scalarfield> & DD_magnitude, std::vector<vectorfield> & DD_normal);
 
 		void Create_Dipole_Neighbours(const Data::Geometry & geometry, std::vector<bool> boundary_conditions,
 			const scalar dd_radius, std::vector<std::vector<int>> & dd_neigh, std::vector<std::vector<Vector3>>& dd_neigh_pos,

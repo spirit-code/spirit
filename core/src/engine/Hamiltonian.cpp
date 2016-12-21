@@ -111,7 +111,7 @@ namespace Engine
 		std::vector<vectorfield> grad_p(3*nos, vectorfield(nos));
 		std::vector<vectorfield> grad_m(3*nos, vectorfield(nos));
 
-		std::vector<scalar> d(3 * nos);
+		scalarfield d(3 * nos);
 
 		for (int i = 0; i < nos; ++i)
 		{

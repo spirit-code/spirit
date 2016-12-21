@@ -20,13 +20,13 @@ namespace Engine
 	public:
 		// Constructor
 		Hamiltonian_Anisotropic(
-			std::vector<scalar> mu_s,
-			std::vector<int> external_field_index, std::vector<scalar> external_field_magnitude, vectorfield external_field_normal,
-			std::vector<int> anisotropy_index, std::vector<scalar> anisotropy_magnitude, vectorfield anisotropy_normal,
-			std::vector<std::vector<std::vector<int>>> Exchange_indices, std::vector<std::vector<scalar>> Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> DMI_indices, std::vector<std::vector<scalar>> DMI_magnitude, std::vector<vectorfield> DMI_normal,
-			std::vector<std::vector<std::vector<int>>> DD_indices, std::vector<std::vector<scalar>> DD_magnitude, std::vector<vectorfield> DD_normal,
-			std::vector<std::vector<std::array<int,4>>> quadruplet_indices, std::vector<std::vector<scalar>> quadruplet_magnitude,
+			scalarfield mu_s,
+			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
+			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
+			std::vector<indexPairs> Exchange_indices, std::vector<scalarfield> Exchange_magnitude,
+			std::vector<indexPairs> DMI_indices, std::vector<scalarfield> DMI_magnitude, std::vector<vectorfield> DMI_normal,
+			std::vector<indexPairs> DD_indices, std::vector<scalarfield> DD_magnitude, std::vector<vectorfield> DD_normal,
+			std::vector<indexQuadruplets> quadruplet_indices, std::vector<scalarfield> quadruplet_magnitude,
 			std::vector<bool> boundary_conditions
 		);
 
@@ -46,32 +46,32 @@ namespace Engine
 		
 		// ------------ Single Spin Interactions ------------
 		// Spin moment
-		std::vector<scalar> mu_s;									// [nos]
+		scalarfield mu_s;									// [nos]
 		// External Magnetic Field
-		std::vector<int> external_field_index;
-		std::vector<scalar> external_field_magnitude;	// [nos]
+		intfield external_field_index;
+		scalarfield external_field_magnitude;	// [nos]
 		vectorfield external_field_normal;		// [nos] (x, y, z)
 		// Anisotropy
-		std::vector<int> anisotropy_index;
-		std::vector<scalar> anisotropy_magnitude;		// [nos]
+		intfield anisotropy_index;
+		scalarfield anisotropy_magnitude;		// [nos]
 		vectorfield anisotropy_normal;			// [nos] (x, y, z)
 
 		// ------------ Pair Interactions ------------
 		// Exchange interaction
-		std::vector<std::vector<std::vector<int>>> Exchange_indices;		// [periodicity][nop][2] (i,j)
-		std::vector<std::vector<scalar>> Exchange_magnitude;	// [periodicity][nop]    J_ij
+		std::vector<indexPairs> Exchange_indices;		// [periodicity][nop][2] (i,j)
+		std::vector<scalarfield> Exchange_magnitude;	// [periodicity][nop]    J_ij
 																// DMI
-		std::vector<std::vector<std::vector<int>>> DMI_indices;			// [periodicity][nop][2] (i,j)
-		std::vector<std::vector<scalar>> DMI_magnitude;			// [periodicity][nop]    D_ij
+		std::vector<indexPairs> DMI_indices;			// [periodicity][nop][2] (i,j)
+		std::vector<scalarfield> DMI_magnitude;			// [periodicity][nop]    D_ij
 		std::vector<vectorfield> DMI_normal;			// [periodicity][nop][3] (Dx,Dy,Dz)
 		// Dipole Dipole interaction
-		std::vector<std::vector<std::vector<int>>> DD_indices;			// [periodicity][nop][2] (i,j)
-		std::vector<std::vector<scalar>> DD_magnitude;			// [periodicity][nop]    r_ij (distance)
+		std::vector<indexPairs> DD_indices;			// [periodicity][nop][2] (i,j)
+		std::vector<scalarfield> DD_magnitude;			// [periodicity][nop]    r_ij (distance)
 		std::vector<vectorfield> DD_normal;			// [periodicity][nop][4] (nx,ny,nz)
 
 		// ------------ Quadruplet Interactions ------------
-		std::vector<std::vector<std::array<int,4>>> Quadruplet_indices;
-		std::vector<std::vector<scalar>> Quadruplet_magnitude;
+		std::vector<indexQuadruplets> Quadruplet_indices;
+		std::vector<scalarfield> Quadruplet_magnitude;
 
 	private:
 		// ------------ Effective Field Functions ------------
@@ -80,13 +80,13 @@ namespace Engine
 		// Calculate the Anisotropy effective field of a single Spin
 		void Field_Anisotropy(const vectorfield & spins, vectorfield & eff_field);
 		// Calculate the exchange interaction effective field of a Spin Pair
-		void Field_Exchange(const vectorfield & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, vectorfield & eff_field);
+		void Field_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & eff_field);
 		// Calculate the DMI effective field of a Spin Pair
-		void Field_DMI(const vectorfield & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, vectorfield & DMI_normal, vectorfield & eff_field);
+		void Field_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & eff_field);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DD(const vectorfield& spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, vectorfield & DD_normal, vectorfield & eff_field);
+		void Field_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & eff_field);
 		// Quadruplet
-		void Field_Quadruplet(const vectorfield & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, vectorfield & eff_field);
+		void Field_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & eff_field);
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
@@ -98,13 +98,13 @@ namespace Engine
 		// Calculate the Anisotropy energy of a Spin System
 		void E_Anisotropy(const vectorfield & spins, scalar & Energy);
 		// Calculate the exchange interaction energy of a Spin System
-		void E_Exchange(const vectorfield & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & J_ij, scalar & Energy);
+		void E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalar & Energy);
 		// Calculate the DMI energy of a Spin System
-		void E_DMI(const vectorfield & spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DMI_magnitude, vectorfield & DMI_normal, scalar & Energy);
+		void E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalar & Energy);
 		// calculates the Dipole-Dipole Energy
-		void E_DD(const vectorfield& spins, std::vector<std::vector<int>> & indices, std::vector<scalar> & DD_magnitude, vectorfield & DD_normal, scalar & Energy);
+		void E_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalar & Energy);
 		// Quadruplet
-		void E_Quadruplet(const vectorfield & spins, std::vector<std::array<int,4>> & indices, std::vector<scalar> & magnitude, scalar & Energy);
+		void E_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, scalar & Energy);
 
 	};
 }
