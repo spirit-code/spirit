@@ -67,7 +67,30 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting external field is not yet implemented in Hamiltonian_Anisotropic!");
+        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        int nos = image->nos;
+
+
+        // Indices and Magnitudes
+        intfield new_indices(nos);
+        scalarfield new_magnitudes(nos);
+        for (int i=0; i<nos; ++i)
+        {
+            new_indices[i] = i;
+            new_magnitudes[i] = magnitude *  ham->mu_s[i] * Engine::Vectormath::MuB();
+        }
+        // Normals
+        Vector3 new_normal{normal[0], normal[1], normal[2]};
+        new_normal.normalize();
+        vectorfield new_normals(nos, new_normal);
+        
+        // Into the Hamiltonian
+        ham->external_field_index = new_indices;
+        ham->external_field_magnitude = new_magnitudes;
+        ham->external_field_normal = new_normals;
+
+        // Update Energies
+        ham->Update_Energy_Contributions();
     }
 }
 
