@@ -56,3 +56,10 @@ _Update_Data.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Update_Data.restype    = None
 def Update_Data(p_state, idx_image=-1, idx_chain=-1):
     _Update_Data(p_state, idx_image, idx_chain)
+
+### Print Energy array
+_Print_Energy_Array            = _core.System_Print_Energy_Array
+_Print_Energy_Array.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Print_Energy_Array.restype    = None
+def Print_Energy_Array(p_state, idx_image=-1, idx_chain=-1):
+    _Print_Energy_Array(p_state, idx_image, idx_chain)

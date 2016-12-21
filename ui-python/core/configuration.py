@@ -44,7 +44,7 @@ _Random             = _core.Configuration_Random
 _Random.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Random.restype     = None
 def Random(p_state, external=False, idx_image=-1, idx_chain=-1):
-    _Random(p_state, idx_image, idx_chain)
+    _Random(p_state, external, idx_image, idx_chain)
 
 
 ### Add temperature-scaled random noise to configuration
@@ -66,7 +66,7 @@ def Skyrmion(p_state, pos, radius, order, phase, upDown, achiral, rightleft, idx
 
 ### Spin Spiral configuration
 _SpinSpiral             = _core.Configuration_SpinSpiral
-_SpinSpiral.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_SpinSpiral.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_int, ctypes.c_int]
 _SpinSpiral.restype     = None
 def SpinSpiral(p_state, direction_type, q_vector, axis, theta, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
