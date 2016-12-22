@@ -34,6 +34,8 @@ namespace Engine
 
         // Initial force calculation s.t. it does not seem to be already converged
         this->method->Calculate_Force(this->configurations, this->force);
+        // Post iteration hook to get forceMaxAbsComponent etc
+        this->method->Hook_Post_Iteration();
 
         // Printing precision for Scalars
         #ifdef CORE_SCALAR_TYPE_FLOAT
@@ -65,7 +67,7 @@ namespace Engine
 		Log(Log_Level::All, sender, "    Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
         Log(Log_Level::All, sender, "                with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
         Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
-        // Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
+        Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
 		Log(Log_Level::All, sender, "    Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
 		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
 
