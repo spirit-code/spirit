@@ -23,7 +23,7 @@ State * State_Setup(const char * config_file)
     try
     {
         //---------------------- Read Log Levels ----------------------------------------
-        IO::Log_Levels_from_Config(config_file);
+        IO::Log_from_Config(config_file);
         //-------------------------------------------------------------------------------
 
         //---------------------- initialize spin_system ---------------------------------
@@ -80,8 +80,11 @@ State * State_Setup(const char * config_file)
     state->simulation_information_mmf = std::shared_ptr<Simulation_Information>();
 
     // Save the config
-    std::string file = "input_" + Utility::Timing::CurrentDateTime() + ".txt";
-    State_To_Config(state, file.c_str(), config_file);
+    if (Log.save_input)
+    {
+        std::string file = "input_" + Utility::Timing::CurrentDateTime() + ".txt";
+        State_To_Config(state, file.c_str(), config_file);
+    }
 
     // Log
     Log(Log_Level::All, Log_Sender::All, "=====================================================");

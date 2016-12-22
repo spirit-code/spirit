@@ -203,29 +203,34 @@ namespace Engine
 
 	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
+		if (this->parameters->save_output_any && ( (initial && this->parameters->save_output_initial) || (final && this->parameters->save_output_final) ) )
+		{
+			// Get the file suffix
+			std::string suffix = "";
+			if (final) suffix = "_final";
+			else suffix = "";
 
-		// Get the file suffix
-		std::string suffix = "";
-		if (final) suffix = "_final";
-		else suffix = "";
+			// always formatting to 6 digits may be problematic!
+			auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
-		// always formatting to 6 digits may be problematic!
-		auto s_iter = IO::int_to_formatted_string(iteration, 6);
+			// Save current Image Chain
+			auto imagesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_Images_" + s_iter + suffix + ".txt";
+			Utility::IO::Save_SpinChain_Configuration(this->chain, imagesFile);
 
-		// Save current Image Chain
-		auto imagesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_Images_" + s_iter + suffix + ".txt";
-		Utility::IO::Save_SpinChain_Configuration(this->chain, imagesFile);
+			if (this->parameters->save_output_energy)
+			{
+				// Save current Energies with reaction coordinates
+				auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
+				Utility::IO::Save_Energies(*this->chain, iteration, energiesFile);
 
-		// Save current Energies with reaction coordinates
-		auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
-		Utility::IO::Save_Energies(*this->chain, iteration, energiesFile);
+				// Save interpolated Energies
+				auto energiesInterpFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
+				Utility::IO::Save_Energies_Interpolated(*this->chain, energiesInterpFile);
+			}
 
-		// Save interpolated Energies
-		auto energiesInterpFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
-		Utility::IO::Save_Energies_Interpolated(*this->chain, energiesInterpFile);
-
-		// Save Log
-		Log.Append_to_File();
+			// Save Log
+			Log.Append_to_File();
+		}
 	}
 
 	// Optimizer name as string

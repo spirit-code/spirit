@@ -49,7 +49,7 @@ namespace Utility
 		// ======================== Configparser ========================
 		// Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
 		// Input may be given incomplete. In this case a log entry is created and default values are used.
-		void Log_Levels_from_Config(const std::string configFile);
+		void Log_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile);

@@ -91,6 +91,10 @@ namespace Utility
 		Log_Level accept_level;
 		// Output folder where to save the Log file
 		std::string output_folder;
+		// Save Log messages
+		bool save_output;
+		// Save input (config / defaults) - note this is done by Setup_State
+		bool save_input;
 		// Name of the Log file
 		std::string fileName;
 		// Number of Log entries

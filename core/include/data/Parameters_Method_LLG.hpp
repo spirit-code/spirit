@@ -16,9 +16,8 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method_LLG(std::string output_folder, scalar force_convergence, long int n_iterations, long int n_iterations_log,
-			int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i,
-			bool renorm_sd_i, bool save_single_configurations_i,
+		Parameters_Method_LLG(std::string output_folder, std::array<bool,6> save_output, scalar force_convergence, long int n_iterations, long int n_iterations_log,
+			int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i, bool renorm_sd_i,
 			scalar stt_magnitude_i, Vector3 stt_polarisation_normal_i);
 
 		//PRNG Seed
@@ -37,8 +36,10 @@ namespace Data
 		scalar dt;
 		// whether to renormalize spins after every SD iteration
 		bool renorm_sd = 1;
-		// Whether to save a single "spins"
-		bool save_single_configurations;
+		// Whether to save an archive of spin configurations
+		bool save_output_archive;
+		// Whether to save a single spin configurations
+		bool save_output_single;
 
 		// spin-transfer-torque parameter (prop to injected current density)
 		scalar stt_magnitude;

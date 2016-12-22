@@ -14,30 +14,40 @@ namespace Utility
 {
 	namespace IO
 	{
-		void Log_Levels_from_Config(const std::string configFile)
+		void Log_from_Config(const std::string configFile)
 		{
 			// Verbosity and Reject Level are read as integers
 			int i_print_level = 5, i_accept_level = 5;
 			std::string output_folder = ".";
+			bool save_output = true, save_input = false;
 
 			//------------------------------- Parser --------------------------------
 			if (configFile != "")
 			{
-				try {
-					Log(Log_Level::Info, Log_Sender::IO, "Building Log_Levels");
+				try
+				{
+					Log(Log_Level::Info, Log_Sender::IO, "Building Log");
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Accept Level
 					if (myfile.Find("log_accept")) myfile.iss >> i_accept_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_accept' not found. Using default: " + std::to_string(i_accept_level));
 
 					// Print level
 					if (myfile.Find("log_print")) myfile.iss >> i_print_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_print' not found. Using default: " + std::to_string(i_print_level));
 
 					// Output folder
 					if (myfile.Find("log_output_folder")) myfile.iss >> output_folder;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_folder' not found. Using default: '" + output_folder + "'");
+					
+					// Save Output (Log Messages)
+					if (myfile.Find("log_output_save")) myfile.iss >> save_output;
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_save' not found. Using default: " + std::to_string(save_output));
+					
+					// Save Input (parameters from config file and defaults)
+					if (myfile.Find("log_input_save")) myfile.iss >> save_input;
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_input_save' not found. Using default: " + std::to_string(save_input));
 
 				}// end try
 				catch (Exception ex) {
@@ -51,10 +61,14 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level  = " + std::to_string(i_accept_level));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level   = " + std::to_string(i_print_level));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save   = " + std::to_string(save_output));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save    = " + std::to_string(save_input));
 			// Update the Log
 			Log.accept_level  = Log_Level(i_accept_level);
 			Log.print_level   = Log_Level(i_print_level);
 			Log.output_folder = output_folder;
+			Log.save_output   = save_output;
+			Log.save_input    = save_input;
 		}// End Log_Levels_from_Config
 
 
@@ -278,6 +292,9 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_llg";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
+			bool save_output_archive = false, save_output_single = false;
 			// PRNG Seed
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
@@ -292,8 +309,6 @@ namespace Utility
 			scalar dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
-			// Whether to save a single "spins"
-			bool save_single_configurations = true;
 			// spin transfer torque vector
 			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
@@ -309,6 +324,12 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					myfile.Read_Single(output_folder, "llg_output_folder");
+					myfile.Read_Single(save_output_any, "llg_output_save_any");
+					myfile.Read_Single(save_output_initial, "llg_output_save_initial");
+					myfile.Read_Single(save_output_final, "llg_output_save_final");
+					myfile.Read_Single(save_output_energy, "llg_output_save_energy");
+					myfile.Read_Single(save_output_archive, "llg_output_save_archive");
+					myfile.Read_Single(save_output_single, "llg_output_save_single");
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
 					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
@@ -318,7 +339,6 @@ namespace Utility
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
 					dt = dt*std::pow(10, -12) / Engine::Vectormath::MuB()*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
-					myfile.Read_Single(save_single_configurations, "llg_save_single_configurations");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
@@ -335,17 +355,23 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        time step         = " + std::to_string(dt));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(output_folder, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        seed                = " + std::to_string(seed));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature         = " + std::to_string(temperature));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        damping             = " + std::to_string(damping));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        time step           = " + std::to_string(dt));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude       = " + std::to_string(stt_magnitude));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal          = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_archive = " + std::to_string(save_output_archive));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_single  = " + std::to_string(save_output_single));
+			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy, save_output_archive, save_output_single}, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
@@ -355,6 +381,8 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_gneb";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
 			// Spring constant
 			scalar spring_constant = 1.0;
 			// Force convergence parameter
@@ -373,6 +401,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 					
 					myfile.Read_Single(output_folder, "gneb_output_folder");
+					myfile.Read_Single(save_output_any, "gneb_output_save_any");
+					myfile.Read_Single(save_output_initial, "gneb_output_save_initial");
+					myfile.Read_Single(save_output_final, "gneb_output_save_final");
+					myfile.Read_Single(save_output_energy, "gneb_output_save_energy");
 					myfile.Read_Single(spring_constant, "gneb_spring_constant");
 					myfile.Read_Single(force_convergence, "gneb_force_convergence");
 					myfile.Read_Single(n_iterations, "gneb_n_iterations");
@@ -391,13 +423,17 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant     = " + std::to_string(spring_constant));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations  = " + std::to_string(n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy}, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_Method_LLG_from_Config
@@ -407,6 +443,8 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_mmf";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
 			// Force convergence parameter
 			scalar force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"
@@ -422,6 +460,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 					
 					myfile.Read_Single(output_folder, "mmf_output_folder");
+					myfile.Read_Single(save_output_any, "mmf_output_save_any");
+					myfile.Read_Single(save_output_initial, "mmf_output_save_initial");
+					myfile.Read_Single(save_output_final, "mmf_output_save_final");
+					myfile.Read_Single(save_output_energy, "mmf_output_save_energy");
 					myfile.Read_Single(force_convergence, "mmf_force_convergence");
 					myfile.Read_Single(n_iterations, "mmf_n_iterations");
 					myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
@@ -438,11 +480,15 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, force_convergence, n_iterations, n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy}, force_convergence, n_iterations, n_iterations_log));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}

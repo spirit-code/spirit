@@ -34,8 +34,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "############### Logging Parameters ###############\n";
-			config += "log_print  " + std::to_string((int)Log.print_level) + "\n";
-			config += "log_accept " + std::to_string((int)Log.accept_level) + "\n";
+			config += "log_print       " + std::to_string((int)Log.print_level) + "\n";
+			config += "log_accept      " + std::to_string((int)Log.accept_level) + "\n";
+			config += "log_output_save " + std::to_string((int)Log.save_output) + "\n";
+			config += "log_input_save  " + std::to_string((int)Log.save_input) + "\n";
 			config += "############# End Logging Parameters #############";
 			Append_String_to_File(config, configFile);
 		}// End Log_Levels_to_Config
@@ -67,11 +69,16 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# LLG Parameters #################\n";
+			config += "llg_output_save_any            " + std::to_string(parameters->save_output_any) + "\n";
+			config += "llg_output_save_initial        " + std::to_string(parameters->save_output_initial) + "\n";
+			config += "llg_output_save_final          " + std::to_string(parameters->save_output_final) + "\n";
+			config += "llg_output_save_energy         " + std::to_string(parameters->save_output_energy) + "\n";
+			config += "llg_output_save_single         " + std::to_string(parameters->save_output_single) + "\n";
+			config += "llg_output_save_archive        " + std::to_string(parameters->save_output_archive) + "\n";
 			config += "llg_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "llg_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
 			config += "llg_renorm                     " + std::to_string(parameters->renorm_sd) + "\n";
-			config += "llg_save_single_configurations " + std::to_string(parameters->save_single_configurations) + "\n";
 			config += "llg_seed                       " + std::to_string(parameters->seed) + "\n";
 			config += "llg_temperature                " + std::to_string(parameters->temperature) + "\n";
 			config += "llg_damping                    " + std::to_string(parameters->damping) + "\n";
@@ -86,6 +93,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# GNEB Parameters ################\n";
+			config += "gneb_output_save_any           " + std::to_string(parameters->save_output_any) + "\n";
+			config += "gneb_output_save_initial       " + std::to_string(parameters->save_output_initial) + "\n";
+			config += "gneb_output_save_final         " + std::to_string(parameters->save_output_final) + "\n";
+			config += "gneb_output_save_energy        " + std::to_string(parameters->save_output_energy) + "\n";
 			config += "gneb_force_convergence         " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "gneb_n_iterations              " + std::to_string(parameters->n_iterations) + "\n";
 			config += "gneb_n_iterations_log          " + std::to_string(parameters->n_iterations_log) + "\n";
@@ -100,6 +111,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# MMF Parameters #################\n";
+			config += "mmf_output_save_any            " + std::to_string(parameters->save_output_any) + "\n";
+			config += "mmf_output_save_initial        " + std::to_string(parameters->save_output_initial) + "\n";
+			config += "mmf_output_save_final          " + std::to_string(parameters->save_output_final) + "\n";
+			config += "mmf_output_save_energy         " + std::to_string(parameters->save_output_energy) + "\n";
 			config += "mmf_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "mmf_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "mmf_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
@@ -131,7 +146,7 @@ namespace Utility
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Isotropic * ham_iso = (Engine::Hamiltonian_Isotropic *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude) + "\n";
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Engine::Vectormath::MuB()) + "\n";
 			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0]) + " " + std::to_string(ham_iso->external_field_normal[1]) + " " + std::to_string(ham_iso->external_field_normal[2]) + "\n";
 			config += "mu_s                     " + std::to_string(ham_iso->mu_s) + "\n";
 			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude) + "\n";
@@ -166,7 +181,7 @@ namespace Utility
 			config += "#  i    H     Hx   Hy   Hz\n";
 			for (unsigned int i=0; i<ham_aniso->external_field_index.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]) + " "
+				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]/Engine::Vectormath::MuB()) + " "
 							+ std::to_string(ham_aniso->external_field_normal[i][0]) + " " + std::to_string(ham_aniso->external_field_normal[i][1]) + " " + std::to_string(ham_aniso->external_field_normal[i][2]) + "\n";
 			}
 

@@ -114,54 +114,60 @@ namespace Engine
 	
 	void Method_LLG::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
-
-        auto writeoutput = [this, starttime, iteration](std::string suffix)
-        {
-			// Convert indices to formatted strings
-			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
-			auto s_iter = IO::int_to_formatted_string(iteration, 6);
-			
-            // Append Spin configuration to Spin_Archieve_File
-			auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-			Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
-
-			if (this->systems[0]->llg_parameters->save_single_configurations)
+		if (this->parameters->save_output_any)
+		{
+			auto writeoutput = [this, starttime, iteration](std::string suffix, bool override_single)
 			{
-				// Save Spin configuration to new "spins" File
-				auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
+				// Convert indices to formatted strings
+				auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
+				auto s_iter = IO::int_to_formatted_string(iteration, 6);
+				
+				if (this->systems[0]->llg_parameters->save_output_archive)
+				{
+					// Append Spin configuration to Spin_Archieve_File
+					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
+					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+				}
+				
+				if (this->systems[0]->llg_parameters->save_output_archive && this->parameters->save_output_energy)
+				{
+					// Check if Energy File exists and write Header if it doesn't
+					auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
+					std::ifstream f(energyFile);
+					if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+					// Append Energy to File
+					Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
+				}
+
+				if (this->systems[0]->llg_parameters->save_output_single || override_single)
+				{
+					// Save Spin configuration to new "spins" File
+					auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
+					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
+				}
+			};
+			
+			std::string suffix = "";
+			
+			if (initial && this->parameters->save_output_initial)
+			{
+				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_initial";
+				suffix = s_fix;
+				writeoutput(suffix, true);
+			}
+			else if (final && this->parameters->save_output_final)
+			{
+				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
+				suffix = s_fix;
+				writeoutput(suffix, true);
 			}
 			
-			// Check if Energy File exists and write Header if it doesn't
-			auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
-			std::ifstream f(energyFile);
-			if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
-			// Append Energy to File
-			Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
-        };
-        
-		std::string suffix = "";
-		
-		if (initial)
-		{
-			auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_initial";
-			suffix = s_fix;
-			writeoutput(suffix);
-		}
-		else if (final)
-		{
-			auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
-			suffix = s_fix;
-			writeoutput(suffix);
-		}
-		else
-		{
 			suffix = "_archive";
-			writeoutput(suffix);
-		}
+			writeoutput(suffix, false);
 
-		// Save Log
-		Log.Append_to_File();
+			// Save Log
+			Log.Append_to_File();
+		}
 	}
 
 	// Optimizer name as string

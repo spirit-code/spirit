@@ -66,6 +66,8 @@ namespace Utility
 		accept_level  = Log_Level::Debug;
 		output_folder = ".";
 		fileName      = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+		save_output   = false;
+		save_input    = true;
 		n_entries     = 0;
 	}
 
@@ -115,38 +117,52 @@ namespace Utility
 
 	void LoggingHandler::Append_to_File()
 	{
-		// Log this event
-		Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
-		
-		// Gather the string
-		std::string logstring = "";
-		int begin_append = no_dumped;
-		no_dumped = n_entries;
-		for (int i=begin_append; i<n_entries; ++i)
+		if (this->save_output)
 		{
-			logstring.append(LogEntryToString(log_entries[i]));
-			logstring.append("\n");
-		}
+			// Log this event
+			Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
+			
+			// Gather the string
+			std::string logstring = "";
+			int begin_append = no_dumped;
+			no_dumped = n_entries;
+			for (int i=begin_append; i<n_entries; ++i)
+			{
+				logstring.append(LogEntryToString(log_entries[i]));
+				logstring.append("\n");
+			}
 
-		// Append to file
-		IO::Append_String_to_File(logstring, output_folder + "/" + fileName);
+			// Append to file
+			IO::Append_String_to_File(logstring, output_folder + "/" + fileName);
+		}
+		else
+		{
+			Send(Log_Level::Debug, Log_Sender::All, "Not appending Log to file " + output_folder + "/" + fileName);
+		}
 	}
 
 	// Write the entire Log to file
 	void LoggingHandler::Dump_to_File()
 	{
-		// Log this event
-		Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
-
-		// Gather the string
-		std::string logstring = "";
-		for (int i=0; i<n_entries; ++i)
+		if (this->save_output)
 		{
-			logstring.append(LogEntryToString(log_entries[i]));
-			logstring.append("\n");
-		}
+			// Log this event
+			Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
 
-		// Write the string to file
-		IO::String_to_File(logstring, output_folder + "/" + fileName);
+			// Gather the string
+			std::string logstring = "";
+			for (int i=0; i<n_entries; ++i)
+			{
+				logstring.append(LogEntryToString(log_entries[i]));
+				logstring.append("\n");
+			}
+
+			// Write the string to file
+			IO::String_to_File(logstring, output_folder + "/" + fileName);
+		}
+		else
+		{
+			Send(Log_Level::Debug, Log_Sender::All, "Not dumping Log to file " + output_folder + "/" + fileName);
+		}
 	}
 }// end namespace Utility

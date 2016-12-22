@@ -307,84 +307,92 @@ namespace Engine
 
     void Method_MMF::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
-        //if (initial) return;
-
-        // Insert copies of the current systems into their corresponding chains
-        // - this way we will be able to look at the history of the optimizations
-        // for (int ichain=0; ichain<collection->noc; ++ichain)
-        // {
-        //     // Copy the image
-        //     auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
-            
-        //     // Insert into chain
-        //     auto chain = collection->chains[ichain];
-        //     chain->noi++;
-        //     chain->images.insert(chain->images.end(), copy);
-        //     chain->climbing_image.insert(chain->climbing_image.end(), false);
-        //     chain->falling_image.insert(chain->falling_image.end(), false);
-        // }
-
-        // Reallocate and recalculate the chains' Rx, E and interpolated values for their last two images
-
-        // Append Each chain's new image to it's corresponding archive
-
-        // In the final save, we save all chains to file?
-        if (final)
-        {
-
-        }
-
-		auto writeoutput = [this, starttime, iteration](std::string suffix)
+		if (this->parameters->save_output_any)
 		{
-			// Convert indices to formatted strings
-			auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
-			auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
+			//if (initial && this->parameters->save_output_initial) return;
 
-			// Append Spin configuration to Spin_Archieve_File
-			auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-			Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			// Insert copies of the current systems into their corresponding chains
+			// - this way we will be able to look at the history of the optimizations
+			// for (int ichain=0; ichain<collection->noc; ++ichain)
+			// {
+			//     // Copy the image
+			//     auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
+				
+			//     // Insert into chain
+			//     auto chain = collection->chains[ichain];
+			//     chain->noi++;
+			//     chain->images.insert(chain->images.end(), copy);
+			//     chain->climbing_image.insert(chain->climbing_image.end(), false);
+			//     chain->falling_image.insert(chain->falling_image.end(), false);
+			// }
 
-			// Append iteration, Rx and E to Energy file
-			scalar nd = 1.0 / this->systems[0]->nos; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			auto energyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img + suffix + ".txt";
-			//
-			scalar Rx = Rx_last + Engine::Vectormath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
-			//
-			snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
-				Rx, this->systems[0]->E * nd);
-			//
-			spins_last[0] = *this->systems[0]->spins;
-			Rx_last = Rx;
-			//
-			output_to_file += s_iter;
-			output_to_file.append(buffer_string_conversion);
-			Utility::IO::Append_String_to_File(output_to_file, energyFile);
+			// Reallocate and recalculate the chains' Rx, E and interpolated values for their last two images
 
+			// Append Each chain's new image to it's corresponding archive
 
-			//// Do it manually to avoid the adding of header
-			//auto s = this->systems[0];
-			//const int buffer_length = 80;
-			//std::string output_to_file = "";
-			//output_to_file.reserve(int(1E+08));
-			//char buffer_string_conversion[buffer_length + 2];
-			////------------------------ End Init ----------------------------------------
+			// In the final save, we save all chains to file?
+			if (final && this->parameters->save_output_final)
+			{
 
-			//for (int iatom = 0; iatom < s->nos; ++iatom) {
-			//	snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-			//		(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
-			//	output_to_file.append(buffer_string_conversion);
-			//}
-			//output_to_file.append("\n");
-			//Utility::IO::Append_String_to_File(output_to_file, spinsFile);
+			}
 
-		};
+			auto writeoutput = [this, starttime, iteration](std::string suffix)
+			{
+				// Convert indices to formatted strings
+				auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
+				auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
 
-		std::string suffix = "_archive";
-		writeoutput(suffix);
+				// if (this->parameters->save_output_archive)
+				// {
+					// Append Spin configuration to Spin_Archieve_File
+					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
+					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+					
+					if (this->parameters->save_output_energy)
+					{
+						// Append iteration, Rx and E to Energy file
+						scalar nd = 1.0 / this->systems[0]->nos; // nos divide
+						const int buffer_length = 200;
+						std::string output_to_file = "";
+						output_to_file.reserve(int(1E+08));
+						char buffer_string_conversion[buffer_length + 2];
+						auto energyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img + suffix + ".txt";
+						//
+						scalar Rx = Rx_last + Engine::Vectormath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
+						//
+						snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
+							Rx, this->systems[0]->E * nd);
+						//
+						spins_last[0] = *this->systems[0]->spins;
+						Rx_last = Rx;
+						//
+						output_to_file += s_iter;
+						output_to_file.append(buffer_string_conversion);
+						Utility::IO::Append_String_to_File(output_to_file, energyFile);
+					}
+				// }
+
+				//// Do it manually to avoid the adding of header
+				//auto s = this->systems[0];
+				//const int buffer_length = 80;
+				//std::string output_to_file = "";
+				//output_to_file.reserve(int(1E+08));
+				//char buffer_string_conversion[buffer_length + 2];
+				////------------------------ End Init ----------------------------------------
+
+				//for (int iatom = 0; iatom < s->nos; ++iatom) {
+				//	snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
+				//		(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
+				//	output_to_file.append(buffer_string_conversion);
+				//}
+				//output_to_file.append("\n");
+				//Utility::IO::Append_String_to_File(output_to_file, spinsFile);
+
+			};
+
+			std::string suffix = "_archive";
+			writeoutput(suffix);
+		}
     }
 
     void Method_MMF::Finalize()
