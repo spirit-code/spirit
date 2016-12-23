@@ -84,7 +84,11 @@ void CoordinateSystemRenderer::draw(float aspect_ratio) {
 
     if (options().get<Option::NORMALIZE>()) {
         if (options().get<View::Option::VERTICAL_FIELD_OF_VIEW>() == 0) {
-            projection_matrix = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, -10.0f, 10.0f);
+            if (aspect_ratio > 1) {
+                projection_matrix = glm::ortho(-0.5f*aspect_ratio, 0.5f*aspect_ratio, -0.5f, 0.5f, -10.0f, 10.0f);
+            } else {
+                projection_matrix = glm::ortho(-0.5f, 0.5f, -0.5f/aspect_ratio, 0.5f/aspect_ratio, -10.0f, 10.0f);
+            }
         }
         modelview_matrix = glm::lookAt(glm::normalize(camera_position - center_position), glm::vec3(0.0, 0.0, 0.0), up_vector);
     }
