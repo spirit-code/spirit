@@ -7,7 +7,14 @@ namespace VFRendering {
 class CoordinateSystemRenderer : public RendererBase {
 public:
     enum Option {
-        AXIS_LENGTH = 500, ORIGIN
+        AXIS_LENGTH = 500,
+        ORIGIN,
+        LEVEL_OF_DETAIL,
+        CONE_HEIGHT,
+        CONE_RADIUS,
+        CYLINDER_HEIGHT,
+        CYLINDER_RADIUS,
+        NORMALIZE
     };
 
     CoordinateSystemRenderer(const View& view);
@@ -20,6 +27,7 @@ protected:
 
 private:
     void updateShaderProgram();
+    void updateVertexData();
     void initialize();
 
     bool m_is_initialized = false;
@@ -27,6 +35,7 @@ private:
     unsigned int m_program = 0;
     unsigned int m_vao = 0;
     unsigned int m_vbo = 0;
+    unsigned int m_num_vertices = 0;
 };
 
 namespace Utilities {
@@ -39,6 +48,42 @@ struct Options::Option<CoordinateSystemRenderer::Option::AXIS_LENGTH> {
 template<>
 struct Options::Option<CoordinateSystemRenderer::Option::ORIGIN> {
     glm::vec3 default_value = {0.0, 0.0, 0.0};
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::CONE_RADIUS> {
+    float default_value = 0.1f;
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::CONE_HEIGHT> {
+    float default_value = 0.3f;
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::CYLINDER_RADIUS> {
+    float default_value = 0.07f;
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::CYLINDER_HEIGHT> {
+    float default_value = 0.7f;
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::LEVEL_OF_DETAIL> {
+    unsigned int default_value = 100;
+};
+
+
+template<>
+struct Options::Option<CoordinateSystemRenderer::Option::NORMALIZE> {
+    bool default_value = false;
 };
 }
 }

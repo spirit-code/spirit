@@ -95,6 +95,7 @@ void SpinWidget::initializeGL()
 
 	//	Coordinate cross
 	this->m_coordinatesystem = std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view);
+    this->m_coordinatesystem->setOption<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>(true);
 
 	// Setup the View
 	this->m_mainview = this->m_system;
