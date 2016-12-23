@@ -83,6 +83,9 @@ void CoordinateSystemRenderer::draw(float aspect_ratio) {
     auto projection_matrix = matrices.second;
 
     if (options().get<Option::NORMALIZE>()) {
+        if (options().get<View::Option::VERTICAL_FIELD_OF_VIEW>() == 0) {
+            projection_matrix = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, -10.0f, 10.0f);
+        }
         modelview_matrix = glm::lookAt(glm::normalize(camera_position - center_position), glm::vec3(0.0, 0.0, 0.0), up_vector);
     }
 
