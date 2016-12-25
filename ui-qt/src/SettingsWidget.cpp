@@ -602,6 +602,9 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Background
 	int idx_bg = (int)_spinWidget->backgroundColor();
 	comboBox_backgroundColor->setCurrentIndex(idx_bg);
+
+	// Camera
+	this->read_camera();
 }
 
 // -----------------------------------------------------------------------------------

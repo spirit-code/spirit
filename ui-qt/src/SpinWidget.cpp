@@ -69,7 +69,7 @@ void SpinWidget::initializeGL()
     std::vector<int> n_cells(3);
     Geometry_Get_N_Cells(state.get(), n_cells.data());
     // Initial camera position
-    _reset_camera = true;
+    _reset_camera = false;
     // Fetch data and update GL arrays
     this->updateData();
   
@@ -207,12 +207,12 @@ void SpinWidget::updateData()
 	if (_reset_camera)
 	{
 		setCameraToDefault();
-    _reset_camera = false;
+    	_reset_camera = false;
 	}
   
-  bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
-  VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
-  m_view.update(geometry, directions);
+	bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
+	VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
+	m_view.update(geometry, directions);
 }
 
 void SpinWidget::paintGL() {
@@ -648,12 +648,14 @@ void SpinWidget::setCameraToZ() {
 
 void SpinWidget::setCameraPositon(const glm::vec3& camera_position)
 {
-	m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(system_center + camera_position);
 }
 
 void SpinWidget::setCameraFocus(const glm::vec3& center_position)
 {
-	m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(center_position);
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(system_center + center_position);
 }
 
 void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
@@ -663,12 +665,14 @@ void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
 
 glm::vec3 SpinWidget::getCameraPositon()
 {
-	return options().get<VFRendering::View::Option::CAMERA_POSITION>();
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	return options().get<VFRendering::View::Option::CAMERA_POSITION>() - system_center;
 }
 
 glm::vec3 SpinWidget::getCameraFocus()
 {
-	return options().get<VFRendering::View::Option::CENTER_POSITION>();
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	return options().get<VFRendering::View::Option::CENTER_POSITION>() - system_center;
 }
 
 glm::vec3 SpinWidget::getCameraUpVector()
@@ -712,6 +716,34 @@ void SpinWidget::writeSettings()
 	settings.setValue("Background Color", (int)backgroundColor());
 	settings.setValue("Colormap", (int)colormap());
 	settings.endGroup();
+
+	// Camera
+	settings.beginGroup("Camera");
+    auto camera_position = this->getCameraPositon();
+	auto center_position = this->getCameraFocus();
+	auto up_vector = this->getCameraUpVector();
+	settings.beginWriteArray("position");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecp", (int)(100*camera_position[dim]));
+	}
+	settings.endArray();
+	settings.beginWriteArray("center");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecc", (int)(100*center_position[dim]));
+	}
+	settings.endArray();
+	settings.beginWriteArray("up");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecu", (int)(100*up_vector[dim]));
+	}
+	settings.endArray();
+	settings.endGroup();
 }
 
 void SpinWidget::readSettings()
@@ -719,25 +751,65 @@ void SpinWidget::readSettings()
 	makeCurrent();
 	QSettings settings("Spirit Code", "Spirit");
 
-	settings.beginGroup("General");
-	// Projection
-	this->setVerticalFieldOfView((float)(settings.value("FOV").toInt()/100.0f));
-	// System
-	this->show_arrows = settings.value("Show Arrows").toBool();
-	this->show_boundingbox = settings.value("Show Bounding Box").toBool();
-	this->show_surface = settings.value("Show Surface").toBool();
-	this->show_isosurface = settings.value("Show Isosurface").toBool();
-	settings.endGroup();
+	if (settings.childGroups().contains("General"))
+	{
+		settings.beginGroup("General");
+		// Projection
+		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt()/100.0f));
+		// System
+		this->show_arrows = settings.value("Show Arrows").toBool();
+		this->show_boundingbox = settings.value("Show Bounding Box").toBool();
+		this->show_surface = settings.value("Show Surface").toBool();
+		this->show_isosurface = settings.value("Show Isosurface").toBool();
+		settings.endGroup();
+	}
 
 	// Colors
-	settings.beginGroup("Colors");
-	int background_color = settings.value("Background Color").toInt();
-	this->setBackgroundColor((Color)background_color);
-	if (background_color == 2) this->setBoundingBoxColor((Color)0);
-	else this->setBoundingBoxColor((Color)2);
-	int map = settings.value("Colormap").toInt();
-	this->setColormap((Colormap)map);
-	settings.endGroup();
+	if (settings.childGroups().contains("Colors"))
+	{
+		settings.beginGroup("Colors");
+		int background_color = settings.value("Background Color").toInt();
+		this->setBackgroundColor((Color)background_color);
+		if (background_color == 2) this->setBoundingBoxColor((Color)0);
+		else this->setBoundingBoxColor((Color)2);
+		int map = settings.value("Colormap").toInt();
+		this->setColormap((Colormap)map);
+		settings.endGroup();
+	}
+
+	// Camera
+	if (settings.childGroups().contains("Camera"))
+	{
+		settings.beginGroup("Camera");
+		glm::vec3 camera_position, center_position, up_vector;
+		settings.beginReadArray("position");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			camera_position[dim] = (float)(settings.value("vecp").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraPositon(camera_position);
+
+		settings.beginReadArray("center");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			center_position[dim] = (float)(settings.value("vecc").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraFocus(center_position);
+
+		settings.beginReadArray("up");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			up_vector[dim] = (float)(settings.value("vecu").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraUpVector(up_vector);
+		settings.endGroup();
+	}
 }
 
 
