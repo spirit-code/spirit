@@ -618,24 +618,9 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Bounding Box
 	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
-	//// Background
-	//std::string background_color = "Black";
-	//if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
-	//{
-	//	background_color = "White";
-	//}
-	//else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
-	//{
-	//	background_color = "Gray";
-	//}
-	//for (int i = 0; i < comboBox_backgroundColor->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-	//	{
-	//		comboBox_backgroundColor->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Background
+	int idx_bg = (int)_spinWidget->backgroundColor();
+	comboBox_backgroundColor->setCurrentIndex(idx_bg);
 }
 
 // -----------------------------------------------------------------------------------

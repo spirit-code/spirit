@@ -154,10 +154,17 @@ private:
   const VFRendering::Options& options() const;
   
   Colormap m_colormap;
-    glm::vec2 m_z_range;
+  glm::vec2 m_z_range;
   
   // Visualisation
   VFRendering::View m_view;
+  
+	// Persistent Settings
+	void writeSettings();
+	void readSettings();
+
+protected:
+	void closeEvent(QCloseEvent *event);
 };
 
 #endif

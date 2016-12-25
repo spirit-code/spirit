@@ -4,6 +4,7 @@
 
 #include <QTimer>
 #include <QMouseEvent>
+#include <QtWidgets>
 
 #include <VFRendering/CombinedRenderer.hxx>
 #include <VFRendering/ArrowRenderer.hxx>
@@ -31,7 +32,10 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
     this->setMinimumSize(200,200);
     this->setBaseSize(600,600);
-  
+	
+	// Read persistent settings
+	this->readSettings();
+
     setColormap(Colormap::HSV);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
@@ -658,4 +662,57 @@ float SpinWidget::verticalFieldOfView() const {
 void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view) {
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
+}
+
+
+// -----------------------------------------------------------------------------------
+// --------------------- Persistent Settings -----------------------------------------
+// -----------------------------------------------------------------------------------
+
+
+void SpinWidget::writeSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+
+	// // settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
+	// // settings.setValue("docked", dockWidget_Settings->isFloating());
+	// // settings.setValue("hidden", dockWidget_Settings->isHidden());
+	// settings.setValue("size", dockWidget_Settings->size());
+	// settings.setValue("pos", dockWidget_Settings->pos());
+	
+	// Colors
+	settings.beginGroup("Colors");
+    int background_color = (int)backgroundColor();
+	settings.setValue("Background Color", background_color);
+	settings.endGroup();
+}
+
+void SpinWidget::readSettings()
+{
+	makeCurrent();
+	QSettings settings("Spirit Code", "Spirit");
+	
+
+
+	// // dockWidget_Settings->setFloating(settings.value("docked").toBool());
+	// // addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
+	// // dockWidget_Settings->setHidden(settings.value("hidden").toBool());
+	// dockWidget_Settings->resize(settings.value("size", QSize(1, 1)).toSize());
+	// dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
+
+	// Colors
+	settings.beginGroup("Colors");
+	int background_color = settings.value("Background Color").toInt();
+	this->setBackgroundColor((Color)background_color);
+	if (background_color == 2) this->setBoundingBoxColor((Color)0);
+	else this->setBoundingBoxColor((Color)2);
+	settings.endGroup();
+}
+
+
+void SpinWidget::closeEvent(QCloseEvent *event)
+{
+	writeSettings();
+	event->accept();
 }

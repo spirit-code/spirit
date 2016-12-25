@@ -625,6 +625,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	this->controlWidget->stop_all();
 	
 	writeSettings();
+	this->spinWidget->close();
 
 	event->accept();
 }
