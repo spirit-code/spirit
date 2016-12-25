@@ -465,7 +465,13 @@ void SettingsWidget::Load_Visualization_Contents()
 			break;
 		}
 	}*/
-  
+	
+	// System
+	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
+	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
+	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
+	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+
 	//// Miniview
 	//std::string miniview_position;
 	//switch (_spinWidget->miniviewPosition())
@@ -566,44 +572,19 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_isovalue->setRange(0, 100);
 	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
-	//// Colormap
-	//std::string colormap = "Hue-Saturation-Value";
-	//switch (_spinWidget->colormap())
-	//{
-	//	case SpinWidget::Colormap::HSV:
- //     break;
- //   case SpinWidget::Colormap::BLUE_RED:
- //     colormap = "Z-Component: Blue-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_GREEN_RED:
- //     colormap = "Z-Component: Blue-Green-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_WHITE_RED:
- //     colormap = "Z-Component: Blue-White-Red";
- //     break;
- //   case SpinWidget::Colormap::OTHER:
-	//		break;
-	//	default:
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_colormap->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
-	//	{
-	//		comboBox_colormap->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Colormap
+	int idx_cm = (int)_spinWidget->colormap();
+	comboBox_colormap->setCurrentIndex(idx_cm);
 
-	//// Perspective / FOV
-	//if (_spinWidget->verticalFieldOfView() == 0)
-	//{
-	//	radioButton_orthographicProjection->setChecked(true);
-	//}
-	//else
-	//{
-	//	radioButton_perspectiveProjection->setChecked(true);
-	//}
+	// Perspective / FOV
+	if (_spinWidget->verticalFieldOfView() == 0)
+	{
+		radioButton_orthographicProjection->setChecked(true);
+	}
+	else
+	{
+		radioButton_orthographicProjection->setChecked(false);
+	}
 
 
 	// Arrowsize
@@ -1149,7 +1130,6 @@ void SettingsWidget::set_visualization_perspective()
 	{
 		_spinWidget->setVerticalFieldOfView(45);
 	}
-
 }
 
 void SettingsWidget::set_visualization_miniview()

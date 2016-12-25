@@ -28,9 +28,9 @@ public:
     enum class Colormap {
         HSV,
         HSV_NO_Z,
-        BLUE_RED,
-        BLUE_GREEN_RED,
         BLUE_WHITE_RED,
+        BLUE_GREEN_RED,
+        BLUE_RED,
         OTHER
     };
 

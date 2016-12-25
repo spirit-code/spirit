@@ -32,10 +32,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
     this->setMinimumSize(200,200);
     this->setBaseSize(600,600);
-	
-	// Read persistent settings
-	this->readSettings();
 
+	// Default Settings
     setColormap(Colormap::HSV);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
@@ -58,6 +56,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_coordinatesystem = true;
     
     setZRange({-1, 1});
+
+	// Read persistent settings
+	this->readSettings();
 }
 
 void SpinWidget::initializeGL()
@@ -84,6 +85,22 @@ void SpinWidget::initializeGL()
 	};
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
 
+	// Surface options
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{bounds_min[0], bounds_max[0]};
+	glm::vec2 y_range{bounds_min[1], bounds_max[1]};
+	glm::vec2 z_range{bounds_min[2], bounds_max[2]};
+	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+	{
+		if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
+		else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
+		else return -1;
+	});
+	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+
 	// Isosurface options
 	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
 		(void)position;
@@ -100,7 +117,9 @@ void SpinWidget::initializeGL()
 	// Setup the View
 	this->m_mainview = this->m_system;
 	this->m_miniview = this->m_sphere;
-	this->setupRenderers();
+
+	// ...
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 
     updateData();
 }
@@ -489,11 +508,13 @@ void SpinWidget::setupRenderers()
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Colors ---
-SpinWidget::Colormap SpinWidget::colormap() const {
+SpinWidget::Colormap SpinWidget::colormap() const
+{
   return m_colormap;
 }
 
-void SpinWidget::setColormap(Colormap colormap) {
+void SpinWidget::setColormap(Colormap colormap)
+{
   m_colormap = colormap;
   
   std::string colormap_implementation;
@@ -655,11 +676,13 @@ glm::vec3 SpinWidget::getCameraUpVector()
 	return options().get<VFRendering::View::Option::UP_VECTOR>();
 }
 
-float SpinWidget::verticalFieldOfView() const {
+float SpinWidget::verticalFieldOfView() const
+{
 	return m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
 }
 
-void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view) {
+void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
+{
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
 }
@@ -674,17 +697,20 @@ void SpinWidget::writeSettings()
 {
 	QSettings settings("Spirit Code", "Spirit");
 
+	settings.beginGroup("General");
+	// Projection
+	settings.setValue("FOV", (int)(this->verticalFieldOfView()*100));
+	// System
+	settings.setValue("Show Arrows", this->show_arrows);
+	settings.setValue("Show Bounding Box", this->show_boundingbox);
+	settings.setValue("Show Surface", this->show_surface);
+	settings.setValue("Show Isosurface", this->show_isosurface);
+	settings.endGroup();
 
-	// // settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
-	// // settings.setValue("docked", dockWidget_Settings->isFloating());
-	// // settings.setValue("hidden", dockWidget_Settings->isHidden());
-	// settings.setValue("size", dockWidget_Settings->size());
-	// settings.setValue("pos", dockWidget_Settings->pos());
-	
 	// Colors
 	settings.beginGroup("Colors");
-    int background_color = (int)backgroundColor();
-	settings.setValue("Background Color", background_color);
+	settings.setValue("Background Color", (int)backgroundColor());
+	settings.setValue("Colormap", (int)colormap());
 	settings.endGroup();
 }
 
@@ -692,14 +718,16 @@ void SpinWidget::readSettings()
 {
 	makeCurrent();
 	QSettings settings("Spirit Code", "Spirit");
-	
 
-
-	// // dockWidget_Settings->setFloating(settings.value("docked").toBool());
-	// // addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
-	// // dockWidget_Settings->setHidden(settings.value("hidden").toBool());
-	// dockWidget_Settings->resize(settings.value("size", QSize(1, 1)).toSize());
-	// dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
+	settings.beginGroup("General");
+	// Projection
+	this->setVerticalFieldOfView((float)(settings.value("FOV").toInt()/100.0f));
+	// System
+	this->show_arrows = settings.value("Show Arrows").toBool();
+	this->show_boundingbox = settings.value("Show Bounding Box").toBool();
+	this->show_surface = settings.value("Show Surface").toBool();
+	this->show_isosurface = settings.value("Show Isosurface").toBool();
+	settings.endGroup();
 
 	// Colors
 	settings.beginGroup("Colors");
@@ -707,6 +735,8 @@ void SpinWidget::readSettings()
 	this->setBackgroundColor((Color)background_color);
 	if (background_color == 2) this->setBoundingBoxColor((Color)0);
 	else this->setBoundingBoxColor((Color)2);
+	int map = settings.value("Colormap").toInt();
+	this->setColormap((Colormap)map);
 	settings.endGroup();
 }
 
