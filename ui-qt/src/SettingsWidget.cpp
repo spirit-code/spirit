@@ -525,7 +525,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	//	}
 	//}
 	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
-	
+
 	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
@@ -587,10 +587,11 @@ void SettingsWidget::Load_Visualization_Contents()
 	}
 
 
-	// Arrowsize
+	// Arrows: size and lod
 	horizontalSlider_arrowsize->setRange(0, 20);
 	float logs = std::log10(_spinWidget->arrowSize());
 	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
+	lineEdit_arrows_lod->setText(QString::number(_spinWidget->arrowLOD()));
 
 	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
@@ -1272,8 +1273,6 @@ void SettingsWidget::set_visualization_system_surface()
 	glm::vec2 y_range(y_min, y_max);
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
-
-	_spinWidget->update();
 }
 void SettingsWidget::set_visualization_system_isosurface()
 {
@@ -1299,8 +1298,6 @@ void SettingsWidget::set_visualization_zrange()
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
-
-	_spinWidget->update();
 }
 
 
@@ -1309,8 +1306,6 @@ void SettingsWidget::set_visualization_isovalue_fromslider()
 	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
 	this->lineEdit_isovalue->setText(QString::number(isovalue));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
 void SettingsWidget::set_visualization_isovalue_fromlineedit()
@@ -1318,8 +1313,6 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 	float isovalue = this->lineEdit_isovalue->text().toFloat();
 	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
 
@@ -1354,8 +1347,6 @@ void SettingsWidget::set_visualization_colormap()
 		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
 	_spinWidget->setColormap(colormap);
-
-	_spinWidget->updateData();
 }
 
 void SettingsWidget::set_visualization_background()

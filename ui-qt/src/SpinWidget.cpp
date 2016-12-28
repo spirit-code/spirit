@@ -139,7 +139,7 @@ void SpinWidget::updateData()
 	int nos = System_Get_NOS(state.get());
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
 	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
-  std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices;
+	std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices;
 
 	// ToDo: Update the pointer to our Data instead of copying Data?
 	// Positions and directions
@@ -386,13 +386,16 @@ void SpinWidget::setArrows(float size, int lod)
 	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(cylinderheight* size);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>(lod);
-
-	this->setupRenderers();
 }
 
 float SpinWidget::arrowSize() const {
 	float size = options().get<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>() / 0.6f;
 	return size;
+}
+
+int SpinWidget::arrowLOD() const {
+	int LOD = options().get<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>();
+	return LOD;
 }
 
 /////	Z Range (Arrows?)
@@ -711,6 +714,13 @@ void SpinWidget::writeSettings()
 	settings.setValue("Show Isosurface", this->show_isosurface);
 	settings.endGroup();
 
+	// Arrows
+	settings.beginGroup("Arrows");
+	// Projection
+	settings.setValue("Size", (int)(this->arrowSize() * 100));
+	settings.setValue("LOD", this->arrowLOD());
+	settings.endGroup();
+
 	// Colors
 	settings.beginGroup("Colors");
 	settings.setValue("Background Color", (int)backgroundColor());
@@ -764,6 +774,15 @@ void SpinWidget::readSettings()
 		settings.endGroup();
 	}
 
+	// Arrows
+	if (settings.childGroups().contains("Arrows"))
+	{
+		settings.beginGroup("Arrows");
+		// Projection
+		this->setArrows((float)(settings.value("Size").toInt() / 100.0f), settings.value("LOD").toInt());
+		settings.endGroup();
+	}
+
 	// Colors
 	if (settings.childGroups().contains("Colors"))
 	{
@@ -790,7 +809,6 @@ void SpinWidget::readSettings()
 		}
 		settings.endArray();
 		this->setCameraPositon(camera_position);
-
 		settings.beginReadArray("center");
 		for(int dim=0; dim<3; ++dim)
 		{

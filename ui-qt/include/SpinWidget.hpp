@@ -83,6 +83,7 @@ public:
   //    Arrows
   void setArrows(float size=1, int lod=20);
   float arrowSize() const;
+  int arrowLOD() const;
   glm::vec2 zRange() const;
   void setZRange(glm::vec2 z_range);
   //    Bounding Box
