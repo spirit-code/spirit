@@ -9,6 +9,7 @@
 #include <vector>
 #include <chrono>
 #include <string>
+#include <mutex>
 
 // Define Log as the singleton instance, so that messages can be sent with Log(..., message, ...)
 #ifndef Log
@@ -75,6 +76,7 @@ namespace Utility
 	{
 	public:
 		// Send Log messages
+		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 		void Send(Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 		void operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 
@@ -118,6 +120,9 @@ namespace Utility
 		
 		int no_dumped;
 		std::vector<LogEntry> log_entries;
+
+		// Mutex for thread-safety
+		std::mutex mutex;
 	
 	public:
 		// C++ 11

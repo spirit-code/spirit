@@ -256,6 +256,32 @@ void Simulation_Stop_All(State *state)
 }
 
 
+float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+	{
+		if (state->simulation_information_llg[idx_chain][idx_image])
+			return (float)state->simulation_information_llg[idx_chain][idx_image]->method->force_maxAbsComponent;
+	}
+	else if (Simulation_Running_GNEB(state, idx_chain))
+    {
+		if (state->simulation_information_gneb[idx_chain])
+			return (float)state->simulation_information_gneb[idx_chain]->method->force_maxAbsComponent;
+    }
+	else if (Simulation_Running_MMF(state))
+    {
+		if (state->simulation_information_mmf)
+			return (float)state->simulation_information_mmf->method->force_maxAbsComponent;
+    }
+
+	return 0;
+}
+
+
 float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
 {
 	// Fetch correct indices and pointers for image and chain
@@ -263,13 +289,12 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	
-    if (Simulation_Running_LLG(state))
+    if (Simulation_Running_LLG(state, idx_image, idx_chain))
 	{
 		if (state->simulation_information_llg[idx_chain][idx_image])
 			return (float)state->simulation_information_llg[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
 	}
-	else if (Simulation_Running_GNEB(state))
+	else if (Simulation_Running_GNEB(state, idx_chain))
     {
 		if (state->simulation_information_gneb[idx_chain])
 			return (float)state->simulation_information_gneb[idx_chain]->optimizer->getIterationsPerSecond();

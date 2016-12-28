@@ -76,25 +76,38 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
 	// Status Bar
+	//		Spacer
+	this->m_Spacer_4 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
+	//		Torque
+	this->m_Label_Torque = new QLabel("F_max: -");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Torque);
+	//		Spacer
+	this->m_Spacer_3 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
+	//		Energy
+	this->m_Label_E = new QLabel("E: -  ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_E);
 	//		M_z
-	this->m_Label_Mz = new QLabel;
-	this->m_Label_Mz->setText("M_z: 0");
+	this->m_Label_Mz = new QLabel("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
+	//		Spacer
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
 	//		FPS
-	this->m_Label_FPS = new QLabel;
-	this->m_Label_FPS->setText("FPS: 0");
+	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	//		Spacer
+	this->m_Spacer_1 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_1);
 	//		NOS
-	this->m_Label_NOS = new QLabel;
-	this->m_Label_NOS->setText("NOS: 0");
+	this->m_Label_NOS = new QLabel("NOS: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 	//		NOI
-	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText("NOI: 0");
+	this->m_Label_NOI = new QLabel("NOI: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 	//		NOC
-	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText("NOC: 0");
+	this->m_Label_NOC = new QLabel("NOC: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 	//		Initialisations
 	this->createStatusBar();
@@ -282,68 +295,102 @@ void MainWindow::createStatusBar()
 	{
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
+	// Remove Spacers and Torque
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_4);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Torque);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>(0);
-	if (Simulation_Running_LLG_Anywhere(state.get()))
+	if (Simulation_Running_Any_Anywhere(state.get()))
 	{
-		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
+		if (Simulation_Running_LLG_Anywhere(state.get()))
 		{
-			if (Simulation_Running_LLG(state.get(), i))
+			for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
 			{
-				this->m_Labels_IPS.push_back(new QLabel);
-				this->m_Labels_IPS.back()->setText("IPS [-]: -");
-				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+				if (Simulation_Running_LLG(state.get(), i))
+				{
+					this->m_Labels_IPS.push_back(new QLabel);
+					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+				}
 			}
 		}
-	}
-	else if (Simulation_Running_GNEB_Anywhere(state.get()))
-	{
-		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
+		else if (Simulation_Running_GNEB_Anywhere(state.get()))
 		{
-			if (Simulation_Running_GNEB(state.get(), i))
+			for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
 			{
-				this->m_Labels_IPS.push_back(new QLabel);
-				this->m_Labels_IPS.back()->setText("IPS [-]: -");
-				Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+				if (Simulation_Running_GNEB(state.get(), i))
+				{
+					this->m_Labels_IPS.push_back(new QLabel);
+					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+				}
 			}
 		}
+		else if (Simulation_Running_MMF(state.get()))
+		{
+			this->m_Labels_IPS.push_back(new QLabel);
+			this->m_Labels_IPS.back()->setText("IPS: -  ");
+			Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+		}
+
+		//		Spacer
+		this->m_Spacer_4 = new QLabel("  |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
+		//		Torque
+		this->m_Label_Torque = new QLabel("F_max: -");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Torque);
+		//		Spacer
+		this->m_Spacer_3 = new QLabel("    |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
 	}
-	else if (Simulation_Running_MMF(state.get()))
-	{
-		this->m_Labels_IPS.push_back(new QLabel);
-		this->m_Labels_IPS.back()->setText("IPS: -");
-		Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
-	}
+
+
+	//		Energy
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_E);
+	this->m_Label_E = new QLabel("E: -  ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_E);
 
 	//		M_z
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Mz);
 	this->m_Label_Mz = new QLabel;
-	this->m_Label_Mz->setText("M_z: -");
+	this->m_Label_Mz->setText("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Mz);
+
+
+	//		Spacer
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
 
 	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
-	this->m_Label_FPS = new QLabel;
-	this->m_Label_FPS->setText("FPS: -");
+	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+
+	//		Spacer
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_1);
+	this->m_Spacer_1 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_1);
+
 
 	//		NOS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
 	this->m_Label_NOS = new QLabel;
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(System_Get_NOS(this->state.get())));
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(System_Get_NOS(this->state.get())) + QString::fromLatin1("  "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
 	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())));
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1("  "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 
 	//		NOC
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
 	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())));
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1("  "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 }
 
@@ -352,9 +399,16 @@ void MainWindow::updateStatusBar()
 {
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
+	float F = Simulation_Get_MaxTorqueComponent(state.get());
+	this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'f', 12));
+
+	float E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
+	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
+
 	float M[3];
 	Quantity_Get_Magnetization(state.get(), M);
 	this->m_Label_Mz->setText(QString::fromLatin1("M_z: ") + QString::number(M[2], 'f', 6));
+
 
 	float ips;
 	int precision;
@@ -373,7 +427,7 @@ void MainWindow::updateStatusBar()
 				else precision = 2;
 				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 			}
 		}
 	}
@@ -389,7 +443,7 @@ void MainWindow::updateStatusBar()
 				else precision = 2;
 				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips);
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 			}
 		}
 	}
@@ -401,10 +455,9 @@ void MainWindow::updateStatusBar()
 		else precision = 2;
 		if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 		else qstr_ips = QString::fromLatin1("> 100k");
-		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips);
+		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips + QString::fromLatin1("  "));
 	}
 
-	//auto v_ips = std::vector<float>{ Simulation_Get_IterationsPerSecond(state.get()) };
 	if (v_str.size() != m_Labels_IPS.size()) createStatusBar();
 	else
 	{

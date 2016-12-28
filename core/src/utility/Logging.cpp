@@ -73,6 +73,9 @@ namespace Utility
 
 	void LoggingHandler::Send(Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
 	{
+		// Lock mutex because of reallocation (push_back)
+		std::lock_guard<std::mutex> guard(mutex);
+
 		// All messages are saved in the Log
 		LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
 		log_entries.push_back(entry);
@@ -83,6 +86,26 @@ namespace Utility
 		// If level <= verbosity, we print to console
 		if (level <= print_level && level <= accept_level)
 			std::cout << LogEntryToString(log_entries.back()) << std::endl;
+	}
+
+	void LoggingHandler::SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain)
+	{
+		// Lock mutex because of reallocation (push_back)
+		std::lock_guard<std::mutex> guard(mutex);
+
+		for (auto& message : messages)
+		{
+			// All messages are saved in the Log
+			LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
+			log_entries.push_back(entry);
+
+			// Increment message count
+			n_entries++;
+
+			// If level <= verbosity, we print to console
+			if (level <= print_level && level <= accept_level)
+				std::cout << LogEntryToString(log_entries.back()) << std::endl;
+		}
 	}
 
 	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)

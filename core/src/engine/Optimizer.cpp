@@ -63,13 +63,16 @@ namespace Engine
 		//------------------------ End Init ----------------------------------------
 
         //---- Log messages
-		Log(Log_Level::All, sender, "------------  Started  " + this->method->Name() + " Calculation  ------------", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "    Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "                with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "    Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
+		Log.SendBlock(Log_Level::All, sender,
+			{
+				"------------  Started  " + this->method->Name() + " Calculation  ------------",
+				"    Going to iterate " + std::to_string(n_log) + " steps",
+				"                with " + std::to_string(n_iterations_log) + " iterations per step",
+				"    Force convergence parameter: " + force_param,
+				"    Maximum force component:     " + maxforce,
+				"    Optimizer: " + this->FullName(),
+				"-----------------------------------------------------"
+			}, this->method->idx_image, this->method->idx_chain);
 
         //---- Start Timings
 		auto t_start = system_clock::now();
@@ -106,13 +109,16 @@ namespace Engine
                 maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
                 maxforce = maxforce_stream.str();
 
-				Log(Log_Level::All, sender, "----- " + this->Name() + " Calculation", this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Iteration step               " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "                               = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Time since last step:        " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds", this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)), this->method->idx_image, this->method->idx_chain);
-                Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
+				Log.SendBlock(Log_Level::All, sender,
+					{
+						"----- " + this->Name() + " Calculation",
+						"    Iteration step               " + std::to_string(step) + " / " + std::to_string(n_log),
+						"                               = " + std::to_string(i) + " / " + std::to_string(n_iterations),
+						"    Time since last step:        " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds",
+						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)),
+						"    Force convergence parameter: " + force_param,
+						"    Maximum force component:     " + maxforce
+					}, this->method->idx_image, this->method->idx_chain);
 
 				this->method->Save_Current(this->starttime, i, false, false);
 
@@ -137,16 +143,18 @@ namespace Engine
             reason = "The force converged";
 
         //---- Log messages
-		Log(Log_Level::All, sender, "------------ Terminated " + this->method->Name() + " Calculation ------------", this->method->idx_image, this->method->idx_chain);
+		std::vector<std::string> block;
+		block.push_back("------------ Terminated " + this->method->Name() + " Calculation ------------");
 		if (reason.length() > 0)
-            Log(Log_Level::All, sender, "----- Reason:   " + reason, this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "----- Duration: " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Iteration step " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "                 = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Force convergence parameter: " + force_param, this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Maximum force component:     " + maxforce, this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "    Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
+			block.push_back("----- Reason:   " + reason);
+		block.push_back("----- Duration: " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		block.push_back("    Iteration step " + std::to_string(step) + " / " + std::to_string(n_log));
+		block.push_back("                 = " + std::to_string(i) + " / " + std::to_string(n_iterations));
+		block.push_back("    Force convergence parameter: " + force_param);
+		block.push_back("    Maximum force component:     " + maxforce);
+		block.push_back("    Optimizer: " + this->FullName());
+		block.push_back("-----------------------------------------------------");
+		Log.SendBlock(Log_Level::All, sender, block, this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
 		this->method->Save_Current(this->starttime, i, false, true);
