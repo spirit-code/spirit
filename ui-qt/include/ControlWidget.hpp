@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "SpinWidget.hpp"
+#include "SettingsWidget.hpp"
 
 #include "ui_ControlWidget.h"
 
@@ -24,7 +25,7 @@ class ControlWidget : public QWidget, private Ui::ControlWidget
     Q_OBJECT
 
 public:
-	ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
+	ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget);
 	void updateData();
 
 public slots:
@@ -49,6 +50,8 @@ private:
 	std::shared_ptr<State> state;
 	// Spin Widget
 	SpinWidget *spinWidget;
+	// Settings Widget
+	SettingsWidget *settingsWidget;
 	
 	// Method vectors
 	std::vector<std::thread> threads_llg;

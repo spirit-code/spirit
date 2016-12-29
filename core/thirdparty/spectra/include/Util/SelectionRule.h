@@ -94,18 +94,19 @@ public:
 
 // When comparing eigenvalues, we first calculate the "target"
 // to sort. For example, if we want to choose the eigenvalues with
-// largest magnitude, the target will be -std::abs(x).
+// largest magnitude, the target will be -abs(x).
 // The minus sign is due to the fact that std::sort() sorts in ascending order.
 
-// Default target: throw an exceptoin
+// Default target: throw an exception
 template <typename Scalar, int SelectionRule>
 class SortingTarget
 {
 public:
     static typename ElemType<Scalar>::type get(const Scalar& val)
     {
+        using std::abs;
         throw std::invalid_argument("incompatible selection rule");
-        return -std::abs(val);
+        return -abs(val);
     }
 };
 
@@ -117,7 +118,8 @@ class SortingTarget<Scalar, LARGEST_MAGN>
 public:
     static typename ElemType<Scalar>::type get(const Scalar& val)
     {
-        return -std::abs(val);
+        using std::abs;
+        return -abs(val);
     }
 };
 
@@ -141,7 +143,8 @@ class SortingTarget<std::complex<RealType>, LARGEST_IMAG>
 public:
     static RealType get(const std::complex<RealType>& val)
     {
-        return -std::abs(val.imag());
+        using std::abs;
+        return -abs(val.imag());
     }
 };
 
@@ -179,7 +182,8 @@ class SortingTarget<Scalar, SMALLEST_MAGN>
 public:
     static typename ElemType<Scalar>::type get(const Scalar& val)
     {
-        return std::abs(val);
+        using std::abs;
+        return abs(val);
     }
 };
 
@@ -203,7 +207,8 @@ class SortingTarget<std::complex<RealType>, SMALLEST_IMAG>
 public:
     static RealType get(const std::complex<RealType>& val)
     {
-        return std::abs(val.imag());
+        using std::abs;
+        return abs(val.imag());
     }
 };
 

@@ -3,6 +3,7 @@
 #define DATA_GEOMETRY_H
 
 #include "Core_Defines.h"
+#include <engine/Vectormath_Defines.hpp>
 
 #include <vector>
 #include <array>
@@ -23,33 +24,31 @@ namespace Data
 
 	public:
 		// Constructor
-		Geometry(const std::vector<std::vector<scalar>> basis, const std::vector<std::vector<scalar>> translation_vectors,
-			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<std::vector<scalar>> basis_atoms,
-			const std::vector<scalar> spin_pos);
+		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
+			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<Vector3> basis_atoms,
+			const vectorfield spin_pos);
 		// Destructor
 		//~Geometry();
 
 
 		// -------------------- Input constants ------------------
 		// Basis [dim][basis_vec]
-		const std::vector<std::vector<scalar>> basis;
+		const std::vector<Vector3> basis;
 		// Translation Vectors [dim][transl_vec]
-		const std::vector<std::vector<scalar>> translation_vectors;
+		const std::vector<Vector3> translation_vectors;
 		// Number of Translations {nta, ntb, ntc}
 		const std::vector<int> n_cells;
 		// Number of spins per basic domain
 		const int n_spins_basic_domain;
 		// Array of basis atom positions [3][n_basis_atoms]
-		std::vector<std::vector<scalar>> basis_atoms;
+		std::vector<Vector3> basis_atoms;
 		// Number of Spins total
 		const int nos;
 		// number of shells -> moved to Hamiltonian
 		// const int n_shells;
 
 		// Center and Bounds
-		std::vector<scalar> center;
-		std::vector<scalar> bounds_min;
-		std::vector<scalar> bounds_max;
+		Vector3 center, bounds_min, bounds_max;
 
 		// -------------------- Calculated Geometry ------------------
 		// number of boundary vectors
@@ -58,7 +57,7 @@ namespace Data
 		//const std::vector<std::vector<scalar>> boundary_vectors;
 
 		// Positions of the Spins: spin_pos[dim][nos]
-		const std::vector<scalar> spin_pos;
+		const vectorfield spin_pos;
 
 		// //////  What are the segments used for??
 		// segments[nos][4]

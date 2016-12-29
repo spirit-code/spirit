@@ -3,10 +3,10 @@
 #define METHOD_H
 
 #include "Core_Defines.h"
-#include "Parameters_Method.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Parameters_Method.hpp"
-#include "Timing.hpp"
+#include <data/Parameters_Method.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method.hpp>
+#include <utility/Timing.hpp>
 
 #include <deque>
 #include <fstream>
@@ -23,7 +23,7 @@ namespace Engine
 		Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
 		// Calculate Forces onto Systems
-		virtual void Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces);
+		virtual void Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
 		// Maximum of the absolutes of all components of the force - needs to be updated at each calculation
 		scalar force_maxAbsComponent;
 		// Check if the Forces are converged
@@ -58,7 +58,7 @@ namespace Engine
 		
 	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
-		virtual scalar Force_on_Image_MaxAbsComponent(const std::vector<scalar> & image, std::vector<scalar> force) final;
+		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
 	};

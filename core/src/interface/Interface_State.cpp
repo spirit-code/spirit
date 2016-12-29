@@ -1,11 +1,10 @@
-#include "Interface_State.h"
-
-#include "State.hpp"
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
 #include "Core_Defines.h"
-#include "Logging.hpp"
-#include "IO.hpp"
-#include "Configurations.hpp"
-#include "Configuration_Chain.hpp"
+#include <utility/Logging.hpp>
+#include <utility/IO.hpp>
+#include <utility/Configurations.hpp>
+#include <utility/Configuration_Chain.hpp>
 
 using namespace Utility;
 
@@ -16,15 +15,15 @@ State * State_Setup(const char * config_file)
     
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State Initialising ==============");
-    Log(Log_Level::All, Log_Sender::All,  "============     Version:  " + std::string(VERSION));
-    Log(Log_Level::Info, Log_Sender::All, "============     Revision: " + std::string(VERSION_REVISION));
+    Log(Log_Level::All, Log_Sender::All,  "========== Spirit State: Initialising... ============");
+    Log(Log_Level::All, Log_Sender::All,  "==========     Version:  " + std::string(VERSION));
+    Log(Log_Level::Info, Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     
     try
     {
         //---------------------- Read Log Levels ----------------------------------------
-        IO::Log_Levels_from_Config(config_file);
+        IO::Log_from_Config(config_file);
         //-------------------------------------------------------------------------------
 
         //---------------------- initialize spin_system ---------------------------------
@@ -80,11 +79,19 @@ State * State_Setup(const char * config_file)
     state->simulation_information_gneb = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
     state->simulation_information_mmf = std::shared_ptr<Simulation_Information>();
 
+    // Save the config
+    if (Log.save_input)
+    {
+        std::string file = "input_" + Utility::Timing::CurrentDateTime() + ".txt";
+        State_To_Config(state, file.c_str(), config_file);
+    }
+
     // Log
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
-    Log(Log_Level::All, Log_Sender::All, "============ Spirit State Initialised ===============");
+    Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
     Log(Log_Level::All, Log_Sender::All, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
+    Log.Append_to_File();
     
     // Return
     return state;
@@ -92,7 +99,12 @@ State * State_Setup(const char * config_file)
 
 void State_Delete(State * state)
 {
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
 	delete(state);
+    Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log.Append_to_File();
 }
 
 void State_Update(State * state)
@@ -117,6 +129,34 @@ void State_Update(State * state)
     state->noc = state->collection->noc;
     state->noi = state->active_chain->noi;
     state->nos = state->active_image->nos;
+}
+
+void State_To_Config(State * state, const char * config_file, const char * original_config_file)
+{
+    std::string cfg = Log.output_folder + "/" + std::string(config_file);
+    // Header
+    std::string header = "###\n### Original configuration file was called\n###   " + std::string(original_config_file) + "\n###\n\n";
+    IO::Append_String_to_File(header, cfg);
+    // Folders
+    IO::Folders_to_Config(cfg, state->active_image->llg_parameters, state->active_chain->gneb_parameters, state->collection->parameters);
+    // Log Parameters
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Log_Levels_to_Config(cfg);
+    // Geometry
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Geometry_to_Config(cfg, state->active_image->geometry);
+    // LLG
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
+    // GNEB
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_GNEB_to_Config(cfg, state->active_chain->gneb_parameters);
+    // MMF
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_MMF_to_Config(cfg, state->collection->parameters);
+    // Hamiltonian
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
 }
 
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)

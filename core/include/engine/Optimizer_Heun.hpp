@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Optimizer.hpp"
-#include "Spin_System_Chain.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Optimizer.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {
@@ -30,10 +31,10 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::vector<scalar>> spins_temp;
+		std::vector<vectorfield> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
-		std::vector<std::vector<scalar>> virtualforce;
+		std::vector<vectorfield> virtualforce;
 
 		// TODO: THE HEUN METHOD CAN BE REWRITTEN TO BE NICER:
 		//// Calculate the virtual Heun force to be used in the Steps

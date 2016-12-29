@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Parameters_Method.hpp"
+#include <data/Parameters_Method.hpp>
 
 namespace Data
 {
@@ -14,7 +14,7 @@ namespace Data
 	class Parameters_Method_MMF : public Parameters_Method
 	{
 	public:
-		Parameters_Method_MMF(std::string output_folder, scalar force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method_MMF(std::string output_folder, std::array<bool,4> save_output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
 	};
 }
 #endif

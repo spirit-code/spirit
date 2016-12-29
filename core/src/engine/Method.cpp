@@ -1,5 +1,5 @@
-#include "Method.hpp"
-//#include "Manifoldmath.hpp"
+#include <engine/Method.hpp>
+
 #include <algorithm>
 
 namespace Engine
@@ -11,7 +11,7 @@ namespace Engine
 		this->force_maxAbsComponent = parameters->force_convergence + 1.0;
     }
 
-    void Method::Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces)
+    void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
     {
 
     }
@@ -61,36 +61,43 @@ namespace Engine
         throw Utility::Exception::Not_Implemented;
     }
 
+	std::pair<scalar, scalar> minmax_component(vectorfield v1)
+	{
+		scalar min=1e6, max=-1e6;
+		std::pair<scalar, scalar> minmax;
+		for (unsigned int i = 0; i < v1.size(); ++i)
+		{
+			for (int dim = 0; dim < 3; ++dim)
+			{
+				if (v1[i][dim] < min) min = v1[i][dim];
+				if (v1[i][dim] > max) max = v1[i][dim];
+			}
+		}
+		minmax.first = min;
+		minmax.second = max;
+		return minmax;
+	}
+
     // Return the maximum of absolute values of force components for an image
-    scalar  Method::Force_on_Image_MaxAbsComponent(const std::vector<scalar> & image, std::vector<scalar> force)
+    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force)
     {
-        int nos = image.size()/3;
+        int nos = image.size();
         // We project the force orthogonal to the SPIN
         //Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
-        // Get the scalar product of the vectors
-        scalar v1v2 = 0.0;
-        int dim;
+        
         // Take out component in direction of v2
         for (int i = 0; i < nos; ++i)
         {
-            v1v2 = 0.0;
-            for (dim = 0; dim < 3; ++dim)
-            {
-                v1v2 += force[i + dim*nos] * image[i + dim*nos];
-            }
-            for (dim = 0; dim < 3; ++dim)
-            {
-                force[i + dim*nos] = force[i + dim*nos] - v1v2 * image[i + dim*nos];
-            }
+			force[i] -= force[i].dot(image[i]) * image[i];
         }
 
         // We want the Maximum of Absolute Values of all force components on all images
         scalar absmax = 0;
         // Find minimum and maximum values
-        auto minmax = std::minmax_element(force.begin(), force.end());
+        std::pair<scalar,scalar> minmax = minmax_component(force);
         // Mamimum of absolute values
-        absmax = std::max(absmax, std::abs(*minmax.first));
-        absmax = std::max(absmax, std::abs(*minmax.second));
+        absmax = std::max(absmax, std::abs(minmax.first));
+        absmax = std::max(absmax, std::abs(minmax.second));
         // Return
         return absmax;
     }

@@ -5,21 +5,36 @@ cmake_minimum_required(VERSION 2.8.11)
 
 ######### Build Flags #######################
 ### These decide which projects are built
-option( BUILD_UI_WEB    "Build the JavaScript library for the Web UI."                 OFF )
-option( BUILD_UI_PYTHON "Build the shared library for the Python UI."                  OFF )
-option( BUILD_UI_JULIA  "Build the shared library for the Julia UI."                   OFF )
-option( BUILD_UI_CXX    "Build the C++ UIs (console or QT)"                            ON  )
-option( UI_CXX_USE_QT   "Build the QT User Interface instead of console version."      ON  )
+option( BUILD_UI_WEB     "Build the JavaScript library for the Web UI."                 OFF )
+option( BUILD_UI_JULIA   "Build the shared library for the Julia UI."                   OFF )
+option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  ON  )
+option( BUILD_UI_CXX     "Build the C++ UIs (console or QT)"                            ON  )
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
-option( OSX_BUNDLE_APP  "Bundle the executable with its dependencies into a .app."     OFF )
+option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
 ### CMake Verbosity
-option( PRINT_SOURCES   "Print Headers and Sources from Cmake."                        OFF )
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF  "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+### Options for the usage of CUDA and threads
+option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              OFF )
+option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code."       OFF )
 ### Set the scalar type used in the core library
-set(CORE_SCALAR_TYPE double)
+set( CORE_SCALAR_TYPE double )
 #############################################
-
+if( BUILD_UI_WEB )
+	### UI-Web needs float
+	set( CORE_SCALAR_TYPE 	float )
+	### UI-Web needs to be built alone, as it
+	### uses a different toolchain
+	set( BUILD_UI_JULIA 	OFF )
+	set( BUILD_UI_PYTHON 	OFF )
+	set( BUILD_UI_CXX 		OFF )
+	### Emscripten cannot use cuda or threads
+	set( CORE_USE_CUDA 		OFF )
+	set( CORE_USE_THREADS 	OFF )
+endif()
+#############################################
 
 ######### General Paths #####################
 ### Set the cmake subdirectory
@@ -73,6 +88,12 @@ include(CompilerFlags)
 ### Prevent in-source builds
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated VERSION.txt
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+### Position independent code
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+### Installation Prefix
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "default install path" FORCE )
+endif()
 #############################################
 
 
@@ -110,21 +131,18 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 ######### Add Subdirectory Projects #########
 ### Core is built in any case
 add_subdirectory( core )
-### Web UI excludes others
-if( NOT BUILD_UI_WEB )
-	### Build CXX UI
-	if( BUILD_UI_CXX )
-		if (UI_CXX_USE_QT)
-			add_subdirectory(VFRendering)
-			add_subdirectory(ui-qt)
-		else()
-			add_subdirectory(ui-console)
-		endif()
+### CXX UI
+if( BUILD_UI_CXX )
+	if ( UI_CXX_USE_QT )
+		add_subdirectory( VFRendering )
+		add_subdirectory( ui-qt )
+	else()
+		add_subdirectory( ui-console )
 	endif()
 endif()
 ### Web UI
-if(BUILD_UI_WEB)
-	add_subdirectory(ui-web)
+if( BUILD_UI_WEB )
+	add_subdirectory( ui-web )
 endif()
 #############################################
 

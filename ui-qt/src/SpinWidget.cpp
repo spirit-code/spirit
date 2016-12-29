@@ -4,6 +4,7 @@
 
 #include <QTimer>
 #include <QMouseEvent>
+#include <QtWidgets>
 
 #include <VFRendering/CombinedRenderer.hxx>
 #include <VFRendering/ArrowRenderer.hxx>
@@ -31,7 +32,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
     this->setMinimumSize(200,200);
     this->setBaseSize(600,600);
-  
+
+	// Default Settings
     setColormap(Colormap::HSV);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
@@ -52,6 +54,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_coordinatesystem = true;
     
     setZRange({-1, 1});
+
+	// Read persistent settings
+	this->readSettings();
 }
 
 void SpinWidget::initializeGL()
@@ -62,12 +67,17 @@ void SpinWidget::initializeGL()
     std::vector<int> n_cells(3);
     Geometry_Get_N_Cells(state.get(), n_cells.data());
     // Initial camera position
-    _reset_camera = true;
+    _reset_camera = false;
     // Fetch data and update GL arrays
     this->updateData();
 
-    float bounds_min[3], bounds_max[3];
-    Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{bounds_min[0], bounds_max[0]};
+	glm::vec2 y_range{bounds_min[1], bounds_max[1]};
+	glm::vec2 z_range{bounds_min[2], bounds_max[2]};
     glm::vec3 bounding_box_center = {(bounds_min[0]+bounds_max[0])/2, (bounds_min[1]+bounds_max[1])/2, (bounds_min[2]+bounds_max[2])/2};
     glm::vec3 bounding_box_side_lengths = {bounds_max[0]-bounds_min[0], bounds_max[1]-bounds_min[1], bounds_max[2]-bounds_min[2]};
 
@@ -82,6 +92,15 @@ void SpinWidget::initializeGL()
 		m_renderer_boundingbox
 	};
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
+
+	// Surface options
+	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+	{
+		if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
+		else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
+		else return -1;
+	});
+	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 
 	// Isosurface options
 	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
@@ -100,7 +119,9 @@ void SpinWidget::initializeGL()
 	// Setup the View
 	this->m_mainview = this->m_system;
 	this->m_miniview = this->m_sphere;
-	this->setupRenderers();
+
+	// ...
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 
     updateData();
 }
@@ -120,7 +141,7 @@ void SpinWidget::updateData()
 	int nos = System_Get_NOS(state.get());
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
 	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
-  std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices;
+	std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices;
 
 	// ToDo: Update the pointer to our Data instead of copying Data?
 	// Positions and directions
@@ -138,13 +159,12 @@ void SpinWidget::updateData()
 	}
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
 	//		copy
+	/*positions.assign(spin_pos, spin_pos + 3*nos);
+	directions.assign(spins, spins + 3*nos);*/
 	for (int i = 0; i < nos; ++i)
 	{
-		positions[i] = glm::vec3(spin_pos[0 * nos + i], spin_pos[1 * nos + i], spin_pos[2 * nos + i]);
-	}
-	for (int i = 0; i < nos; ++i)
-	{
-		directions[i] = glm::vec3(spins[i], spins[nos + i], spins[2 * nos + i]);
+		positions[i] = glm::vec3(spin_pos[3*i], spin_pos[1 + 3*i], spin_pos[2 + 3*i]);
+		directions[i] = glm::vec3(spins[3*i], spins[1 + 3*i], spins[2 + 3*i]);
 	}
 	//    normalize if needed
 	if (keep_magnitudes)
@@ -189,12 +209,12 @@ void SpinWidget::updateData()
 	if (_reset_camera)
 	{
 		setCameraToDefault();
-    _reset_camera = false;
+    	_reset_camera = false;
 	}
   
-  bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
-  VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
-  m_view.update(geometry, directions);
+	bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
+	VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
+	m_view.update(geometry, directions);
 }
 
 void SpinWidget::paintGL() {
@@ -368,13 +388,16 @@ void SpinWidget::setArrows(float size, int lod)
 	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(cylinderheight* size);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>(lod);
-
-	this->setupRenderers();
 }
 
 float SpinWidget::arrowSize() const {
 	float size = options().get<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>() / 0.6f;
 	return size;
+}
+
+int SpinWidget::arrowLOD() const {
+	int LOD = options().get<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>();
+	return LOD;
 }
 
 /////	Z Range (Arrows?)
@@ -490,11 +513,13 @@ void SpinWidget::setupRenderers()
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Colors ---
-SpinWidget::Colormap SpinWidget::colormap() const {
+SpinWidget::Colormap SpinWidget::colormap() const
+{
   return m_colormap;
 }
 
-void SpinWidget::setColormap(Colormap colormap) {
+void SpinWidget::setColormap(Colormap colormap)
+{
   m_colormap = colormap;
   
   std::string colormap_implementation;
@@ -628,12 +653,14 @@ void SpinWidget::setCameraToZ() {
 
 void SpinWidget::setCameraPositon(const glm::vec3& camera_position)
 {
-	m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(system_center + camera_position);
 }
 
 void SpinWidget::setCameraFocus(const glm::vec3& center_position)
 {
-	m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(center_position);
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(system_center + center_position);
 }
 
 void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
@@ -643,12 +670,14 @@ void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
 
 glm::vec3 SpinWidget::getCameraPositon()
 {
-	return options().get<VFRendering::View::Option::CAMERA_POSITION>();
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	return options().get<VFRendering::View::Option::CAMERA_POSITION>() - system_center;
 }
 
 glm::vec3 SpinWidget::getCameraFocus()
 {
-	return options().get<VFRendering::View::Option::CENTER_POSITION>();
+	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+	return options().get<VFRendering::View::Option::CENTER_POSITION>() - system_center;
 }
 
 glm::vec3 SpinWidget::getCameraUpVector()
@@ -656,11 +685,156 @@ glm::vec3 SpinWidget::getCameraUpVector()
 	return options().get<VFRendering::View::Option::UP_VECTOR>();
 }
 
-float SpinWidget::verticalFieldOfView() const {
+float SpinWidget::verticalFieldOfView() const
+{
 	return m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
 }
 
-void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view) {
+void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
+{
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
+}
+
+
+// -----------------------------------------------------------------------------------
+// --------------------- Persistent Settings -----------------------------------------
+// -----------------------------------------------------------------------------------
+
+
+void SpinWidget::writeSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+	settings.beginGroup("General");
+	// Projection
+	settings.setValue("FOV", (int)(this->verticalFieldOfView()*100));
+	// System
+	settings.setValue("Show Arrows", this->show_arrows);
+	settings.setValue("Show Bounding Box", this->show_boundingbox);
+	settings.setValue("Show Surface", this->show_surface);
+	settings.setValue("Show Isosurface", this->show_isosurface);
+	settings.endGroup();
+
+	// Arrows
+	settings.beginGroup("Arrows");
+	// Projection
+	settings.setValue("Size", (int)(this->arrowSize() * 100));
+	settings.setValue("LOD", this->arrowLOD());
+	settings.endGroup();
+
+	// Colors
+	settings.beginGroup("Colors");
+	settings.setValue("Background Color", (int)backgroundColor());
+	settings.setValue("Colormap", (int)colormap());
+	settings.endGroup();
+
+	// Camera
+	settings.beginGroup("Camera");
+    auto camera_position = this->getCameraPositon();
+	auto center_position = this->getCameraFocus();
+	auto up_vector = this->getCameraUpVector();
+	settings.beginWriteArray("position");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecp", (int)(100*camera_position[dim]));
+	}
+	settings.endArray();
+	settings.beginWriteArray("center");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecc", (int)(100*center_position[dim]));
+	}
+	settings.endArray();
+	settings.beginWriteArray("up");
+	for(int dim=0; dim<3; ++dim)
+	{
+		settings.setArrayIndex(dim);
+		settings.setValue("vecu", (int)(100*up_vector[dim]));
+	}
+	settings.endArray();
+	settings.endGroup();
+}
+
+void SpinWidget::readSettings()
+{
+	makeCurrent();
+	QSettings settings("Spirit Code", "Spirit");
+
+	if (settings.childGroups().contains("General"))
+	{
+		settings.beginGroup("General");
+		// Projection
+		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt()/100.0f));
+		// System
+		this->show_arrows = settings.value("Show Arrows").toBool();
+		this->show_boundingbox = settings.value("Show Bounding Box").toBool();
+		this->show_surface = settings.value("Show Surface").toBool();
+		this->show_isosurface = settings.value("Show Isosurface").toBool();
+		settings.endGroup();
+	}
+
+	// Arrows
+	if (settings.childGroups().contains("Arrows"))
+	{
+		settings.beginGroup("Arrows");
+		// Projection
+		this->setArrows((float)(settings.value("Size").toInt() / 100.0f), settings.value("LOD").toInt());
+		settings.endGroup();
+	}
+
+	// Colors
+	if (settings.childGroups().contains("Colors"))
+	{
+		settings.beginGroup("Colors");
+		int background_color = settings.value("Background Color").toInt();
+		this->setBackgroundColor((Color)background_color);
+		if (background_color == 2) this->setBoundingBoxColor((Color)0);
+		else this->setBoundingBoxColor((Color)2);
+		int map = settings.value("Colormap").toInt();
+		this->setColormap((Colormap)map);
+		settings.endGroup();
+	}
+
+	// Camera
+	if (settings.childGroups().contains("Camera"))
+	{
+		settings.beginGroup("Camera");
+		glm::vec3 camera_position, center_position, up_vector;
+		settings.beginReadArray("position");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			camera_position[dim] = (float)(settings.value("vecp").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraPositon(camera_position);
+		settings.beginReadArray("center");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			center_position[dim] = (float)(settings.value("vecc").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraFocus(center_position);
+
+		settings.beginReadArray("up");
+		for(int dim=0; dim<3; ++dim)
+		{
+			settings.setArrayIndex(dim);
+			up_vector[dim] = (float)(settings.value("vecu").toInt()/100.0f);
+		}
+		settings.endArray();
+		this->setCameraUpVector(up_vector);
+		settings.endGroup();
+	}
+}
+
+
+void SpinWidget::closeEvent(QCloseEvent *event)
+{
+	writeSettings();
+	event->accept();
 }

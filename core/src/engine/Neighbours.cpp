@@ -1,14 +1,16 @@
-#include "Neighbours.hpp"
-#include "Vectormath.hpp"
-#include "IO.hpp"
-#include "Logging.hpp"
+#include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/IO.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
+
+#include <Eigen/Dense>
 
 #include <numeric>
 #include <iostream>
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
-#include "Exception.hpp"
 
 using namespace Utility;
 
@@ -18,8 +20,8 @@ namespace Engine
 		const int n_shells, std::vector<std::vector<int>> &n_spins_in_shell,
 		std::vector<std::vector<std::vector<int>>> & neigh,
 		std::vector<int> &n_4spin, int &max_n_4spin, std::vector<std::vector<std::vector<int>>> &neigh_4spin,
-		std::vector<std::vector<std::vector<scalar>>> &dm_normal,
-		std::vector<std::vector<int>> &segments, std::vector<std::vector<std::vector<scalar>>> &segments_pos)
+		std::vector<std::vector<Vector3>> &dm_normal,
+		std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos)
 	{
 		//========================= Init local vars ================================
 		auto nos = geometry.nos;
@@ -28,32 +30,32 @@ namespace Engine
 		scalar spin_sum_3d = 0;
 		std::vector<int> max_number_n_in_shell;
 		std::vector<scalar> shell_radius;
-		std::vector<std::vector<scalar>> boundary_vectors;
+		std::vector<Vector3> boundary_vectors;
 		int n_boundary_vectors;
 		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
 		//------------------------ End Init ----------------------------------------
 		
 		// Calculate boundary vectors
 		boundary_vectors = Get_Boundary_Vectors(geometry, boundary_conditions);
-		n_boundary_vectors = boundary_vectors[0].size();
+		n_boundary_vectors = boundary_vectors.size();
 
 		// Calculate shell radii
 		shell_radius = Get_Shell_Radius(geometry, n_shells);
 		// Check if domain makes sense
 		for (i = 1; i < n_boundary_vectors; ++i) {
 			for (j = 0; j < n_shells; ++j) {
-				if (2 * shell_radius[j] >= Vectormath::Length(boundary_vectors, i))
+				if (2 * shell_radius[j] >= boundary_vectors[i].norm())
 				{
 					Log(Log_Level::Severe, Log_Sender::All, "Simulated domain is too small!\n     Shell " + std::to_string(n_shells) + " diameter=" + std::to_string(2 * shell_radius[j])
-					+ "\n    B.V.  " + std::to_string(i) + "   length=" + std::to_string(Vectormath::Length(boundary_vectors, i))
-					+ "\n    B.V.  " + std::to_string(i) + "   vec   =" + std::to_string(boundary_vectors[0][i]) + " " + std::to_string(boundary_vectors[1][i]) + " " + std::to_string(boundary_vectors[2][i]));
+					+ "\n    B.V.  " + std::to_string(i) + "   length=" + std::to_string(boundary_vectors[i].norm())
+					+ "\n    B.V.  " + std::to_string(i) + "   vec   =" + std::to_string(boundary_vectors[i][0]) + " " + std::to_string(boundary_vectors[i][1]) + " " + std::to_string(boundary_vectors[i][2]));
 					throw Exception::Simulated_domain_too_small;
 				}//endif shell_radius >= Length(boundary_vecs)
 			}//endfor jneigh
 		}//endfor ispin
 
 		// to calculate MaxNumber_NInShell one needs periodical BC - this vector is used to ensure this
-		std::vector<std::vector<scalar>> boundary_vectors_true = Get_Boundary_Vectors(geometry, std::vector<bool>(3, true));
+		std::vector<Vector3> boundary_vectors_true = Get_Boundary_Vectors(geometry, std::vector<bool>(3, true));
 		// Maximum number of neighbours in any shell
 		max_number_n_in_shell = Get_MaxNumber_NInShell(geometry, n_shells, shell_radius, boundary_vectors_true, true);
 		int max_number_n = 0;
@@ -67,12 +69,12 @@ namespace Engine
 		// Allocating Vectors
 		n_spins_in_shell = std::vector<std::vector<int>>(geometry.nos, std::vector<int>(n_shells));
 		segments = std::vector<std::vector<int>>(geometry.nos, std::vector<int>(4));
-		segments_pos = std::vector<std::vector<std::vector<scalar>>>(3, std::vector<std::vector<scalar>>(geometry.nos, std::vector<scalar>(4)));
+		segments_pos = std::vector<std::vector<Vector3>>(geometry.nos, std::vector<Vector3>(4));
 		n_4spin = std::vector<int>(geometry.nos);
 
 		// Calculate the Neighbours and their Positions in the shells
 		neigh = std::vector<std::vector<std::vector<int>>>(nos, std::vector<std::vector<int>>(n_shells, std::vector<int>(max_number_n))); // neigh[nos][n_shells][max_number_n_in_shell[n_shells]]
-		auto neigh_pos = std::vector<std::vector<std::vector<std::vector<scalar>>>>(3, std::vector<std::vector<std::vector<scalar>>>(nos, std::vector<std::vector<scalar>>(n_shells, std::vector<scalar>(max_number_n))));
+		auto neigh_pos = std::vector<std::vector<std::vector<Vector3>>>(nos, std::vector<std::vector<Vector3>>(n_shells, std::vector<Vector3>(max_number_n)));
 		Get_Neighbours_in_Shells(geometry, n_shells, shell_radius, boundary_vectors, n_spins_in_shell, neigh, neigh_pos, true);
 
 		// What do we need this for??
@@ -80,7 +82,7 @@ namespace Engine
 
 		// Four-Spin Neighbours
 		for (i = 0; i < nos; ++i) {
-			spin_sum_3d += std::abs(geometry.spin_pos[2*nos+i]);
+			spin_sum_3d += std::abs(geometry.spin_pos[i][2]);
 		}
 		if (spin_sum_3d == 0)
 		{
@@ -120,7 +122,7 @@ namespace Engine
 		//		Coincides with number of neighbours in the 1-st shell (nearest neighbours)
 		max_ndm = max_number_n_in_shell[0];
 		// Calculate DM normal vectors
-		dm_normal = std::vector<std::vector<std::vector<scalar>>>(3, std::vector<std::vector<scalar>>(nos, std::vector<scalar>(max_ndm)));
+		dm_normal = std::vector<std::vector<Vector3>>(nos, std::vector<Vector3>(max_ndm));
 		Create_DM_Norm_Vectors_Bulk(nos, geometry.spin_pos, n_boundary_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal);
 		//DM_Norm_Vectors_To_File(nos, n_shells, n_spins_in_shell, neigh, dm_normal);
 
@@ -132,9 +134,9 @@ namespace Engine
 	{
 		auto shell_radius = std::vector<scalar>(n_shells);
 		//========================= Init local vars ================================
-		std::vector<scalar> a = { geometry.basis[0][0], geometry.basis[1][0], geometry.basis[2][0] };
-		std::vector<scalar> b = { geometry.basis[0][1], geometry.basis[1][1], geometry.basis[2][1] };
-		std::vector<scalar> c = { geometry.basis[0][2], geometry.basis[1][2], geometry.basis[2][2] };
+		Vector3 a = geometry.basis[0];
+		Vector3 b = geometry.basis[1];
+		Vector3 c = geometry.basis[2];
 
 		scalar radius_current_shell, radius_test_shell, dist, min_shell_distance;
 		int i = 0, j = 0, k = 0;
@@ -142,12 +144,12 @@ namespace Engine
 		//the 10 is a value that is big enough by experience to 
 		// produce enough needed shells, but is small enough to run sufficiently quick
 		int imax = 10, jmax = 10, kmax = 10;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 build_array = { 0, 0, 0 };
 
 		//abort condidions for all 3 vectors
-		if (Vectormath::Length(a) == 0.0) imax = 0;
-		if (Vectormath::Length(b) == 0.0) jmax = 0;
-		if (Vectormath::Length(c) == 0.0) kmax = 0;
+		if (a.norm() == 0.0) imax = 0;
+		if (b.norm() == 0.0) jmax = 0;
+		if (c.norm() == 0.0) kmax = 0;
 
 		std::string output_to_file;
 
@@ -161,13 +163,13 @@ namespace Engine
 		{
 
 			min_shell_distance = 100.0;
-			Vectormath::Array_Array_Add(a, b, c, build_array, i, j, k);
-			radius_current_shell = Vectormath::Length(build_array);
+			build_array = i*a + j*b + k*c;
+			radius_current_shell = build_array.norm();
 			for (ii = imax; ii >= -imax; --ii) {
 				for (jj = jmax; jj >= -jmax; --jj) {
 					for (kk = kmax; kk >= -kmax; --kk) {
-						Vectormath::Array_Array_Add(a, b, c, build_array, ii, jj, kk);
-						radius_test_shell = Vectormath::Length(build_array);
+						build_array = ii*a + jj*b + kk*c;
+						radius_test_shell = build_array.norm();
 						dist = radius_test_shell - radius_current_shell;
 						if ((dist > 1.0E-6) && (dist <= min_shell_distance)) {
 							min_shell_distance = dist;
@@ -176,9 +178,9 @@ namespace Engine
 					}//endfor kk
 				}//endfor jj
 			}//endfor ii
-			Vectormath::Array_Array_Add(a, b, c, build_array, i, j, k);
+			build_array = i*a + j*b + k*c;
 
-			shell_radius[n] = Vectormath::Length(build_array);
+			shell_radius[n] = build_array.norm();
 
 			//convert values to string and concernate string for filedump
 			snprintf(buffer_string_conversion, buffer_length, "%+05i  %+13.6f  %+05i  %+05i  %+05i \n", n, shell_radius[n], i, j, k);
@@ -190,17 +192,17 @@ namespace Engine
 
 
 	std::vector<int> Neighbours::Get_MaxNumber_NInShell(const Data::Geometry & geometry, const int n_shells, const std::vector<scalar> & shell_radius, 
-		std::vector<std::vector<scalar>> boundary_vectors, const bool borderOnly)
+		std::vector<Vector3> boundary_vectors, const bool borderOnly)
 	{
 		auto max_number_n_in_shell = std::vector<int>(n_shells, 0);
 		auto max_temp = std::vector<int>(n_shells, 0);
 		//========================= Init local vars ================================
-		std::vector<scalar> ipos = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> jpos = { 0.0, 0.0, 0.0 };
+		Vector3 ipos = { 0, 0, 0 };
+		Vector3 jpos = { 0, 0, 0 };
 		scalar dist;
-		unsigned int bvector, number_b_vectors = boundary_vectors[0].size();
+		unsigned int bvector, number_b_vectors = boundary_vectors.size();
 		int iatom, jatom, shell;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 build_array = { 0, 0, 0 };
 		int nos = geometry.nos;
 
 		int imax = 10, jmax = 10, kmax = 10;
@@ -210,13 +212,13 @@ namespace Engine
 			Log(Utility::Log_Level::Debug, Utility::Log_Sender::All, "Remember Maximum size of Dipole shell should fit into " + std::to_string(imax) + "x" + std::to_string(jmax) + "x" + std::to_string(kmax) + " translations. Neighbours.cpp line 178 to change this");
 		}
 		// Retrieve basis vectors from geometry.basis
-		std::vector<scalar> a = { geometry.basis[0][0], geometry.basis[1][0], geometry.basis[2][0] };
-		std::vector<scalar> b = { geometry.basis[0][1], geometry.basis[1][1], geometry.basis[2][1] };
-		std::vector<scalar> c = { geometry.basis[0][2], geometry.basis[1][2], geometry.basis[2][2] };
+		Vector3 a = geometry.basis[0];
+		Vector3 b = geometry.basis[1];
+		Vector3 c = geometry.basis[2];
 		//abort condidions for all 3 vectors
-		if (Vectormath::Length(a) == 0.0) imax = 0;
-		if (Vectormath::Length(b) == 0.0) jmax = 0;
-		if (Vectormath::Length(c) == 0.0) kmax = 0;
+		if (a.norm() == 0.0) imax = 0;
+		if (b.norm() == 0.0) jmax = 0;
+		if (c.norm() == 0.0) kmax = 0;
 		//------------------------ End Init ----------------------------------------
 		// Create stub for function to check wether the atom is in the shell
 		std::function<bool(scalar)> check = [](scalar d) { return false; };
@@ -240,22 +242,18 @@ namespace Engine
 		for (iatom = 0; iatom < 1; ++iatom)//geometry.nos; ++iatom)
 		{
 			for (shell = 0; shell < n_shells; ++shell) max_temp[shell] = 0;
-			ipos[0] = geometry.spin_pos[0*nos+iatom];
-			ipos[1] = geometry.spin_pos[1*nos+iatom];
-			ipos[2] = geometry.spin_pos[2*nos+iatom];
+			ipos = geometry.spin_pos[iatom];
 			// Loop over neighbours, avoid scalar counting
 			for (jatom = iatom + 1; jatom < geometry.nos; ++jatom)
 			{
 				// Loop also over atoms translated by boundary conditions
 				for (bvector = 0; bvector < number_b_vectors; ++bvector)
 				{
-					jpos[0] = geometry.spin_pos[0*nos+jatom] + boundary_vectors[0][bvector];
-					jpos[1] = geometry.spin_pos[1*nos+jatom] + boundary_vectors[1][bvector];
-					jpos[2] = geometry.spin_pos[2*nos+jatom] + boundary_vectors[2][bvector];
+					jpos = geometry.spin_pos[jatom] + boundary_vectors[bvector];
 					// ipos - jpos
-					Vectormath::Array_Array_Add(ipos, jpos, build_array, 1.0, -1.0);
+					build_array = ipos - jpos;
 					// dist = |ipos-jpos|
-					dist = Vectormath::Length(build_array);
+					dist = build_array.norm();
 					// Test if the distance corresponds to a shell
 					for (shell = 0; shell < n_shells; ++shell)
 					{
@@ -280,21 +278,22 @@ namespace Engine
 
 
 	void Neighbours::Get_Neighbours_in_Shells(const Data::Geometry & geometry, const int n_shells, const std::vector<scalar> & shell_radius,
-		const std::vector<std::vector<scalar>> &boundary_vectors, std::vector<std::vector<int>> &n_spins_in_shell,
-		std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<scalar>>>> & neigh_pos, const bool borderOnly)
+		const std::vector<Vector3> &boundary_vectors, std::vector<std::vector<int>> &n_spins_in_shell,
+		std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos, const bool borderOnly)
 	{
 		//========================= Init local vars ================================
-		std::vector<scalar> ipos = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> jpos = { 0.0, 0.0, 0.0 };
+		Vector3 ipos = { 0, 0, 0 };
+		Vector3 jpos = { 0, 0, 0 };
 		scalar dist;
-		unsigned int bvector, number_b_vectors = boundary_vectors[0].size();
+		unsigned int bvector, number_b_vectors = boundary_vectors.size();
 		int iatom, jatom, jspin, shell;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 build_array = { 0, 0, 0 };
 
 		int nos = geometry.nos;
 
 		std::string output_to_file;
-		if (geometry.nos < 5E+06) {											// if nos too big - guard preallocation against int overflow
+		if (geometry.nos < 5E+06)
+		{											// if nos too big - guard preallocation against int overflow
 			output_to_file.reserve(geometry.nos * 22 + geometry.nos * 6 * 20 + 200);	//memory allocation for fast append
 		}
 		else { output_to_file.reserve(int(1E+08)); }
@@ -324,23 +323,19 @@ namespace Engine
 		// Loop over all atoms
 		for (iatom = 0; iatom < geometry.nos; ++iatom)
 		{
-			ipos[0] = geometry.spin_pos[0*nos+iatom];
-			ipos[1] = geometry.spin_pos[1*nos+iatom];
-			ipos[2] = geometry.spin_pos[2*nos+iatom];
+			ipos = geometry.spin_pos[iatom];
 			// Loop over neighbours, avoid scalar counting
 			for (jatom = iatom + 1; jatom < geometry.nos; ++jatom)
 			{
 				// Loop also over atoms translated by boundary conditions
 				for (bvector = 0; bvector < number_b_vectors; ++bvector)
 				{
-					jpos[0] = geometry.spin_pos[0*nos+jatom] + boundary_vectors[0][bvector];
-					jpos[1] = geometry.spin_pos[1*nos+jatom] + boundary_vectors[1][bvector];
-					jpos[2] = geometry.spin_pos[2*nos+jatom] + boundary_vectors[2][bvector];
+					jpos = geometry.spin_pos[jatom] + boundary_vectors[bvector];
 
 					// ipos - jpos
-					Vectormath::Array_Array_Add(ipos, jpos, build_array, 1.0, -1.0);
+					build_array = ipos - jpos;
 					// dist = |ipos-jpos|
-					dist = Vectormath::Length(build_array);
+					dist = build_array.norm();
 					// if (dist < 3.0) /* Only take Neighbours with dist < ... to save computation time. This should not be done with long-range interactions! */
 					// {
 					for (shell = 0; shell < n_shells; ++shell)
@@ -350,16 +345,12 @@ namespace Engine
 						{
 							neigh[iatom][shell][n_spins_in_shell[iatom][shell]] = jatom;
 							// Vectormath::Vector_Copy_i(neigh_pos, jpos, 0, iatom, shell, n_spins_in_shell[iatom][shell]);
-							neigh_pos[0][iatom][shell][n_spins_in_shell[iatom][shell]] = jpos[0];
-							neigh_pos[1][iatom][shell][n_spins_in_shell[iatom][shell]] = jpos[1];
-							neigh_pos[2][iatom][shell][n_spins_in_shell[iatom][shell]] = jpos[2];
+							neigh_pos[iatom][shell][n_spins_in_shell[iatom][shell]] = jpos;
 
 							n_spins_in_shell[iatom][shell] = n_spins_in_shell[iatom][shell] + 1;
 
 							neigh[jatom][shell][n_spins_in_shell[jatom][shell]] = iatom;
-							neigh_pos[0][jatom][shell][n_spins_in_shell[jatom][shell]] = ipos[0] - boundary_vectors[0][bvector];
-							neigh_pos[1][jatom][shell][n_spins_in_shell[jatom][shell]] = ipos[1] - boundary_vectors[1][bvector];
-							neigh_pos[2][jatom][shell][n_spins_in_shell[jatom][shell]] = ipos[2] - boundary_vectors[2][bvector];
+							neigh_pos[jatom][shell][n_spins_in_shell[jatom][shell]] = ipos - boundary_vectors[bvector];
 							n_spins_in_shell[jatom][shell] = n_spins_in_shell[jatom][shell] + 1;
 							goto A;
 						}//endif abs(dist-shell_radius) < 1.0E-5
@@ -397,7 +388,7 @@ namespace Engine
 			for (jatom = 0; jatom < n_spins_in_shell[iatom][0]; ++jatom)
 			{
 				jspin = neigh[iatom][0][jatom];
-				snprintf(buffer_string_conversion, buffer_length, " %12.6f %12.6f %12.6f", neigh_pos[0][iatom][0][jatom], neigh_pos[1][iatom][0][jatom], neigh_pos[2][iatom][0][jatom]);
+				snprintf(buffer_string_conversion, buffer_length, " %12.6f %12.6f %12.6f", neigh_pos[iatom][0][jatom][0], neigh_pos[iatom][0][jatom][1], neigh_pos[iatom][0][jatom][2]);
 				output_to_file.append(buffer_string_conversion);
 			}//endfor jatom
 		}//endfor iatom
@@ -412,7 +403,7 @@ namespace Engine
 		int shell = 0, triplet;
 		int ispin, jspin, kspin, lspin, mspin;
 		int jneigh, kneigh, lneigh, mneigh;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 build_array = { 0, 0, 0 };
 
 		std::string output_to_file = "List of neighbour quadruples in 4-spin interaction\n";
 
@@ -453,66 +444,70 @@ namespace Engine
 		IO::Dump_to_File(output_to_file, "output/neighbours_4spin.dat");
 	}//end Neighbours::Create_Neighbours_4Spin
 
-	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<scalar> &spin_pos, const int number_b_vectors,
-		const std::vector<std::vector<scalar>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
-		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<scalar>>>> & neigh_pos,
-		const int max_ndm, std::vector<std::vector<std::vector<scalar>>> &dm_normal)
+	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<Vector3> &spin_pos, const int number_b_vectors,
+		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
+		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
+		const int max_ndm, std::vector<std::vector<Vector3>> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jspin, jneigh;
-		std::vector<scalar> ispin_pos = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> jspin_pos = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> r_a = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> r_b = { 0.0, 0.0, 1.0 };
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 ispin_pos = { 0, 0, 0 };
+		Vector3 jspin_pos = { 0, 0, 0 };
+		Vector3 r_a = { 0, 0, 0 };
+		Vector3 r_b = { 0, 0, 1 };
+		Vector3 build_array = { 0, 0, 0 };
 		//------------------------ End Init ----------------------------------------
 
 		Log(Log_Level::Debug, Log_Sender::All, "Calculating Bulk DMI norm vectors...");
-		for (ispin = 0; ispin < nos; ++ispin) {								// loop over all spins
+		for (ispin = 0; ispin < nos; ++ispin)
+		{								// loop over all spins
 			//Vectormath::Vector_Copy_o(ispin_pos, spin_pos, 0, ispin);
-			for (int dim = 0; dim < 3; ++dim) ispin_pos[dim] = spin_pos[dim*nos + ispin];
-			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh) {	// loop over all neighbours of that spin
+			ispin_pos = spin_pos[ispin];
+			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh)
+			{	// loop over all neighbours of that spin
 				jspin = neigh[ispin][0][jneigh];
-				Vectormath::Vector_Copy_o(jspin_pos, neigh_pos, 0, ispin, 0, jneigh);
-				//Vectormath::Array_Array_Add(jspin_pos, ispin_pos, r_a, -1.0, 1.0); //get DMI vec with chirality "-"
-				Vectormath::Array_Array_Add(jspin_pos, ispin_pos, r_a, 1.0, -1.0);	// get DMI vec with chirality "+"
-				Vectormath::Normalize(r_a);							// normalize DMI vec
-				Vectormath::Vector_Copy_i(dm_normal, r_a, 0, ispin, jneigh);
+				jspin_pos = neigh_pos[ispin][0][jneigh];
+				//r_a = ispin_pos - jspin_pos; //get DMI vec with chirality "-"
+				r_a = jspin_pos - ispin_pos; // get DMI vec with chirality "+"
+				r_a.normalize();
+				dm_normal[ispin][jneigh] = r_a;
 			}//endfor jneigh
 		}//endfor ispin
 		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Bulk DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Bulk
 
-	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<scalar> &spin_pos, const int number_b_vectors,
-		const std::vector<std::vector<scalar>> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
-		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<scalar>>>> & neigh_pos,
-		const int max_ndm, std::vector<std::vector<std::vector<scalar>>> &dm_normal)
+	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<Vector3> &spin_pos, const int number_b_vectors,
+		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
+		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
+		const int max_ndm, std::vector<std::vector<Vector3>> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jneigh;
-		std::vector<scalar> unit_vec_z = { 0.0, 0.0, 1.0 };
-		std::vector<scalar> build_array_1 = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
+		Vector3 unit_vec_z = { 0, 0, 1 };
+		Vector3 build_array_1 = { 0, 0, 0 };
+		Vector3 build_array_2 = { 0, 0, 0 };
 		//------------------------ End Init ----------------------------------------
 		Create_DM_Norm_Vectors_Bulk(nos, spin_pos, number_b_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal);
 
-		for (ispin = 0; ispin < nos; ++ispin) {
-			for (jneigh = 0; jneigh < max_ndm; ++jneigh) {
-				Vectormath::Vector_Copy_o(build_array_1, dm_normal, 0, ispin, jneigh);
-				Vectormath::Cross_Product(build_array_1, unit_vec_z, build_array_2);
-				Vectormath::Vector_Copy_i(dm_normal, build_array_2, 0, ispin, jneigh);
+		for (ispin = 0; ispin < nos; ++ispin)
+		{
+			for (jneigh = 0; jneigh < max_ndm; ++jneigh)
+			{
+				build_array_1 = dm_normal[ispin][jneigh];
+				build_array_2 = build_array_1.cross(unit_vec_z);
+				dm_normal[ispin][jneigh] = build_array_2;
 			}
 		}
 		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Surface DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Surface
 
 	void Neighbours::DM_Norm_Vectors_To_File(const int nos, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
-		const std::vector<std::vector<std::vector<int>>> & neigh, const std::vector<std::vector<std::vector<scalar>>> &dm_normal)
+		const std::vector<std::vector<std::vector<int>>> & neigh, const std::vector<std::vector<Vector3>> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jneigh;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> unit_vec_z = { 0.0, 0.0, 1.0 };
+		Vector3 build_array = { 0, 0, 0 };
+		Vector3 unit_vec_z = { 0, 0, 1 };
 
 		std::string output_to_file = "List of neighbours,'\n normalized vector for Dzyaloshinskii-Moriya interaction, and the angle to the normal\n";
 		if (nos < 3500) {									// if nos too big - the preallocation gets int overflow
@@ -523,10 +518,12 @@ namespace Engine
 		const int buffer_length = 85;
 		char buffer_string_conversion[buffer_length + 2];
 		//------------------------ End Init ----------------------------------------
-		for (ispin = 0; ispin < nos; ++ispin) {
-			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh) {
-				Vectormath::Vector_Copy_o(build_array, dm_normal, 0, ispin, jneigh);
-				snprintf(buffer_string_conversion, buffer_length, "%7i  %7i | %+13.7f  %+13.7f  %+13.7f | %+10.4f \n", ispin, neigh[ispin][0][jneigh], dm_normal[0][ispin][jneigh], dm_normal[1][ispin][jneigh], dm_normal[2][ispin][jneigh], Vectormath::Angle(build_array, unit_vec_z, true));
+		for (ispin = 0; ispin < nos; ++ispin)
+		{
+			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh)
+			{
+				build_array = dm_normal[ispin][jneigh];
+				snprintf(buffer_string_conversion, buffer_length, "%7i  %7i | %+13.7f  %+13.7f  %+13.7f | %+10.4f \n", ispin, neigh[ispin][0][jneigh], dm_normal[ispin][jneigh][0], dm_normal[ispin][jneigh][1], dm_normal[ispin][jneigh][2], Engine::Vectormath::dist_greatcircle(build_array, unit_vec_z));
 				output_to_file.append(buffer_string_conversion);
 			}//endfor jneigh
 		}//endfor ispin
@@ -534,21 +531,21 @@ namespace Engine
 	}//end Neighbours::DM_Norm_Vectors_To_File
 
 	void Neighbours::Create_Segments(const Data::Geometry & geometry, const int n_shells,
-		const int nos, const std::vector<scalar> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
-		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<std::vector<scalar>>>> & neigh_pos,
-		std::vector<std::vector<int>> &segments, std::vector<std::vector<std::vector<scalar>>> &segments_pos)
+		const int nos, const std::vector<Vector3> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
+		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
+		std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos)
 	{
 		//========================= Init local vars ================================
 		// Retrieve basis vectors from geometry.basis
-		std::vector<scalar> a = { geometry.basis[0][0], geometry.basis[1][0], geometry.basis[2][0] };
-		std::vector<scalar> b = { geometry.basis[0][1], geometry.basis[1][1], geometry.basis[2][1] };
-		std::vector<scalar> c = { geometry.basis[0][2], geometry.basis[1][2], geometry.basis[2][2] };
+		Vector3 a = geometry.basis[0];
+		Vector3 b = geometry.basis[1];
+		Vector3 c = geometry.basis[2];
 
-		std::vector<scalar> ipos = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> jpos = { 0.0, 0.0, 0.0 };
+		Vector3 ipos = { 0, 0, 0 };
+		Vector3 jpos = { 0, 0, 0 };
 		scalar error = 1.0E-5;
 		int ispin, jneigh, jspin, shell, shell_fin;
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
+		Vector3 build_array = { 0, 0, 0 };
 
 		std::string output_to_file = "List of spins in segments\n";
 		const int buffer_length = 45;
@@ -563,33 +560,35 @@ namespace Engine
 			shell_fin = 1;
 		}
 
-		for (ispin = 0; ispin < nos; ++ispin) {
-			ipos[0] = spin_pos[0*nos+ispin]; ipos[1] = spin_pos[1*nos+ispin]; ipos[2] = spin_pos[2*nos+ispin];
-			for (shell = 0; shell < shell_fin; ++shell) {
-				for (jneigh = 0; jneigh < n_spins_in_shell[ispin][shell]; ++jneigh) {
+		for (ispin = 0; ispin < nos; ++ispin)
+		{
+			ipos = spin_pos[ispin];
+			for (shell = 0; shell < shell_fin; ++shell)
+			{
+				for (jneigh = 0; jneigh < n_spins_in_shell[ispin][shell]; ++jneigh)
+				{
 					jspin = neigh[ispin][shell][jneigh];
-					//jpos[0] = spin_pos[0][jspin]; jpos[1] = spin_pos[1][jspin]; jpos[2] = spin_pos[2][jspin];
-					jpos[0] = neigh_pos[0][ispin][shell][jneigh]; jpos[1] = neigh_pos[1][ispin][shell][jneigh];	jpos[2] = neigh_pos[2][ispin][shell][jneigh];
+					jpos = neigh_pos[ispin][shell][jneigh];
 
-					Vectormath::Array_Array_Add(ipos, a, jpos, build_array, 1.0, 1.0, -1.0);
-					if (Vectormath::Length(build_array) < error) {
+					build_array = ipos + a - jpos;
+					if (build_array.norm() < error) {
 						segments[ispin][0] = jspin;
-						segments_pos[0][ispin][0] = jpos[0]; segments_pos[1][ispin][0] = jpos[1]; segments_pos[2][ispin][0] = jpos[2];
+						segments_pos[ispin][0] = jpos;
 					}
-					Vectormath::Array_Array_Add(ipos, b, jpos, build_array, 1.0, 1.0, -1.0);
-					if (Vectormath::Length(build_array) < error) {
+					build_array = ipos + b - jpos;
+					if (build_array.norm() < error) {
 						segments[ispin][1] = jspin;
-						segments_pos[0][ispin][1] = jpos[0]; segments_pos[1][ispin][1] = jpos[1]; segments_pos[2][ispin][1] = jpos[2];
+						segments_pos[ispin][1] = jpos;
 					}
-					Vectormath::Array_Array_Add(ipos, a, jpos, build_array, 1.0, -1.0, -1.0);
-					if (Vectormath::Length(build_array) < error) {
+					build_array = ipos - a - jpos;
+					if (build_array.norm() < error) {
 						segments[ispin][2] = jspin;
-						segments_pos[0][ispin][2] = jpos[0]; segments_pos[1][ispin][2] = jpos[1]; segments_pos[2][ispin][2] = jpos[2];
+						segments_pos[ispin][2] = jpos;
 					}
-					Vectormath::Array_Array_Add(ipos, b, jpos, build_array, 1.0, -1.0, -1.0);
-					if (Vectormath::Length(build_array) < error) {
+					build_array = ipos - b - jpos;
+					if (build_array.norm() < error) {
 						segments[ispin][3] = jspin;
-						segments_pos[0][ispin][3] = jpos[0]; segments_pos[1][ispin][3] = jpos[1]; segments_pos[2][ispin][3] = jpos[2];
+						segments_pos[ispin][3] = jpos;
 					}
 				}//endfor jneigh
 			}//endfor shell
@@ -600,13 +599,13 @@ namespace Engine
 	}//end Neighbours::Create_Segments
 
 	void Neighbours::Create_Dipole_Pairs(const Data::Geometry & geometry, scalar dd_radius,
-		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<std::vector<scalar>>> & DD_normal)
+		std::vector<indexPairs> & DD_indices, std::vector<scalarfield> & DD_magnitude, std::vector<vectorfield> & DD_normal)
 	{
 		// Get the boundary vectors
 		// auto boundary_vectors = Engine::Neighbours::Get_Boundary_Vectors(geometry, std::vector<bool>{ true, true, true });
 		
 		// ------ Find the pairs for the first cell ------
-		auto vector_ij = std::vector<scalar>(3), build_array = std::vector<scalar>(3),  ipos = std::vector<scalar>(3), jpos = std::vector<scalar>(3);
+		Vector3 vector_ij,  build_array, ipos, jpos;
 		scalar magnitude;
 		
 		int iatom, jatom;
@@ -646,17 +645,15 @@ namespace Engine
 								pair_db = sign_b * db;
 								pair_dc = sign_c * dc;
 								// Calculate positions and difference vector
-								for (int dim=0; dim<3; ++dim)
-								{
-									ipos[dim] 		= geometry.spin_pos[dim*nos + iatom];
-									jpos[dim] 		= geometry.spin_pos[dim*nos + jatom]
-														+ geometry.translation_vectors[dim][0]*pair_da
-														+ geometry.translation_vectors[dim][1]*pair_db
-														+ geometry.translation_vectors[dim][2]*pair_dc;
-									vector_ij[dim]  = jpos[dim] - ipos[dim];
-								}
+								ipos 		= geometry.spin_pos[iatom];
+								jpos 		= geometry.spin_pos[jatom]
+													+ geometry.translation_vectors[0]*pair_da
+													+ geometry.translation_vectors[1]*pair_db
+													+ geometry.translation_vectors[2]*pair_dc;
+								vector_ij  = jpos - ipos;
+								
 								// Length of difference vector
-								magnitude = Vectormath::Length(vector_ij);
+								magnitude = vector_ij.norm();
 								if ( magnitude==0.0 || (da==0 && sign_a==-1) || (db==0 && sign_b==-1) || (dc==0 && sign_c==-1) )
 								{
 									magnitude = dd_radius + 1.0;
@@ -667,9 +664,7 @@ namespace Engine
 									// std::cerr << "found " << iatom << " " << jatom << std::endl;
 									// std::cerr << "      " << pair_da << " " << pair_db << " " << pair_dc << std::endl;
 									// Normal
-									vector_ij[0] = vector_ij[0]/magnitude;
-									vector_ij[1] = vector_ij[1]/magnitude;
-									vector_ij[2] = vector_ij[2]/magnitude;
+									vector_ij.normalize();
 
 									// ------ Translate for the whole lattice ------
 									// Create all Pairs of this Kind through translation
@@ -738,7 +733,7 @@ namespace Engine
 												if (idx_i < idx_j)
 												{
 													// std::cerr << "   made pair " << idx_i << " " << idx_j << std::endl;
-													DD_indices[pair_periodicity].push_back(std::vector<int>{ idx_i, idx_j });
+													DD_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
 													DD_magnitude[pair_periodicity].push_back(magnitude);
 													DD_normal[pair_periodicity].push_back(vector_ij);
 												}
@@ -760,12 +755,12 @@ namespace Engine
 
 
 	void Neighbours::Create_Dipole_Neighbours(const Data::Geometry & geometry, std::vector<bool> boundary_conditions,
-		const scalar dd_radius,	std::vector<std::vector<int>>& dd_neigh, std::vector<std::vector<std::vector<scalar>>>& dd_neigh_pos,
-		std::vector<std::vector<std::vector<scalar>>>& dd_normal, std::vector<std::vector<scalar>> & dd_distance)
+		const scalar dd_radius,	std::vector<std::vector<int>>& dd_neigh, std::vector<std::vector<Vector3>>& dd_neigh_pos,
+		std::vector<std::vector<Vector3>>& dd_normal, std::vector<std::vector<scalar>> & dd_distance)
 	{
 		std::vector<int> max_n_array;
 		auto shell_radius = std::vector<scalar>(1, dd_radius);
-		std::vector<std::vector<scalar>> boundary_vectors;
+		std::vector<Vector3> boundary_vectors;
 
 		// Calculate boundary vectors
 		boundary_vectors = Get_Boundary_Vectors(geometry, boundary_conditions);
@@ -779,9 +774,9 @@ namespace Engine
 		dd_neigh = std::vector<std::vector<int>>(geometry.nos, std::vector<int>(max_n));
 		// Dipole Dipole neighbour positions [dim][nos][max_n]
 		// dd_neigh_pos = std::vector<std::vector<std::vector<std::vector<scalar>>>>(3, std::vector<std::vector<std::vector<scalar>>>(nos, std::vector<std::vector<scalar>>(n_shells, std::vector<scalar>(max_number_n))));
-		dd_neigh_pos = std::vector<std::vector<std::vector<scalar>>>(3, std::vector<std::vector<scalar>>(geometry.nos, std::vector<scalar>(max_n)));
+		dd_neigh_pos = std::vector<std::vector<Vector3>>(geometry.nos, std::vector<Vector3>(max_n));
 		// Dipole Dipole normal vectors [dim][nos][1][max_n]
-		dd_normal = std::vector<std::vector<std::vector<scalar>>>(3, std::vector<std::vector<scalar>>(geometry.nos, std::vector<scalar>(max_n)));
+		dd_normal = std::vector<std::vector<Vector3>>(geometry.nos, std::vector<Vector3>(max_n));
 		// Dipole Dipole normal vectors [dim][nos][1][max_n]
 		dd_distance = std::vector<std::vector<scalar>>(geometry.nos, std::vector<scalar>(max_n));
 
@@ -789,40 +784,36 @@ namespace Engine
 		{
 			// ==== Use this stuff to be able to use Get_Neighbours_in_Shells for 1 single shell ====
 			auto neigh = std::vector<std::vector<std::vector<int>>>(geometry.nos, std::vector<std::vector<int>>(1, std::vector<int>(max_n)));
-			auto neigh_pos = std::vector<std::vector<std::vector<std::vector<scalar>>>>(3, std::vector<std::vector<std::vector<scalar>>>(geometry.nos, std::vector<std::vector<scalar>>(1, std::vector<scalar>(max_n, 0))));
+			auto neigh_pos = std::vector<std::vector<std::vector<Vector3>>>(geometry.nos, std::vector<std::vector<Vector3>>(1, std::vector<Vector3>(max_n)));
 			auto n_spins_in_shell = std::vector<std::vector<int>>(geometry.nos, std::vector<int>(1));
 
 			Get_Neighbours_in_Shells(geometry, 1, shell_radius, boundary_vectors, n_spins_in_shell, neigh, neigh_pos, false);
 
-			int ispin, jneigh, dim;
+			int ispin, jneigh;
 			scalar length = 0.0;
 			for (ispin = 0; ispin < geometry.nos; ++ispin) {
 				// transfer number of neighbours into n_dd_neigh
 				for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh) {
 					// transfer neighbours back to dd_neigh vector
 					dd_neigh[ispin][jneigh] = neigh[ispin][0][jneigh];
-					for (dim = 0; dim < 3; ++dim) {
-						dd_neigh_pos[dim][ispin][jneigh] = neigh_pos[dim][ispin][0][jneigh];
-						// calculate dd_normal
-						dd_normal[dim][ispin][jneigh] = geometry.spin_pos[dim*geometry.nos+ispin] - dd_neigh_pos[dim][ispin][jneigh];
-					}// endfor dim
-					dd_distance[ispin][jneigh] = Vectormath::Length(dd_normal, ispin, jneigh);
+					dd_neigh_pos[ispin][jneigh] = neigh_pos[ispin][0][jneigh];
+					// calculate dd_normal
+					dd_normal[ispin][jneigh] = geometry.spin_pos[ispin] - dd_neigh_pos[ispin][jneigh];
+					dd_distance[ispin][jneigh] = dd_normal[ispin][jneigh].norm();
 					if (dd_distance[ispin][jneigh] == 0.0) throw Exception::Division_by_zero;
-					for (dim = 0; dim < 3; ++dim) {
-						dd_normal[dim][ispin][jneigh] = dd_normal[dim][ispin][jneigh] / dd_distance[ispin][jneigh];
-					}
+					dd_normal[ispin][jneigh] = dd_normal[ispin][jneigh] / dd_distance[ispin][jneigh];
 				}// endfor jneigh
 			}// endfor ispin
 		}
 	}// end Neighbours::Create_Dipole_Neighbours
 
-	std::vector<std::vector<scalar>> Neighbours::Get_Boundary_Vectors(const Data::Geometry & geometry, const std::vector<bool> & boundary_conditions)
+	std::vector<Vector3> Neighbours::Get_Boundary_Vectors(const Data::Geometry & geometry, const std::vector<bool> & boundary_conditions)
 	{
 		// Determine vector size
 		int n_boundaries=0, n_boundary_vectors=0;
 		for (int i = 0; i < 3; ++i) if (boundary_conditions[i]) n_boundaries++;
 		n_boundary_vectors = (int)std::pow(3, n_boundaries);
-		auto boundary_vectors = std::vector<std::vector<scalar>>(3, std::vector<scalar>(n_boundary_vectors, 0.0));
+		auto boundary_vectors = std::vector<Vector3>(n_boundary_vectors, { 0,0,0 });
 		
 		// Determine the runs we take over the basis directions
 		std::vector<int> list_ia(1, 0), list_ib(1, 0), list_ic(1, 0);
@@ -843,22 +834,19 @@ namespace Engine
 		}
 
 		// Fill the vector
-		for (int dim = 0; dim < 3; ++dim)
+		int temp = 1;
+		for (int ia : list_ia)
 		{
-			int temp = 1;
-			for (int ia : list_ia)
+			for (int ib : list_ib)
 			{
-				for (int ib : list_ib)
+				for (int ic : list_ic)
 				{
-					for (int ic : list_ic)
+					if (!(ia == 0 && ib == 0 && ic == 0))
 					{
-						if (!(ia == 0 && ib == 0 && ic == 0))
-						{
-							boundary_vectors[dim][temp] = geometry.translation_vectors[dim][0] * geometry.n_cells[0] * ia
-														+ geometry.translation_vectors[dim][1] * geometry.n_cells[1] * ib
-														+ geometry.translation_vectors[dim][2] * geometry.n_cells[2] * ic;
-							temp++;
-						}
+						boundary_vectors[temp] = geometry.translation_vectors[0] * geometry.n_cells[0] * ia
+												+ geometry.translation_vectors[1] * geometry.n_cells[1] * ib
+												+ geometry.translation_vectors[2] * geometry.n_cells[2] * ic;
+						temp++;
 					}
 				}
 			}
@@ -866,8 +854,8 @@ namespace Engine
 		return boundary_vectors;
 	}// END Get_Boundary_Vectors
 
-	void Neighbours::Create_DD_Pairs_from_Neighbours(const Data::Geometry & geometry, const std::vector<std::vector<int>> & dd_neighbours, const std::vector<std::vector<std::vector<scalar>>> & dd_neighbours_positions, const std::vector<std::vector<scalar>> & dd_distance, const std::vector<std::vector<std::vector<scalar>>> & dd_normal,
-		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<std::vector<scalar>>> & DD_normal)
+	void Neighbours::Create_DD_Pairs_from_Neighbours(const Data::Geometry & geometry, const std::vector<std::vector<int>> & dd_neighbours, const std::vector<std::vector<Vector3>> & dd_neighbours_positions, const std::vector<std::vector<scalar>> & dd_distance, const std::vector<std::vector<Vector3>> & dd_normal,
+		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<Vector3>> & DD_normal)
 	{
 		int i_spin = 0, i_neigh = 0;
 
@@ -882,13 +870,13 @@ namespace Engine
 		// Norm of basis and translation vectors
 		for (int dim = 0; dim < 3; ++dim)
 		{
-			norm_ba += pow(geometry.basis[dim][0], 2.0);
-			norm_bb += pow(geometry.basis[dim][1], 2.0);
-			norm_bc += pow(geometry.basis[dim][2], 2.0);
+			norm_ba += pow(geometry.basis[0][dim], 2.0);
+			norm_bb += pow(geometry.basis[1][dim], 2.0);
+			norm_bc += pow(geometry.basis[2][dim], 2.0);
 			
-			norm_ta += pow(geometry.translation_vectors[dim][0], 2.0);
-			norm_tb += pow(geometry.translation_vectors[dim][1], 2.0);
-			norm_tc += pow(geometry.translation_vectors[dim][2], 2.0);
+			norm_ta += pow(geometry.translation_vectors[0][dim], 2.0);
+			norm_tb += pow(geometry.translation_vectors[1][dim], 2.0);
+			norm_tc += pow(geometry.translation_vectors[2][dim], 2.0);
 		}
 		norm_ba = sqrt(norm_ba); norm_bb = sqrt(norm_bb); norm_bc = sqrt(norm_bc);
 		norm_ta = sqrt(norm_ta); norm_tb = sqrt(norm_tb); norm_tc = sqrt(norm_tc);
@@ -904,9 +892,9 @@ namespace Engine
 				// Dot products with basis vectors to determine if outside of boundaries
 				for (int dim = 0; dim < 3; ++dim)
 				{
-						dot_a += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][0] / norm_ta / norm_ba;
-						dot_b += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][1] / norm_tb / norm_bb;
-						dot_c += (dd_neighbours_positions[dim][i_spin][i_neigh]) * geometry.translation_vectors[dim][2] / norm_tc / norm_bc;
+						dot_a += (dd_neighbours_positions[i_spin][i_neigh][dim]) * geometry.translation_vectors[0][dim] / norm_ta / norm_ba;
+						dot_b += (dd_neighbours_positions[i_spin][i_neigh][dim]) * geometry.translation_vectors[1][dim] / norm_tb / norm_bb;
+						dot_c += (dd_neighbours_positions[i_spin][i_neigh][dim]) * geometry.translation_vectors[2][dim] / norm_tc / norm_bc;
 				}
 				// Determine periodical boundaries
 				if (0 <= dot_a && dot_a < geometry.n_cells[0]) periodical_a = false;

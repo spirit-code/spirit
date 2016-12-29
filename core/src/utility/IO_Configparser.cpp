@@ -1,13 +1,12 @@
-﻿#include "IO.hpp"
-#include "IO_Filter_File_Handle.hpp"
-#include "Vectormath.hpp"
-#include "Neighbours.hpp"
-#include "Logging.hpp"
-#include "Exception.hpp"
+﻿#include <utility/IO.hpp>
+#include <utility/IO_Filter_File_Handle.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Neighbours.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <iostream>
 #include <fstream>
-#include <thread>
 #include <string>
 #include <sstream>
 
@@ -15,30 +14,40 @@ namespace Utility
 {
 	namespace IO
 	{
-		void Log_Levels_from_Config(const std::string configFile)
+		void Log_from_Config(const std::string configFile)
 		{
 			// Verbosity and Reject Level are read as integers
 			int i_print_level = 5, i_accept_level = 5;
 			std::string output_folder = ".";
+			bool save_output = true, save_input = false;
 
 			//------------------------------- Parser --------------------------------
 			if (configFile != "")
 			{
-				try {
-					Log(Log_Level::Info, Log_Sender::IO, "Building Log_Levels");
+				try
+				{
+					Log(Log_Level::Info, Log_Sender::IO, "Building Log");
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Accept Level
 					if (myfile.Find("log_accept")) myfile.iss >> i_accept_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_accept' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_accept' not found. Using default: " + std::to_string(i_accept_level));
 
 					// Print level
 					if (myfile.Find("log_print")) myfile.iss >> i_print_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_print' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_print' not found. Using default: " + std::to_string(i_print_level));
 
 					// Output folder
 					if (myfile.Find("log_output_folder")) myfile.iss >> output_folder;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_folder' not found. Using Default.");
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_folder' not found. Using default: '" + output_folder + "'");
+					
+					// Save Output (Log Messages)
+					if (myfile.Find("log_output_save")) myfile.iss >> save_output;
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_save' not found. Using default: " + std::to_string(save_output));
+					
+					// Save Input (parameters from config file and defaults)
+					if (myfile.Find("log_input_save")) myfile.iss >> save_input;
+					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_input_save' not found. Using default: " + std::to_string(save_input));
 
 				}// end try
 				catch (Exception ex) {
@@ -52,10 +61,14 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level  = " + std::to_string(i_accept_level));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level   = " + std::to_string(i_print_level));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save   = " + std::to_string(save_output));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save    = " + std::to_string(save_input));
 			// Update the Log
 			Log.accept_level  = Log_Level(i_accept_level);
 			Log.print_level   = Log_Level(i_print_level);
 			Log.output_folder = output_folder;
+			Log.save_output   = save_output;
+			Log.save_input    = save_input;
 		}// End Log_Levels_from_Config
 
 
@@ -79,16 +92,16 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<std::vector<scalar>> & basis, std::vector<std::vector<scalar>> & basis_atoms,
+		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms,
 			int & no_spins_basic_domain)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
 			scalar lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
-			basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
+			basis_atoms = { Vector3{0,0,0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			no_spins_basic_domain = basis_atoms[0].size();
 			
@@ -102,34 +115,31 @@ namespace Utility
 					myfile.Read_Single(lattice_constant, "lattice_constant");
 
 					// Utility 1D array to build vectors and use Vectormath
-					std::vector<scalar> build_array = { 0, 0, 0 };
+					Vector3 build_array = { 0, 0, 0 };
 
 					if (myfile.Find("basis"))
 					{
 						// Read the basis vectors a, b, c
 						myfile.GetLine();
-						myfile.iss >> basis[0][0] >> basis[1][0] >> basis[2][0];
+						myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
 						myfile.GetLine();
-						myfile.iss >> basis[0][1] >> basis[1][1] >> basis[2][1];
+						myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
 						myfile.GetLine();
-						myfile.iss >> basis[0][2] >> basis[1][2] >> basis[2][2];
+						myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
 
 						// Read no_spins_basic_domain and atoms in basis
 						myfile.GetLine();
 						myfile.iss >> no_spins_basic_domain;
-						basis_atoms = std::vector<std::vector<scalar>>(3, std::vector<scalar>(no_spins_basic_domain));
+						basis_atoms = std::vector<Vector3>(no_spins_basic_domain);
 
 						// Read spins per basic domain
 						for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
 						{
 							myfile.GetLine();
-							myfile.iss >> basis_atoms[0][iatom] >> basis_atoms[1][iatom] >> basis_atoms[2][iatom];
+							myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
 							// Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
-							for (int i = 0; i < 3; ++i)
-							{
-								build_array[i] = basis[i][0] * basis_atoms[0][iatom] + basis[i][1] * basis_atoms[1][iatom] + basis[i][2] * basis_atoms[2][iatom];
-							}
-							for (int i=0; i<3; ++i) basis_atoms[i][iatom] = lattice_constant * build_array[i];
+							build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
+							basis_atoms[iatom] = lattice_constant * build_array;
 						}// endfor iatom
 
 					}// end find "basis"
@@ -151,17 +161,17 @@ namespace Utility
 			// Log the parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Lattice constant = " + std::to_string(lattice_constant) + " angstrom");
 			Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-			Log(Log_Level::Debug, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[2][0]/lattice_constant));
-			Log(Log_Level::Debug, Log_Sender::IO, "        b = " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant));
-			Log(Log_Level::Debug, Log_Sender::IO, "        c = " + std::to_string(basis[0][2]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[0][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[1][0]) + " " + std::to_string(basis[2][0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[0][1]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[2][1]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[0][2]) + " " + std::to_string(basis[1][2]) + " " + std::to_string(basis[2][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[0][1]) + " " + std::to_string(basis[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[1][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]) + " " + std::to_string(basis[2][1]) + " " + std::to_string(basis[2][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: " + std::to_string(no_spins_basic_domain) + " atom(s) at the following positions:");
 			for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
 			{
-				Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[0][iatom]) + " " + std::to_string(basis_atoms[1][iatom]) + " " + std::to_string(basis_atoms[2][iatom]));
+				Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[iatom][0]) + " " + std::to_string(basis_atoms[iatom][1]) + " " + std::to_string(basis_atoms[iatom][2]));
 			}
 			Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 		}// End Basis_from_Config
@@ -172,21 +182,21 @@ namespace Utility
 			// Basis from separate file?
 			std::string basis_file = "";
 			// Basis: vector {a, b, c}
-			std::vector<std::vector<scalar>> basis = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
-			std::vector<std::vector<scalar>> basis_atoms = { std::vector<scalar>{0}, std::vector<scalar>{0}, std::vector<scalar>{0} };
+			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
 			int no_spins_basic_domain = basis_atoms[0].size();
 			// Translation vectors [dim][nov]
-			std::vector<std::vector<scalar>> translation_vectors = { std::vector<scalar>{1,0,0}, std::vector<scalar>{0,1,0}, std::vector<scalar>{0,0,1} };
+			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
 			std::vector<int> n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
-			std::vector<scalar> spin_pos;
+			vectorfield spin_pos;
 
 			// Utility 1D array to build vectors and use Vectormath
-			std::vector<scalar> build_array = { 0, 0, 0 };
+			Vector3 build_array = { 0, 0, 0 };
 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: building");
 			//------------------------------- Parser --------------------------------
@@ -203,11 +213,11 @@ namespace Utility
 					{
 						// Read translation vectors into translation_vectors & nTa, nTb, nTc
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][0] >> translation_vectors[1][0] >> translation_vectors[2][0] >> n_cells[0];
+						myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][1] >> translation_vectors[1][1] >> translation_vectors[2][1] >> n_cells[1];
+						myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
 						myfile.GetLine();
-						myfile.iss >> translation_vectors[0][2] >> translation_vectors[1][2] >> translation_vectors[2][2] >> n_cells[2];
+						myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
 					}// finish Reading Shape in terms of basis
 					else {
 						Log(Log_Level::Error, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
@@ -256,20 +266,20 @@ namespace Utility
 			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
-			spin_pos = std::vector<scalar>(3*nos);
-			Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
+			spin_pos = vectorfield(nos);
+			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
 			
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[1][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[2][0]) + " " + std::to_string(translation_vectors[2][1]) + " " + std::to_string(translation_vectors[2][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        na = " + std::to_string(n_cells[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        nc = " + std::to_string(n_cells[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
-
+			
 			// Return geometry
 			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
@@ -282,6 +292,9 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_llg";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
+			bool save_output_archive = false, save_output_single = false;
 			// PRNG Seed
 			int seed = 0;
 			// number of iterations carried out when pressing "play" or calling "iterate"
@@ -296,12 +309,10 @@ namespace Utility
 			scalar dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
-			// Whether to save a single "spins"
-			bool save_single_configurations = true;
 			// spin transfer torque vector
 			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
-			std::vector<scalar> stt_polarisation_normal = { 1.0, -1.0, 0.0 };
+			Vector3 stt_polarisation_normal = { 1.0, -1.0, 0.0 };
 			// Force convergence parameter
 			scalar force_convergence = 10e-9;
 
@@ -313,6 +324,12 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					myfile.Read_Single(output_folder, "llg_output_folder");
+					myfile.Read_Single(save_output_any, "llg_output_save_any");
+					myfile.Read_Single(save_output_initial, "llg_output_save_initial");
+					myfile.Read_Single(save_output_final, "llg_output_save_final");
+					myfile.Read_Single(save_output_energy, "llg_output_save_energy");
+					myfile.Read_Single(save_output_archive, "llg_output_save_archive");
+					myfile.Read_Single(save_output_single, "llg_output_save_single");
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
 					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
@@ -320,11 +337,10 @@ namespace Utility
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Vectormath::MuB()*1.760859644*std::pow(10, 11);
+					dt = dt*std::pow(10, -12) / Engine::Vectormath::MuB()*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
-					myfile.Read_Single(save_single_configurations, "llg_save_single_configurations");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
-					myfile.Read_3Vector(stt_polarisation_normal, "llg_stt_polarisation_normal");
+					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
 				}// end try
 				catch (Exception ex) {
@@ -339,17 +355,23 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        time step         = " + std::to_string(dt));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(output_folder, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, save_single_configurations, stt_magnitude, stt_polarisation_normal));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        seed                = " + std::to_string(seed));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature         = " + std::to_string(temperature));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        damping             = " + std::to_string(damping));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        time step           = " + std::to_string(dt));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude       = " + std::to_string(stt_magnitude));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal          = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_archive = " + std::to_string(save_output_archive));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_single  = " + std::to_string(save_output_single));
+			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy, save_output_archive, save_output_single}, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
@@ -359,6 +381,8 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_gneb";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
 			// Spring constant
 			scalar spring_constant = 1.0;
 			// Force convergence parameter
@@ -377,6 +401,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 					
 					myfile.Read_Single(output_folder, "gneb_output_folder");
+					myfile.Read_Single(save_output_any, "gneb_output_save_any");
+					myfile.Read_Single(save_output_initial, "gneb_output_save_initial");
+					myfile.Read_Single(save_output_final, "gneb_output_save_final");
+					myfile.Read_Single(save_output_energy, "gneb_output_save_energy");
 					myfile.Read_Single(spring_constant, "gneb_spring_constant");
 					myfile.Read_Single(force_convergence, "gneb_force_convergence");
 					myfile.Read_Single(n_iterations, "gneb_n_iterations");
@@ -395,13 +423,17 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant     = " + std::to_string(spring_constant));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations  = " + std::to_string(n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy}, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_Method_LLG_from_Config
@@ -411,6 +443,8 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
 			std::string output_folder = "output_mmf";
+			// Save output when logging
+			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
 			// Force convergence parameter
 			scalar force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"
@@ -426,6 +460,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 					
 					myfile.Read_Single(output_folder, "mmf_output_folder");
+					myfile.Read_Single(save_output_any, "mmf_output_save_any");
+					myfile.Read_Single(save_output_initial, "mmf_output_save_initial");
+					myfile.Read_Single(save_output_final, "mmf_output_save_final");
+					myfile.Read_Single(save_output_energy, "mmf_output_save_energy");
 					myfile.Read_Single(force_convergence, "mmf_force_convergence");
 					myfile.Read_Single(n_iterations, "mmf_n_iterations");
 					myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
@@ -442,11 +480,15 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, force_convergence, n_iterations, n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence   = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations        = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log    = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder       = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_any     = " + std::to_string(save_output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_initial = " + std::to_string(save_output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_final   = " + std::to_string(save_output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        save_output_energy  = " + std::to_string(save_output_energy));
+			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, {save_output_any, save_output_initial, save_output_final, save_output_energy}, force_convergence, n_iterations, n_iterations_log));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}
@@ -511,15 +553,15 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Magnetic field magnitude
-			scalar external_field_magnitude = 25.0;
+			scalar external_field_magnitude = 25;
 			// Magnetic field vector
-			std::vector<scalar> external_field_normal = { 0.0, 0.0, 1.0 };
+			Vector3 external_field_normal = { 0, 0, 1 };
 			// mu_spin
-			scalar mu_s = 2.0;
+			scalar mu_s = 2;
 			// Anisotropy constant
-			scalar anisotropy_magnitude = 0.0;
+			scalar anisotropy_magnitude = 0;
 			// Anisotropy vector
-			std::vector<scalar> anisotropy_normal = { 0.0, 0.0, 1.0 };
+			Vector3 anisotropy_normal = { 0, 0, 1 };
 
 			// Number of shells in which we calculate neighbours
 			int n_neigh_shells = 4;
@@ -549,10 +591,10 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					myfile.Read_Single(external_field_magnitude, "external_field_magnitude");
-					myfile.Read_3Vector(external_field_normal, "external_field_normal");
+					myfile.Read_Vector3(external_field_normal, "external_field_normal");
 					myfile.Read_Single(mu_s, "mu_s");
 					myfile.Read_Single(anisotropy_magnitude, "anisotropy_magnitude");
-					myfile.Read_3Vector(anisotropy_normal, "anisotropy_normal");
+					myfile.Read_Vector3(anisotropy_normal, "anisotropy_normal");
 					myfile.Read_Single(n_neigh_shells, "n_neigh_shells");
 
 					jij = std::vector<scalar>(n_neigh_shells);
@@ -609,33 +651,39 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Spin moment
-			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2.0);	// [nos]
+			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
 			scalar B = 0;
-			std::vector<scalar> B_normal = { 0.0, 0.0, 1.0 };
-			std::vector<scalar> external_field_magnitude = std::vector<scalar>(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<scalar>> external_field_normal(3, std::vector<scalar>(geometry.nos, 0.0));	// [3][nos]
+			Vector3 B_normal = { 0.0, 0.0, 1.0 };
+			intfield    external_field_index(geometry.nos);				// [nos]
+			scalarfield external_field_magnitude(geometry.nos, 0);	// [nos]
+			vectorfield external_field_normal(geometry.nos, B_normal);	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
 			scalar K = 0;
-			std::vector<scalar> K_normal = { 0.0, 0.0, 1.0 };
+			Vector3 K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
-			std::vector<int> anisotropy_index(geometry.nos);				// [nos]
-			std::vector<scalar> anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			std::vector<std::vector<scalar>> anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
+			intfield    anisotropy_index(geometry.nos);				// [nos]
+			scalarfield anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
+			vectorfield anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
 
-			// ------------ Two Spin Interactions ------------
+			// ------------ Pair Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
-			std::vector<std::vector<std::vector<int>>> Exchange_indices(8); std::vector<std::vector<scalar>> Exchange_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DMI_indices(8); std::vector<std::vector<scalar>> DMI_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DMI_normal(8);
-			std::vector<std::vector<std::vector<int>>> BQC_indices(8); std::vector<std::vector<scalar>> BQC_magnitude(8);
-			std::vector<std::vector<std::vector<int>>> DD_indices(8); std::vector<std::vector<scalar>> DD_magnitude(8); std::vector<std::vector<std::vector<scalar>>> DD_normal(8);
+			std::vector<indexPairs> Exchange_indices(8); std::vector<scalarfield> Exchange_magnitude(8);
+			std::vector<indexPairs> DMI_indices(8); std::vector<scalarfield> DMI_magnitude(8); std::vector<vectorfield> DMI_normal(8);
+			std::vector<indexPairs> DD_indices(8); std::vector<scalarfield> DD_magnitude(8); std::vector<vectorfield> DD_normal(8);
 
 			scalar dd_radius = 0.0;
+
+			// ------------ Quadruplet Interactions ------------
+			int n_quadruplets = 0;
+			std::string quadruplets_file = "";
+			bool quadruplets_from_file = false;
+			std::vector<indexQuadruplets> quadruplet_indices(8); std::vector<scalarfield> quadruplet_magnitude(8);
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: building");
@@ -653,7 +701,7 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					// Spin moment
-					mu_s = std::vector<scalar>(geometry.nos, 2.0);
+					mu_s = scalarfield(geometry.nos, 2.0);
 					if (myfile.Find("mu_s"))
 					{
 						for (iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
@@ -674,21 +722,31 @@ namespace Utility
 						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Read external field file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
 						// Not yet implemented!
+
+						B = external_field_magnitude[0];
+						B_normal = external_field_normal[0];
 					}
 					else 
 					{
 						// Read parameters from config if available
 						myfile.Read_Single(B, "external_field_magnitude");
-						myfile.Read_3Vector(B_normal, "external_field_normal");
+						myfile.Read_Vector3(B_normal, "external_field_normal");
 
-						// Fill the arrays
-						for (int i = 0; i < geometry.nos; ++i)
+						if (B != 0)
 						{
-							external_field_magnitude[i] = B;
-							for (int dim = 0; dim < 3; ++dim)
+							// Fill the arrays
+							for (int i = 0; i < geometry.nos; ++i)
 							{
-								external_field_normal[dim][i] = B_normal[dim];
+								external_field_index[i] = i;
+								external_field_magnitude[i] = B;
+								external_field_normal[i] = B_normal;
 							}
+						}
+						else
+						{
+							external_field_index = intfield(0);
+							external_field_magnitude = scalarfield(0);
+							external_field_normal = vectorfield(0);
 						}
 					}
 
@@ -699,22 +757,30 @@ namespace Utility
 						// The file name should be valid so we try to read it
 						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
+						K = anisotropy_magnitude[0];
+						K_normal = anisotropy_normal[0];
 					}
 					else
 					{
 						// Read parameters from config
 						myfile.Read_Single(K, "anisotropy_magnitude");
-						myfile.Read_3Vector(K_normal, "anisotropy_normal");
+						myfile.Read_Vector3(K_normal, "anisotropy_normal");
 						
-						// Fill the arrays
-						for (int i = 0; i < geometry.nos; ++i)
+						if (K != 0)
 						{
-							anisotropy_index[i] = i;
-							anisotropy_magnitude[i] = K;
-							for (int dim = 0; dim < 3; ++dim)
+							// Fill the arrays
+							for (int i = 0; i < geometry.nos; ++i)
 							{
-								anisotropy_normal[i][dim] = K_normal[dim];
+								anisotropy_index[i] = i;
+								anisotropy_magnitude[i] = K;
+								anisotropy_normal[i] = K_normal;
 							}
+						}
+						else
+						{
+							anisotropy_index = intfield(0);
+							anisotropy_magnitude = scalarfield(0);
+							anisotropy_normal = vectorfield(0);
 						}
 					}
 
@@ -725,8 +791,7 @@ namespace Utility
 						// The file name should be valid so we try to read it
 						Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
 							Exchange_indices, Exchange_magnitude,
-							DMI_indices, DMI_magnitude, DMI_normal,
-							BQC_indices, BQC_magnitude);
+							DMI_indices, DMI_magnitude, DMI_normal);
 					}
 					//else
 					//{
@@ -755,6 +820,16 @@ namespace Utility
 					
 					Engine::Neighbours::Create_Dipole_Pairs(geometry, dd_radius, DD_indices, DD_magnitude, DD_normal);
 
+
+					// Interaction Quadruplets
+					if (myfile.Find("interaction_quadruplets_file")) myfile.iss >> quadruplets_file;
+					if (quadruplets_file.length() > 0)
+					{
+						// The file name should be valid so we try to read it
+						Quadruplets_from_File(quadruplets_file, geometry, n_quadruplets,
+							quadruplet_indices, quadruplet_magnitude);
+					}
+
 				}// end try
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
@@ -769,20 +844,20 @@ namespace Utility
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Anisotropic:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(external_field_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(external_field_normal[0][0]) + " " + std::to_string(external_field_normal[1][0]) + " " + std::to_string(external_field_normal[2][0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(anisotropy_magnitude[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(anisotropy_normal[0][0]) + " " + std::to_string(anisotropy_normal[0][1]) + " " + std::to_string(anisotropy_normal[0][2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
 				mu_s,
-				external_field_magnitude, external_field_normal,
+				external_field_index, external_field_magnitude, external_field_normal,
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
 				Exchange_indices, Exchange_magnitude,
 				DMI_indices, DMI_magnitude, DMI_normal,
-				BQC_indices, BQC_magnitude,
 				DD_indices, DD_magnitude, DD_normal,
+				quadruplet_indices, quadruplet_magnitude,
 				boundary_conditions
 			));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: built");
@@ -800,7 +875,7 @@ namespace Utility
 			// Widths
 			std::vector<scalar> width = { 1 };
 			// Centers
-			std::vector<std::vector<scalar>> center = { std::vector<scalar>{ 0, 0, 1 } };
+			vectorfield center = { Vector3{ 0, 0, 1 } };
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
@@ -816,7 +891,7 @@ namespace Utility
 					// Allocate arrays
 					amplitude = std::vector<scalar>(n_gaussians, 1.0);
 					width = std::vector<scalar>(n_gaussians, 1.0);
-					center = std::vector<std::vector<scalar>>(n_gaussians, std::vector<scalar>{0, 0, 1});
+					center = std::vector<Vector3>(n_gaussians, Vector3{0, 0, 1});
 					// Read arrays
 					if (myfile.Find("gaussians"))
 					{
@@ -829,7 +904,7 @@ namespace Utility
 							{
 								myfile.iss >> center[i][j];
 							}
-							Utility::Vectormath::Normalize(center[i]);
+							center[i].normalize();
 						}
 					}
 					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}");

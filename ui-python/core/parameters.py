@@ -112,12 +112,20 @@ def Get_GNEB_Climbing_Falling(p_state, climbing, falling, idx_image, idx_chain):
 _Get_GNEB_N_Iterations             = _core.Parameters_Get_GNEB_N_Iterations
 _Get_GNEB_N_Iterations.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Get_GNEB_N_Iterations.restype     = ctypes.c_int
-def Get_GNEB_N_Iterations(p_state, n_iterations, idx_image, idx_chain):
-    return _Get_GNEB_N_Iterations(p_state, ctypes.c_int(n_iterations), idx_image, idx_chain)
+def Get_GNEB_N_Iterations(p_state, idx_chain):
+    return _Get_GNEB_N_Iterations(p_state, idx_chain)
 
 ### Get GNEB Log Steps
 _Get_GNEB_N_Iterations_Log             = _core.Parameters_Get_GNEB_N_Iterations_Log
-_Get_GNEB_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_GNEB_N_Iterations_Log.argtypes    = [ctypes.c_void_p, ctypes.c_int]
 _Get_GNEB_N_Iterations_Log.restype     = ctypes.c_int
-def Get_GNEB_N_Iterations_Log(p_state, n_iterations_log, idx_image, idx_chain):
-    return _Get_GNEB_N_Iterations_Log(p_state, ctypes.c_int(n_iterations_log), idx_image, idx_chain)
+def Get_GNEB_N_Iterations_Log(p_state, idx_chain):
+    return _Get_GNEB_N_Iterations_Log(p_state, idx_chain)
+
+    
+### Get GNEB number of energy interpolations
+_Get_GNEB_N_Energy_Interpolations             = _core.Parameters_Get_GNEB_N_Energy_Interpolations
+_Get_GNEB_N_Energy_Interpolations.argtypes    = [ctypes.c_void_p, ctypes.c_int]
+_Get_GNEB_N_Energy_Interpolations.restype     = ctypes.c_int
+def Get_GNEB_N_Energy_Interpolations(p_state, idx_chain):
+    return _Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)

@@ -3,8 +3,8 @@
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
 #include "Core_Defines.h"
-#include "Spin_System.hpp"
-#include "Parameters_Method_GNEB.hpp"
+#include <data/Spin_System.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
 
 namespace Data
 {

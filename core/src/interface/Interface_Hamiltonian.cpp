@@ -1,10 +1,10 @@
-#include "Interface_Hamiltonian.h"
-#include "Interface_State.h"
+#include <interface/Interface_Hamiltonian.h>
+#include <interface/Interface_State.h>
 
-#include "State.hpp"
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Vectormath.hpp"
+#include <data/State.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <engine/Vectormath.hpp>
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
@@ -50,53 +50,47 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         // Magnitude
-        ham->external_field_magnitude = magnitude *  ham->mu_s * Utility::Vectormath::MuB();
+        ham->external_field_magnitude = magnitude *  ham->mu_s * Engine::Vectormath::MuB();
         
         // Normal
         ham->external_field_normal[0] = normal[0];
         ham->external_field_normal[1] = normal[1];
         ham->external_field_normal[2] = normal[2];
-        try {
-            Utility::Vectormath::Normalize(ham->external_field_normal);
-        }
-        catch (Utility::Exception ex) {
-            if (ex == Utility::Exception::Division_by_zero) {
-                ham->external_field_normal[0] = 0.0;
-                ham->external_field_normal[1] = 0.0;
-                ham->external_field_normal[2] = 1.0;
-                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
-            }
-            else
-            {
-                Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
-                exit(0);
-            }
-        }
+		if (ham->external_field_normal.norm() < 0.9)
+		{
+			ham->external_field_normal = { 0,0,1 };
+			Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "B_vec = {0,0,0} replaced by {0,0,1}");
+		}
+		else ham->external_field_normal.normalize();
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        // TODO
-    }
-}
+        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        int nos = image->nos;
 
-void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
-{
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
-    {
-        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
-
-        for (int i=0; i<n_shells; ++i)
+        // Indices and Magnitudes
+        intfield new_indices(nos);
+        scalarfield new_magnitudes(nos);
+        for (int i=0; i<nos; ++i)
         {
-            ham->jij[i] = jij[i];
+            new_indices[i] = i;
+            new_magnitudes[i] = magnitude *  ham->mu_s[i] * Engine::Vectormath::MuB();
         }
-    }
-    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
-    {
-        // TODO
+        // Normals
+        Vector3 new_normal{normal[0], normal[1], normal[2]};
+        new_normal.normalize();
+        vectorfield new_normals(nos, new_normal);
+        
+        // Into the Hamiltonian
+        ham->external_field_index = new_indices;
+        ham->external_field_magnitude = new_magnitudes;
+        ham->external_field_normal = new_normals;
+
+        // Update Energies
+        ham->Update_Energy_Contributions();
     }
 }
 
@@ -116,26 +110,41 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
         ham->anisotropy_normal[0] = normal[0];
         ham->anisotropy_normal[1] = normal[1];
         ham->anisotropy_normal[2] = normal[2];
-        try {
-            Utility::Vectormath::Normalize(ham->anisotropy_normal);
-        }
-        catch (Utility::Exception ex) {
-            if (ex == Utility::Exception::Division_by_zero) {
-                ham->anisotropy_normal[0] = 0.0;
-                ham->anisotropy_normal[1] = 0.0;
-                ham->anisotropy_normal[2] = 1.0;
-                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
-            }
-            else
-            {
-                Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
-                exit(0);
-            }
-        }
+		if (ham->anisotropy_normal.norm() < 0.9)
+		{
+			ham->anisotropy_normal = { 0,0,1 };
+			Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
+		}
+		else ham->anisotropy_normal.normalize();
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        // TODO
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Anisotropy is not yet implemented in Hamiltonian_Anisotropic!");
+    }
+}
+
+void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (image->hamiltonian->Name() == "Isotropic Heisenberg")
+    {
+        auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
+
+        for (int i=0; i<n_shells; ++i)
+        {
+            ham->jij[i] = jij[i];
+        }
+
+        ham->Update_Energy_Contributions();
+    }
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Exchange is not yet implemented in Hamiltonian_Anisotropic!");
     }
 }
 
@@ -150,10 +159,12 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->dij = dij;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting DMI is not yet implemented in Hamiltonian_Anisotropic!");
     }
 }
 
@@ -168,10 +179,12 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->bij = bij;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "BQE is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
 }
 
@@ -186,10 +199,12 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         ham->kijkl = kijkl;
+
+        ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "FSC is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
 }
 
@@ -205,22 +220,12 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
     image->llg_parameters->stt_polarisation_normal[0] = normal[0];
     image->llg_parameters->stt_polarisation_normal[1] = normal[1];
     image->llg_parameters->stt_polarisation_normal[2] = normal[2];
-    try {
-        Utility::Vectormath::Normalize(image->llg_parameters->stt_polarisation_normal);
-    }
-    catch (Utility::Exception ex) {
-        if (ex == Utility::Exception::Division_by_zero) {
-            image->llg_parameters->stt_polarisation_normal[0] = 0.0;
-            image->llg_parameters->stt_polarisation_normal[1] = 0.0;
-            image->llg_parameters->stt_polarisation_normal[2] = 1.0;
-            Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-        }
-        else
-        {
-            Log(Utility::Log_Level::Severe, Utility::Log_Sender::API, "Unknown Exception! Exiting...");
-            exit(0);
-        }
-    }
+	if (image->llg_parameters->stt_polarisation_normal.norm() < 0.9)
+	{
+		image->llg_parameters->stt_polarisation_normal = { 0,0,1 };
+		Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+	}
+	else image->llg_parameters->stt_polarisation_normal.normalize();
 }
 
 void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_chain)
@@ -285,7 +290,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         // Magnitude
-        *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Utility::Vectormath::MuB());
+        *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Engine::Vectormath::MuB());
         
         // Normal
         normal[0] = (float)ham->external_field_normal[0];
@@ -296,13 +301,16 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
 
-        // Magnitude
-        *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Utility::Vectormath::MuB());
+        if (ham->external_field_index.size() > 0)
+        {
+            // Magnitude
+            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Engine::Vectormath::MuB());
 
-        // Normal
-        normal[0] = (float)ham->external_field_normal[0][0];
-        normal[1] = (float)ham->external_field_normal[1][0];
-        normal[2] = (float)ham->external_field_normal[2][0];
+            // Normal
+            normal[0] = (float)ham->external_field_normal[0][0];
+            normal[1] = (float)ham->external_field_normal[1][0];
+            normal[2] = (float)ham->external_field_normal[2][0];
+        }
     }
 }
 
@@ -351,14 +359,17 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        
+        if (ham->anisotropy_index.size() > 0)
+        {
+            // Magnitude
+            *magnitude = (float)ham->anisotropy_magnitude[0];
 
-        // Magnitude
-        *magnitude = (float)ham->anisotropy_magnitude[0];
-
-        // Normal
-        normal[0] = (float)ham->anisotropy_normal[0][0];
-        normal[1] = (float)ham->anisotropy_normal[0][1];
-        normal[2] = (float)ham->anisotropy_normal[0][2];
+            // Normal
+            normal[0] = (float)ham->anisotropy_normal[0][0];
+            normal[1] = (float)ham->anisotropy_normal[0][1];
+            normal[2] = (float)ham->anisotropy_normal[0][2];
+        }
     }
 }
 

@@ -28,9 +28,9 @@ public:
     enum class Colormap {
         HSV,
         HSV_NO_Z,
-        BLUE_RED,
-        BLUE_GREEN_RED,
         BLUE_WHITE_RED,
+        BLUE_GREEN_RED,
+        BLUE_RED,
         OTHER
     };
 
@@ -83,6 +83,7 @@ public:
   //    Arrows
   void setArrows(float size=1, int lod=20);
   float arrowSize() const;
+  int arrowLOD() const;
   glm::vec2 zRange() const;
   void setZRange(glm::vec2 z_range);
   //    Bounding Box
@@ -154,10 +155,17 @@ private:
   const VFRendering::Options& options() const;
   
   Colormap m_colormap;
-    glm::vec2 m_z_range;
+  glm::vec2 m_z_range;
   
   // Visualisation
   VFRendering::View m_view;
+  
+	// Persistent Settings
+	void writeSettings();
+	void readSettings();
+
+protected:
+	void closeEvent(QCloseEvent *event);
 };
 
 #endif

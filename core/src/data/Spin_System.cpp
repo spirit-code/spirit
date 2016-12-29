@@ -1,7 +1,7 @@
-#include "Spin_System.hpp"
-#include "Neighbours.hpp"
-#include "Vectormath.hpp"
-#include "IO.hpp"
+#include <data/Spin_System.hpp>
+#include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
+#include <utility/IO.hpp>
 
 #include <numeric>
 #include <iostream>
@@ -22,12 +22,12 @@ namespace Data
 		this->nos = this->geometry->nos;
 
 		// Initialize Spins Array
-		this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(3 * nos));
+		this->spins = std::shared_ptr<vectorfield>(new vectorfield(nos));
 
 		// ...
 		this->E = 0;
-		this->E_array = std::vector<scalar>(7, 0.0);
-		this->effective_field = std::vector<scalar>(3 * this->nos, 0);
+		this->E_array = std::vector<std::pair<std::string, scalar>>(0);
+		this->effective_field = vectorfield(this->nos);
 
 	}//end Spin_System constructor
 
@@ -35,7 +35,7 @@ namespace Data
 	Spin_System::Spin_System(Spin_System const & other)
 	{
 		this->nos = other.nos;
-		this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(*other.spins));
+		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
 
 		this->E = other.E;
 		this->E_array = other.E_array;
@@ -67,7 +67,7 @@ namespace Data
 		if (this != &other)
 		{
 			this->nos = other.nos;
-			this->spins = std::shared_ptr<std::vector<scalar>>(new std::vector<scalar>(*other.spins));
+			this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
 
 			this->E = other.E;
 			this->E_array = other.E_array;

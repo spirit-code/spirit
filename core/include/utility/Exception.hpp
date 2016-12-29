@@ -2,7 +2,7 @@
 #ifndef UTILITY_EXEPTION_H
 #define UTILITY_EXEPTION_H
 
-#include "Interface_Exception.h"
+#include <interface/Interface_Exception.h>
 
 namespace Utility
 {

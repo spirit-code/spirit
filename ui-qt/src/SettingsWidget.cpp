@@ -157,7 +157,7 @@ void SettingsWidget::create_Skyrmion()
 	bool upDown = checkBox_sky_UpDown->isChecked();
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
-	bool experimental = checkBox_sky_experimental->isChecked();
+	// bool experimental = checkBox_sky_experimental->isChecked();
 	std::vector<float> pos =
 	{
 		lineEdit_sky_posx->text().toFloat(),
@@ -165,7 +165,7 @@ void SettingsWidget::create_Skyrmion()
 		lineEdit_sky_posz->text().toFloat()
 	};
 	float rad = lineEdit_sky_rad->text().toFloat();
-	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
+	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -219,16 +219,20 @@ void SettingsWidget::homogeneousTransitionPressed()
 	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt() - 1;
 	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
 
+	int noi = Chain_Get_NOI(this->state.get());
+
 	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_1 < 0 || idx_1 >= noi)
 	{
 		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		return;
 	}
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_2 < 0 || idx_2 >= noi)
 	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Second index for homogeneous transition is invalid! setting to NOI...");
+		this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(noi));
+		return;
 	}
 	if (idx_1 == idx_2)
 	{
@@ -461,7 +465,13 @@ void SettingsWidget::Load_Visualization_Contents()
 			break;
 		}
 	}*/
-  
+	
+	// System
+	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
+	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
+	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
+	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+
 	//// Miniview
 	//std::string miniview_position;
 	//switch (_spinWidget->miniviewPosition())
@@ -515,7 +525,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	//	}
 	//}
 	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
-	
+
 	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
@@ -562,50 +572,26 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_isovalue->setRange(0, 100);
 	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
 
-	//// Colormap
-	//std::string colormap = "Hue-Saturation-Value";
-	//switch (_spinWidget->colormap())
-	//{
-	//	case SpinWidget::Colormap::HSV:
- //     break;
- //   case SpinWidget::Colormap::BLUE_RED:
- //     colormap = "Z-Component: Blue-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_GREEN_RED:
- //     colormap = "Z-Component: Blue-Green-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_WHITE_RED:
- //     colormap = "Z-Component: Blue-White-Red";
- //     break;
- //   case SpinWidget::Colormap::OTHER:
-	//		break;
-	//	default:
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_colormap->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
-	//	{
-	//		comboBox_colormap->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Colormap
+	int idx_cm = (int)_spinWidget->colormap();
+	comboBox_colormap->setCurrentIndex(idx_cm);
 
-	//// Perspective / FOV
-	//if (_spinWidget->verticalFieldOfView() == 0)
-	//{
-	//	radioButton_orthographicProjection->setChecked(true);
-	//}
-	//else
-	//{
-	//	radioButton_perspectiveProjection->setChecked(true);
-	//}
+	// Perspective / FOV
+	if (_spinWidget->verticalFieldOfView() == 0)
+	{
+		radioButton_orthographicProjection->setChecked(true);
+	}
+	else
+	{
+		radioButton_orthographicProjection->setChecked(false);
+	}
 
 
-	// Arrowsize
+	// Arrows: size and lod
 	horizontalSlider_arrowsize->setRange(0, 20);
 	float logs = std::log10(_spinWidget->arrowSize());
 	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
+	lineEdit_arrows_lod->setText(QString::number(_spinWidget->arrowLOD()));
 
 	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
@@ -614,24 +600,12 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Bounding Box
 	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
-	//// Background
-	//std::string background_color = "Black";
-	//if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
-	//{
-	//	background_color = "White";
-	//}
-	//else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
-	//{
-	//	background_color = "Gray";
-	//}
-	//for (int i = 0; i < comboBox_backgroundColor->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-	//	{
-	//		comboBox_backgroundColor->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Background
+	int idx_bg = (int)_spinWidget->backgroundColor();
+	comboBox_backgroundColor->setCurrentIndex(idx_bg);
+
+	// Camera
+	this->read_camera();
 }
 
 // -----------------------------------------------------------------------------------
@@ -1160,7 +1134,6 @@ void SettingsWidget::set_visualization_perspective()
 	{
 		_spinWidget->setVerticalFieldOfView(45);
 	}
-
 }
 
 void SettingsWidget::set_visualization_miniview()
@@ -1300,8 +1273,6 @@ void SettingsWidget::set_visualization_system_surface()
 	glm::vec2 y_range(y_min, y_max);
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
-
-	_spinWidget->update();
 }
 void SettingsWidget::set_visualization_system_isosurface()
 {
@@ -1327,8 +1298,6 @@ void SettingsWidget::set_visualization_zrange()
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
-
-	_spinWidget->update();
 }
 
 
@@ -1337,8 +1306,6 @@ void SettingsWidget::set_visualization_isovalue_fromslider()
 	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
 	this->lineEdit_isovalue->setText(QString::number(isovalue));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
 void SettingsWidget::set_visualization_isovalue_fromlineedit()
@@ -1346,8 +1313,6 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 	float isovalue = this->lineEdit_isovalue->text().toFloat();
 	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
 
@@ -1382,8 +1347,6 @@ void SettingsWidget::set_visualization_colormap()
 		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
 	_spinWidget->setColormap(colormap);
-
-	_spinWidget->updateData();
 }
 
 void SettingsWidget::set_visualization_background()
@@ -1476,19 +1439,7 @@ void SettingsWidget::SelectTab(int index)
 void SettingsWidget::print_Energies_to_console()
 {
 	System_Update_Data(state.get());
-	auto E = System_Get_Energy(state.get());
-	float E_array[7];
-	auto NOS = System_Get_NOS(this->state.get());
-	System_Get_Energy_Array(state.get(), E_array);
-
-	std::cout << "E_tot = " << E / NOS << "  ||| Zeeman = ";
-	std::cout << E_array[0] / NOS << "  | Aniso = "
-		<< E_array[1] / NOS << "  | Exchange = "
-		<< E_array[2] / NOS << "  | DMI = "
-		<< E_array[3] / NOS << "  | BQC = "
-		<< E_array[4] / NOS << "  | FourSC = "
-		<< E_array[5] / NOS << "  | DD = "
-		<< E_array[6] / NOS << std::endl;
+	System_Print_Energy_Array(state.get());
 }
 
 

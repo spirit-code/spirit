@@ -19,6 +19,12 @@ DLLEXPORT void Simulation_PlayPause(State *state, const char * c_method_type, co
 // Stop all simulations
 DLLEXPORT void Simulation_Stop_All(State *state);
 
+// Get maximum Torque component
+//		If an LLG simulation is running this returns the max. torque on the current image.
+//		If a GNEB simulation is running this returns the max. torque on the current chain.
+//		IF a MMF simulation is running this returns the max. torque on the current collection.
+DLLEXPORT float Simulation_Get_MaxTorqueComponent(State * state, int idx_image = -1, int idx_chain = -1);
+
 // Get IPS
 //		If an LLG simulation is running this returns the IPS on the current image.
 //		If a GNEB simulation is running this returns the IPS on the current chain.

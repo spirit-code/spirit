@@ -1,7 +1,5 @@
 #include <engine/Hamiltonian.hpp>
-
-#include <utility/Vectormath.hpp>
-#include <utility/Manifoldmath.hpp>
+#include <engine/Vectormath.hpp>
 
 namespace Engine
 {
@@ -13,6 +11,14 @@ namespace Engine
 
         delta = 1e-6;
     }
+
+
+	void Hamiltonian::Update_Energy_Contributions()
+	{
+		// Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Update_Energy_Contributions() of the Hamiltonian base class!"));
+        throw Utility::Exception::Not_Implemented;
+	}
 
 
     // void Hamiltonian::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
@@ -90,84 +96,100 @@ namespace Engine
 	// 	}
     // }
 
-	void Hamiltonian::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
+	void Hamiltonian::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
 		// This is a regular finite difference implementation (probably not very efficient)
 		// using the differences between gradient values (not function)
 		// see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
 
-		int nos = spins.size() / 3;
+		int nos = spins.size();
 
 		// Calculate finite difference
-		std::vector<scalar> spins_p(3 * nos, 0);
-		std::vector<scalar> spins_m(3 * nos, 0);
+		vectorfield spins_p(nos);
+		vectorfield spins_m(nos);
 
-		std::vector<std::vector<scalar>> grad_p(3 * nos, std::vector<scalar>(3 * nos));
-		std::vector<std::vector<scalar>> grad_m(3 * nos, std::vector<scalar>(3 * nos));
+		std::vector<vectorfield> grad_p(3*nos, vectorfield(nos));
+		std::vector<vectorfield> grad_m(3*nos, vectorfield(nos));
 
-		std::vector<scalar> d(3 * nos);
+		scalarfield d(3 * nos);
 
-		for (int i = 0; i < 3 * nos; ++i)
+		for (int i = 0; i < nos; ++i)
 		{
-			spins_p = spins;
-			spins_p[i] += delta;
-			Utility::Vectormath::Normalize_3Nos(spins_p);
-
-			spins_m = spins;
-			spins_m[i] -= delta;
-			Utility::Vectormath::Normalize_3Nos(spins_m);
-
-			d[i] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
-			if (d[i] > 0)
+			for (int dim = 0; dim < 3; ++dim)
 			{
-				this->Effective_Field(spins_p, grad_p[i]);
-				this->Effective_Field(spins_m, grad_m[i]);
+				spins_p = spins;
+				spins_p[i][dim] += delta;
+				spins_p[i].normalize();
+				//Vectormath::Normalize_3Nos(spins_p);
+
+				spins_m = spins;
+				spins_m[i][dim] -= delta;
+				spins_m[i].normalize();
+				//Vectormath::Normalize_3Nos(spins_m);
+
+				d[i + dim*nos] = Vectormath::dist_greatcircle(spins_m[i], spins_p[i]);
+				//d[i + dim*nos] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
+				if (d[i + dim*nos] > 0)
+				{
+					this->Effective_Field(spins_p, grad_p[i + dim*nos]);
+					this->Effective_Field(spins_m, grad_m[i + dim*nos]);
+				}
+				else d[i + dim*nos] = 1;
 			}
-			else d[i] = 1;
 		}
 
 		for (int i = 0; i < 3 * nos; ++i)
 		{
-			for (int j = 0; j < 3 * nos; ++j)
+			for (int dimi = 0; dimi < 3 * nos; ++dimi)
 			{
-				hessian[i * 3 * nos + j] = (grad_p[i][j] - grad_m[i][j])/(2 * d[i]) + (grad_p[j][i] - grad_m[j][i]) / (2 * d[j]);
+				for (int j = 0; j < 3 * nos; ++j)
+				{
+					for (int dimj = 0; dimj < 3 * nos; ++dimj)
+					{
+						hessian(i + dimi*nos, j + dimj*nos) = (grad_p[i+dimi*nos][j][dimj] - grad_m[i+dimi*nos][j][dimj]) / (2 * d[i+dimi*nos]) + (grad_p[j + dimj*nos][i][dimi] - grad_m[j + dimj*nos][i][dimi]) / (2 * d[j+dimj*nos]);
+					}
+				}
 			}
 		}
 	}
 
-    void Hamiltonian::Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field)
+    void Hamiltonian::Effective_Field(const vectorfield & spins, vectorfield & field)
     {
 		// This is a regular finite difference implementation (probably not very efficient)
 
-        int nos = spins.size()/3;
+        int nos = spins.size();
 
 		// Calculate finite difference
-		std::vector<scalar> spins_plus(3 * nos, 0);
-		std::vector<scalar> spins_minus(3 * nos, 0);
+		vectorfield spins_plus(nos);
+		vectorfield spins_minus(nos);
 
-		for (int i = 0; i < 3 * nos; ++i)
+		for (int i = 0; i < nos; ++i)
 		{
-			spins_plus = spins;
-			spins_minus = spins;
-			spins_plus[i] = spins_plus[i] + delta;
-			spins_minus[i] = spins_minus[i] - delta;
-
-			Utility::Vectormath::Normalize_3Nos(spins_plus);
-			Utility::Vectormath::Normalize_3Nos(spins_minus);
-
-			scalar d = Utility::Manifoldmath::Dist_Geodesic(spins_minus, spins_plus);
-
-			if (d > 0)
+			for (int dim = 0; dim < 3; ++dim)
 			{
-				scalar E_plus = this->Energy(spins_plus);
-				scalar E_minus = this->Energy(spins_minus);
-				field[i] = (E_minus - E_plus) / d;
+				spins_plus = spins;
+				spins_minus = spins;
+
+				spins_plus[i][dim] += delta;
+				spins_minus[i][dim] -= delta;
+
+				spins_plus[i].normalize();
+				spins_minus[i].normalize();
+
+				scalar d = Vectormath::dist_greatcircle(spins_minus[i], spins_plus[i]);
+
+				if (d > 0)
+				{
+					scalar E_plus = this->Energy(spins_plus);
+					scalar E_minus = this->Energy(spins_minus);
+					field[i][dim] = (E_minus - E_plus) / d;
+				}
+				else field[i][dim] = 0;
 			}
-			else field[i] = 0;
 		}
     }
 
-    scalar Hamiltonian::Energy(const std::vector<scalar> & spins)
+    scalar Hamiltonian::Energy(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
@@ -175,7 +197,7 @@ namespace Engine
         return 0.0;
     }
 
-    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const std::vector<scalar> & spins)
+    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
@@ -183,12 +205,12 @@ namespace Engine
         return std::vector<std::vector<scalar>>(spins.size(), std::vector<scalar>(7, 0.0));
     }
 
-    std::vector<scalar> Hamiltonian::Energy_Array(const std::vector<scalar> & spins)
+    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const vectorfield & spins)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
         throw Utility::Exception::Not_Implemented;
-        return std::vector<scalar>(7, 0.0);
+        return std::vector<std::pair<std::string, scalar>>(0);
     }
 
 	static const std::string name = "--";

@@ -12,6 +12,7 @@ set(SOURCE_CORE_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Chain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Collection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface_IO.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface_Quantities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )

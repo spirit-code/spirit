@@ -1,4 +1,4 @@
-#include "Spin_System_Chain_Collection.hpp"
+#include <data/Spin_System_Chain_Collection.hpp>
 
 namespace Data
 {
