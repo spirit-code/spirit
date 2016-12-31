@@ -1,5 +1,6 @@
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 #include <utility/IO.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -523,7 +524,7 @@ namespace Engine
 			for (jneigh = 0; jneigh < n_spins_in_shell[ispin][0]; ++jneigh)
 			{
 				build_array = dm_normal[ispin][jneigh];
-				snprintf(buffer_string_conversion, buffer_length, "%7i  %7i | %+13.7f  %+13.7f  %+13.7f | %+10.4f \n", ispin, neigh[ispin][0][jneigh], dm_normal[ispin][jneigh][0], dm_normal[ispin][jneigh][1], dm_normal[ispin][jneigh][2], Engine::Vectormath::dist_greatcircle(build_array, unit_vec_z));
+				snprintf(buffer_string_conversion, buffer_length, "%7i  %7i | %+13.7f  %+13.7f  %+13.7f | %+10.4f \n", ispin, neigh[ispin][0][jneigh], dm_normal[ispin][jneigh][0], dm_normal[ispin][jneigh][1], dm_normal[ispin][jneigh][2], Engine::Manifoldmath::dist_greatcircle(build_array, unit_vec_z));
 				output_to_file.append(buffer_string_conversion);
 			}//endfor jneigh
 		}//endfor ispin

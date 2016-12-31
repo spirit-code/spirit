@@ -1,5 +1,6 @@
 #include <engine/Method_MMF.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 #include <utility/Logging.hpp>
 #include <utility/IO.hpp>
 
@@ -175,11 +176,11 @@ namespace Engine
 					}
 					//for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
 					// 		Normalize the mode vector in 3N dimensions
-					Engine::Vectormath::Normalize(this->minimum_mode[ichain]);
+					Engine::Manifoldmath::normalize(this->minimum_mode[ichain]);
 					//std::cerr << "grad " << F_gradient[ichain][0] << " " << F_gradient[ichain][1] << " " << F_gradient[ichain][2] << std::endl;
 					//std::cerr << "mode " << minimum_mode[ichain][0] << " " << minimum_mode[ichain][1] << " " << minimum_mode[ichain][2] << std::endl;
 					// Invert the gradient force along the minimum mode
-					Engine::Vectormath::Project_Reverse(F_gradient[ichain], minimum_mode[ichain]);
+					Engine::Manifoldmath::invert_parallel(F_gradient[ichain], minimum_mode[ichain]);
 					// Copy out the forces
 					for (unsigned int _i = 0; _i < forces[ichain].size(); ++_i) forces[ichain][_i] = F_gradient[ichain][_i];
 					//forces[ichain] = F_gradient[ichain];
@@ -223,7 +224,7 @@ namespace Engine
 						this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
 					}
 
-					Engine::Vectormath::Normalize(this->minimum_mode[ichain]);
+					Engine::Manifoldmath::normalize(this->minimum_mode[ichain]);
 
 
 					//this->minimum_mode[ichain] = std::vector<scalar>(evec.data(), evec.data() + evec.rows()*evec.cols());
@@ -301,7 +302,7 @@ namespace Engine
 		for (auto chain : collection->chains)
 		{
 			int i = chain->noi - 1;
-			if (i>0) chain->Rx[i] = chain->Rx[i - 1] + Engine::Vectormath::dist_geodesic(*chain->images[i]->spins, *chain->images[i-1]->spins);
+			if (i>0) chain->Rx[i] = chain->Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i]->spins, *chain->images[i-1]->spins);
 		}
     }
 
@@ -358,7 +359,7 @@ namespace Engine
 						char buffer_string_conversion[buffer_length + 2];
 						auto energyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img + suffix + ".txt";
 						//
-						scalar Rx = Rx_last + Engine::Vectormath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
+						scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
 						//
 						snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
 							Rx, this->systems[0]->E * nd);

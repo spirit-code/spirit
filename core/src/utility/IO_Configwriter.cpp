@@ -172,7 +172,7 @@ namespace Utility
 			
 			// Magnetic moment
 			config += "mu_s                     ";
-			for (unsigned int i=0; i<geometry->n_spins_basic_domain; ++i)
+			for (int i=0; i<geometry->n_spins_basic_domain; ++i)
 				config += std::to_string(ham_aniso->mu_s[i]);
 			config += "\n";
 

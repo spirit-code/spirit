@@ -1,5 +1,6 @@
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 
 namespace Engine
 {
@@ -127,7 +128,7 @@ namespace Engine
 				spins_m[i].normalize();
 				//Vectormath::Normalize_3Nos(spins_m);
 
-				d[i + dim*nos] = Vectormath::dist_greatcircle(spins_m[i], spins_p[i]);
+				d[i + dim*nos] = Manifoldmath::dist_greatcircle(spins_m[i], spins_p[i]);
 				//d[i + dim*nos] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
 				if (d[i + dim*nos] > 0)
 				{
@@ -176,7 +177,7 @@ namespace Engine
 				spins_plus[i].normalize();
 				spins_minus[i].normalize();
 
-				scalar d = Vectormath::dist_greatcircle(spins_minus[i], spins_plus[i]);
+				scalar d = Manifoldmath::dist_greatcircle(spins_minus[i], spins_plus[i]);
 
 				if (d > 0)
 				{

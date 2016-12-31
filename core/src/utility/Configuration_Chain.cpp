@@ -2,6 +2,7 @@
 #include <utility/Configurations.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 
 #include <Eigen/Dense>
 
@@ -40,7 +41,7 @@ namespace Utility
 				a = (*c->images[idx_1]->spins)[i];
 				b = (*c->images[idx_2]->spins)[i];
 
-				rot_angle = Engine::Vectormath::dist_greatcircle(a, b);
+				rot_angle = Engine::Manifoldmath::dist_greatcircle(a, b);
 				rot_axis = a.cross(b);
 
 				// If they are not strictly parallel we can rotate
@@ -51,7 +52,7 @@ namespace Utility
 					for (int img = idx_1+1; img < idx_2; ++img)
 					{
 						angle = img*rot_angle/noi;
-						Engine::Vectormath::Rotate_Spin(a, rot_axis, angle, temp);
+						Engine::Vectormath::rotate(a, rot_axis, angle, temp);
 
 						(*c->images[img]->spins)[i] = temp;
 					}
@@ -83,7 +84,7 @@ namespace Utility
 				a = A[i];
 				b = B[i];
 				
-				rot_angle = Engine::Vectormath::dist_greatcircle(a, b);
+				rot_angle = Engine::Manifoldmath::dist_greatcircle(a, b);
 				rot_axis = a.cross(b);
 
 				// If they are not strictly parallel we can rotate
@@ -94,7 +95,7 @@ namespace Utility
 					for (int img = 1; img < c->noi - 1; ++img)
 					{
 						angle = (img)*rot_angle / (c->noi - 1);
-						Engine::Vectormath::Rotate_Spin(a, rot_axis, angle, temp);
+						Engine::Vectormath::rotate(a, rot_axis, angle, temp);
 
 						(*c->images[img]->spins)[i] = temp;
 					}

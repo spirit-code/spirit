@@ -32,9 +32,13 @@ namespace Engine
         //    This assumes normalized vectorfields
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2);
 
-        // TODO:
-        // geodesic distance
-        // tangent calculation for chains of vectorfields
+		// Greatcircle distance between two vectors
+		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2);
+		// Geodesic distance between two vectorfields
+		scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2);
+
+		// Calculate the "tangent" vectorfields pointing between a set of configurations
+		void Tangents(std::vector<std::shared_ptr<vectorfield>> configurations, const std::vector<scalar> & energies, std::vector<vectorfield> & tangents);
     }
 }
 

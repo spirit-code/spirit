@@ -1,5 +1,6 @@
 #include <engine/Method_GNEB.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/IO.hpp>
 #include <utility/Timing.hpp>
@@ -50,11 +51,11 @@ namespace Engine
 		{
 			// Calculate the Energy of the image
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
-			if (i>0) Rx[i] = Rx[i - 1] + Engine::Vectormath::dist_geodesic(*configurations[i], *configurations[i - 1]);
+			if (i>0) Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
 		}
 
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
-		Engine::Vectormath::Tangents(configurations, energies, tangents);
+		Engine::Manifoldmath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
 		// Loop over images to calculate the total Effective Field on each Image
@@ -73,57 +74,21 @@ namespace Engine
 			if (chain->climbing_image[img])
 			{
 				// We reverse the component in tangent direction
-				Engine::Vectormath::Project_Reverse(F_gradient[img], tangents[img]);
+				Engine::Manifoldmath::invert_parallel(F_gradient[img], tangents[img]);
 				// And Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
 			else if (chain->falling_image[img])
 			{
-				// We project the gradient force orthogonal to the tangent
-				// If anything, project orthogonal to the spins... idiot! But Heun already does that.
-				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
 				// Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
 			else
 			{
-				// We project the gradient force orthogonal to the SPIN
-				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
-				// Get the scalar product of the vectors
-				// scalar v1v2 = 0.0;
-				// int dim;
-				// // Take out component in direction of v2
-				// for (int i = 0; i < nos; ++i)
-				// {
-				// 	v1v2 = 0.0;
-				// 	for (dim = 0; dim < 3; ++dim)
-				// 	{
-				// 		v1v2 += F_gradient[img][i+dim*nos] * image[i+dim*nos];
-				// 	}
-				// 	for (dim = 0; dim < 3; ++dim)
-				// 	{
-				// 		F_gradient[img][i + dim*nos] = F_gradient[img][i + dim*nos] - v1v2 * image[i + dim*nos];
-				// 	}
-				// }
-			
-
 				// We project the gradient force orthogonal to the TANGENT
-				//Utility::Manifoldmath::Project_Orthogonal(F_gradient[img], this->c->tangents[img]);
-				// Get the scalar product of the vectors
-				scalar v1v2 = 0.0;
-				for (int i = 0; i < nos; ++i)
-				{
-					v1v2 += F_gradient[img][i].dot(tangents[img][i]);
-				}
-				// Take out component in direction of v2
-				for (int i = 0; i < nos; ++i)
-				{
-					F_gradient[img][i] -= v1v2 * tangents[img][i];
-				}
-
+				Engine::Manifoldmath::project_orthogonal(F_gradient[img], tangents[img]);
 
 				// Calculate the spring force
-				//spring_forces(:, : ) = spring_constant *(dist_geodesic(NOS, IMAGES_LAST(idx_img + 1, :, : ), IMAGES(idx_img, :, : )) - dist_geodesic(NOS, IMAGES(idx_img, :, : ), IMAGES_LAST(idx_img - 1, :, : )))* tangents(:, : );
 				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
 				for (int i = 0; i < nos; ++i)
 				{

@@ -13,17 +13,34 @@ namespace Engine
 {
 	namespace Vectormath
 	{
-
-		// Returns the Bohr Magneton
+		/////////////////////////////////////////////////////////////////
+		//////// Regular Math
+		
+		// Returns the Bohr Magneton [meV / T]
 		scalar MuB();
+		// Returns the Boltzmann constant [meV / K]
 		scalar kB();
 
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic);
-
-		std::array<scalar,3> Magnetization(const vectorfield & vf);
 
 
 		/////////////////////////////////////////////////////////////////
+		//////// Single Vector Math
+
+		// Rotate a vector around an axis by a certain degree
+		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
+
+
+		/////////////////////////////////////////////////////////////////
+		//////// Vectorfield Math - special stuff
+
+		// Build an array of spin positions
+		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic);
+		// Calculate the mean of a vectorfield
+		std::array<scalar, 3> Magnetization(const vectorfield & vf);
+
+
+		/////////////////////////////////////////////////////////////////
+		//////// Vectormath-like operations
 
 		// sets vf := v
 		// vf is a vectorfield
@@ -62,23 +79,6 @@ namespace Engine
 
 		// out[i] += c * a[i] x b[i]
 		void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
-		
-		/////////////////////////////////////////////////////////////////
-
-
-		std::vector<scalar> scalar_product(const vectorfield & vector_v1, const vectorfield & vector_v2);
-
-
-		void Normalize(vectorfield & spins);
-
-		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2);
-		scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2);
-
-		void Project_Reverse(vectorfield & v1, const vectorfield & v2);
-
-		void Rotate_Spin(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
-
-		void Tangents(std::vector<std::shared_ptr<vectorfield>> configurations, const std::vector<scalar> & energies, std::vector<vectorfield> & tangents);
 	}
 }
 
