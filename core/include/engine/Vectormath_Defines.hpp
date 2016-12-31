@@ -20,7 +20,7 @@ typedef Eigen::Matrix<int, 4, 1> indexQuadruplet;
 
 // Vectorfield and Scalarfield typedefs
 #ifdef USE_CUDA
-    #include "managed_allocator.hpp"
+    #include "Managed_Allocator.hpp"
     typedef std::vector<int,       managed_allocator<int>>             intfield;
     typedef std::vector<scalar,    managed_allocator<scalar>>          scalarfield;
     typedef std::vector<Vector3,   managed_allocator<Vector3>>         vectorfield;

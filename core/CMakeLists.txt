@@ -38,6 +38,16 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 #############################################
 
 
+######### CUDA decisions ####################
+if ( CORE_USE_CUDA )
+    find_package( CUDA REQUIRED )
+    add_definitions( -DUSE_CUDA )
+	set (CUDA_PROPAGATE_HOST_FLAGS ON)
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --std=c++11 -arch=sm_30 --expt-relaxed-constexpr" )
+endif()
+#############################################
+
+
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty ${PROJECT_SOURCE_DIR}/thirdparty/spectra/include )
@@ -87,7 +97,7 @@ source_group("src\\interface" FILES ${SOURCE_CORE_INTERFACE})
 #############################################
 
 
-######### Tell CMake to create the object files
+#############################################
 set( CORE_LIBRARY_SOURCES 
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
@@ -100,22 +110,23 @@ set( CORE_LIBRARY_SOURCES
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY} )
 
-if ( CORE_USE_CUDA )
-	include_directories( ${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
-	cuda_add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
-else()
+if( NOT CORE_USE_CUDA )
+	######### Tell CMake to create the object files
 	add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
-endif()
-#############################################
-
-######### Tell CMake to create the static core library for the QT UI
-if( BUILD_UI_CXX )
-	MESSAGE( STATUS ">> Building static cxx library" )
-	add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
-	if ( CORE_USE_CUDA )
+	######### Tell CMake to create the static core library for the QT UI
+	if( BUILD_UI_CXX )
+		MESSAGE( STATUS ">> Building static cxx library" )
+		add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
+		if ( CORE_USE_CUDA )
+		else()
+			target_link_libraries( core libqhullcpp )
+		endif()
+	endif()
+else()
+	include_directories( ${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+	if( BUILD_UI_CXX )
+		cuda_add_library( core STATIC ${CORE_LIBRARY_SOURCES} )
 		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
-	else()
-		target_link_libraries( core libqhullcpp )
 	endif()
 endif()
 #############################################
