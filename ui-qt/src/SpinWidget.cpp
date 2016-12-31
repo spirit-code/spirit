@@ -443,9 +443,32 @@ void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_ra
 	makeCurrent();
 	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
 	{
-		if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
-		else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
-		else return -1;
+		// We translate into relative coordinates
+		float x0 = 0.5*(x_range.y + x_range.x);
+		float dx = std::abs(0.5*(x_range.y - x_range.x));
+
+		float y0 = 0.5*(y_range.y + y_range.x);
+		float dy = std::abs(0.5*(y_range.y - y_range.x));
+
+		float z0 = 0.5*(z_range.y + z_range.x);
+		float dz = std::abs(0.5*(z_range.y - z_range.x));
+
+		float fval = 1;
+
+		// In the area outside of our "Box" we apply the single-coordinate functions
+		if (position.x < x_range.x || position.x > x_range.y)
+			fval *= (std::abs(position.x - x0) - dx);
+		if (position.y < y_range.x || position.y > y_range.y)
+			fval *= (std::abs(position.y - y0) - dy);
+		if (position.z < z_range.x || position.z > z_range.y)
+			fval *= (std::abs(position.z - z0) - dz);
+
+		// Inside our "Box" we apply all the functions at the same time
+		if ( (position.x >= x_range.x && position.x <= x_range.y) && (position.y >= y_range.x && position.y <= y_range.y) && (position.z >= z_range.x && position.z <= z_range.y) )
+			fval *= (std::abs(position.x - x0) - dx) * (std::abs(position.y - y0) - dy) * (std::abs(position.z - z0) - dz);
+
+		// Return
+		return fval;
 	});
 	//this->setupRenderers();
 }
