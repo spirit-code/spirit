@@ -88,7 +88,7 @@ source_group("src\\interface" FILES ${SOURCE_CORE_INTERFACE})
 
 
 ######### Tell CMake to create the object files
-add_library( coreobj OBJECT
+set( CORE_LIBRARY_SOURCES 
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
     ${HEADER_CORE_ENGINE}
@@ -99,12 +99,24 @@ add_library( coreobj OBJECT
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
 	${SOURCE_CORE_UTILITY} )
+
+if ( CORE_USE_CUDA )
+	include_directories( ${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+	cuda_add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
+else()
+	add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
+endif()
 #############################################
 
 ######### Tell CMake to create the static core library for the QT UI
 if( BUILD_UI_CXX )
+	MESSAGE( STATUS ">> Building static cxx library" )
 	add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
-	target_link_libraries( core libqhullcpp )
+	if ( CORE_USE_CUDA )
+		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
+	else()
+		target_link_libraries( core libqhullcpp )
+	endif()
 endif()
 #############################################
 
@@ -151,11 +163,38 @@ endif()
 #############################################
 
 
-### TODO: Add threading define if we dont use emscripten (which cannot use threads)
-# if (NOT BUILD_UI_WEB)
-# 	target_compile_definitions( core "USE_THREADS")
-# endif()
-### or use add_definitions() to add the define to all targets
+
+######### Test executable ###################
+set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
+### Test creation macro
+macro( add_framework_test testName testSrc )
+    # Executable
+    add_executable( ${testName} test/main.cpp ${testSrc} )
+    # Link Library
+    target_link_libraries( ${testName} core )
+    # Properties
+    set_property(TARGET ${testName} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY})
+    set_property(TARGET ${testName} PROPERTY CXX_STANDARD 11)
+    set_property(TARGET ${testName} PROPERTY CXX_STANDARD_REQUIRED ON)
+    set_property(TARGET ${testName} PROPERTY CXX_EXTENSIONS OFF)
+    # Include Directories
+    target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/test)
+    # Add the test
+    add_test( NAME        ${testName}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND           ${testName} --use-colour=yes )
+endmacro( add_framework_test testName testSrc )
+### Create tests if needed
+if ( CORE_BUILD_TEST )
+	MESSAGE( STATUS ">> Building unit tests for core" )
+
+    ### Enable CTest testing
+    enable_testing()
+
+    ###### Test 1
+    add_framework_test( coretest test/test.cpp )
+endif()
+#############################################
 
 
 ######### Export
@@ -170,7 +209,6 @@ set(SOURCE_CORE_ENGINE    ${SOURCE_CORE_ENGINE}    PARENT_SCOPE)
 set(SOURCE_CORE_INTERFACE ${SOURCE_CORE_INTERFACE} PARENT_SCOPE)
 set(SOURCE_CORE_UTILITY   ${SOURCE_CORE_UTILITY}   PARENT_SCOPE)
 #############################################
-
 
 
 

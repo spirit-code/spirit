@@ -16,11 +16,18 @@ option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .ap
 option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
-### Options for the usage of CUDA and threads
+### Options for the Core
+option( CORE_BUILD_TEST  "Build unit tests for the core library."                       ON  )
 option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              OFF )
 option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code."       OFF )
 ### Set the scalar type used in the core library
 set( CORE_SCALAR_TYPE double )
+#############################################
+if( CORE_USE_CUDA )
+	set( BUILD_UI_WEB       OFF )
+	set( BUILD_UI_JULIA     OFF )
+	set( BUILD_UI_PYTHON    OFF )
+endif()
 #############################################
 if( BUILD_UI_WEB )
 	### UI-Web needs float
@@ -35,6 +42,25 @@ if( BUILD_UI_WEB )
 	set( CORE_USE_THREADS 	OFF )
 endif()
 #############################################
+if( CORE_BUILD_TEST )
+    enable_testing()
+endif()
+#############################################
+if (CORE_USE_CUDA)
+    MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
+    ### Set cuda toolkit path 
+    if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
+        set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+    endif()
+    if (APPLE OR UNIX)
+        set(CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc)
+        set(CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++)
+    elseif (WIN32)
+        MESSAGE( STATUS ">> We are on Windows... CUDA Path needs to be set..." )
+    endif()
+endif()
+#############################################
+
 
 ######### General Paths #####################
 ### Set the cmake subdirectory
