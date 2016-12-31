@@ -144,11 +144,46 @@ void MainWindow::view_toggle_fullscreen_spins()
 	if (this->fullscreen_spins)
 	{
 		this->fullscreen_spins = false;
+
+		if (!this->pre_fullscreen_settings_hidden)
+		{
+			dockWidget_Settings->show();
+			dockWidget_Settings->resize(pre_fullscreen_settings_size);
+			dockWidget_Settings->move(pre_fullscreen_settings_pos);
+		}
+		if (!this->pre_fullscreen_plots_hidden)
+		{
+			dockWidget_Plots->show();
+			dockWidget_Plots->resize(pre_fullscreen_plots_size);
+			dockWidget_Plots->move(pre_fullscreen_plots_pos);
+		}
+		if (!this->pre_fullscreen_debug_hidden)
+		{
+			dockWidget_Debug->show();
+			dockWidget_Debug->resize(pre_fullscreen_debug_size);
+			dockWidget_Debug->move(pre_fullscreen_debug_pos);
+		}
 		this->controlWidget->show();
 	}
 	else
 	{
 		this->fullscreen_spins = true;
+		
+		this->pre_fullscreen_settings_hidden = dockWidget_Settings->isHidden();
+		this->pre_fullscreen_settings_size = dockWidget_Settings->size();
+		this->pre_fullscreen_settings_pos = dockWidget_Settings->pos();
+
+		this->pre_fullscreen_plots_hidden = dockWidget_Plots->isHidden();
+		this->pre_fullscreen_plots_size = dockWidget_Plots->size();
+		this->pre_fullscreen_plots_pos = dockWidget_Plots->pos();
+
+		this->pre_fullscreen_debug_hidden = dockWidget_Debug->isHidden();
+		this->pre_fullscreen_debug_size = dockWidget_Debug->size();
+		this->pre_fullscreen_debug_pos = dockWidget_Debug->pos();
+
+		this->dockWidget_Settings->hide();
+		this->dockWidget_Plots->hide();
+		this->dockWidget_Debug->hide();
 		this->controlWidget->hide();
 	}
 }

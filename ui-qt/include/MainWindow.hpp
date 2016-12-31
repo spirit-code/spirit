@@ -89,7 +89,16 @@ private:
 	std::vector<QLabel*> m_Labels_IPS;
 
 	// Fullscreen state
-	bool fullscreen_spins;
+	bool   fullscreen_spins;
+	bool   pre_fullscreen_settings_hidden;
+	QSize  pre_fullscreen_settings_size;
+	QPoint pre_fullscreen_settings_pos;
+	bool   pre_fullscreen_plots_hidden;
+	QSize  pre_fullscreen_plots_size;
+	QPoint pre_fullscreen_plots_pos;
+	bool   pre_fullscreen_debug_hidden;
+	QSize  pre_fullscreen_debug_size;
+	QPoint pre_fullscreen_debug_pos;
 };
 
 #endif
