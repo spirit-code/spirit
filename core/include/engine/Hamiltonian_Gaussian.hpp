@@ -26,8 +26,8 @@ namespace Engine
 		);
 
 		// General Hamiltonian functions
-		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
-		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
+		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
 		std::vector<std::pair<std::string, scalarfield>> Energy_Contributions_per_Spin(const vectorfield & spins) override;
 
 		// Hamiltonian name as string

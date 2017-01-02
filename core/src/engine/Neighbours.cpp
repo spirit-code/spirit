@@ -21,7 +21,7 @@ namespace Engine
 		const int n_shells, std::vector<std::vector<int>> &n_spins_in_shell,
 		std::vector<std::vector<std::vector<int>>> & neigh,
 		std::vector<int> &n_4spin, int &max_n_4spin, std::vector<std::vector<std::vector<int>>> &neigh_4spin,
-		std::vector<std::vector<Vector3>> &dm_normal,
+		std::vector<vectorfield> &dm_normal,
 		std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos)
 	{
 		//========================= Init local vars ================================
@@ -123,7 +123,7 @@ namespace Engine
 		//		Coincides with number of neighbours in the 1-st shell (nearest neighbours)
 		max_ndm = max_number_n_in_shell[0];
 		// Calculate DM normal vectors
-		dm_normal = std::vector<std::vector<Vector3>>(nos, std::vector<Vector3>(max_ndm));
+		dm_normal = std::vector<vectorfield>(nos, vectorfield(max_ndm));
 		Create_DM_Norm_Vectors_Bulk(nos, geometry.spin_pos, n_boundary_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal);
 		//DM_Norm_Vectors_To_File(nos, n_shells, n_spins_in_shell, neigh, dm_normal);
 
@@ -445,10 +445,10 @@ namespace Engine
 		IO::Dump_to_File(output_to_file, "output/neighbours_4spin.dat");
 	}//end Neighbours::Create_Neighbours_4Spin
 
-	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const std::vector<Vector3> &spin_pos, const int number_b_vectors,
+	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-		const int max_ndm, std::vector<std::vector<Vector3>> &dm_normal)
+		const int max_ndm, std::vector<vectorfield> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jspin, jneigh;
@@ -477,10 +477,10 @@ namespace Engine
 		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Bulk DMI norm vectors.");
 	}//end Neighbours::Create_DM_Norm_Vectors_Bulk
 
-	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const std::vector<Vector3> &spin_pos, const int number_b_vectors,
+	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-		const int max_ndm, std::vector<std::vector<Vector3>> &dm_normal)
+		const int max_ndm, std::vector<vectorfield> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jneigh;
@@ -503,7 +503,7 @@ namespace Engine
 	}//end Neighbours::Create_DM_Norm_Vectors_Surface
 
 	void Neighbours::DM_Norm_Vectors_To_File(const int nos, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
-		const std::vector<std::vector<std::vector<int>>> & neigh, const std::vector<std::vector<Vector3>> &dm_normal)
+		const std::vector<std::vector<std::vector<int>>> & neigh, const std::vector<vectorfield> &dm_normal)
 	{
 		//========================= Init local vars ================================
 		int ispin, jneigh;
@@ -532,7 +532,7 @@ namespace Engine
 	}//end Neighbours::DM_Norm_Vectors_To_File
 
 	void Neighbours::Create_Segments(const Data::Geometry & geometry, const int n_shells,
-		const int nos, const std::vector<Vector3> &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
+		const int nos, const vectorfield &spin_pos, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
 		std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos)
 	{
@@ -757,7 +757,7 @@ namespace Engine
 
 	void Neighbours::Create_Dipole_Neighbours(const Data::Geometry & geometry, std::vector<bool> boundary_conditions,
 		const scalar dd_radius,	std::vector<std::vector<int>>& dd_neigh, std::vector<std::vector<Vector3>>& dd_neigh_pos,
-		std::vector<std::vector<Vector3>>& dd_normal, std::vector<std::vector<scalar>> & dd_distance)
+		std::vector<vectorfield>& dd_normal, std::vector<std::vector<scalar>> & dd_distance)
 	{
 		std::vector<int> max_n_array;
 		auto shell_radius = std::vector<scalar>(1, dd_radius);
@@ -777,7 +777,7 @@ namespace Engine
 		// dd_neigh_pos = std::vector<std::vector<std::vector<std::vector<scalar>>>>(3, std::vector<std::vector<std::vector<scalar>>>(nos, std::vector<std::vector<scalar>>(n_shells, std::vector<scalar>(max_number_n))));
 		dd_neigh_pos = std::vector<std::vector<Vector3>>(geometry.nos, std::vector<Vector3>(max_n));
 		// Dipole Dipole normal vectors [dim][nos][1][max_n]
-		dd_normal = std::vector<std::vector<Vector3>>(geometry.nos, std::vector<Vector3>(max_n));
+		dd_normal = std::vector<vectorfield>(geometry.nos, vectorfield(max_n));
 		// Dipole Dipole normal vectors [dim][nos][1][max_n]
 		dd_distance = std::vector<std::vector<scalar>>(geometry.nos, std::vector<scalar>(max_n));
 
@@ -855,8 +855,8 @@ namespace Engine
 		return boundary_vectors;
 	}// END Get_Boundary_Vectors
 
-	void Neighbours::Create_DD_Pairs_from_Neighbours(const Data::Geometry & geometry, const std::vector<std::vector<int>> & dd_neighbours, const std::vector<std::vector<Vector3>> & dd_neighbours_positions, const std::vector<std::vector<scalar>> & dd_distance, const std::vector<std::vector<Vector3>> & dd_normal,
-		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<std::vector<Vector3>> & DD_normal)
+	void Neighbours::Create_DD_Pairs_from_Neighbours(const Data::Geometry & geometry, const std::vector<std::vector<int>> & dd_neighbours, const std::vector<std::vector<Vector3>> & dd_neighbours_positions, const std::vector<std::vector<scalar>> & dd_distance, const std::vector<vectorfield> & dd_normal,
+		std::vector<std::vector<std::vector<int>>> & DD_indices, std::vector<std::vector<scalar>> & DD_magnitude, std::vector<vectorfield> & DD_normal)
 	{
 		int i_spin = 0, i_neigh = 0;
 

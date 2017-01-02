@@ -33,7 +33,8 @@ namespace Utility
 			return out;
 		}
 
-		std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter) {
+		std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
+		{
 			std::vector<scalar> result;
 
 			size_t last = 0;

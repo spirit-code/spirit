@@ -100,7 +100,7 @@ namespace Engine
 		// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 		std::vector<std::vector<int>> dd_neigh;
 		// Dipole Dipole neighbour positions of each spin neigh_dd[nos][max_n]
-		std::vector<vectorfield> dd_neigh_pos;
+		std::vector<std::vector<Vector3>> dd_neigh_pos;
 		// Dipole Dipole normal vectors [nos][max_n]
 		std::vector<vectorfield> dd_normal;
 		// Dipole Dipole distance [nos][max_n]
@@ -119,7 +119,7 @@ namespace Engine
 		// segments[nos][4]
 		std::vector<std::vector<int>> segments;
 		// Position of the Segments: segments_pos[nos][4]
-		std::vector<vectorfield> segments_pos;
+		std::vector<std::vector<Vector3>> segments_pos;
 	};
 }
 #endif

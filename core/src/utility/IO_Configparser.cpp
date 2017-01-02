@@ -651,7 +651,7 @@ namespace Utility
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			std::vector<bool> boundary_conditions = { false, false, false };
 			// Spin moment
-			std::vector<scalar> mu_s = std::vector<scalar>(geometry.nos, 2);	// [nos]
+			scalarfield mu_s = scalarfield(geometry.nos, 2);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
 			scalar B = 0;
@@ -875,7 +875,7 @@ namespace Utility
 			// Widths
 			std::vector<scalar> width = { 1 };
 			// Centers
-			vectorfield center = { Vector3{ 0, 0, 1 } };
+			std::vector<Vector3> center = { Vector3{ 0, 0, 1 } };
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");

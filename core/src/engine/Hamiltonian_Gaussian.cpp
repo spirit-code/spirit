@@ -14,7 +14,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Gaussian::Hessian(const std::vector<Vector3> & spins, MatrixX & hessian)
+	void Hamiltonian_Gaussian::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
 		//int nos = spins.size();
 		//for (int ispin = 0; ispin < nos; ++ispin)
@@ -53,7 +53,7 @@ namespace Engine
 		//}
 	}
 
-	void Hamiltonian_Gaussian::Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field)
+	void Hamiltonian_Gaussian::Effective_Field(const vectorfield & spins, vectorfield & field)
 	{
 		int nos = spins.size();
 
