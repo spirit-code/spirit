@@ -34,8 +34,7 @@ namespace Engine
 
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
 		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
-		std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins) override;
-		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
+		void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
@@ -73,8 +72,6 @@ namespace Engine
 		std::vector<scalarfield> Quadruplet_magnitude;
 
 	private:
-		std::vector<std::pair<std::string, scalar>> energy_contribs_per_spin;
-
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
 		void Field_Zeeman(const vectorfield & spins, vectorfield & eff_field);
@@ -92,20 +89,18 @@ namespace Engine
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
 		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_dd, idx_quadruplet;
-		// Energy vector
-		std::vector<std::pair<std::string, scalar>> E;
 		// Calculate the Zeeman energy of a Spin System
-		void E_Zeeman(const vectorfield & spins, scalar & Energy);
+		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
-		void E_Anisotropy(const vectorfield & spins, scalar & Energy);
+		void E_Anisotropy(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the exchange interaction energy of a Spin System
-		void E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalar & Energy);
+		void E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalarfield & Energy);
 		// Calculate the DMI energy of a Spin System
-		void E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalar & Energy);
+		void E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalarfield & Energy);
 		// calculates the Dipole-Dipole Energy
-		void E_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalar & Energy);
+		void E_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalarfield & Energy);
 		// Quadruplet
-		void E_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, scalar & Energy);
+		void E_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, scalarfield & Energy);
 
 	};
 }

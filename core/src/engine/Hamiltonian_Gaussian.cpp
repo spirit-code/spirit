@@ -13,6 +13,10 @@ namespace Engine
 		this->n_gaussians = amplitude.size();
 	}
 
+	void Hamiltonian_Gaussian::Update_Energy_Contributions()
+	{
+		this->energy_contributions_per_spin = { { "Gaussian", scalarfield(0) } };
+	}
 
 	void Hamiltonian_Gaussian::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
@@ -77,12 +81,15 @@ namespace Engine
 		}
 	}
 
-	std::vector<std::pair<std::string, scalarfield>> Hamiltonian_Gaussian::Energy_Contributions_per_Spin(const vectorfield & spins)
+	void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
 		int nos = spins.size();
 
-		// TODO: reallocating at every iteration is nonsense!
-		std::vector<std::pair<std::string, scalarfield>> energies = { { "Gaussian", scalarfield(nos,0) } };
+		// Allocate if not already allocated
+		if (this->energy_contributions_per_spin[0].second.size() != nos) this->energy_contributions_per_spin = { { "Gaussian", scalarfield(nos,0) } };
+
+		// Set to zero
+		for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
 
 		for (int i = 0; i < this->n_gaussians; ++i)
 		{
@@ -91,11 +98,9 @@ namespace Engine
 				// Distance between spin and gaussian center
 				scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 																  // Energy contribution
-				energies[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
+				this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
 			}
 		}
-
-		return energies;
 	}
 
 	// Hamiltonian name as string

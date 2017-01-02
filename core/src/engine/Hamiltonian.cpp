@@ -200,21 +200,20 @@ namespace Engine
 
     std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions(const vectorfield & spins)
     {
-		auto e_per_spin = Energy_Contributions_per_Spin(spins);
-		std::vector<std::pair<std::string, scalar>> energy(e_per_spin.size());
+		Energy_Contributions_per_Spin(spins, this->energy_contributions_per_spin);
+		std::vector<std::pair<std::string, scalar>> energy(this->energy_contributions_per_spin.size());
 		for (unsigned int i = 0; i < energy.size(); ++i)
 		{
-			energy[i] = { e_per_spin[i].first, Vectormath::sum(e_per_spin[i].second) };
+			energy[i] = { this->energy_contributions_per_spin[i].first, Vectormath::sum(this->energy_contributions_per_spin[i].second) };
 		}
 		return energy;
     }
 
-	std::vector<std::pair<std::string, scalarfield>> Hamiltonian::Energy_Contributions_per_Spin(const vectorfield & spins)
+	void Hamiltonian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!"));
         throw Utility::Exception::Not_Implemented;
-		return std::vector<std::pair<std::string, scalarfield>>(1, { "none", scalarfield(spins.size(), 0) });
     }
 
 	static const std::string name = "--";

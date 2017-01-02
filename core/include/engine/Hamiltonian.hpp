@@ -45,7 +45,7 @@ namespace Engine
 		virtual void Effective_Field(const vectorfield & spins, vectorfield & field);
 
 		// Calculate the Energy contributions for the spins of a configuration
-		virtual std::vector<std::pair<std::string, scalarfield>> Energy_Contributions_per_Spin(const vectorfield & spins);
+		virtual void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions);
 
 		// Calculate the Energy contributions for a spin configuration
 		virtual std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins);
@@ -59,7 +59,10 @@ namespace Engine
 		// Boundary conditions
 		std::vector<bool> boundary_conditions; // [3] (a, b, c)
 	
-	private:
+	protected:
+		// Energy contributions per spin
+		std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
+
 		std::mt19937 prng;
 		std::uniform_int_distribution<int> distribution_int;
 		scalar delta;
