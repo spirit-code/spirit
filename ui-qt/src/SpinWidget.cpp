@@ -440,36 +440,31 @@ void SpinWidget::setZRange(glm::vec2 z_range) {
 /////   Surface
 void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
 {
-	makeCurrent();
-	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
-	{
-		// We translate into relative coordinates
-		float x0 = 0.5*(x_range.y + x_range.x);
-		float dx = std::abs(0.5*(x_range.y - x_range.x));
+    makeCurrent();
+    if ((x_range.x >= x_range.y) || (y_range.x >= y_range.y) || (z_range.x >= z_range.y)) {
+        this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+        {
+            /* The selected cuboid does not exist */
+            return 1;
+        });
+    } else {
+        this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+        {
+            (void)direction;
 
-		float y0 = 0.5*(y_range.y + y_range.x);
-		float dy = std::abs(0.5*(y_range.y - y_range.x));
+            /* Transform position in selected cuboid to position in unit cube [-1,1]^3 */
+            glm::vec3 min = {x_range.x, y_range.x, z_range.x};
+            glm::vec3 max = {x_range.y, y_range.y, z_range.y};
+            glm::vec3 normalized_position = 2.0f * (position - min) / (max - min) - 1.0f;
 
-		float z0 = 0.5*(z_range.y + z_range.x);
-		float dz = std::abs(0.5*(z_range.y - z_range.x));
+            /* Calculate maximum metric / Chebyshev distance */
+            glm::vec3 absolute_normalized_position = glm::abs(normalized_position);
+            float max_norm = glm::max(glm::max(absolute_normalized_position.x, absolute_normalized_position.y), absolute_normalized_position.z);
 
-		float fval = 1;
-
-		// In the area outside of our "Box" we apply the single-coordinate functions
-		if (position.x < x_range.x || position.x > x_range.y)
-			fval *= (std::abs(position.x - x0) - dx);
-		if (position.y < y_range.x || position.y > y_range.y)
-			fval *= (std::abs(position.y - y0) - dy);
-		if (position.z < z_range.x || position.z > z_range.y)
-			fval *= (std::abs(position.z - z0) - dz);
-
-		// Inside our "Box" we apply all the functions at the same time
-		if ( (position.x >= x_range.x && position.x <= x_range.y) && (position.y >= y_range.x && position.y <= y_range.y) && (position.z >= z_range.x && position.z <= z_range.y) )
-			fval *= (std::abs(position.x - x0) - dx) * (std::abs(position.y - y0) - dy) * (std::abs(position.z - z0) - dz);
-
-		// Return
-		return fval;
-	});
+            /* Translate so that the selected cuboid surface has an isovalue of 0 */
+            return max_norm-1.0f;
+        });
+    }
 	//this->setupRenderers();
 }
 
