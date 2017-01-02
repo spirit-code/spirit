@@ -109,6 +109,42 @@ namespace Engine
 
 		/////////////////////////////////////////////////////////////////
 
+		void fill(scalarfield & sf, scalar s)
+		{
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				sf[i] = s;
+			}
+		}
+
+		void scale(scalarfield & sf, scalar s)
+		{
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				sf[i] *= s;
+			}
+		}
+
+		scalar sum(const scalarfield & sf)
+		{
+			scalar ret = 0;
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				ret += sf[i];
+			}
+			return ret;
+		}
+
+		scalar mean(const scalarfield & sf)
+		{
+			scalar ret = 0;
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				ret = (i - 1) / i * ret + sf[i] / i;
+			}
+			return ret;
+		}
+
 		void fill(vectorfield & vf, const Vector3 & v)
 		{
 			for (unsigned int i=0; i<vf.size(); ++i)
@@ -123,6 +159,26 @@ namespace Engine
 			{
 				vf[i] *= sc;
 			}
+		}
+
+		Vector3 sum(const vectorfield & vf)
+		{
+			Vector3 ret = { 0,0,0 };
+			for (unsigned int i = 0; i<vf.size(); ++i)
+			{
+				ret += vf[i];
+			}
+			return ret;
+		}
+
+		Vector3 mean(const vectorfield & vf)
+		{
+			Vector3 ret = { 0,0,0 };
+			for (unsigned int i = 0; i<vf.size(); ++i)
+			{
+				ret = (i-1)/i * ret + vf[i]/i;
+			}
+			return ret;
 		}
 
 

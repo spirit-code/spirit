@@ -98,7 +98,7 @@ namespace Data
 
 	void Spin_System::UpdateEnergy()
 	{
-		this->E_array = this->hamiltonian->Energy_Array(*this->spins);
+		this->E_array = this->hamiltonian->Energy_Contributions(*this->spins);
 		this->E = this->hamiltonian->Energy(*this->spins);
 	}
 

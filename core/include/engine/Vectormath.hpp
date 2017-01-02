@@ -42,6 +42,20 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 		//////// Vectormath-like operations
 
+		// sets sf := s
+		// sf is a scalarfield
+		// s is a scalar
+		void fill(scalarfield & sf, scalar s);
+
+		// Scale a scalarfield by a given value
+		void scale(scalarfield & sf, scalar s);
+
+		// Sum over a scalarfield
+		scalar sum(const scalarfield & sf);
+
+		// Calculate the mean of a scalarfield
+		scalar mean(const scalarfield & sf);
+
 		// sets vf := v
 		// vf is a vectorfield
 		// v is a vector
@@ -49,6 +63,13 @@ namespace Engine
 
 		// Scale a vectorfield by a given value
 		void scale(vectorfield & vf, const scalar & sc);
+
+		// Sum over a vectorfield
+		Vector3 sum(const vectorfield & vf);
+
+		// Calculate the mean of a vectorfield
+		Vector3 mean(const vectorfield & vf);
+
 
 		// TODO: move this function to manifold??
 		// computes the inner product of two vectorfields v1 and v2

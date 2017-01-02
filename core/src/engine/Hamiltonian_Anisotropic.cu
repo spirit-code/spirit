@@ -89,12 +89,22 @@ namespace Engine
 		else this->idx_quadruplet = -1;
 	}
 
+	scalar Hamiltonian_Anisotropic::Energy(const vectorfield & spins)
+	{
+		scalar sum = 0;
+		auto e = Energy_Array(spins);
+		for (auto E : e) sum += E.second;
+		return sum;
+	}
+
 	std::vector<std::pair<std::string, scalar>> Hamiltonian_Anisotropic::Energy_Contributions(const vectorfield & spins)
 	{
 		// Set to zero
 		for (auto& pair : this->E) pair.second = 0;
 
 		// External field
+		int nfields=this->anisotropy_index.size();
+		cu_E_Zeeman<<<(nfields+255)/256,256>>>(spins, nfields, this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), E[idx_zeeman].second);
 		if (this->idx_zeeman >=0 ) E_Zeeman(spins, E[idx_zeeman].second);
 
 		// Anisotropy
@@ -130,59 +140,31 @@ namespace Engine
 		return this->E;
 	}
 
-	//std::vector<std::vector<scalar>> Hamiltonian_Anisotropic::Energy_Array_per_Spin(std::vector<scalar> & spins)
-	//{
-	//	int nos = spins.size() / 3;
-	//	//     0           1           2      3     4          5            6
-	//	// ext. field; anisotropy; exchange; dmi; 4spin; dipole-dipole; quadruplet
-	//	std::vector<std::vector<scalar>> E(nos, std::vector<scalar>(7, 0)); // [nos][6], initialized with zeros
-	//	std::vector<scalar> E_temp(7, 0);
 
-	//	//// Loop over Spins
-	//	//for (int i = 0; i<nos; ++i)
-	//	//{
-	//	//	// AT SOME POINT WE MIGHT CONSTRUCT A CLASS ANALOGOUS TO Spin_Pair FOR THIS
-	//	//	// External field
-	//	//	E_Zeeman(nos, spins, i, E[i]);
-	//	//	// Anisotropy
-	//	//	E_Anisotropy(nos, spins, i, E[i]);
+	__global__ void cu_E_Zeeman(Vector3 *spins, int nfields, int *external_field_index, scalar *external_field_magnitude, Vector3 *external_field_normal, scalar *Energy)
+	{
+		for (int ifield = blockIdx.x * blockDim.x + threadIdx.x; ifield < nfields; ifield += blockDim.x * gridDim.x) 
+		{
+			int ispin = external_field_index[ifield];
+			atomicAdd(Energy[ispin], - external_field_magnitude[ifield] * external_field_normal[ifield].dot(spins[ispin]));
+		}
+	}
 
-	//	//	E[i][6] += E_DipoleDipole(nos, spins, i);
-	//	//}
 
-	//	//// Loop over Pairs
-	//	//for (unsigned int i_pair = 0; i_pair<this->pairs.size(); ++i_pair)
-	//	//{
-	//	//	Data::Spin_Pair pair = this->pairs[i_pair];
-	//	//	// loop over contributions in pair
-	//	//	for (unsigned int j = 0; j<pair.energy_calls.size(); ++j)
-	//	//	{
-	//	//		for (unsigned int i = 0; i < E_temp.size(); ++i)
-	//	//		{
-	//	//			E_temp[i] = 0;
-	//	//		}
-	//	//		pair.energy_calls[j](this, nos, spins, pair, E_temp);
-	//	//		for (unsigned int i = 0; i < E_temp.size(); ++i)
-	//	//		{
-	//	//			E[pair.idx_1][i] += 0.5*E_temp[i];
-	//	//			E[pair.idx_2][i] += 0.5*E_temp[i];
-	//	//		}
-	//	//	}
-	//	//}
 
-	//	//// Triplet Interactions
-
-	//	//// Quadruplet Interactions
-
-	//	// Return
-	//	return E;
-	//}
-
+	__global__ void Hamiltonian_Anisotropic::cu_E_Zeeman(Vector3 *spins, int *external_field_index, scalar *external_field_magnitude, Vector3 *external_field_normal, scalar *E , size_t N)
+	{
+		int idx = blockIdx.x * blockDim.x + threadIdx.x;
+		if(idx < N)
+		{
+			atomicAdd(E[external_field_index[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_index[idx]]));
+		}
+	}
 	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalar & Energy)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
-			Energy -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
+			cu_scale<<<(n+1023)/1024, 1024>>>(spins.data(), this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), Energy, n);
 		}
 	}
 

@@ -77,10 +77,12 @@ namespace Engine
 		}
 	}
 
-	scalar Hamiltonian_Gaussian::Energy(const std::vector<Vector3> & spins)
+	std::vector<std::pair<std::string, scalarfield>> Hamiltonian_Gaussian::Energy_Contributions_per_Spin(const vectorfield & spins)
 	{
 		int nos = spins.size();
-		scalar E = 0;
+
+		// TODO: reallocating at every iteration is nonsense!
+		std::vector<std::pair<std::string, scalarfield>> energies = { { "Gaussian", scalarfield(nos,0) } };
 
 		for (int i = 0; i < this->n_gaussians; ++i)
 		{
@@ -88,20 +90,13 @@ namespace Engine
 			{
 				// Distance between spin and gaussian center
 				scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
-				// Energy contribution
-				E += this->amplitude[i] * std::exp( -std::pow(l, 2)/(2.0*std::pow(this->width[i], 2)) );
+																  // Energy contribution
+				energies[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
 			}
 		}
 
-		return E;
+		return energies;
 	}
-
-	std::vector<std::pair<std::string, scalar>> Hamiltonian_Gaussian::Energy_Array(const std::vector<Vector3> & spins)
-	{
-		return std::vector<std::pair<std::string, scalar>>(1, {"Gaussian", Energy(spins)});
-	}
-
-	//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 	// Hamiltonian name as string
 	static const std::string name = "Gaussian";

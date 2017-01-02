@@ -34,8 +34,7 @@ namespace Engine
 
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
 		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
-		scalar Energy(const vectorfield & spins) override;
-		std::vector<std::pair<std::string, scalar>> Energy_Array(const vectorfield & spins) override;
+		std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins) override;
 		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 		// Hamiltonian name as string
@@ -74,6 +73,8 @@ namespace Engine
 		std::vector<scalarfield> Quadruplet_magnitude;
 
 	private:
+		std::vector<std::pair<std::string, scalar>> energy_contribs_per_spin;
+
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
 		void Field_Zeeman(const vectorfield & spins, vectorfield & eff_field);

@@ -44,14 +44,14 @@ namespace Engine
 		*/
 		virtual void Effective_Field(const vectorfield & spins, vectorfield & field);
 
+		// Calculate the Energy contributions for the spins of a configuration
+		virtual std::vector<std::pair<std::string, scalarfield>> Energy_Contributions_per_Spin(const vectorfield & spins);
+
+		// Calculate the Energy contributions for a spin configuration
+		virtual std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins);
+
 		// Calculate the Energy of a spin configuration
 		virtual scalar Energy(const vectorfield & spins);
-
-		// Calculate the Energies of the spins of a configuration
-		virtual std::vector<std::vector<scalar>> Energy_Array_per_Spin(const vectorfield & spins);
-
-		// Calculate the Effective Field of a spin configuration
-		virtual std::vector<std::pair<std::string, scalar>> Energy_Array(const vectorfield & spins);
 
 		// Hamiltonian name as string
 		virtual const std::string& Name();

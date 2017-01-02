@@ -190,28 +190,31 @@ namespace Engine
 		}
     }
 
-    scalar Hamiltonian::Energy(const vectorfield & spins)
+	scalar Hamiltonian::Energy(const vectorfield & spins)
+	{
+		scalar sum = 0;
+		auto energy = Energy_Contributions(spins);
+		for (auto E : energy) sum += E.second;
+		return sum;
+	}
+
+    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions(const vectorfield & spins)
     {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
-        throw Utility::Exception::Not_Implemented;
-        return 0.0;
+		auto e_per_spin = Energy_Contributions_per_Spin(spins);
+		std::vector<std::pair<std::string, scalar>> energy(e_per_spin.size());
+		for (unsigned int i = 0; i < energy.size(); ++i)
+		{
+			energy[i] = { e_per_spin[i].first, Vectormath::sum(e_per_spin[i].second) };
+		}
+		return energy;
     }
 
-    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const vectorfield & spins)
+	std::vector<std::pair<std::string, scalarfield>> Hamiltonian::Energy_Contributions_per_Spin(const vectorfield & spins)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!"));
         throw Utility::Exception::Not_Implemented;
-        return std::vector<std::vector<scalar>>(spins.size(), std::vector<scalar>(7, 0.0));
-    }
-
-    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const vectorfield & spins)
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
-        throw Utility::Exception::Not_Implemented;
-        return std::vector<std::pair<std::string, scalar>>(0);
+		return std::vector<std::pair<std::string, scalarfield>>(1, { "none", scalarfield(spins.size(), 0) });
     }
 
 	static const std::string name = "--";

@@ -99,15 +99,8 @@ namespace Engine
 	}
 
 
-	scalar Hamiltonian_Isotropic::Energy(const vectorfield & spins)
-	{
-		scalar sum = 0;
-		auto e = Energy_Array(spins);
-		for (auto E : e) sum += E.second;
-		return sum;
-	}
 
-	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Array(const vectorfield & spins)
+	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Contributions(const vectorfield & spins)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();

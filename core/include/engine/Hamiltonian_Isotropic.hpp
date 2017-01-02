@@ -24,8 +24,8 @@ namespace Engine
 		
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
 		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
-		scalar Energy(const vectorfield & spins) override;
-		std::vector<std::pair<std::string, scalar>> Energy_Array(const vectorfield & spins) override;
+		//scalar Energy(const vectorfield & spins) override;
+		std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins) override;
 		// Need to implement:
 		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
