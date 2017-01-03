@@ -546,24 +546,24 @@ void SettingsWidget::Load_Visualization_Contents()
 
 
 	// X Range Surface
-	horizontalSlider_surface_xmin->setRange(1, 99);
-	horizontalSlider_surface_xmin->setValue((int)(0));
-	horizontalSlider_surface_xmax->setRange(1, 99);
-	horizontalSlider_surface_xmax->setValue((int)(99));
+	horizontalSlider_surface_xmin->setRange(1, 99999);
+	horizontalSlider_surface_xmin->setValue((int)(1));
+	horizontalSlider_surface_xmax->setRange(1, 99999);
+	horizontalSlider_surface_xmax->setValue((int)(99999));
 	horizontalSlider_surface_xmin->setTracking(true);
 	horizontalSlider_surface_xmax->setTracking(true);
 	// Y Range Surface
-	horizontalSlider_surface_ymin->setRange(1, 99);
-	horizontalSlider_surface_ymin->setValue((int)(0));
-	horizontalSlider_surface_ymax->setRange(1, 99);
-	horizontalSlider_surface_ymax->setValue((int)(99));
+	horizontalSlider_surface_ymin->setRange(1, 99999);
+	horizontalSlider_surface_ymin->setValue((int)(1));
+	horizontalSlider_surface_ymax->setRange(1, 99999);
+	horizontalSlider_surface_ymax->setValue((int)(99999));
 	horizontalSlider_surface_ymin->setTracking(true);
 	horizontalSlider_surface_ymax->setTracking(true);
 	// Z Range Surface
-	horizontalSlider_surface_zmin->setRange(1, 99);
-	horizontalSlider_surface_zmin->setValue((int)(0));
-	horizontalSlider_surface_zmax->setRange(1, 99);
-	horizontalSlider_surface_zmax->setValue((int)(99));
+	horizontalSlider_surface_zmin->setRange(1, 99999);
+	horizontalSlider_surface_zmin->setValue((int)(1));
+	horizontalSlider_surface_zmax->setRange(1, 99999);
+	horizontalSlider_surface_zmax->setValue((int)(99999));
 	horizontalSlider_surface_zmin->setTracking(true);
 	horizontalSlider_surface_zmax->setTracking(true);
   
@@ -1232,8 +1232,8 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_xmax->setValue((int)(s_max));
 	horizontalSlider_surface_xmin->blockSignals(false);
 	horizontalSlider_surface_xmax->blockSignals(false);
-	float x_min = bounds_min[0] + (s_min / 100.0) * (bounds_max[0] - bounds_min[0]);
-	float x_max = bounds_min[0] + (s_max / 100.0) * (bounds_max[0] - bounds_min[0]);
+	float x_min = bounds_min[0] + (s_min / 100000.0) * (bounds_max[0] - bounds_min[0]);
+	float x_max = bounds_min[0] + (s_max / 100000.0) * (bounds_max[0] - bounds_min[0]);
 	// Y
 	s_min = horizontalSlider_surface_ymin->value();
 	s_max = horizontalSlider_surface_ymax->value();
@@ -1249,8 +1249,8 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_ymax->setValue((int)(s_max));
 	horizontalSlider_surface_ymin->blockSignals(false);
 	horizontalSlider_surface_ymax->blockSignals(false);
-	float y_min = bounds_min[1] + (s_min / 100.0) * (bounds_max[1] - bounds_min[1]);
-	float y_max = bounds_min[1] + (s_max / 100.0) * (bounds_max[1] - bounds_min[1]);
+	float y_min = bounds_min[1] + (s_min / 100000.0) * (bounds_max[1] - bounds_min[1]);
+	float y_max = bounds_min[1] + (s_max / 100000.0) * (bounds_max[1] - bounds_min[1]);
 	// Z
 	s_min = horizontalSlider_surface_zmin->value();
 	s_max = horizontalSlider_surface_zmax->value();
@@ -1266,8 +1266,8 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_zmax->setValue((int)(s_max));
 	horizontalSlider_surface_zmin->blockSignals(false);
 	horizontalSlider_surface_zmax->blockSignals(false);
-	float z_min = bounds_min[2] + (s_min / 100.0) * (bounds_max[2] - bounds_min[2]);
-	float z_max = bounds_min[2] + (s_max / 100.0) * (bounds_max[2] - bounds_min[2]);
+	float z_min = bounds_min[2] + (s_min / 100000.0) * (bounds_max[2] - bounds_min[2]);
+	float z_max = bounds_min[2] + (s_max / 100000.0) * (bounds_max[2] - bounds_min[2]);
 
 	glm::vec2 x_range(x_min, x_max);
 	glm::vec2 y_range(y_min, y_max);
