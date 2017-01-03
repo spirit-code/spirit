@@ -153,6 +153,14 @@ namespace Engine
 			}
 		}
 
+		void normalize_vectors(vectorfield & vf)
+		{
+			for (unsigned int i=0; i<vf.size(); ++i)
+			{
+				vf[i].normalize();
+			}
+		}
+
 		void scale(vectorfield & vf, const scalar & sc)
 		{
 			for (unsigned int i=0; i<vf.size(); ++i)

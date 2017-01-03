@@ -61,6 +61,9 @@ namespace Engine
 		// v is a vector
 		void fill(vectorfield & vf, const Vector3 & v);
 
+		// Normalize the vectors of a vectorfield
+		void normalize_vectors(vectorfield & vf);
+
 		// Scale a vectorfield by a given value
 		void scale(vectorfield & vf, const scalar & sc);
 

@@ -65,39 +65,15 @@ namespace Engine
 		scalar a_j = llg_params.stt_magnitude;
 		Vector3 s_c_vec = llg_params.stt_polarisation_normal;
 		//------------------------ End Init ----------------------------------------
-		for (i = 0; i < nos; ++i)
-		{
-			e1 = spins[i];
-			b1 = eff_field[i];
-			f1 = xi[i];
 
-			// a1 = -b1 - damping * (e1 cross b1)
-			a1 = -b1 - damping * e1.cross(b1);
-			// spin torque
-			// change into:
-			// a1 = -b1 - damping (e1 cross b1)
-			//		-a_j * damping * s_p + a_j * (e1 cross s_p)
-			a1 += -a_j*damping*s_c_vec + a_j*e1.cross(s_c_vec);
-			
+		Vectormath::fill       (force, {0,0,0});
+		Vectormath::add_c_a    (-0.5 * dtg, eff_field, force);
+		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, eff_field, force);
+		Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
+		Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, spins, force);
 
-			// s1 = -f1 - damping * (e1 cross f1) // s1 is stochastic counterpart of a1
-			s1 = -f1 - damping * e1.cross(f1);
-
-			/*
-			semi - implicitness midpoint requires solution of linear system :
-			A*e2 = At*e1, At = transpose(A) = > e2 = inv(A)*At*e1
-			A = I + skew(dt*a1 / 2 + sqrt(dt)*s1 / 2)
-			write A*e2 = a2, a2 = At*e1 = > e2 = inv(A)*a2
-			Ax, Ay, Az off - diagonal components of A
-			solve with Cramers' rule => define detAi=1/determinant(A)
-			*/
-
-			// ?get h*a_i(X_k) and sqrt(h)*sigma(x_k?)ksi into one expression?
-			// A = dtg/2 * a1 + sqrt(dtg)/2 * s1
-			A = 0.5*dtg * a1 + 0.5*sqrtdtg * s1;
-
-			force[i] = A;
-		}
+		Vectormath::add_c_a    (-0.5 * sqrtdtg, xi, force);
+		Vectormath::add_c_cross(-0.5 * sqrtdtg * damping, spins, xi, force);
 	}
 
 
@@ -121,8 +97,8 @@ namespace Engine
 			// calculate equation without the predictor?
 			a2 = e1 + e1.cross(A);
 
-			et[0] = (a2[0] * (1 + A[0] * A[0]) + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
-			et[1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1]) + a2[2] * (A[1] * A[2] + A[0]))*detAi;
+			et[0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
+			et[1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
 			et[2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
 
 			spins_temp[i] = (e1 + et)*0.5;
