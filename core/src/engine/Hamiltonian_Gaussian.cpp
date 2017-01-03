@@ -57,15 +57,15 @@ namespace Engine
 		//}
 	}
 
-	void Hamiltonian_Gaussian::Effective_Field(const vectorfield & spins, vectorfield & field)
+	void Hamiltonian_Gaussian::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		int nos = spins.size();
 
 		for (int ispin = 0; ispin < nos; ++ispin)
 		{
-			// Set field to zero
-			field[ispin] = { 0,0,0 };
-			// Calculate field
+			// Set gradient to zero
+			gradient[ispin] = { 0,0,0 };
+			// Calculate gradient
 			for (int i = 0; i < this->n_gaussians; ++i)
 			{
 				// Distance between spin and gaussian center
@@ -75,8 +75,8 @@ namespace Engine
 				//for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
 				// Prefactor
 				scalar prefactor = this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2))) * l / std::pow(this->width[i],2);
-				// Effective Field contribution
-				field[ispin ] -= prefactor * this->center[i];
+				// Gradient contribution
+				gradient[ispin] -= prefactor * this->center[i];
 			}
 		}
 	}

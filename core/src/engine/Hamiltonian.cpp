@@ -132,8 +132,8 @@ namespace Engine
 				//d[i + dim*nos] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
 				if (d[i + dim*nos] > 0)
 				{
-					this->Effective_Field(spins_p, grad_p[i + dim*nos]);
-					this->Effective_Field(spins_m, grad_m[i + dim*nos]);
+					this->Gradient(spins_p, grad_p[i + dim*nos]);
+					this->Gradient(spins_m, grad_m[i + dim*nos]);
 				}
 				else d[i + dim*nos] = 1;
 			}
@@ -154,7 +154,7 @@ namespace Engine
 		}
 	}
 
-    void Hamiltonian::Effective_Field(const vectorfield & spins, vectorfield & field)
+    void Hamiltonian::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
 		// This is a regular finite difference implementation (probably not very efficient)
 
@@ -183,9 +183,9 @@ namespace Engine
 				{
 					scalar E_plus = this->Energy(spins_plus);
 					scalar E_minus = this->Energy(spins_minus);
-					field[i][dim] = (E_minus - E_plus) / d;
+					gradient[i][dim] = (E_plus - E_minus) / d;
 				}
-				else field[i][dim] = 0;
+				else gradient[i][dim] = 0;
 			}
 		}
     }

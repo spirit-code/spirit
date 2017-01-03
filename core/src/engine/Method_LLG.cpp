@@ -39,11 +39,12 @@ namespace Engine
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
 		//this->force_maxAbsComponent = 0;
 
-		// Loop over images to calculate the total Effective Field on each Image
+		// Loop over images to calculate the total force on each Image
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
-			// The effective field is the total Force here
-			systems[img]->hamiltonian->Effective_Field(*configurations[img], F_total[img]);
+			// Minus the gradient is the total Force here
+			systems[img]->hamiltonian->Gradient(*configurations[img], F_total[img]);
+			Vectormath::scale(F_total[img], -1);
 			// Copy out
 			forces[img] = F_total[img];
 		}
@@ -67,7 +68,7 @@ namespace Engine
     {
 		// --- Convergence Parameter Update
 		this->force_maxAbsComponent = 0;
-		// Loop over images to calculate the total Effective Field on each Image
+		// Loop over images to calculate the maximum force component
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
 			this->force_converged[img] = false;
@@ -83,6 +84,7 @@ namespace Engine
 
 		// ToDo: How to update eff_field without numerical overhead?
 		systems[0]->effective_field = F_total[0];
+		Vectormath::scale(systems[0]->effective_field, -1);
 		// systems[0]->UpdateEffectiveField();
 		
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?

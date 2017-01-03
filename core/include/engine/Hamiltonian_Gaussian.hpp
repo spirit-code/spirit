@@ -29,7 +29,7 @@ namespace Engine
 
 		// General Hamiltonian functions
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
-		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
+		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
 		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string

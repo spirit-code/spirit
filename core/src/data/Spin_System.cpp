@@ -104,7 +104,8 @@ namespace Data
 
 	void Spin_System::UpdateEffectiveField()
 	{
-		this->hamiltonian->Effective_Field(*this->spins, this->effective_field);
+		this->hamiltonian->Gradient(*this->spins, this->effective_field);
+		Engine::Vectormath::scale(this->effective_field, -1);
 	}
 
 }

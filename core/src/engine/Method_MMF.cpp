@@ -100,12 +100,13 @@ namespace Engine
 			// Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
 			VectorX x = Eigen::Map<VectorX>((*configurations[ichain])[0].data(), 3 * nos);
 
-			// The gradient force (unprojected) is simply minus the effective field
-			this->systems[ichain]->hamiltonian->Effective_Field(image, F_gradient[ichain]);
+			// The gradient force (unprojected)
+			this->systems[ichain]->hamiltonian->Gradient(image, F_gradient[ichain]);
 			VectorX grad = Eigen::Map<VectorX>(F_gradient[ichain][0].data(), 3 * nos);
+			Vectormath::scale(F_gradient[ichain], -1);
 			//std::cerr << F_gradient[0][0] << std::endl;
 			//std::cerr << grad[0] << std::endl;
-			grad = -grad;
+			//grad = -grad;
 			// std::cerr << "grad1 " << F_gradient[0][0] << std::endl;
 			// std::cerr << "grad2 " << grad[0] << " " << grad[1] << " " << grad[2] << std::endl;
 
@@ -236,17 +237,14 @@ namespace Engine
 					////this->minimum_mode[ichain] = std::vector<scalar>(evec_min.data(), evec_min.data() + evec_min.rows()*evec_min.cols());
 					////// 		Normalize the mode vector in 3N dimensions
 					////Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
-					////// We are too close to the local minimum so we have to use a strong force
-					//////		We apply the force against the minimum mode of the positive eigenvalue
-					scalar v1v2 = 0.0;
+
+					// We are too close to the local minimum so we have to use a strong force
+					//		We apply the force against the minimum mode of the positive eigenvalue
+					scalar v1v2 = Vectormath::dot(F_gradient[ichain], minimum_mode[ichain]);
+					// Force against direction of the minimum mode
 					for (int i = 0; i < nos; ++i)
 					{
-						v1v2 += F_gradient[ichain][i].dot(minimum_mode[ichain][i]);
-					}
-					// Take out component in direction of v2
-					for (int i = 0; i < nos; ++i)
-					{
-						F_gradient[ichain][i] =  -v1v2 * minimum_mode[ichain][i]; // -F_gradient[ichain][i]
+						F_gradient[ichain][i] = - v1v2 * minimum_mode[ichain][i]; // -F_gradient[ichain][i]
 					}
 
 					// Copy out the forces

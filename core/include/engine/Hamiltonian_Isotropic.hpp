@@ -23,7 +23,7 @@ namespace Engine
 		void Update_Energy_Contributions() override;
 		
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
-		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
+		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
 		//scalar Energy(const vectorfield & spins) override;
 		std::vector<std::pair<std::string, scalar>> Energy_Contributions(const vectorfield & spins) override;
 		// Need to implement:

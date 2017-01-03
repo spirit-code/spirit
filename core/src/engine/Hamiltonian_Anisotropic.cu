@@ -1,3 +1,5 @@
+#ifdef USE_CUDA
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -220,20 +222,20 @@ namespace Engine
 
 
 
-	void Hamiltonian_Anisotropic::Effective_Field(const vectorfield & spins, vectorfield & field)
+	void Hamiltonian_Anisotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		int nos = spins.size();
 		// Loop over Spins
 		for (int i = 0; i < nos; ++i)
 		{
-			field[i].setZero();
+			gradient[i].setZero();
 		}
 
 		// External field
-		Field_Zeeman(spins, field);
+		Gradient_Zeeman(spins, gradient);
 
 		// Anisotropy
-		Field_Anisotropy(spins, field);
+		Gradient_Anisotropy(spins, gradient);
 
 		// Pairs
 		//		Loop over periodicity
@@ -249,15 +251,15 @@ namespace Engine
 				|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
 				|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
 			{
-				//		Fields of this periodicity
+				//		Gradients of this periodicity
 				// Exchange
-				this->Field_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], field);
+				this->Gradient_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], gradient);
 				// DMI
-				this->Field_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], field);
+				this->Gradient_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], gradient);
 				// DD
-				this->Field_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], field);
+				this->Gradient_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], gradient);
 				// Quadruplet
-				this->Field_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], field);
+				this->Gradient_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], gradient);
 			}
 		}
 
@@ -266,41 +268,41 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Field_Zeeman(const vectorfield & spins, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
-			eff_field[external_field_index[i]] += this->external_field_magnitude[i] * this->external_field_normal[i];
+			eff_field[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i];
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Anisotropy(const vectorfield & spins, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			eff_field[anisotropy_index[i]] += 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
+			eff_field[anisotropy_index[i]] -= 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += J_ij[i_pair] * spins[indices[i_pair][1]];
-			eff_field[indices[i_pair][1]] += J_ij[i_pair] * spins[indices[i_pair][0]];
+			eff_field[indices[i_pair][0]] -= J_ij[i_pair] * spins[indices[i_pair][1]];
+			eff_field[indices[i_pair][1]] -= J_ij[i_pair] * spins[indices[i_pair][0]];
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
-			eff_field[indices[i_pair][1]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
+			eff_field[indices[i_pair][0]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
+			eff_field[indices[i_pair][1]] += DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient)
 	{
 		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -310,21 +312,21 @@ namespace Engine
 			if (DD_magnitude[i_pair] > 0.0)
 			{
 				scalar skalar_contrib = mult / std::pow(DD_magnitude[i_pair], 3.0);
-				eff_field[indices[i_pair][0]] += skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
-				eff_field[indices[i_pair][1]] += skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
+				eff_field[indices[i_pair][0]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
+				eff_field[indices[i_pair][1]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
 			}
 		}
 	}//end Field_DipoleDipole
 
 
-	void Hamiltonian_Anisotropic::Field_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += magnitude[i_pair] * spins[indices[i_pair][1]] * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
-			eff_field[indices[i_pair][1]] += magnitude[i_pair] * spins[indices[i_pair][0]] *  (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
-			eff_field[indices[i_pair][2]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][3]];
-			eff_field[indices[i_pair][3]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][2]];
+			eff_field[indices[i_pair][0]] -= magnitude[i_pair] * spins[indices[i_pair][1]] * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			eff_field[indices[i_pair][1]] -= magnitude[i_pair] * spins[indices[i_pair][0]] *  (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			eff_field[indices[i_pair][2]] -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][3]];
+			eff_field[indices[i_pair][3]] -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][2]];
 		}
 	}
 
@@ -438,3 +440,5 @@ namespace Engine
 	static const std::string name = "Anisotropic Heisenberg";
 	const std::string& Hamiltonian_Anisotropic::Name() { return name; }
 }
+
+#endif

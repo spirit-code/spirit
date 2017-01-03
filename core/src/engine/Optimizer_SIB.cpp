@@ -46,10 +46,9 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & eff_field,  vectorfield & xi, vectorfield & force)
+	void Optimizer_SIB::VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & gradient,  vectorfield & xi, vectorfield & force)
 	{
 		//========================= Init local vars ================================
-		int i;
 		// deterministic variables
 		Vector3 a1, b1, asc;
 		// stochastic variables
@@ -67,8 +66,8 @@ namespace Engine
 		//------------------------ End Init ----------------------------------------
 
 		Vectormath::fill       (force, {0,0,0});
-		Vectormath::add_c_a    (-0.5 * dtg, eff_field, force);
-		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, eff_field, force);
+		Vectormath::add_c_a    (-0.5 * dtg, gradient, force);
+		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, gradient, force);
 		Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
 		Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, spins, force);
 

@@ -33,7 +33,7 @@ namespace Engine
 		void Update_Energy_Contributions() override;
 
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
-		void Effective_Field(const vectorfield & spins, vectorfield & field) override;
+		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
 		void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string
@@ -74,17 +74,17 @@ namespace Engine
 	private:
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
-		void Field_Zeeman(const vectorfield & spins, vectorfield & eff_field);
+		void Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient);
 		// Calculate the Anisotropy effective field of a single Spin
-		void Field_Anisotropy(const vectorfield & spins, vectorfield & eff_field);
+		void Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient);
 		// Calculate the exchange interaction effective field of a Spin Pair
-		void Field_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & eff_field);
+		void Gradient_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & gradient);
 		// Calculate the DMI effective field of a Spin Pair
-		void Field_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & eff_field);
+		void Gradient_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & gradient);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & eff_field);
+		void Gradient_DD(const vectorfield& spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient);
 		// Quadruplet
-		void Field_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & eff_field);
+		void Gradient_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & gradient);
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
