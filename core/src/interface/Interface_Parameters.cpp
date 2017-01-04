@@ -58,14 +58,13 @@ void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, in
     p->spring_constant = spring_constant;
 }
 
-void Parameters_Set_GNEB_Climbing_Falling(State *state, bool climbing, bool falling, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    chain->climbing_image[idx_image] = climbing;
-    chain->falling_image[idx_image] = falling;
+    chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>(image_type);
 }
 
 void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int idx_chain)
@@ -145,14 +144,13 @@ void Parameters_Get_GNEB_Spring_Constant(State *state, float * spring_constant, 
     *spring_constant = (float)p->spring_constant;
 }
 
-void Parameters_Get_GNEB_Climbing_Falling(State *state, bool * climbing, bool * falling, int idx_image, int idx_chain)
+void Parameters_Get_GNEB_Climbing_Falling(State *state, int * image_type, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    *climbing = chain->climbing_image[idx_image];
-    *falling = state->active_chain->falling_image[idx_image];
+    *image_type = (int)chain->image_type[idx_image];
 }
 
 int Parameters_Get_GNEB_N_Iterations(State *state, int idx_chain)

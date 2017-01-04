@@ -269,7 +269,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 void SettingsWidget::Load_Parameters_Contents()
 {
 	float d;
-	bool climbing, falling;
+	int image_type;
 	int i;
 
 	// LLG Damping
@@ -294,10 +294,15 @@ void SettingsWidget::Load_Parameters_Contents()
 	this->lineEdit_gneb_springconstant->setText(QString::number(d));
 
 	// Normal/Climbing/Falling image radioButtons
-	Parameters_Get_GNEB_Climbing_Falling(state.get(), &climbing, &falling);
-	this->radioButton_Normal->setChecked(!(climbing || falling));
-	this->radioButton_ClimbingImage->setChecked(climbing);
-	this->radioButton_FallingImage->setChecked(falling);
+	Parameters_Get_GNEB_Climbing_Falling(state.get(), &image_type);
+	if (image_type == 0)
+		this->radioButton_Normal->setChecked(true);
+	else if (image_type == 1)
+		this->radioButton_ClimbingImage->setChecked(true);
+	else if (image_type == 2)
+		this->radioButton_FallingImage->setChecked(true);
+	else if (image_type == 3)
+		this->radioButton_Stationary->setChecked(true);
 }
 
 
@@ -619,7 +624,6 @@ void SettingsWidget::set_parameters()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		float d;
-		bool climbing, falling;
 		int i;
 
 		// Time step [ps]
@@ -644,9 +648,14 @@ void SettingsWidget::set_parameters()
 		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
 		// Climbing/Falling Image
-		climbing = this->radioButton_ClimbingImage->isChecked();
-		falling = this->radioButton_FallingImage->isChecked();
-		Parameters_Set_GNEB_Climbing_Falling(state.get(), climbing, falling, idx_image, idx_chain);
+		int image_type = 0;
+		if (this->radioButton_ClimbingImage->isChecked())
+			image_type = 1;
+		if (this->radioButton_FallingImage->isChecked())
+			image_type = 2;
+		if (this->radioButton_Stationary->isChecked())
+			image_type = 3;
+		Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
@@ -1543,6 +1552,7 @@ void SettingsWidget::Setup_Parameters_Slots()
 	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters()));
 	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
 	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
+	connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters()));
 }
 
 void SettingsWidget::Setup_Configurations_Slots()

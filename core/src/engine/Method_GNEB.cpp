@@ -1,4 +1,5 @@
 #include <engine/Method_GNEB.hpp>
+#include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
@@ -71,19 +72,19 @@ namespace Engine
 			F_gradient[img] = this->chain->images[img]->effective_field;
 
 			// Calculate Force
-			if (chain->climbing_image[img])
+			if (chain->image_type[img] == Data::GNEB_Image_Type::Climbing)
 			{
 				// We reverse the component in tangent direction
 				Engine::Manifoldmath::invert_parallel(F_gradient[img], tangents[img]);
 				// And Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
-			else if (chain->falling_image[img])
+			else if (chain->image_type[img] == Data::GNEB_Image_Type::Falling)
 			{
 				// Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
-			else
+			else if (chain->image_type[img] == Data::GNEB_Image_Type::Normal)
 			{
 				// We project the gradient force orthogonal to the TANGENT
 				Engine::Manifoldmath::project_orthogonal(F_gradient[img], tangents[img]);
@@ -100,7 +101,11 @@ namespace Engine
 				{
 					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
 				}
-			}// end if climbing
+			}
+			else
+			{
+				Vectormath::fill(F_total[img], { 0,0,0 });
+			}
 
 			// Copy out
 			forces[img] = F_total[img];

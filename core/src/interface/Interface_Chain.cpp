@@ -87,8 +87,7 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         // Add to chain
         chain->noi++;
         chain->images.insert(chain->images.begin() + idx_image, copy);
-        chain->climbing_image.insert(chain->climbing_image.begin() + idx_image, false);
-        chain->falling_image.insert(chain->falling_image.begin() + idx_image, false);
+		chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
 		// Add to state
 		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
@@ -125,8 +124,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         // if (idx_image < state->noi - 1)
         // {
             chain->images.insert(chain->images.begin() + idx_image + 1, copy);
-            chain->climbing_image.insert(chain->climbing_image.begin() + idx_image + 1, false);
-            chain->falling_image.insert(chain->falling_image.begin() + idx_image + 1, false);
+			chain->image_type.insert(chain->image_type.begin() + idx_image + 1, Data::GNEB_Image_Type::Normal);
         // }
         // else
         // {
@@ -193,8 +191,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         state->noi = state->active_chain->noi;
         
         chain->images.erase(chain->images.begin() + idx_image);
-        chain->climbing_image.erase(chain->climbing_image.begin() + idx_image);
-        chain->falling_image.erase(chain->falling_image.begin() + idx_image);
+        chain->image_type.erase(chain->image_type.begin() + idx_image);
 
 		// Remove from state
 		state->simulation_information_llg[idx_chain].erase(state->simulation_information_llg[idx_chain].begin() + idx_image);

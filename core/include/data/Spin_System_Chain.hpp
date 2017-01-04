@@ -8,6 +8,14 @@
 
 namespace Data
 {
+	enum class GNEB_Image_Type
+	{
+		Normal,
+		Climbing,
+		Falling,
+		Stationary
+	};
+
 	class Spin_System_Chain
 	{
 	public:
@@ -25,8 +33,7 @@ namespace Data
 		bool iteration_allowed;
 
 		// Climbing and falling images
-		std::vector<bool> climbing_image;
-		std::vector<bool> falling_image;
+		std::vector<GNEB_Image_Type> image_type;
 
 		// Reaction coordinates of images in the chain
 		std::vector<scalar> Rx;
