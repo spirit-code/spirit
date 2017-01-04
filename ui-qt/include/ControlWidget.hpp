@@ -46,6 +46,8 @@ private slots:
 	void save_EPressed();
 
 private:
+	void readSettings();
+	void writeSettings();
 	// State
 	std::shared_ptr<State> state;
 	// Spin Widget
@@ -60,6 +62,9 @@ private:
 
 	// ...
 	void save_Energies();
+
+protected:
+	void closeEvent(QCloseEvent *event);
 };
 
 #endif

@@ -49,6 +49,9 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
 	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
+
+	// Read persistent settings
+	this->readSettings();
 }
 
 void ControlWidget::updateData()
@@ -347,4 +350,33 @@ void ControlWidget::save_EPressed()
 		snprintf(newName, 20, "Energies_%03i.txt", a);
 		lineEdit_Save_E->setText(newName);
 	}
+}
+
+void ControlWidget::readSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+	// Method and Optimizer
+	settings.beginGroup("ControlWidget");
+	this->comboBox_Method->setCurrentIndex(settings.value("Method").toInt());
+	this->comboBox_Optimizer->setCurrentIndex(settings.value("Optimizer").toInt());
+	settings.endGroup();
+}
+
+void ControlWidget::writeSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+	// Method and Optimizer
+	settings.beginGroup("ControlWidget");
+	settings.setValue("Method", this->comboBox_Method->currentIndex());
+	settings.setValue("Optimizer", this->comboBox_Optimizer->currentIndex());
+	settings.endGroup();
+}
+
+
+void ControlWidget::closeEvent(QCloseEvent *event)
+{
+	writeSettings();
+	event->accept();
 }
