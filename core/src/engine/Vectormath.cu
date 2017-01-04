@@ -1,6 +1,8 @@
 #ifdef USE_CUDA
 
 #include <engine/Vectormath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -107,6 +109,42 @@ namespace Engine
 
 		/////////////////////////////////////////////////////////////////
 
+        void fill(scalarfield & sf, scalar s)
+		{
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				sf[i] = s;
+			}
+		}
+
+		void scale(scalarfield & sf, scalar s)
+		{
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				sf[i] *= s;
+			}
+		}
+
+		scalar sum(const scalarfield & sf)
+		{
+			scalar ret = 0;
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				ret += sf[i];
+			}
+			return ret;
+		}
+
+		scalar mean(const scalarfield & sf)
+		{
+			scalar ret = 0;
+			for (unsigned int i = 0; i<sf.size(); ++i)
+			{
+				ret = (i - 1) / i * ret + sf[i] / i;
+			}
+			return ret;
+		}
+
 
         __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
         {
@@ -137,6 +175,28 @@ namespace Engine
             cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sc, n);
             cudaDeviceSynchronize();
         }
+
+        Vector3 sum(const vectorfield & vf)
+		{
+			Vector3 ret = { 0,0,0 };
+			for (unsigned int i = 0; i<vf.size(); ++i)
+			{
+				ret += vf[i];
+			}
+			return ret;
+		}
+
+		Vector3 mean(const vectorfield & vf)
+		{
+			Vector3 ret = { 0,0,0 };
+			for (unsigned int i = 0; i<vf.size(); ++i)
+			{
+				ret = (i-1)/i * ret + vf[i]/i;
+			}
+			return ret;
+		}
+
+
 
 
         __global__ void cu_dot(const Vector3 *vf1, const Vector3 *vf2, double *out, size_t N)

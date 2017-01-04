@@ -42,8 +42,10 @@ configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}
 if ( CORE_USE_CUDA )
     find_package( CUDA REQUIRED )
     add_definitions( -DUSE_CUDA )
-	set (CUDA_PROPAGATE_HOST_FLAGS ON)
-    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --std=c++11 -arch=sm_30 --expt-relaxed-constexpr" )
+	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
+	# --std=c++11 flag may be necessary, but it is propagated from global flags...
+	# if it appears twice, for some reason the compilation breaks
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30 --expt-relaxed-constexpr" )
 endif()
 #############################################
 
@@ -117,18 +119,18 @@ if( NOT CORE_USE_CUDA )
 	if( BUILD_UI_CXX )
 		MESSAGE( STATUS ">> Building static cxx library" )
 		add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
-		if ( CORE_USE_CUDA )
-		else()
-			target_link_libraries( core libqhullcpp )
-		endif()
+		target_link_libraries( core libqhullcpp )
 	endif()
 else()
-	include_directories( ${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+	include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
 	if( BUILD_UI_CXX )
 		cuda_add_library( core STATIC ${CORE_LIBRARY_SOURCES} )
 		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
 	endif()
 endif()
+set_property(TARGET core PROPERTY CXX_STANDARD 11)
+set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET core PROPERTY CXX_EXTENSIONS OFF)
 #############################################
 
 ######### Tell CMake to create the shared library for the Python UI

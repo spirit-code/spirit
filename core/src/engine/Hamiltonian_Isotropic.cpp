@@ -99,15 +99,8 @@ namespace Engine
 	}
 
 
-	scalar Hamiltonian_Isotropic::Energy(const vectorfield & spins)
-	{
-		scalar sum = 0;
-		auto e = Energy_Array(spins);
-		for (auto E : e) sum += E.second;
-		return sum;
-	}
 
-	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Array(const vectorfield & spins)
+	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Contributions(const vectorfield & spins)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
@@ -259,7 +252,7 @@ namespace Engine
 		return result;
 	}// end DipoleDipole
 
-	void Hamiltonian_Isotropic::Effective_Field(const vectorfield & spins, vectorfield & field)
+	void Hamiltonian_Isotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
@@ -268,67 +261,67 @@ namespace Engine
 		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
 		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
 		//Initialize field to { 0 }
-		for (i = 0; i < nos; ++i) {
-			field[i] = { 0,0,0 };
-		}
+		Vectormath::fill(gradient, {0,0,0});
 		//------------------------ End Init ----------------------------------------
 		if (this->dd_radius != 0.0)
 		{
 			for (i = istart; i < istop; ++i)
 			{
-				Field_Zeeman(nos, spins, field, i);
-				Field_Exchange(nos, spins, field, i);
-				Field_Anisotropic(nos, spins, field, i);
-				Field_BQC(nos, spins, field, i);
-				Field_FourSC(nos, spins, field, i);
-				Field_DM(nos, spins, field, i);
-				Field_DipoleDipole(nos, spins, field, i);
+				Field_Zeeman(nos, spins, gradient, i);
+				Field_Exchange(nos, spins, gradient, i);
+				Field_Anisotropic(nos, spins, gradient, i);
+				Field_BQC(nos, spins, gradient, i);
+				Field_FourSC(nos, spins, gradient, i);
+				Field_DM(nos, spins, gradient, i);
+				Field_DipoleDipole(nos, spins, gradient, i);
 			}//endfor i
 		}// endif dd_radius!=0.0
 		else if (this->kijkl != 0.0 && this->dij != 0.0)
 		{
 			for (i = istart; i < istop; ++i)
 			{
-				Field_Zeeman(nos, spins, field, i);
-				Field_Exchange(nos, spins, field, i);
-				Field_Anisotropic(nos, spins, field, i);
-				Field_BQC(nos, spins, field, i);
-				Field_FourSC(nos, spins, field, i);
-				Field_DM(nos, spins, field, i);
+				Field_Zeeman(nos, spins, gradient, i);
+				Field_Exchange(nos, spins, gradient, i);
+				Field_Anisotropic(nos, spins, gradient, i);
+				Field_BQC(nos, spins, gradient, i);
+				Field_FourSC(nos, spins, gradient, i);
+				Field_DM(nos, spins, gradient, i);
 			}//endfor i
 		}//endif kijkl != 0 & dij !=0
 		else if (this->kijkl == 0.0 && this->dij == 0.0)
 		{
 			for (i = istart; i < istop; ++i)
 			{
-				Field_Zeeman(nos, spins, field, i);
-				Field_Exchange(nos, spins, field, i);
-				Field_Anisotropic(nos, spins, field, i);
-				Field_BQC(nos, spins, field, i);
+				Field_Zeeman(nos, spins, gradient, i);
+				Field_Exchange(nos, spins, gradient, i);
+				Field_Anisotropic(nos, spins, gradient, i);
+				Field_BQC(nos, spins, gradient, i);
 			}//endfor i
 		}//endif kijkl == 0 & dij ==0
 		else if (this->kijkl == 0.0 && this->dij != 0.0)
 		{
 			for (i = istart; i < istop; ++i)
 			{
-				Field_Zeeman(nos, spins, field, i);
-				Field_Exchange(nos, spins, field, i);
-				Field_Anisotropic(nos, spins, field, i);
-				Field_BQC(nos, spins, field, i);
-				Field_DM(nos, spins, field, i);
+				Field_Zeeman(nos, spins, gradient, i);
+				Field_Exchange(nos, spins, gradient, i);
+				Field_Anisotropic(nos, spins, gradient, i);
+				Field_BQC(nos, spins, gradient, i);
+				Field_DM(nos, spins, gradient, i);
 			}//endfor i
 		}//endif kijkl == 0 & dij !=0
 		else if (this->kijkl != 0.0 && this->dij == 0.0)
 		{
 			for (i = istart; i < istop; ++i)
 			{
-				Field_Zeeman(nos, spins, field, i);
-				Field_Exchange(nos, spins, field, i);
-				Field_Anisotropic(nos, spins, field, i);
-				Field_BQC(nos, spins, field, i);
-				Field_FourSC(nos, spins, field, i);
+				Field_Zeeman(nos, spins, gradient, i);
+				Field_Exchange(nos, spins, gradient, i);
+				Field_Anisotropic(nos, spins, gradient, i);
+				Field_BQC(nos, spins, gradient, i);
+				Field_FourSC(nos, spins, gradient, i);
 			}//endfor i
 		}//endif kijkl != 0 & dij ==0
+		// Turn the effective field into a gradient
+		Vectormath::scale(gradient, -1);
 	}
 
 	void Hamiltonian_Isotropic::Field_Zeeman(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)

@@ -25,12 +25,12 @@ namespace Engine
 			std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<Vector3> center
 		);
 
+		void Update_Energy_Contributions() override;
+
 		// General Hamiltonian functions
-		void Hessian(const std::vector<Vector3> & spins, MatrixX & hessian) override;
-		void Effective_Field(const std::vector<Vector3> & spins, std::vector<Vector3> & field) override;
-		scalar Energy(const std::vector<Vector3> & spins) override;
-		std::vector<std::pair<std::string, scalar>> Energy_Array(const std::vector<Vector3> & spins) override;
-		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
+		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
+		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;

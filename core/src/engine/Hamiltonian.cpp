@@ -132,8 +132,8 @@ namespace Engine
 				//d[i + dim*nos] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
 				if (d[i + dim*nos] > 0)
 				{
-					this->Effective_Field(spins_p, grad_p[i + dim*nos]);
-					this->Effective_Field(spins_m, grad_m[i + dim*nos]);
+					this->Gradient(spins_p, grad_p[i + dim*nos]);
+					this->Gradient(spins_m, grad_m[i + dim*nos]);
 				}
 				else d[i + dim*nos] = 1;
 			}
@@ -154,7 +154,7 @@ namespace Engine
 		}
 	}
 
-    void Hamiltonian::Effective_Field(const vectorfield & spins, vectorfield & field)
+    void Hamiltonian::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
 		// This is a regular finite difference implementation (probably not very efficient)
 
@@ -183,35 +183,37 @@ namespace Engine
 				{
 					scalar E_plus = this->Energy(spins_plus);
 					scalar E_minus = this->Energy(spins_minus);
-					field[i][dim] = (E_minus - E_plus) / d;
+					gradient[i][dim] = (E_plus - E_minus) / d;
 				}
-				else field[i][dim] = 0;
+				else gradient[i][dim] = 0;
 			}
 		}
     }
 
-    scalar Hamiltonian::Energy(const vectorfield & spins)
+	scalar Hamiltonian::Energy(const vectorfield & spins)
+	{
+		scalar sum = 0;
+		auto energy = Energy_Contributions(spins);
+		for (auto E : energy) sum += E.second;
+		return sum;
+	}
+
+    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions(const vectorfield & spins)
     {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy() of the Hamiltonian base class!"));
-        throw Utility::Exception::Not_Implemented;
-        return 0.0;
+		Energy_Contributions_per_Spin(spins, this->energy_contributions_per_spin);
+		std::vector<std::pair<std::string, scalar>> energy(this->energy_contributions_per_spin.size());
+		for (unsigned int i = 0; i < energy.size(); ++i)
+		{
+			energy[i] = { this->energy_contributions_per_spin[i].first, Vectormath::sum(this->energy_contributions_per_spin[i].second) };
+		}
+		return energy;
     }
 
-    std::vector<std::vector<scalar>> Hamiltonian::Energy_Array_per_Spin(const vectorfield & spins)
+	void Hamiltonian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array_per_Spin() of the Hamiltonian base class!"));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!"));
         throw Utility::Exception::Not_Implemented;
-        return std::vector<std::vector<scalar>>(spins.size(), std::vector<scalar>(7, 0.0));
-    }
-
-    std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Array(const vectorfield & spins)
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Energy_Array() of the Hamiltonian base class!"));
-        throw Utility::Exception::Not_Implemented;
-        return std::vector<std::pair<std::string, scalar>>(0);
     }
 
 	static const std::string name = "--";

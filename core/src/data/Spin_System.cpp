@@ -98,13 +98,14 @@ namespace Data
 
 	void Spin_System::UpdateEnergy()
 	{
-		this->E_array = this->hamiltonian->Energy_Array(*this->spins);
+		this->E_array = this->hamiltonian->Energy_Contributions(*this->spins);
 		this->E = this->hamiltonian->Energy(*this->spins);
 	}
 
 	void Spin_System::UpdateEffectiveField()
 	{
-		this->hamiltonian->Effective_Field(*this->spins, this->effective_field);
+		this->hamiltonian->Gradient(*this->spins, this->effective_field);
+		Engine::Vectormath::scale(this->effective_field, -1);
 	}
 
 }

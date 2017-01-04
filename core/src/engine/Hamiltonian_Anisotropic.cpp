@@ -1,3 +1,5 @@
+#ifndef USE_CUDA
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -44,69 +46,69 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Update_Energy_Contributions()
 	{
-		this->E = std::vector<std::pair<std::string, scalar>>(0);
+		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
+
 		// External field
 		if (this->external_field_index.size() > 0)
 		{
-			this->E.push_back({"Zeeman", 0});
-			this->idx_zeeman = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
+			this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_zeeman = -1;
 		// Anisotropy
 		if (this->anisotropy_index.size() > 0)
 		{
-			this->E.push_back({"Anisotropy", 0});
-			this->idx_anisotropy = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
+			this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_anisotropy = -1;
 		// Exchange
 		if (this->Exchange_indices[0].size() > 0)
 		{
-			this->E.push_back({"Exchange", 0});
-			this->idx_exchange = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
+			this->idx_exchange = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_exchange = -1;
 		// DMI
 		if (this->DMI_indices[0].size() > 0)
 		{
-			this->E.push_back({"DMI", 0});
-			this->idx_dmi = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
+			this->idx_dmi = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dmi = -1;
 		// Dipole-Dipole
 		if (this->DD_indices[0].size() > 0)
 		{
-			this->E.push_back({"DD", 0});
-			this->idx_dd = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0) });
+			this->idx_dd = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dd = -1;
 		// Quadruplet
 		if (this->Quadruplet_indices[0].size() > 0)
 		{
-			this->E.push_back({"Quadruplet", 0});
-			this->idx_quadruplet = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Quadruplet", scalarfield(0) });
+			this->idx_quadruplet = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_quadruplet = -1;
 	}
 
-	scalar Hamiltonian_Anisotropic::Energy(const vectorfield & spins)
+	void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
-		scalar sum = 0;
-		auto e = Energy_Array(spins);
-		for (auto E : e) sum += E.second;
-		return sum;
-	}
-
-	std::vector<std::pair<std::string, scalar>> Hamiltonian_Anisotropic::Energy_Array(const vectorfield & spins)
-	{
-		// Set to zero
-		for (auto& pair : this->E) pair.second = 0;
+		int nos = spins.size();
+		for (auto& pair : energy_contributions_per_spin)
+		{
+			// Allocate if not already allocated
+			if (pair.second.size() != nos) pair.second = scalarfield(nos, 0);
+			// Otherwise set to zero
+			else for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
+		}
+		
 
 		// External field
-		if (this->idx_zeeman >=0 ) E_Zeeman(spins, E[idx_zeeman].second);
+		if (this->idx_zeeman >=0 ) E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
 
 		// Anisotropy
-		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, E[idx_anisotropy].second);
+		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, energy_contributions_per_spin[idx_anisotropy].second);
 
 		// Pairs
 		//		Loop over periodicity
@@ -124,111 +126,67 @@ namespace Engine
 			{
 				//		Energies of this periodicity
 				// Exchange
-				if (this->idx_exchange >=0 ) E_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], E[idx_exchange].second);
+				if (this->idx_exchange >=0 ) E_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], energy_contributions_per_spin[idx_exchange].second);
 				// DMI
-				if (this->idx_dmi >=0 ) E_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], E[idx_dmi].second);
+				if (this->idx_dmi >=0 ) E_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], energy_contributions_per_spin[idx_dmi].second);
 				// DD
-				if (this->idx_dd >=0 ) E_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], E[idx_dd].second);
+				if (this->idx_dd >=0 ) E_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], energy_contributions_per_spin[idx_dd].second);
 				// Quadruplet
-				if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], E[idx_quadruplet].second);
+				if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], energy_contributions_per_spin[idx_quadruplet].second);
 			}
 		}
 
 		// Return
-		return this->E;
+		//return this->E;
 	}
 
-	//std::vector<std::vector<scalar>> Hamiltonian_Anisotropic::Energy_Array_per_Spin(std::vector<scalar> & spins)
-	//{
-	//	int nos = spins.size() / 3;
-	//	//     0           1           2      3     4          5            6
-	//	// ext. field; anisotropy; exchange; dmi; 4spin; dipole-dipole; quadruplet
-	//	std::vector<std::vector<scalar>> E(nos, std::vector<scalar>(7, 0)); // [nos][6], initialized with zeros
-	//	std::vector<scalar> E_temp(7, 0);
-
-	//	//// Loop over Spins
-	//	//for (int i = 0; i<nos; ++i)
-	//	//{
-	//	//	// AT SOME POINT WE MIGHT CONSTRUCT A CLASS ANALOGOUS TO Spin_Pair FOR THIS
-	//	//	// External field
-	//	//	E_Zeeman(nos, spins, i, E[i]);
-	//	//	// Anisotropy
-	//	//	E_Anisotropy(nos, spins, i, E[i]);
-
-	//	//	E[i][6] += E_DipoleDipole(nos, spins, i);
-	//	//}
-
-	//	//// Loop over Pairs
-	//	//for (unsigned int i_pair = 0; i_pair<this->pairs.size(); ++i_pair)
-	//	//{
-	//	//	Data::Spin_Pair pair = this->pairs[i_pair];
-	//	//	// loop over contributions in pair
-	//	//	for (unsigned int j = 0; j<pair.energy_calls.size(); ++j)
-	//	//	{
-	//	//		for (unsigned int i = 0; i < E_temp.size(); ++i)
-	//	//		{
-	//	//			E_temp[i] = 0;
-	//	//		}
-	//	//		pair.energy_calls[j](this, nos, spins, pair, E_temp);
-	//	//		for (unsigned int i = 0; i < E_temp.size(); ++i)
-	//	//		{
-	//	//			E[pair.idx_1][i] += 0.5*E_temp[i];
-	//	//			E[pair.idx_2][i] += 0.5*E_temp[i];
-	//	//		}
-	//	//	}
-	//	//}
-
-	//	//// Triplet Interactions
-
-	//	//// Quadruplet Interactions
-
-	//	// Return
-	//	return E;
-	//}
-
-	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
-			Energy -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
+			Energy[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Anisotropy(const vectorfield & spins, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			Energy -= this->anisotropy_magnitude[i] * std::pow(anisotropy_normal[i].dot(spins[anisotropy_index[i]]), 2.0);
+			Energy[anisotropy_index[i]] -= this->anisotropy_magnitude[i] * std::pow(anisotropy_normal[i].dot(spins[anisotropy_index[i]]), 2.0);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalarfield & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			Energy -= J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
+			Energy[indices[i_pair][0]] -= 0.5 * J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
+			Energy[indices[i_pair][1]] -= 0.5 * J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalarfield & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			Energy -= DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
+			Energy[indices[i_pair][0]] -= 0.5 * DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
+			Energy[indices[i_pair][1]] -= 0.5 * DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
 		}
 	}
 
-	void Hamiltonian_Anisotropic::E_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalarfield & Energy)
 	{
 		//scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
-		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
 			if (DD_magnitude[i_pair] > 0.0)
 			{
-				Energy -= mult / std::pow(DD_magnitude[i_pair], 3.0) *
+				Energy[indices[i_pair][0]] -= mult / std::pow(DD_magnitude[i_pair], 3.0) *
+					(3 * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]));
+				Energy[indices[i_pair][1]] -= mult / std::pow(DD_magnitude[i_pair], 3.0) *
 					(3 * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]));
 			}
 
@@ -236,30 +194,33 @@ namespace Engine
 	}// end DipoleDipole
 
 
-	void Hamiltonian_Anisotropic::E_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, scalar & Energy)
+	void Hamiltonian_Anisotropic::E_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, scalarfield & Energy)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			Energy -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			Energy[indices[i_pair][0]] -= 0.25*magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			Energy[indices[i_pair][1]] -= 0.25*magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			Energy[indices[i_pair][2]] -= 0.25*magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			Energy[indices[i_pair][3]] -= 0.25*magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
 		}
 	}
 
 
 
-	void Hamiltonian_Anisotropic::Effective_Field(const vectorfield & spins, vectorfield & field)
+	void Hamiltonian_Anisotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		int nos = spins.size();
 		// Loop over Spins
 		for (int i = 0; i < nos; ++i)
 		{
-			field[i].setZero();
+			gradient[i].setZero();
 		}
 
 		// External field
-		Field_Zeeman(spins, field);
+		Gradient_Zeeman(spins, gradient);
 
 		// Anisotropy
-		Field_Anisotropy(spins, field);
+		Gradient_Anisotropy(spins, gradient);
 
 		// Pairs
 		//		Loop over periodicity
@@ -277,13 +238,13 @@ namespace Engine
 			{
 				//		Fields of this periodicity
 				// Exchange
-				this->Field_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], field);
+				this->Gradient_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], gradient);
 				// DMI
-				this->Field_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], field);
+				this->Gradient_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], gradient);
 				// DD
-				this->Field_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], field);
+				this->Gradient_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], gradient);
 				// Quadruplet
-				this->Field_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], field);
+				this->Gradient_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], gradient);
 			}
 		}
 
@@ -292,41 +253,41 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Field_Zeeman(const vectorfield & spins, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
-			eff_field[external_field_index[i]] += this->external_field_magnitude[i] * this->external_field_normal[i];
+			gradient[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i];
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Anisotropy(const vectorfield & spins, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			eff_field[anisotropy_index[i]] += 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
+			gradient[anisotropy_index[i]] -= 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += J_ij[i_pair] * spins[indices[i_pair][1]];
-			eff_field[indices[i_pair][1]] += J_ij[i_pair] * spins[indices[i_pair][0]];
+			gradient[indices[i_pair][0]] -= J_ij[i_pair] * spins[indices[i_pair][1]];
+			gradient[indices[i_pair][1]] -= J_ij[i_pair] * spins[indices[i_pair][0]];
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
-			eff_field[indices[i_pair][1]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
+			gradient[indices[i_pair][0]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
+			gradient[indices[i_pair][1]] += DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
 		}
 	}
 
-	void Hamiltonian_Anisotropic::Field_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient)
 	{
 		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -336,21 +297,21 @@ namespace Engine
 			if (DD_magnitude[i_pair] > 0.0)
 			{
 				scalar skalar_contrib = mult / std::pow(DD_magnitude[i_pair], 3.0);
-				eff_field[indices[i_pair][0]] += skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
-				eff_field[indices[i_pair][1]] += skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
+				gradient[indices[i_pair][0]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
+				gradient[indices[i_pair][1]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
 			}
 		}
 	}//end Field_DipoleDipole
 
 
-	void Hamiltonian_Anisotropic::Field_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & eff_field)
+	void Hamiltonian_Anisotropic::Gradient_Quadruplet(const vectorfield & spins, indexQuadruplets & indices, scalarfield & magnitude, vectorfield & gradient)
 	{
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
 		{
-			eff_field[indices[i_pair][0]] += magnitude[i_pair] * spins[indices[i_pair][1]] * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
-			eff_field[indices[i_pair][1]] += magnitude[i_pair] * spins[indices[i_pair][0]] *  (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
-			eff_field[indices[i_pair][2]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][3]];
-			eff_field[indices[i_pair][3]] += magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][2]];
+			gradient[indices[i_pair][0]] -= magnitude[i_pair] * spins[indices[i_pair][1]] * (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			gradient[indices[i_pair][1]] -= magnitude[i_pair] * spins[indices[i_pair][0]] *  (spins[indices[i_pair][2]].dot(spins[indices[i_pair][3]]));
+			gradient[indices[i_pair][2]] -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][3]];
+			gradient[indices[i_pair][3]] -= magnitude[i_pair] * (spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]])) * spins[indices[i_pair][2]];
 		}
 	}
 
@@ -376,91 +337,93 @@ namespace Engine
 
 		// std::cerr << "calculated hessian" << std::endl;
 
-		// // Spin Pair elements
-		// for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		// {
-		// 	//		Check if boundary conditions contain this periodicity
-		// 	if ((i_periodicity == 0)
-		// 		|| (i_periodicity == 1 && this->boundary_conditions[0])
-		// 		|| (i_periodicity == 2 && this->boundary_conditions[1])
-		// 		|| (i_periodicity == 3 && this->boundary_conditions[2])
-		// 		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-		// 		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-		// 		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-		// 		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
-		// 	{
-		// 		//		Loop over pairs of this periodicity
-		// 		// Exchange
-		// 		for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
-		// 		{
-		// 			for (int alpha = 0; alpha < 3; ++alpha)
-		// 			{
-		// 				int idx_i = 3*Exchange_indices[i_periodicity][i_pair][0] + alpha;
-		// 				int idx_j = 3*Exchange_indices[i_periodicity][i_pair][1] + alpha;
-		// 				hessian(idx_i,idx_j) += -Exchange_magnitude[i_periodicity][i_pair];
-		// 				hessian(idx_j,idx_i) += -Exchange_magnitude[i_periodicity][i_pair];
-		// 			}
-		// 		}
-		// 		// DMI
-		// 		for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
-		// 		{
-		// 			for (int alpha = 0; alpha < 3; ++alpha)
-		// 			{
-		// 				for (int beta = 0; beta < 3; ++beta)
-		// 				{
-		// 					int idx_i = 3*DMI_indices[i_periodicity][i_pair][0] + alpha;
-		// 					int idx_j = 3*DMI_indices[i_periodicity][i_pair][1] + beta;
-		// 					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
-		// 					{
-		// 						hessian(idx_i,idx_j) +=
-		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
-		// 						hessian(idx_j,idx_i) +=
-		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
-		// 					}
-		// 					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
-		// 					{
-		// 						hessian(idx_i,idx_j) +=
-		// 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
-		// 						hessian(idx_j,idx_i) +=
-		// 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
-		// 					}
-		// 					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
-		// 					{
-		// 						hessian(idx_i,idx_j) +=
-		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
-		// 						hessian(idx_j,idx_i) +=
-		// 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
-		// 					}
-		// 				}
-		// 			}
-		// 		}
-		// //		// Dipole-Dipole
-		// //		for (unsigned int i_pair = 0; i_pair < this->DD_indices[i_periodicity].size(); ++i_pair)
-		// //		{
-		// //			// indices
-		// //			int idx_1 = DD_indices[i_periodicity][i_pair][0];
-		// //			int idx_2 = DD_indices[i_periodicity][i_pair][1];
-		// //			// prefactor
-		// //			scalar prefactor = 0.0536814951168
-		// //				* this->mu_s[idx_1] * this->mu_s[idx_2]
-		// //				/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
-		// //			// components
-		// //			for (int alpha = 0; alpha < 3; ++alpha)
-		// //			{
-		// //				for (int beta = 0; beta < 3; ++beta)
-		// //				{
-		// //					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
-		// //					if (alpha == beta)
-		// //						hessian[idx_h] += prefactor;
-		// //					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
-		// //				}
-		// //			}
-		// //		}
-		// 	}// end if periodicity
-		// }// end for periodicity
+		 // Spin Pair elements
+		 for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		 {
+		 	//		Check if boundary conditions contain this periodicity
+		 	if ((i_periodicity == 0)
+		 		|| (i_periodicity == 1 && this->boundary_conditions[0])
+		 		|| (i_periodicity == 2 && this->boundary_conditions[1])
+		 		|| (i_periodicity == 3 && this->boundary_conditions[2])
+		 		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+		 		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+		 		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+		 		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+		 	{
+		 		//		Loop over pairs of this periodicity
+		 		// Exchange
+		 		for (unsigned int i_pair = 0; i_pair < this->Exchange_indices[i_periodicity].size(); ++i_pair)
+		 		{
+		 			for (int alpha = 0; alpha < 3; ++alpha)
+		 			{
+		 				int idx_i = 3*Exchange_indices[i_periodicity][i_pair][0] + alpha;
+		 				int idx_j = 3*Exchange_indices[i_periodicity][i_pair][1] + alpha;
+		 				hessian(idx_i,idx_j) += -Exchange_magnitude[i_periodicity][i_pair];
+		 				hessian(idx_j,idx_i) += -Exchange_magnitude[i_periodicity][i_pair];
+		 			}
+		 		}
+		 		// DMI
+		 		for (unsigned int i_pair = 0; i_pair < this->DMI_indices[i_periodicity].size(); ++i_pair)
+		 		{
+		 			for (int alpha = 0; alpha < 3; ++alpha)
+		 			{
+		 				for (int beta = 0; beta < 3; ++beta)
+		 				{
+		 					int idx_i = 3*DMI_indices[i_periodicity][i_pair][0] + alpha;
+		 					int idx_j = 3*DMI_indices[i_periodicity][i_pair][1] + beta;
+		 					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 						hessian(idx_j,idx_i) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 					}
+		 					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 						hessian(idx_j,idx_i) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 					}
+		 					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 						hessian(idx_j,idx_i) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 					}
+		 				}
+		 			}
+		 		}
+		 //		// Dipole-Dipole
+		 //		for (unsigned int i_pair = 0; i_pair < this->DD_indices[i_periodicity].size(); ++i_pair)
+		 //		{
+		 //			// indices
+		 //			int idx_1 = DD_indices[i_periodicity][i_pair][0];
+		 //			int idx_2 = DD_indices[i_periodicity][i_pair][1];
+		 //			// prefactor
+		 //			scalar prefactor = 0.0536814951168
+		 //				* this->mu_s[idx_1] * this->mu_s[idx_2]
+		 //				/ std::pow(DD_magnitude[i_periodicity][i_pair], 3);
+		 //			// components
+		 //			for (int alpha = 0; alpha < 3; ++alpha)
+		 //			{
+		 //				for (int beta = 0; beta < 3; ++beta)
+		 //				{
+		 //					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+		 //					if (alpha == beta)
+		 //						hessian[idx_h] += prefactor;
+		 //					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
+		 //				}
+		 //			}
+		 //		}
+		 	}// end if periodicity
+		 }// end for periodicity
 	}
 
 	// Hamiltonian name as string
 	static const std::string name = "Anisotropic Heisenberg";
 	const std::string& Hamiltonian_Anisotropic::Name() { return name; }
 }
+
+#endif

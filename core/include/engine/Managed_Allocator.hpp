@@ -22,34 +22,49 @@
 
 
 template<class T>
-class managed_allocator
+class managed_allocator : public std::allocator<T>
 {
-  public:
+public:
     using value_type = T;
-  
+
+
+    template<typename _Tp1>
+    struct rebind
+    {
+        typedef managed_allocator<_Tp1> other;
+    };
+
+
     value_type* allocate(size_t n)
     {
-      value_type* result = nullptr;
+        value_type* result = nullptr;
 
-      cudaError_t err = cudaMallocManaged(&result, n*sizeof(T), cudaMemAttachGlobal);
-      if (err != cudaSuccess)
-      {
-        printf( "%s in %s at line %d\n", cudaGetErrorString( err ), __FILE__, __LINE__ );
-        exit( EXIT_FAILURE );
-      }
+        cudaError_t err = cudaMallocManaged(&result, n*sizeof(T), cudaMemAttachGlobal);
+        if (err != cudaSuccess)
+        {
+            printf( "%s in %s at line %d\n", cudaGetErrorString( err ), __FILE__, __LINE__ );
+            exit( EXIT_FAILURE );
+        }
 
-      return result;
+        return result;
     }
-  
+
     void deallocate(value_type* ptr, size_t)
     {
-      cudaError_t err = cudaFree(ptr);
-      if (err != cudaSuccess)
-      {
-        printf( "%s in %s at line %d\n", cudaGetErrorString( err ), __FILE__, __LINE__ );
-        exit( EXIT_FAILURE );
-      }
+        cudaError_t err = cudaFree(ptr);
+        if (err != cudaSuccess)
+        {
+            printf( "%s in %s at line %d\n", cudaGetErrorString( err ), __FILE__, __LINE__ );
+            exit( EXIT_FAILURE );
+        }
     }
+
+
+    managed_allocator() throw(): std::allocator<T>() { } //fprintf(stderr, "Hello managed allocator!\n"); }
+    managed_allocator(const managed_allocator &a) throw(): std::allocator<T>(a) { }
+    template <class U>                    
+    managed_allocator(const managed_allocator<U> &a) throw(): std::allocator<T>(a) { }
+    ~managed_allocator() throw() { }
 };
 
 #endif

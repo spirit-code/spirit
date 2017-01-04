@@ -46,7 +46,7 @@ namespace Engine
 
 		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
 		//		The Optimizer shuld respect this, but there is no way to enforce it.
-		// Get Energy and Effective Field of configurations
+		// Get Energy and Gradient of configurations
 		for (int i = 0; i < chain->noi; ++i)
 		{
 			// Calculate the Energy of the image
@@ -58,7 +58,7 @@ namespace Engine
 		Engine::Manifoldmath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
-		// Loop over images to calculate the total Effective Field on each Image
+		// Loop over images to calculate the total force on each Image
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
 			auto& image = *configurations[img];

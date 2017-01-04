@@ -3,6 +3,8 @@
 #include <Vectormath.hpp>
 #include <Manifoldmath.hpp>
 
+#include <vector>
+#include <memory>
 #include <cmath>
 #include <iostream>
 #include <stdio.h>
@@ -10,11 +12,11 @@
 // CUDA Version
 namespace Engine
 {
-	namespace Vectormath
+	namespace Manifoldmath
 	{
         scalar norm(const vectorfield & vf)
         {
-            scalar x = dot(vf, vf);
+            scalar x = Vectormath::dot(vf, vf);
             cudaDeviceSynchronize();
             return std::sqrt(x);
         }
@@ -22,7 +24,7 @@ namespace Engine
         void normalize(vectorfield & vf)
         {
             scalar sc = 1.0/norm(vf);
-            scale(vf, sc);
+            Vectormath::scale(vf, sc);
             cudaDeviceSynchronize();
         }
 
@@ -31,7 +33,7 @@ namespace Engine
         {
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
-            add_c_a(-1, vf3, vf1);
+            Vectormath::add_c_a(-1, vf3, vf1);
             cudaDeviceSynchronize();
         }
 
@@ -51,7 +53,7 @@ namespace Engine
             int n = vf1.size();
 
             // Get projection
-            scalar proj=dot(vf1, vf2);
+            scalar proj=Vectormath::dot(vf1, vf2);
             // Project vf1
             cu_project_orthogonal<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), proj, n);
             cudaDeviceSynchronize();
@@ -59,8 +61,8 @@ namespace Engine
 
         void invert_parallel(vectorfield & vf1, const vectorfield & vf2)
         {
-            scalar proj=dot(vf1, vf2);
-            add_c_a(-2*proj, vf2, vf1);
+            scalar proj=Vectormath::dot(vf1, vf2);
+            Vectormath::add_c_a(-2*proj, vf2, vf1);
             cudaDeviceSynchronize();
         }
         
@@ -68,7 +70,7 @@ namespace Engine
         {
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
-            add_c_a(-2, vf3, vf1);
+            Vectormath::add_c_a(-2, vf3, vf1);
             cudaDeviceSynchronize();
         }
 
@@ -205,7 +207,6 @@ namespace Engine
 
 				// Project tangents onto normal planes of spin vectors to make them actual tangents
 				//Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
-				scalar v1v2 = 0.0;
 				for (int i = 0; i < nos; ++i)
 				{
 					// Get the scalar product of the vectors
