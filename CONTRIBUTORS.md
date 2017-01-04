@@ -5,9 +5,13 @@
 * University of Iceland
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-General code design.<br />
-Implementation of the core library and it's C API. Notably the addition of the GNEB and MMF methods.<br />
-Implementation of Python UI and C++ QT UI and initial OpenGL code.<br />
+General code design and project setup (including CMake).<br />
+Implementation of the core library and UIs, most notably:
+- GNEB and MMF methods
+- VP Optimizer
+- CUDA backend
+- C API
+- C++ QT and Python UIs and initial OpenGL code
 
 -----------------
 
@@ -16,8 +20,8 @@ Implementation of Python UI and C++ QT UI and initial OpenGL code.<br />
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Implementation of the core library, notably translating from Fortran90 to C++ and addition of STT to SIB <br />
-Implementation of QT UI and improvements to Python UI
+Implementation of the initial core library, notably translating from Fortran90 to C++ and addition of STT to SIB.<br />
+Work on QT Python UIs.
 
 -----------------
 
@@ -25,7 +29,8 @@ Implementation of QT UI and improvements to Python UI
 ### Nikolai Kiselev
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Initial implementations of the isotropic Hamiltonian, Neighbour calculations and the SIB optimizer.
+Initial (Fortran90) implementations of the isotropic Hamiltonian, Neighbour calculations and the SIB optimizer.<br/>
+Scientific advice, general help and feedback.
 
 -----------------
 
@@ -34,7 +39,7 @@ Initial implementations of the isotropic Hamiltonian, Neighbour calculations and
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 
 Implementation of C++ OpenGL code (gl library), as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements. 
+Code design improvements (including CMake). 
 
 -----------------
 
@@ -43,7 +48,16 @@ Code design improvements.
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 
 Implementation of the initial OpenGL code.<br />
-Code design improvements and other general help.
+Code design suggestions and other general help.
+
+-----------------
+
+
+### Mathias Redies, Maximilian Merte, Rene Suckert
+* RWTH Aachen 
+
+Initial CUDA implementation and tests.<br />
+Code optimizations, suggestions and feedback.
 
 -----------------
 

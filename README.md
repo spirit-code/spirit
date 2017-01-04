@@ -150,17 +150,21 @@ Please be aware that our CMake scripts are written for our use cases and
 you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
 
 The important **Options** you can set under *### Build Flags ###* are:
-* BUILD_UI_WEB - build the web interface instead of others
+* BUILD_UI_WEB    - build the web interface instead of others
 * BUILD_UI_PYTHON - build the python library
-* BUILD_UI_JULIA - build the julia library
-* BUILD_UI_CXX - build the C++ interfaces (console or QT) instead of others
-* UI_CXX_USE_QT - build qt user interface instead of console version
+* BUILD_UI_JULIA  - build the julia library
+* BUILD_UI_CXX    - build the C++ interfaces (console or QT) instead of others
+* UI_CXX_USE_QT   - build qt user interface instead of console version
+
+Core options:
+* CORE_BUILD_TEST  - build unit tests for the core library
+* CORE_USE_CUDA    - use CUDA to speed up numerically intensive parts of the core
+* CORE_SCALAR_TYPE - should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc.
 
 Further Options include:
 * OSX_BUNDLE_APP - not yet functional
 * PRINT_SOURCES - print all source files (for debugging)
 * USER_PATHS_IFF - use default IFF (FZJ) cluster paths
-* CORE_SCALAR_TYPE - should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc.
 
 The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
 * USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
