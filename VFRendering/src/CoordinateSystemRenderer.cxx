@@ -49,15 +49,28 @@ void CoordinateSystemRenderer::optionsHaveChanged(const std::vector<int>& change
         return;
     }
     bool update_shader = false;
+    bool update_vertices = false;
     for (auto option_index : changed_options) {
         switch (option_index) {
         case View::Option::COLORMAP_IMPLEMENTATION:
             update_shader = true;
             break;
+        case Option::AXIS_LENGTH:
+        case Option::CONE_RADIUS:
+        case Option::CONE_HEIGHT:
+        case Option::CYLINDER_RADIUS:
+        case Option::CYLINDER_HEIGHT:
+        case Option::LEVEL_OF_DETAIL:
+        case Option::NORMALIZE:
+            update_vertices = true;
+            break;
         }
     }
     if (update_shader) {
         updateShaderProgram();
+    }
+    if (update_vertices) {
+        updateVertexData();
     }
 }
 

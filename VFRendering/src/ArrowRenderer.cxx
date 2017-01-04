@@ -74,8 +74,8 @@ void ArrowRenderer::optionsHaveChanged(const std::vector<int>& changed_options) 
         case Option::CONE_RADIUS:
         case Option::CONE_HEIGHT:
         case Option::CYLINDER_RADIUS:
-		case Option::CYLINDER_HEIGHT:
-		case Option::LEVEL_OF_DETAIL:
+        case Option::CYLINDER_HEIGHT:
+        case Option::LEVEL_OF_DETAIL:
             update_vertices = true;
             break;
         case View::Option::COLORMAP_IMPLEMENTATION:
