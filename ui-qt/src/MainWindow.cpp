@@ -201,11 +201,13 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		// Cut the current Spin System from the chain
 		this->controlWidget->cut_image();
+		this->createStatusBar();
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste clipboard image to current
 		this->controlWidget->paste_image();
+		this->createStatusBar();
 	}
 
 	// Custom Key Sequences
@@ -216,11 +218,13 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
 				this->controlWidget->paste_image("left");
+				this->createStatusBar();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
 				this->controlWidget->paste_image("right");
+				this->createStatusBar();
 				break;
 			
 			// CTRL+F - Fullscreen mode
@@ -427,6 +431,9 @@ void MainWindow::createStatusBar()
 	this->m_Label_NOC = new QLabel;
 	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1("  "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
+
+	// Update contents
+	this->updateStatusBar();
 }
 
 
