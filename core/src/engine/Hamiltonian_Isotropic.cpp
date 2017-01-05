@@ -42,19 +42,20 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::Update_Energy_Contributions()
 	{
-		this->E = std::vector<std::pair<std::string, scalar>>(0);
+		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
+
 		// External field
 		if (this->external_field_magnitude != 0)
 		{
-			this->E.push_back({"Zeeman", 0});
-			this->idx_zeeman = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
+			this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_zeeman = -1;
 		// Anisotropy
 		if (this->anisotropy_magnitude != 0)
 		{
-			this->E.push_back({"Anisotropy", 0});
-			this->idx_anisotropy = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0)});
+			this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_anisotropy = -1;
 		// Exchange
@@ -62,8 +63,8 @@ namespace Engine
 		{
 			if (_j != 0)
 			{
-				this->E.push_back({"Exchange", 0});
-				this->idx_exchange = this->E.size()-1;
+				this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0)});
+				this->idx_exchange = this->energy_contributions_per_spin.size()-1;
 				break;
 			}
 			else this->idx_exchange = -1;
@@ -71,36 +72,36 @@ namespace Engine
 		// DMI
 		if (dij != 0)
 		{
-			this->E.push_back({"DMI", 0});
-			this->idx_dmi = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0)});
+			this->idx_dmi = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dmi = -1;
 		// BQC
 		if (bij != 0)
 		{
-			this->E.push_back({"BQC", 0});
-			this->idx_bqc = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"BQC", scalarfield(0)});
+			this->idx_bqc = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_bqc = -1;
 		// FSC
 		if (kijkl != 0)
 		{
-			this->E.push_back({"FSC", 0});
-			this->idx_fsc = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"FSC", scalarfield(0)});
+			this->idx_fsc = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_fsc = -1;
 		// Dipole-Dipole
 		if (this->dd_radius > 0)
 		{
-			this->E.push_back({"DD", 0});
-			this->idx_dd = this->E.size()-1;
+			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0)});
+			this->idx_dd = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dd = -1;
 	}
 
 
 
-	std::vector<std::pair<std::string, scalar>> Hamiltonian_Isotropic::Energy_Contributions(const vectorfield & spins)
+	void Hamiltonian_Isotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
@@ -109,147 +110,123 @@ namespace Engine
 		if (istart == -1) { istart = 0; istop = nos; f0 = 0.5; }
 		//------------------------ End Init ----------------------------------------
 
-		// Set to zero
-		for (auto& pair : this->E) pair.second = 0;
-
-		if (this->dd_radius != 0.0) {
-			for (i = istart; i < istop; ++i) {
-				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
-				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
-				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
-				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
-				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
-				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
-				if (idx_dd >= 0) E[idx_dd].second += E_DipoleDipole(nos, spins, i);
-			}//endfor i
+		for (auto& pair : energy_contributions_per_spin)
+		{
+			// Allocate if not already allocated
+			if (pair.second.size() != nos) pair.second = scalarfield(nos, 0);
+			// Otherwise set to zero
+			else for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
 		}
-		else if (this->kijkl != 0.0 && this->dij != 0.0) {
-			for (i = istart; i < istop; ++i) {
-				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
-				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
-				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
-				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
-				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
-				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
-			}//endfor i
-		}//endif kijkl != 0 & dij !=0
-		else if (this->kijkl == 0.0 && this->dij == 0.0) {
-			for (i = istart; i < istop; ++i) {
-				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
-				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
-				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
-				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
-			}//endfor i
-		}//endif kijkl == 0 & dij ==0
-		else if (this->kijkl == 0.0 && this->dij != 0.0) {
-			for (i = istart; i < istop; ++i) {
-				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
-				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
-				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
-				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
-				if (idx_dmi >= 0) E[idx_dmi].second += E_DM(nos, spins, i)*f0;
-			}//endfor i
-		}//endif kijkl == 0 & dij !=0
-		else if (this->kijkl != 0.0 && this->dij == 0.0) {
-			for (i = istart; i < istop; ++i) {
-				if (idx_zeeman >= 0) E[idx_zeeman].second += E_Zeeman(nos, spins, i);
-				if (idx_exchange >= 0) E[idx_exchange].second += E_Exchange(nos, spins, i) *f0;
-				if (idx_anisotropy >= 0) E[idx_anisotropy].second += E_Anisotropic(nos, spins, i);
-				if (idx_bqc >= 0) E[idx_bqc].second += E_BQC(nos, spins, i)*f0;
-				if (idx_fsc >= 0) E[idx_fsc].second += E_FourSC(nos, spins, i)*f0*f0;
-			}//endfor i
-		}//endif kijkl != 0 & Utility::Vectormath::Length(s->dij, s->n_shells) ==0
-		return this->E;
-	};//end Total_Array_
 
-	scalar Hamiltonian_Isotropic::E_Zeeman(int nos, const vectorfield & spins, const int ispin)
+		if (idx_zeeman >= 0)     E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
+		if (idx_exchange >= 0)   E_Exchange(spins, energy_contributions_per_spin[idx_exchange].second);
+		if (idx_anisotropy >= 0) E_Anisotropic(spins, energy_contributions_per_spin[idx_anisotropy].second);
+		if (idx_bqc >= 0)        E_BQC(spins, energy_contributions_per_spin[idx_bqc].second);
+		if (idx_fsc >= 0)        E_FourSC(spins, energy_contributions_per_spin[idx_fsc].second);
+		if (idx_dmi >= 0)        E_DM(spins, energy_contributions_per_spin[idx_dmi].second);
+		if (idx_dd >= 0)         E_DipoleDipole(spins, energy_contributions_per_spin[idx_dd].second);
+	};
+
+	void Hamiltonian_Isotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		return -this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			Energy[ispin] -= this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+		}
 	}//end Zeeman
 
-	scalar Hamiltonian_Isotropic::E_Exchange(int nos, const vectorfield & spins, const int ispin)
+	void Hamiltonian_Isotropic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
-		scalar result = 0;
-		for (int shell = 0; shell < this->n_neigh_shells; ++shell)
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
+			for (int shell = 0; shell < this->n_neigh_shells; ++shell)
+			{
+				for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+				{
+					int jspin = this->neigh[ispin][shell][jneigh];
+					Energy[ispin] -= 0.5 * this->jij[shell] * spins[ispin].dot(spins[jspin]);
+				}
+			}
+		}
+	}//end Exchange
+
+	void Hamiltonian_Isotropic::E_Anisotropic(const vectorfield & spins, scalarfield & Energy)
+	{
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			Energy[ispin] -= this->anisotropy_magnitude * std::pow(this->anisotropy_normal.dot(spins[ispin]), 2.0);
+		}
+	}//end Anisotropic
+
+	void Hamiltonian_Isotropic::E_BQC(const vectorfield & spins, scalarfield & Energy)
+	{
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			int shell = 0;
 			for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
 			{
 				int jspin = this->neigh[ispin][shell][jneigh];
-				result -= this->jij[shell] * spins[ispin].dot(spins[jspin]);
+				Energy[ispin] -= 0.5 * this->bij * spins[ispin].dot(spins[jspin]);
 			}
 		}
-		return result;
-	}//end Exchange
-
-	scalar Hamiltonian_Isotropic::E_Anisotropic(int nos, const vectorfield & spins, const int ispin)
-	{
-		return -this->anisotropy_magnitude * std::pow(this->anisotropy_normal.dot(spins[ispin]), 2.0);
-	}//end Anisotropic
-
-	scalar Hamiltonian_Isotropic::E_BQC(int nos, const vectorfield & spins, const int ispin)
-	{
-		scalar result = 0;
-		int shell = 0;
-		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
-		{
-			int jspin = this->neigh[ispin][shell][jneigh];
-			result -= this->bij * spins[ispin].dot(spins[jspin]);
-		}
-		return result;
 	}//end BQC
 
-	scalar Hamiltonian_Isotropic::E_FourSC(int nos, const vectorfield & spins, const int ispin)
+	void Hamiltonian_Isotropic::E_FourSC(const vectorfield & spins, scalarfield & Energy)
 	{
-		scalar result = 0.0;
-		scalar products[6];
-		for (int t = 0; t < this->n_4spin[ispin]; ++t)
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			int jspin = this->neigh_4spin[0][ispin][t];
-			int kspin = this->neigh_4spin[1][ispin][t];
-			int lspin = this->neigh_4spin[2][ispin][t];
-
-			products[0] = spins[ispin].dot(spins[jspin]);
-			products[1] = spins[kspin].dot(spins[lspin]);
-			products[2] = spins[ispin].dot(spins[lspin]);
-			products[3] = spins[jspin].dot(spins[kspin]);
-			products[4] = spins[ispin].dot(spins[kspin]);
-			products[5] = spins[jspin].dot(spins[lspin]);
-
-			result -= this->kijkl *
-				(products[0] * products[1]
-				+ products[2] * products[3]
-				- products[4] * products[5]);
-		}
-		return result;
-	}//end FourSC
-
-	scalar Hamiltonian_Isotropic::E_DM(int nos, const vectorfield & spins, const int ispin)
-	{
-		scalar result = 0.0;
-		int shell = 0;
-		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
-		{
-			int jspin = this->neigh[ispin][shell][jneigh];
-			result -= this->dij * this->dm_normal[ispin][jneigh].dot(spins[ispin].cross(spins[jspin]));
-		}
-		return result;
-	}// end DM
-
-	scalar Hamiltonian_Isotropic::E_DipoleDipole(int nos, const vectorfield& spins, const int ispin)
-	{
-		scalar mult = -std::pow(Vectormath::MuB(),2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
-		scalar result = 0.0;
-
-		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
-		{
-			if (dd_distance[ispin][jneigh] > 0.0)
+			scalar result = 0.0;
+			scalar products[6];
+			for (int t = 0; t < this->n_4spin[ispin]; ++t)
 			{
-				int jspin = this->dd_neigh[ispin][jneigh];
-				result += mult / std::pow(dd_distance[ispin][jneigh], 3.0) *
-					(3 * spins[jspin].dot(dd_normal[ispin][jneigh]) * spins[ispin].dot(dd_normal[ispin][jneigh]) - spins[ispin].dot(spins[jspin]));
+				int jspin = this->neigh_4spin[0][ispin][t];
+				int kspin = this->neigh_4spin[1][ispin][t];
+				int lspin = this->neigh_4spin[2][ispin][t];
+
+				products[0] = spins[ispin].dot(spins[jspin]);
+				products[1] = spins[kspin].dot(spins[lspin]);
+				products[2] = spins[ispin].dot(spins[lspin]);
+				products[3] = spins[jspin].dot(spins[kspin]);
+				products[4] = spins[ispin].dot(spins[kspin]);
+				products[5] = spins[jspin].dot(spins[lspin]);
+
+				Energy[ispin] -= 0.25 * this->kijkl *
+					(products[0] * products[1]
+						+ products[2] * products[3]
+						- products[4] * products[5]);
 			}
 		}
-		return result;
+	}//end FourSC
+
+	void Hamiltonian_Isotropic::E_DM(const vectorfield & spins, scalarfield & Energy)
+	{
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			int shell = 0;
+			for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+			{
+				int jspin = this->neigh[ispin][shell][jneigh];
+				Energy[ispin] -= 0.5 * this->dij * this->dm_normal[ispin][jneigh].dot(spins[ispin].cross(spins[jspin]));
+			}
+		}
+	}// end DM
+
+	void Hamiltonian_Isotropic::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
+	{
+		scalar mult = -std::pow(Vectormath::MuB(),2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
+			{
+				if (dd_distance[ispin][jneigh] > 0.0)
+				{
+					int jspin = this->dd_neigh[ispin][jneigh];
+					Energy[ispin] += 0.5 * mult / std::pow(dd_distance[ispin][jneigh], 3.0) *
+						(3 * spins[jspin].dot(dd_normal[ispin][jneigh]) * spins[ispin].dot(dd_normal[ispin][jneigh]) - spins[ispin].dot(spins[jspin]));
+				}
+			}
+		}
 	}// end DipoleDipole
 
 	void Hamiltonian_Isotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
