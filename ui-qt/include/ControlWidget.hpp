@@ -60,6 +60,10 @@ private:
 	std::vector<std::thread> threads_gneb;
 	std::thread thread_mmf;
 
+	// Temporary string storage
+	std::string s_method;
+	std::string s_optimizer;
+
 	// ...
 	void save_Energies();
 

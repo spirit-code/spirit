@@ -80,8 +80,8 @@ void ControlWidget::play_pause()
 	auto qs_method = this->comboBox_Method->currentText();
 	auto qs_optimizer = this->comboBox_Optimizer->currentText();
 	
-	auto s_method = string_q2std(qs_method);
-	auto s_optimizer = string_q2std(qs_optimizer);
+	this->s_method = string_q2std(qs_method);
+	this->s_optimizer = string_q2std(qs_optimizer);
 	
 	auto c_method = s_method.c_str();
 	auto c_optimizer = s_optimizer.c_str();
@@ -102,20 +102,20 @@ void ControlWidget::play_pause()
 	else
 	{
 		// Not running, so we start it
-		if (this->comboBox_Method->currentText() == "LLG")
+		if (this->s_method == "LLG")
 		{
 			int idx = System_Get_Index(state.get());
 			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
 			this->threads_llg[System_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
-		else if (this->comboBox_Method->currentText() == "GNEB")
+		else if (this->s_method == "GNEB")
 		{
 			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 			this->threads_gneb[Chain_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
-		else if (this->comboBox_Method->currentText() == "MMF")
+		else if (this->s_method == "MMF")
 		{
 			if (thread_mmf.joinable()) thread_mmf.join();
 			this->thread_mmf =

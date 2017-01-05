@@ -34,7 +34,7 @@ namespace Engine
 
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
 		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
-		void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
+		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
