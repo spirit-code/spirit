@@ -44,6 +44,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	float bounds_min[3], bounds_max[3];
 	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
 
+	this->visMode = VisualizationMode::SYSTEM;
 	this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
 	this->m_location_miniview = WidgetLocation::BOTTOM_LEFT;
 	this->show_arrows = true;
@@ -85,29 +86,45 @@ void SpinWidget::initializeGL()
 	//	System
 	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view);
     this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths));
-	this->m_renderer_surface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
-	this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
+	{
+		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
+		this->m_renderer_surface = m_renderer_surface_2D;
+	}
+	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
+	{
+		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+		this->m_renderer_surface = m_renderer_surface_3D;
+		this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+	}
 	std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
 		m_renderer_arrows,
 		m_renderer_boundingbox
 	};
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
 
-	// Surface options
-	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
-		if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
-		else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
-		else return -1;
-	});
-	this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
-
-	// Isosurface options
-	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-		(void)position;
-		return direction.z;
-	});
-	m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+		// 2D Surface options
+		// No options yet...
+	}
+	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
+	{
+		// 3D Surface options
+		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+		{
+			if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
+			else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
+			else return -1;
+		});
+		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+		// Isosurface options
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+			(void)position;
+			return direction.z;
+		});
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+	}
 
 	//	Sphere
 	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view);
@@ -117,10 +134,9 @@ void SpinWidget::initializeGL()
     this->m_coordinatesystem->setOption<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>(true);
 
 	// Setup the View
-	this->m_mainview = this->m_system;
-	this->m_miniview = this->m_sphere;
+	this->setVisualizationMode(this->visMode);
 
-	// ...
+	// Configure System (Setup the renderers
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 
     updateData();
@@ -273,16 +289,23 @@ void SpinWidget::setVisualizationMode(SpinWidget::VisualizationMode visualizatio
 {
 	if (visualization_mode == SpinWidget::VisualizationMode::SYSTEM)
 	{
+		this->visMode = VisualizationMode::SYSTEM;
 		this->m_mainview = this->m_system;
 		this->m_miniview = this->m_sphere;
 	}
 	else if (visualization_mode == SpinWidget::VisualizationMode::SPHERE)
 	{
+		this->visMode = VisualizationMode::SPHERE;
 		this->m_mainview = this->m_sphere;
 		this->m_miniview = this->m_system;
 	}
 
 	this->setupRenderers();
+}
+
+SpinWidget::VisualizationMode SpinWidget::visualizationMode()
+{
+	return this->visMode;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -344,9 +367,6 @@ void SpinWidget::setCoordinateSystemPosition(SpinWidget::WidgetLocation location
 /////	enable
 void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface)
 {
-	bool system_is_mainview = false;
-	if (this->m_system == this->m_mainview) system_is_mainview = true;
-
 	this->show_arrows = arrows;
 	this->show_boundingbox = boundingbox;
 	this->show_surface = surface;
@@ -358,14 +378,14 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
 		system.push_back(this->m_renderer_arrows);
 	if (show_boundingbox)
 		system.push_back(this->m_renderer_boundingbox);
-	if (show_surface)
+	if (show_surface && (Geometry_Get_Dimensionality(this->state.get()) == 2 || Geometry_Get_Dimensionality(this->state.get()) == 3))
 		system.push_back(this->m_renderer_surface);
 	if (show_isosurface)
 		system.push_back(this->m_renderer_isosurface);
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, system);
 	//*this->m_system = VFRendering::CombinedRenderer(m_view, system);
 
-	if (system_is_mainview) this->m_mainview = this->m_system;
+	if (this->visMode == VisualizationMode::SYSTEM) this->m_mainview = this->m_system;
 	else this->m_miniview = this->m_system;
 
 	this->setupRenderers();
@@ -441,30 +461,40 @@ void SpinWidget::setZRange(glm::vec2 z_range) {
 void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
 {
     makeCurrent();
-    if ((x_range.x >= x_range.y) || (y_range.x >= y_range.y) || (z_range.x >= z_range.y)) {
-        this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
-        {
-            /* The selected cuboid does not exist */
-            return 1;
-        });
-    } else {
-        this->m_renderer_surface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
-        {
-            (void)direction;
+	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
+	{
+		// 2D Surface options
+		// No options, yet...
+	}
+	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
+	{
+		// 3D Surface options
+		if ((x_range.x >= x_range.y) || (y_range.x >= y_range.y) || (z_range.x >= z_range.y)) {
+			this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+			{
+				/* The selected cuboid does not exist */
+				return 1;
+			});
+		}
+		else {
+			this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
+			{
+				(void)direction;
 
-            /* Transform position in selected cuboid to position in unit cube [-1,1]^3 */
-            glm::vec3 min = {x_range.x, y_range.x, z_range.x};
-            glm::vec3 max = {x_range.y, y_range.y, z_range.y};
-            glm::vec3 normalized_position = 2.0f * (position - min) / (max - min) - 1.0f;
+				/* Transform position in selected cuboid to position in unit cube [-1,1]^3 */
+				glm::vec3 min = { x_range.x, y_range.x, z_range.x };
+				glm::vec3 max = { x_range.y, y_range.y, z_range.y };
+				glm::vec3 normalized_position = 2.0f * (position - min) / (max - min) - 1.0f;
 
-            /* Calculate maximum metric / Chebyshev distance */
-            glm::vec3 absolute_normalized_position = glm::abs(normalized_position);
-            float max_norm = glm::max(glm::max(absolute_normalized_position.x, absolute_normalized_position.y), absolute_normalized_position.z);
+				/* Calculate maximum metric / Chebyshev distance */
+				glm::vec3 absolute_normalized_position = glm::abs(normalized_position);
+				float max_norm = glm::max(glm::max(absolute_normalized_position.x, absolute_normalized_position.y), absolute_normalized_position.z);
 
-            /* Translate so that the selected cuboid surface has an isovalue of 0 */
-            return max_norm-1.0f;
-        });
-    }
+				/* Translate so that the selected cuboid surface has an isovalue of 0 */
+				return max_norm - 1.0f;
+			});
+		}
+	}
 	//this->setupRenderers();
 }
 
@@ -725,13 +755,24 @@ void SpinWidget::writeSettings()
 	QSettings settings("Spirit Code", "Spirit");
 
 	settings.beginGroup("General");
+	// VisMode
+	settings.setValue("Mode", (int)(this->visualizationMode()));
 	// Projection
-	settings.setValue("FOV", (int)(this->verticalFieldOfView()*100));
+	settings.setValue("FOV", (int)(this->verticalFieldOfView() * 100));
+	// Sphere Point Size
+	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
+	settings.setValue("SpherePointSize2", (int)(this->spherePointSizeRange().y * 100));
 	// System
 	settings.setValue("Show Arrows", this->show_arrows);
 	settings.setValue("Show Bounding Box", this->show_boundingbox);
 	settings.setValue("Show Surface", this->show_surface);
 	settings.setValue("Show Isosurface", this->show_isosurface);
+	// MiniView
+	settings.setValue("Show MiniView", this->show_miniview);
+	settings.setValue("MiniView Position", (int)this->m_location_miniview);
+	// Coordinate System
+	settings.setValue("Show Coordinate System", this->show_coordinatesystem);
+	settings.setValue("Coordinate System Position", (int)this->m_location_coordinatesystem);
 	settings.endGroup();
 
 	// Arrows
@@ -784,13 +825,23 @@ void SpinWidget::readSettings()
 	if (settings.childGroups().contains("General"))
 	{
 		settings.beginGroup("General");
+		// VisMode
+		this->visMode = VisualizationMode(settings.value("Mode").toInt());
 		// Projection
-		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt()/100.0f));
+		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt() / 100.0f));
+		// Sphere Point Size
+		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });
 		// System
 		this->show_arrows = settings.value("Show Arrows").toBool();
 		this->show_boundingbox = settings.value("Show Bounding Box").toBool();
 		this->show_surface = settings.value("Show Surface").toBool();
 		this->show_isosurface = settings.value("Show Isosurface").toBool();
+		// MiniView
+		this->show_miniview = settings.value("Show MiniView").toBool();
+		this->m_location_miniview = WidgetLocation(settings.value("MiniView Position").toInt());
+		// Coordinate System
+		this->show_coordinatesystem = settings.value("Show Coordinate System").toBool();
+		this->m_location_coordinatesystem = WidgetLocation(settings.value("Coordinate System Position").toInt());
 		settings.endGroup();
 	}
 

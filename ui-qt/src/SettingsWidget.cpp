@@ -445,31 +445,11 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
-	//// Mode
-	//std::string visualization_mode;
-	//switch (_spinWidget->visualizationMode())
-	//{
-	//	case GLSpins::VisualizationMode::SPHERE:
-	//		visualization_mode = "Sphere";
- //     break;
- //   case GLSpins::VisualizationMode::SURFACE:
- //     visualization_mode = "Surface";
- //     break;
- //   case GLSpins::VisualizationMode::ISOSURFACE:
- //     visualization_mode = "Isosurface";
- //     break;
- //   default:
-	//		visualization_mode = "Arrows";
-	//		break;
-	//}
-	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
-	{
-		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
-		{
-			comboBox_visualizationMode->setCurrentIndex(i);
-			break;
-		}
-	}*/
+	// Mode
+	if (this->_spinWidget->visualizationMode() == SpinWidget::VisualizationMode::SYSTEM)
+		this->radioButton_vismode_system->setChecked(true);
+	else
+		this->radioButton_vismode_sphere->setChecked(true);
 	
 	// System
 	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
@@ -477,59 +457,13 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
 	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
 
-	//// Miniview
-	//std::string miniview_position;
-	//switch (_spinWidget->miniviewPosition())
-	//{
-	//	case GLSpins::WidgetLocation::TOP_LEFT:
-	//		miniview_position = "Top Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
-	//		miniview_position = "Bottom Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::TOP_RIGHT:
-	//		miniview_position = "Top Right";
-	//		break;
-	//	default:
-	//		miniview_position = "Bottom Right";
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
-	//	{
-	//		comboBox_miniViewPosition->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
-	//checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	// Miniview
+	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	this->comboBox_miniViewPosition->setCurrentIndex((int)_spinWidget->miniviewPosition());
 	
-	//// Coordinate System
-	//std::string coordinatesystem_position;
-	//switch (_spinWidget->coordinateSystemPosition())
-	//{
-	//	case GLSpins::WidgetLocation::TOP_LEFT:
-	//		coordinatesystem_position = "Top Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
-	//		coordinatesystem_position = "Bottom Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::TOP_RIGHT:
-	//		coordinatesystem_position = "Top Right";
-	//		break;
-	//	default:
-	//		coordinatesystem_position = "Bottom Right";
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
-	//	{
-	//		comboBox_coordinateSystemPosition->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
-	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	// Coordinate System
+	this->checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
 
 	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();

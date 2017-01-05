@@ -53,6 +53,11 @@ public:
 		SPHERE
 	};
 
+	enum class VisualizationSource {
+		SPINS,
+		EFF_FIELD
+	};
+
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
@@ -63,6 +68,8 @@ public:
   
   // --- Mode
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
+  SpinWidget::VisualizationMode visualizationMode();
+  SpinWidget::VisualizationMode visMode;
   bool show_miniview, show_coordinatesystem;
   // --- MiniView
   void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);
@@ -147,7 +154,9 @@ private:
   std::shared_ptr<VFRendering::CombinedRenderer> m_system;
   std::shared_ptr<VFRendering::ArrowRenderer> m_renderer_arrows;
   std::shared_ptr<VFRendering::BoundingBoxRenderer> m_renderer_boundingbox;
-  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface;
+  std::shared_ptr<VFRendering::RendererBase> m_renderer_surface;
+  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface_3D;
+  std::shared_ptr<VFRendering::SurfaceRenderer> m_renderer_surface_2D;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_isosurface;
 
   void setupRenderers();
