@@ -98,7 +98,7 @@ namespace Engine
 			auto& image = *configurations[ichain];
 
 			// Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
-			VectorX x = Eigen::Map<VectorX>((*configurations[ichain])[0].data(), 3 * nos);
+			VectorX x = Eigen::Map<VectorX>(image[0].data(), 3 * nos);
 
 			// The gradient force (unprojected)
 			this->systems[ichain]->hamiltonian->Gradient(image, F_gradient[ichain]);
@@ -117,7 +117,7 @@ namespace Engine
 
 			// Remove Hessian's components in the basis of the image (project it into tangent space)
 			//		and add the gradient contributions (inner and outer product)
-			auto P = projector(*configurations[ichain]);
+			auto P = projector(image);
 
 			// std::cerr << "------------------------" << std::endl;
 			// std::cerr << "x:             " << x.transpose() << std::endl;
