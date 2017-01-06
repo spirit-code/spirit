@@ -92,8 +92,7 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms,
-			int & no_spins_basic_domain)
+		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
@@ -103,7 +102,7 @@ namespace Utility
 			// Atoms in the basis [dim][n_basis_atoms]
 			basis_atoms = { Vector3{0,0,0} };
 			// NoS in the basic domain (= unit cell for periodic lattices)
-			no_spins_basic_domain = basis_atoms[0].size();
+			int n_spins_basic_domain = 0;
 			
 			Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
 
@@ -129,11 +128,11 @@ namespace Utility
 
 						// Read no_spins_basic_domain and atoms in basis
 						myfile.GetLine();
-						myfile.iss >> no_spins_basic_domain;
-						basis_atoms = std::vector<Vector3>(no_spins_basic_domain);
+						myfile.iss >> n_spins_basic_domain;
+						basis_atoms = std::vector<Vector3>(n_spins_basic_domain);
 
 						// Read spins per basic domain
-						for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
+						for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
 						{
 							myfile.GetLine();
 							myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
@@ -168,8 +167,8 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[0][1]) + " " + std::to_string(basis[0][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[1][2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]) + " " + std::to_string(basis[2][1]) + " " + std::to_string(basis[2][2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: " + std::to_string(no_spins_basic_domain) + " atom(s) at the following positions:");
-			for (int iatom = 0; iatom < no_spins_basic_domain; ++iatom)
+			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: " + std::to_string(n_spins_basic_domain) + " atom(s) at the following positions:");
+			for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
 			{
 				Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[iatom][0]) + " " + std::to_string(basis_atoms[iatom][1]) + " " + std::to_string(basis_atoms[iatom][2]));
 			}
@@ -185,8 +184,6 @@ namespace Utility
 			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
 			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
-			// NoS in the basic domain (= unit cell for periodic lattices)
-			int no_spins_basic_domain = basis_atoms[0].size();
 			// Translation vectors [dim][nov]
 			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
@@ -227,11 +224,11 @@ namespace Utility
 					if (myfile.Find("basis_from_config"))
 					{
 						myfile.iss >> basis_file;
-						Basis_from_Config(basis_file, basis, basis_atoms, no_spins_basic_domain);
+						Basis_from_Config(basis_file, basis, basis_atoms);
 					}
 					else if (myfile.Find("basis"))
 					{
-						Basis_from_Config(configFile, basis, basis_atoms, no_spins_basic_domain);
+						Basis_from_Config(configFile, basis, basis_atoms);
 					}
 					else {
 						Log(Log_Level::Error, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
@@ -263,11 +260,11 @@ namespace Utility
 				translation_vectors[dim] = build_array;
 			}
 			// Calculate NOS
-			nos = no_spins_basic_domain * n_cells[0] * n_cells[1] * n_cells[2];
+			nos = basis_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
 
 			// Spin Positions
 			spin_pos = vectorfield(nos);
-			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells, no_spins_basic_domain);
+			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
 			
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
@@ -281,7 +278,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, no_spins_basic_domain, basis_atoms, spin_pos));
+			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;

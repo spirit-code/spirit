@@ -146,7 +146,7 @@ namespace Utility
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Isotropic * ham_iso = (Engine::Hamiltonian_Isotropic *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Engine::Vectormath::MuB()) + "\n";
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Engine::Vectormath::MuB()/ham_iso->mu_s) + "\n";
 			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0]) + " " + std::to_string(ham_iso->external_field_normal[1]) + " " + std::to_string(ham_iso->external_field_normal[2]) + "\n";
 			config += "mu_s                     " + std::to_string(ham_iso->mu_s) + "\n";
 			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude) + "\n";

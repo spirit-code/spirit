@@ -39,13 +39,15 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic)
+		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells)
 		{
 			Vector3 a = translation_vectors[0];
 			Vector3 b = translation_vectors[1];
 			Vector3 c = translation_vectors[2];
 
-			int i, j, k, s, pos, nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+			int i, j, k, s, pos;
+			int nos_basic = basis_atoms.size();
+			int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
 			Vector3 build_array;
 			for (k = 0; k < n_cells[2]; ++k) {
 				for (j = 0; j < n_cells[1]; ++j) {

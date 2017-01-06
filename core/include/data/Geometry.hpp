@@ -25,7 +25,7 @@ namespace Data
 	public:
 		// Constructor
 		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
-			const std::vector<int> n_cells, const int n_spins_basic_domain, const std::vector<Vector3> basis_atoms,
+			const std::vector<int> n_cells, const std::vector<Vector3> basis_atoms,
 			const vectorfield spin_pos);
 		// Destructor
 		//~Geometry();

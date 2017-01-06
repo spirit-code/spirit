@@ -34,7 +34,7 @@ namespace Engine
 		//////// Vectorfield Math - special stuff
 
 		// Build an array of spin positions
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells, const int nos_basic);
+		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells);
 		// Calculate the mean of a vectorfield
 		std::array<scalar, 3> Magnetization(const vectorfield & vf);
 
