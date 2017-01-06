@@ -14,14 +14,15 @@ int main(int argc, char ** argv)
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
-	// const char * cfgfile = "markus.cfg";
-	// const char * cfgfile = "input/markus-paper.cfg";
-	// const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	const char * cfgfile = "input/gideon-master-thesis-anisotropic.cfg";
-	// const char * cfgfile = "input/kagome-spin-ice.cfg";
+	const char * cfgfile = "input/input.cfg";
+	// const char * cfgfile = "input/anisotropic/markus.cfg";
+	// const char * cfgfile = "input/anisotropic/markus-paper.cfg";
+	// const char * cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
+	// const char * cfgfile = "input/anisotropic/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/isotropic/gideon-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/isotropic/daniel-master-thesis-isotropic.cfg";
 	// const char * cfgfile = "input/gaussian/example-1.cfg";
 	// const char * cfgfile = "input/gaussian/gideon-paper.cfg";
-	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
 	// std::string chainfile = "input/chain.txt";

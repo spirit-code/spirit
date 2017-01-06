@@ -141,8 +141,9 @@ def snapshots(p_state):
 
 
 
+cfgfile = "input/input.cfg"
 # cfgfile = "input/markus-paper.cfg"
-cfgfile = "input/gideon-master-thesis-anisotropic.cfg"
+# cfgfile = "input/gideon-master-thesis-anisotropic.cfg"
 # cfgfile = "input/daniel-master-thesis-isotropic.cfg"
 
 with state.State(cfgfile) as p_state:

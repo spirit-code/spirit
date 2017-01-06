@@ -519,7 +519,10 @@ namespace Utility
 			}// end try
 			catch (Exception ex)
 			{
-				throw ex;
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Could not read pairs file " + pairsFile);
+				else
+					throw ex;
 			}
 		}
 
