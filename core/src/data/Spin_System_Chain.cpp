@@ -1,5 +1,4 @@
-#include "Spin_System_Chain.hpp"
-#include "Manifoldmath.hpp"
+#include <data/Spin_System_Chain.hpp>
 
 namespace Data
 {
@@ -13,12 +12,11 @@ namespace Data
 		this->iteration_allowed = iteration_allowed;
 		this->idx_active_image = 0;
 
-		this->climbing_image = std::vector<bool>(this->noi, false);
-		this->falling_image = std::vector<bool>(this->noi, false);
+		this->image_type = std::vector<GNEB_Image_Type>(this->noi, GNEB_Image_Type::Normal);
 
 		this->Rx = std::vector<scalar>(this->noi, 0);
-		this->Rx_interpolated = std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_interpolated = std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>((this->noi - 1)*gneb_parameters->n_E_interpolations, 0));
+		this->Rx_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
+		this->E_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
+		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(this->noi + (this->noi-1)*gneb_parameters->n_E_interpolations, 0));
 	}
 }

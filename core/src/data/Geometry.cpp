@@ -1,6 +1,6 @@
-#include <Geometry.hpp>
-#include <Neighbours.hpp>
-#include <Exception.hpp>
+#include <data/Geometry.hpp>
+#include <engine/Neighbours.hpp>
+#include <utility/Exception.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -11,24 +11,23 @@
 
 namespace Data
 {
-	Geometry::Geometry(std::vector<std::vector<scalar>> basis_i, const std::vector<std::vector<scalar>> translation_vectors_i,
-		const std::vector<int> n_cells_i, const int n_spins_basic_domain_i, const std::vector<std::vector<scalar>> basis_atoms_i,
-		const std::vector<scalar> spin_pos_i) :
+	Geometry::Geometry(std::vector<Vector3> basis_i, const std::vector<Vector3> translation_vectors_i,
+		const std::vector<int> n_cells_i, const std::vector<Vector3> basis_atoms_i,
+		const vectorfield spin_pos_i) :
 		basis(basis_i), translation_vectors(translation_vectors_i), n_cells(n_cells_i),
-		n_spins_basic_domain(n_spins_basic_domain_i), basis_atoms(basis_atoms_i),
-		spin_pos(spin_pos_i), nos( n_spins_basic_domain_i * n_cells_i[0] * n_cells_i[1] * n_cells_i[2])
+		n_spins_basic_domain(basis_atoms_i.size()), basis_atoms(basis_atoms_i),
+		spin_pos(spin_pos_i), nos(basis_atoms_i.size() * n_cells_i[0] * n_cells_i[1] * n_cells_i[2])
 	{
-		// Calculate Bounds of the System
-		this->bounds_min = std::vector<scalar>(3);
-		this->bounds_max = std::vector<scalar>(3);
-		this->center = std::vector<scalar>(3);
+		this->bounds_max.setZero();
+		this->bounds_min.setZero();
 
-		for (int dim = 0; dim < 3; ++dim)
+		// Calculate Bounds of the System
+		for (int iatom = 0; iatom < nos; ++iatom)
 		{
-			for (int iatom = 0; iatom < nos; ++iatom)
+			for (int dim = 0; dim < 3; ++dim)
 			{
-				if (this->spin_pos[dim*nos + iatom] < this->bounds_min[dim]) this->bounds_min[dim] = spin_pos[dim*nos + iatom];
-				if (this->spin_pos[dim*nos + iatom] > this->bounds_max[dim]) this->bounds_max[dim] = spin_pos[dim*nos + iatom];
+				if (this->spin_pos[iatom][dim] < this->bounds_min[dim]) this->bounds_min[dim] = spin_pos[iatom][dim];
+				if (this->spin_pos[iatom][dim] > this->bounds_max[dim]) this->bounds_max[dim] = spin_pos[iatom][dim];
 			}
 		}
 
@@ -42,7 +41,8 @@ namespace Data
 		this->dimensionality = calculateDimensionality();
 	}
 
-    std::vector<tetrahedron_t> compute_delaunay_triangulation(const std::vector<vector_t> &points) {
+    std::vector<tetrahedron_t> compute_delaunay_triangulation(const std::vector<vector_t> &points)
+	{
         const int ndim = 3;
         std::vector<tetrahedron_t> tetrahedra;
         tetrahedron_t tmp_tetrahedron;
@@ -117,12 +117,12 @@ namespace Data
 			else 
 			{
 				std::vector<vector_t> points;
-				points.resize(spin_pos.size()/3);
+				points.resize(spin_pos.size());
 				for (std::vector<vector_t>::size_type i = 0; i < points.size(); i++)
 				{
-					points[i].x = spin_pos[i];
-					points[i].y = spin_pos[points.size()+i];
-					points[i].z = spin_pos[points.size()*2+i];
+					points[i].x = spin_pos[i][0];
+					points[i].y = spin_pos[i][1];
+					points[i].z = spin_pos[i][2];
 				}
 				_triangulation = compute_delaunay_triangulation(points);
 			}
@@ -133,7 +133,7 @@ namespace Data
 	int Geometry::calculateDimensionality() const
 	{
 		int dims_basis = 0, dims_translations = 0;
-		Eigen::Vector3d test_vec_basis, test_vec_translations;
+		Vector3 test_vec_basis, test_vec_translations;
 
 		// ----- Find dimensionality of the basis -----
 		if (n_spins_basic_domain == 1) dims_basis = 0;
@@ -142,11 +142,11 @@ namespace Data
 		else
 		{
 			// Get basis atoms relative to the first atom
-			Eigen::Vector3d v0 = { basis_atoms[0][0], basis_atoms[1][0], basis_atoms[2][0] };
-			std::vector<Eigen::Vector3d> b_vectors(n_spins_basic_domain-1);
+			Vector3 v0 = basis_atoms[0];
+			std::vector<Vector3> b_vectors(n_spins_basic_domain-1);
 			for (int i = 1; i < n_spins_basic_domain; ++i)
 			{
-				b_vectors[i-1] = Eigen::Vector3d{ basis_atoms[0][i], basis_atoms[1][i], basis_atoms[2][i] } - v0;
+				b_vectors[i-1] = basis_atoms[i] - v0;
 			}
 			// Calculate basis dimensionality
 			// test vec is along line
@@ -184,16 +184,11 @@ namespace Data
 
 
 		// ----- Find dimensionality of the translations -----
-		std::vector<Eigen::Vector3d> t_vectors(3);
-		for (int i = 0; i < 3; ++i)
-		{
-			t_vectors[i] = { translation_vectors[0][i], translation_vectors[1][i], translation_vectors[2][i] };
-		}
 		//		The following are zero if the corresponding pair is parallel
 		double t01, t02, t12;
-		t01 = std::abs(t_vectors[0].dot(t_vectors[1]) - 1.0);
-		t02 = std::abs(t_vectors[0].dot(t_vectors[2]) - 1.0);
-		t12 = std::abs(t_vectors[1].dot(t_vectors[2]) - 1.0);
+		t01 = std::abs(translation_vectors[0].dot(translation_vectors[1]) - 1.0);
+		t02 = std::abs(translation_vectors[0].dot(translation_vectors[2]) - 1.0);
+		t12 = std::abs(translation_vectors[1].dot(translation_vectors[2]) - 1.0);
 		//		Check if pairs are linearly independent
 		int n_independent_pairs = 0;
 		if (t01>1e-9 && n_cells[0] > 1 && n_cells[1] > 1) ++n_independent_pairs;
@@ -205,17 +200,17 @@ namespace Data
 		{
 			dims_translations = 1;
 			// test vec is along the line
-			for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = t_vectors[i];
+			for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = translation_vectors[i];
 		}
 		else if (n_independent_pairs < 3)
 		{
 			dims_translations = 2;
 			// test vec is normal to plane
 			int n = 0;
-			std::vector<Eigen::Vector3d> plane(2);
+			std::vector<Vector3> plane(2);
 			for (int i = 0; i < 3; ++i)
 			{
-				if (n_cells[i] > 1) plane[n] = t_vectors[i];
+				if (n_cells[i] > 1) plane[n] = translation_vectors[i];
 				++n;
 			}
 			test_vec_translations = plane[0].cross(plane[1]);

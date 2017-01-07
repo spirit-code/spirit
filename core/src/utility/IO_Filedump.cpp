@@ -1,211 +1,293 @@
-#include "IO.hpp"
-#include "Vectormath.hpp"
-#include "Logging.hpp"
+#include <utility/IO.hpp>
+#include <utility/Logging.hpp>
+#include <engine/Vectormath.hpp>
 
 #include <iostream>
 #include <fstream>
-//#define USE_THREADS
-#ifdef USE_THREADS
-#include <thread>
-#endif
 #include <string>
 #include <cstring>
 #include <sstream>
 #include <algorithm>
-
+#include <iomanip>
+#include <cctype>
+#ifdef CORE_USE_THREADS
+#include <thread>
+#endif
 
 namespace Utility
 {
 	namespace IO
 	{
-		void Write_Energy_Header(const std::string fileName)
+		// ------------------------------------------------------------
+		// Helpers for centering strings
+		std::string center(const std::string s, const int w)
+		{
+			std::stringstream ss, spaces;
+			int pad = w - s.size();                  // count excess room to pad
+			for(int i=0; i<pad/2; ++i)
+				spaces << " ";
+			ss << spaces.str() << s << spaces.str(); // format with padding
+			if(pad>0 && pad%2!=0)                    // if pad odd #, add 1 more space
+				ss << " ";
+			return ss.str();
+		}
+
+		// trim from start
+		static inline std::string &ltrim(std::string &s) {
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+					std::not1(std::ptr_fun<int, int>(std::isspace))));
+			return s;
+		}
+
+		// trim from end
+		static inline std::string &rtrim(std::string &s) {
+			s.erase(std::find_if(s.rbegin(), s.rend(),
+					std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+			return s;
+		}
+
+		// trim from both ends
+		static inline std::string &trim(std::string &s) {
+			return ltrim(rtrim(s));
+		}
+
+		std::string center(const scalar s, const int precision, const int w)
+		{
+			std::stringstream ss;
+			ss << std::setw(w) << std::fixed << std::setprecision(precision) << s;
+			std::string ret = ss.str();
+			trim(ret);
+			return center(ret, w);
+		}
+		// ------------------------------------------------------------
+
+		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions)
 		{
 			bool readability_toggle = true;
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, "---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------\n");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			snprintf(buffer_string_conversion, buffer_length, "iteration||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			snprintf(buffer_string_conversion, buffer_length, "---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------\n");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			String_to_File(output_to_file, fileName);
+
+			std::string separator = "";
+			std::string line = "";
+			for (unsigned int i=0; i<firstcolumns.size(); ++i)
+			{
+				if (readability_toggle) separator += "--------------------++";
+				line += center(firstcolumns[i], 20) + "||";
+			}
+			if (contributions)
+			{
+				bool first = true;
+				for (auto pair : s.E_array)
+				{
+					if (first) first = false;
+					else
+					{
+						line += "|";;
+						if (readability_toggle) separator += "+";
+					}
+					line += center(pair.first, 20);
+					if (readability_toggle) separator += "--------------------";
+				}
+			}
+			line += "\n";
+			separator += "\n";
+
+			std::string header;
+			if (readability_toggle) header = separator + line + separator;
+			else header = line;
+			if (!readability_toggle) std::replace( header.begin(), header.end(), '|', ' ');
+			String_to_File(header, fileName);
 		}
+
 		void Append_Energy(Data::Spin_System & s, const int iteration, const std::string fileName)
 		{
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			//------------------------ End Init ----------------------------------------
+			if (divide_by_nos) nd = 1.0 / s.nos;
+			else nd = 1;
 
 			s.UpdateEnergy();
-			if (divide_by_nos) { nd = 1.0 / s.nos; }
-			else { nd = 1; }
-			snprintf(buffer_string_conversion, buffer_length, "%7i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f\n",
-				iteration, s.E * nd, s.E_array[ENERGY_POS_ZEEMAN] * nd, s.E_array[ENERGY_POS_ANISOTROPY] * nd,
-				s.E_array[ENERGY_POS_EXCHANGE] * nd, s.E_array[ENERGY_POS_DMI] * nd,
-				s.E_array[ENERGY_POS_BQC] * nd, s.E_array[ENERGY_POS_FSC] * nd, s.E_array[ENERGY_POS_DD] * nd);
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			Append_String_to_File(output_to_file, fileName);
+
+			std::string line = center(iteration, 0, 20) + "||" + center(s.E * nd, 10, 20) + "||";
+			bool first = true;
+			for (auto pair : s.E_array)
+			{
+				if (first) first = false;
+				else
+				{
+					line += "|";;
+				}
+				line += center(pair.second * nd, 10, 20);
+			}
+			line += "\n";
+
+			if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
+			Append_String_to_File(line, fileName);
 		}
-		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName) {
-			//========================= Init local vars ================================
+
+		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName)
+		{
 			int isystem;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, "---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------\n");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			snprintf(buffer_string_conversion, buffer_length, "  image  ||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			snprintf(buffer_string_conversion, buffer_length, "---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			//------------------------ End Init ----------------------------------------
+			if (divide_by_nos) nd = 1.0 / c.images[0]->nos;
+			else nd = 1;
 
-			for (isystem = 0; isystem < (int)c.noi; ++isystem) {
-				// c.images[isystem]->UpdateEnergy(); // this should be done elsewhere...
-				if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
-				else { nd = 1; }
-				snprintf(buffer_string_conversion, buffer_length, "\n %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
-					isystem, c.images[isystem]->E * nd, c.images[isystem]->E_array[ENERGY_POS_ZEEMAN] * nd, c.images[isystem]->E_array[ENERGY_POS_ANISOTROPY] * nd,
-					c.images[isystem]->E_array[ENERGY_POS_EXCHANGE] * nd, c.images[isystem]->E_array[ENERGY_POS_DMI] * nd,
-					c.images[isystem]->E_array[ENERGY_POS_BQC] * nd, c.images[isystem]->E_array[ENERGY_POS_FSC] * nd, c.images[isystem]->E_array[ENERGY_POS_DD] * nd);
-				if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-				output_to_file.append(buffer_string_conversion);
+			Write_Energy_Header(*c.images[0], fileName, {"image", "Rx", "E_tot"});
+
+			for (isystem = 0; isystem < (int)c.noi; ++isystem)
+			{
+				auto& system = *c.images[isystem];
+				std::string line = center(isystem, 0, 20) + "||" + center(c.Rx[isystem], 0, 20) + "||" + center(system.E * nd, 10, 20) + "||";
+				bool first = true;
+				for (auto pair : system.E_array)
+				{
+					if (first) first = false;
+					else
+					{
+						line += "|";;
+					}
+					line += center(pair.second * nd, 10, 20);
+				}
+				line += "\n";
+
+				if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
+				Append_String_to_File(line, fileName);
 			}
-			output_to_file.append("\n");
-			Dump_to_File(output_to_file, fileName);
 		}
 
 
-		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName) {
-			//========================= Init local vars ================================
+		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName)
+		{
 			int isystem, iinterp, idx;
 			bool readability_toggle = true;
 			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, " isystem || iinterp ||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			snprintf(buffer_string_conversion, buffer_length, "---------++---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			//------------------------ End Init ----------------------------------------
+			if (divide_by_nos) nd = 1.0 / c.images[0]->nos;
+			else nd = 1;
 
-			for (isystem = 0; isystem < (int)c.images.size()-1; ++isystem) {
-				c.images[isystem]->UpdateEnergy();
-				if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
-				else { nd = 1; }
-				for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations; ++iinterp)
+			Write_Energy_Header(*c.images[0], fileName, {"image", "iinterp", "Rx", "E_tot"});
+
+			for (isystem = 0; isystem < (int)c.noi; ++isystem)
+			{
+				auto& system = *c.images[isystem];
+
+				for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations+1; ++iinterp)
 				{
-					idx = isystem*c.gneb_parameters->n_E_interpolations + iinterp;
-					snprintf(buffer_string_conversion, buffer_length, "\n %6i  || %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
-						isystem, iinterp, c.E_interpolated[idx] * nd, c.E_array_interpolated[ENERGY_POS_ZEEMAN][idx] * nd, c.E_array_interpolated[ENERGY_POS_ANISOTROPY][idx] * nd,
-						c.E_array_interpolated[ENERGY_POS_EXCHANGE][idx] * nd, c.E_array_interpolated[ENERGY_POS_DMI][idx] * nd,
-						c.E_array_interpolated[ENERGY_POS_BQC][idx] * nd, c.E_array_interpolated[ENERGY_POS_FSC][idx] * nd, c.E_array_interpolated[ENERGY_POS_DD][idx]);
-					if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-					output_to_file.append(buffer_string_conversion);
+					idx = isystem * (c.gneb_parameters->n_E_interpolations+1) + iinterp;
+					std::string line = center(isystem, 0, 20) + "||" + center(iinterp, 0, 20) + "||" + center(c.Rx_interpolated[idx], 0, 20) + "||" + center(c.E_interpolated[idx] * nd, 10, 20) + "||";
+					
+					// TODO: interpolated Energy contributions
+					// bool first = true;
+					// for (auto pair : system.E_array_interpolated)
+					// {
+					// 	if (first) first = false;
+					// 	else
+					// 	{
+					// 		line += "|";;
+					// 	}
+					// 	line += center(pair.second * nd, 10, 20);
+					// }
+					line += "\n";
+
+					if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
+					Append_String_to_File(line, fileName);
+
+					// Exit the loop if we reached the end
+					if (isystem == c.noi-1) break;
 				}
 			}
-			Dump_to_File(output_to_file, fileName);
 		}
 
 
 		void Save_Energies_Spins(Data::Spin_System_Chain & c, const std::string fileName)
 		{
-			//========================= Init local vars ================================
-			int isystem, ispin, iE;
-			bool readability_toggle = true;
-			bool divide_by_nos = true;
-			scalar nd = 1.0; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, " isystem ||  ispin  ||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			snprintf(buffer_string_conversion, buffer_length, "---------++---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			//------------------------ End Init ----------------------------------------
+			/////////////////
+			// TODO: rewrite like other save_energy functions
+			/////////////////
 
-			int nos = (int)c.images[0]->nos;
-			int noi = (int)c.noi;
-			auto Energies_spins = std::vector<std::vector<scalar>>(nos, std::vector<scalar>(7, 0.0));
-			auto E_tot_spins = std::vector<scalar>(nos, 0.0);
-			for (isystem = 0; isystem < noi; ++isystem) {
-				// Get Energies
-				Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(*c.images[isystem]->spins);
-				for (ispin = 0; ispin < nos; ++ispin)
-				{
-					for (iE = 0; iE < 7; ++iE)
-					{
-						E_tot_spins[ispin] += Energies_spins[ispin][iE];
-					}
-				}
-				// Normalise?
-				if (divide_by_nos) { nd = 1.0 / nos; }
-				else { nd = 1; }
-				// Write
-				for (ispin = 0; ispin < nos; ++ispin)
-				{
-					snprintf(buffer_string_conversion, buffer_length, "\n %6i  || %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
-						isystem, ispin, E_tot_spins[ispin] * nd, Energies_spins[ispin][ENERGY_POS_ZEEMAN] * nd, Energies_spins[ispin][ENERGY_POS_ANISOTROPY] * nd,
-						Energies_spins[ispin][ENERGY_POS_EXCHANGE] * nd, Energies_spins[ispin][ENERGY_POS_DMI] * nd,
-						Energies_spins[ispin][ENERGY_POS_BQC] * nd, Energies_spins[ispin][ENERGY_POS_FSC] * nd,
-						Energies_spins[ispin][ENERGY_POS_DD] * nd);
-					if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-					output_to_file.append(buffer_string_conversion);
-				}
-			}
-			Dump_to_File(output_to_file, fileName);
+			// //========================= Init local vars ================================
+			// int isystem, ispin, iE;
+			// bool readability_toggle = true;
+			// bool divide_by_nos = true;
+			// scalar nd = 1.0; // nos divide
+			// const int buffer_length = 200;
+			// std::string output_to_file = "";
+			// output_to_file.reserve(int(1E+08));
+			// char buffer_string_conversion[buffer_length + 2];
+			// snprintf(buffer_string_conversion, buffer_length, " isystem ||  ispin  ||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
+			// if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
+			// output_to_file.append(buffer_string_conversion);
+			// snprintf(buffer_string_conversion, buffer_length, "---------++---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------");
+			// if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
+			// //------------------------ End Init ----------------------------------------
+
+			// int nos = (int)c.images[0]->nos;
+			// int noi = (int)c.noi;
+			// auto Energies_spins = std::vector<std::vector<scalar>>(nos, std::vector<scalar>(7, 0.0));
+			// auto E_tot_spins = std::vector<scalar>(nos, 0.0);
+			// for (isystem = 0; isystem < noi; ++isystem) {
+			// 	// Get Energies
+			// 	Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(*c.images[isystem]->spins);
+			// 	for (ispin = 0; ispin < nos; ++ispin)
+			// 	{
+			// 		for (iE = 0; iE < 7; ++iE)
+			// 		{
+			// 			E_tot_spins[ispin] += Energies_spins[ispin][iE];
+			// 		}
+			// 	}
+			// 	// Normalise?
+			// 	if (divide_by_nos) { nd = 1.0 / nos; }
+			// 	else { nd = 1; }
+			// 	// Write
+			// 	for (ispin = 0; ispin < nos; ++ispin)
+			// 	{
+			// 		snprintf(buffer_string_conversion, buffer_length, "\n %6i  || %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
+			// 			isystem, ispin, E_tot_spins[ispin] * nd, Energies_spins[ispin][ENERGY_POS_ZEEMAN] * nd, Energies_spins[ispin][ENERGY_POS_ANISOTROPY] * nd,
+			// 			Energies_spins[ispin][ENERGY_POS_EXCHANGE] * nd, Energies_spins[ispin][ENERGY_POS_DMI] * nd,
+			// 			Energies_spins[ispin][ENERGY_POS_BQC] * nd, Energies_spins[ispin][ENERGY_POS_FSC] * nd,
+			// 			Energies_spins[ispin][ENERGY_POS_DD] * nd);
+			// 		if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
+			// 		output_to_file.append(buffer_string_conversion);
+			// 	}
+			// }
+			// Dump_to_File(output_to_file, fileName);
 		}
 
 
 		void Save_Forces(Data::Spin_System_Chain & c, const std::string fileName)
 		{
-			//========================= Init local vars ================================
-			int isystem;
-			bool readability_toggle = true;
-			bool divide_by_nos = true;
-			scalar nd = 1.0; // nos divide
-			const int buffer_length = 200;
-			std::string output_to_file = "";
-			output_to_file.reserve(int(1E+08));
-			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, " isystem ||        |Force|        ||         F_max");
-			if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			output_to_file.append(buffer_string_conversion);
-			snprintf(buffer_string_conversion, buffer_length, "\n---------++----------------------++---------------------");
-			if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			//------------------------ End Init ----------------------------------------
+			/////////////////
+			// TODO: rewrite like save_energy functions
+			/////////////////
 
-			for (isystem = 0; isystem < (int)c.images.size(); ++isystem) {
-				//c.images[isystem]->UpdateEnergy();
-				// TODO: Need image->UpdateForce() which can also be used for convergence tests
-				if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
-				else { nd = 1; }
-				snprintf(buffer_string_conversion, buffer_length, "\n %6i  ||  %18.10f  ||  %18.10f",
-					isystem, 0.0 * nd, 0.0);
-				if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-				output_to_file.append(buffer_string_conversion);
-			}
-			Dump_to_File(output_to_file, fileName);
+			// //========================= Init local vars ================================
+			// int isystem;
+			// bool readability_toggle = true;
+			// bool divide_by_nos = true;
+			// scalar nd = 1.0; // nos divide
+			// const int buffer_length = 200;
+			// std::string output_to_file = "";
+			// output_to_file.reserve(int(1E+08));
+			// char buffer_string_conversion[buffer_length + 2];
+			// snprintf(buffer_string_conversion, buffer_length, " isystem ||        |Force|        ||         F_max");
+			// if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
+			// output_to_file.append(buffer_string_conversion);
+			// snprintf(buffer_string_conversion, buffer_length, "\n---------++----------------------++---------------------");
+			// if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
+			// //------------------------ End Init ----------------------------------------
+
+			// for (isystem = 0; isystem < (int)c.images.size(); ++isystem) {
+			// 	//c.images[isystem]->UpdateEnergy();
+			// 	// TODO: Need image->UpdateForce() which can also be used for convergence tests
+			// 	if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
+			// 	else { nd = 1; }
+			// 	snprintf(buffer_string_conversion, buffer_length, "\n %6i  ||  %18.10f  ||  %18.10f",
+			// 		isystem, 0.0 * nd, 0.0);
+			// 	if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
+			// 	output_to_file.append(buffer_string_conversion);
+			// }
+			// Dump_to_File(output_to_file, fileName);
 		}
 
 
@@ -222,7 +304,7 @@ namespace Utility
 
 			for (iatom = 0; iatom < s->nos; ++iatom) {
 				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-					(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
+					(*s->spins)[iatom][0], (*s->spins)[iatom][1], (*s->spins)[iatom][2]);
 				output_to_file.append(buffer_string_conversion);
 			}
 			output_to_file.append("\n");
@@ -246,7 +328,7 @@ namespace Utility
 				auto& spins = *c->images[iimage]->spins;
 				for (iatom = 0; iatom < nos; ++iatom) {
 					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-						spins[0 * nos + iatom], spins[1 * nos + iatom], spins[2 * nos + iatom]);
+						spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 					output_to_file.append(buffer_string_conversion);
 				}
 			}
@@ -260,7 +342,7 @@ namespace Utility
 		void Dump_to_File(const std::string text, const std::string name)
 		{
 			
-			#ifdef USE_THREADS
+			#ifdef CORE_USE_THREADS
 			// thread:      method       args  args    args   detatch thread
 			std::thread(String_to_File, text, name).detach();
 			#else
@@ -269,7 +351,7 @@ namespace Utility
 		}
 		void Dump_to_File(const std::vector<std::string> text, const std::string name, const int no)
 		{
-			#ifdef USE_THREADS
+			#ifdef CORE_USE_THREADS
 			std::thread(Strings_to_File, text, name, no).detach();
 			#else
 			Strings_to_File(text, name, no);

@@ -19,6 +19,8 @@ output_mmf/*
 ### Output Logs ###
 Log_*
 */Log_*
+input_*
+*/input_*
 
 ### Executables and Libraries ###
 spirit
@@ -28,6 +30,7 @@ core.js.mem
 ### Generated Files
 VERSION.txt
 Core_Defines.h
+scalar.py
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

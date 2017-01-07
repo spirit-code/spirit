@@ -1,10 +1,9 @@
-#include "Interface_IO.h"
-#include "State.hpp"
-#include "Interface_Configurations.h"
-
-#include "IO.hpp"
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
+#include <interface/Interface_IO.h>
+#include <interface/Interface_Configurations.h>
+#include <data/State.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <utility/IO.hpp>
 
 #include <memory>
 #include <string>
@@ -80,12 +79,22 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 
 void IO_Chain_Read(State * state, const char * file, int idx_image, int idx_chain)
 {
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
+	// Read the data
+	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
 }
 
 void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_chain)
 {
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
+	// Read the data
+	Utility::IO::Save_SpinChain_Configuration(chain, std::string(file));
 }
 
 

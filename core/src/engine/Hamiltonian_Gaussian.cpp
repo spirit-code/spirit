@@ -1,41 +1,36 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
-
-#include <utility/Manifoldmath.hpp>
-#include <utility/Vectormath.hpp>
+#include <engine/Vectormath.hpp>
 
 using namespace Data;
 
 namespace Engine
 {
 	Hamiltonian_Gaussian::Hamiltonian_Gaussian(
-		std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<std::vector<scalar>> center
+		std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<Vector3> center
 	) :
 		Hamiltonian(std::vector<bool>{false, false, false}), amplitude(amplitude), width(width), center(center)
 	{
 		this->n_gaussians = amplitude.size();
+		this->Update_Energy_Contributions();
 	}
 
-
-	void Hamiltonian_Gaussian::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
+	void Hamiltonian_Gaussian::Update_Energy_Contributions()
 	{
-		int nos = spins.size() / 3;
+		this->energy_contributions_per_spin = { { "Gaussian", scalarfield(0) } };
+	}
+
+	void Hamiltonian_Gaussian::Hessian(const vectorfield & spins, MatrixX & hessian)
+	{
+		int nos = spins.size();
 		for (int ispin = 0; ispin < nos; ++ispin)
 		{
 			// Set Hessian to zero
-			for (int alpha = 0; alpha < 3; ++alpha)
-			{
-				for (int beta = 0; beta < 3; ++beta)
-				{
-					int idx_h = ispin + alpha*nos + 3 * nos*(ispin + beta*nos);
-					hessian[idx_h] = 0.0;
-				}
-			}
+			hessian.setZero();
 			// Calculate Hessian
 			for (int i = 0; i < this->n_gaussians; ++i)
 			{
 				// Distance between spin and gaussian center
-				std::vector<scalar> n{ spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				scalar l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+				scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
 				//scalar nc = 0;
 				//for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
@@ -48,68 +43,58 @@ namespace Engine
 				{
 					for (int beta = 0; beta < 3; ++beta)
 					{
-						int idx_h = ispin + alpha*nos + 3 * nos*(ispin + beta*nos);
-						hessian[idx_h] += prefactor * this->center[i][alpha] * this->center[i][beta];
+						hessian(ispin+alpha*nos, ispin + beta*nos) += prefactor * this->center[i][alpha] * this->center[i][beta];
 					}
 				}
 			}
 		}
 	}
 
-	void Hamiltonian_Gaussian::Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field)
+	void Hamiltonian_Gaussian::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
-		int nos = spins.size() / 3;
+		int nos = spins.size();
 
 		for (int ispin = 0; ispin < nos; ++ispin)
 		{
-			// Set field to zero
-			field[ispin] = 0; field[ispin + nos] = 0; field[ispin + 2 * nos] = 0;
-			// Calculate field
+			// Set gradient to zero
+			gradient[ispin] = { 0,0,0 };
+			// Calculate gradient
 			for (int i = 0; i < this->n_gaussians; ++i)
 			{
 				// Distance between spin and gaussian center
-				std::vector<scalar> n { spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				scalar l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+				scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
 				// Scalar product of spin and gaussian center
 				//scalar nc = 0;
 				//for (int dim = 0; dim < 3; ++dim) nc += spins[ispin + dim*nos] * this->center[i][dim];
 				// Prefactor
 				scalar prefactor = this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2))) * l / std::pow(this->width[i],2);
-				// Effective Field contribution
-				for (int dim = 0; dim < 3; ++dim)
-				{
-					field[ispin + dim*nos] -= prefactor * this->center[i][dim];
-				}
+				// Gradient contribution
+				gradient[ispin] -= prefactor * this->center[i];
 			}
 		}
 	}
 
-	scalar Hamiltonian_Gaussian::Energy(const std::vector<scalar> & spins)
+	void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
-		int nos = spins.size() / 3;
-		scalar E = 0;
+		int nos = spins.size();
+
+		// Allocate if not already allocated
+		if (this->energy_contributions_per_spin[0].second.size() != nos) this->energy_contributions_per_spin = { { "Gaussian", scalarfield(nos,0) } };
+
+		// Set to zero
+		for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
 
 		for (int i = 0; i < this->n_gaussians; ++i)
 		{
 			for (int ispin = 0; ispin < nos; ++ispin)
 			{
 				// Distance between spin and gaussian center
-				std::vector<scalar> n{ spins[ispin], spins[ispin + nos], spins[ispin + 2 * nos] };
-				scalar l = 1.0 - Utility::Vectormath::Dot_Product(this->center[i], n); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
-				// Energy contribution
-				E += this->amplitude[i] * std::exp( -std::pow(l, 2)/(2.0*std::pow(this->width[i], 2)) );
+				scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+																  // Energy contribution
+				this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
 			}
 		}
-
-		return E;
 	}
-
-	std::vector<scalar> Hamiltonian_Gaussian::Energy_Array(const std::vector<scalar> & spins)
-	{
-		return std::vector<scalar>(9, 0.0);
-	}
-
-	//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
 
 	// Hamiltonian name as string
 	static const std::string name = "Gaussian";

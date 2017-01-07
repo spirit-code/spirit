@@ -1,14 +1,13 @@
-#include "Optimizer_VP.hpp"
-
-#include "Vectormath.hpp"
+#include <engine/Optimizer_VP.hpp>
+#include <engine/Vectormath.hpp>
 
 namespace Engine
 {
     Optimizer_VP::Optimizer_VP(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->spins_temp = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
-		this->velocity = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos, 0));	// [noi][3*nos]
+		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
+		this->velocity = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
 		this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
 		this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
     }
@@ -34,46 +33,31 @@ namespace Engine
 			scalar dt = s->llg_parameters->dt;
 
 			// Calculate the new velocity
-			for (int j = 0; j < 3 * nos; ++j)
-			{
-				l_velocity[j] += 0.5 / m * (l_force_prev[j] + l_force[j]) * dt;
-			}
+			Vectormath::add_c_a(0.5 / m * dt, l_force_prev, l_velocity);
+			Vectormath::add_c_a(0.5 / m * dt, l_force, l_velocity);
 
 			// Get the projection of the velocity on the force
-			projection[i] = 0;
-			force_norm2[i] = 0;
-			for (int j = 0; j < 3*nos; ++j)
-			{
-				projection[i] += l_velocity[j] * l_force[j];
-				force_norm2[i] += l_force[j] * l_force[j];
-			}
+			projection[i] = Vectormath::dot(l_velocity, l_force);
+			force_norm2[i] = Vectormath::dot(l_force, l_force);
 
 			// Calculate the projected velocity
 			if (projection[i] <= 0)
 			{
-				for (int j = 0; j < 3 * nos; ++j)
-				{
-					l_velocity[j] = 0;
-				}
+				Vectormath::fill(l_velocity, { 0,0,0 });
 			}
 			else
 			{
-				for (int j = 0; j < 3 * nos; ++j)
-				{
-					l_velocity[j] = projection[i] * l_force[j] / force_norm2[i];
-				}
+				l_velocity = l_force;
+				Vectormath::scale(l_velocity, projection[i] / force_norm2[i]);
 			}
 
 			// Copy in
 			spins_temp[i] = *(configurations[i]);
 
 			// Move the spins
-			for (int j = 0; j < 3 * nos; ++j)
-			{
-				spins_temp[i][j] += l_velocity[j]*dt + 0.5/m*l_force[j]*dt*dt;
-			}
-			// Renormalize
-			Utility::Vectormath::Normalize_3Nos(spins_temp[i]);
+			Vectormath::add_c_a(dt, l_velocity, spins_temp[i]);
+			Vectormath::add_c_a(0.5/m*dt*dt, l_velocity, spins_temp[i]);
+			Vectormath::normalize_vectors(spins_temp[i]);
 
 			// Copy out
 			*(configurations[i]) = spins_temp[i];

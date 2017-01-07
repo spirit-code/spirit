@@ -2,8 +2,6 @@ set(HEADER_CORE_UTILITY
     ${HEADER_CORE_UTILITY}
 	${CMAKE_CURRENT_SOURCE_DIR}/IO.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filter_File_Handle.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Configurations.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp

@@ -141,6 +141,12 @@ Currently, the following options are available:
 | BoundingBoxRenderer::Option::COLOR | glm::vec3 | {1.0, 1.0, 1.0} | BoundingBoxRenderer.hxx | VFRendering::Utilities::Options::Option< BoundingBoxRenderer::Option::COLOR > |
 | CoordinateSystemRenderer::Option::AXIS_LENGTH | glm::vec3 | {0.5, 0.5, 0.5} | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::AXIS_LENGTH > |
 | CoordinateSystemRenderer::Option::ORIGIN | glm::vec3 | {0.0, 0.0, 0.0} | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::ORIGIN > |
+| CoordinateSystemRenderer::Option::NORMALIZE | bool | false | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::NORMALIZE > |
+| CoordinateSystemRenderer::Option::LEVEL_OF_DETAIL | unsigned int | 100 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::LEVEL_OF_DETAIL > |
+| CoordinateSystemRenderer::Option::CONE_HEIGHT | float | 0.3 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CONE_HEIGHT > |
+| CoordinateSystemRenderer::Option::CONE_RADIUS | float | 0.1 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CONE_RADIUS > |
+| CoordinateSystemRenderer::Option::CYLINDER_HEIGHT | float | 0.7 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CYLINDER_HEIGHT > |
+| CoordinateSystemRenderer::Option::CYLINDER_RADIUS | float | 0.07 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CYLINDER_RADIUS > |
 | IsosurfaceRenderer::Option::ISOVALUE | float | 0.0 | IsosurfaceRenderer.hxx | VFRendering::Utilities::Options::Option< IsosurfaceRenderer::Option::ISOVALUE > |
 | IsosurfaceRenderer::Option::VALUE_FUNCTION | std::function<isovalue_type(const glm::vec3&, const glm::vec3&)> | [] (const glm::vec3& position, const glm::vec3& direction) { return direction.z; } | IsosurfaceRenderer.hxx | VFRendering::Utilities::Options::Option< IsosurfaceRenderer::Option::VALUE_FUNCTION > |
 | VectorSphereRenderer::Option::POINT_SIZE_RANGE |  glm::vec2 | {1.0, 4.0} | VectorSphereRenderer.hxx | VFRendering::Utilities::Options::Option< VectorSphereRenderer::Option::POINT_SIZE_RANGE > |

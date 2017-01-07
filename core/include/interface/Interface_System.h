@@ -18,6 +18,9 @@ DLLEXPORT float System_Get_Rx(State * state, int idx_image=-1, int idx_chain=-1)
 DLLEXPORT float System_Get_Energy(State * state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void System_Get_Energy_Array(State * state, float * energies, int idx_image=-1, int idx_chain=-1);
 
+// Console Output
+DLLEXPORT void System_Print_Energy_Array(State * state, int idx_image=-1, int idx_chain=-1);
+
 // Update Data (primarily for plots)
 DLLEXPORT void System_Update_Data(State * state, int idx_image=-1, int idx_chain=-1);
 

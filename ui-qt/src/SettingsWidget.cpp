@@ -157,7 +157,7 @@ void SettingsWidget::create_Skyrmion()
 	bool upDown = checkBox_sky_UpDown->isChecked();
 	bool achiral = checkBox_sky_Achiral->isChecked();
 	bool rl = checkBox_sky_RL->isChecked();
-	bool experimental = checkBox_sky_experimental->isChecked();
+	// bool experimental = checkBox_sky_experimental->isChecked();
 	std::vector<float> pos =
 	{
 		lineEdit_sky_posx->text().toFloat(),
@@ -165,7 +165,7 @@ void SettingsWidget::create_Skyrmion()
 		lineEdit_sky_posz->text().toFloat()
 	};
 	float rad = lineEdit_sky_rad->text().toFloat();
-	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl, experimental);
+	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl);
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -219,16 +219,20 @@ void SettingsWidget::homogeneousTransitionPressed()
 	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt() - 1;
 	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
 
+	int noi = Chain_Get_NOI(this->state.get());
+
 	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_1 < 0 || idx_1 >= noi)
 	{
 		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
 		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		return;
 	}
-	if (idx_1 < 0 || idx_1 >= Chain_Get_NOI(this->state.get()))
+	if (idx_2 < 0 || idx_2 >= noi)
 	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
+		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Second index for homogeneous transition is invalid! setting to NOI...");
+		this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(noi));
+		return;
 	}
 	if (idx_1 == idx_2)
 	{
@@ -265,7 +269,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 void SettingsWidget::Load_Parameters_Contents()
 {
 	float d;
-	bool climbing, falling;
+	int image_type;
 	int i;
 
 	// LLG Damping
@@ -290,10 +294,15 @@ void SettingsWidget::Load_Parameters_Contents()
 	this->lineEdit_gneb_springconstant->setText(QString::number(d));
 
 	// Normal/Climbing/Falling image radioButtons
-	Parameters_Get_GNEB_Climbing_Falling(state.get(), &climbing, &falling);
-	this->radioButton_Normal->setChecked(!(climbing || falling));
-	this->radioButton_ClimbingImage->setChecked(climbing);
-	this->radioButton_FallingImage->setChecked(falling);
+	Parameters_Get_GNEB_Climbing_Falling(state.get(), &image_type);
+	if (image_type == 0)
+		this->radioButton_Normal->setChecked(true);
+	else if (image_type == 1)
+		this->radioButton_ClimbingImage->setChecked(true);
+	else if (image_type == 2)
+		this->radioButton_FallingImage->setChecked(true);
+	else if (image_type == 3)
+		this->radioButton_Stationary->setChecked(true);
 }
 
 
@@ -436,86 +445,26 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 
 void SettingsWidget::Load_Visualization_Contents()
 {
-	//// Mode
-	//std::string visualization_mode;
-	//switch (_spinWidget->visualizationMode())
-	//{
-	//	case GLSpins::VisualizationMode::SPHERE:
-	//		visualization_mode = "Sphere";
- //     break;
- //   case GLSpins::VisualizationMode::SURFACE:
- //     visualization_mode = "Surface";
- //     break;
- //   case GLSpins::VisualizationMode::ISOSURFACE:
- //     visualization_mode = "Isosurface";
- //     break;
- //   default:
-	//		visualization_mode = "Arrows";
-	//		break;
-	//}
-	/*for (int i = 0; i < comboBox_visualizationMode->count(); i++)
-	{
-		if (string_q2std(comboBox_visualizationMode->itemText(i)) == visualization_mode)
-		{
-			comboBox_visualizationMode->setCurrentIndex(i);
-			break;
-		}
-	}*/
-  
-	//// Miniview
-	//std::string miniview_position;
-	//switch (_spinWidget->miniviewPosition())
-	//{
-	//	case GLSpins::WidgetLocation::TOP_LEFT:
-	//		miniview_position = "Top Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
-	//		miniview_position = "Bottom Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::TOP_RIGHT:
-	//		miniview_position = "Top Right";
-	//		break;
-	//	default:
-	//		miniview_position = "Bottom Right";
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_miniViewPosition->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_miniViewPosition->itemText(i)) == miniview_position)
-	//	{
-	//		comboBox_miniViewPosition->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
-	//checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	// Mode
+	if (this->_spinWidget->visualizationMode() == SpinWidget::VisualizationMode::SYSTEM)
+		this->radioButton_vismode_system->setChecked(true);
+	else
+		this->radioButton_vismode_sphere->setChecked(true);
 	
-	//// Coordinate System
-	//std::string coordinatesystem_position;
-	//switch (_spinWidget->coordinateSystemPosition())
-	//{
-	//	case GLSpins::WidgetLocation::TOP_LEFT:
-	//		coordinatesystem_position = "Top Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::BOTTOM_LEFT:
-	//		coordinatesystem_position = "Bottom Left";
-	//		break;
-	//	case GLSpins::WidgetLocation::TOP_RIGHT:
-	//		coordinatesystem_position = "Top Right";
-	//		break;
-	//	default:
-	//		coordinatesystem_position = "Bottom Right";
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_coordinateSystemPosition->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_coordinateSystemPosition->itemText(i)) == coordinatesystem_position)
-	//	{
-	//		comboBox_coordinateSystemPosition->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
-	//checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	// System
+	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
+	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
+	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
+	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+
+	// Miniview
+	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
+	this->comboBox_miniViewPosition->setCurrentIndex((int)_spinWidget->miniviewPosition());
 	
+	// Coordinate System
+	this->checkBox_showCoordinateSystem->setChecked(_spinWidget->isCoordinateSystemEnabled());
+	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
+
 	// Z Range Arrows
 	auto z_range = _spinWidget->zRange();
 	if (z_range.x < -1)
@@ -526,86 +475,68 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	horizontalSlider_arrows_zmin->setInvertedAppearance(true);
-	horizontalSlider_arrows_zmin->setRange(-100, 100);
-	horizontalSlider_arrows_zmin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_arrows_zmax->setRange(-100, 100);
-	horizontalSlider_arrows_zmax->setValue((int)(z_range.y * 100));
-	horizontalSlider_arrows_zmin->setTracking(true);
-	horizontalSlider_arrows_zmax->setTracking(true);
+	
+	// Overall filter
+	horizontalSlider_overall_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_zmin->setRange(-100, 100);
+	horizontalSlider_overall_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_zmax->setRange(-100, 100);
+	horizontalSlider_overall_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_zmin->setTracking(true);
+	horizontalSlider_overall_zmax->setTracking(true);
 
 
 	// X Range Surface
-	horizontalSlider_surface_xmin->setRange(1, 99);
-	horizontalSlider_surface_xmin->setValue((int)(0));
-	horizontalSlider_surface_xmax->setRange(1, 99);
-	horizontalSlider_surface_xmax->setValue((int)(99));
+	horizontalSlider_surface_xmin->setRange(1, 99999);
+	horizontalSlider_surface_xmin->setValue((int)(1));
+	horizontalSlider_surface_xmax->setRange(1, 99999);
+	horizontalSlider_surface_xmax->setValue((int)(99999));
 	horizontalSlider_surface_xmin->setTracking(true);
 	horizontalSlider_surface_xmax->setTracking(true);
 	// Y Range Surface
-	horizontalSlider_surface_ymin->setRange(1, 99);
-	horizontalSlider_surface_ymin->setValue((int)(0));
-	horizontalSlider_surface_ymax->setRange(1, 99);
-	horizontalSlider_surface_ymax->setValue((int)(99));
+	horizontalSlider_surface_ymin->setRange(1, 99999);
+	horizontalSlider_surface_ymin->setValue((int)(1));
+	horizontalSlider_surface_ymax->setRange(1, 99999);
+	horizontalSlider_surface_ymax->setValue((int)(99999));
 	horizontalSlider_surface_ymin->setTracking(true);
 	horizontalSlider_surface_ymax->setTracking(true);
 	// Z Range Surface
-	horizontalSlider_surface_zmin->setRange(1, 99);
-	horizontalSlider_surface_zmin->setValue((int)(0));
-	horizontalSlider_surface_zmax->setRange(1, 99);
-	horizontalSlider_surface_zmax->setValue((int)(99));
+	horizontalSlider_surface_zmin->setRange(1, 99999);
+	horizontalSlider_surface_zmin->setValue((int)(1));
+	horizontalSlider_surface_zmax->setRange(1, 99999);
+	horizontalSlider_surface_zmax->setValue((int)(99999));
 	horizontalSlider_surface_zmin->setTracking(true);
 	horizontalSlider_surface_zmax->setTracking(true);
   
-	// Isovalue
+	// Isosurface
 	auto isovalue = _spinWidget->isovalue();
 	horizontalSlider_isovalue->setRange(0, 100);
 	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
+	int component = _spinWidget->isocomponent();
+	if (component == 0) this->radioButton_isosurface_x->setChecked(true);
+	else if (component == 1) this->radioButton_isosurface_y->setChecked(true);
+	else if (component == 2) this->radioButton_isosurface_z->setChecked(true);
 
-	//// Colormap
-	//std::string colormap = "Hue-Saturation-Value";
-	//switch (_spinWidget->colormap())
-	//{
-	//	case SpinWidget::Colormap::HSV:
- //     break;
- //   case SpinWidget::Colormap::BLUE_RED:
- //     colormap = "Z-Component: Blue-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_GREEN_RED:
- //     colormap = "Z-Component: Blue-Green-Red";
- //     break;
- //   case SpinWidget::Colormap::BLUE_WHITE_RED:
- //     colormap = "Z-Component: Blue-White-Red";
- //     break;
- //   case SpinWidget::Colormap::OTHER:
-	//		break;
-	//	default:
-	//		break;
-	//}
-	//for (int i = 0; i < comboBox_colormap->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_colormap->itemText(i)) == colormap)
-	//	{
-	//		comboBox_colormap->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Colormap
+	int idx_cm = (int)_spinWidget->colormap();
+	comboBox_colormap->setCurrentIndex(idx_cm);
 
-	//// Perspective / FOV
-	//if (_spinWidget->verticalFieldOfView() == 0)
-	//{
-	//	radioButton_orthographicProjection->setChecked(true);
-	//}
-	//else
-	//{
-	//	radioButton_perspectiveProjection->setChecked(true);
-	//}
+	// Perspective / FOV
+	if (_spinWidget->verticalFieldOfView() == 0)
+	{
+		radioButton_orthographicProjection->setChecked(true);
+	}
+	else
+	{
+		radioButton_orthographicProjection->setChecked(false);
+	}
 
 
-	// Arrowsize
+	// Arrows: size and lod
 	horizontalSlider_arrowsize->setRange(0, 20);
 	float logs = std::log10(_spinWidget->arrowSize());
 	horizontalSlider_arrowsize->setValue((int)((logs+1)*10));
+	lineEdit_arrows_lod->setText(QString::number(_spinWidget->arrowLOD()));
 
 	// Sphere
 	horizontalSlider_spherePointSize->setRange(1, 10);
@@ -614,24 +545,12 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Bounding Box
 	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
-	//// Background
-	//std::string background_color = "Black";
-	//if (_spinWidget->backgroundColor() == glm::vec3(1.0, 1.0, 1.0))
-	//{
-	//	background_color = "White";
-	//}
-	//else if (_spinWidget->backgroundColor() == glm::vec3(0.5, 0.5, 0.5))
-	//{
-	//	background_color = "Gray";
-	//}
-	//for (int i = 0; i < comboBox_backgroundColor->count(); i++)
-	//{
-	//	if (string_q2std(comboBox_backgroundColor->itemText(i)) == background_color)
-	//	{
-	//		comboBox_backgroundColor->setCurrentIndex(i);
-	//		break;
-	//	}
-	//}
+	// Background
+	int idx_bg = (int)_spinWidget->backgroundColor();
+	comboBox_backgroundColor->setCurrentIndex(idx_bg);
+
+	// Camera
+	this->read_camera();
 }
 
 // -----------------------------------------------------------------------------------
@@ -645,7 +564,6 @@ void SettingsWidget::set_parameters()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		float d;
-		bool climbing, falling;
 		int i;
 
 		// Time step [ps]
@@ -670,9 +588,14 @@ void SettingsWidget::set_parameters()
 		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
 		// Climbing/Falling Image
-		climbing = this->radioButton_ClimbingImage->isChecked();
-		falling = this->radioButton_FallingImage->isChecked();
-		Parameters_Set_GNEB_Climbing_Falling(state.get(), climbing, falling, idx_image, idx_chain);
+		int image_type = 0;
+		if (this->radioButton_ClimbingImage->isChecked())
+			image_type = 1;
+		if (this->radioButton_FallingImage->isChecked())
+			image_type = 2;
+		if (this->radioButton_Stationary->isChecked())
+			image_type = 3;
+		Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
@@ -1160,7 +1083,6 @@ void SettingsWidget::set_visualization_perspective()
 	{
 		_spinWidget->setVerticalFieldOfView(45);
 	}
-
 }
 
 void SettingsWidget::set_visualization_miniview()
@@ -1259,8 +1181,8 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_xmax->setValue((int)(s_max));
 	horizontalSlider_surface_xmin->blockSignals(false);
 	horizontalSlider_surface_xmax->blockSignals(false);
-	float x_min = bounds_min[0] + (s_min / 100.0) * (bounds_max[0] - bounds_min[0]);
-	float x_max = bounds_min[0] + (s_max / 100.0) * (bounds_max[0] - bounds_min[0]);
+	float x_min = bounds_min[0] + (s_min / 100000.0) * (bounds_max[0] - bounds_min[0]);
+	float x_max = bounds_min[0] + (s_max / 100000.0) * (bounds_max[0] - bounds_min[0]);
 	// Y
 	s_min = horizontalSlider_surface_ymin->value();
 	s_max = horizontalSlider_surface_ymax->value();
@@ -1276,8 +1198,8 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_ymax->setValue((int)(s_max));
 	horizontalSlider_surface_ymin->blockSignals(false);
 	horizontalSlider_surface_ymax->blockSignals(false);
-	float y_min = bounds_min[1] + (s_min / 100.0) * (bounds_max[1] - bounds_min[1]);
-	float y_max = bounds_min[1] + (s_max / 100.0) * (bounds_max[1] - bounds_min[1]);
+	float y_min = bounds_min[1] + (s_min / 100000.0) * (bounds_max[1] - bounds_min[1]);
+	float y_max = bounds_min[1] + (s_max / 100000.0) * (bounds_max[1] - bounds_min[1]);
 	// Z
 	s_min = horizontalSlider_surface_zmin->value();
 	s_max = horizontalSlider_surface_zmax->value();
@@ -1293,43 +1215,41 @@ void SettingsWidget::set_visualization_system_surface()
 	horizontalSlider_surface_zmax->setValue((int)(s_max));
 	horizontalSlider_surface_zmin->blockSignals(false);
 	horizontalSlider_surface_zmax->blockSignals(false);
-	float z_min = bounds_min[2] + (s_min / 100.0) * (bounds_max[2] - bounds_min[2]);
-	float z_max = bounds_min[2] + (s_max / 100.0) * (bounds_max[2] - bounds_min[2]);
+	float z_min = bounds_min[2] + (s_min / 100000.0) * (bounds_max[2] - bounds_min[2]);
+	float z_max = bounds_min[2] + (s_max / 100000.0) * (bounds_max[2] - bounds_min[2]);
 
 	glm::vec2 x_range(x_min, x_max);
 	glm::vec2 y_range(y_min, y_max);
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
-
-	_spinWidget->update();
-}
-void SettingsWidget::set_visualization_system_isosurface()
-{
-
 }
 
-void SettingsWidget::set_visualization_zrange()
+void SettingsWidget::set_visualization_system_overall()
 {
-	float z_range_min = -horizontalSlider_arrows_zmin->value() / 100.0;
-	float z_range_max = horizontalSlider_arrows_zmax->value() / 100.0;
+	float z_range_min = -horizontalSlider_overall_zmin->value() / 100.0;
+	float z_range_max = horizontalSlider_overall_zmax->value() / 100.0;
 	if (z_range_min > z_range_max)
 	{
 		float t = z_range_min;
 		z_range_min = z_range_max;
 		z_range_max = t;
 	}
-	horizontalSlider_arrows_zmin->blockSignals(true);
-	horizontalSlider_arrows_zmax->blockSignals(true);
-	horizontalSlider_arrows_zmin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_arrows_zmax->setValue((int)(z_range_max * 100));
-	horizontalSlider_arrows_zmin->blockSignals(false);
-	horizontalSlider_arrows_zmax->blockSignals(false);
+	horizontalSlider_overall_zmin->blockSignals(true);
+	horizontalSlider_overall_zmax->blockSignals(true);
+	horizontalSlider_overall_zmin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_overall_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_overall_zmin->blockSignals(false);
+	horizontalSlider_overall_zmax->blockSignals(false);
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
-
-	_spinWidget->update();
 }
+
+void SettingsWidget::set_visualization_system_isosurface()
+{
+
+}
+
 
 
 void SettingsWidget::set_visualization_isovalue_fromslider()
@@ -1337,8 +1257,6 @@ void SettingsWidget::set_visualization_isovalue_fromslider()
 	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
 	this->lineEdit_isovalue->setText(QString::number(isovalue));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
 void SettingsWidget::set_visualization_isovalue_fromlineedit()
@@ -1346,10 +1264,17 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 	float isovalue = this->lineEdit_isovalue->text().toFloat();
 	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
 	_spinWidget->setIsovalue(isovalue);
-
-	_spinWidget->update();
 }
 
+void SettingsWidget::set_visualization_isocomponent()
+{
+	if (radioButton_isosurface_x->isChecked())
+		_spinWidget->setIsocomponent(0);
+	else if (radioButton_isosurface_y->isChecked())
+		_spinWidget->setIsocomponent(1);
+	else if (radioButton_isosurface_z->isChecked())
+		_spinWidget->setIsocomponent(2);
+}
 
 
 void SettingsWidget::set_visualization_sphere()
@@ -1382,8 +1307,6 @@ void SettingsWidget::set_visualization_colormap()
 		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
 	_spinWidget->setColormap(colormap);
-
-	_spinWidget->updateData();
 }
 
 void SettingsWidget::set_visualization_background()
@@ -1476,19 +1399,7 @@ void SettingsWidget::SelectTab(int index)
 void SettingsWidget::print_Energies_to_console()
 {
 	System_Update_Data(state.get());
-	auto E = System_Get_Energy(state.get());
-	float E_array[7];
-	auto NOS = System_Get_NOS(this->state.get());
-	System_Get_Energy_Array(state.get(), E_array);
-
-	std::cout << "E_tot = " << E / NOS << "  ||| Zeeman = ";
-	std::cout << E_array[0] / NOS << "  | Aniso = "
-		<< E_array[1] / NOS << "  | Exchange = "
-		<< E_array[2] / NOS << "  | DMI = "
-		<< E_array[3] / NOS << "  | BQC = "
-		<< E_array[4] / NOS << "  | FourSC = "
-		<< E_array[5] / NOS << "  | DD = "
-		<< E_array[6] / NOS << std::endl;
+	System_Print_Energy_Array(state.get());
 }
 
 
@@ -1592,6 +1503,7 @@ void SettingsWidget::Setup_Parameters_Slots()
 	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters()));
 	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
 	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
+	connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters()));
 }
 
 void SettingsWidget::Setup_Configurations_Slots()
@@ -1673,19 +1585,21 @@ void SettingsWidget::Setup_Visualization_Slots()
 	//		arrows
 	connect(horizontalSlider_arrowsize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_arrows()));
 	connect(lineEdit_arrows_lod, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_arrows()));
-	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	//		bounding box
 	//		surface
 	connect(horizontalSlider_surface_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	//		overall
+	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
+	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
 	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors

@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "Core_Defines.h"
-#include "Hamiltonian.hpp"
-#include "Geometry.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Hamiltonian.hpp>
+#include <data/Geometry.hpp>
 
 namespace Engine
 {
@@ -21,15 +22,15 @@ namespace Engine
 	public:
 		// Constructor
 		Hamiltonian_Gaussian(
-			std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<std::vector<scalar>> center
+			std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<Vector3> center
 		);
 
+		void Update_Energy_Contributions() override;
+
 		// General Hamiltonian functions
-		void Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian) override;
-		void Effective_Field(const std::vector<scalar> & spins, std::vector<scalar> & field) override;
-		scalar Energy(const std::vector<scalar> & spins) override;
-		std::vector<scalar> Energy_Array(const std::vector<scalar> & spins) override;
-		//std::vector<std::vector<scalar>> Energy_Array_per_Spin(std::vector<scalar> & spins) override;
+		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
+		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
@@ -38,7 +39,7 @@ namespace Engine
 		int n_gaussians;
 		std::vector<scalar> amplitude;
 		std::vector<scalar> width;
-		std::vector<std::vector<scalar>> center;
+		std::vector<Vector3> center;
 	};
 }
 #endif

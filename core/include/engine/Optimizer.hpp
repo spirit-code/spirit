@@ -3,9 +3,9 @@
 #define OPTIMIZER_H
 
 #include "Core_Defines.h"
-#include "Spin_System.hpp"
-#include "Method.hpp"
-#include "Logging.hpp"
+#include <data/Spin_System.hpp>
+#include <engine/Method.hpp>
+#include <utility/Logging.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -56,9 +56,9 @@ namespace Engine
 		int n_log;
 
 		// Pointers to Configurations
-		std::vector<std::shared_ptr<std::vector<scalar>>> configurations;
+		std::vector<std::shared_ptr<vectorfield>> configurations;
 		// Actual Forces on the configurations
-		std::vector<std::vector<scalar>> force;
+		std::vector<vectorfield> force;
 
 		// The time at which this Solver's Iterate() was last called
 		std::string starttime;
@@ -68,6 +68,9 @@ namespace Engine
 
 		// Check if a stop file is present -> Stop the iterations
 		virtual bool StopFilePresent() final;
+
+		// Precision for the conversion of scalar to string
+		int print_precision;
 	};
 }
 #endif

@@ -1,8 +1,10 @@
-#include "Configuration_Chain.hpp"
-#include "Configurations.hpp"
-#include "Spin_System.hpp"
-#include "Vectormath.hpp"
-#include "Manifoldmath.hpp"
+#include <utility/Configuration_Chain.hpp>
+#include <utility/Configurations.hpp>
+#include <data/Spin_System.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
+
+#include <Eigen/Dense>
 
 #include <random>
 #include <iostream>
@@ -31,88 +33,71 @@ namespace Utility
 			int nos = c->images[0]->nos;
 			int noi = idx_2 - idx_1 + 1;
 
-			scalar angle, r, rot_angle;
-			std::vector<scalar> axis(3), rot_axis(3), a(3), b(3), temp(3);
+			scalar angle, rot_angle;
+			Vector3 axis, rot_axis, a, b, temp;
 
 			for (int i = 0; i < nos; ++i)
 			{
-				for (int dim = 0; dim < 3; ++dim)
-				{
-					a[dim] = (*c->images[idx_1]->spins)[i + dim*nos];
-					b[dim] = (*c->images[idx_2]->spins)[i + dim*nos];
-				}
+				a = (*c->images[idx_1]->spins)[i];
+				b = (*c->images[idx_2]->spins)[i];
 
-				r = std::fmax(-1.0, std::fmin(1.0, Vectormath::Dot_Product(a, b)));
-				rot_angle = std::acos(r);
-				Vectormath::Cross_Product(a, b, rot_axis);
+				rot_angle = Engine::Manifoldmath::dist_greatcircle(a, b);
+				rot_axis = a.cross(b);
 
 				// If they are not strictly parallel we can rotate
-				if (std::abs(Vectormath::Length(rot_axis)) > 1e-18)
+				if (rot_axis.norm() > 1e-8)
 				{
-					Vectormath::Normalize(rot_axis);
+					rot_axis.normalize();
 
-					for (int img = idx_1; img <= idx_2; ++img)
+					for (int img = idx_1+1; img < idx_2; ++img)
 					{
-						angle = (img)*rot_angle / (noi - 1);
-						Manifoldmath::Rotate_Spin(a, rot_axis, angle, temp);
+						angle = img*rot_angle/noi;
+						Engine::Vectormath::rotate(a, rot_axis, angle, temp);
 
-						for (int dim = 0; dim < 3; ++dim)
-						{
-							(*c->images[img]->spins)[i + dim*nos] = temp[dim];
-						}
+						(*c->images[img]->spins)[i] = temp;
 					}
 				}
 				// Otherwise we simply leave the spin untouched
 				else
 				{
-					for (int img = 1; img < noi - 1; ++img)
+					for (int img = idx_1+1; img < idx_2; ++img)
 					{
-						for (int dim = 0; dim < 3; ++dim)
-						{
-							(*c->images[img]->spins)[i + dim*nos] = a[dim];
-						}
+						(*c->images[img]->spins)[i] = a;
 					}
 				}
 			}
 
 		}
 
-		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, std::vector<scalar> A, std::vector<scalar> B)
+		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, vectorfield A, vectorfield B)
 		{
 			(*c->images[0]->spins) = A;
 			(*c->images[c->noi - 1]->spins) = B;
 
 			int nos = c->images[0]->nos;
 
-			scalar angle, r, rot_angle;
-			std::vector<scalar> axis(3), rot_axis(3), a(3), b(3), temp(3);
+			scalar angle, rot_angle;
+			Vector3 axis, rot_axis, a, b, temp;
 
 			for (int i = 0; i < c->images[0]->nos; ++i)
 			{
-				for (int dim = 0; dim < 3; ++dim)
-				{
-					a[dim] = A[i + dim*nos];
-					b[dim] = B[i + dim*nos];
-				}
+				a = A[i];
+				b = B[i];
 				
-				r = std::fmax(-1.0, std::fmin(1.0, Vectormath::Dot_Product(a, b)));
-				rot_angle = std::acos(r);
-				Vectormath::Cross_Product(a, b, rot_axis);
+				rot_angle = Engine::Manifoldmath::dist_greatcircle(a, b);
+				rot_axis = a.cross(b);
 
 				// If they are not strictly parallel we can rotate
-				if (std::abs(Vectormath::Length(rot_axis)) > 1e-18)
+				if (rot_axis.norm() > 1e-8)
 				{
-					Vectormath::Normalize(rot_axis);
+					rot_axis.normalize();
 
 					for (int img = 1; img < c->noi - 1; ++img)
 					{
 						angle = (img)*rot_angle / (c->noi - 1);
-						Manifoldmath::Rotate_Spin(a, rot_axis, angle, temp);
+						Engine::Vectormath::rotate(a, rot_axis, angle, temp);
 
-						for (int dim = 0; dim < 3; ++dim)
-						{
-							(*c->images[img]->spins)[i + dim*nos] = temp[dim];
-						}
+						(*c->images[img]->spins)[i] = temp;
 					}
 				}
 				// Otherwise we simply leave the spin untouched
@@ -120,10 +105,7 @@ namespace Utility
 				{
 					for (int img = 1; img < c->noi - 1; ++img)
 					{
-						for (int dim = 0; dim < 3; ++dim)
-						{
-							(*c->images[img]->spins)[i + dim*nos] = a[dim];
-						}
+						(*c->images[img]->spins)[i] = a;
 					}
 				}
 			}

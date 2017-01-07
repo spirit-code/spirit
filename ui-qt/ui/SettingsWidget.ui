@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>666</width>
+            <height>1486</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1304,8 +1304,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>666</width>
+            <height>1486</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1583,8 +1583,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1425</height>
+            <width>666</width>
+            <height>1439</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2246,8 +2246,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1425</height>
+            <width>666</width>
+            <height>1439</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2712,174 +2712,11 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>666</width>
+            <height>1486</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
-           <item row="3" column="0">
-            <widget class="QGroupBox" name="groupBox_5">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>200</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>200</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>GNEB Parameters</string>
-             </property>
-             <widget class="QLabel" name="label_2">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>30</y>
-                <width>91</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Spring Constant</string>
-              </property>
-             </widget>
-             <widget class="QLineEdit" name="lineEdit_gneb_springconstant">
-              <property name="geometry">
-               <rect>
-                <x>130</x>
-                <y>30</y>
-                <width>50</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>40</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>50</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>1.0</string>
-              </property>
-             </widget>
-             <widget class="QRadioButton" name="radioButton_Normal">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>60</y>
-                <width>95</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Normal</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-             <widget class="QRadioButton" name="radioButton_ClimbingImage">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>90</y>
-                <width>121</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Climbing Image</string>
-              </property>
-             </widget>
-             <widget class="QRadioButton" name="radioButton_FallingImage">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>120</y>
-                <width>111</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Falling Image</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_44">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>160</y>
-                <width>57</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>n_iterations</string>
-              </property>
-             </widget>
-             <widget class="QLineEdit" name="lineEdit_gneb_n_iterations">
-              <property name="geometry">
-               <rect>
-                <x>90</x>
-                <y>160</y>
-                <width>80</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>20</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>80</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_45">
-              <property name="geometry">
-               <rect>
-                <x>190</x>
-                <y>160</y>
-                <width>47</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>log steps</string>
-              </property>
-             </widget>
-             <widget class="QLineEdit" name="lineEdit_gneb_log_steps">
-              <property name="geometry">
-               <rect>
-                <x>240</x>
-                <y>160</y>
-                <width>60</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>60</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </widget>
-           </item>
            <item row="4" column="0">
             <spacer name="verticalSpacer_10">
              <property name="orientation">
@@ -2889,22 +2726,6 @@
               <size>
                <width>20</width>
                <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="2" column="0">
-            <spacer name="verticalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>30</height>
               </size>
              </property>
             </spacer>
@@ -2963,6 +2784,22 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="2" column="0">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item row="1" column="0">
             <widget class="QGroupBox" name="groupBox_4">
@@ -3091,6 +2928,145 @@
              </layout>
             </widget>
            </item>
+           <item row="3" column="0">
+            <widget class="QGroupBox" name="groupBox_5">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>GNEB Parameters</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_78">
+              <item row="6" column="1">
+               <widget class="QRadioButton" name="radioButton_Stationary">
+                <property name="text">
+                 <string>Stationary</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QRadioButton" name="radioButton_FallingImage">
+                <property name="text">
+                 <string>Falling Image</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_40">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="7" column="0" colspan="2">
+               <layout class="QGridLayout" name="gridLayout_77">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_44">
+                  <property name="text">
+                   <string>n_iterations</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_45">
+                  <property name="text">
+                   <string>log steps</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_gneb_n_iterations">
+                  <property name="minimumSize">
+                   <size>
+                    <width>20</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLineEdit" name="lineEdit_gneb_log_steps">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_75">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>Spring Constant</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_gneb_springconstant">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1.0</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="4" column="1">
+               <widget class="QRadioButton" name="radioButton_ClimbingImage">
+                <property name="text">
+                 <string>Climbing Image</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QRadioButton" name="radioButton_Normal">
+                <property name="text">
+                 <string>Normal</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -3124,8 +3100,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>662</width>
-            <height>1479</height>
+            <width>666</width>
+            <height>1486</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3742,30 +3718,98 @@
             </spacer>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBox_10">
+             <property name="title">
+              <string>Overall Filter</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_71">
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_68">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_zmin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_zmax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>z component</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_42">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_18">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBox_14">
              <property name="title">
               <string>Surface</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_64">
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>y filter</string>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_41">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_36">
-                <property name="minimumSize">
+                <property name="sizeHint" stdset="0">
                  <size>
-                  <width>0</width>
-                  <height>28</height>
+                  <width>40</width>
+                  <height>20</height>
                  </size>
                 </property>
-                <property name="text">
-                 <string>z filter</string>
-                </property>
-               </widget>
+               </spacer>
               </item>
               <item row="0" column="1">
                <layout class="QGridLayout" name="gridLayout_51">
@@ -3809,25 +3853,18 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>x filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_41">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_36">
+                <property name="minimumSize">
                  <size>
-                  <width>40</width>
-                  <height>20</height>
+                  <width>0</width>
+                  <height>28</height>
                  </size>
                 </property>
-               </spacer>
+                <property name="text">
+                 <string>z filter</string>
+                </property>
+               </widget>
               </item>
               <item row="2" column="1">
                <layout class="QGridLayout" name="gridLayout_53">
@@ -3859,6 +3896,20 @@
                 </item>
                </layout>
               </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>y filter</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>x filter</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <layout class="QGridLayout" name="gridLayout_49">
                 <item row="0" column="0">
@@ -3889,39 +3940,6 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="1">
-               <layout class="QGridLayout" name="gridLayout_65">
-                <item row="0" column="0">
-                 <widget class="QRadioButton" name="radioButton_surface_lesser">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>lesser</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_surface_greater">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>greater</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
              </layout>
             </widget>
            </item>
@@ -3947,68 +3965,26 @@
               <string>Arrows</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_66">
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_69">
-                <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_ymin">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_ymax">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_59">
+                <property name="text">
+                 <string>y filter</string>
+                </property>
+               </widget>
               </item>
-              <item row="3" column="1">
-               <layout class="QGridLayout" name="gridLayout_71">
-                <item row="2" column="0">
-                 <widget class="QRadioButton" name="radioButton_arrows_lesser">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>lesser</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QRadioButton" name="radioButton_arrows_greater">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>greater</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_60">
+                <property name="text">
+                 <string>x filter</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>LOD</string>
+                </property>
+               </widget>
               </item>
               <item row="2" column="1">
                <layout class="QGridLayout" name="gridLayout_70">
@@ -4040,30 +4016,10 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_60">
-                <property name="text">
-                 <string>x filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_38">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_68">
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_69">
                 <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_zmin">
+                 <widget class="QSlider" name="horizontalSlider_arrows_ymin">
                   <property name="maximumSize">
                    <size>
                     <width>200</width>
@@ -4076,7 +4032,7 @@
                  </widget>
                 </item>
                 <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_zmax">
+                 <widget class="QSlider" name="horizontalSlider_arrows_ymax">
                   <property name="maximumSize">
                    <size>
                     <width>200</width>
@@ -4090,34 +4046,7 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>z filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_59">
-                <property name="text">
-                 <string>y filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QSlider" name="horizontalSlider_arrowsize">
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_35">
                 <property name="maximumSize">
                  <size>
@@ -4130,14 +4059,7 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_39">
-                <property name="text">
-                 <string>LOD</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
+              <item row="4" column="1">
                <widget class="QLineEdit" name="lineEdit_arrows_lod">
                 <property name="maximumSize">
                  <size>
@@ -4149,6 +4071,69 @@
                  <string>20</string>
                 </property>
                </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QSlider" name="horizontalSlider_arrowsize">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>z filter</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_65">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_2">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_38">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -4706,8 +4691,6 @@
   <tabstop>lineEdit_llg_n_iterations</tabstop>
   <tabstop>lineEdit_llg_log_steps</tabstop>
   <tabstop>lineEdit_gneb_springconstant</tabstop>
-  <tabstop>radioButton_Normal</tabstop>
-  <tabstop>radioButton_ClimbingImage</tabstop>
   <tabstop>radioButton_FallingImage</tabstop>
   <tabstop>lineEdit_gneb_n_iterations</tabstop>
   <tabstop>lineEdit_gneb_log_steps</tabstop>
@@ -4746,7 +4729,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

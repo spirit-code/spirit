@@ -1,8 +1,8 @@
-#include "Interface_Chain.h"
-#include "Interface_State.h"
-
-#include "State.hpp"
-#include "Manifoldmath.hpp"
+#include <interface/Interface_Chain.h>
+#include <interface/Interface_State.h>
+#include <data/State.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 
 int Chain_Get_Index(State * state)
 {
@@ -87,8 +87,7 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         // Add to chain
         chain->noi++;
         chain->images.insert(chain->images.begin() + idx_image, copy);
-        chain->climbing_image.insert(chain->climbing_image.begin() + idx_image, false);
-        chain->falling_image.insert(chain->falling_image.begin() + idx_image, false);
+		chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
 		// Add to state
 		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
@@ -125,8 +124,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         // if (idx_image < state->noi - 1)
         // {
             chain->images.insert(chain->images.begin() + idx_image + 1, copy);
-            chain->climbing_image.insert(chain->climbing_image.begin() + idx_image + 1, false);
-            chain->falling_image.insert(chain->falling_image.begin() + idx_image + 1, false);
+			chain->image_type.insert(chain->image_type.begin() + idx_image + 1, Data::GNEB_Image_Type::Normal);
         // }
         // else
         // {
@@ -193,8 +191,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         state->noi = state->active_chain->noi;
         
         chain->images.erase(chain->images.begin() + idx_image);
-        chain->climbing_image.erase(chain->climbing_image.begin() + idx_image);
-        chain->falling_image.erase(chain->falling_image.begin() + idx_image);
+        chain->image_type.erase(chain->image_type.begin() + idx_image);
 
 		// Remove from state
 		state->simulation_information_llg[idx_chain].erase(state->simulation_information_llg[idx_chain].begin() + idx_image);
@@ -215,52 +212,57 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     }
 }
 
-std::vector<float> Chain_Get_Rx(State * state, int idx_chain_i)
+
+void Chain_Get_Rx(State * state, float * Rx, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	std::vector<float> Rx(chain->Rx.size());
 	for (unsigned int i = 0; i < chain->Rx.size(); ++i)
 	{
 		Rx[i] = (float)chain->Rx[i];
 	}
-	return Rx;
 }
 
-std::vector<float> Chain_Get_Rx_Interpolated(State * state, int idx_chain_i)
+void Chain_Get_Rx_Interpolated(State * state, float * Rx_interpolated, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-	
-	std::vector<float> Rx_interpolated(chain->Rx_interpolated.size());
+
 	for (unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i)
 	{
 		Rx_interpolated[i] = (float)chain->Rx_interpolated[i];
 	}
-	return Rx_interpolated;
 }
 
-std::vector<float> Chain_Get_Energy_Interpolated(State * state, int idx_chain_i)
+void Chain_Get_Energy(State * state, float * Energy, int idx_chain)
 {
-	int idx_image = -1, idx_chain = idx_chain_i;
+	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	// Fetch correct indices and pointers
 	from_indices(state, idx_image, idx_chain, image, chain);
-	
-	std::vector<float> E_interpolated(chain->E_interpolated.size());
+
+	for (int i = 0; i < chain->noi; ++i)
+	{
+		Energy[i] = (float)chain->images[i]->E;
+	}
+}
+
+void Chain_Get_Energy_Interpolated(State * state, float * E_interpolated, int idx_chain)
+{
+	int idx_image = -1;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
 	for (unsigned int i = 0; i < chain->E_interpolated.size(); ++i)
 	{
 		E_interpolated[i] = (float)chain->E_interpolated[i];
 	}
-	return E_interpolated;
 }
 
 std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain_i)
@@ -299,7 +301,7 @@ void Chain_Update_Data(State * state, int idx_chain_i)
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
         chain->images[i]->UpdateEnergy();
-        if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Utility::Manifoldmath::Dist_Geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
+        if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
     }
 }
 
@@ -313,9 +315,9 @@ void Chain_Setup_Data(State * state, int idx_chain_i)
 
     // Apply
     chain->Rx = std::vector<scalar>(state->noi, 0);
-    chain->Rx_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_interpolated = std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-    chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>((state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+    chain->Rx_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+    chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
     // Initial data update
     Chain_Update_Data(state, idx_chain);

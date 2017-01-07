@@ -1,9 +1,11 @@
-#include "Optimizer.hpp"
-#include "Timing.hpp"
-#include"Logging.hpp"
+#include <engine/Optimizer.hpp>
+#include <utility/Timing.hpp>
+#include <utility/Logging.hpp>
 
 using namespace Utility;
 
+#include <sstream>
+#include <iomanip>
 
 namespace Engine
 {
@@ -19,11 +21,11 @@ namespace Engine
         this->n_log             = this->n_iterations/this->n_iterations_log;
 
         // Create shared pointers to the method's systems' configurations
-	    this->configurations = std::vector<std::shared_ptr<std::vector<scalar>>>(noi);
+	    this->configurations = std::vector<std::shared_ptr<vectorfield>>(noi);
         for (int i=0; i<noi; ++i) this->configurations[i] = this->method->systems[i]->spins;
         
         // Allocate force array
-        this->force = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos, 0));	// [noi][3*nos]
+        this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
         // Setup Timings
         for (int i=0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
@@ -32,6 +34,15 @@ namespace Engine
 
         // Initial force calculation s.t. it does not seem to be already converged
         this->method->Calculate_Force(this->configurations, this->force);
+        // Post iteration hook to get forceMaxAbsComponent etc
+        this->method->Hook_Post_Iteration();
+
+        // Printing precision for Scalars
+        #ifdef CORE_SCALAR_TYPE_FLOAT
+            this->print_precision = 8;
+        #else
+            this->print_precision = 12;
+        #endif
     }
 
     
@@ -42,16 +53,26 @@ namespace Engine
         auto sender     = method->SenderName;
         //----
 		int i=0, step = 0;
+        //----
+        std::stringstream maxforce_stream;
+        maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
+        std::string maxforce = maxforce_stream.str();
+        std::stringstream force_param_stream;
+        force_param_stream << std::fixed << std::setprecision(this->print_precision) << this->method->parameters->force_convergence;
+        std::string force_param = force_param_stream.str();
 		//------------------------ End Init ----------------------------------------
 
         //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Started " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Going to iterate " + std::to_string(n_log) + " steps", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "            with " + std::to_string(n_iterations_log) + " iterations per step", this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
-        Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "-----------------------------------------------------", this->method->idx_image, this->method->idx_chain);
+		Log.SendBlock(Log_Level::All, sender,
+			{
+				"------------  Started  " + this->method->Name() + " Calculation  ------------",
+				"    Going to iterate " + std::to_string(n_log) + " steps",
+				"                with " + std::to_string(n_iterations_log) + " iterations per step",
+				"    Force convergence parameter: " + force_param,
+				"    Maximum force component:     " + maxforce,
+				"    Optimizer: " + this->FullName(),
+				"-----------------------------------------------------"
+			}, this->method->idx_image, this->method->idx_chain);
 
         //---- Start Timings
 		auto t_start = system_clock::now();
@@ -83,11 +104,21 @@ namespace Engine
 				t_last = t_current;
 				t_current = system_clock::now();
 
-				Log(Log_Level::All, sender, this->Name() + " Iteration step          " + std::to_string(step) + " / " + std::to_string(n_log), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "                           = " + std::to_string(i) + " / " + std::to_string(n_iterations), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Time since last step:    " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds.", this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Iterations / sec:        " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)), this->method->idx_image, this->method->idx_chain);
-				Log(Log_Level::All, sender, "    Maximum force component: " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
+                maxforce_stream.str(std::string());
+                maxforce_stream.clear();
+                maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
+                maxforce = maxforce_stream.str();
+
+				Log.SendBlock(Log_Level::All, sender,
+					{
+						"----- " + this->Name() + " Calculation",
+						"    Iteration step               " + std::to_string(step) + " / " + std::to_string(n_log),
+						"                               = " + std::to_string(i) + " / " + std::to_string(n_iterations),
+						"    Time since last step:        " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds",
+						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)),
+						"    Force convergence parameter: " + force_param,
+						"    Maximum force component:     " + maxforce
+					}, this->method->idx_image, this->method->idx_chain);
 
 				this->method->Save_Current(this->starttime, i, false, false);
 
@@ -98,20 +129,32 @@ namespace Engine
         //---- End timings
 		auto t_end = system_clock::now();
 
-        //---- Log messages
-		Log(Log_Level::All, sender, "-------------- Finished " + this->method->Name() + " Simulation --------------", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Terminated at                   " + std::to_string(i) + " / " + std::to_string(n_iterations) + " iterations.", this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "    " + this->method->Name() + " Simulation ran for     " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.", this->method->idx_image, this->method->idx_chain);
+        //---- Maximum force component as string
+        maxforce_stream.str(std::string());
+        maxforce_stream.clear();
+        maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
+        maxforce = maxforce_stream.str();
+
+        //---- Termination Reason
+        std::string reason = "";
         if (this->StopFilePresent())
-			Log(Log_Level::All, sender, "    A STOP file has been found.", this->method->idx_image, this->method->idx_chain);
-        else
-        Log(Log_Level::All, sender,     "    Force convergence parameter: " + std::to_string(this->method->parameters->force_convergence), this->method->idx_image, this->method->idx_chain);
-        if (this->method->Force_Converged())
-			Log(Log_Level::All, sender, "    The transition has converged to a maximum force component of " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
-		else
-			Log(Log_Level::All, sender, "    Maximum force component:     " + std::to_string(this->method->force_maxAbsComponent), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "Optimizer: " + this->FullName(), this->method->idx_image, this->method->idx_chain);
-		Log(Log_Level::All, sender, "------------------------------------------------------", this->method->idx_image, this->method->idx_chain);
+			reason = "A STOP file has been found";
+        else if (this->method->Force_Converged())
+            reason = "The force converged";
+
+        //---- Log messages
+		std::vector<std::string> block;
+		block.push_back("------------ Terminated " + this->method->Name() + " Calculation ------------");
+		if (reason.length() > 0)
+			block.push_back("----- Reason:   " + reason);
+		block.push_back("----- Duration: " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
+		block.push_back("    Iteration step " + std::to_string(step) + " / " + std::to_string(n_log));
+		block.push_back("                 = " + std::to_string(i) + " / " + std::to_string(n_iterations));
+		block.push_back("    Force convergence parameter: " + force_param);
+		block.push_back("    Maximum force component:     " + maxforce);
+		block.push_back("    Optimizer: " + this->FullName());
+		block.push_back("-----------------------------------------------------");
+		Log.SendBlock(Log_Level::All, sender, block, this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
 		this->method->Save_Current(this->starttime, i, false, true);

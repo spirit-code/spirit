@@ -27,7 +27,26 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 ######### Generate Core_Defines.h ################
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
+string(TOUPPER ${CORE_SCALAR_TYPE} CORE_SCALAR_TYPE_UPPERCASE)
+if ( CORE_USE_CUDA )
+	set ( CORE_DEFINE_CUDA "#define CORE_USE_CUDA")
+endif()
+if ( CORE_USE_THREADS )
+	set ( CORE_DEFINE_THREADS "#define CORE_USE_THREADS")
+endif()
 configure_file(${CMAKE_SOURCE_DIR}/CMake/Core_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Core_Defines.h)
+#############################################
+
+
+######### CUDA decisions ####################
+if ( CORE_USE_CUDA )
+    find_package( CUDA REQUIRED )
+    add_definitions( -DUSE_CUDA )
+	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
+	# --std=c++11 flag may be necessary, but it is propagated from global flags...
+	# if it appears twice, for some reason the compilation breaks
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30 --expt-relaxed-constexpr" )
+endif()
 #############################################
 
 
@@ -80,8 +99,8 @@ source_group("src\\interface" FILES ${SOURCE_CORE_INTERFACE})
 #############################################
 
 
-######### Tell CMake to create the static library
-add_library( core STATIC
+#############################################
+set( CORE_LIBRARY_SOURCES 
 	${HEADER_CORE_ROOT}
     ${HEADER_CORE_DATA}
     ${HEADER_CORE_ENGINE}
@@ -91,27 +110,37 @@ add_library( core STATIC
 	${SOURCE_CORE_DATA}
 	${SOURCE_CORE_ENGINE}
 	${SOURCE_CORE_INTERFACE}
-	${SOURCE_CORE_UTILITY})
-target_link_libraries( core libqhullcpp)
+	${SOURCE_CORE_UTILITY} )
+
+if( NOT CORE_USE_CUDA )
+	######### Tell CMake to create the object files
+	add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
+	######### Tell CMake to create the static core library for the QT UI
+	if( BUILD_UI_CXX )
+		MESSAGE( STATUS ">> Building static cxx library" )
+		add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
+		target_link_libraries( core libqhullcpp )
+	endif()
+else()
+	include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+	if( BUILD_UI_CXX )
+		cuda_add_library( core STATIC ${CORE_LIBRARY_SOURCES} )
+		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
+	endif()
+endif()
+set_property(TARGET core PROPERTY CXX_STANDARD 11)
+set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET core PROPERTY CXX_EXTENSIONS OFF)
 #############################################
 
-######### Tell CMake to create the shared library
+######### Tell CMake to create the shared library for the Python UI
 if( BUILD_UI_PYTHON )
 	MESSAGE( STATUS ">> Building shared library for Python" )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-	add_library( pycore SHARED
-		${HEADER_CORE_ROOT}
-		${HEADER_CORE_DATA}
-		${HEADER_CORE_ENGINE}
-		${HEADER_CORE_INTERFACE}
-		${HEADER_CORE_UTILITY}
-		${SOURCE_CORE_ROOT}
-		${SOURCE_CORE_DATA}
-		${SOURCE_CORE_ENGINE}
-		${SOURCE_CORE_INTERFACE}
-		${SOURCE_CORE_UTILITY})
+	add_library( pycore SHARED $<TARGET_OBJECTS:coreobj> )
+	target_link_libraries( pycore libqhullcpp )
 	### We want it to be called core, not pycore
-	set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
+	# set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
 	set( PYLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-python/core/ )
     set_target_properties( pycore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
@@ -121,26 +150,19 @@ if( BUILD_UI_PYTHON )
         	set_target_properties( pycore PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
 		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
     endif ( MSVC )
+
+	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${CORE_SCALAR_TYPE}")
 endif()
 #############################################
 
-######### Tell CMake to create the shared library
+######### Tell CMake to create the shared library for the Julia UI
 if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-	add_library( corejl SHARED
-		${HEADER_CORE_ROOT}
-		${HEADER_CORE_DATA}
-		${HEADER_CORE_ENGINE}
-		${HEADER_CORE_INTERFACE}
-		${HEADER_CORE_UTILITY}
-		${SOURCE_CORE_ROOT}
-		${SOURCE_CORE_DATA}
-		${SOURCE_CORE_ENGINE}
-		${SOURCE_CORE_INTERFACE}
-		${SOURCE_CORE_UTILITY})
+	add_library( corejl SHARED $<TARGET_OBJECTS:coreobj> )
+	target_link_libraries( corejl libqhullcpp)
 	### We want it to be called core, not corejl
-	set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
+	# set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
 	set( JLLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-julia/core/ )
     set_target_properties( corejl PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
@@ -154,11 +176,38 @@ endif()
 #############################################
 
 
-### TODO: Add threading define if we dont use emscripten (which cannot use threads)
-# if (NOT BUILD_UI_WEB)
-# 	target_compile_definitions( core "USE_THREADS")
-# endif()
-### or use add_definitions() to add the define to all targets
+
+######### Test executable ###################
+set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
+### Test creation macro
+macro( add_framework_test testName testSrc )
+    # Executable
+    add_executable( ${testName} test/main.cpp ${testSrc} )
+    # Link Library
+    target_link_libraries( ${testName} core )
+    # Properties
+    set_property(TARGET ${testName} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY})
+    set_property(TARGET ${testName} PROPERTY CXX_STANDARD 11)
+    set_property(TARGET ${testName} PROPERTY CXX_STANDARD_REQUIRED ON)
+    set_property(TARGET ${testName} PROPERTY CXX_EXTENSIONS OFF)
+    # Include Directories
+    target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/test)
+    # Add the test
+    add_test( NAME        ${testName}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND           ${testName} --use-colour=yes )
+endmacro( add_framework_test testName testSrc )
+### Create tests if needed
+if ( CORE_BUILD_TEST )
+	MESSAGE( STATUS ">> Building unit tests for core" )
+
+    ### Enable CTest testing
+    enable_testing()
+
+    ###### Test 1
+    add_framework_test( coretest test/test.cpp )
+endif()
+#############################################
 
 
 ######### Export
@@ -173,7 +222,6 @@ set(SOURCE_CORE_ENGINE    ${SOURCE_CORE_ENGINE}    PARENT_SCOPE)
 set(SOURCE_CORE_INTERFACE ${SOURCE_CORE_INTERFACE} PARENT_SCOPE)
 set(SOURCE_CORE_UTILITY   ${SOURCE_CORE_UTILITY}   PARENT_SCOPE)
 #############################################
-
 
 
 

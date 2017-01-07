@@ -3,11 +3,19 @@
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
 #include "Core_Defines.h"
-#include "Spin_System.hpp"
-#include "Parameters_Method_GNEB.hpp"
+#include <data/Spin_System.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
 
 namespace Data
 {
+	enum class GNEB_Image_Type
+	{
+		Normal,
+		Climbing,
+		Falling,
+		Stationary
+	};
+
 	class Spin_System_Chain
 	{
 	public:
@@ -25,8 +33,7 @@ namespace Data
 		bool iteration_allowed;
 
 		// Climbing and falling images
-		std::vector<bool> climbing_image;
-		std::vector<bool> falling_image;
+		std::vector<GNEB_Image_Type> image_type;
 
 		// Reaction coordinates of images in the chain
 		std::vector<scalar> Rx;

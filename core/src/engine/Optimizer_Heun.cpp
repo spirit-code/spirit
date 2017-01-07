@@ -1,6 +1,8 @@
-#include <Optimizer_Heun.hpp>
+#include <engine/Optimizer_Heun.hpp>
+#include <engine/Hamiltonian.hpp>
+#include <engine/Vectormath.hpp>
 
-#include "engine/Hamiltonian.hpp"
+#include <Eigen/Dense>
 
 
 namespace Engine
@@ -8,8 +10,11 @@ namespace Engine
 	Optimizer_Heun::Optimizer_Heun(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->virtualforce = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
-		this->spins_temp = std::vector<std::vector<scalar>>(this->noi, std::vector<scalar>(3 * this->nos));	// [noi][3*nos]
+		this->virtualforce = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos][3]
+		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos][3]
+		this->temp1 = vectorfield(this->nos);	// [nos][3]
+		this->temp2 = vectorfield(this->nos);	// [nos][3]
+		this->temp3 = vectorfield(this->nos);	// [nos][3]
     }
 
     void Optimizer_Heun::Iteration()
@@ -19,9 +24,7 @@ namespace Engine
 		// Get the actual forces on the configurations
 		this->method->Calculate_Force(configurations, force);
 
-		int dim;
-		scalar dt, s2;
-		std::vector <scalar> c1(3), c2(3), c3(3), c4(3);
+		scalar dt;
 
 		// Optimization for each image
 		for (int i = 0; i < this->noi; ++i)
@@ -29,63 +32,29 @@ namespace Engine
 			s = method->systems[i];
 			auto& conf = *configurations[i];
 
-			std::vector<scalar> temp1(3), temp2(3);
 			dt = s->llg_parameters->dt;
+	
+			// Set temporaries to zero
+			Vectormath::fill(spins_temp[i], { 0,0,0 });
+			Vectormath::fill(temp1, { 0,0,0 });
+			Vectormath::fill(temp2, { 0,0,0 });
+			Vectormath::fill(temp3, { 0,0,0 });
 
-			for (int j = 0; j < nos; ++j)
-			{
-				
-				for (dim = 0; dim < 3; ++dim)
-				{
-					c1[dim] = conf[((dim + 1) % 3)*nos + j] * force[i][((dim + 2) % 3)*nos + j]
-							- conf[((dim + 2) % 3)*nos + j] * force[i][((dim + 1) % 3)*nos + j];
-				}
-				for (dim = 0; dim < 3; ++dim)
-				{
-					c2[dim] = conf[((dim + 1) % 3)*nos + j] * c1[((dim + 2) % 3)]
-							- conf[((dim + 2) % 3)*nos + j] * c1[((dim + 1) % 3)];
-				}
-				for (dim = 0; dim < 3; ++dim)
-				{
-					temp1[dim] = -100*dt*dt*c2[dim];
-					temp2[dim] = conf[dim*nos + j] + temp1[dim];
-				}
-				for (dim = 0; dim < 3; ++dim)
-				{
-					c3[dim] = temp2[((dim + 1) % 3)] * force[i][((dim + 2) % 3)*nos + j]
-							- temp2[((dim + 2) % 3)] * force[i][((dim + 1) % 3)*nos + j];
-				}
-				for (dim = 0; dim < 3; ++dim)
-				{
-					c4[dim] = temp2[((dim + 1) % 3)] * c3[((dim + 2) % 3)]
-							- temp2[((dim + 2) % 3)] * c3[((dim + 1) % 3)];
-				}
-				for (dim = 0; dim < 3; ++dim)
-				{
-					temp1[dim] = temp1[dim] - 100*dt*dt*c4[dim];
-					spins_temp[i][j + dim*nos] = 10*dt / 2.0 * (conf[j + dim*nos] + temp1[dim]);
-				}
-				// Renormalize Spins
-				s2 = 0;
-				for (dim = 0; dim < 3; ++dim)
-				{
-					s2 += std::pow(spins_temp[i][j + dim*nos], 2);
-				}
-				s2 = std::sqrt(s2);
-				for (dim = 0; dim < 3; ++dim)
-				{
-					conf[j + dim*nos] = spins_temp[i][j + dim*nos] / s2;
-				}
-			}
-			// s->spins = conf;
-			/*
-			do i=1,NOS
-				temp1 = -dt*dt*cross_product( IMAGES(idx_img,i,:),cross_product(IMAGES(idx_img,i,:), H_eff_tot(i,:)) ) !! relaxation_factor instead of dt*dt?
-				temp2 = IMAGES(idx_img,i,:)+temp1
-				temp1 = temp1-dt*dt*cross_product( temp2,cross_product(temp2, H_eff_tot(i,:)) ) !! relaxation_factor instead of dt*dt?
-				IMAGES(idx_img,i,:) = dt/2_8*(IMAGES(idx_img,i,:)+temp1(:))
-			enddo
-			*/
+			// Update spins_temp
+			Vectormath::add_c_cross(1, conf, force[i], temp3);
+			Vectormath::add_c_cross(-100*dt*dt, conf, temp3, temp1);
+			Vectormath::add_c_a(1, conf, temp2);
+			Vectormath::add_c_a(1, temp1, temp2);
+			Vectormath::add_c_cross(1, temp2, force[i], temp3);
+			Vectormath::add_c_cross(-100*dt*dt, temp2, temp3, temp1);
+			Vectormath::add_c_a(5*dt, conf, spins_temp[i]);
+			Vectormath::add_c_a(5*dt, temp1, spins_temp[i]);
+
+			// Normalize spins
+			Vectormath::normalize_vectors(spins_temp[i]);
+
+			// Copy out
+			conf = spins_temp[i];
 		}
 	}
 

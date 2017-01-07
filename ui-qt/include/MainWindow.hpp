@@ -75,6 +75,13 @@ private:
 	QTimer * m_timer;
 
 	// Status Bar labels
+	QLabel * m_Spacer_1;
+	QLabel * m_Spacer_2;
+	QLabel * m_Spacer_3;
+	QLabel * m_Spacer_4;
+	QLabel * m_Label_E;
+	QLabel * m_Label_Mz;
+	QLabel * m_Label_Torque;
 	QLabel * m_Label_NOC;
 	QLabel * m_Label_NOI;
 	QLabel * m_Label_NOS;
@@ -82,7 +89,16 @@ private:
 	std::vector<QLabel*> m_Labels_IPS;
 
 	// Fullscreen state
-	bool fullscreen_spins;
+	bool   fullscreen_spins;
+	bool   pre_fullscreen_settings_hidden;
+	QSize  pre_fullscreen_settings_size;
+	QPoint pre_fullscreen_settings_pos;
+	bool   pre_fullscreen_plots_hidden;
+	QSize  pre_fullscreen_plots_size;
+	QPoint pre_fullscreen_plots_pos;
+	bool   pre_fullscreen_debug_hidden;
+	QSize  pre_fullscreen_debug_size;
+	QPoint pre_fullscreen_debug_pos;
 };
 
 #endif

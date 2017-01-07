@@ -17,10 +17,11 @@ std::string string_q2std(QString qs)
 	return std::string(c_fileName);
 }
 
-ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget)
+ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget)
 {
 	this->state = state;
 	this->spinWidget = spinWidget;
+	this->settingsWidget = settingsWidget;
     
 	// Create threads
 	threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
@@ -48,6 +49,9 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
 	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
+
+	// Read persistent settings
+	this->readSettings();
 }
 
 void ControlWidget::updateData()
@@ -76,8 +80,8 @@ void ControlWidget::play_pause()
 	auto qs_method = this->comboBox_Method->currentText();
 	auto qs_optimizer = this->comboBox_Optimizer->currentText();
 	
-	auto s_method = string_q2std(qs_method);
-	auto s_optimizer = string_q2std(qs_optimizer);
+	this->s_method = string_q2std(qs_method);
+	this->s_optimizer = string_q2std(qs_optimizer);
 	
 	auto c_method = s_method.c_str();
 	auto c_optimizer = s_optimizer.c_str();
@@ -98,20 +102,20 @@ void ControlWidget::play_pause()
 	else
 	{
 		// Not running, so we start it
-		if (this->comboBox_Method->currentText() == "LLG")
+		if (this->s_method == "LLG")
 		{
 			int idx = System_Get_Index(state.get());
 			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
 			this->threads_llg[System_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
-		else if (this->comboBox_Method->currentText() == "GNEB")
+		else if (this->s_method == "GNEB")
 		{
 			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 			this->threads_gneb[Chain_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
-		else if (this->comboBox_Method->currentText() == "MMF")
+		else if (this->s_method == "MMF")
 		{
 			if (thread_mmf.joinable()) thread_mmf.join();
 			this->thread_mmf =
@@ -176,7 +180,7 @@ void ControlWidget::next_image()
 
 		// Update Image-dependent Widgets
 		this->spinWidget->updateData();
-		// this->settingsWidget->updateData();
+		this->settingsWidget->updateData();
 		// this->plotsWidget->updateData();
 		// this->debugWidget->updateData();
 	}
@@ -196,8 +200,7 @@ void ControlWidget::prev_image()
 
 		// Update Image-dependent Widgets
 		this->spinWidget->updateData();
-		// this->spinWidget->updateData();
-		// this->settingsWidget->updateData();
+		this->settingsWidget->updateData();
 		// this->plotsWidget->updateData();
 		// this->debugWidget->updateData();
 	}
@@ -214,7 +217,8 @@ void ControlWidget::cut_image()
 
 		int idx = System_Get_Index(state.get());
 		if (idx > 0) Chain_prev_Image(this->state.get());
-		this->spinWidget->updateData();			
+		this->spinWidget->updateData();
+		this->settingsWidget->updateData();		
 		//else this->nextImagePressed();
 
 		if (Chain_Delete_Image(state.get(), idx)) 
@@ -256,6 +260,8 @@ void ControlWidget::paste_image(std::string where)
 	Chain_Update_Data(state.get());
 	// Update Visualisation
 	this->spinWidget->updateData();
+	// Update settings
+	this->settingsWidget->updateData();
 }
 
 void ControlWidget::delete_image()
@@ -276,6 +282,7 @@ void ControlWidget::delete_image()
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 	}
 	this->spinWidget->updateData();
+	this->settingsWidget->updateData();
 }
 
 
@@ -343,4 +350,33 @@ void ControlWidget::save_EPressed()
 		snprintf(newName, 20, "Energies_%03i.txt", a);
 		lineEdit_Save_E->setText(newName);
 	}
+}
+
+void ControlWidget::readSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+	// Method and Optimizer
+	settings.beginGroup("ControlWidget");
+	this->comboBox_Method->setCurrentIndex(settings.value("Method").toInt());
+	this->comboBox_Optimizer->setCurrentIndex(settings.value("Optimizer").toInt());
+	settings.endGroup();
+}
+
+void ControlWidget::writeSettings()
+{
+	QSettings settings("Spirit Code", "Spirit");
+
+	// Method and Optimizer
+	settings.beginGroup("ControlWidget");
+	settings.setValue("Method", this->comboBox_Method->currentIndex());
+	settings.setValue("Optimizer", this->comboBox_Optimizer->currentIndex());
+	settings.endGroup();
+}
+
+
+void ControlWidget::closeEvent(QCloseEvent *event)
+{
+	writeSettings();
+	event->accept();
 }

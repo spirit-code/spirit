@@ -4,9 +4,11 @@
 
 #include <vector>
 
+#include <Eigen/Dense>
+
 #include "Core_Defines.h"
-#include "Optimizer.hpp"
-#include "Spin_System_Chain.hpp"
+#include <engine/Optimizer.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {
@@ -31,24 +33,24 @@ namespace Engine
 
     private:
 		// Temporary Spins arrays
-		std::vector<std::shared_ptr<std::vector<scalar>>> spins_temp;
+		std::vector<std::shared_ptr<vectorfield>> spins_temp;
 
 		// Virtual Heun Forces used in the Steps
-		std::vector<std::vector<scalar>> virtualforce;
+		std::vector<vectorfield> virtualforce;
 
-		// Random data array
-		std::vector<scalar> xi;
+		// Random vector array
+		vectorfield xi;
 		// Some variable
 		scalar epsilon;
 
 		// Generate an array of random spins?
-		void Gen_Xi(Data::Spin_System & s, std::vector<scalar> & xi, scalar eps);
+		void Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps);
 		// Calculate the virtual Heun force to be used in the Steps
-		void VirtualForce(const int nos, std::vector<scalar> & spins, Data::Parameters_Method_LLG & llg_params, std::vector<scalar> & beff, std::vector<scalar> & xi, std::vector<scalar> & force);
+		void VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & gradient, vectorfield & xi, vectorfield & force);
 		// First Part of one Optimization step
-		void FirstStep(const int nos, std::vector<scalar> & spins, std::vector<scalar> & force, std::vector<scalar> & spins_temp);
+		void FirstStep(const int nos, vectorfield & spins, vectorfield & force, vectorfield & spins_temp);
 		// Second Part of one Optimization step
-		void SecondStep(const int nos, std::vector<scalar> & force, std::vector<scalar> & spins);
+		void SecondStep(const int nos, vectorfield & force, vectorfield & spins);
 
     };
 }

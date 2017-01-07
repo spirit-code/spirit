@@ -1,8 +1,8 @@
-#include "Spin_System_Chain_Collection.hpp"
-#include "Optimizer.hpp"
-#include "Method_LLG.hpp"
-#include "Method_GNEB.hpp"
-#include "Method_MMF.hpp"
+#include <data/Spin_System_Chain_Collection.hpp>
+#include <engine/Optimizer.hpp>
+#include <engine/Method_LLG.hpp>
+#include <engine/Method_GNEB.hpp>
+#include <engine/Method_MMF.hpp>
 
 /*
 	Simulation_Information

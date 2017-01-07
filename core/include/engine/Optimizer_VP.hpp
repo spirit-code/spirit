@@ -3,7 +3,7 @@
 #define Optimizer_VP_H
 
 #include "Core_Defines.h"
-#include "Optimizer.hpp"
+#include <engine/Optimizer.hpp>
 
 namespace Engine
 {
@@ -26,13 +26,13 @@ namespace Engine
 		scalar m = 1.0;
 
 		// Temporary Spins arrays
-		std::vector<std::vector<scalar>> spins_temp;
-		// Force in previous step [noi][3nos]
-		std::vector<std::vector<scalar>> force_previous;
-		// Velocity in previous step [noi][3nos]
-		std::vector<std::vector<scalar>> velocity_previous;
-		// Velocity used in the Steps [noi][3nos]
-		std::vector<std::vector<scalar>> velocity;
+		std::vector<vectorfield> spins_temp;
+		// Force in previous step [noi][nos]
+		std::vector<vectorfield> force_previous;
+		// Velocity in previous step [noi][nos]
+		std::vector<vectorfield> velocity_previous;
+		// Velocity used in the Steps [noi][nos]
+		std::vector<vectorfield> velocity;
 		// Projection of velocities onto the forces [noi]
 		std::vector<scalar> projection;
 		// |force|^2

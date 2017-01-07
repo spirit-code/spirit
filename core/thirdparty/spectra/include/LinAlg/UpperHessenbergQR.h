@@ -10,7 +10,6 @@
 #include <Eigen/Core>
 #include <cmath>      // std::sqrt
 #include <algorithm>  // std::fill, std::copy
-#include <limits>     // std::numeric_limits
 #include <stdexcept>  // std::logic_error
 
 namespace Spectra {
@@ -100,7 +99,7 @@ public:
 
         std::copy(mat.data(), mat.data() + mat.size(), m_mat_T.data());
 
-        Scalar xi, xj, r, c, s, eps = std::numeric_limits<Scalar>::epsilon();
+        Scalar xi, xj, r, c, s, eps = Eigen::NumTraits<Scalar>::epsilon();
         Scalar *Tii, *ptr;
         for(Index i = 0; i < m_n - 1; i++)
         {
@@ -112,7 +111,7 @@ public:
 
             xi = Tii[0];  // mat_T(i, i)
             xj = Tii[1];  // mat_T(i + 1, i)
-            r = std::sqrt(xi * xi + xj * xj);
+            r = Eigen::numext::hypot(xi, xj);
             if(r <= eps)
             {
                 r = 0;
@@ -472,12 +471,12 @@ public:
                *c = this->m_rot_cos.data(),  // pointer to the cosine vector
                *s = this->m_rot_sin.data(),  // pointer to the sine vector
                r, tmp,
-               eps = std::numeric_limits<Scalar>::epsilon();
+               eps = Eigen::NumTraits<Scalar>::epsilon();
         for(Index i = 0; i < this->m_n - 2; i++)
         {
             // Tii[0] == T[i, i]
             // Tii[1] == T[i + 1, i]
-            r = std::sqrt(Tii[0] * Tii[0] + Tii[1] * Tii[1]);
+            r = Eigen::numext::hypot(Tii[0], Tii[1]);
             if(r <= eps)
             {
                 r = 0;
@@ -527,7 +526,7 @@ public:
             // this->m_mat_T(i + 1, i + 2) *= (*c);
         }
         // For i = n - 2
-        r = std::sqrt(Tii[0] * Tii[0] + Tii[1] * Tii[1]);
+        r = Eigen::numext::hypot(Tii[0], Tii[1]);
         if(r <= eps)
         {
             r = 0;

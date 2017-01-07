@@ -9,6 +9,8 @@
 #include "Interface_Simulation.h"
 #include "Interface_Log.h"
 
+#include <memory>
+
 // Initialise Global Variables
 std::shared_ptr<State> state;
 
@@ -21,16 +23,23 @@ int main(int argc, char ** argv)
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
-	// const char * cfgfile = "input/markus-paper.cfg";
-	const char * cfgfile = "input/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/daniel-master-thesis-isotropic.cfg";
+	const char * cfgfile = "input/input.cfg";
+	// const char * cfgfile = "input/anisotropic/markus.cfg";
+	// const char * cfgfile = "input/anisotropic/markus-paper.cfg";
+	// const char * cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
+	// const char * cfgfile = "input/anisotropic/gideon-master-thesis-anisotropic.cfg";
+	// const char * cfgfile = "input/isotropic/gideon-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/isotropic/daniel-master-thesis-isotropic.cfg";
+	// const char * cfgfile = "input/gaussian/example-1.cfg";
+	// const char * cfgfile = "input/gaussian/gideon-paper.cfg";
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
 	// std::string chainfile = "input/chain.txt";
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	state = std::shared_ptr<State>(State_Setup(cfgfile));
+	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile), State_Delete);
+
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
 	Chain_Image_to_Clipboard(state.get());
@@ -58,17 +67,14 @@ int main(int argc, char ** argv)
 
 	// Create transition of images between first and last
 	Transition_Homogeneous(state.get(), 0, Chain_Get_NOI(state.get())-1);
+
+	// Update the Chain's Data'
+	Chain_Update_Data(state.get());
 	//-------------------------------------------------------------------------------
 
 	//----------------------- LLG Iterations ----------------------------------------
 	Simulation_PlayPause(state.get(), "LLG", "SIB");
 	//-------------------------------------------------------------------------------
 
-
-	// Finish
-	Log(Log_Level_All, Log_Sender_All, "=====================================================");
-	Log(Log_Level_All, Log_Sender_All, "================= Spirit Finished ===================");
-	Log(Log_Level_All, Log_Sender_All, "=====================================================");
-	Log.Append_to_File();
 	return 0;
 }

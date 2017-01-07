@@ -28,9 +28,9 @@ public:
     enum class Colormap {
         HSV,
         HSV_NO_Z,
-        BLUE_RED,
-        BLUE_GREEN_RED,
         BLUE_WHITE_RED,
+        BLUE_GREEN_RED,
+        BLUE_RED,
         OTHER
     };
 
@@ -53,6 +53,11 @@ public:
 		SPHERE
 	};
 
+	enum class VisualizationSource {
+		SPINS,
+		EFF_FIELD
+	};
+
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
@@ -63,6 +68,8 @@ public:
   
   // --- Mode
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
+  SpinWidget::VisualizationMode visualizationMode();
+  SpinWidget::VisualizationMode visMode;
   bool show_miniview, show_coordinatesystem;
   // --- MiniView
   void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);
@@ -83,6 +90,7 @@ public:
   //    Arrows
   void setArrows(float size=1, int lod=20);
   float arrowSize() const;
+  int arrowLOD() const;
   glm::vec2 zRange() const;
   void setZRange(glm::vec2 z_range);
   //    Bounding Box
@@ -95,6 +103,9 @@ public:
   //    Isosurface
   float isovalue() const;
   void setIsovalue(float isovalue);
+  int m_isocomponent;
+  float isocomponent() const;
+  void setIsocomponent(int component);
 
   // --- Sphere
   glm::vec2 spherePointSizeRange() const;
@@ -146,7 +157,9 @@ private:
   std::shared_ptr<VFRendering::CombinedRenderer> m_system;
   std::shared_ptr<VFRendering::ArrowRenderer> m_renderer_arrows;
   std::shared_ptr<VFRendering::BoundingBoxRenderer> m_renderer_boundingbox;
-  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface;
+  std::shared_ptr<VFRendering::RendererBase> m_renderer_surface;
+  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface_3D;
+  std::shared_ptr<VFRendering::SurfaceRenderer> m_renderer_surface_2D;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_isosurface;
 
   void setupRenderers();
@@ -154,10 +167,17 @@ private:
   const VFRendering::Options& options() const;
   
   Colormap m_colormap;
-    glm::vec2 m_z_range;
+  glm::vec2 m_z_range;
   
   // Visualisation
   VFRendering::View m_view;
+  
+	// Persistent Settings
+	void writeSettings();
+	void readSettings();
+
+protected:
+	void closeEvent(QCloseEvent *event);
 };
 
 #endif

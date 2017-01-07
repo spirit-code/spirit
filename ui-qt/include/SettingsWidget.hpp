@@ -63,13 +63,14 @@ private slots:
 	void set_visualization_coordinatesystem();
 	void set_visualization_system();
 	// TODO: replace
-		void set_visualization_zrange();
 		void set_visualization_isovalue_fromslider();
 		void set_visualization_isovalue_fromlineedit();
 	//////
+	void set_visualization_isocomponent();
 	void set_visualization_system_arrows();
 	void set_visualization_system_boundingbox();
 	void set_visualization_system_surface();
+	void set_visualization_system_overall();
 	void set_visualization_system_isosurface();
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();

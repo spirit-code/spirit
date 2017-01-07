@@ -1,21 +1,17 @@
-
-#include "Method_LLG.hpp"
-
-#include "Optimizer_Heun.hpp"
-
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Vectormath.hpp"
-#include "IO.hpp"
-#include "Configurations.hpp"
-#include "Timing.hpp"
-#include "Exception.hpp"
+#include <engine/Method_LLG.hpp>
+#include <engine/Optimizer_Heun.hpp>
+#include <engine/Vectormath.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <utility/IO.hpp>
+#include <utility/Configurations.hpp>
+#include <utility/Timing.hpp>
+#include <utility/Exception.hpp>
+#include <utility/Logging.hpp>
 
 #include <iostream>
 #include <ctime>
 #include <math.h>
-
-#include"Logging.hpp"
 
 using namespace Utility;
 
@@ -33,21 +29,22 @@ namespace Engine
 		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
-		this->F_total = std::vector<std::vector<scalar>>(systems.size(), std::vector<scalar>(systems[0]->spins->size()));	// [noi][3nos]
+		this->F_total = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
 	}
 
 
-	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<std::vector<scalar>>> configurations, std::vector<std::vector<scalar>> & forces)
+	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
 	{
 		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
 		//this->force_maxAbsComponent = 0;
 
-		// Loop over images to calculate the total Effective Field on each Image
+		// Loop over images to calculate the total force on each Image
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
-			// The effective field is the total Force here
-			systems[img]->hamiltonian->Effective_Field(*configurations[img], F_total[img]);
+			// Minus the gradient is the total Force here
+			systems[img]->hamiltonian->Gradient(*configurations[img], F_total[img]);
+			Vectormath::scale(F_total[img], -1);
 			// Copy out
 			forces[img] = F_total[img];
 		}
@@ -71,7 +68,7 @@ namespace Engine
     {
 		// --- Convergence Parameter Update
 		this->force_maxAbsComponent = 0;
-		// Loop over images to calculate the total Effective Field on each Image
+		// Loop over images to calculate the maximum force component
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
 			this->force_converged[img] = false;
@@ -87,6 +84,7 @@ namespace Engine
 
 		// ToDo: How to update eff_field without numerical overhead?
 		systems[0]->effective_field = F_total[0];
+		Vectormath::scale(systems[0]->effective_field, -1);
 		// systems[0]->UpdateEffectiveField();
 		
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
@@ -118,54 +116,60 @@ namespace Engine
 	
 	void Method_LLG::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
-
-        auto writeoutput = [this, starttime, iteration](std::string suffix)
-        {
-			// Convert indices to formatted strings
-			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
-			auto s_iter = IO::int_to_formatted_string(iteration, 6);
-			
-            // Append Spin configuration to Spin_Archieve_File
-			auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-			Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
-
-			if (this->systems[0]->llg_parameters->save_single_configurations)
+		if (this->parameters->save_output_any)
+		{
+			auto writeoutput = [this, starttime, iteration](std::string suffix, bool override_single)
 			{
-				// Save Spin configuration to new "spins" File
-				auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
+				// Convert indices to formatted strings
+				auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
+				auto s_iter = IO::int_to_formatted_string(iteration, 6);
+				
+				if (this->systems[0]->llg_parameters->save_output_archive)
+				{
+					// Append Spin configuration to Spin_Archieve_File
+					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
+					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+				}
+				
+				if (this->systems[0]->llg_parameters->save_output_archive && this->parameters->save_output_energy)
+				{
+					// Check if Energy File exists and write Header if it doesn't
+					auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
+					std::ifstream f(energyFile);
+					if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+					// Append Energy to File
+					Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
+				}
+
+				if (this->systems[0]->llg_parameters->save_output_single || override_single)
+				{
+					// Save Spin configuration to new "spins" File
+					auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
+					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
+				}
+			};
+			
+			std::string suffix = "";
+			
+			if (initial && this->parameters->save_output_initial)
+			{
+				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_initial";
+				suffix = s_fix;
+				writeoutput(suffix, true);
+			}
+			else if (final && this->parameters->save_output_final)
+			{
+				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
+				suffix = s_fix;
+				writeoutput(suffix, true);
 			}
 			
-			// Check if Energy File exists and write Header if it doesn't
-			auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
-			std::ifstream f(energyFile);
-			if (!f.good()) Utility::IO::Write_Energy_Header(energyFile);
-			// Append Energy to File
-			Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
-        };
-        
-		std::string suffix = "";
-		
-		if (initial)
-		{
-			auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_initial";
-			suffix = s_fix;
-			writeoutput(suffix);
-		}
-		else if (final)
-		{
-			auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
-			suffix = s_fix;
-			writeoutput(suffix);
-		}
-		else
-		{
 			suffix = "_archive";
-			writeoutput(suffix);
-		}
+			writeoutput(suffix, false);
 
-		// Save Log
-		Log.Append_to_File();
+			// Save Log
+			Log.Append_to_File();
+		}
 	}
 
 	// Optimizer name as string

@@ -3,17 +3,17 @@
 #define DATA_SPIN_SYSTEM_H
 
 #include <random>
-#include <thread>
 #include <memory>
 
 #include "Core_Defines.h"
-#include "data/Geometry.hpp"
-#include "engine/Hamiltonian.hpp"
-#include "engine/Hamiltonian_Isotropic.hpp"
-#include "engine/Hamiltonian_Anisotropic.hpp"
-#include "engine/Hamiltonian_Gaussian.hpp"
-#include "data/Parameters_Method_LLG.hpp"
-#include "data/Parameters_Method_GNEB.hpp"
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Hamiltonian.hpp>
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Gaussian.hpp>
+#include <data/Geometry.hpp>
+#include <data/Parameters_Method_LLG.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
 
 namespace Data
 {
@@ -38,7 +38,7 @@ namespace Data
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
-		std::shared_ptr<std::vector<scalar>> spins;
+		std::shared_ptr<vectorfield> spins;
 		// Spin Hamiltonian
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
@@ -50,9 +50,9 @@ namespace Data
 
 		// Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
 		scalar E;
-		std::vector<scalar> E_array;
+		std::vector<std::pair<std::string, scalar>> E_array;
 		// Total effective field of the spins [3][nos]
-		std::vector<scalar> effective_field;
+		vectorfield effective_field;
 
 
 	//private:

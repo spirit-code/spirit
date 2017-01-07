@@ -17,14 +17,14 @@ set( INTERFACE_EXPORT_FUNCTIONS
 		'_Collection_next_Chain' '_Collection_prev_Chain'
 		# Geometry
 		'_Geometry_Get_Bounds' '_Geometry_Get_Center'
-		'_Geometry_Get_Basis_Vectors' '_Geometry_Get_N_Cells' '_Geometry_Get_Translation_Vectors' '_Geometry_Is_2D'
+		'_Geometry_Get_Basis_Vectors' '_Geometry_Get_N_Cells' '_Geometry_Get_Translation_Vectors' '_Geometry_Get_Dimensionality'
 		# Hamiltonian
 		'_Hamiltonian_Set_Boundary_Conditions' '_Hamiltonian_Set_mu_s' '_Hamiltonian_Set_Field' '_Hamiltonian_Set_Exchange' '_Hamiltonian_Set_DMI' '_Hamiltonian_Set_Anisotropy' '_Hamiltonian_Set_STT' '_Hamiltonian_Set_Temperature'
 		'_Hamiltonian_Get_Boundary_Conditions' '_Hamiltonian_Get_mu_s' '_Hamiltonian_Get_Field' '_Hamiltonian_Get_Exchange' '_Hamiltonian_Get_DMI' '_Hamiltonian_Get_Anisotropy' '_Hamiltonian_Get_STT' '_Hamiltonian_Get_Temperature'
 		'_Hamiltonian_Is_Isotropic'
 		# Parameters
 		'_Parameters_Set_LLG_Time_Step' '_Parameters_Set_LLG_Damping' '_Parameters_Set_GNEB_Spring_Constant' '_Parameters_Set_GNEB_Climbing_Falling'
-		'_Parameters_Get_LLG_Time_Step' '_Parameters_Get_LLG_Damping' '_Parameters_Get_GNEB_Spring_Constant' '_Parameters_Get_GNEB_Climbing_Falling'
+		'_Parameters_Get_LLG_Time_Step' '_Parameters_Get_LLG_Damping' '_Parameters_Get_GNEB_Spring_Constant' '_Parameters_Get_GNEB_Climbing_Falling' '_Parameters_Get_GNEB_N_Energy_Interpolations'
 		# Configurations
 		'_Configuration_DomainWall' '_Configuration_Homogeneous' '_Configuration_PlusZ' '_Configuration_MinusZ'
 		'_Configuration_Random' '_Configuration_Add_Noise_Temperature' '_Configuration_Skyrmion' '_Configuration_SpinSpiral'

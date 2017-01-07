@@ -1,4 +1,5 @@
-#include "Cubic_Hermite_Spline.hpp"
+#include <utility/Cubic_Hermite_Spline.hpp>
+
 #include <cmath>
 
 namespace Utility
@@ -11,7 +12,8 @@ namespace Utility
 			scalar x0, x1, p0, p1, m0, m1, t, h00, h10, h01, h11;
 			int idx;
 
-			std::vector<std::vector<scalar>> result(2, std::vector<scalar>((p.size()-1)*n_interpolations));
+			int n_points = p.size()+ (p.size()-1)*n_interpolations;
+			std::vector<std::vector<scalar>> result(2, std::vector<scalar>(n_points));
 
 			for (unsigned int i = 0; i < p.size()-1; ++i)
 			{
@@ -22,21 +24,21 @@ namespace Utility
 				m0 = m[i];
 				m1 = m[i + 1];
 				
-				for (int j = 0; j < n_interpolations; ++j)
+				for (int j = 0; j < n_interpolations+1; ++j)
 				{
-					t = j / (scalar)n_interpolations;
+					t = j / (scalar)(n_interpolations+1);
 					h00 = 2*std::pow(t,3) - 3 * std::pow(t,2) + 1;
 					h10 = -2 * std::pow(t, 3) + 3 * std::pow(t, 2);
 					h01 = std::pow(t, 3) - 2 * std::pow(t, 2) + t;
 					h11 = std::pow(t, 3) - std::pow(t, 2);
 
-					idx = i * n_interpolations + j;
+					idx = i * (n_interpolations+1) + j;
 					result[0][idx] = x0 + t*(x1-x0);
 					result[1][idx] = h00*p0 + h10*p1 + h01*m0 * (x0 - x1) + h11*m1 * (x0 - x1);
 				}
 			}
-			result[0][result[0].size() - 1] = x[x.size() - 1];
-			result[1][result[1].size() - 1] = p[p.size() - 1];
+			result[0].back() = x.back();
+			result[1].back() = p.back();
 
 			return result;
 		}

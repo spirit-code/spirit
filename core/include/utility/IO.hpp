@@ -10,17 +10,16 @@
 #include <type_traits>
 
 #include "Core_Defines.h"
-#include "Interface_IO.h"
-
-#include "Spin_System.hpp"
-#include "Spin_System_Chain.hpp"
-#include "Geometry.hpp"
-#include "Hamiltonian_Isotropic.hpp"
-#include "Hamiltonian_Anisotropic.hpp"
-#include "Hamiltonian_Gaussian.hpp"
-#include "Parameters_Method_LLG.hpp"
-#include "Parameters_Method_GNEB.hpp"
-#include "Parameters_Method_MMF.hpp"
+#include <interface/Interface_IO.h>
+#include <data/Geometry.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
+#include <data/Parameters_Method_LLG.hpp>
+#include <data/Parameters_Method_GNEB.hpp>
+#include <data/Parameters_Method_MMF.hpp>
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Gaussian.hpp>
 
 
 namespace Utility
@@ -35,10 +34,22 @@ namespace Utility
 			WHITESPACE_SPIN = IO_Fileformat_Regular
 		};
 
+		// ------------------------------------------------------------
+		// Helpers for centering strings
+		std::string center(const std::string s, const int w);
+		// trim from start
+		static inline std::string &ltrim(std::string &s);
+		// trim from end
+		static inline std::string &rtrim(std::string &s);
+		// trim from both ends
+		static inline std::string &trim(std::string &s);
+		std::string center(const scalar s, const int precision, const int w);
+		// ------------------------------------------------------------
+
 		// ======================== Configparser ========================
 		// Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
 		// Input may be given incomplete. In this case a log entry is created and default values are used.
-		void Log_Levels_from_Config(const std::string configFile);
+		void Log_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile);
@@ -49,18 +60,34 @@ namespace Utility
 		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry);
 		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
 
+		// ======================== Configwriter ========================
+		void Folders_to_Config(const std::string configFile,
+				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
+				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf);
+		void Log_Levels_to_Config(const std::string configFile);
+		void Geometry_to_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
+		void Parameters_Method_LLG_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_LLG> parameters);
+		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
+		void Parameters_Method_MMF_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MMF> parameters);
+		void Hamiltonian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Isotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
+		void Hamiltonian_Anisotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
+
 		// ========================= Fileparser =========================
 		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format = VectorFileFormat::CSV_POS_SPIN);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
 		//External_Field_from_File ....
 		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
-			std::vector<int> & anisotropy_index, std::vector<scalar> & anisotropy_magnitude,
-			std::vector<std::vector<scalar>> & anisotropy_normal);
+			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
+			vectorfield & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<std::vector<std::vector<int>>> & Exchange_indices, std::vector<std::vector<scalar>> & Exchange_magnitude,
-			std::vector<std::vector<std::vector<int>>> & DMI_indices, std::vector<std::vector<scalar>> & DMI_magnitude, std::vector<std::vector<std::vector<scalar>>> & DMI_normal,
-			std::vector<std::vector<std::vector<int>>> & BQC_indices, std::vector<std::vector<scalar>> & BQC_magnitude);
+			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
+			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal);
+		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
+			std::vector<indexQuadruplets> & quadruplet_indices, std::vector<scalarfield> & quadruplet_magnitude);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
@@ -69,7 +96,7 @@ namespace Utility
 		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const std::string fileName);
 
 		// =========================== Saving Energies ===========================
-		void Write_Energy_Header(const std::string fileName);
+		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true);
 		// Appends the current Energy of the current image with energy contributions, without header
 		void Append_Energy(Data::Spin_System &s, const int iteration, const std::string fileName);
 		// Saves Energies of all images with header and contributions

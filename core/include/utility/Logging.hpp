@@ -2,13 +2,14 @@
 #ifndef UTILITY_LOGGING_H
 #define UTILITY_LOGGING_H
 
-#include "Interface_Log.h"
-#include "Timing.hpp"
+#include <interface/Interface_Log.h>
+#include <utility/Timing.hpp>
 
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <string>
+#include <mutex>
 
 // Define Log as the singleton instance, so that messages can be sent with Log(..., message, ...)
 #ifndef Log
@@ -75,6 +76,7 @@ namespace Utility
 	{
 	public:
 		// Send Log messages
+		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 		void Send(Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 		void operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 
@@ -91,6 +93,10 @@ namespace Utility
 		Log_Level accept_level;
 		// Output folder where to save the Log file
 		std::string output_folder;
+		// Save Log messages
+		bool save_output;
+		// Save input (config / defaults) - note this is done by Setup_State
+		bool save_input;
 		// Name of the Log file
 		std::string fileName;
 		// Number of Log entries
@@ -114,6 +120,9 @@ namespace Utility
 		
 		int no_dumped;
 		std::vector<LogEntry> log_entries;
+
+		// Mutex for thread-safety
+		std::mutex mutex;
 	
 	public:
 		// C++ 11

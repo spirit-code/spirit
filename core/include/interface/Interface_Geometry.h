@@ -10,19 +10,19 @@ struct State;
 DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Get Bounds as array (x,y,z)
-DLLEXPORT void Geometry_Get_Bounds(State *state, float * min, float * max, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Geometry_Get_Bounds(State *state, float min[3], float max[3], int idx_image=-1, int idx_chain=-1);
 // Get Center as array (x,y,z)
-DLLEXPORT void Geometry_Get_Center(State *state, float * center, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Geometry_Get_Center(State *state, float center[3], int idx_image=-1, int idx_chain=-1);
 
 // Get basis vectors ta, tb, tc
-DLLEXPORT void Geometry_Get_Basis_Vectors(State *state, float * a, float * b, float * c, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image=-1, int idx_chain=-1);
 // TODO: Get basis atoms
 // DLLEXPORT void Geometry_Get_Basis_Atoms(State *state, float ** atoms);
 
 // Get number of basis cells in the three translation directions
-DLLEXPORT void Geometry_Get_N_Cells(State *state, int * n_cells, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image=-1, int idx_chain=-1);
 // Get translation vectors ta, tb, tc
-DLLEXPORT void Geometry_Get_Translation_Vectors(State *state, float * ta, float * tb, float * tc, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Geometry_Get_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3], int idx_image=-1, int idx_chain=-1);
 
 // Retrieve dimensionality of the system (0, 1, 2, 3)
 DLLEXPORT int Geometry_Get_Dimensionality(State * state, int idx_image=-1, int idx_chain=-1);
