@@ -475,13 +475,15 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	horizontalSlider_arrows_zmin->setInvertedAppearance(true);
-	horizontalSlider_arrows_zmin->setRange(-100, 100);
-	horizontalSlider_arrows_zmin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_arrows_zmax->setRange(-100, 100);
-	horizontalSlider_arrows_zmax->setValue((int)(z_range.y * 100));
-	horizontalSlider_arrows_zmin->setTracking(true);
-	horizontalSlider_arrows_zmax->setTracking(true);
+	
+	// Overall filter
+	horizontalSlider_overall_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_zmin->setRange(-100, 100);
+	horizontalSlider_overall_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_zmax->setRange(-100, 100);
+	horizontalSlider_overall_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_zmin->setTracking(true);
+	horizontalSlider_overall_zmax->setTracking(true);
 
 
 	// X Range Surface
@@ -506,10 +508,14 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_surface_zmin->setTracking(true);
 	horizontalSlider_surface_zmax->setTracking(true);
   
-	// Isovalue
+	// Isosurface
 	auto isovalue = _spinWidget->isovalue();
 	horizontalSlider_isovalue->setRange(0, 100);
 	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
+	int component = _spinWidget->isocomponent();
+	if (component == 0) this->radioButton_isosurface_x->setChecked(true);
+	else if (component == 1) this->radioButton_isosurface_y->setChecked(true);
+	else if (component == 2) this->radioButton_isosurface_z->setChecked(true);
 
 	// Colormap
 	int idx_cm = (int)_spinWidget->colormap();
@@ -1217,31 +1223,33 @@ void SettingsWidget::set_visualization_system_surface()
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
 }
-void SettingsWidget::set_visualization_system_isosurface()
-{
 
-}
-
-void SettingsWidget::set_visualization_zrange()
+void SettingsWidget::set_visualization_system_overall()
 {
-	float z_range_min = -horizontalSlider_arrows_zmin->value() / 100.0;
-	float z_range_max = horizontalSlider_arrows_zmax->value() / 100.0;
+	float z_range_min = -horizontalSlider_overall_zmin->value() / 100.0;
+	float z_range_max = horizontalSlider_overall_zmax->value() / 100.0;
 	if (z_range_min > z_range_max)
 	{
 		float t = z_range_min;
 		z_range_min = z_range_max;
 		z_range_max = t;
 	}
-	horizontalSlider_arrows_zmin->blockSignals(true);
-	horizontalSlider_arrows_zmax->blockSignals(true);
-	horizontalSlider_arrows_zmin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_arrows_zmax->setValue((int)(z_range_max * 100));
-	horizontalSlider_arrows_zmin->blockSignals(false);
-	horizontalSlider_arrows_zmax->blockSignals(false);
+	horizontalSlider_overall_zmin->blockSignals(true);
+	horizontalSlider_overall_zmax->blockSignals(true);
+	horizontalSlider_overall_zmin->setValue((int)(-z_range_min * 100));
+	horizontalSlider_overall_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_overall_zmin->blockSignals(false);
+	horizontalSlider_overall_zmax->blockSignals(false);
 
 	glm::vec2 z_range(z_range_min, z_range_max);
 	_spinWidget->setZRange(z_range);
 }
+
+void SettingsWidget::set_visualization_system_isosurface()
+{
+
+}
+
 
 
 void SettingsWidget::set_visualization_isovalue_fromslider()
@@ -1258,6 +1266,15 @@ void SettingsWidget::set_visualization_isovalue_fromlineedit()
 	_spinWidget->setIsovalue(isovalue);
 }
 
+void SettingsWidget::set_visualization_isocomponent()
+{
+	if (radioButton_isosurface_x->isChecked())
+		_spinWidget->setIsocomponent(0);
+	else if (radioButton_isosurface_y->isChecked())
+		_spinWidget->setIsocomponent(1);
+	else if (radioButton_isosurface_z->isChecked())
+		_spinWidget->setIsocomponent(2);
+}
 
 
 void SettingsWidget::set_visualization_sphere()
@@ -1568,19 +1585,21 @@ void SettingsWidget::Setup_Visualization_Slots()
 	//		arrows
 	connect(horizontalSlider_arrowsize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_arrows()));
 	connect(lineEdit_arrows_lod, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_arrows()));
-	connect(horizontalSlider_arrows_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
-	connect(horizontalSlider_arrows_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_zrange()));
 	//		bounding box
 	//		surface
 	connect(horizontalSlider_surface_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	//		overall
+	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
+	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
 	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
+	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors

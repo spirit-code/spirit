@@ -103,6 +103,9 @@ public:
   //    Isosurface
   float isovalue() const;
   void setIsovalue(float isovalue);
+  int m_isocomponent;
+  float isocomponent() const;
+  void setIsocomponent(int component);
 
   // --- Sphere
   glm::vec2 spherePointSizeRange() const;

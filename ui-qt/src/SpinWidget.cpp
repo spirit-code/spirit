@@ -50,6 +50,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_arrows = true;
 	this->show_boundingbox = true;
 	this->show_isosurface = false;
+	this->m_isocomponent = 2;
 	this->show_surface = false;
 	this->show_miniview = true;
 	this->show_coordinatesystem = true;
@@ -119,10 +120,27 @@ void SpinWidget::initializeGL()
 		});
 		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 		// Isosurface options
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-			(void)position;
-			return direction.z;
-		});
+		if (this->m_isocomponent == 0)
+		{
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+				(void)position;
+				return direction.x;
+			});
+		}
+		else if (this->m_isocomponent == 1)
+		{
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+				(void)position;
+				return direction.y;
+			});
+		}
+		else if (this->m_isocomponent == 2)
+		{
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+				(void)position;
+				return direction.z;
+			});
+		}
 		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 	}
 
@@ -157,7 +175,6 @@ void SpinWidget::updateData()
 	int nos = System_Get_NOS(state.get());
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
 	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
-	std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices;
 
 	// ToDo: Update the pointer to our Data instead of copying Data?
 	// Positions and directions
@@ -207,12 +224,26 @@ void SpinWidget::updateData()
 	}
 
 	// Triangles and Tetrahedra
+	VFRendering::Geometry geometry;
 	//		get tetrahedra
 	if (Geometry_Get_Dimensionality(state.get()) == 3)
 	{
 		const std::array<VFRendering::Geometry::index_type, 4> *tetrahedra_indices_ptr = nullptr;
 		int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
-		tetrahedra_indices = std::vector<std::array<VFRendering::Geometry::index_type, 4>>(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+		std::vector<std::array<VFRendering::Geometry::index_type, 4>>  tetrahedra_indices(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+		geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
+	}
+	else if (Geometry_Get_Dimensionality(state.get()) == 2)
+	{
+		bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
+		int n_cells[3];
+		Geometry_Get_N_Cells(state.get(), n_cells);
+		//geometry = VFRendering::Geometry(positions, {}, {}, true);
+		std::vector<float> xs(n_cells[0]), ys(n_cells[1]), zs(n_cells[2]);
+		for (int i = 0; i < n_cells[0]; ++i) xs[i] = positions[i].x;
+		for (int i = 0; i < n_cells[1]; ++i) ys[i] = positions[i*n_cells[0]].y;
+		for (int i = 0; i < n_cells[2]; ++i) zs[i] = positions[i*n_cells[0] * n_cells[1]].z;
+		geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
 	}
   
 	//		get bounds
@@ -227,9 +258,7 @@ void SpinWidget::updateData()
 		setCameraToDefault();
     	_reset_camera = false;
 	}
-  
-	bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
-	VFRendering::Geometry geometry(positions, {}, tetrahedra_indices, is_2d);
+
 	m_view.update(geometry, directions);
 }
 
@@ -499,12 +528,44 @@ void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_ra
 }
 
 /////	Isosurface
-float SpinWidget::isovalue() const {
+float SpinWidget::isovalue() const
+{
 	return options().get<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>();
 }
-void SpinWidget::setIsovalue(float isovalue) {
+void SpinWidget::setIsovalue(float isovalue)
+{
 	makeCurrent();
 	m_view.setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(isovalue);
+}
+float SpinWidget::isocomponent() const
+{
+	return this->m_isocomponent;
+}
+void SpinWidget::setIsocomponent(int component)
+{
+	makeCurrent();
+	this->m_isocomponent = component;
+	if (this->m_isocomponent == 0)
+	{
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+			(void)position;
+			return direction.x;
+		});
+	}
+	else if (this->m_isocomponent == 1)
+	{
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+			(void)position;
+			return direction.y;
+		});
+	}
+	else if (this->m_isocomponent == 2)
+	{
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+			(void)position;
+			return direction.z;
+		});
+	}
 }
 
 
@@ -777,9 +838,13 @@ void SpinWidget::writeSettings()
 
 	// Arrows
 	settings.beginGroup("Arrows");
-	// Projection
 	settings.setValue("Size", (int)(this->arrowSize() * 100));
 	settings.setValue("LOD", this->arrowLOD());
+	settings.endGroup();
+
+	// Isosurface
+	settings.beginGroup("Isosurface");
+	settings.setValue("Component", this->isocomponent());
 	settings.endGroup();
 
 	// Colors
@@ -851,6 +916,15 @@ void SpinWidget::readSettings()
 		settings.beginGroup("Arrows");
 		// Projection
 		this->setArrows((float)(settings.value("Size").toInt() / 100.0f), settings.value("LOD").toInt());
+		settings.endGroup();
+	}
+
+	// Isosurface
+	if (settings.childGroups().contains("Isosurface"))
+	{
+		settings.beginGroup("Isosurface");
+		// Projection
+		this->m_isocomponent = settings.value("Component").toInt();
 		settings.endGroup();
 	}
 

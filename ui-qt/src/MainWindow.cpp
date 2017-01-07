@@ -136,6 +136,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
 	this->return_focus();
+	this->setFocus();
 }
 
 
