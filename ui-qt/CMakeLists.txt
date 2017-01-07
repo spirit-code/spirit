@@ -23,13 +23,15 @@ set( CMAKE_AUTORCC ON )
 # set(CMAKE_AUTOUIC ON) # unfortunately, for this, .ui files ned to be next to corresponding .cpp files
 ######### Have the binary placed into the source head
 ### Output paths for single-config builds
-# set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 # set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 # set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin2)
 # set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if ( NOT APPLE OR NOT OSX_BUNDLE_APP )
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+endif ( )
 ### Output paths for multi-config builds (e.g. msvc)
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
     string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
