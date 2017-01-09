@@ -245,6 +245,11 @@ void SpinWidget::updateData()
 		for (int i = 0; i < n_cells[2]; ++i) zs[i] = positions[i*n_cells[0] * n_cells[1]].z;
 		geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
 	}
+	else if (Geometry_Get_Dimensionality(state.get()) < 2)
+	{
+		geometry = VFRendering::Geometry(positions, {}, {}, true);
+		// std::cerr << std::endl << std::endl << "-------xxxxxxxx--------" << std::endl << std::endl;
+	}
   
 	//		get bounds
 	float b_min[3], b_max[3];
