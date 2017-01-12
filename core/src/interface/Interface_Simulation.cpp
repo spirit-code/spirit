@@ -61,7 +61,6 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
             if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
             if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
             method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_chain));
-            Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
         }
     }
 	else
@@ -174,7 +173,6 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
                 if (n_iterations > 0) state->collection->parameters->n_iterations = n_iterations;
                 if (n_iterations_log > 0) state->collection->parameters->n_iterations_log = n_iterations_log;
                 method = std::shared_ptr<Engine::Method_MMF>(new Engine::Method_MMF(state->collection, idx_chain));
-                Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, std::string("MMF Method selected, but not yet fully implemented!"));
             }
         }
 		else
