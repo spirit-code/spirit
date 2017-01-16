@@ -149,19 +149,19 @@ void MainWindow::view_toggle_fullscreen_spins()
 		if (!this->pre_fullscreen_settings_hidden)
 		{
 			dockWidget_Settings->show();
-			dockWidget_Settings->resize(pre_fullscreen_settings_size);
+			dockWidget_Settings->topLevelWidget()->resize(pre_fullscreen_settings_size);
 			dockWidget_Settings->move(pre_fullscreen_settings_pos);
 		}
 		if (!this->pre_fullscreen_plots_hidden)
 		{
 			dockWidget_Plots->show();
-			dockWidget_Plots->resize(pre_fullscreen_plots_size);
+			dockWidget_Plots->topLevelWidget()->resize(pre_fullscreen_plots_size);
 			dockWidget_Plots->move(pre_fullscreen_plots_pos);
 		}
 		if (!this->pre_fullscreen_debug_hidden)
 		{
 			dockWidget_Debug->show();
-			dockWidget_Debug->resize(pre_fullscreen_debug_size);
+			dockWidget_Debug->topLevelWidget()->resize(pre_fullscreen_debug_size);
 			dockWidget_Debug->move(pre_fullscreen_debug_pos);
 		}
 		this->controlWidget->show();
@@ -171,15 +171,15 @@ void MainWindow::view_toggle_fullscreen_spins()
 		this->fullscreen_spins = true;
 		
 		this->pre_fullscreen_settings_hidden = dockWidget_Settings->isHidden();
-		this->pre_fullscreen_settings_size = dockWidget_Settings->size();
+		this->pre_fullscreen_settings_size = dockWidget_Settings->topLevelWidget()->size();
 		this->pre_fullscreen_settings_pos = dockWidget_Settings->pos();
 
 		this->pre_fullscreen_plots_hidden = dockWidget_Plots->isHidden();
-		this->pre_fullscreen_plots_size = dockWidget_Plots->size();
+		this->pre_fullscreen_plots_size = dockWidget_Plots->topLevelWidget()->size();
 		this->pre_fullscreen_plots_pos = dockWidget_Plots->pos();
 
 		this->pre_fullscreen_debug_hidden = dockWidget_Debug->isHidden();
-		this->pre_fullscreen_debug_size = dockWidget_Debug->size();
+		this->pre_fullscreen_debug_size = dockWidget_Debug->topLevelWidget()->size();
 		this->pre_fullscreen_debug_pos = dockWidget_Debug->pos();
 
 		this->dockWidget_Settings->hide();
@@ -657,7 +657,7 @@ void MainWindow::readSettings()
 	// dockWidget_Settings->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
 	// dockWidget_Settings->setHidden(settings.value("hidden").toBool());
-	dockWidget_Settings->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Settings->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 
@@ -666,7 +666,7 @@ void MainWindow::readSettings()
 	// dockWidget_Plots->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Plots);
 	// dockWidget_Plots->setHidden(settings.value("hidden").toBool());
-	dockWidget_Plots->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Plots->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Plots->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 
@@ -675,7 +675,7 @@ void MainWindow::readSettings()
 	// dockWidget_Debug->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Debug);
 	// dockWidget_Debug->setHidden(settings.value("hidden").toBool());
-	dockWidget_Debug->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Debug->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Debug->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 }
@@ -692,7 +692,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
 	// settings.setValue("docked", dockWidget_Settings->isFloating());
 	// settings.setValue("hidden", dockWidget_Settings->isHidden());
-	settings.setValue("size", dockWidget_Settings->size());
+	settings.setValue("size", dockWidget_Settings->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Settings->pos());
 	settings.endGroup();
 
@@ -701,7 +701,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Plots));
 	// settings.setValue("docked", dockWidget_Plots->isFloating());
 	// settings.setValue("hidden", dockWidget_Plots->isHidden());
-	settings.setValue("size", dockWidget_Plots->size());
+	settings.setValue("size", dockWidget_Plots->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Plots->pos());
 	settings.endGroup();
 
@@ -710,7 +710,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Debug));
 	// settings.setValue("docked", dockWidget_Debug->isFloating());
 	// settings.setValue("hidden", dockWidget_Debug->isHidden());
-	settings.setValue("size", dockWidget_Debug->size());
+	settings.setValue("size", dockWidget_Debug->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Debug->pos());
 	settings.endGroup();
 }
