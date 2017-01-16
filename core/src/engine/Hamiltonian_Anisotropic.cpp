@@ -371,21 +371,42 @@ namespace Engine
 		 				{
 		 					int idx_i = 3*DMI_indices[i_periodicity][i_pair][0] + alpha;
 		 					int idx_j = 3*DMI_indices[i_periodicity][i_pair][1] + beta;
-		 					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+		 					if ( (alpha == 0 && beta == 1) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 						hessian(idx_j,idx_i) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 					}
+		 					else if ( (alpha == 1 && beta == 0) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
 		 						hessian(idx_j,idx_i) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
 		 					}
-		 					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+		 					else if ( (alpha == 0 && beta == 2) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 						hessian(idx_j,idx_i) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 					}
+		 					else if ( (alpha == 2 && beta == 0) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
 		 						hessian(idx_j,idx_i) +=
 		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
 		 					}
-		 					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+		 					else if ( (alpha == 1 && beta == 2) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 						hessian(idx_j,idx_i) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 					}
+		 					else if ( (alpha == 2 && beta == 1) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];

@@ -92,8 +92,8 @@ namespace Engine
 			auto& hess = hessian[ichain];
 
 			// Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
-			VectorX x = Eigen::Map<VectorX>(image[0].data(), 3 * nos);
-
+			Eigen::Ref<VectorX> x = Eigen::Map<VectorX>(image[0].data(), 3 * nos);
+			
 			// The gradient (unprojected)
 			this->systems[ichain]->hamiltonian->Gradient(image, gradient[ichain]);
 
@@ -142,6 +142,18 @@ namespace Engine
 			
 			// std::cerr << "hessian final: " << std::endl << hess << std::endl;
 
+
+    		// Eigen::EigenSolver<Eigen::MatrixXd> estest1(hess);
+			// Eigen::VectorXd estestvals = estest1.eigenvalues().real();
+			// std::sort(estestvals.data(),estestvals.data()+estestvals.size());
+			// std::cerr << "eigen vals (" << estestvals.size() << "): " << std::endl << estestvals.transpose() << std::endl;
+			// int n_zero=0;
+			// for (int _i=0; _i<estestvals.size(); ++_i)
+			// {
+			// 	if (std::abs(estestvals[_i]) < 1e-7) ++n_zero;
+			// }
+			// std::cerr << std::endl << "number of zero eigenvalues: " << n_zero << std::endl;
+
 			// Get the lowest Eigenvector
 			//		Create a Spectra solver
 			Spectra::DenseGenMatProd<scalar> op(hess);
@@ -161,6 +173,7 @@ namespace Engine
 				// 		Check if the lowest eigenvalue is negative
 				if (evalues[0] < -1e-5)// || switched2)
 				{
+					// std::cerr << "negative region " << evalues.transpose() << std::endl;
 					if (switched1)
 						switched2 = true;
 					// Retrieve the Eigenvectors
@@ -174,6 +187,17 @@ namespace Engine
 					{
 						this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
 					}
+
+					scalar check = Vectormath::dot(minimum_mode[ichain], image);
+					scalar checknorm = Manifoldmath::norm(minimum_mode[ichain]);
+					if (std::abs(check) > 1e-8 || std::abs(checknorm) < 1e-8)
+					{
+						std::cerr << "-------------------------" << std::endl;
+						std::cerr << "BAD MODE! evalue = " << evalues[0] << std::endl;
+						std::cerr << "-------------------------" << std::endl;
+					}
+
+
 					//for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
 					// 		Normalize the mode vector in 3N dimensions
 					Engine::Manifoldmath::normalize(this->minimum_mode[ichain]);
@@ -194,7 +218,7 @@ namespace Engine
 				else
 				{
 					switched1 = true;
-					// std::cerr << "positive region " << evalues[0] << std::endl;
+					// std::cerr << "positive region " << evalues.transpose() << std::endl;
 					///////////////////////////////////
 					//// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
 					//Eigen::EigenSolver<Eigen::MatrixXd> estest1(hess);
@@ -204,7 +228,7 @@ namespace Engine
 					///////////////////////////////////
 
 					// // Create the Minimum Mode
-					// Spectra::DenseGenRealShiftSolve<scalar> op_pos(H);
+					// Spectra::DenseGenRealShiftSolve<scalar> op_pos(hess);
 					// Spectra::GenEigsRealShiftSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenRealShiftSolve<scalar> > hessian_spectrum_pos(&op_pos, 1, 3 * nos, 1.0e-5);
 					// hessian_spectrum_pos.init();
 					// //		Compute the specified spectrum
