@@ -64,7 +64,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
 		### Compiler Flags
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-warn-absolute-paths -O2 -DEIGEN_NO_DEBUG -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -DEIGEN_NO_DEBUG -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
 		### Linker Flags
 		### 	optimization, memory growth and exported functions
 		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O2 -DEIGEN_NO_DEBUG -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\"" )

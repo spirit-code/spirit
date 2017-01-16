@@ -9,6 +9,7 @@
 #include "Interface_State.h"
 
 // TODO: is there a way to remove these?
+#include "State.hpp"
 #include "Method_LLG.hpp"
 #include "Optimizer_SIB.hpp"
 /////

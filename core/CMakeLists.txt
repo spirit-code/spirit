@@ -115,10 +115,14 @@ set( CORE_LIBRARY_SOURCES
 if( NOT CORE_USE_CUDA )
 	######### Tell CMake to create the object files
 	add_library( coreobj OBJECT ${CORE_LIBRARY_SOURCES} )
+	set_property(TARGET coreobj PROPERTY CXX_STANDARD 11)
+	set_property(TARGET coreobj PROPERTY CXX_STANDARD_REQUIRED ON)
+	set_property(TARGET coreobj PROPERTY CXX_EXTENSIONS OFF)
 	######### Tell CMake to create the static core library for the QT UI
-	if( BUILD_UI_CXX )
+	if( BUILD_UI_CXX OR BUILD_UI_WEB)
 		MESSAGE( STATUS ">> Building static cxx library" )
 		add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
+    	target_include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty)
 		target_link_libraries( core libqhullcpp )
 	endif()
 else()
@@ -128,9 +132,6 @@ else()
 		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
 	endif()
 endif()
-set_property(TARGET core PROPERTY CXX_STANDARD 11)
-set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET core PROPERTY CXX_EXTENSIONS OFF)
 #############################################
 
 ######### Tell CMake to create the shared library for the Python UI

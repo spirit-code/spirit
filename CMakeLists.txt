@@ -34,6 +34,7 @@ if( BUILD_UI_WEB )
 	set( CORE_SCALAR_TYPE 	float )
 	### UI-Web needs to be built alone, as it
 	### uses a different toolchain
+	set( CORE_BUILD_TEST    OFF )
 	set( BUILD_UI_JULIA 	OFF )
 	set( BUILD_UI_PYTHON 	OFF )
 	set( BUILD_UI_CXX 		OFF )
