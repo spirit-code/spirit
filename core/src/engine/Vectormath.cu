@@ -163,6 +163,22 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
+
+        __global__ void cu_normalize_vectors(Vector3 *vf, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                vf[idx].normalize();
+            }
+        }
+		void normalize_vectors(vectorfield & vf)
+		{
+            int n = vf.size();
+            cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
+            cudaDeviceSynchronize();
+		}
+
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
