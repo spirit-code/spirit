@@ -205,8 +205,10 @@ if ( CORE_BUILD_TEST )
     ### Enable CTest testing
     enable_testing()
 
-    ###### Test 1
-    add_framework_test( coretest test/test.cpp )
+    ### Tests
+    add_framework_test( coretest_vmath test/test_vectormath.cpp )
+    add_framework_test( coretest_mmath test/test_manifoldmath.cpp )
+    add_framework_test( coretest_api   test/test_api.cpp )
 endif()
 #############################################
 
