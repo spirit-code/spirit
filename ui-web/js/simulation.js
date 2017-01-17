@@ -60,28 +60,23 @@ Module.ready(function() {
     };
 
     Module.getSpinDirections = Module.cwrap('System_Get_Spin_Directions', 'number', ['number']);
+    Module.getSpinPositions = Module.cwrap('Geometry_Get_Spin_Positions', 'number', ['number']);
     Simulation.prototype.update = function() {
-        var NX = 100;
-        var NY = 100;
-        var N = NX*NY;
+        var _n = Simulation.prototype.getNCells(this._state);
+        var NX = _n[0];
+        var NY = _n[1];
+        var NZ = _n[2];
+        var N = NX*NY*NZ;
         var result_ptr = Module.getSpinDirections(this._state);
-        var double_directions = Module.HEAPF64.subarray(result_ptr/8, result_ptr/8+N*3);
+        var double_directions = Module.HEAPF32.subarray(result_ptr/4, result_ptr/4+N*3);
+        var pos_ptr = Module.getSpinPositions(this._state);
+        var double_positions = Module.HEAPF32.subarray(pos_ptr/4, pos_ptr/4+N*3);
         var spinPositions = [];
         var spinDirections = [];
-        for (var i = 0; i < N*3; i++) {
-            if (-1 > spinDirections[i] || 1 < spinDirections[i]) {
-                alert(spinDirections[i]);
-            }
-            if (Number.isNaN(spinDirections[i])) {
-                alert("NaN!");
-            }
-        }
         for (var i = 0; i < N; i++) {
-          var row = Math.floor(i/NX);
-          var column = i % NX;
-          var spinPosition = [column, row, 0];
+          var spinPosition = [double_positions[3*i], double_positions[3*i+1], double_positions[3*i+2]];
           Array.prototype.push.apply(spinPositions, spinPosition);
-          var spinDirection = [double_directions[i], double_directions[i+N], double_directions[i+2*N]];
+          var spinDirection = [double_directions[3*i], double_directions[3*i+1], double_directions[3*i+2]];
           Array.prototype.push.apply(spinDirections, spinDirection);
         }
         webglspins.updateSpins(spinPositions, spinDirections);
@@ -113,21 +108,21 @@ Module.ready(function() {
     };
     Module.Configuration_Skyrmion = Module.cwrap('Configuration_Skyrmion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.createSkyrmion = function(order, phase, radius, position, updown, rl, achiral, exp) {
-        position = new Float64Array(position);
+        position = new Float32Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
-        Module.HEAPF64.set(position, position_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(position, position_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         Module.Configuration_Skyrmion(this._state, position_ptr, radius, order, phase, updown, achiral, rl, exp, -1, -1);
         Module._free(position_ptr);
         this.update();
     };
     Module.Configuration_SpinSpiral = Module.cwrap('Configuration_SpinSpiral', null, ['number', 'string', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.createSpinSpiral = function(direction_type, q, axis, theta) {
-        q = new Float64Array(q);
+        q = new Float32Array(q);
         var q_ptr = Module._malloc(q.length * q.BYTES_PER_ELEMENT);
-        Module.HEAPF64.set(q, q_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
-        axis = new Float64Array(axis);
+        Module.HEAPF32.set(q, q_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        axis = new Float32Array(axis);
         var axis_ptr = Module._malloc(axis.length * axis.BYTES_PER_ELEMENT);
-        Module.HEAPF64.set(axis, axis_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(axis, axis_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         Module.Configuration_SpinSpiral(this._state, direction_type, q_ptr, axis_ptr, theta, -1, -1);
         Module._free(q_ptr);
         Module._free(axis_ptr);
@@ -135,12 +130,12 @@ Module.ready(function() {
     };
     Module.Configuration_DomainWall = Module.cwrap('Configuration_DomainWall', null, ['number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.createDomainWall = function(position, direction, greater) {
-        position = new Float64Array(position);
+        position = new Float32Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
-        Module.HEAPF64.set(position, position_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
-        direction = new Float64Array(direction);
+        Module.HEAPF32.set(position, position_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        direction = new Float32Array(direction);
         var direction_ptr = Module._malloc(direction.length * direction.BYTES_PER_ELEMENT);
-        Module.HEAPF64.set(direction, direction_ptr/Module.HEAPF64.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(direction, direction_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         Module.Configuration_DomainWall(this._state, position_ptr, direction_ptr, greater, -1, -1);
         Module._free(position_ptr);
         Module._free(direction_ptr);
@@ -245,4 +240,17 @@ Module.ready(function() {
         Module._free(bounding_box_ptr);
         return [xmin, ymin, zmin, xmax, ymax, zmax];
     };
+    Module.Geometry_Get_N_Cells = Module.cwrap('Geometry_Get_N_Cells', null, ['number', 'number', 'number']);
+    Simulation.prototype.getNCells = function (state) {
+        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
+        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
+        Module.Geometry_Get_N_Cells(state, ncells_ptr, -1, -1);
+        var NX = Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        var NY = Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        var NZ = Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        Module._free(ncells_ptr);
+        return [NX, NY, NZ];
+    }
 });
