@@ -39,42 +39,19 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells)
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells)
 		{
-			Vector3 a = translation_vectors[0];
-			Vector3 b = translation_vectors[1];
-			Vector3 c = translation_vectors[2];
-
-			int i, j, k, s, pos;
-			int nos_basic = basis_atoms.size();
-			int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
-			Vector3 build_array;
-			for (k = 0; k < n_cells[2]; ++k) {
-				for (j = 0; j < n_cells[1]; ++j) {
-					for (i = 0; i < n_cells[0]; ++i) {
-						for (s = 0; s < nos_basic; ++s) {
-							pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
-							build_array = i*a + j*b + k*c;
-							// paste initial spin orientations across the lattice translations
-							//spins[dim*nos + pos] = spins[dim*nos + s];
-							// calculate the spin positions
-							spin_pos[pos] = basis_atoms[s] + build_array;
-						}// endfor s
-					}// endfor k
-				}// endfor j
-			}// endfor dim
-
-			 // Check for erronous input placing two spins on the same location
+			// Check for erronous input placing two spins on the same location
 			Vector3 sp;
 			for (unsigned int i = 0; i < basis_atoms.size(); ++i)
 			{
 				for (unsigned int j = 0; j < basis_atoms.size(); ++j)
 				{
-					for (int k1 = -2; k1 < 3; ++k1)
+					for (int k1 = -2; k1 <= 2; ++k1)
 					{
-						for (int k2 = -2; k2 < 3; ++k2)
+						for (int k2 = -2; k2 <= 2; ++k2)
 						{
-							for (int k3 = -2; k3 < 3; ++k3)
+							for (int k3 = -2; k3 <= 2; ++k3)
 							{
 								// Norm is zero if translated basis atom is at position of another basis atom
 								sp = basis_atoms[i] - (basis_atoms[j]
@@ -90,6 +67,27 @@ namespace Engine
 					}
 				}
 			}
+
+			// Build up the spins array
+			int i, j, k, s, pos;
+			int nos_basic = basis_atoms.size();
+			//int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+			Vector3 build_array;
+			for (k = 0; k < n_cells[2]; ++k) {
+				for (j = 0; j < n_cells[1]; ++j) {
+					for (i = 0; i < n_cells[0]; ++i) {
+						for (s = 0; s < nos_basic; ++s) {
+							pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
+							build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
+							// paste initial spin orientations across the lattice translations
+							//spins[dim*nos + pos] = spins[dim*nos + s];
+							// calculate the spin positions
+							spin_pos[pos] = basis_atoms[s] + build_array;
+						}// endfor s
+					}// endfor k
+				}// endfor j
+			}// endfor dim
+
 		};// end Build_Spins
 
 
