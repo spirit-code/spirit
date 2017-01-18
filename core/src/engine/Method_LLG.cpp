@@ -29,7 +29,7 @@ namespace Engine
 		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
-		this->F_total = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
+		this->Gradient = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
 	}
 
 
@@ -43,10 +43,11 @@ namespace Engine
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
 			// Minus the gradient is the total Force here
-			systems[img]->hamiltonian->Gradient(*configurations[img], F_total[img]);
-			Vectormath::scale(F_total[img], -1);
+			systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
+			// Vectormath::scale(Gradient[img], -1);
 			// Copy out
-			forces[img] = F_total[img];
+			Vectormath::set_c_a(-1, Gradient[img], forces[img]);
+			// forces[img] = Gradient[img];
 		}
 	}
 
@@ -72,7 +73,7 @@ namespace Engine
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
 			this->force_converged[img] = false;
-			auto fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
+			auto fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), Gradient[img]);
 			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
 			if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
 		}
@@ -83,8 +84,9 @@ namespace Engine
 		systems[0]->UpdateEnergy();
 
 		// ToDo: How to update eff_field without numerical overhead?
-		systems[0]->effective_field = F_total[0];
-		Vectormath::scale(systems[0]->effective_field, -1);
+		// systems[0]->effective_field = Gradient[0];
+		// Vectormath::scale(systems[0]->effective_field, -1);
+		Vectormath::set_c_a(-1, Gradient[0], systems[0]->effective_field);
 		// systems[0]->UpdateEffectiveField();
 		
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?

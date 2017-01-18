@@ -149,62 +149,85 @@ namespace Engine
 				if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], contributions[idx_quadruplet].second);
 			}
 		}
+		
+		cudaDeviceSynchronize();
 
 		// Return
 		//return this->E;
 	}
 
-
-
-	// __global__ void Hamiltonian_Anisotropic::cu_E_Zeeman(Vector3 *spins, int *external_field_index, scalar *external_field_magnitude, Vector3 *external_field_normal, scalar *E , size_t N)
-	// {
-	// 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	// 	if(idx < N)
-	// 	{
-	// 		atomicAdd(E[external_field_index[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_index[idx]]));
-	// 	}
-	// }
-	// void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
-	// {
-	// 	for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
-	// 	{
-	// 		cu_scale<<<(n+1023)/1024, 1024>>>(spins.data(), this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), Energy[external_field_index[i]].data(), n);
-	// 	}
-	// }
-
+	
+	__global__ void CU_E_Zeeman(const Vector3 * spins, const int * external_field_index, const scalar * external_field_magnitude, const Vector3 * external_field_normal, scalar * Energy, size_t size)
+	{
+		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+			idx < size;
+			idx +=  blockDim.x * gridDim.x)
+		{
+			atomicAdd(Energy[external_field_index[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_index[idx]]));
+		}
+	}
 	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
-		{
-			Energy[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
-		}
+		int size = this->external_field_index.size();
+		CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), Energy.data(), size);
 	}
 
+
+	__global__ void CU_E_Anisotropy(const Vector3 * spins, const int * anisotropy_index, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, scalar * Energy, size_t size)
+	{
+		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+			idx < size;
+			idx +=  blockDim.x * gridDim.x)
+		{
+			atomicAdd(Energy[anisotropy_index[idx]], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[anisotropy_index[idx]]), 2.0));
+		}
+	}
 	void Hamiltonian_Anisotropic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
-		{
-			Energy[anisotropy_index[i]] -= this->anisotropy_magnitude[i] * std::pow(anisotropy_normal[i].dot(spins[anisotropy_index[i]]), 2.0);
-		}
+		int size = this->anisotropy_index.size();
+		CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->anisotropy_index.data(), this->anisotropy_magnitude.data(), this->anisotropy_normal.data(), Energy.data(), size);
 	}
 
+
+	__global__ void CU_E_Exchange(const Vector3 * spins, const int * indexPairs, const scalar * J_ij, scalar * Energy, size_t size)
+	{
+		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
+			iPair < size;
+			iPair +=  blockDim.x * gridDim.x)
+		{
+			int ispin = indexPairs[2*iPair];
+			int jspin = indexPairs[2*iPair+1];
+			scalar sc = - 0.5 * J_ij[iPair] * spins[ispin].dot(spins[jspin]);
+			atomicAdd(Energy[ispin], sc);
+			atomicAdd(Energy[jspin], sc);
+		}
+	}
 	void Hamiltonian_Anisotropic::E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalarfield & Energy)
 	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
-		{
-			Energy[indices[i_pair][0]] -= 0.5 * J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
-			Energy[indices[i_pair][1]] -= 0.5 * J_ij[i_pair] * spins[indices[i_pair][0]].dot(spins[indices[i_pair][1]]);
-		}
+		int size = indices.size();
+		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), indices.data(), J_ij.data(), Energy.data(), size);
 	}
 
-	void Hamiltonian_Anisotropic::E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalarfield & Energy)
+
+	__global__ void CU_E_DMI(const Vector3 * spins, const int * indexPairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, scalar * Energy, size_t size)
 	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
+		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
+			iPair < size;
+			iPair +=  blockDim.x * gridDim.x)
 		{
-			Energy[indices[i_pair][0]] -= 0.5 * DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
-			Energy[indices[i_pair][1]] -= 0.5 * DMI_magnitude[i_pair] * DMI_normal[i_pair].dot(spins[indices[i_pair][0]].cross(spins[indices[i_pair][1]]));
+			int ispin = indexPairs[2*iPair];
+			int jspin = indexPairs[2*iPair+1];
+			scalar sc = - 0.5 *  DMI_magnitude[iPair] * DMI_normal[iPair].dot(spins[ispin].cross(spins[jspin]));
+			atomicAdd(Energy[ispin], sc);
+			atomicAdd(Energy[jspin], sc);
 		}
 	}
+	void Hamiltonian_Anisotropic::E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalarfield & Energy)
+	{
+		int size = indices.size();
+		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), indices.data(), DMI_magnitude.data(), DMI_normal.data(), Energy.data(), size);
+	}
+
 
 	void Hamiltonian_Anisotropic::E_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalarfield & Energy)
 	{
@@ -284,39 +307,93 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient)
+
+	__global__ void CU_Gradient_Zeeman( const int * external_field_index, const scalar * external_field_magnitude, const Vector3 * external_field_normal, Vector3 * gradient, size_t size)
 	{
-		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
+		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+			idx < size;
+			idx +=  blockDim.x * gridDim.x)
 		{
-			gradient[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i];
+			int ispin = external_field_index[idx];
+			for (int i=0; i<3 ; i++)
+			{
+				atomicAdd(gradient[ispin][i], -external_field_magnitude[id]*external_field_normal[id][i]);
+			}
 		}
 	}
+	void Hamiltonian_Anisotropic::Gradient_Zeeman(vectorfield & gradient)
+	{
+		int size = this->external_field_index.size();
+		CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), gradient.data(), size );
+	}
 
+
+	__global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * anisotropy_index, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, Vector3 * gradient, size_t size)
+	{
+		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+			idx < size;
+			idx +=  blockDim.x * gridDim.x)
+		{
+			int ispin = anisortropy_index[idx];
+			scalar sc = -2 * anisotropy_magnitude[idx] * anisotropy_normal[idx].dot(spins[ispin]);
+			for (int i=0; i<3 ; i++)
+			{
+				atomicAdd(gradient[ispin][i], sc*anisotropy_normal[idx]);
+			}
+		}
+	}
 	void Hamiltonian_Anisotropic::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
-		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
-		{
-			gradient[anisotropy_index[i]] -= 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
-		}
+		int size = this->anisotropy_index.size();
+		CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->anisotropy_index.data(), this->anisotropy_magnitude.data(), this->anisotropy_normal.data(), gradient.data(), size );
 	}
 
+
+	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * indexPairs, const scalar * J_ij, Vector3 * gradient, size_t size)
+	{
+		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
+			iPair < size;
+			iPair +=  blockDim.x * gridDim.x)
+		{
+			int ispin = indexPairs[2*iPair];
+			int jspin = indexPairs[2*iPair+1];
+			for (int dim=0; dim<3 ; dim++)
+			{
+				atomicAdd(gradient[ispin][dim], -J_ij[iPair]*spins[jspin][dim]);
+				atomicAdd(gradient[jspin][dim], -J_ij[iPair]*spins[ispin][dim]);
+			}
+		}
+	}
 	void Hamiltonian_Anisotropic::Gradient_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, vectorfield & gradient)
 	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
-		{
-			gradient[indices[i_pair][0]] -= J_ij[i_pair] * spins[indices[i_pair][1]];
-			gradient[indices[i_pair][1]] -= J_ij[i_pair] * spins[indices[i_pair][0]];
-		}
+		int size = indices.size();
+		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), indices.data(), J_ij.data(), gradient.data(), size );
 	}
 
-	void Hamiltonian_Anisotropic::Gradient_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & gradient)
+
+	__global__ void CU_Gradient_DMI(const Vector3 * spins, const int * indexPairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, Vector3 * gradient, size_t size)
 	{
-		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
+		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
+			iPair < size;
+			iPair +=  blockDim.x * gridDim.x)
 		{
-			gradient[indices[i_pair][0]] -= DMI_magnitude[i_pair] * spins[indices[i_pair][1]].cross(DMI_normal[i_pair]);
-			gradient[indices[i_pair][1]] += DMI_magnitude[i_pair] * spins[indices[i_pair][0]].cross(DMI_normal[i_pair]);
+			int ispin = indexPairs[2*iPair];
+			int jspin = indexPairs[2*iPair+1];
+			Vector3 jcross = DMI_magnitude[iPair]*spins[jspin].cross(DMI_normal[iPair]);
+			Vector3 icross = DMI_magnitude[iPair]*spins[ispin].cross(DMI_normal[iPair]);
+			for (int dim=0; dim<3 ; dim++)
+			{
+				atomicAdd(gradient[ispin][dim], -jcross[dim]);
+				atomicAdd(gradient[jspin][dim],  icross[dim]);
+			}
 		}
 	}
+	void Hamiltonian_Anisotropic::Gradient_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, vectorfield & gradient)
+	{
+		int size = indices.size();
+		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), indices.data(), DMI_magnitude.data(), DMI_normal.data(), gradient.data(), size );
+	}
+
 
 	void Hamiltonian_Anisotropic::Gradient_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient)
 	{

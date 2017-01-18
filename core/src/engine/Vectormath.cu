@@ -106,6 +106,44 @@ namespace Engine
 		}
 
 
+        // Utility function for the SIB Optimizer
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
+		{
+			Vector3 e1, a2, A;
+			scalar detAi;
+			for (unsigned int i = 0; i < spins.size(); ++i)
+			{
+				e1 = spins[i];
+				A = force[i];
+
+				// 1/determinant(A)
+				detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+
+				// calculate equation without the predictor?
+				a2 = e1 + e1.cross(A);
+
+				out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
+				out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
+				out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
+			}
+            
+            cudaDeviceSynchronize();
+		}
+		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+		{
+			for (int i = 0; i < sys.nos; ++i)
+			{
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					// PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
+					xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
+				}
+			}
+            
+            cudaDeviceSynchronize();
+		}
+
+
 
 		/////////////////////////////////////////////////////////////////
 
@@ -286,8 +324,6 @@ namespace Engine
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
         {
             int n = out.size();
-
-            // Dot product
             cu_add_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
             cudaDeviceSynchronize();
         }
@@ -304,11 +340,44 @@ namespace Engine
         void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
         {
             int n = out.size();
-
-            // Dot product
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
+
+
+        __global__ void cu_set_c_a(scalar c, Vector3 a, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a;
+            }
+        }
+        // out[i] = c*a
+        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+        {
+            int n = out.size();
+            cu_set_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_set_c_a2(scalar c, const Vector3 * a, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a[idx];
+            }
+        }
+        // out[i] = c*a[i]
+        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+        {
+            int n = out.size();
+            cu_set_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+
 
         __global__ void cu_add_c_dot(scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N)
         {
@@ -322,8 +391,6 @@ namespace Engine
         void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
         {
             int n = out.size();
-
-            // Dot product
             cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
@@ -340,11 +407,43 @@ namespace Engine
         void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
         {
             int n = out.size();
-
-            // Dot product
             cu_add_c_dot2<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
+
+
+        __global__ void cu_set_c_dot(scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a.dot(b[idx]);
+            }
+        }
+        // out[i] = c * a*b[i]
+        void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
+        {
+            int n = out.size();
+            cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_set_c_dot2(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a[idx].dot(b[idx]);
+            }
+        }
+        // out[i] = c * a[i]*b[i]
+        void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
+        {
+            int n = out.size();
+            cu_set_c_dot2<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
 
 
         // out[i] += c * a x b[i]
@@ -365,6 +464,24 @@ namespace Engine
 			}
         }
 
+
+        // out[i] = c * a x b[i]
+        void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
+        {
+			for (unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a.cross(b[idx]);
+			}
+        }
+
+        // out[i] = c * a[i] x b[i]
+        void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+			for (unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx].cross(b[idx]);
+			}
+        }
     }
 }
 

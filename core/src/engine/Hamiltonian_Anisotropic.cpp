@@ -217,7 +217,7 @@ namespace Engine
 		}
 
 		// External field
-		Gradient_Zeeman(spins, gradient);
+		Gradient_Zeeman(gradient);
 
 		// Anisotropy
 		Gradient_Anisotropy(spins, gradient);
@@ -253,7 +253,7 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient)
+	void Hamiltonian_Anisotropic::Gradient_Zeeman(vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{

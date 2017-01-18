@@ -7,6 +7,7 @@
 
 #include <Eigen/Core>
 
+#include <data/Spin_System.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
 namespace Engine
@@ -37,6 +38,10 @@ namespace Engine
 		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells);
 		// Calculate the mean of a vectorfield
 		std::array<scalar, 3> Magnetization(const vectorfield & vf);
+
+		// Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
+		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi);
 
 
 		/////////////////////////////////////////////////////////////////
@@ -74,6 +79,7 @@ namespace Engine
 		Vector3 mean(const vectorfield & vf);
 
 
+
 		// TODO: move this function to manifold??
 		// computes the inner product of two vectorfields v1 and v2
 		scalar dot(const vectorfield & vf1, const vectorfield & vf2);
@@ -86,23 +92,37 @@ namespace Engine
 		// v1 and v2 are vector fields
 		void cross(const vectorfield & vf1, const vectorfield & vf2, vectorfield & out);
 		
+
+
 		// out[i] += c*a
 		void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
-
 		// out[i] += c*a[i]
 		void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
 
+		// out[i] = c*a
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
+		// out[i] = c*a[i]
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
+
 		// out[i] += c * a*b[i]
 		void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
-
 		// out[i] += c * a[i]*b[i]
 		void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out);
+		
+		// out[i] = c * a*b[i]
+		void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
+		// out[i] = c * a[i]*b[i]
+		void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out);
 
 		// out[i] += c * a x b[i]
 		void add_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
-
 		// out[i] += c * a[i] x b[i]
 		void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
+		
+		// out[i] = c * a x b[i]
+		void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
+		// out[i] = c * a[i] x b[i]
+		void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
 	}
 }
 

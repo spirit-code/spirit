@@ -105,6 +105,39 @@ namespace Engine
 			return M;
 		}
 
+		// Utility function for the SIB Optimizer
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
+		{
+			Vector3 e1, a2, A;
+			scalar detAi;
+			for (unsigned int i = 0; i < spins.size(); ++i)
+			{
+				e1 = spins[i];
+				A = force[i];
+
+				// 1/determinant(A)
+				detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+
+				// calculate equation without the predictor?
+				a2 = e1 + e1.cross(A);
+
+				out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
+				out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
+				out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
+			}
+		}
+		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+		{
+			for (int i = 0; i < sys.nos; ++i)
+			{
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					// PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
+					xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
+				}
+			}
+		}
+
 
 
 		/////////////////////////////////////////////////////////////////
@@ -190,6 +223,7 @@ namespace Engine
 		}
 
 
+
 		// computes the inner product of two vectorfields v1 and v2
 		scalar dot(const vectorfield & v1, const vectorfield & v2)
 		{
@@ -222,6 +256,7 @@ namespace Engine
 		}
 
 
+
 		// out[i] += c*a
 		void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
 		{
@@ -230,13 +265,29 @@ namespace Engine
 				out[idx] += c*a;
 			}
 		}
-
 		// out[i] += c*a[i]
 		void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx];
+			}
+		}
+		
+		// out[i] = c*a
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a;
+			}
+		}
+		// out[i] = c*a[i]
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx];
 			}
 		}
 
@@ -249,13 +300,29 @@ namespace Engine
 				out[idx] += c*a.dot(b[idx]);
 			}
 		}
-
 		// out[i] += c * a[i]*b[i]
 		void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx].dot(b[idx]);
+			}
+		}
+
+		// out[i] = c * a*b[i]
+		void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a.dot(b[idx]);
+			}
+		}
+		// out[i] = c * a[i]*b[i]
+		void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx].dot(b[idx]);
 			}
 		}
 
@@ -268,13 +335,29 @@ namespace Engine
 				out[idx] += c*a.cross(b[idx]);
 			}
 		}
-
 		// out[i] += c * a[i] x b[i]
 		void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx].cross(b[idx]);
+			}
+		}
+		
+		// out[i] = c * a x b[i]
+		void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a.cross(b[idx]);
+			}
+		}
+		// out[i] = c * a[i] x b[i]
+		void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx].cross(b[idx]);
 			}
 		}
 	}

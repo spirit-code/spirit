@@ -44,7 +44,7 @@ namespace Engine
 
 	private:
 		// Last calculated forces
-		std::vector<vectorfield> F_total;
+		std::vector<vectorfield> Gradient;
 		// Convergence parameters
 		std::vector<bool> force_converged;
     };

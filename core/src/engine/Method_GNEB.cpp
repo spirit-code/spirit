@@ -91,16 +91,19 @@ namespace Engine
 
 				// Calculate the spring force
 				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
-				for (int i = 0; i < nos; ++i)
-				{
-					F_spring[img][i] = d * tangents[img][i];
-				}
+				Vectormath::set_c_a(d, tangents[img], F_spring[img]);
+				// for (int i = 0; i < nos; ++i)
+				// {
+				// 	F_spring[img][i] = d * tangents[img][i];
+				// }
 
 				// Calculate the total force
-				for (int j = 0; j < nos; ++j)
-				{
-					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
-				}
+				Vectormath::set_c_a(1, F_gradient[img], F_total[img]);
+				Vectormath::add_c_a(1, F_spring[img], F_total[img]);
+				// for (int j = 0; j < nos; ++j)
+				// {
+				// 	F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
+				// }
 			}
 			else
 			{
