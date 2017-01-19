@@ -97,12 +97,11 @@ namespace Engine
         __global__ void cu_Magnetization(const Vector3 *vf, scalar * M, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
-			scalar scale = 1/(scalar)N;
             if(idx < N)
             {
-                atomicAdd(&M[0], vf[idx][0])*scale;
-                atomicAdd(&M[1], vf[idx][1])*scale;
-                atomicAdd(&M[2], vf[idx][2])*scale;
+                atomicAdd(&M[0], vf[idx][0]);
+                atomicAdd(&M[1], vf[idx][1]);
+                atomicAdd(&M[2], vf[idx][2]);
             }
         }
 		std::array<scalar, 3> Magnetization(const vectorfield & vf)
@@ -112,21 +111,10 @@ namespace Engine
             cu_Magnetization<<<(n+1023)/1024, 1024>>>(vf.data(), M.data(), n);
             cudaDeviceSynchronize();
             
+			scalar scale = 1/(scalar)n;
+            M[0] *= scale; M[1] *= scale; M[2] *= scale;
             return std::array<scalar,3>{M[0], M[1], M[2]};
 		}
-        // std::array<scalar,3> Magnetization(const vectorfield & vf)
-		// {
-		// 	std::array<scalar, 3> M{0, 0, 0};
-		// 	int nos = vf.size();
-		// 	scalar scale = 1/(scalar)nos;
-		// 	for (int i=0; i<nos; ++i)
-		// 	{
-		// 		M[0] += vf[i][0]*scale;
-		// 		M[1] += vf[i][1]*scale;
-		// 		M[2] += vf[i][2]*scale;
-		// 	}
-		// 	return M;
-		// }
 
 
         // Utility function for the SIB Optimizer
@@ -187,40 +175,62 @@ namespace Engine
 
 		/////////////////////////////////////////////////////////////////
 
+
+        __global__ void cu_fill(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                sf[idx] = s;
+            }
+        }
         void fill(scalarfield & sf, scalar s)
 		{
-			for (unsigned int i = 0; i<sf.size(); ++i)
-			{
-				sf[i] = s;
-			}
+            int n = sf.size();
+            cu_fill<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            cudaDeviceSynchronize();
 		}
 
+        __global__ void cu_scale(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                atomicExch(&sf[idx], s*sf[idx]);
+            }
+        }
 		void scale(scalarfield & sf, scalar s)
 		{
-			for (unsigned int i = 0; i<sf.size(); ++i)
-			{
-				sf[i] *= s;
-			}
+            int n = sf.size();
+            cu_scale<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            cudaDeviceSynchronize();
 		}
 
+        __global__ void cu_sum(const scalar *sf, scalar *out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                atomicAdd(out, sf[idx]);
+            }
+        }
 		scalar sum(const scalarfield & sf)
 		{
-			scalar ret = 0;
-			for (unsigned int i = 0; i<sf.size(); ++i)
-			{
-				ret += sf[i];
-			}
-			return ret;
+            scalarfield ret(1, 0);
+            int n = sf.size();
+            cu_sum<<<(n+1023)/1024, 1024>>>(sf.data(), ret.data(), n);
+            cudaDeviceSynchronize();
+            return ret[0];
 		}
 
 		scalar mean(const scalarfield & sf)
 		{
-			scalar ret = 0;
-			for (unsigned int i = 0; i<sf.size(); ++i)
-			{
-				ret = (i - 1) / i * ret + sf[i] / i;
-			}
-			return ret;
+            scalarfield ret(1, 0);
+            int n = sf.size();
+            cu_sum<<<(n+1023)/1024, 1024>>>(sf.data(), ret.data(), n);
+            cudaDeviceSynchronize();
+            ret[0] = ret[0]/n;
+            return ret[0];
 		}
 
 
@@ -270,30 +280,39 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
+        __global__ void cu_sum(const Vector3 *sf, Vector3 *out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                atomicAdd(&out[0][0], sf[idx][0]);
+                atomicAdd(&out[0][1], sf[idx][1]);
+                atomicAdd(&out[0][2], sf[idx][2]);
+            }
+        }
         Vector3 sum(const vectorfield & vf)
 		{
 			Vector3 ret = { 0,0,0 };
-			for (unsigned int i = 0; i<vf.size(); ++i)
-			{
-				ret += vf[i];
-			}
+            int n = vf.size();
+            cu_sum<<<(n+1023)/1024, 1024>>>(vf.data(), &ret, n);
+            cudaDeviceSynchronize();
 			return ret;
 		}
 
 		Vector3 mean(const vectorfield & vf)
 		{
 			Vector3 ret = { 0,0,0 };
-			for (unsigned int i = 0; i<vf.size(); ++i)
-			{
-				ret = (i-1)/i * ret + vf[i]/i;
-			}
+            int n = vf.size();
+            cu_sum<<<(n+1023)/1024, 1024>>>(vf.data(), &ret, n);
+            cudaDeviceSynchronize();
+            ret /= (scalar)n;
 			return ret;
 		}
 
 
 
 
-        __global__ void cu_dot(const Vector3 *vf1, const Vector3 *vf2, double *out, size_t N)
+        __global__ void cu_dot(const Vector3 *vf1, const Vector3 *vf2, scalar *out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if(idx < N)
@@ -313,10 +332,7 @@ namespace Engine
             cudaDeviceSynchronize();
 
             // reduction
-            for (int i=0; i<n; ++i)
-            {
-                ret += sf[i];
-            }
+            ret = sum(sf);
             return ret;
         }
 
@@ -435,7 +451,7 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
-        __global__ void cu_add_c_dot2(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
+        __global__ void cu_add_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if(idx < N)
@@ -447,7 +463,7 @@ namespace Engine
         void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
         {
             int n = out.size();
-            cu_add_c_dot2<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -468,7 +484,7 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
-        __global__ void cu_set_c_dot2(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
+        __global__ void cu_set_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if(idx < N)
@@ -480,47 +496,75 @@ namespace Engine
         void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
         {
             int n = out.size();
-            cu_set_c_dot2<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
 
 
         // out[i] += c * a x b[i]
+        __global__ void cu_add_c_cross(scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c*a.cross(b[idx]);
+            }
+        }
         void add_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-			{
-				out[idx] += c*a.cross(b[idx]);
-			}
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
+            cudaDeviceSynchronize();
         }
 
         // out[i] += c * a[i] x b[i]
+        __global__ void cu_add_c_cross(scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c*a[idx].cross(b[idx]);
+            }
+        }
         void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-			{
-				out[idx] += c*a[idx].cross(b[idx]);
-			}
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cudaDeviceSynchronize();
         }
 
 
         // out[i] = c * a x b[i]
+        __global__ void cu_set_c_cross(scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a.cross(b[idx]);
+            }
+        }
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-			{
-				out[idx] = c*a.cross(b[idx]);
-			}
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
+            cudaDeviceSynchronize();
         }
 
         // out[i] = c * a[i] x b[i]
+        __global__ void cu_set_c_cross(scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c*a[idx].cross(b[idx]);
+            }
+        }
         void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-			{
-				out[idx] = c*a[idx].cross(b[idx]);
-			}
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cudaDeviceSynchronize();
         }
     }
 }
