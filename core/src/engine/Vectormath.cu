@@ -8,6 +8,9 @@
 #include <iostream>
 #include <stdio.h>
 
+#include <curand.h>
+#include <curand_kernel.h>
+
 // CUDA Version
 namespace Engine
 {
@@ -91,30 +94,51 @@ namespace Engine
 		};// end Build_Spins
 
 
+        __global__ void cu_Magnetization(const Vector3 *vf, scalar * M, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+			scalar scale = 1/(scalar)N;
+            if(idx < N)
+            {
+                atomicAdd(&M[0], vf[idx][0])*scale;
+                atomicAdd(&M[1], vf[idx][1])*scale;
+                atomicAdd(&M[2], vf[idx][2])*scale;
+            }
+        }
 		std::array<scalar, 3> Magnetization(const vectorfield & vf)
 		{
-			std::array<scalar, 3> M{ 0, 0, 0 };
-			int nos = vf.size();
-			scalar scale = 1 / (scalar)nos;
-			for (int i = 0; i<nos; ++i)
-			{
-				M[0] += vf[i][0] * scale;
-				M[1] += vf[i][1] * scale;
-				M[2] += vf[i][2] * scale;
-			}
-			return M;
+            scalarfield M(3, 0);
+            int n = vf.size();
+            cu_Magnetization<<<(n+1023)/1024, 1024>>>(vf.data(), M.data(), n);
+            cudaDeviceSynchronize();
+            
+            return std::array<scalar,3>{M[0], M[1], M[2]};
 		}
+        // std::array<scalar,3> Magnetization(const vectorfield & vf)
+		// {
+		// 	std::array<scalar, 3> M{0, 0, 0};
+		// 	int nos = vf.size();
+		// 	scalar scale = 1/(scalar)nos;
+		// 	for (int i=0; i<nos; ++i)
+		// 	{
+		// 		M[0] += vf[i][0]*scale;
+		// 		M[1] += vf[i][1]*scale;
+		// 		M[2] += vf[i][2]*scale;
+		// 	}
+		// 	return M;
+		// }
 
 
         // Utility function for the SIB Optimizer
-		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-		{
+        __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
 			Vector3 e1, a2, A;
 			scalar detAi;
-			for (unsigned int i = 0; i < spins.size(); ++i)
-			{
-				e1 = spins[i];
-				A = force[i];
+            if(idx < N)
+            {
+                e1 = spins[idx];
+				A = force[idx];
 
 				// 1/determinant(A)
 				detAi = 1.0 / (1 + pow(A.norm(), 2.0));
@@ -122,24 +146,40 @@ namespace Engine
 				// calculate equation without the predictor?
 				a2 = e1 + e1.cross(A);
 
-				out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
-				out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
-				out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
-			}
-            
+				out[idx][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
+				out[idx][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
+				out[idx][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
+            }
+        }
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
+		{
+            int n = spins.size();
+            cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        // Utility function for the SIB Optimizer
+        __global__ void cu_get_random_vectorfield(scalar epsilon, Vector3 * xi, size_t N)
+        {
+            unsigned long long subsequence = 0;
+            unsigned long long offset= 0;
+
+            curandState_t state;
+            for(int idx = blockIdx.x * blockDim.x + threadIdx.x;
+                idx < N;
+                idx +=  blockDim.x * gridDim.x)
+            {
+                curand_init(idx,subsequence,offset,&state);
+                for (int dim=0;dim<3; ++dim)
+                {
+                    xi[idx][dim] = epsilon*(llroundf(curand_uniform(&state))*2-1);
+                }
+            }
+        }
 		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
 		{
-			for (int i = 0; i < sys.nos; ++i)
-			{
-				for (int dim = 0; dim < 3; ++dim)
-				{
-					// PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
-					xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
-				}
-			}
-            
+            int n = xi.size();
+            cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(epsilon, xi.data(), n);
             cudaDeviceSynchronize();
 		}
 

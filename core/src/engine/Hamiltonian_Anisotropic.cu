@@ -163,7 +163,7 @@ namespace Engine
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
-			atomicAdd(Energy[external_field_index[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_index[idx]]));
+			atomicAdd(&Energy[external_field_index[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_index[idx]]));
 		}
 	}
 	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -179,7 +179,7 @@ namespace Engine
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
-			atomicAdd(Energy[anisotropy_index[idx]], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[anisotropy_index[idx]]), 2.0));
+			atomicAdd(&Energy[anisotropy_index[idx]], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[anisotropy_index[idx]]), 2.0));
 		}
 	}
 	void Hamiltonian_Anisotropic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
@@ -189,17 +189,17 @@ namespace Engine
 	}
 
 
-	__global__ void CU_E_Exchange(const Vector3 * spins, const int * indexPairs, const scalar * J_ij, scalar * Energy, size_t size)
+	__global__ void CU_E_Exchange(const Vector3 * spins, const indexPair * pairs, const scalar * J_ij, scalar * Energy, size_t size)
 	{
 		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
 			iPair < size;
 			iPair +=  blockDim.x * gridDim.x)
 		{
-			int ispin = indexPairs[2*iPair];
-			int jspin = indexPairs[2*iPair+1];
+			int ispin = pairs[iPair][0];
+			int jspin = pairs[iPair][1];
 			scalar sc = - 0.5 * J_ij[iPair] * spins[ispin].dot(spins[jspin]);
-			atomicAdd(Energy[ispin], sc);
-			atomicAdd(Energy[jspin], sc);
+			atomicAdd(&Energy[ispin], sc);
+			atomicAdd(&Energy[jspin], sc);
 		}
 	}
 	void Hamiltonian_Anisotropic::E_Exchange(const vectorfield & spins, indexPairs & indices, scalarfield & J_ij, scalarfield & Energy)
@@ -209,17 +209,17 @@ namespace Engine
 	}
 
 
-	__global__ void CU_E_DMI(const Vector3 * spins, const int * indexPairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, scalar * Energy, size_t size)
+	__global__ void CU_E_DMI(const Vector3 * spins, const indexPair * pairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, scalar * Energy, size_t size)
 	{
 		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
 			iPair < size;
 			iPair +=  blockDim.x * gridDim.x)
 		{
-			int ispin = indexPairs[2*iPair];
-			int jspin = indexPairs[2*iPair+1];
+			int ispin = pairs[iPair][0];
+			int jspin = pairs[iPair][1];
 			scalar sc = - 0.5 *  DMI_magnitude[iPair] * DMI_normal[iPair].dot(spins[ispin].cross(spins[jspin]));
-			atomicAdd(Energy[ispin], sc);
-			atomicAdd(Energy[jspin], sc);
+			atomicAdd(&Energy[ispin], sc);
+			atomicAdd(&Energy[jspin], sc);
 		}
 	}
 	void Hamiltonian_Anisotropic::E_DMI(const vectorfield & spins, indexPairs & indices, scalarfield & DMI_magnitude, vectorfield & DMI_normal, scalarfield & Energy)
@@ -271,7 +271,7 @@ namespace Engine
 		}
 
 		// External field
-		Gradient_Zeeman(spins, gradient);
+		Gradient_Zeeman(gradient);
 
 		// Anisotropy
 		Gradient_Anisotropy(spins, gradient);
@@ -315,9 +315,9 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_index[idx];
-			for (int i=0; i<3 ; i++)
+			for (int dim=0; dim<3 ; dim++)
 			{
-				atomicAdd(gradient[ispin][i], -external_field_magnitude[id]*external_field_normal[id][i]);
+				atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
 			}
 		}
 	}
@@ -334,11 +334,11 @@ namespace Engine
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
-			int ispin = anisortropy_index[idx];
+			int ispin = anisotropy_index[idx];
 			scalar sc = -2 * anisotropy_magnitude[idx] * anisotropy_normal[idx].dot(spins[ispin]);
-			for (int i=0; i<3 ; i++)
+			for (int dim=0; dim<3 ; dim++)
 			{
-				atomicAdd(gradient[ispin][i], sc*anisotropy_normal[idx]);
+				atomicAdd(&gradient[ispin][dim], sc*anisotropy_normal[idx][dim]);
 			}
 		}
 	}
@@ -349,18 +349,18 @@ namespace Engine
 	}
 
 
-	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * indexPairs, const scalar * J_ij, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const indexPair * pairs, const scalar * J_ij, Vector3 * gradient, size_t size)
 	{
 		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
 			iPair < size;
 			iPair +=  blockDim.x * gridDim.x)
 		{
-			int ispin = indexPairs[2*iPair];
-			int jspin = indexPairs[2*iPair+1];
+			int ispin = pairs[iPair][0];
+			int jspin = pairs[iPair][1];
 			for (int dim=0; dim<3 ; dim++)
 			{
-				atomicAdd(gradient[ispin][dim], -J_ij[iPair]*spins[jspin][dim]);
-				atomicAdd(gradient[jspin][dim], -J_ij[iPair]*spins[ispin][dim]);
+				atomicAdd(&gradient[ispin][dim], -J_ij[iPair]*spins[jspin][dim]);
+				atomicAdd(&gradient[jspin][dim], -J_ij[iPair]*spins[ispin][dim]);
 			}
 		}
 	}
@@ -371,20 +371,20 @@ namespace Engine
 	}
 
 
-	__global__ void CU_Gradient_DMI(const Vector3 * spins, const int * indexPairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_DMI(const Vector3 * spins, const indexPair * pairs, const scalar * DMI_magnitude, const Vector3 * DMI_normal, Vector3 * gradient, size_t size)
 	{
 		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
 			iPair < size;
 			iPair +=  blockDim.x * gridDim.x)
 		{
-			int ispin = indexPairs[2*iPair];
-			int jspin = indexPairs[2*iPair+1];
+			int ispin = pairs[iPair][0];
+			int jspin = pairs[iPair][1];
 			Vector3 jcross = DMI_magnitude[iPair]*spins[jspin].cross(DMI_normal[iPair]);
 			Vector3 icross = DMI_magnitude[iPair]*spins[ispin].cross(DMI_normal[iPair]);
 			for (int dim=0; dim<3 ; dim++)
 			{
-				atomicAdd(gradient[ispin][dim], -jcross[dim]);
-				atomicAdd(gradient[jspin][dim],  icross[dim]);
+				atomicAdd(&gradient[ispin][dim], -jcross[dim]);
+				atomicAdd(&gradient[jspin][dim],  icross[dim]);
 			}
 		}
 	}
