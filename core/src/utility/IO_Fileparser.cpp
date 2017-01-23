@@ -33,18 +33,21 @@ namespace Utility
 			return out;
 		}
 
+		// TODO: this function does not make much sense... need to do this stuff coherently throughout the parser...
 		std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
 		{
 			std::vector<scalar> result;
 
-			size_t last = 0;
-			size_t next = 0;
+			scalar temp;
+			std::stringstream ss(source);
+			while (ss >> temp)
+			{
+				result.push_back(temp);
 
-			while ((next = source.find(delimiter, last)) != std::string::npos) {
-				result.push_back(std::stod(source.substr(last, next - last)));
-				last = next + delimiter.length();
+				if (ss.peek() == ',' || ss.peek() == ' ')
+					ss.ignore();
 			}
-			result.push_back(std::stod(source.substr(last)));
+
 			return result;
 		}
 
