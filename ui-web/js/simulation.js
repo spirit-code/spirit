@@ -30,19 +30,45 @@ var Module = {
 
 Module.ready(function() {
     Module.State_Setup = Module.cwrap('State_Setup', 'number', ['string']);
-    window.Simulation = function(options) {
+    window.Simulation = function(finishedCallback, options) {
         var defaultOptions = {
         };
         this._options = {};
         this._mergeOptions(options, defaultOptions);
-        this._state = Module.State_Setup("");
-        this.showBoundingBox = true;
+
+        // FS.writeFile("/input.cfg", "translation_vectors\n1 0 0 20\n0 1 0 20\n0 0 1 1\n");
+
+        // var cfgfile = "input/skyrmions_2D.cfg";
+        // var cfgfile = "input/skyrmions_3D.cfg";
+        // var cfgfile = "input/nanostrip_skyrmions.cfg";
+        var cfgfile = "";
+        this.getConfig(cfgfile, function(config) {
+            FS.writeFile("/input.cfg", config);
+            this._state = Module.State_Setup("/input.cfg");
+            this.showBoundingBox = true;
+            finishedCallback(this);
+        }.bind(this));
     };
 
     Module.iterate = Module.cwrap('JS_LLG_Iteration', null, ['number']);
     Simulation.prototype.performIteration = function() {
         Module.iterate(this._state);
         this.update();
+    };
+
+    Simulation.prototype.getConfig = function(cfg_name, callback) {
+        if (cfg_name != "")
+        {
+            $.get( cfg_name, {}, function(res) {
+                    // console.log(res);
+                    callback(res);
+                }
+            );
+        }
+        else
+        {
+            callback(" ");
+        }
     };
 
     Simulation.prototype._mergeOptions = function(options, defaultOptions) {
