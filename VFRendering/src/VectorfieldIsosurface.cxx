@@ -1,5 +1,6 @@
 #include "VectorfieldIsosurface.hxx"
 
+#include <iostream>
 #include <map>
 #include <limits>
 
@@ -69,6 +70,9 @@ void VectorfieldIsosurfaceCalculation::generateTriangle(index_type i1, index_typ
     glm::vec3 p3 = positions[i3];
 
     glm::vec3 n = glm::normalize(glm::cross(p2 - p1, p3 - p1));
+    if (glm::any(glm::isnan(n))) {
+        n = glm::vec3(0, 0, 0);
+    }
     if (glm::dot(n, inside_point - (p1 + p2 + p3) / 3.0f) > 0) {
         flip_normal = !flip_normal;
     }

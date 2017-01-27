@@ -8,8 +8,8 @@
 #include "VFRendering/Utilities.hxx"
 
 #include "VectorfieldIsosurface.hxx"
-#include "shaders/surface.vert.glsl.hxx"
-#include "shaders/surface.frag.glsl.hxx"
+#include "shaders/isosurface.vert.glsl.hxx"
+#include "shaders/isosurface.frag.glsl.hxx"
 
 namespace VFRendering {
 IsosurfaceRenderer::IsosurfaceRenderer(const View& view) : RendererBase(view), m_value_function_changed(true), m_isovalue_changed(true) {}
@@ -22,21 +22,26 @@ void IsosurfaceRenderer::initialize() {
 
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
-    
+
     glGenBuffers(1, &m_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     m_num_indices = 0;
-    
+
     glGenBuffers(1, &m_position_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_position_vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
     glEnableVertexAttribArray(0);
-    
+
     glGenBuffers(1, &m_direction_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_direction_vbo);
     glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, nullptr);
     glEnableVertexAttribArray(1);
-    
+
+    glGenBuffers(1, &m_normal_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normal_vbo);
+    glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, nullptr);
+    glEnableVertexAttribArray(2);
+
     updateShaderProgram();
     updateIsosurfaceIndices();
 }
@@ -49,6 +54,7 @@ IsosurfaceRenderer::~IsosurfaceRenderer() {
     glDeleteBuffers(1, &m_ibo);
     glDeleteBuffers(1, &m_position_vbo);
     glDeleteBuffers(1, &m_direction_vbo);
+    glDeleteBuffers(1, &m_normal_vbo);
     glDeleteProgram(m_program);
 }
 
@@ -122,12 +128,13 @@ void IsosurfaceRenderer::updateShaderProgram() {
     if (m_program) {
         glDeleteProgram(m_program);
     }
-    std::string vertex_shader_source = SURFACE_VERT_GLSL;
+    std::string vertex_shader_source = ISOSURFACE_VERT_GLSL;
     vertex_shader_source += options().get<View::Option::COLORMAP_IMPLEMENTATION>();
-    std::string fragment_shader_source = SURFACE_FRAG_GLSL;
+    std::string fragment_shader_source = ISOSURFACE_FRAG_GLSL;
     fragment_shader_source += options().get<View::Option::COLORMAP_IMPLEMENTATION>();
     fragment_shader_source += options().get<View::Option::IS_VISIBLE_IMPLEMENTATION>();
-    m_program = Utilities::createProgram(vertex_shader_source, fragment_shader_source, {"ivPosition", "ivDirection"});
+    fragment_shader_source += options().get<Option::LIGHTING_IMPLEMENTATION>();
+    m_program = Utilities::createProgram(vertex_shader_source, fragment_shader_source, {"ivPosition", "ivDirection", "ivNormal"});
 }
 
 void IsosurfaceRenderer::updateIsosurfaceIndices() {
@@ -169,6 +176,8 @@ void IsosurfaceRenderer::updateIsosurfaceIndices() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * isosurface.positions.size(), isosurface.positions.data(), GL_STREAM_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_direction_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * isosurface.directions.size(), isosurface.directions.data(), GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normal_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * isosurface.normals.size(), isosurface.normals.data(), GL_STREAM_DRAW);
 
     // Enforce valid range
     if (surface_indices.size() < 3) {

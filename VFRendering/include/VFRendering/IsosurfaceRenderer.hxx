@@ -14,6 +14,7 @@ public:
 
     enum Option {
         ISOVALUE = 700,
+        LIGHTING_IMPLEMENTATION,
         VALUE_FUNCTION
     };
 
@@ -36,6 +37,7 @@ private:
     unsigned int m_ibo = 0;
     unsigned int m_position_vbo = 0;
     unsigned int m_direction_vbo = 0;
+    unsigned int m_normal_vbo = 0;
     unsigned int m_num_indices = 0;
 
     bool m_value_function_changed;
@@ -46,6 +48,11 @@ namespace Utilities {
 template<>
 struct Options::Option<IsosurfaceRenderer::Option::ISOVALUE> {
     VFRendering::IsosurfaceRenderer::isovalue_type default_value = 0;
+};
+
+template<>
+struct Options::Option<IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION> {
+    std::string default_value = "float lighting(vec3 position, vec3 normal) { return 1.0; }";
 };
 
 template<>

@@ -10,6 +10,8 @@
 #include "shaders/colormap.bluered.glsl.hxx"
 #include "shaders/colormap.bluegreenred.glsl.hxx"
 #include "shaders/colormap.bluewhitered.glsl.hxx"
+#include "shaders/colormap.black.glsl.hxx"
+#include "shaders/colormap.white.glsl.hxx"
 
 namespace VFRendering {
 namespace Utilities {
@@ -90,6 +92,10 @@ std::string getColormapImplementation(const Colormap& colormap) {
         return COLORMAP_BLUEWHITERED_GLSL;
     case Colormap::HSV:
         return COLORMAP_HSV_GLSL;
+    case Colormap::BLACK:
+        return COLORMAP_BLACK_GLSL;
+    case Colormap::WHITE:
+        return COLORMAP_WHITE_GLSL;
     case Colormap::DEFAULT:
     default:
         return "vec3 colormap(vec3 direction) {return vec3(1.0, 1.0, 1.0);}";

@@ -1,7 +1,13 @@
 #include "VFRendering/CombinedRenderer.hxx"
 
 namespace VFRendering {
-CombinedRenderer::CombinedRenderer(const View& view, const std::vector<std::shared_ptr<RendererBase>>& renderers) : RendererBase(view), m_renderers(renderers) {}
+CombinedRenderer::CombinedRenderer(const View& view, const std::vector<std::shared_ptr<RendererBase>>& renderers) : RendererBase(view) {
+    for (auto renderer : renderers) {
+        if (renderer.get()) {
+            m_renderers.push_back(renderer);
+        }
+    }
+}
 
 CombinedRenderer::~CombinedRenderer() {}
 
