@@ -31,6 +31,9 @@ public:
         BLUE_WHITE_RED,
         BLUE_GREEN_RED,
         BLUE_RED,
+        WHITE,
+        GRAY,
+        BLACK,
         OTHER
     };
 
@@ -103,6 +106,9 @@ public:
   //    Isosurface
   float isovalue() const;
   void setIsovalue(float isovalue);
+  bool m_isosurfaceshadows;
+  bool isosurfaceshadows() const;
+  void setIsosurfaceshadows(bool show);
   int m_isocomponent;
   float isocomponent() const;
   void setIsocomponent(int component);

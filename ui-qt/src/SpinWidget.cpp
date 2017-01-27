@@ -51,6 +51,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_boundingbox = true;
 	this->show_isosurface = false;
 	this->m_isocomponent = 2;
+	this->m_isosurfaceshadows = false;
 	this->show_surface = false;
 	this->show_miniview = true;
 	this->show_coordinatesystem = true;
@@ -140,6 +141,14 @@ void SpinWidget::initializeGL()
 				(void)position;
 				return direction.z;
 			});
+		}
+		if (this->m_isosurfaceshadows)
+		{
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return abs(normal.z); }");
+		}
+		else
+		{
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return 1.0; }");
 		}
 		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 	}
@@ -572,7 +581,24 @@ void SpinWidget::setIsocomponent(int component)
 		});
 	}
 }
-
+bool SpinWidget::isosurfaceshadows() const
+{
+	return this->m_isosurfaceshadows;
+}
+void SpinWidget::setIsosurfaceshadows(bool show)
+{
+	this->m_isosurfaceshadows = show;
+	if (this->m_isosurfaceshadows)
+	{
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return abs(normal.z); }");
+	}
+	else
+	{
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return 1.0; }");
+	}
+	// The following setupRenderers should maybe not be necessary?
+	this->setupRenderers();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Sphere ---
@@ -639,38 +665,51 @@ void SpinWidget::setColormap(Colormap colormap)
   std::string colormap_implementation;
   switch (colormap) {
     case Colormap::HSV:
-      colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
-      break;
+		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
+		break;
     case Colormap::BLUE_RED:
-      colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUERED);
-	  break;
+		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUERED);
+		break;
     case Colormap::BLUE_GREEN_RED:
-      colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEGREENRED);
-      break;
+		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEGREENRED);
+		break;
     case Colormap::BLUE_WHITE_RED:
-      colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEWHITERED);
-      break;
+		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEWHITERED);
+		break;
     // Custom color maps not included in VFRendering:
     case Colormap::HSV_NO_Z:
-      colormap_implementation = R"(
-      float atan2(float y, float x) {
-        return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
-      }
-      vec3 hsv2rgb(vec3 c) {
-        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-      }
-      vec3 colormap(vec3 direction) {
-        vec2 xy = normalize(direction.xy);
-        float hue = atan2(xy.x, xy.y) / 3.14159 / 2.0;
-        return hsv2rgb(vec3(hue, 1.0, 1.0));
-      }
-      )";
+		colormap_implementation = R"(
+		float atan2(float y, float x) {
+			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		}
+		vec3 hsv2rgb(vec3 c) {
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
+		vec3 colormap(vec3 direction) {
+			vec2 xy = normalize(direction.xy);
+			float hue = atan2(xy.x, xy.y) / 3.14159 / 2.0;
+			return hsv2rgb(vec3(hue, 1.0, 1.0));
+		}
+		)";
+		break;
+    case Colormap::WHITE:
+		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
+		break;
+    case Colormap::GRAY:
+		colormap_implementation = R"(
+			vec3 colormap(vec3 direction) {
+				return vec3(0.5, 0.5, 0.5);
+			}
+      	)";
       break;
+    case Colormap::BLACK:
+      	colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLACK);
+      	break;
     default:
-      colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
-      break;
+      	colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
+      	break;
   }
   makeCurrent();
   m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
@@ -850,6 +889,7 @@ void SpinWidget::writeSettings()
 	// Isosurface
 	settings.beginGroup("Isosurface");
 	settings.setValue("Component", this->isocomponent());
+	settings.setValue("Draw Shadows", this->isosurfaceshadows());
 	settings.endGroup();
 
 	// Colors
@@ -928,8 +968,8 @@ void SpinWidget::readSettings()
 	if (settings.childGroups().contains("Isosurface"))
 	{
 		settings.beginGroup("Isosurface");
-		// Projection
 		this->m_isocomponent = settings.value("Component").toInt();
+		this->m_isosurfaceshadows = settings.value("Draw Shadows").toBool();
 		settings.endGroup();
 	}
 

@@ -456,6 +456,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
 	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
 	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+	this->checkBox_isosurfaceshadows->setChecked(_spinWidget->isosurfaceshadows());
 
 	// Miniview
 	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
@@ -1247,7 +1248,7 @@ void SettingsWidget::set_visualization_system_overall()
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
-
+	_spinWidget->setIsosurfaceshadows(this->checkBox_isosurfaceshadows->isChecked());
 }
 
 
@@ -1305,6 +1306,18 @@ void SettingsWidget::set_visualization_colormap()
 	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
 	{
 		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
+	}
+	if (comboBox_colormap->currentText() == "White")
+	{
+		colormap = SpinWidget::Colormap::WHITE;
+	}
+	if (comboBox_colormap->currentText() == "Gray")
+	{
+		colormap = SpinWidget::Colormap::GRAY;
+	}
+	if (comboBox_colormap->currentText() == "Black")
+	{
+		colormap = SpinWidget::Colormap::BLACK;
 	}
 	_spinWidget->setColormap(colormap);
 }
@@ -1600,6 +1613,7 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(checkBox_isosurfaceshadows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system_isosurface()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
