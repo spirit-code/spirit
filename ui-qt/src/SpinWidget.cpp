@@ -23,26 +23,26 @@
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
     this->state = state;
-    setFocusPolicy(Qt::StrongFocus);
 
+	// QT Widget Settings
+    setFocusPolicy(Qt::StrongFocus);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     this->setSizePolicy(sizePolicy);
-
     this->setMinimumSize(200,200);
     this->setBaseSize(600,600);
 
-	// Default Settings
+	// Default VFRendering Settings
+
     setColormap(Colormap::HSV);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(0.0625f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(0.35f);
-
-	float bounds_min[3], bounds_max[3];
-	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	
+    setZRange({-1, 1});
 
 	this->visMode = VisualizationMode::SYSTEM;
 	this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
@@ -55,10 +55,14 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_surface = false;
 	this->show_miniview = true;
 	this->show_coordinatesystem = true;
-    
-    setZRange({-1, 1});
 
-	// Read persistent settings
+	// 		Initial camera position
+	this->_reset_camera = false;
+
+	// 		Setup Arrays
+	this->updateData();
+
+	// 		Read persistent settings
 	this->readSettings();
 }
 
@@ -67,12 +71,6 @@ void SpinWidget::initializeGL()
     // Get GL context
     makeCurrent();
     // Initialize the visualisation options
-    std::vector<int> n_cells(3);
-    Geometry_Get_N_Cells(state.get(), n_cells.data());
-    // Initial camera position
-    _reset_camera = false;
-    // Fetch data and update GL arrays
-    this->updateData();
 
 	float b_min[3], b_max[3];
 	Geometry_Get_Bounds(state.get(), b_min, b_max);
@@ -165,8 +163,6 @@ void SpinWidget::initializeGL()
 
 	// Configure System (Setup the renderers
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
-
-    updateData();
 }
 
 void SpinWidget::teardownGL() {
@@ -267,10 +263,10 @@ void SpinWidget::updateData()
 	glm::vec3 bounds_max = glm::make_vec3(b_max);
     glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
     m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
-	if (_reset_camera)
+	if (this->_reset_camera)
 	{
 		setCameraToDefault();
-    	_reset_camera = false;
+    	this->_reset_camera = false;
 	}
 
 	m_view.update(geometry, directions);
