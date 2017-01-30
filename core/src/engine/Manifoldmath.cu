@@ -74,6 +74,14 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
+        void project_tangential(vectorfield & vf1, const vectorfield & vf2)
+		{
+			for (unsigned int i = 0; i < vf1.size(); ++i)
+			{
+				vf1[i] -= vf1[i].dot(vf2[i]) * vf2[i];
+			}
+		}
+
 
 		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2)
 		{
@@ -205,13 +213,16 @@ namespace Engine
 
 				}
 
-				// Project tangents onto normal planes of spin vectors to make them actual tangents
-				//Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
-				for (int i = 0; i < nos; ++i)
-				{
-					// Get the scalar product of the vectors
-					tangents[idx_img][i] -= tangents[idx_img][i].dot(image[i]) * image[i];
-				}
+				// Project tangents into tangent planes of spin vectors to make them actual tangents
+        		project_tangential(tangents[idx_img], image);
+
+				// //Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
+				// scalar v1v2 = 0.0;
+				// for (int i = 0; i < nos; ++i)
+				// {
+				// 	// Get the scalar product of the vectors
+				// 	tangents[idx_img][i] -= tangents[idx_img][i].dot(image[i]) * image[i];
+				// }
 
 				// Normalise in 3N - dimensional space
 				Manifoldmath::normalize(tangents[idx_img]);

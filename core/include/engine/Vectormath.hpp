@@ -69,6 +69,9 @@ namespace Engine
 		// Normalize the vectors of a vectorfield
 		void normalize_vectors(vectorfield & vf);
 
+		// Maximum absolute component of a vectorfield
+    	scalar  max_abs_component(const vectorfield & vf);
+
 		// Scale a vectorfield by a given value
 		void scale(vectorfield & vf, const scalar & sc);
 

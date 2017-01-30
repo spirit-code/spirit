@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 
 #include <array>
+#include <algorithm>
 
 namespace Engine
 {
@@ -192,6 +193,35 @@ namespace Engine
 			{
 				vf[i].normalize();
 			}
+		}
+		
+		std::pair<scalar, scalar> minmax_component(vectorfield v1)
+		{
+			scalar min=1e6, max=-1e6;
+			std::pair<scalar, scalar> minmax;
+			for (unsigned int i = 0; i < v1.size(); ++i)
+			{
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					if (v1[i][dim] < min) min = v1[i][dim];
+					if (v1[i][dim] > max) max = v1[i][dim];
+				}
+			}
+			minmax.first = min;
+			minmax.second = max;
+			return minmax;
+		}
+    	scalar  max_abs_component(const vectorfield & vf)
+		{
+			// We want the Maximum of Absolute Values of all force components on all images
+			scalar absmax = 0;
+			// Find minimum and maximum values
+			std::pair<scalar,scalar> minmax = minmax_component(vf);
+			// Mamimum of absolute values
+			absmax = std::max(absmax, std::abs(minmax.first));
+			absmax = std::max(absmax, std::abs(minmax.second));
+			// Return
+			return absmax;
 		}
 
 		void scale(vectorfield & vf, const scalar & sc)
