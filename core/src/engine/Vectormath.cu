@@ -30,6 +30,105 @@ namespace Engine
 
 
 		/////////////////////////////////////////////////////////////////
+        // BOILERPLATE CUDA Reductions
+
+        __inline__ __device__
+        scalar warpReduceSum(scalar val)
+        {
+            for (int offset = warpSize/2; offset > 0; offset /= 2) 
+                val += __shfl_down(val, offset);
+            return val;
+        }
+
+        __inline__ __device__
+        scalar blockReduceSum(scalar val)
+        {
+            static __shared__ scalar shared[32]; // Shared mem for 32 partial sums
+            int lane = threadIdx.x % warpSize;
+            int wid = threadIdx.x / warpSize;
+
+            val = warpReduceSum(val);     // Each warp performs partial reduction
+
+            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
+
+            __syncthreads();              // Wait for all partial reductions
+
+            //read from shared memory only if that warp existed
+            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
+
+            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
+
+            return val;
+        }
+
+        __global__ void cu_sum(const scalar *in, scalar* out, int N)
+        {
+            scalar sum = int(0);
+            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
+                i < N; 
+                i += blockDim.x * gridDim.x)
+            {
+                sum += in[i];
+            }
+            sum = blockReduceSum(sum);
+            if (threadIdx.x == 0)
+                atomicAdd(out, sum);
+        }
+
+
+
+        __inline__ __device__
+        Vector3 warpReduceSum(Vector3 val)
+        {
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+            {
+                val[0] += __shfl_down(val[0], offset);
+                val[1] += __shfl_down(val[1], offset);
+                val[2] += __shfl_down(val[2], offset);
+            }
+            return val;
+        }
+
+        __inline__ __device__
+        Vector3 blockReduceSum(Vector3 val)
+        {
+            static __shared__ Vector3 shared[32]; // Shared mem for 32 partial sums
+            int lane = threadIdx.x % warpSize;
+            int wid = threadIdx.x / warpSize;
+
+            val = warpReduceSum(val);     // Each warp performs partial reduction
+
+            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
+
+            __syncthreads();              // Wait for all partial reductions
+
+            // Read from shared memory only if that warp existed
+            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : Vector3{0,0,0};
+
+            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
+
+            return val;
+        }
+
+        __global__ void cu_sum(const Vector3 *in, Vector3* out, int N)
+        {
+            Vector3 sum{0,0,0};
+            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
+                i < N; 
+                i += blockDim.x * gridDim.x)
+            {
+                sum += in[i];
+            }
+            sum = blockReduceSum(sum);
+            if (threadIdx.x == 0)
+            {
+                atomicAdd(&out[0][0], sum[0]);
+                atomicAdd(&out[0][1], sum[1]);
+                atomicAdd(&out[0][2], sum[2]);
+            }
+        }
+
+		/////////////////////////////////////////////////////////////////
 
 
 		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
@@ -94,25 +193,11 @@ namespace Engine
 		};// end Build_Spins
 
 
-        __global__ void cu_Magnetization(const Vector3 *vf, scalar * M, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                atomicAdd(&M[0], vf[idx][0]);
-                atomicAdd(&M[1], vf[idx][1]);
-                atomicAdd(&M[2], vf[idx][2]);
-            }
-        }
 		std::array<scalar, 3> Magnetization(const vectorfield & vf)
 		{
-            scalarfield M(3, 0);
-            int n = vf.size();
-            cu_Magnetization<<<(n+1023)/1024, 1024>>>(vf.data(), M.data(), n);
-            cudaDeviceSynchronize();
             
-			scalar scale = 1/(scalar)n;
-            M[0] *= scale; M[1] *= scale; M[2] *= scale;
+            auto M = mean(vf);
+            cudaDeviceSynchronize();
             return std::array<scalar,3>{M[0], M[1], M[2]};
 		}
 
@@ -196,7 +281,7 @@ namespace Engine
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if(idx < N)
             {
-                atomicExch(&sf[idx], s*sf[idx]);
+                sf[idx] *= s;
             }
         }
 		void scale(scalarfield & sf, scalar s)
@@ -206,30 +291,28 @@ namespace Engine
             cudaDeviceSynchronize();
 		}
 
-        __global__ void cu_sum(const scalar *sf, scalar *out, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                atomicAdd(out, sf[idx]);
-            }
-        }
 		scalar sum(const scalarfield & sf)
 		{
+            int N = sf.size();
+            int threads = 512;
+            int blocks = min((N + threads - 1) / threads, 1024);
+
             scalarfield ret(1, 0);
-            int n = sf.size();
-            cu_sum<<<(n+1023)/1024, 1024>>>(sf.data(), ret.data(), n);
+            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
 		}
 
 		scalar mean(const scalarfield & sf)
 		{
+            int N = sf.size();
+            int threads = 512;
+            int blocks = min((N + threads - 1) / threads, 1024);
+
             scalarfield ret(1, 0);
-            int n = sf.size();
-            cu_sum<<<(n+1023)/1024, 1024>>>(sf.data(), ret.data(), n);
+            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
-            ret[0] = ret[0]/n;
+            ret[0] = ret[0]/N;
             return ret[0];
 		}
 
@@ -280,33 +363,29 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
-        __global__ void cu_sum(const Vector3 *sf, Vector3 *out, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                atomicAdd(&out[0][0], sf[idx][0]);
-                atomicAdd(&out[0][1], sf[idx][1]);
-                atomicAdd(&out[0][2], sf[idx][2]);
-            }
-        }
         Vector3 sum(const vectorfield & vf)
 		{
-			Vector3 ret = { 0,0,0 };
-            int n = vf.size();
-            cu_sum<<<(n+1023)/1024, 1024>>>(vf.data(), &ret, n);
+            int N = vf.size();
+            int threads = 512;
+            int blocks = min((N + threads - 1) / threads, 1024);
+
+            vectorfield ret(1, {0,0,0});
+            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
-			return ret;
+            return ret[0];
 		}
 
 		Vector3 mean(const vectorfield & vf)
 		{
-			Vector3 ret = { 0,0,0 };
-            int n = vf.size();
-            cu_sum<<<(n+1023)/1024, 1024>>>(vf.data(), &ret, n);
+            int N = vf.size();
+            int threads = 512;
+            int blocks = min((N + threads - 1) / threads, 1024);
+
+            vectorfield ret(1, {0,0,0});
+            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
-            ret /= (scalar)n;
-			return ret;
+            ret[0] = ret[0]/N;
+            return ret[0];
 		}
 
 
