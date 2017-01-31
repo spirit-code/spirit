@@ -816,6 +816,7 @@ void SettingsWidget::set_hamiltonian_aniso_bc()
 			}
 		}
 	}
+	this->_spinWidget->updateBoundingBoxIndicators();
 }
 
 void SettingsWidget::set_hamiltonian_aniso_mu_s()

@@ -18,6 +18,7 @@
 #include "Interface_Geometry.h"
 #include "Interface_System.h"
 #include "Interface_Simulation.h"
+#include "Interface_Hamiltonian.h"
 
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
@@ -79,13 +80,22 @@ void SpinWidget::initializeGL()
 	glm::vec2 x_range{bounds_min[0], bounds_max[0]};
 	glm::vec2 y_range{bounds_min[1], bounds_max[1]};
 	glm::vec2 z_range{bounds_min[2], bounds_max[2]};
-    glm::vec3 bounding_box_center = {(bounds_min[0]+bounds_max[0])/2, (bounds_min[1]+bounds_max[1])/2, (bounds_min[2]+bounds_max[2])/2};
-    glm::vec3 bounding_box_side_lengths = {bounds_max[0]-bounds_min[0], bounds_max[1]-bounds_min[1], bounds_max[2]-bounds_min[2]};
+	glm::vec3 bounding_box_center = { (bounds_min[0] + bounds_max[0]) / 2, (bounds_min[1] + bounds_max[1]) / 2, (bounds_min[2] + bounds_max[2]) / 2 };
+	glm::vec3 bounding_box_side_lengths = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
 
 	// Create renderers
 	//	System
 	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view);
-    this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths));
+
+	float indi_length = glm::length(bounds_max - bounds_min)*0.05;
+	int   indi_dashes = 5;
+	float indi_dashes_per_length = (float)indi_dashes / indi_length;
+
+	bool periodical[3];
+	Hamiltonian_Get_Boundary_Conditions(this->state.get(), periodical);
+	glm::vec3 indis{ indi_length*periodical[0], indi_length*periodical[1], indi_length*periodical[2] };
+
+	this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths, indis, indi_dashes_per_length));
 	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
 		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
@@ -711,7 +721,8 @@ void SpinWidget::setColormap(Colormap colormap)
   m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
 }
 
-SpinWidget::Color SpinWidget::backgroundColor() const {
+SpinWidget::Color SpinWidget::backgroundColor() const
+{
 	glm::vec3 color = m_view.options().get<VFRendering::View::Option::BACKGROUND_COLOR>();
 	if (color == glm::vec3{ 0, 0, 0 }) return Color::BLACK;
 	else if (color == glm::vec3{ 0.5, 0.5, 0.5 }) return Color::GRAY;
@@ -719,7 +730,8 @@ SpinWidget::Color SpinWidget::backgroundColor() const {
 	else return Color::OTHER;
 }
 
-void SpinWidget::setBackgroundColor(Color background_color) {
+void SpinWidget::setBackgroundColor(Color background_color)
+{
 	glm::vec3 color;
 	if (background_color == Color::BLACK) color = { 0, 0, 0 };
 	else if (background_color == Color::GRAY) color = { 0.5, 0.5, 0.5 };
@@ -728,7 +740,8 @@ void SpinWidget::setBackgroundColor(Color background_color) {
 	m_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(color);
 }
 
-SpinWidget::Color SpinWidget::boundingBoxColor() const {
+SpinWidget::Color SpinWidget::boundingBoxColor() const
+{
 	glm::vec3 color = m_view.options().get<VFRendering::BoundingBoxRenderer::Option::COLOR>();
 	if (color == glm::vec3{ 0, 0, 0 }) return Color::BLACK;
 	else if (color == glm::vec3{ 0.5, 0.5, 0.5 }) return Color::GRAY;
@@ -736,13 +749,40 @@ SpinWidget::Color SpinWidget::boundingBoxColor() const {
 	else return Color::OTHER;
 }
 
-void SpinWidget::setBoundingBoxColor(Color bounding_box_color) {
+void SpinWidget::setBoundingBoxColor(Color bounding_box_color)
+{
 	glm::vec3 color;
 	if (bounding_box_color == Color::BLACK) color = { 0, 0, 0 };
 	else if (bounding_box_color == Color::GRAY) color = { 0.5, 0.5, 0.5 };
 	else if (bounding_box_color == Color::WHITE) color = { 1, 1, 1 };
 	makeCurrent();
 	m_view.setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(color);
+}
+
+void SpinWidget::updateBoundingBoxIndicators()
+{
+	bool periodical[3];
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
+	glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
+	glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
+	glm::vec3 bounding_box_center = { (bounds_min[0] + bounds_max[0]) / 2, (bounds_min[1] + bounds_max[1]) / 2, (bounds_min[2] + bounds_max[2]) / 2 };
+	glm::vec3 bounding_box_side_lengths = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
+
+	float indi_length = glm::length(bounds_max - bounds_min)*0.05;
+	int   indi_dashes = 5;
+	float indi_dashes_per_length = (float)indi_dashes / indi_length;
+
+	Hamiltonian_Get_Boundary_Conditions(this->state.get(), periodical);
+	glm::vec3 indis{ indi_length*periodical[0], indi_length*periodical[1], indi_length*periodical[2] };
+
+	this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths, indis, indi_dashes_per_length));
+	//setupRenderers();
+	//this->setVisualizationMode(this->visualizationMode());
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 

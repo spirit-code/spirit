@@ -124,6 +124,7 @@ public:
   void setBackgroundColor(Color background_color);
   Color boundingBoxColor() const;
   void setBoundingBoxColor(Color bounding_box_color);
+  void updateBoundingBoxIndicators();
 
   // --- Camera
   void setCameraToDefault();
