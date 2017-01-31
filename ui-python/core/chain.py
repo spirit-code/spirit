@@ -29,13 +29,19 @@ _next_Image.restype     = None
 def Next_Image(p_state, idx_chain=-1):
     _next_Image(p_state, idx_chain)
 
-
-### Switch active to next image of chain
+### Switch active to previous image of chain
 _prev_Image             = _core.Chain_prev_Image
 _prev_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int]
 _prev_Image.restype     = None
 def Prev_Image(p_state, idx_chain=-1):
     _prev_Image(p_state, idx_chain)
+
+### Switch active to specific image of chain
+_Jump_To_Image             = _core.Chain_Jump_To_Image
+_Jump_To_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Jump_To_Image.restype     = None
+def Jump_To_Image(p_state, idx_image=-1, idx_chain=-1):
+    _Jump_To_Image(p_state, idx_image, idx_chain)
 
 
 ### Copy active image to clipboard
@@ -45,29 +51,35 @@ _Image_to_Clipboard.restype     = None
 def Image_to_Clipboard(p_state, idx_image=-1, idx_chain=-1):
     _Image_to_Clipboard(p_state, idx_image, idx_chain)
 
-
-### Insert clipboard image before active in chain
-_Insert_Image_Before             = _core.Chain_Insert_Image_Before
-_Insert_Image_Before.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Insert_Image_Before.restype     = None
-def Insert_Image_Before(p_state, idx_image=-1, idx_chain=-1):
-    _Insert_Image_Before(p_state, idx_image, idx_chain)
-
-
-### Insert clipboard image before active in chain
-_Insert_Image_After             = _core.Chain_Insert_Image_After
-_Insert_Image_After.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Insert_Image_After.restype     = None
-def Insert_Image_After(p_state, idx_image=-1, idx_chain=-1):
-    _Insert_Image_After(p_state, idx_image, idx_chain)
-
-
 ### Replace active image in chain
 _Replace_Image             = _core.Chain_Replace_Image
 _Replace_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Replace_Image.restype     = None
 def Replace_Image(p_state, idx_image=-1, idx_chain=-1):
     _Replace_Image(p_state, idx_image, idx_chain)
+
+
+### Insert clipboard image before image in chain
+_Insert_Image_Before             = _core.Chain_Insert_Image_Before
+_Insert_Image_Before.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Insert_Image_Before.restype     = None
+def Insert_Image_Before(p_state, idx_image=-1, idx_chain=-1):
+    _Insert_Image_Before(p_state, idx_image, idx_chain)
+
+### Insert clipboard image after image in chain
+_Insert_Image_After             = _core.Chain_Insert_Image_After
+_Insert_Image_After.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Insert_Image_After.restype     = None
+def Insert_Image_After(p_state, idx_image=-1, idx_chain=-1):
+    _Insert_Image_After(p_state, idx_image, idx_chain)
+
+### Insert clipboard image at end of chain
+_Push_Back             = _core.Chain_Push_Back
+_Push_Back.argtypes    = [ctypes.c_void_p, ctypes.c_int]
+_Push_Back.restype     = None
+def Push_Back(p_state, idx_chain=-1):
+    _Push_Back(p_state, idx_chain)
+
 
 
 ### Delete active image
@@ -77,8 +89,15 @@ _Delete_Image.restype     = None
 def Delete_Image(p_state, idx_image=-1, idx_chain=-1):
     _Delete_Image(p_state, idx_image, idx_chain)
 
+### Delete image at end of chain
+_Pop_Back             = _core.Chain_Pop_Back
+_Pop_Back.argtypes    = [ctypes.c_void_p, ctypes.c_int]
+_Pop_Back.restype     = None
+def Pop_Back(p_state, idx_chain=-1):
+    _Pop_Back(p_state, idx_chain)
 
-### Insert clipboard image before active in chain
+
+### Update the chain's data (interpolated energies etc.)
 _Update_Data             = _core.Chain_Update_Data
 _Update_Data.argtypes    = [ctypes.c_void_p, ctypes.c_int]
 _Update_Data.restype     = None
@@ -86,7 +105,7 @@ def Update_Data(p_state, idx_chain=-1):
     _Update_Data(p_state, idx_chain)
 
 
-### Insert clipboard image before active in chain
+### Setup the chain's data arrays (when is this necessary?)
 _Setup_Data             = _core.Chain_Setup_Data
 _Setup_Data.argtypes    = [ctypes.c_void_p, ctypes.c_int]
 _Setup_Data.restype     = None

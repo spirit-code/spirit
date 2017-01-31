@@ -57,6 +57,27 @@ bool Chain_prev_Image(State * state, int idx_chain_i)
     }
 }
 
+bool Chain_Jump_To_Image(State * state, int idx_image_i, int idx_chain_i)
+{
+    int idx_image = idx_image_i, idx_chain = idx_chain_i;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    // Fetch correct indices and pointers
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    // Apply
+    if ( idx_image >= 0 && idx_image < chain->noi )
+    {
+        chain->idx_active_image = idx_image;
+        State_Update(state);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)
 {
     int idx_image = idx_image_i, idx_chain = idx_chain_i;
@@ -69,6 +90,32 @@ void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)
     state->clipboard_image = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*image));
     
     Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Copied image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") to clipboard");
+}
+
+void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
+{
+    int idx_image = idx_image_i, idx_chain = idx_chain_i;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    // Fetch correct indices and pointers
+    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    if (state->clipboard_image.get())
+    {
+        // Copy the clipboard image
+        auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+        
+        // Replace in chain
+        chain->images[idx_image] = copy;
+        
+        // Update state
+        state->active_image = state->active_chain->images[state->idx_active_image];
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Replaced image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
+    }
+    else
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+    }
 }
 
 void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
@@ -150,9 +197,10 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
     }
 }
 
-void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
+
+void Chain_Push_Back(State * state, int idx_chain_i)
 {
-    int idx_image = idx_image_i, idx_chain = idx_chain_i;
+    int idx_image = -1, idx_chain = idx_chain_i;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     // Fetch correct indices and pointers
@@ -163,16 +211,25 @@ void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
         // Copy the clipboard image
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
-        // Replace in chain
-        chain->images[idx_image] = copy;
-        
+        // Add to chain
+        chain->noi++;
+        chain->images.push_back(copy);
+        chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
+            
+		// Add to state
+		state->simulation_information_llg[idx_chain].push_back(std::shared_ptr<Simulation_Information>());
+
         // Update state
-        state->active_image = state->active_chain->images[state->idx_active_image];
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Replaced image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") from clipboard");
+        State_Update(state);
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Pushed back image to chain " + std::to_string(idx_chain) + " from clipboard");
     }
     else
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Tried to replace image " + std::to_string(idx_image) + " (chain " + std::to_string(idx_chain) + ") but clipboard was empty");
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Tried to push back image to chain " + std::to_string(idx_chain) + " but clipboard was empty");
     }
 }
 
@@ -212,6 +269,41 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     }
 }
 
+bool Chain_Pop_Back(State * state, int idx_chain_i)
+{
+    int idx_image = -1, idx_chain = idx_chain_i;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    // Fetch correct indices and pointers
+    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    
+    if (chain->noi > 1)
+    {
+        // Add to chain
+        chain->noi--;
+        state->noi = state->active_chain->noi;
+
+        chain->images.pop_back();
+        chain->image_type.pop_back();
+            
+        // Add to state
+        state->simulation_information_llg[idx_chain].pop_back();
+
+        // Update state
+        State_Update(state);
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Popped back image of chain " + std::to_string(idx_chain));
+    }
+    else
+    {
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Tried to delete last image (chain " + std::to_string(idx_chain) + ")");
+        return false;
+    }
+}
 
 void Chain_Get_Rx(State * state, float * Rx, int idx_chain)
 {

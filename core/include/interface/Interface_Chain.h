@@ -12,13 +12,16 @@ DLLEXPORT int Chain_Get_NOI(State * state, int idx_chain=-1);
 // Move between images (change active_image)
 DLLEXPORT bool Chain_next_Image(State * state, int idx_chain=-1);
 DLLEXPORT bool Chain_prev_Image(State * state, int idx_chain=-1);
+DLLEXPORT bool Chain_Jump_To_Image(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Insert/Replace/Delete images
 DLLEXPORT void Chain_Image_to_Clipboard(State * state, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Chain_Replace_Image(State * state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Chain_Insert_Image_Before(State * state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Chain_Insert_Image_After(State * state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Chain_Replace_Image(State * state, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Chain_Push_Back(State * state, int idx_chain=-1);
 DLLEXPORT bool Chain_Delete_Image(State * state, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT bool Chain_Pop_Back(State * state, int idx_chain=-1);
 
 // Get Data
 DLLEXPORT void Chain_Get_Rx(State * state, float * Rx, int idx_chain = -1);
