@@ -49,7 +49,7 @@ namespace Engine
 
         // The wrapper for the calling of the actual kernel
         void project_orthogonal(vectorfield & vf1, const vectorfield & vf2)
-        {        
+        {
             int n = vf1.size();
 
             // Get projection
@@ -74,12 +74,20 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
+		__global__ void cu_project_tangential(Vector3 *vf1, const Vector3 *vf2, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+            if(idx < N)
+            {
+                vf1[idx] -= vf1[idx].dot(vf2[idx]) * vf2[idx];
+            }
+        }
         void project_tangential(vectorfield & vf1, const vectorfield & vf2)
 		{
-			for (unsigned int i = 0; i < vf1.size(); ++i)
-			{
-				vf1[i] -= vf1[i].dot(vf2[i]) * vf2[i];
-			}
+            int n = vf1.size();
+            cu_project_tangential<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), n);
+            cudaDeviceSynchronize();
 		}
 
 

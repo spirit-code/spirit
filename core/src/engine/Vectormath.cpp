@@ -195,7 +195,7 @@ namespace Engine
 			}
 		}
 		
-		std::pair<scalar, scalar> minmax_component(vectorfield v1)
+		std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
 		{
 			scalar min=1e6, max=-1e6;
 			std::pair<scalar, scalar> minmax;

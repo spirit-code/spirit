@@ -348,7 +348,7 @@ namespace Engine
             cudaDeviceSynchronize();
 		}
 
-        std::pair<scalar, scalar> minmax_component(vectorfield v1)
+        std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
 		{
 			scalar min=1e6, max=-1e6;
 			std::pair<scalar, scalar> minmax;
@@ -369,7 +369,7 @@ namespace Engine
 			// We want the Maximum of Absolute Values of all force components on all images
 			scalar absmax = 0;
 			// Find minimum and maximum values
-			std::pair<scalar,scalar> minmax = minmax_component(force);
+			std::pair<scalar,scalar> minmax = minmax_component(vf);
 			// Mamimum of absolute values
 			absmax = std::max(absmax, std::abs(minmax.first));
 			absmax = std::max(absmax, std::abs(minmax.second));
