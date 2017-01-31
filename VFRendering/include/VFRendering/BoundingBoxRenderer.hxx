@@ -11,10 +11,10 @@ public:
     };
 
 
-    BoundingBoxRenderer(const View& view, const std::vector<glm::vec3>& vertices);
-    static BoundingBoxRenderer forCuboid(const View& view, const glm::vec3& center, const glm::vec3& side_lengths);
-    static BoundingBoxRenderer forParallelepiped(const View& view, const glm::vec3& center, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
-    static BoundingBoxRenderer forHexagonalCell(const View& view, const glm::vec3& center, float radius, float height);
+    BoundingBoxRenderer(const View& view, const std::vector<glm::vec3>& vertices, const std::vector<float>& dashing_values={});
+    static BoundingBoxRenderer forCuboid(const View& view, const glm::vec3& center, const glm::vec3& side_lengths, const glm::vec3& periodic_boundary_condition_lengths={0.0f, 0.0f, 0.0f}, float dashes_per_length=1.0f);
+    static BoundingBoxRenderer forParallelepiped(const View& view, const glm::vec3& center, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, const glm::vec3& periodic_boundary_condition_lengths={0.0f, 0.0f, 0.0f}, float dashes_per_length=1.0f);
+    static BoundingBoxRenderer forHexagonalCell(const View& view, const glm::vec3& center, float radius, float height, const glm::vec2& periodic_boundary_condition_lengths={0.0f, 0.0f}, float dashes_per_length=1.0f);
     virtual ~BoundingBoxRenderer();
     virtual void draw(float aspect_ratio) override;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;
@@ -29,7 +29,9 @@ private:
     unsigned int m_program = 0;
     unsigned int m_vao = 0;
     unsigned int m_vbo = 0;
+    unsigned int m_dash_vbo = 0;
     std::vector<glm::vec3> m_vertices;
+    std::vector<float> m_dashing_values;
 };
 
 namespace Utilities {

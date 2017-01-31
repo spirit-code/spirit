@@ -5,10 +5,16 @@ static const std::string BOUNDINGBOX_FRAG_GLSL = R"LITERAL(
 #version 330
 
 uniform vec3 uColor;
+
+in float vfDashingValue;
+
 out vec4 fo_FragColor;
 
 void main(void) {
-  fo_FragColor = vec4(uColor, 1.0);
+    if (int(floor(vfDashingValue)) % 2 != 0) {
+        discard;
+    }
+    fo_FragColor = vec4(uColor, 1.0);
 }
 )LITERAL";
 

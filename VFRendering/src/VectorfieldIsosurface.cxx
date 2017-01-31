@@ -18,7 +18,8 @@ private:
     typedef Geometry::index_type index_type;
     typedef std::pair<index_type, index_type> edge_type;
 
-    void generateTriangle(index_type i1, index_type i2, index_type i3, glm::vec3 inside_point, bool flip_normal);
+    template<int NUM_INSIDE_POINTS>
+    void generateTriangle(index_type i1, index_type i2, index_type i3, const std::array<glm::vec3, NUM_INSIDE_POINTS>& inside_points, bool flip_normal);
 
     index_type getIsopointIndex(const edge_type& edge);
 
@@ -45,6 +46,9 @@ private:
 VectorfieldIsosurface VectorfieldIsosurfaceCalculation::getResultAndReset() {
     for (auto& normal : normals) {
         normal = glm::normalize(normal);
+        if (glm::any(glm::isnan(normal))) {
+            normal = glm::vec3(0, 0, 0);
+        }
     }
     for (auto& direction : directions) {
         direction = glm::normalize(direction);
@@ -64,7 +68,8 @@ VectorfieldIsosurface VectorfieldIsosurfaceCalculation::getResultAndReset() {
     return isosurface;
 }
 
-void VectorfieldIsosurfaceCalculation::generateTriangle(index_type i1, index_type i2, index_type i3, glm::vec3 inside_point, bool flip_normal) {
+template<int NUM_INSIDE_POINTS>
+void VectorfieldIsosurfaceCalculation::generateTriangle(index_type i1, index_type i2, index_type i3, const std::array<glm::vec3, NUM_INSIDE_POINTS>& inside_points, bool flip_normal) {
     glm::vec3 p1 = positions[i1];
     glm::vec3 p2 = positions[i2];
     glm::vec3 p3 = positions[i3];
@@ -73,9 +78,22 @@ void VectorfieldIsosurfaceCalculation::generateTriangle(index_type i1, index_typ
     if (glm::any(glm::isnan(n))) {
         n = glm::vec3(0, 0, 0);
     }
-    if (glm::dot(n, inside_point - (p1 + p2 + p3) / 3.0f) > 0) {
+
+    // In some cases one of the (up to two) inside points might be directly on
+    // the triangle surface. In that case, if a second inside point is available
+    // that other point should be used to determine whether the normal should
+    // be flipped.
+    float absmax_flip_normal_indicator = 0;
+    for (const auto& inside_point : inside_points) {
+        float flip_normal_indicator = glm::dot(n, inside_point - (p1 + p2 + p3) / 3.0f);
+        if (glm::abs(flip_normal_indicator) > glm::abs(absmax_flip_normal_indicator)) {
+            absmax_flip_normal_indicator = flip_normal_indicator;
+        }
+    }
+    if (absmax_flip_normal_indicator > 0) {
         flip_normal = !flip_normal;
     }
+
     if (flip_normal) {
         n = -n;
         triangle_indices.push_back(i2);
@@ -131,21 +149,19 @@ VectorfieldIsosurfaceCalculation::index_type VectorfieldIsosurfaceCalculation::g
 }
 
 void VectorfieldIsosurfaceCalculation::generateOneTetrahedronTriangle(index_type in_i1, index_type out_i1, index_type out_i2, index_type out_i3, bool flip_normal) {
-    glm::vec3 inside_point = in_positions[in_i1];
     index_type i1 = getIsopointIndex({in_i1, out_i1});
     index_type i2 = getIsopointIndex({in_i1, out_i2});
     index_type i3 = getIsopointIndex({in_i1, out_i3});
-    generateTriangle(i1, i2, i3, inside_point, flip_normal);
+    generateTriangle<1>(i1, i2, i3, {{in_positions[in_i1]}}, flip_normal);
 }
 
 void VectorfieldIsosurfaceCalculation::generateTwoTetrahedronTriangles(index_type in_i1, index_type in_i2, index_type out_i1, index_type out_i2, bool flip_normal) {
-    glm::vec3 inside_point = in_positions[in_i1];
     index_type i1 = getIsopointIndex({in_i1, out_i1});
     index_type i2 = getIsopointIndex({in_i1, out_i2});
     index_type i3 = getIsopointIndex({in_i2, out_i1});
     index_type i4 = getIsopointIndex({in_i2, out_i2});
-    generateTriangle(i1, i4, i2, inside_point, flip_normal);
-    generateTriangle(i1, i4, i3, inside_point, flip_normal);
+    generateTriangle<2>(i1, i4, i2, {{in_positions[in_i1], in_positions[in_i2]}}, flip_normal);
+    generateTriangle<2>(i1, i4, i3, {{in_positions[in_i1], in_positions[in_i2]}}, flip_normal);
 }
 
 void VectorfieldIsosurfaceCalculation::addTetrahedron(std::array<Geometry::index_type, 4> t) {
