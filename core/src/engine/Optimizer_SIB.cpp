@@ -1,5 +1,8 @@
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
+
+using namespace Utility;
 
 namespace Engine
 {
@@ -21,7 +24,7 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Vectormath::kB());
+			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Constants::k_B);
 			// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
 			Vectormath::get_random_vectorfield(*s, epsilon, xi);
 		}

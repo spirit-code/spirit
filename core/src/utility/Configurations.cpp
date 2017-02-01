@@ -1,6 +1,7 @@
 #include <utility/Configurations.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -124,7 +125,7 @@ namespace Utility
 			if (temperature == 0.0) return;
 
 			Vector3 v = { 0, 0, 0 };
-			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Engine::Vectormath::kB());
+			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Constants::k_B);
 			
 			std::mt19937 * prng;
 			if (delta_seed!=0) prng = new std::mt19937(123456789+delta_seed);

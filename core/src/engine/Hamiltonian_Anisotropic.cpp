@@ -8,11 +8,13 @@
 #include <engine/Hamiltonian_Anisotropic.hpp>
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
+#include <utility/Constants.hpp>
 
 using std::vector;
 using std::function;
 
 using namespace Data;
+using namespace Utility;
 
 namespace Engine
 {
@@ -38,7 +40,7 @@ namespace Engine
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
 		{
-			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Vectormath::MuB() * mu_s[i];
+			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Constants::mu_B * mu_s[i];
 		}
 
 		this->Update_Energy_Contributions();
@@ -176,7 +178,7 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::E_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalarfield & Energy)
 	{
-		//scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
@@ -289,7 +291,7 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Gradient_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient)
 	{
-		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)

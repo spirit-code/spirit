@@ -2,6 +2,7 @@
 #include <utility/IO_Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -146,7 +147,7 @@ namespace Utility
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Isotropic * ham_iso = (Engine::Hamiltonian_Isotropic *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Engine::Vectormath::MuB()/ham_iso->mu_s) + "\n";
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Constants::mu_B/ham_iso->mu_s) + "\n";
 			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0]) + " " + std::to_string(ham_iso->external_field_normal[1]) + " " + std::to_string(ham_iso->external_field_normal[2]) + "\n";
 			config += "mu_s                     " + std::to_string(ham_iso->mu_s) + "\n";
 			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude) + "\n";
@@ -181,7 +182,7 @@ namespace Utility
 			config += "#  i    H     Hx   Hy   Hz\n";
 			for (unsigned int i=0; i<ham_aniso->external_field_index.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]/Engine::Vectormath::MuB()) + " "
+				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]/Constants::mu_B) + " "
 							+ std::to_string(ham_aniso->external_field_normal[i][0]) + " " + std::to_string(ham_aniso->external_field_normal[i][1]) + " " + std::to_string(ham_aniso->external_field_normal[i][2]) + "\n";
 			}
 

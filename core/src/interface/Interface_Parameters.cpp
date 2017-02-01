@@ -2,6 +2,9 @@
 #include <interface/Interface_State.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
+
+using namespace Utility;
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
@@ -16,7 +19,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
 
     auto p = image->llg_parameters;
     // Translate from picoseconds to units of our SIB
-    p->dt = dt*std::pow(10,-12)/Engine::Vectormath::MuB()*1.760859644*std::pow(10,11);
+    p->dt = dt*std::pow(10,-12)/Constants::mu_B*1.760859644*std::pow(10,11);
 }
 
 void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain)
@@ -99,7 +102,7 @@ void Parameters_Get_LLG_Time_Step(State *state, float * dt, int idx_image, int i
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    *dt = (float)(p->dt/std::pow(10, -12)*Engine::Vectormath::MuB()/1.760859644/std::pow(10, 11));
+    *dt = (float)(p->dt/std::pow(10, -12)*Constants::mu_B/1.760859644/std::pow(10, 11));
 
 }
 

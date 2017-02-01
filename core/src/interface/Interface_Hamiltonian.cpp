@@ -5,6 +5,9 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
+
+using namespace Utility;
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
@@ -50,7 +53,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         // Magnitude
-        ham->external_field_magnitude = magnitude *  ham->mu_s * Engine::Vectormath::MuB();
+        ham->external_field_magnitude = magnitude *  ham->mu_s * Constants::mu_B;
         
         // Normal
         ham->external_field_normal[0] = normal[0];
@@ -77,7 +80,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         for (int i=0; i<nos; ++i)
         {
             new_indices[i] = i;
-            new_magnitudes[i] = magnitude *  ham->mu_s[i] * Engine::Vectormath::MuB();
+            new_magnitudes[i] = magnitude *  ham->mu_s[i] * Constants::mu_B;
         }
         // Normals
         Vector3 new_normal{normal[0], normal[1], normal[2]};
@@ -290,7 +293,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
 
         // Magnitude
-        *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Engine::Vectormath::MuB());
+        *magnitude = (float)(ham->external_field_magnitude / ham->mu_s / Constants::mu_B);
         
         // Normal
         normal[0] = (float)ham->external_field_normal[0];
@@ -304,7 +307,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         if (ham->external_field_index.size() > 0)
         {
             // Magnitude
-            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Engine::Vectormath::MuB());
+            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Constants::mu_B);
 
             // Normal
             normal[0] = (float)ham->external_field_normal[0][0];

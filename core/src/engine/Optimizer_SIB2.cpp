@@ -1,5 +1,8 @@
 #include <engine/Optimizer_SIB2.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
+
+using namespace Utility;
 
 namespace Engine
 {
@@ -32,7 +35,7 @@ namespace Engine
 			scalar ax, ay, az;
 			scalar Ax, Ay, Az;
 			scalar detMi;
-			scalar D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Vectormath::kB());
+			scalar D = std::sqrt(2.0*alpha / (1.0 + alpha * alpha) * temperature * Constants::k_B);
 
 			auto R = vectorfield(nos);
 			this->Gen_Xi(*s, R, D);

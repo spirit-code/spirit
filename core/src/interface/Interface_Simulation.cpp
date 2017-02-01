@@ -1,5 +1,6 @@
 #include <interface/Interface_Simulation.h>
 #include <interface/Interface_State.h>
+#include <interface/Interface_Chain.h>
 #include <data/State.hpp>
 #include <utility/Logging.hpp>
 #include <engine/Optimizer.hpp>
@@ -150,6 +151,11 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             if (Simulation_Running_LLG_Chain(state, idx_chain))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+				return;
+            }
+            else if (Chain_Get_NOI(state, idx_chain) < 3)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are less than 3 images in the specified chain! Please insert more before starting a GNEB calculation.");
 				return;
             }
             else

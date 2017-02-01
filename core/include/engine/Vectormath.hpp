@@ -15,16 +15,6 @@ namespace Engine
 	namespace Vectormath
 	{
 		/////////////////////////////////////////////////////////////////
-		//////// Regular Math
-		
-		// Returns the Bohr Magneton [meV / T]
-		scalar MuB();
-		// Returns the Boltzmann constant [meV / K]
-		scalar kB();
-
-
-
-		/////////////////////////////////////////////////////////////////
 		//////// Single Vector Math
 
 		// Rotate a vector around an axis by a certain degree

@@ -2,6 +2,7 @@
 #include <utility/IO_Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -334,7 +335,7 @@ namespace Utility
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Engine::Vectormath::MuB()*1.760859644*std::pow(10, 11);
+					dt = dt*std::pow(10, -12) / Constants::mu_B*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");

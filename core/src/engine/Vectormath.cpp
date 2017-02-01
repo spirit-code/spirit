@@ -14,27 +14,11 @@ namespace Engine
 {
 	namespace Vectormath
 	{
-		// Returns the Bohr Magneton [meV / T]
-		scalar MuB()
-		{
-			return 0.057883817555;
-		}
-
-		// Returns the Boltzmann constant [meV / K]
-		scalar kB()
-		{
-			return 0.08617330350;
-		}
-
-
-		/////////////////////////////////////////////////////////////////
-
 
 		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
 		{
 			v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
 		}
-
 
 
 		/////////////////////////////////////////////////////////////////

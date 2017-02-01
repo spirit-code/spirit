@@ -8,6 +8,7 @@
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Constants.hpp>
 
 using namespace Utility;
 
@@ -25,7 +26,7 @@ namespace Engine
 		n_neigh_shells(n_neigh_shells), jij(jij), dij(dij), bij(bij), kijkl(kijkl), dd_radius(dd_radius)
 	{
 		// Rescale magnetic field from Tesla to meV
-		external_field_magnitude = external_field_magnitude * Vectormath::MuB() * mu_s;
+		external_field_magnitude = external_field_magnitude * Constants::mu_B * mu_s;
 		external_field_normal.normalize();
 
 		this->Update_Energy_Contributions();
@@ -213,7 +214,7 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
 	{
-		scalar mult = -std::pow(Vectormath::MuB(),2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar mult = -std::pow(Constants::mu_B,2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
 
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -364,7 +365,7 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
-		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_s^2
 		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
 		{
 			if (dd_distance[ispin][jneigh] > 0.0)
