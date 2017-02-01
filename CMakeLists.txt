@@ -24,9 +24,9 @@ option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code.
 set( CORE_SCALAR_TYPE double )
 #############################################
 if( CORE_USE_CUDA )
+	set( CORE_SCALAR_TYPE float )
 	set( BUILD_UI_WEB       OFF )
 	set( BUILD_UI_JULIA     OFF )
-	set( BUILD_UI_PYTHON    OFF )
 endif()
 #############################################
 if( BUILD_UI_WEB )
