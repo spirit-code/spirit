@@ -73,7 +73,6 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
         int nos = image->nos;
 
-
         // Indices and Magnitudes
         intfield new_indices(nos);
         scalarfield new_magnitudes(nos);
@@ -124,7 +123,29 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Anisotropy is not yet implemented in Hamiltonian_Anisotropic!");
+		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+		int nos = image->nos;
+
+		// Indices and Magnitudes
+		intfield new_indices(nos);
+		scalarfield new_magnitudes(nos);
+		for (int i = 0; i<nos; ++i)
+		{
+			new_indices[i] = i;
+			new_magnitudes[i] = magnitude;
+		}
+		// Normals
+		Vector3 new_normal{ normal[0], normal[1], normal[2] };
+		new_normal.normalize();
+		vectorfield new_normals(nos, new_normal);
+
+		// Into the Hamiltonian
+		ham->anisotropy_index = new_indices;
+		ham->anisotropy_magnitude = new_magnitudes;
+		ham->anisotropy_normal = new_normals;
+
+		// Update Energies
+		ham->Update_Energy_Contributions();
     }
 }
 
@@ -147,7 +168,17 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     }
     else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting Exchange is not yet implemented in Hamiltonian_Anisotropic!");
+		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+
+		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		{
+			for (int i = 0; i<ham->Exchange_indices.size(); ++i)
+			{
+				ham->Exchange_magnitude[i_periodicity][i] = jij[0];
+			}
+		}
+		
+		ham->Update_Energy_Contributions();
     }
 }
 
@@ -165,9 +196,19 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
 
         ham->Update_Energy_Contributions();
     }
-    else if (image->hamiltonian->Name() == "Isotropic Heisenberg")
+    else if (image->hamiltonian->Name() == "Anisotropic Heisenberg")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Setting DMI is not yet implemented in Hamiltonian_Anisotropic!");
+		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+
+		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		{
+			for (int i = 0; i<ham->Exchange_indices.size(); ++i)
+			{
+				ham->DMI_magnitude[i_periodicity][i] = dij;
+			}
+		}
+
+		ham->Update_Energy_Contributions();
     }
 }
 
@@ -311,9 +352,16 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
 
             // Normal
             normal[0] = (float)ham->external_field_normal[0][0];
-            normal[1] = (float)ham->external_field_normal[1][0];
-            normal[2] = (float)ham->external_field_normal[2][0];
+            normal[1] = (float)ham->external_field_normal[0][1];
+            normal[2] = (float)ham->external_field_normal[0][2];
         }
+		else
+		{
+			*magnitude = 0;
+			normal[0] = 0;
+			normal[1] = 0;
+			normal[2] = 1;
+		}
     }
 }
 
@@ -373,6 +421,13 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
             normal[1] = (float)ham->anisotropy_normal[0][1];
             normal[2] = (float)ham->anisotropy_normal[0][2];
         }
+		else
+		{
+			*magnitude = 0;
+			normal[0] = 0;
+			normal[1] = 0;
+			normal[2] = 1;
+		}
     }
 }
 

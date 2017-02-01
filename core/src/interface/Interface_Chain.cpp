@@ -297,6 +297,7 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
         Chain_Setup_Data(state, idx_chain);
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Popped back image of chain " + std::to_string(idx_chain));
+		return true;
     }
     else
     {
