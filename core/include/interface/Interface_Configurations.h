@@ -27,9 +27,9 @@ DLLEXPORT void Configuration_Add_Noise_Temperature(State *state, float temperatu
 // Create a toroidal Hopfion
 DLLEXPORT void Configuration_Hopfion(State *state, float r, int order=1, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false,  int idx_image = -1, int idx_chain = -1);
 
-// Points a sperical region of spins of radius r
-// into direction of vec at position pos
+// Create a skyrmion configuration
 DLLEXPORT void Configuration_Skyrmion(State *state, float r, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1);
+
 // Spin Spiral
 DLLEXPORT void Configuration_SpinSpiral(State *state, const char * direction_type, float q[3], float axis[3], float theta, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1);
 

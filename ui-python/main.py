@@ -36,10 +36,10 @@ def configurations(p_state):
     # Chain_from_File(state.get(), chainfile);
 
     ### First image is homogeneous with a Skyrmion at pos
-    configuration.PlusZ(p_state, 0)
-    configuration.Skyrmion(p_state, [0,0,0], 5.0, 1, -90.0, False, False, False, 0)
+    configuration.PlusZ(p_state, idx_image=0)
+    configuration.Skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
     ### Last image is homogeneous
-    configuration.PlusZ(p_state, noi-1)
+    configuration.PlusZ(p_state, idx_image=noi-1)
 
     # spinsfile = "input/spins.txt"
     # io.Image_Read(p_state, spinsfile)
