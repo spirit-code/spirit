@@ -92,13 +92,72 @@ void SettingsWidget::updateData()
 
 
 // -----------------------------------------------------------------------------------
+// -------------- Helpers for fetching Configurations Settings -----------------------
+// -----------------------------------------------------------------------------------
+std::array<float,3> SettingsWidget::get_position()
+{
+	return std::array<float,3>
+	{
+		lineEdit_pos_x->text().toFloat(),
+		lineEdit_pos_y->text().toFloat(),
+		lineEdit_pos_z->text().toFloat()
+	};
+}
+std::array<float,3> SettingsWidget::get_border_rectangular()
+{
+	std::array<float,3> ret{-1,-1,-1};
+	if (checkBox_border_rectangular_x->isChecked())
+		ret[0] = lineEdit_border_x->text().toFloat();
+	if (checkBox_border_rectangular_y->isChecked())
+		ret[1] = lineEdit_border_y->text().toFloat();
+	if (checkBox_border_rectangular_z->isChecked())
+		ret[2] = lineEdit_border_z->text().toFloat();
+	return ret;
+}
+float SettingsWidget::get_border_cylindrical()
+{
+	if (checkBox_border_cylindrical->isChecked())
+	{
+		return lineEdit_border_cylindrical->text().toFloat();
+	}
+	else
+	{
+		return -1;
+	}
+}
+float SettingsWidget::get_border_spherical()
+{
+	if (checkBox_border_spherical->isChecked())
+	{
+		return lineEdit_border_spherical->text().toFloat();
+	}
+	else
+	{
+		return -1;
+	}
+}
+float SettingsWidget::get_inverted()
+{
+	return checkBox_inverted->isChecked();
+}
+
+
+// -----------------------------------------------------------------------------------
 // --------------------- Configurations and Transitions ------------------------------
 // -----------------------------------------------------------------------------------
-
 void SettingsWidget::randomPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
-	Configuration_Random(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_Random(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -107,6 +166,13 @@ void SettingsWidget::randomPressed()
 void SettingsWidget::addNoisePressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -115,7 +181,16 @@ void SettingsWidget::addNoisePressed()
 void SettingsWidget::minusZ()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Minus Z");
-	Configuration_MinusZ(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_MinusZ(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -124,7 +199,16 @@ void SettingsWidget::minusZ()
 void SettingsWidget::plusZ()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Plus Z");
-	Configuration_PlusZ(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_PlusZ(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -134,15 +218,18 @@ void SettingsWidget::plusZ()
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
-	float r = lineEdit_hopf_r->text().toFloat();
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float r = lineEdit_hopfion_radius->text().toFloat();
 	int order = lineEdit_hopfion_order->text().toInt();
-	std::vector<float> pos =
-	{
-		lineEdit_hopf_posx->text().toFloat(),
-		lineEdit_hopf_posy->text().toFloat(),
-		lineEdit_hopf_posz->text().toFloat()
-	};
-	Configuration_Hopfion(this->state.get(), pos.data(), r, order);
+	Configuration_Hopfion(this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -152,20 +239,23 @@ void SettingsWidget::create_Hopfion()
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
-	float speed = lineEdit_sky_order->text().toFloat();
-	float phase = lineEdit_sky_phase->text().toFloat();
-	bool upDown = checkBox_sky_UpDown->isChecked();
-	bool achiral = checkBox_sky_Achiral->isChecked();
-	bool rl = checkBox_sky_RL->isChecked();
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float rad = lineEdit_skyrmion_radius->text().toFloat();
+	float speed = lineEdit_skyrmion_order->text().toFloat();
+	float phase = lineEdit_skyrmion_phase->text().toFloat();
+	bool upDown = checkBox_skyrmion_UpDown->isChecked();
+	bool achiral = checkBox_skyrmion_achiral->isChecked();
+	bool rl = checkBox_skyrmion_RL->isChecked();
 	// bool experimental = checkBox_sky_experimental->isChecked();
-	std::vector<float> pos =
-	{
-		lineEdit_sky_posx->text().toFloat(),
-		lineEdit_sky_posy->text().toFloat(),
-		lineEdit_sky_posz->text().toFloat()
-	};
-	float rad = lineEdit_sky_rad->text().toFloat();
-	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl);
+	Configuration_Skyrmion(this->state.get(), rad, speed, phase, upDown, achiral, rl, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -175,27 +265,43 @@ void SettingsWidget::create_Skyrmion()
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
 	float direction[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
 	float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(), lineEdit_SS_axis_z->text().toFloat() };
 	float period = lineEdit_SS_period->text().toFloat();
 	const char * direction_type;
-	// And now an ugly workaround because the QT people are too stupid to fix a Bug with QString::toStdString on Windows...
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
-	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
+	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
 	this->_spinWidget->updateData();
 }
 
-void SettingsWidget::domainWallPressed()
+void SettingsWidget::domainPressed()
 {
-	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
-	float vec[3] = { lineEdit_vx->text().toFloat(), lineEdit_vy->text().toFloat(), lineEdit_vz->text().toFloat() };
-	float pos[3] = { lineEdit_posx->text().toFloat(), lineEdit_posy->text().toFloat(), lineEdit_posz->text().toFloat() };
-	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Domain");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float dir[3] = { lineEdit_domain_dir_x->text().toFloat(), lineEdit_domain_dir_y->text().toFloat(), lineEdit_domain_dir_z->text().toFloat() };
+	Configuration_Domain(this->state.get(), dir, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -207,8 +313,16 @@ void SettingsWidget::configurationAddNoise()
 	// Add Noise
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
+		// Get settings
+		auto pos = get_position();
+		auto border_rect = get_border_rectangular();
+		float border_cyl = get_border_cylindrical();
+		float border_sph = get_border_spherical();
+		bool inverted = get_inverted();
+		// Create configuration
 		float temperature = lineEdit_Configuration_Noise->text().toFloat();
-		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
+		Configuration_Add_Noise_Temperature(this->state.get(), temperature, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
 		Chain_Update_Data(this->state.get());
 		this->_spinWidget->updateData();
 	}
@@ -1526,8 +1640,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
 	// Add Noise
 	connect(this->pushButton_AddNoise, SIGNAL(clicked()), this, SLOT(addNoisePressed()));
-	// Domain Wall
-	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
+	// Domain
+	connect(this->pushButton_domain, SIGNAL(clicked()), this, SLOT(domainPressed()));
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));
@@ -1538,28 +1652,19 @@ void SettingsWidget::Setup_Configurations_Slots()
 	// Spin Spiral
 	connect(this->pushButton_SS, SIGNAL(clicked()), this, SLOT(create_SpinSpiral()));
 
-	// Domain Wall LineEdits
-	connect(this->lineEdit_vx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_vy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_vz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
+	// Domain  LineEdits
+	connect(this->lineEdit_domain_dir_x, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
+	connect(this->lineEdit_domain_dir_y, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
+	connect(this->lineEdit_domain_dir_z, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
 
 	// Hopfion LineEdits
-	connect(this->lineEdit_hopf_posx, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopfion_radius, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopfion_order, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
-	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posx, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posy, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posz, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_rad, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_radius, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 
 	// SpinSpiral LineEdits
 	connect(this->lineEdit_SS_dir_x, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
@@ -1691,20 +1796,23 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_T_aniso->setValidator(this->number_validator_unsigned);
 
 	// Configurations
+	//		Settings
 	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
+	this->lineEdit_pos_x->setValidator(this->number_validator);
+	this->lineEdit_pos_y->setValidator(this->number_validator);
+	this->lineEdit_pos_z->setValidator(this->number_validator);
+	this->lineEdit_border_x->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_y->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_z->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_cylindrical->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_spherical->setValidator(this->number_validator_unsigned);
 	//		Hopfion
-	this->lineEdit_hopf_posx->setValidator(this->number_validator);
-	this->lineEdit_hopf_posy->setValidator(this->number_validator);
-	this->lineEdit_hopf_posz->setValidator(this->number_validator);
-	this->lineEdit_hopf_r->setValidator(this->number_validator);
+	this->lineEdit_hopfion_radius->setValidator(this->number_validator);
 	this->lineEdit_hopfion_order->setValidator(this->number_validator_int_unsigned);
 	//		Skyrmion
-	this->lineEdit_sky_order->setValidator(this->number_validator_int_unsigned);
-	this->lineEdit_sky_phase->setValidator(this->number_validator);
-	this->lineEdit_sky_rad->setValidator(this->number_validator);
-	this->lineEdit_sky_posx->setValidator(this->number_validator);
-	this->lineEdit_sky_posy->setValidator(this->number_validator);
-	this->lineEdit_sky_posz->setValidator(this->number_validator);
+	this->lineEdit_skyrmion_order->setValidator(this->number_validator_int_unsigned);
+	this->lineEdit_skyrmion_phase->setValidator(this->number_validator);
+	this->lineEdit_skyrmion_radius->setValidator(this->number_validator);
 	//		Spin Spiral
 	this->lineEdit_SS_dir_x->setValidator(this->number_validator);
 	this->lineEdit_SS_dir_y->setValidator(this->number_validator);
@@ -1713,13 +1821,10 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_SS_axis_y->setValidator(this->number_validator);
 	this->lineEdit_SS_axis_z->setValidator(this->number_validator);
 	this->lineEdit_SS_period->setValidator(this->number_validator);
-	//		Domain Wall
-	this->lineEdit_vx->setValidator(this->number_validator);
-	this->lineEdit_vy->setValidator(this->number_validator);
-	this->lineEdit_vz->setValidator(this->number_validator);
-	this->lineEdit_posx->setValidator(this->number_validator);
-	this->lineEdit_posy->setValidator(this->number_validator);
-	this->lineEdit_posz->setValidator(this->number_validator);
+	//		Domain
+	this->lineEdit_domain_dir_x->setValidator(this->number_validator);
+	this->lineEdit_domain_dir_y->setValidator(this->number_validator);
+	this->lineEdit_domain_dir_z->setValidator(this->number_validator);
 
 	// Transitions
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);

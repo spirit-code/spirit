@@ -43,6 +43,12 @@ private:
 	QRegularExpressionValidator * number_validator_int;
 	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
+	// Helpers
+	std::array<float,3> get_position();
+	std::array<float,3> get_border_rectangular();
+	float get_border_cylindrical();
+	float get_border_spherical();
+	float get_inverted();
 
 private slots:
 	// Parameters
@@ -88,7 +94,7 @@ private slots:
 	void configurationAddNoise();
 	void randomPressed();
 	void addNoisePressed();
-	void domainWallPressed();
+	void domainPressed();
 	void plusZ();
 	void minusZ();
 	void create_Hopfion();

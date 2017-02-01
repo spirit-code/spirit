@@ -32,8 +32,10 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 		if (state->active_chain->images[i]->hamiltonian->Name() != system->hamiltonian->Name()) return 0;
 	}
 
+	float defaultPos[3] = {0,0,0}; 
+	float defaultRect[3] = {-1,-1,-1}; 
 	state->collection->chains[idx_chain]->images[idx_image] = system;
-	Configuration_Random(state, false, idx_image, idx_chain);
+	Configuration_Random(state, defaultPos, defaultRect, -1, -1, false, false, idx_image, idx_chain);
 	return 1;
 }
 

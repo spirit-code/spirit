@@ -21,7 +21,7 @@ namespace Utility
 {
 	namespace Configurations
 	{
-		void DomainWall(Data::Spin_System & s, const Vector3 pos, Vector3 v, bool greater)
+		void Domain(Data::Spin_System & s, Vector3 v, filterfunction filter)
 		{
 			try
 			{
@@ -38,63 +38,40 @@ namespace Utility
 				else { throw(ex); }
 			}
 
-			int iatom, nos = s.nos;
 			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
 
-			if (greater) {
-				for (iatom = 0; iatom < nos; ++iatom) {
-					if (s.geometry->spin_pos[iatom][0] >= pos[0]) {
-						if (s.geometry->spin_pos[iatom][1] >= pos[1]) {
-							if (s.geometry->spin_pos[iatom][2] >= pos[2]) {
-								spins[iatom] = v;
-							}
-						}
-					}
-				}//endfor iatom
-			}//endif greater
-			else {
-				for (iatom = 0; iatom < nos; ++iatom) {
-					if (s.geometry->spin_pos[iatom][0] <= pos[0]) {
-						if (s.geometry->spin_pos[iatom][1] <= pos[1]) {
-							if (s.geometry->spin_pos[iatom][2] <= pos[2]) {
-								spins[iatom] = v;
-							}
-						}
-					}
-				}//endfor iatom
-			}//endelse greater
+			for (int iatom = 0; iatom < s.nos; ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					spins[iatom] = v;
+				}
+			}
+		}
 
-		}//endfor DomainWall
-
-		void Homogeneous(Data::Spin_System & s, Vector3 v)
+		void Random(Data::Spin_System & s, filterfunction filter, bool external)
 		{
-			Vector3 pos{ -1.0E+10, -1.0E+10, -1.0E+10 };
-			DomainWall(s, pos, v, true);
-		}//endfor Homogeneous
+			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
 
-		void PlusZ(Data::Spin_System & s)
-		{
-			Vector3 v { 0.0 , 0.0, 1.0 };
-			Homogeneous(s, v);
-		}//endfor PlusZ
-
-		void MinusZ(Data::Spin_System & s)
-		{
-			Vector3 v { 0.0 , 0.0, -1.0 };
-			Homogeneous(s, v);
-		}//endfor MinusZ
-
-		void Random(Data::Spin_System & s, bool external)
-		{
 			if (!external) {
-				for (int iatom = 0; iatom < s.nos; ++iatom) {
-					Random(s, iatom, s.llg_parameters->prng);
+				for (int iatom = 0; iatom < s.nos; ++iatom)
+				{
+					if (filter(spins[iatom], spin_pos[iatom]))
+					{
+						Random(s, iatom, s.llg_parameters->prng);
+					}
 				}
 			}
 			else {
 				std::mt19937 prng = std::mt19937(123456789);
-				for (int iatom = 0; iatom < s.nos; ++iatom) {
-					Random(s, iatom, prng);
+				for (int iatom = 0; iatom < s.nos; ++iatom)
+				{
+					if (filter(spins[iatom], spin_pos[iatom]))
+					{
+						Random(s, iatom, prng);
+					}
 				}
 			}
 		}
@@ -120,9 +97,12 @@ namespace Utility
 		}// end Random
 
 
-		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed)
+		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed, filterfunction filter)
 		{
 			if (temperature == 0.0) return;
+
+			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
 
 			Vector3 v = { 0, 0, 0 };
 			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Constants::k_B);
@@ -133,29 +113,32 @@ namespace Utility
 
 			for (int i = 0; i < s.nos; ++i)
 			{
-				while (true)
+				if (filter(spins[i], spin_pos[i]))
 				{
-					for (int dim = 0; dim < 3; ++dim)
-					{		// use spin_system's PRNG
-						v[dim] = s.llg_parameters->distribution_minus_plus_one(*prng) * epsilon;		// roll random for v in 3 dimensions
-					}
-					try
+					while (true)
 					{
-						scalar l = v.norm();
-						//Vectormath::Normalize(v);			// try normalizing v
-						(*s.spins)[i] += v;// copy normalized v into spins array
-						break;									// normalizing worked -> return function
-					}
-					catch (Exception ex)
-					{
-						if (ex != Exception::Division_by_zero) throw(ex);				// throw everything except division by zero
+						for (int dim = 0; dim < 3; ++dim)
+						{		// use spin_system's PRNG
+							v[dim] = s.llg_parameters->distribution_minus_plus_one(*prng) * epsilon;		// roll random for v in 3 dimensions
+						}
+						try
+						{
+							scalar l = v.norm();
+							//Vectormath::Normalize(v);			// try normalizing v
+							(*s.spins)[i] += v;// copy normalized v into spins array
+							break;									// normalizing worked -> return function
+						}
+						catch (Exception ex)
+						{
+							if (ex != Exception::Division_by_zero) throw(ex);				// throw everything except division by zero
+						}
 					}
 				}
 			}
 			for (auto& v : *s.spins) v.normalize();
 		}
 
-		void Hopfion(Data::Spin_System & s, Vector3 pos, scalar r, int order)
+		void Hopfion(Data::Spin_System & s, Vector3 pos, scalar r, int order, filterfunction filter)
 		{
 			using std::pow;
 			using std::sqrt;
@@ -164,13 +147,9 @@ namespace Utility
 			using std::cos;
 			using std::atan;
 			using std::atan2;
-			
-			// pos=(0,0,0) is the center of the system
-			for (int i = 0; i<3; ++i) pos[i] += s.geometry->center[i];
-
-			auto& spin_pos = s.geometry->spin_pos;
 
 			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
 
 			if (r != 0.0)
 			{
@@ -179,9 +158,10 @@ namespace Utility
 				for (int n = 0; n<s.nos; n++)
 				{
 					// Distance of spin from center
-					d = (spin_pos[n] - pos).norm();
-					if (d < r*M_PI)
+					if (filter(spins[n], spin_pos[n]))
 					{
+						d = (spin_pos[n] - pos).norm();
+					
 						// Theta
 						if (d == 0)
 						{
@@ -217,13 +197,13 @@ namespace Utility
 			}
 		}
 
-		void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, bool experimental)
+		void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, bool experimental, filterfunction filter)
 		{
-			// pos=(0,0,0) is the center of the system
-			for (int i=0; i<3; ++i) pos[i] += s.geometry->center[i];
-
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
+			
 			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
+
 			// skaled to fit with 
 			scalar r_new = r;
 			if (experimental) { r_new = r*1.2; }
@@ -233,7 +213,7 @@ namespace Utility
 			{
 				distance = std::sqrt(std::pow(s.geometry->spin_pos[iatom][0] - pos[0], 2) + std::pow(s.geometry->spin_pos[iatom][1] - pos[1], 2));
 				distance = distance / r_new;
-				if (distance >= 0.0 && distance * r_new <= r)
+				if (filter(spins[iatom], spin_pos[iatom]))
 				{
 					double x = (s.geometry->spin_pos[iatom][0] - pos[0]) / distance / r_new;
 					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
@@ -252,7 +232,7 @@ namespace Utility
 		}
 		// end Skyrmion
 
-		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta)
+		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter)
 		{
 			scalar phase;
 			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
@@ -331,21 +311,25 @@ namespace Utility
 
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
 			if (direction_type == "Real Lattice")
 			{
 				// NOTE this is not yet the correct function!!
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
-					// Phase is scalar product of spin position and q
-					phase = s.geometry->spin_pos[iatom].dot(q);
-					//phase = phase / 180.0 * M_PI;// / period;
-					// The opening angle determines how far from the axis the spins rotate around it.
-					//		The rotation is done by alternating between v1 and v2 periodically
-					scalar norms = 0.0;
-					spins[iatom] = axis * std::cos(theta)
-									+ v1 * std::cos(phase) * std::sin(theta)
-									+ v2 * std::sin(phase) * std::sin(theta);
-					spins[iatom].normalize();
+					if (filter(spins[iatom], spin_pos[iatom]))
+					{
+						// Phase is scalar product of spin position and q
+						phase = s.geometry->spin_pos[iatom].dot(q);
+						//phase = phase / 180.0 * M_PI;// / period;
+						// The opening angle determines how far from the axis the spins rotate around it.
+						//		The rotation is done by alternating between v1 and v2 periodically
+						scalar norms = 0.0;
+						spins[iatom] = axis * std::cos(theta)
+										+ v1 * std::cos(phase) * std::sin(theta)
+										+ v2 * std::sin(phase) * std::sin(theta);
+						spins[iatom].normalize();
+					}
 				}// endfor iatom
 			}
 			else if (direction_type == "Reciprocal Lattice")
