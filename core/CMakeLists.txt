@@ -136,30 +136,29 @@ endif()
 
 ######### Tell CMake to create the shared library for the Python UI
 if( BUILD_UI_PYTHON )
+	set( PYLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-python/core/ )
+	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${CORE_SCALAR_TYPE}")
 	if( NOT CORE_USE_CUDA )
 		MESSAGE( STATUS ">> Building shared library for Python" )
 		#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 		add_library( pycore SHARED $<TARGET_OBJECTS:coreobj> )
 		target_link_libraries( pycore libqhullcpp )
-		### We want it to be called core, not pycore
-		# set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
-		### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
-		set( PYLIB_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-python/core/ )
-		set_target_properties( pycore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
-		if ( MSVC )
-			foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-				string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-				set_target_properties( pycore PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
-			endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-		endif ( MSVC )
-
-		file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${CORE_SCALAR_TYPE}")
 	else()
 		MESSAGE( STATUS ">> Building shared CUDA library for Python" )
 		include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
 		cuda_add_library( pycore SHARED ${CORE_LIBRARY_SOURCES} )
 		target_link_libraries( pycore libqhullcpp ${CUDA_LIBRARIES} )
 	endif()
+	### We want it to be called core, not pycore
+	# set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
+	### We want it to be placed under ui-python/core/ s.t. it is directly part of the python core module/package
+	set_target_properties( pycore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
+	if ( MSVC )
+		foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+			string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+			set_target_properties( pycore PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
+		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+	endif ( MSVC )
 endif()
 #############################################
 
