@@ -28,6 +28,8 @@ namespace Engine
 		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells);
 		// Calculate the mean of a vectorfield
 		std::array<scalar, 3> Magnetization(const vectorfield & vf);
+		// Calculate the topological charge inside a vectorfield
+		scalar TopologicalCharge(const vectorfield & vf);
 
 		// Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
 		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);

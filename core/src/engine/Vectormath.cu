@@ -189,6 +189,11 @@ namespace Engine
             return std::array<scalar,3>{M[0], M[1], M[2]};
 		}
 
+		scalar TopologicalCharge(const vectorfield & vf)
+		{
+        	Log(Utility::Log_Level::Warning, Utility::Log_Sender::All, std::string("Calculating the topological charge is not yet implemented"));
+			return 0;
+		}
 
         // Utility function for the SIB Optimizer
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)

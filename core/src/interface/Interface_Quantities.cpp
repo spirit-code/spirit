@@ -13,3 +13,14 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
 
     for (int i=0; i<3; ++i) m[i] = (float)mag[i];
 }
+
+float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    scalar charge = Engine::Vectormath::TopologicalCharge(*image->spins);
+
+    return (float)charge;
+}
