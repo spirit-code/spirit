@@ -24,6 +24,38 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 #############################################
 
 
+######### QHull external Project ############
+if((NOT qhull_LIBS) OR (NOT qhull_INCLUDE_DIRS))
+
+	if(qhull_LIBS)
+		message(WARNING "qhull_LIBS is set, but qhull_INCLUDE_DIRS is missing.")
+	endif()
+	if(qhull_INCLUDE_DIRS)
+		message(WARNING "qhull_INCLUDE_DIRS is set, but qhull_LIBS is missing.")
+	endif()
+
+	include(ExternalProject)
+	ExternalProject_add(qhull
+		GIT_REPOSITORY https://github.com/qhull/qhull.git
+		CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
+		PREFIX qhull-prefix
+	)
+
+	add_library(libqhullstatic_r STATIC IMPORTED)
+	set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+	add_dependencies(libqhullstatic_r qhull)
+
+	add_library(libqhullcpp STATIC IMPORTED)
+	set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+	set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
+	add_dependencies(libqhullcpp qhull)
+
+	set(qhull_LIBS libqhullcpp)
+	set(qhull_INCLUDE_DIRS "${PROJECT_BINARY_DIR}/thirdparty-install/include;${PROJECT_BINARY_DIR}/thirdparty-install/include/libqhullcpp")
+endif()
+#############################################
+
+
 ######### Generate Core_Defines.h ################
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
@@ -53,7 +85,6 @@ endif()
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty ${PROJECT_SOURCE_DIR}/thirdparty/spectra/include )
-set( QHULL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build/thirdparty-install/include/libqhullcpp )
 set( CORE_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data
@@ -123,13 +154,13 @@ if( NOT CORE_USE_CUDA )
 		MESSAGE( STATUS ">> Building static cxx library" )
 		add_library( core STATIC $<TARGET_OBJECTS:coreobj> )
     	target_include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty)
-		target_link_libraries( core libqhullcpp )
+		target_link_libraries( core ${qhull_LIBS} )
 	endif()
 else()
 	include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
 	if( BUILD_UI_CXX )
 		cuda_add_library( core STATIC ${CORE_LIBRARY_SOURCES} )
-		target_link_libraries( core libqhullcpp ${CUDA_LIBRARIES} )
+		target_link_libraries( core ${qhull_LIBS} ${CUDA_LIBRARIES} )
 	endif()
 endif()
 #############################################
@@ -142,12 +173,12 @@ if( BUILD_UI_PYTHON )
 		MESSAGE( STATUS ">> Building shared library for Python" )
 		#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 		add_library( pycore SHARED $<TARGET_OBJECTS:coreobj> )
-		target_link_libraries( pycore libqhullcpp )
+		target_link_libraries( pycore ${qhull_LIBS} )
 	else()
 		MESSAGE( STATUS ">> Building shared CUDA library for Python" )
 		include_directories( core PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
 		cuda_add_library( pycore SHARED ${CORE_LIBRARY_SOURCES} )
-		target_link_libraries( pycore libqhullcpp ${CUDA_LIBRARIES} )
+		target_link_libraries( pycore ${qhull_LIBS} ${CUDA_LIBRARIES} )
 	endif()
 	### We want it to be called core, not pycore
 	# set_target_properties( pycore PROPERTIES OUTPUT_NAME "core" )
@@ -167,7 +198,7 @@ if( BUILD_UI_JULIA )
 	MESSAGE( STATUS ">> Building shared library for Julia" )
 	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
 	add_library( corejl SHARED $<TARGET_OBJECTS:coreobj> )
-	target_link_libraries( corejl libqhullcpp)
+	target_link_libraries( corejl ${qhull_LIBS})
 	### We want it to be called core, not corejl
 	# set_target_properties( corejl PROPERTIES OUTPUT_NAME "core" )
 	### We want it to be placed under ui-julia/core/ s.t. it is directly part of the julia core module/package
