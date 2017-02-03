@@ -1175,6 +1175,10 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 // -----------------------------------------------------------------------------------
 // --------------------- Visualization -----------------------------------------------
 // -----------------------------------------------------------------------------------
+void SettingsWidget::set_visualisation_source()
+{
+	this->_spinWidget->setVisualisationSource(this->comboBox_VisualisationSource->currentIndex());
+}
 
 void SettingsWidget::set_visualization_mode()
 {
@@ -1685,6 +1689,7 @@ void SettingsWidget::Setup_Transitions_Slots()
 
 void SettingsWidget::Setup_Visualization_Slots()
 {
+	connect(comboBox_VisualisationSource, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualisation_source()));
 	// Mode
 	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));

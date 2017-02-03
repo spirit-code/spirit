@@ -69,6 +69,9 @@ public:
   void paintGL();
   float getFramesPerSecond() const;
   
+  void setVisualisationSource(int source);
+  int m_source;
+
   // --- Mode
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
   SpinWidget::VisualizationMode visualizationMode();

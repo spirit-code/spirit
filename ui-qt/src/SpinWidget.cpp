@@ -45,6 +45,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	
     setZRange({-1, 1});
 
+	this->m_source = 0;
 	this->visMode = VisualizationMode::SYSTEM;
 	this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
 	this->m_location_miniview = WidgetLocation::BOTTOM_LEFT;
@@ -195,17 +196,11 @@ void SpinWidget::updateData()
 	// Positions and directions
 	//		get pointer
 	scalar *spins, *spin_pos;
-	bool keep_magnitudes = false;
-	if (true)
-	{
-		spins = System_Get_Spin_Directions(state.get());
-	}
-	else
-	{
-		spins = System_Get_Effective_Field(state.get());
-		keep_magnitudes = true;
-	}
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
+	if (this->m_source == 0)
+		spins = System_Get_Spin_Directions(state.get());
+	else if (this->m_source == 1)
+		spins = System_Get_Effective_Field(state.get());
 	//		copy
 	/*positions.assign(spin_pos, spin_pos + 3*nos);
 	directions.assign(spins, spins + 3*nos);*/
@@ -214,8 +209,8 @@ void SpinWidget::updateData()
 		positions[i] = glm::vec3(spin_pos[3*i], spin_pos[1 + 3*i], spin_pos[2 + 3*i]);
 		directions[i] = glm::vec3(spins[3*i], spins[1 + 3*i], spins[2 + 3*i]);
 	}
-	//    normalize if needed
-	if (keep_magnitudes)
+	//		rescale if effective field
+	if (this->m_source == 1)
 	{
 		float max_length = 0;
 		for (auto direction : directions)
@@ -228,13 +223,6 @@ void SpinWidget::updateData()
 			{
 				direction /= max_length;
 			}
-		}
-	}
-	else
-	{
-		for (auto& direction : directions)
-		{
-			direction = glm::normalize(direction);
 		}
 	}
 
@@ -292,6 +280,11 @@ void SpinWidget::paintGL() {
   
     m_view.draw();
 	QTimer::singleShot(1, this, SLOT(update()));
+}
+
+void SpinWidget::setVisualisationSource(int source)
+{
+	this->m_source = source;
 }
 
 void SpinWidget::mousePressEvent(QMouseEvent *event) {
