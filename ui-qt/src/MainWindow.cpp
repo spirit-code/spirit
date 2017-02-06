@@ -199,6 +199,11 @@ void MainWindow::view_toggle_fullscreen_spins()
 
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
+	// Image index
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
 	// Key Sequences
 	if (k->matches(QKeySequence::Copy))
 	{
@@ -209,6 +214,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		// Cut the current Spin System from the chain
 		this->controlWidget->cut_image();
+		Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 		this->createStatusBar();
 	}
 	else if (k->matches(QKeySequence::Paste))
@@ -218,7 +224,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		this->createStatusBar();
 	}
 
-	// Custom Key Sequences
+	// Custom Key Sequences (Control)
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
 		switch (k->key())
@@ -226,12 +232,14 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
 				this->controlWidget->paste_image("left");
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 				this->createStatusBar();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
 				this->controlWidget->paste_image("right");
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 				this->createStatusBar();
 				break;
 			
@@ -239,78 +247,154 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_F:
 				this->view_toggle_fullscreen_spins();
 				break;
+
+			// CTRL+R - Randomize spins
+			case Qt::Key_R:
+				this->settingsWidget->randomPressed();
+				break;
+
+			// CTRL+N - Add noise
+			case Qt::Key_N:
+				this->settingsWidget->configurationAddNoise();
+				break;
+
+			// CTRL+M - Cycle Method
+			case Qt::Key_M:
+				this->controlWidget->cycleMethod();
+				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+				break;
+				// CTRL+O - Cycle Optimizer
+			case Qt::Key_O:
+				this->controlWidget->cycleOptimizer();
+				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+				break;
 		}
 	}
 	
 	// Single Keys
 	else
-	switch (k->key())
 	{
-		// Escape: try to return focus to MainWindow
-		case Qt::Key_Escape:
-			this->setFocus();
-			break;
-		// Up: ...
-		case Qt::Key_Up:
-			break;
-		// Left: switch to image left of current image
-		case Qt::Key_Left:
-			this->controlWidget->prev_image();
-			break;
-		// Left: switch to image left of current image
-		case Qt::Key_Right:
-			this->controlWidget->next_image();
-			break;
-		// Down: ...
-		case Qt::Key_Down:
-			break;
-		// Space: Play and Pause
-		case Qt::Key_Space:
-			this->controlWidget->play_pause();
-			break;
-		// F1: Show key bindings
-		case Qt::Key_F1:
-			this->keyBindings();
-			break;
-		// F2: Toggle settings widget
-		case Qt::Key_F2:
-			this->view_toggleSettings();
-			break;
-		// F3: Toggle Plots widget
-		case Qt::Key_F3:
-			this->view_togglePlots();
-			break;
-		// F2: Toggle debug widget
-		case Qt::Key_F4:
-			this->view_toggleDebug();
-			break;
-		// 0: ...
-		case Qt::Key_0:
-			break;
-		// 1: Select tab 1 of settings widget
-		case Qt::Key_1:
-			this->settingsWidget->SelectTab(0);
-			break;
-		// 2: Select tab 2 of settings widget 
-		case Qt::Key_2:
-			this->settingsWidget->SelectTab(1);
-			break;
-		// 3: Select tab 3 of settings widget
-		case Qt::Key_3:
-			this->settingsWidget->SelectTab(2);
-			break;
-		// 4: Select tab 4 of settings widget
-		case Qt::Key_4:
-			this->settingsWidget->SelectTab(3);
-			break;
-		// 5: Select tab 5 of settings widget
-		case Qt::Key_5:
-			this->settingsWidget->SelectTab(4);
-			break;
-		// Delete: Delete current image
-		case Qt::Key_Delete:
-			this->controlWidget->delete_image();
-			break;
+		// Movement scaling
+		float scale = 20;
+		if (k->modifiers() & Qt::ShiftModifier)
+		{
+			scale = 2;
+		}
+
+		switch (k->key())
+		{
+			// Escape: try to return focus to MainWindow
+			case Qt::Key_Escape:
+				this->setFocus();
+				break;
+			// Up: ...
+			case Qt::Key_Up:
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Left: switch to image left of current image
+			case Qt::Key_Left:
+				this->controlWidget->prev_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Left: switch to image left of current image
+			case Qt::Key_Right:
+				this->controlWidget->next_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Down: ...
+			case Qt::Key_Down:
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Space: Play and Pause
+			case Qt::Key_Space:
+				this->controlWidget->play_pause();
+				Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+				break;
+			// WASDQE
+			case Qt::Key_W:
+				this->spinWidget->moveCamera(-scale, 0, 0);
+				break;
+			// WASDQE
+			case Qt::Key_A:
+				this->spinWidget->rotateCamera(0, scale);
+				break;
+			// WASDQE
+			case Qt::Key_S:
+				this->spinWidget->moveCamera(scale, 0, 0);
+				break;
+			// WASDQE
+			case Qt::Key_D:
+				this->spinWidget->rotateCamera(0, -scale);
+				break;
+			// WASDQE
+			case Qt::Key_Q:
+				this->spinWidget->rotateCamera(scale, 0);
+				break;
+			// WASDQE
+			case Qt::Key_E:
+				this->spinWidget->rotateCamera(-scale, 0);
+				break;
+			// Movement
+			case Qt::Key_T:
+				this->spinWidget->moveCamera(0, 0, scale);
+				break;
+			// Movement
+			case Qt::Key_F:
+				this->spinWidget->moveCamera(0, scale, 0);
+				break;
+			// Movement
+			case Qt::Key_G:
+				this->spinWidget->moveCamera(0, 0, -scale);
+				break;
+			// Movement
+			case Qt::Key_H:
+				this->spinWidget->moveCamera(0, -scale, 0);
+				break;
+			// F1: Show key bindings
+			case Qt::Key_F1:
+				this->keyBindings();
+				break;
+			// F2: Toggle settings widget
+			case Qt::Key_F2:
+				this->view_toggleSettings();
+				break;
+			// F3: Toggle Plots widget
+			case Qt::Key_F3:
+				this->view_togglePlots();
+				break;
+			// F2: Toggle debug widget
+			case Qt::Key_F4:
+				this->view_toggleDebug();
+				break;
+			// 0: ...
+			case Qt::Key_0:
+				break;
+			// 1: Select tab 1 of settings widget
+			case Qt::Key_1:
+				this->settingsWidget->SelectTab(0);
+				break;
+			// 2: Select tab 2 of settings widget 
+			case Qt::Key_2:
+				this->settingsWidget->SelectTab(1);
+				break;
+			// 3: Select tab 3 of settings widget
+			case Qt::Key_3:
+				this->settingsWidget->SelectTab(2);
+				break;
+			// 4: Select tab 4 of settings widget
+			case Qt::Key_4:
+				this->settingsWidget->SelectTab(3);
+				break;
+			// 5: Select tab 5 of settings widget
+			case Qt::Key_5:
+				this->settingsWidget->SelectTab(4);
+				break;
+			// Delete: Delete current image
+			case Qt::Key_Delete:
+				this->controlWidget->delete_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+		}
 	}
 	this->return_focus();
 }
@@ -560,22 +644,36 @@ void MainWindow::keyBindings()
 	QMessageBox::about(this, tr("Spirit UI Key Bindings"),
 		QString::fromLatin1("The <b>Key Bindings</b> are as follows:<br>"
 			"<br>"
+			"<i>UI controls</i><br>"
 			" - <b>F1</b>:      Show this<br>"
 			" - <b>F2</b>:      Toggle Settings<br>"
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
 			" - <b>Ctrl+F</b>:  Toggle large visualisation<br>"
-			"<br>"
 			" - <b>1-5</b>:     Select Tab in Settings<br>"
-			"<br>"
-			" - <b>Arrows</b>:  Switch between arrows and chains<br>"
-			" - <b>WASD</b>:    Move the camera around (not yet functional)<br>"
-			" - <b>Space</b>:   Play/Pause<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
-			" - <b>Ctrl+X</b>:           Cut   Image<br>"
-			" - <b>Ctrl+C</b>:           Copy  Image<br>"
-			" - <b>Ctrl+V</b>:           Paste Image at current index<br>"
+			"<i>Camera controls</i><br>"
+			" - <b>Left mouse</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>Right mouse</b>:   Move the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>Scroll mouse</b>:  Zoom in on focus point (<b>shift</b> to go slow)<br>"
+			" - <b>WASD</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>TFGH</b>:    Move the camera around (<b>shift</b> to go slow)<br>"
+			"<br>"
+			"<i>Control Simulations</i><br>"
+			" - <b>Space</b>:   Play/Pause<br>"
+			" - <b>Ctrl+M</b>:  Cycle Method<br>"
+			" - <b>Ctrl+O</b>:  Cycle Optimizer<br>"
+			"<br>"
+			"<i>Manipulate the current images</i><br>"
+			" - <b>Ctrl+R</b>:  Random configuration<br>"
+			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
+			"<br>"
+			"<i>Manipulate the chain of images</i><br>"
+			" - <b>Arrows</b>:           Switch between images and chains<br>"
+			" - <b>Ctrl+X</b>:           Cut   image<br>"
+			" - <b>Ctrl+C</b>:           Copy  image<br>"
+			" - <b>Ctrl+V</b>:           Paste image at current index<br>"
 			" - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
 			" - <b>Del</b>:              Delete image<br>"));
 }

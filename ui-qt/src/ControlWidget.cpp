@@ -68,6 +68,30 @@ void ControlWidget::updateData()
 	}
 }
 
+void ControlWidget::cycleMethod()
+{
+	int idx = this->comboBox_Method->currentIndex();
+	int idx_max = this->comboBox_Method->count();
+	this->comboBox_Method->setCurrentIndex((idx + 1) % idx_max);
+}
+
+void ControlWidget::cycleOptimizer()
+{
+	int idx = this->comboBox_Optimizer->currentIndex();
+	int idx_max = this->comboBox_Optimizer->count();
+	this->comboBox_Optimizer->setCurrentIndex((idx + 1) % idx_max);
+}
+
+std::string ControlWidget::methodName()
+{
+	return this->comboBox_Method->currentText().toStdString();
+}
+
+std::string ControlWidget::optimizerName()
+{
+	return this->comboBox_Optimizer->currentText().toStdString();
+}
+
 void ControlWidget::play_pause()
 {
 	// this->return_focus();

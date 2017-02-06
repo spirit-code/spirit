@@ -22,6 +22,11 @@ public:
 
 	std::shared_ptr<State> state;
 
+public slots:
+	// Configurations
+	void configurationAddNoise();
+	void randomPressed();
+
 private:
 	// Setup Input Validators
 	void Setup_Input_Validators();
@@ -92,8 +97,6 @@ private slots:
 	void set_camera_upvector();
 
 	// Configurations
-	void configurationAddNoise();
-	void randomPressed();
 	void addNoisePressed();
 	void domainPressed();
 	void plusZ();

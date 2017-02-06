@@ -291,38 +291,76 @@ void SpinWidget::mousePressEvent(QMouseEvent *event) {
   m_previous_mouse_position = event->pos();
 }
 
-void SpinWidget::mouseMoveEvent(QMouseEvent *event) {
-  glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio();
-  glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio();
-  m_previous_mouse_position = event->pos();
+void SpinWidget::mouseMoveEvent(QMouseEvent *event)
+{
+	float scale = 1;
+
+	if (event->modifiers() & Qt::ShiftModifier)
+	{
+		scale = 10;
+	}
+
+	glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
+	glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
+	m_previous_mouse_position = event->pos();
   
-  if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) {
-    auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
-    if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton) {
-      movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-    }
-    m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
-    ((QWidget *)this)->update();
-  }
+	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
+	{
+		auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
+		if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
+		{
+			movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+		}
+		m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
+		((QWidget *)this)->update();
+	}
 }
 
 
 
-float SpinWidget::getFramesPerSecond() const {
-  return m_view.getFramerate();
+float SpinWidget::getFramesPerSecond() const
+{
+	return m_view.getFramerate();
 }
 
-void SpinWidget::wheelEvent(QWheelEvent *event) {
-  float wheel_delta = event->angleDelta().y();
-  m_view.mouseScroll(wheel_delta * 0.1);
-  ((QWidget *)this)->update();
+void SpinWidget::wheelEvent(QWheelEvent *event)
+{
+	float scale = 1;
+
+	if (event->modifiers() & Qt::ShiftModifier)
+	{
+		scale = 0.1;
+	}
+
+	float wheel_delta = event->angleDelta().y();
+	m_view.mouseScroll(wheel_delta * 0.1 * scale);
+	((QWidget *)this)->update();
 }
 
-const VFRendering::Options& SpinWidget::options() const {
-  return m_view.options();
-
+const VFRendering::Options& SpinWidget::options() const
+{
+	return m_view.options();
 }
 
+
+
+void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
+{
+	float scale = 1.0;
+	//if (keyboardModifiers)
+
+	auto movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+	m_view.mouseMove({ 0,0 }, { rightleft, updown }, movement_mode);
+	m_view.mouseScroll(backforth * 0.1);
+	((QWidget *)this)->update();
+}
+
+void SpinWidget::rotateCamera(float theta, float phi)
+{
+	auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
+	m_view.mouseMove({ 0,0 }, { phi, theta }, movement_mode);
+	((QWidget *)this)->update();
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////

@@ -142,6 +142,9 @@ public:
   glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
+  // --- Move Camera
+  void moveCamera(float backforth, float rightleft, float updown);
+  void rotateCamera(float theta, float phi);
   
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
