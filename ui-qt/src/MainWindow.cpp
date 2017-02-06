@@ -4,6 +4,7 @@
 #include "PlotWidget.hpp"
 
 #include "Interface_System.h"
+#include "Interface_Geometry.h"
 #include "Interface_Chain.h"
 #include "Interface_Collection.h"
 #include "Interface_Simulation.h"
@@ -77,14 +78,14 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Status Bar
 	//		Spacer
-	this->m_Spacer_4 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
+	this->m_Spacer_5 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_5);
 	//		Torque
 	this->m_Label_Torque = new QLabel("F_max: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Torque);
 	//		Spacer
-	this->m_Spacer_3 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
+	this->m_Spacer_4 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
 	//		Energy
 	this->m_Label_E = new QLabel("E: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_E);
@@ -92,11 +93,17 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_Mz = new QLabel("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
 	//		Spacer
-	this->m_Spacer_2 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
+	this->m_Spacer_3 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
 	//		FPS
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	//		Spacer
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
+	//		N_Cells
+	this->m_Label_Dims = new QLabel("Dims: -  ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 	//		Spacer
 	this->m_Spacer_1 = new QLabel("    |    ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_1);
@@ -336,9 +343,9 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
 	// Remove Spacers and Torque
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_4);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_5);
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Torque);
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_4);
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>(0);
@@ -376,14 +383,14 @@ void MainWindow::createStatusBar()
 		}
 
 		//		Spacer
-		this->m_Spacer_4 = new QLabel("  |    ");
-		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
+		this->m_Spacer_5 = new QLabel("  |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_5);
 		//		Torque
 		this->m_Label_Torque = new QLabel("F_max: -");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Torque);
 		//		Spacer
-		this->m_Spacer_3 = new QLabel("    |    ");
-		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
+		this->m_Spacer_4 = new QLabel("    |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
 	}
 
 
@@ -400,14 +407,30 @@ void MainWindow::createStatusBar()
 
 
 	//		Spacer
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
-	this->m_Spacer_2 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
+	this->m_Spacer_3 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
+
 
 	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+
+
+	//		Spacer
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
+
+	//		Dims
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Dims);
+	this->m_Label_Dims = new QLabel;
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	this->m_Label_Dims->setText(QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") + QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
+
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_1);

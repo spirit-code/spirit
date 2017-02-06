@@ -172,7 +172,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 
 		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
 		{
-			for (int i = 0; i<ham->Exchange_indices.size(); ++i)
+			for (unsigned int i = 0; i<ham->Exchange_indices.size(); ++i)
 			{
 				ham->Exchange_magnitude[i_periodicity][i] = jij[0];
 			}
@@ -202,7 +202,7 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
 
 		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
 		{
-			for (int i = 0; i<ham->Exchange_indices.size(); ++i)
+			for (unsigned int i = 0; i<ham->Exchange_indices.size(); ++i)
 			{
 				ham->DMI_magnitude[i_periodicity][i] = dij;
 			}
