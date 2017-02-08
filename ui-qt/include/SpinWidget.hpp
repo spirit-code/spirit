@@ -131,9 +131,9 @@ public:
 
   // --- Camera
   void setCameraToDefault();
-  void setCameraToX();
-  void setCameraToY();
-  void setCameraToZ();
+  void setCameraToX(bool inverted=false);
+  void setCameraToY(bool inverted=false);
+  void setCameraToZ(bool inverted=false);
   void setCameraPositon(const glm::vec3& camera_position);
   void setCameraFocus(const glm::vec3& center_position);
   void setCameraUpVector(const glm::vec3& up_vector);

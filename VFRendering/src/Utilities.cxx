@@ -103,7 +103,7 @@ std::string getColormapImplementation(const Colormap& colormap) {
 }
 
 std::pair<glm::mat4, glm::mat4> getMatrices(const VFRendering::Options& options, float aspect_ratio) {
-    auto vertical_field_of_view = options.get<View::Option::VERTICAL_FIELD_OF_VIEW>();
+    auto vertical_field_of_view = glm::radians(options.get<View::Option::VERTICAL_FIELD_OF_VIEW>());
     auto camera_position = options.get<View::Option::CAMERA_POSITION>();
     auto center_position = options.get<View::Option::CENTER_POSITION>();
     auto up_vector = options.get<View::Option::UP_VECTOR>();

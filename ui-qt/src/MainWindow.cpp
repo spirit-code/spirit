@@ -271,6 +271,24 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		}
 	}
 	
+	// Custom Key Sequences (Shift)
+	else if (k->modifiers() & Qt::ShiftModifier)
+	{
+		switch (k->key())
+		{
+			// Camera
+			case Qt::Key_X:
+				this->spinWidget->setCameraToX(true);
+				break;
+			case Qt::Key_Y:
+				this->spinWidget->setCameraToY(true);
+				break;
+			case Qt::Key_Z:
+				this->spinWidget->setCameraToZ(true);
+				break;
+		}
+	}
+
 	// Single Keys
 	else
 	{
@@ -393,6 +411,16 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Delete:
 				this->controlWidget->delete_image();
 				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Camera
+			case Qt::Key_X:
+				this->spinWidget->setCameraToX();
+				break;
+			case Qt::Key_Y:
+				this->spinWidget->setCameraToY();
+				break;
+			case Qt::Key_Z:
+				this->spinWidget->setCameraToZ();
 				break;
 		}
 	}
@@ -659,6 +687,7 @@ void MainWindow::keyBindings()
 			" - <b>Scroll mouse</b>:  Zoom in on focus point (<b>shift</b> to go slow)<br>"
 			" - <b>WASD</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
 			" - <b>TFGH</b>:    Move the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>X,Y,Z</b>:   Set the camera in X, Y or Z direction (<b>shift</b> to invert)<br>"
 			"<br>"
 			"<i>Control Simulations</i><br>"
 			" - <b>Space</b>:   Play/Pause<br>"

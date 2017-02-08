@@ -644,7 +644,10 @@ void SettingsWidget::Load_Visualization_Contents()
 	else
 	{
 		radioButton_orthographicProjection->setChecked(false);
+		this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
 	}
+	horizontalSlider_camera_fov->setRange(0, 160);
+	horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 
 
 	// Arrows: size and lod
@@ -1201,7 +1204,7 @@ void SettingsWidget::set_visualization_perspective()
 	}
 	else
 	{
-		_spinWidget->setVerticalFieldOfView(45);
+		_spinWidget->setVerticalFieldOfView(this->lineEdit_camera_fov->text().toFloat());
 	}
 }
 
@@ -1516,6 +1519,20 @@ void SettingsWidget::set_camera_upvector()
     this->_spinWidget->setCameraUpVector({x, y, z});
 }
 
+void SettingsWidget::set_camera_fov_slider()
+{
+	float fov = this->horizontalSlider_camera_fov->value();
+	this->lineEdit_camera_fov->setText(QString::number(fov));
+	_spinWidget->setVerticalFieldOfView(fov);
+}
+
+void SettingsWidget::set_camera_fov_lineedit()
+{
+	float fov = this->lineEdit_camera_fov->text().toFloat();
+	horizontalSlider_camera_fov->setValue((int)(fov));
+	_spinWidget->setVerticalFieldOfView(fov);
+}
+
 
 // -----------------------------------------------------------------------------------
 // --------------------- Utilities ---------------------------------------------------
@@ -1742,6 +1759,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(this->lineEdit_camera_upvector_z, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
 	connect(this->pushButton_set_camera, SIGNAL(clicked()), this, SLOT(set_camera()));
 	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
+	connect(this->lineEdit_camera_fov, SIGNAL(returnPressed()), this, SLOT(set_camera_fov_lineedit()));
+	connect(horizontalSlider_camera_fov, SIGNAL(valueChanged(int)), this, SLOT(set_camera_fov_slider()));
 }
 
 void SettingsWidget::Setup_Input_Validators()

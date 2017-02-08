@@ -95,6 +95,8 @@ private slots:
 	void set_camera_position();
 	void set_camera_focus();
 	void set_camera_upvector();
+	void set_camera_fov_lineedit();
+	void set_camera_fov_slider();
 
 	// Configurations
 	void addNoisePressed();
