@@ -95,16 +95,6 @@ namespace Engine
 	}
 
 
-
-	__global__ void cu_E_Zeeman(const Vector3 *spins, int nfields, int *external_field_index, scalar *external_field_magnitude, Vector3 *external_field_normal, scalar *Energy)
-	{
-		for (int ifield = blockIdx.x * blockDim.x + threadIdx.x; ifield < nfields; ifield += blockDim.x * gridDim.x) 
-		{
-			int ispin = external_field_index[ifield];
-			atomicAdd(&Energy[ispin], -external_field_magnitude[ifield] * external_field_normal[ifield].dot(spins[ispin]));
-		}
-	}
-
 	void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
 		int nos = spins.size();
@@ -118,9 +108,6 @@ namespace Engine
 		
 
 		// External field
-		int nfields=this->anisotropy_index.size();
-		cu_E_Zeeman<<<(nfields+255)/256,256>>>(spins.data(), nfields, this->external_field_index.data(), this->external_field_magnitude.data(), this->external_field_normal.data(), contributions[idx_zeeman].second.data());
-
 		if (this->idx_zeeman >=0 ) E_Zeeman(spins, contributions[idx_zeeman].second);
 
 		// Anisotropy
@@ -265,12 +252,8 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
-		int nos = spins.size();
-		// Loop over Spins
-		for (int i = 0; i < nos; ++i)
-		{
-			gradient[i].setZero();
-		}
+		// Set to zero
+		Vectormath::fill(gradient, {0,0,0});
 
 		// External field
 		Gradient_Zeeman(gradient);
@@ -307,6 +290,8 @@ namespace Engine
 		// Triplet Interactions
 
 		// Quadruplet Interactions
+
+		cudaDeviceSynchronize();
 	}
 
 

@@ -37,6 +37,7 @@ _Random             = _core.Configuration_Random
 _Random.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Random.restype     = None
 def Random(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
     _Random(p_state, vec3(*pos), vec3(*border_rectangular), border_cylindrical, border_spherical, ctypes.c_bool(inverted), False, idx_image, idx_chain)
 
 
@@ -45,6 +46,7 @@ _Add_Noise_Temperature             = _core.Configuration_Add_Noise_Temperature
 _Add_Noise_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Add_Noise_Temperature.restype     = None
 def Add_Noise_Temperature(p_state, temperature, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
     _Add_Noise_Temperature(p_state, temperature, vec3(*pos), vec3(*border_rectangular), border_cylindrical, border_spherical, ctypes.c_bool(inverted), False, idx_image, idx_chain)
 
 

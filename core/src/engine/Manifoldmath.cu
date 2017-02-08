@@ -17,7 +17,6 @@ namespace Engine
         scalar norm(const vectorfield & vf)
         {
             scalar x = Vectormath::dot(vf, vf);
-            cudaDeviceSynchronize();
             return std::sqrt(x);
         }
 
@@ -25,7 +24,6 @@ namespace Engine
         {
             scalar sc = 1.0/norm(vf);
             Vectormath::scale(vf, sc);
-            cudaDeviceSynchronize();
         }
 
 
@@ -34,7 +32,6 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             Vectormath::add_c_a(-1, vf3, vf1);
-            cudaDeviceSynchronize();
         }
 
         __global__ void cu_project_orthogonal(Vector3 *vf1, const Vector3 *vf2, scalar proj, size_t N)
@@ -63,7 +60,6 @@ namespace Engine
         {
             scalar proj=Vectormath::dot(vf1, vf2);
             Vectormath::add_c_a(-2*proj, vf2, vf1);
-            cudaDeviceSynchronize();
         }
         
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2)
@@ -71,7 +67,6 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             Vectormath::add_c_a(-2, vf3, vf1);
-            cudaDeviceSynchronize();
         }
 
 		__global__ void cu_project_tangential(Vector3 *vf1, const Vector3 *vf2, size_t N)

@@ -8,6 +8,8 @@ namespace Engine
     {
 		this->spins_temp = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
 		this->velocity = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
+		this->velocity_previous = velocity;	// [noi][nos]
+		this->force_previous = velocity;	// [noi][nos]
 		this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
 		this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
     }
@@ -17,8 +19,11 @@ namespace Engine
 		std::shared_ptr<Data::Spin_System> s;
 
 		// Set previous
-		force_previous = force;
-		velocity_previous = velocity;
+		for (int i = 0; i < noi; ++i)
+		{
+			Vectormath::set_c_a(1.0, force[i], force_previous[i]);
+			Vectormath::set_c_a(1.0, velocity[i], velocity_previous[i]);
+		}
 
 		// Get the forces on the configurations
 		this->method->Calculate_Force(configurations, force);
@@ -28,6 +33,7 @@ namespace Engine
 			auto& l_velocity = velocity[i];
 			auto& l_force = force[i];
 			auto& l_force_prev = force_previous[i];
+			auto& configuration = *(configurations[i]);
 
 			s = method->systems[i];
 			scalar dt = s->llg_parameters->dt;
@@ -47,12 +53,12 @@ namespace Engine
 			}
 			else
 			{
-				l_velocity = l_force;
+				Vectormath::set_c_a(1.0, l_force, l_velocity);
 				Vectormath::scale(l_velocity, projection[i] / force_norm2[i]);
 			}
 
 			// Copy in
-			spins_temp[i] = *(configurations[i]);
+			Vectormath::set_c_a(1.0, configuration, spins_temp[i]);
 
 			// Move the spins
 			Vectormath::add_c_a(dt, l_velocity, spins_temp[i]);
@@ -60,7 +66,7 @@ namespace Engine
 			Vectormath::normalize_vectors(spins_temp[i]);
 
 			// Copy out
-			*(configurations[i]) = spins_temp[i];
+			Vectormath::set_c_a(1.0, spins_temp[i], configuration);
 		}
     }
     

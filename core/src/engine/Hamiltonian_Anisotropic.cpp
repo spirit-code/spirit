@@ -211,12 +211,8 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
-		int nos = spins.size();
-		// Loop over Spins
-		for (int i = 0; i < nos; ++i)
-		{
-			gradient[i].setZero();
-		}
+		// Set to zero
+		Vectormath::fill(gradient, {0,0,0});
 
 		// External field
 		Gradient_Zeeman(gradient);
