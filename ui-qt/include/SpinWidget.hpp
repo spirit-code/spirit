@@ -145,6 +145,12 @@ public:
   // --- Move Camera
   void moveCamera(float backforth, float rightleft, float updown);
   void rotateCamera(float theta, float phi);
+  bool getCameraRotationType();
+  void setCameraRotationType(bool free);
+
+  // --- Light
+  void setLightPosition(float theta, float phi);
+  std::array<float,2> getLightPosition();
   
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
@@ -158,6 +164,8 @@ private:
   std::shared_ptr<State> state;
   QPoint m_previous_mouse_position;
   bool _reset_camera;
+  bool m_camera_rotate_free;
+  float m_light_theta, m_light_phi;
   
   // Renderers
   std::shared_ptr<VFRendering::RendererBase> m_mainview;

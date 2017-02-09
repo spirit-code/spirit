@@ -60,6 +60,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	// 		Initial camera position
 	this->_reset_camera = false;
+	this->m_camera_rotate_free = false;
 
 	// 		Setup Arrays
 	this->updateData();
@@ -153,7 +154,15 @@ void SpinWidget::initializeGL()
 		}
 		if (this->m_isosurfaceshadows)
 		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return abs(normal.z); }");
+			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+				"uniform vec3 uLightPosition;"
+				"float lighting(vec3 position, vec3 normal)"
+				"{"
+				"    vec3 lightDirection = -normalize(uLightPosition-position);"
+				"    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
+				"	 float ambient = 0.2;"
+				"    return diffuse+ambient;"
+				"}");
 		}
 		else
 		{
@@ -306,7 +315,8 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
   
 	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
 	{
-		auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
+		VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+		if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
 		if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
 		{
 			movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
@@ -357,7 +367,8 @@ void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
 
 void SpinWidget::rotateCamera(float theta, float phi)
 {
-	auto movement_mode = VFRendering::CameraMovementModes::ROTATE;
+	VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+	if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
 	m_view.mouseMove({ 0,0 }, { phi, theta }, movement_mode);
 	((QWidget *)this)->update();
 }
@@ -627,7 +638,15 @@ void SpinWidget::setIsosurfaceshadows(bool show)
 	this->m_isosurfaceshadows = show;
 	if (this->m_isosurfaceshadows)
 	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return abs(normal.z); }");
+		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+			"uniform vec3 uLightPosition;"
+			"float lighting(vec3 position, vec3 normal)"
+			"{"
+			"    vec3 lightDirection = -normalize(uLightPosition-position);"
+			"    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
+			"	 float ambient = 0.2;"
+			"    return diffuse+ambient;"
+			"}");
 	}
 	else
 	{
@@ -954,6 +973,36 @@ void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
 }
 
+bool SpinWidget::getCameraRotationType()
+{
+	return this->m_camera_rotate_free;
+}
+void SpinWidget::setCameraRotationType(bool free)
+{
+	this->m_camera_rotate_free = free;
+}
+
+
+/////////////// lighting
+glm::vec3 from_spherical(float theta, float phi)
+{
+	float x = glm::sin(glm::radians(theta)) * glm::cos(glm::radians(phi));
+	float y = glm::sin(glm::radians(theta)) * glm::sin(glm::radians(phi));
+	float z = glm::cos(glm::radians(theta));
+	return glm::vec3{x,y,z};
+}
+void SpinWidget::setLightPosition(float theta, float phi)
+{
+	this->m_light_theta = theta;
+	this->m_light_phi = phi;
+	glm::vec3 v_light = glm::normalize(from_spherical(theta, phi)) * 1000.0f;
+	m_view.setOption<VFRendering::View::Option::LIGHT_POSITION>(v_light);
+}
+
+std::array<float,2> SpinWidget::getLightPosition()
+{
+	return std::array<float,2>{m_light_theta,m_light_phi};
+}
 
 // -----------------------------------------------------------------------------------
 // --------------------- Persistent Settings -----------------------------------------
@@ -1029,6 +1078,13 @@ void SpinWidget::writeSettings()
 		settings.setValue("vecu", (int)(100*up_vector[dim]));
 	}
 	settings.endArray();
+	settings.setValue("free rotation", m_camera_rotate_free);
+	settings.endGroup();
+
+	// Light
+	settings.beginGroup("Light");
+	settings.setValue("theta", (int)m_light_theta);
+	settings.setValue("phi", (int)m_light_phi);
 	settings.endGroup();
 }
 
@@ -1121,6 +1177,17 @@ void SpinWidget::readSettings()
 		}
 		settings.endArray();
 		this->setCameraUpVector(up_vector);
+		this->m_camera_rotate_free = settings.value("free rotation").toBool();
+		settings.endGroup();
+	}
+
+	// Light
+	if (settings.childGroups().contains("Light"))
+	{
+		settings.beginGroup("Light");
+		this->m_light_theta = settings.value("theta").toInt();
+		this->m_light_phi   = settings.value("phi").toInt();
+		this->setLightPosition(m_light_theta, m_light_phi);
 		settings.endGroup();
 	}
 }

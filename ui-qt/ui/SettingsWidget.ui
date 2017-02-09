@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>693</width>
-    <height>1657</height>
+    <width>677</width>
+    <height>1840</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1608</height>
+            <width>645</width>
+            <height>1791</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1316,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1608</height>
+            <width>645</width>
+            <height>1791</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1548</height>
+            <width>645</width>
+            <height>1731</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2258,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1548</height>
+            <width>645</width>
+            <height>1731</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2724,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1608</height>
+            <width>645</width>
+            <height>1791</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3112,8 +3112,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>661</width>
-            <height>1619</height>
+            <width>645</width>
+            <height>1791</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -4626,6 +4626,94 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="4" column="0">
+               <layout class="QGridLayout" name="gridLayout_81">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_64">
+                  <property name="text">
+                   <string>Rotation type</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QRadioButton" name="radioButton_camera_rotate_free">
+                  <property name="text">
+                   <string>Free</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QRadioButton" name="radioButton_camera_rotate_bounded">
+                  <property name="text">
+                   <string>Bounded</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_20">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_15">
+             <property name="title">
+              <string>Light</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_58">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_63">
+                <property name="text">
+                 <string>Phi</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSlider" name="horizontalSlider_light_theta">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_62">
+                <property name="text">
+                 <string>Theta</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="horizontalSlider_light_phi">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_43">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>

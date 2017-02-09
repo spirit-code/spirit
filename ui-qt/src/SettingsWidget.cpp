@@ -660,6 +660,10 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
 
+	// Light
+	horizontalSlider_light_theta->setRange(0, 180);
+	horizontalSlider_light_phi->setRange(0, 360);
+
 	// Bounding Box
 	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
@@ -669,6 +673,15 @@ void SettingsWidget::Load_Visualization_Contents()
 
 	// Camera
 	this->read_camera();
+	if (this->_spinWidget->getCameraRotationType())
+		this->radioButton_camera_rotate_free->setChecked(true);
+	else
+		this->radioButton_camera_rotate_bounded->setChecked(true);
+
+	// Light
+	auto angles = this->_spinWidget->getLightPosition();
+	this->horizontalSlider_light_theta->setValue((int)angles[0]);
+	this->horizontalSlider_light_phi->setValue((int)angles[1]);
 }
 
 // -----------------------------------------------------------------------------------
@@ -1533,6 +1546,26 @@ void SettingsWidget::set_camera_fov_lineedit()
 	_spinWidget->setVerticalFieldOfView(fov);
 }
 
+void SettingsWidget::set_camera_rotation()
+{
+	if (this->radioButton_camera_rotate_free->isChecked())
+		this->_spinWidget->setCameraRotationType(true);
+	else
+		this->_spinWidget->setCameraRotationType(false);
+}
+
+
+// -----------------------------------------------------------------------------------
+// --------------------- Light -------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+void SettingsWidget::set_light_position()
+{
+	float theta = this->horizontalSlider_light_theta->value();
+	float phi   = this->horizontalSlider_light_phi->value();
+	this->_spinWidget->setLightPosition(theta, phi);
+}
+
 
 // -----------------------------------------------------------------------------------
 // --------------------- Utilities ---------------------------------------------------
@@ -1761,6 +1794,11 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
 	connect(this->lineEdit_camera_fov, SIGNAL(returnPressed()), this, SLOT(set_camera_fov_lineedit()));
 	connect(horizontalSlider_camera_fov, SIGNAL(valueChanged(int)), this, SLOT(set_camera_fov_slider()));
+	connect(radioButton_camera_rotate_free, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
+	connect(radioButton_camera_rotate_bounded, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
+	// Light
+	connect(horizontalSlider_light_theta, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));
+	connect(horizontalSlider_light_phi, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));
 }
 
 void SettingsWidget::Setup_Input_Validators()

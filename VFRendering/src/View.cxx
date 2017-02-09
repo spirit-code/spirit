@@ -87,8 +87,18 @@ void View::mouseMove(const glm::vec2& position_before, const glm::vec2& position
     up_vector = glm::normalize(glm::cross(right, forward));
     delta = glm::normalize(delta);
     switch (mode) {
-    case CameraMovementModes::ROTATE: {
+    case CameraMovementModes::ROTATE_FREE: {
         auto axis = glm::normalize(delta.x * up_vector + delta.y * right);
+        float angle = -length * 0.1f / 180 * 3.14f;
+        auto rotation_matrix = glm::rotate(angle, axis);
+        up_vector = glm::mat3(rotation_matrix) * up_vector;
+        forward = glm::mat3(rotation_matrix) * forward;
+        bool was_centered = m_is_centered;
+        setCamera(center_position - forward * camera_distance, center_position, up_vector);
+        m_is_centered = was_centered;
+    }
+    case CameraMovementModes::ROTATE_BOUNDED: {
+        auto axis = glm::normalize(delta.x * glm::vec3{0,0,1} + delta.y * right);
         float angle = -length * 0.1f / 180 * 3.14f;
         auto rotation_matrix = glm::rotate(angle, axis);
         up_vector = glm::mat3(rotation_matrix) * up_vector;
