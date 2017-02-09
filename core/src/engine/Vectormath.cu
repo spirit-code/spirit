@@ -116,6 +116,88 @@ namespace Engine
             }
         }
 
+
+        __inline__ __device__
+        scalar warpReduceMin(scalar val)
+        {
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+            {
+                val  = min(val,  __shfl_down(val, offset));
+            }
+            return val;
+        }
+        __inline__ __device__
+        scalar warpReduceMax(scalar val)
+        {
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+            {
+                val = max(val, __shfl_down(val, offset));
+            }
+            return val;
+        }
+
+        __inline__ __device__
+        void blockReduceMinMax(scalar val, scalar *out_min, scalar *out_max)
+        {
+            static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
+            static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
+            int lane = threadIdx.x % warpSize;
+            int wid = threadIdx.x / warpSize;
+
+            scalar _min = warpReduceMin(val);  // Each warp performs partial reduction
+            scalar _max = warpReduceMax(val);  // Each warp performs partial reduction
+
+            if (lane==0) shared_min[wid]=_min;  // Write reduced minmax to shared memory
+            if (lane==0) shared_max[wid]=_max;  // Write reduced minmax to shared memory
+            __syncthreads();                      // Wait for all partial reductions
+
+            // Read from shared memory only if that warp existed
+            _min  = (threadIdx.x < blockDim.x / warpSize) ? shared_min[lane] : 0;
+            _max  = (threadIdx.x < blockDim.x / warpSize) ? shared_max[lane] : 0;
+
+            if (wid==0) _min  = warpReduceMin(_min);  // Final minmax reduce within first warp
+            if (wid==0) _max  = warpReduceMax(_max);  // Final minmax reduce within first warp
+
+            out_min[0] = _min;
+            out_max[0] = _max;
+        }
+
+        __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
+        {
+            scalar min, max;
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                scalar val = in[idx];
+                blockReduceMinMax(val, &min, &max);
+
+                if (threadIdx.x==0)
+                {
+                    out_min[blockIdx.x] = min;
+                    out_max[blockIdx.x] = max;
+                }
+            }
+        }
+
+        std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
+		{
+            int N = 3*vf.size();
+            int threads = 512;
+            int blocks = min((N + threads - 1) / threads, 1024);
+
+            scalarfield out_min(blocks);
+            scalarfield out_max(blocks);
+            scalarfield temp(1);
+
+            cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
+            cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
+            cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
+            cudaDeviceSynchronize();
+
+            return std::pair<scalar, scalar>{out_min[0], out_max[0]};
+		}
+
+
 		/////////////////////////////////////////////////////////////////
 
 
@@ -340,22 +422,6 @@ namespace Engine
             cudaDeviceSynchronize();
 		}
 
-        std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
-		{
-			scalar min=1e6, max=-1e6;
-			std::pair<scalar, scalar> minmax;
-			for (unsigned int i = 0; i < v1.size(); ++i)
-			{
-				for (int dim = 0; dim < 3; ++dim)
-				{
-					if (v1[i][dim] < min) min = v1[i][dim];
-					if (v1[i][dim] > max) max = v1[i][dim];
-				}
-			}
-			minmax.first = min;
-			minmax.second = max;
-			return minmax;
-		}
         scalar  max_abs_component(const vectorfield & vf)
 		{
 			// We want the Maximum of Absolute Values of all force components on all images

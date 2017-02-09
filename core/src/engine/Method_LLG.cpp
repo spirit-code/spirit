@@ -68,13 +68,13 @@ namespace Engine
     void Method_LLG::Hook_Post_Iteration()
     {
 		// --- Convergence Parameter Update
-		this->force_maxAbsComponent = 0;
-		// Loop over images to calculate the maximum force component
+		// Loop over images to calculate the maximum force components
 		for (unsigned int img = 0; img < systems.size(); ++img)
 		{
 			this->force_converged[img] = false;
 			auto fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), Gradient[img]);
-			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+			if (fmax > 0) this->force_maxAbsComponent = fmax;
+			else this->force_maxAbsComponent = 0;
 			if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
 		}
 
