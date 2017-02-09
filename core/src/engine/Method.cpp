@@ -9,6 +9,8 @@ namespace Engine
     {
         this->SenderName = Utility::Log_Sender::All;
 		this->force_maxAbsComponent = parameters->force_convergence + 1.0;
+		this->history = std::map<std::string, std::vector<scalar>>{
+            {"max_torque_component", {this->force_maxAbsComponent}} };
     }
 
     void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)

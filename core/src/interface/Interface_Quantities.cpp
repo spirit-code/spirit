@@ -10,6 +10,7 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto mag = Engine::Vectormath::Magnetization(*image->spins);
+	image->M = Vector3{ mag[0], mag[1], mag[2] };
 
     for (int i=0; i<3; ++i) m[i] = (float)mag[i];
 }

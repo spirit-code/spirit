@@ -10,6 +10,7 @@
 
 #include <deque>
 #include <fstream>
+#include <map>
 
 namespace Engine
 {
@@ -61,6 +62,8 @@ namespace Engine
 		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
+		// History of relevant quantities
+		std::map<std::string, std::vector<scalar>> history;
 	};
 }
 

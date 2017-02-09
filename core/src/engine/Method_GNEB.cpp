@@ -26,6 +26,10 @@ namespace Engine
 		this->energies = std::vector<scalar>(noi, 0.0);
 		this->Rx = std::vector<scalar>(noi, 0.0);
 
+		// History
+        this->history = std::map<std::string, std::vector<scalar>>{
+			{"max_torque_component", {this->force_maxAbsComponent}} };
+
 		// We assume that the chain is not converged before the first iteration
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
@@ -176,6 +180,10 @@ namespace Engine
 
 	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
+		// History save
+        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+
+		// File save
 		if (this->parameters->save_output_any && ( (initial && this->parameters->save_output_initial) || (final && this->parameters->save_output_final) ) )
 		{
 			// Get the file suffix

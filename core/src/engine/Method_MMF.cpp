@@ -30,6 +30,10 @@ namespace Engine
 			this->systems.push_back(this->collection->chains[ichain]->images.back());
 		}
 
+		// History
+        this->history = std::map<std::string, std::vector<scalar>>{
+			{"max_torque_component", {this->force_maxAbsComponent}} };
+
 		// We assume that the systems are not converged before the first iteration
 		this->force_maxAbsComponent = this->collection->parameters->force_convergence + 1.0;
 
@@ -334,6 +338,10 @@ namespace Engine
 
     void Method_MMF::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
+		// History save
+        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+
+		// File save
 		if (this->parameters->save_output_any)
 		{
 			//if (initial && this->parameters->save_output_initial) return;

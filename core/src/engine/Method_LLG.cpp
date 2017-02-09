@@ -30,6 +30,12 @@ namespace Engine
 
 		// Forces
 		this->Gradient = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
+		
+		// History
+        this->history = std::map<std::string, std::vector<scalar>>{
+			{"max_torque_component", {this->force_maxAbsComponent}},
+			{"E", {this->force_maxAbsComponent}},
+			{"M_z", {this->force_maxAbsComponent}} };
 	}
 
 
@@ -88,7 +94,7 @@ namespace Engine
 		// Vectormath::scale(systems[0]->effective_field, -1);
 		Vectormath::set_c_a(-1, Gradient[0], systems[0]->effective_field);
 		// systems[0]->UpdateEffectiveField();
-		
+
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
 
 		// --- Renormalize Spins?
@@ -118,6 +124,14 @@ namespace Engine
 	
 	void Method_LLG::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
+		// History save
+        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+		systems[0]->UpdateEnergy();
+        this->history["E"].push_back(systems[0]->E);
+    	auto mag = Engine::Vectormath::Magnetization(*systems[0]->spins);
+        this->history["M_z"].push_back(mag[2]);
+
+		// File save
 		if (this->parameters->save_output_any)
 		{
 			auto writeoutput = [this, starttime, iteration](std::string suffix, bool override_single)
