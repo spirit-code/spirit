@@ -567,6 +567,7 @@ namespace Utility
 			std::vector<scalar> jij = { 10.0, 0.0, 0.0, 0.0 };
 			// DM constant
 			scalar dij = 6.0;
+			int dm_chirality = 1;
 			// Biquidratic exchange constant
 			scalar bij = 0.0;
 			// 4 Spin Interaction constant
@@ -605,6 +606,7 @@ namespace Utility
 					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
 					
 					myfile.Read_Single(dij, "dij");
+					myfile.Read_Single(dm_chirality, "dm_chirality");
 					myfile.Read_Single(bij, "bij");
 					myfile.Read_Single(kijkl, "kijkl");
 					myfile.Read_Single(dd_radius, "dd_radius");
@@ -630,12 +632,13 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_neigh_shells      = " + std::to_string(n_neigh_shells));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij                = " + std::to_string(dij));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        DM chirality        = " + std::to_string(dm_chirality));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Isotropic>(new Engine::Hamiltonian_Isotropic(boundary_conditions, external_field_magnitude,
 					external_field_normal, mu_s, anisotropy_magnitude, anisotropy_normal,
-					n_neigh_shells, jij, dij, bij, kijkl, dd_radius, geometry));
+					n_neigh_shells, jij, dij, dm_chirality, bij, kijkl, dd_radius, geometry));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Isotropic: built");
 			return hamiltonian;
 		}// end Hamiltonian_Isotropic_from_Config

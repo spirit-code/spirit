@@ -17,7 +17,7 @@ namespace Engine
 	Hamiltonian_Isotropic::Hamiltonian_Isotropic(
 		std::vector<bool> boundary_conditions, scalar external_field_magnitude_i, Vector3 external_field_normal, scalar mu_s,
 		scalar anisotropy_magnitude, Vector3 anisotropy_normal,
-		int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius,
+		int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius,
 		Data::Geometry geometry) :
 		Hamiltonian(boundary_conditions),
 		mu_s(mu_s),
@@ -34,7 +34,7 @@ namespace Engine
 		// Calculate Neighbours
 		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
 		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
-			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, segments, segments_pos);
+			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, dm_chirality, segments, segments_pos);
 		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
 			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
 		Log(Log_Level::Info, Log_Sender::All, "Done Caclulating Neighbours");
