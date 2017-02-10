@@ -15,6 +15,9 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
 
     // Use this when State implements chain collection: else c = state->collection[idx_chain];
     Utility::Configuration_Chain::Homogeneous_Rotation(chain, idx_1, idx_2);
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set homogeneous transition between images " + std::to_string(idx_1+1) + " and " + std::to_string(idx_2+1) + ".", -1, idx_chain);
 }
 
 void Transition_Add_Noise_Temperature(State *state, float temperature, int idx_1, int idx_2, int idx_chain)
@@ -26,4 +29,7 @@ void Transition_Add_Noise_Temperature(State *state, float temperature, int idx_1
 
     // Use this when State implements chain collection: else c = state->collection[idx_chain];
     Utility::Configuration_Chain::Add_Noise_Temperature(chain, idx_1, idx_2, temperature);
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Added noise with temperature T=" + std::to_string(temperature) + " to images " + std::to_string(idx_1+1) + " to " + std::to_string(idx_2+1) + ".", -1, idx_chain);
 }

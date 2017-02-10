@@ -22,6 +22,9 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     image->hamiltonian->boundary_conditions[0] = periodical[0];
     image->hamiltonian->boundary_conditions[1] = periodical[1];
     image->hamiltonian->boundary_conditions[2] = periodical[2];
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set boundary conditions to " + std::to_string(periodical[0]) + " " + std::to_string(periodical[1]) + " " + std::to_string(periodical[2]), idx_image, idx_chain);
 }
 
 void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain)
@@ -40,6 +43,9 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
         auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
         for (auto& m : ham->mu_s) m = mu_s;
     }
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set mu_s to " + std::to_string(mu_s), idx_image, idx_chain);
 }
 
 void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
@@ -94,6 +100,9 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         // Update Energies
         ham->Update_Energy_Contributions();
     }
+    
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set external field to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
 }
 
 void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
@@ -147,6 +156,9 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 		// Update Energies
 		ham->Update_Energy_Contributions();
     }
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set anisotropy to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
 }
 
 void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
@@ -270,6 +282,9 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
 		Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}");
 	}
 	else image->llg_parameters->stt_polarisation_normal.normalize();
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set spin current to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
 }
 
 void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_chain)
@@ -279,6 +294,9 @@ void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_c
     from_indices(state, idx_image, idx_chain, image, chain);
 
     image->llg_parameters->temperature = T;
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set temperature to " + std::to_string(T), idx_image, idx_chain);
 }
 
 /*------------------------------------------------------------------------------------------------------ */

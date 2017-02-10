@@ -14,8 +14,8 @@ namespace Utility
 	std::string LogEntryToString(LogEntry entry, bool braces_separators)
 	{
 		// Format indices
-		auto s_chain = IO::int_to_formatted_string(entry.idx_chain, 2);
-		auto s_image = IO::int_to_formatted_string(entry.idx_image, 2);
+		auto s_chain = IO::int_to_formatted_string(entry.idx_chain+1, 2);
+		auto s_image = IO::int_to_formatted_string(entry.idx_image+1, 2);
 
 		// Time
 		std::string t = Timing::TimePointToString_Pretty(entry.time);

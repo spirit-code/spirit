@@ -108,6 +108,8 @@ namespace Utility
 				Log(Log_Level::Info, Log_Sender::IO, "Done");
 			}
 		}
+
+
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
 		{
 			std::ifstream myfile(file);
@@ -141,8 +143,15 @@ namespace Utility
 								nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 							}
 						}//endif "Image No"
-						else if (iimage < noi)	// The line should contain a spin
+						else	// The line should contain a spin
 						{
+							if (iimage >= noi)
+							{
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage));
+								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+								c->images.push_back(new_system);
+							}
+							nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 
 							if (i >= nos)
 							{

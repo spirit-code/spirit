@@ -58,6 +58,46 @@ std::function< bool(const Vector3&, const Vector3&) > get_filter(Vector3 positio
 	return filter;
 }
 
+std::string filter_to_string(const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted)
+{
+	std::string ret = "";
+	if ( position[0]!=0 && position[1]!=0 && position[2]!=0 )
+		ret += "Position: (" + std::to_string(position[0]) + "," + std::to_string(position[1]) + "," + std::to_string(position[2]) + ").";
+	if ( r_cut_rectangular[0] <= 0 && r_cut_rectangular[1] <= 0 && r_cut_rectangular[2] <= 0 &&
+		 r_cut_cylindrical <= 0 &&
+		 r_cut_spherical <= 0 &&
+		 !inverted )
+	{
+		if (ret != "") ret += " ";
+		ret += "Entire space.";
+	}
+	else
+	{
+		if ( r_cut_rectangular[0] > 0 && r_cut_rectangular[1] > 0 && r_cut_rectangular[2] > 0 )
+		{
+			if (ret != "") ret += " ";
+			ret += "Rectangular region: (" + std::to_string(r_cut_rectangular[0]) + "," + std::to_string(r_cut_rectangular[1]) + "," + std::to_string(r_cut_rectangular[2]) + ").";
+		}
+		if ( r_cut_cylindrical > 0 )
+		{
+			if (ret != "") ret += " ";
+			ret += "Cylindrical region, r=" + std::to_string(r_cut_cylindrical) + ".";
+		}
+		if ( r_cut_spherical > 0 )
+		{
+			if (ret != "") ret += " ";
+			ret += "Spherical region, r=" + std::to_string(r_cut_spherical) + ".";
+		}
+		if ( inverted )
+		{
+			if (ret != "") ret += " ";
+			ret += "Inverted.";
+		}
+
+	}
+	return ret;
+}
+
 void Configuration_Domain(State *state, const float direction[3], const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
@@ -74,6 +114,10 @@ void Configuration_Domain(State *state, const float direction[3], const float po
 	// Apply configuration
 	Vector3 vdir{ direction[0], direction[1], direction[2] };
 	Utility::Configurations::Domain(*image, vdir, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set domain configuration (" + std::to_string(direction[0]) + "," + std::to_string(direction[1]) + "," + std::to_string(direction[2]) + "). " + filterstring, idx_image, idx_chain);
 }
 
 
@@ -112,6 +156,10 @@ void Configuration_PlusZ(State *state, const float position[3], const float r_cu
 	// Apply configuration
 	Vector3 vdir{ 0,0,1 };
 	Utility::Configurations::Domain(*image, vdir, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set PlusZ configuration. " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_MinusZ(State *state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
@@ -130,6 +178,10 @@ void Configuration_MinusZ(State *state, const float position[3], const float r_c
 	// Apply configuration
 	Vector3 vdir{ 0,0,-1 };
 	Utility::Configurations::Domain(*image, vdir, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set MinusZ configuration. " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_Random(State *state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, bool external, int idx_image, int idx_chain)
@@ -147,6 +199,10 @@ void Configuration_Random(State *state, const float position[3], const float r_c
 
 	// Apply configuration
     Utility::Configurations::Random(*image, filter, external);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set random configuration. " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_Add_Noise_Temperature(State *state, float temperature, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
@@ -164,6 +220,10 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, const 
 
 	// Apply configuration
     Utility::Configurations::Add_Noise_Temperature(*image, temperature, 0, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Added noise with temperature T="+std::to_string(temperature)+". " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_Hopfion(State *state, float r, int order, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
@@ -184,6 +244,12 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
 
 	// Apply configuration
 	Utility::Configurations::Hopfion(*image, vpos, r, order, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	std::string parameterstring = "r=" + std::to_string(r);
+	if (order != 1) parameterstring += ", order=" + std::to_string(order);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set hopfion configuration, " + parameterstring + ". " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_Skyrmion(State *state, float r, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
@@ -204,6 +270,16 @@ void Configuration_Skyrmion(State *state, float r, float order, float phase, boo
 
     // Apply configuration
     Utility::Configurations::Skyrmion(*image, vpos, r, order, phase, upDown, achiral, rl, false, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	std::string parameterstring = "r=" + std::to_string(r);
+	if (order != 1) parameterstring += ", order=" + std::to_string(order);
+	if (phase != 0) parameterstring += ", phase=" + std::to_string(phase);
+	if (upDown != 0) parameterstring += ", upDown=" + std::to_string(upDown);
+	if (achiral != 0) parameterstring += ", achiral";
+	if (rl != 0) parameterstring += ", rl=" + std::to_string(rl);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set skyrmion configuration, " + parameterstring + ". " + filterstring, idx_image, idx_chain);
 }
 
 void Configuration_SpinSpiral(State *state, const char * direction_type, float q[3], float axis[3], float theta, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
@@ -224,4 +300,12 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
 	Vector3 vq{ q[0], q[1], q[2] };
 	Vector3 vaxis{ axis[0], axis[1], axis[2] };
 	Utility::Configurations::SpinSpiral(*image, dir_type, vq, vaxis, theta, filter);
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	std::string parameterstring = "W.r.t. " + std::string(direction_type)
+		+ ", q=(" + std::to_string(q[0]) + "," + std::to_string(q[1]) + "," + std::to_string(q[2]) + ")"
+		+ ", axis=(" + std::to_string(axis[0]) + "," + std::to_string(axis[1]) + "," + std::to_string(axis[2]) + ")"
+		+ ", theta=" + std::to_string(theta);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set spin spiral configuration. " + parameterstring + ". " +  filterstring, idx_image, idx_chain);
 }
