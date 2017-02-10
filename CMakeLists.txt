@@ -159,5 +159,5 @@ endif()
 
 
 ######### Write VERSION.txt #################
-file(WRITE "${CMAKE_SOURCE_DIR}/VERSION.txt" "${META_NAME_VERSION}")
+file(WRITE "${CMAKE_SOURCE_DIR}/VERSION.txt" "${SPIRIT_META_NAME_VERSION}")
 #############################################

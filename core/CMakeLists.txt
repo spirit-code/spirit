@@ -24,12 +24,12 @@ set(META_VERSION_MAJOR        "1")
 set(META_VERSION_MINOR        "3")
 set(META_VERSION_PATCH        "0")
 set(META_VERSION_REVISION     "${GIT_REV}")
-set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
-set(META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})")
+set(SPIRIT_META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}" PARENT_SCOPE)
+set(SPIRIT_META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})"  PARENT_SCOPE)
 #############################################
 
 ######### Project Name ######################
-project(${META_PROJECT_NAME} VERSION ${META_VERSION})
+project(${META_PROJECT_NAME} VERSION ${SPIRIT_META_VERSION})
 #############################################
 
 
@@ -80,7 +80,7 @@ endif()
 
 
 ######### Generate Spirit_Defines.h ################
-set(VERSION_STRING "${META_VERSION}")
+set(VERSION_STRING "${SPIRIT_META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
 string(TOUPPER ${SPIRIT_SCALAR_TYPE} SPIRIT_SCALAR_TYPE_UPPERCASE)
 if ( SPIRIT_USE_CUDA )
