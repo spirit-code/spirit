@@ -1,14 +1,12 @@
-import core.corelib as corelib
-from core.scalar import scalar
+import Spirit.spiritlib as spiritlib
 import ctypes
-import numpy as np
 
 ### Load Library
-_core = corelib.LoadCoreLibrary()
+_spirit = spiritlib.LoadSpiritLibrary()
 
 
 ### Get Chain index
-_Get_Magnetization          = _core.Quantity_Get_Magnetization
+_Get_Magnetization          = _spirit.Quantity_Get_Magnetization
 _Get_Magnetization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
 _Get_Magnetization.restype  = None
 def Get_Magnetization(p_state, idx_image=-1, idx_chain=-1):

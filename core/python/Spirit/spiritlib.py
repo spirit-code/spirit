@@ -1,28 +1,28 @@
-def LoadCoreLibrary():
+def LoadSpiritLibrary():
     import os
     import ctypes
     from sys import platform as _platform
 
     ### Get this file's directory. The library should be here
-    core_dir = os.path.dirname(os.path.realpath(__file__))
+    spirit_py_dir = os.path.dirname(os.path.realpath(__file__))
 
     libname = ''
     ### Get the Operating System and set lib name accordingly
     if _platform == "linux" or _platform == "linux2":
         # Linux
-        libname = 'libpycore.so'
+        libname = 'libspirit.so'
     elif _platform == "darwin":
         # OS X
-        libname = 'libpycore.dylib'
+        libname = 'libspirit.dylib'
     elif _platform == "win32":
         # Windows
-        libname = 'pycore.dll'
+        libname = 'spirit.dll'
 
-    ### Load the core library
-    _core = ctypes.CDLL(core_dir + '/' + libname)
+    ### Load the Spirit library
+    _spirit = ctypes.CDLL(spirit_py_dir + '/' + libname)
 
     ### Return
-    return _core
+    return _spirit
 
 ### Wrap a function in a thread for it to be interruptible
 def WrapFunction(function, arguments):

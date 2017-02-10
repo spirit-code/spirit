@@ -133,6 +133,11 @@ namespace Engine
 
 		/////////////////////////////////////////////////////////////////
 
+		void assign(scalarfield & sf_dest, const scalarfield& sf_source)
+		{
+			sf_dest = sf_source;
+		}
+
 		void fill(scalarfield & sf, scalar s)
 		{
 			for (unsigned int i = 0; i<sf.size(); ++i)

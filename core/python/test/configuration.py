@@ -1,4 +1,9 @@
+import os
 import sys
+
+spirit_py_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, spirit_py_dir)
+
 
 import unittest
 

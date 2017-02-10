@@ -1,26 +1,26 @@
 import os
 import sys
 
+### Make sure to find the Spirit modules
+spirit_py_dir = os.path.dirname(os.path.realpath(__file__)) + "core/python/Spirit"
+# spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "..", "/ui-python/core"))
+sys.path.insert(0, spirit_py_dir)
+
+
 ### Import numpy
 import numpy as np
 
-### Import core library
-from core import state
-from core import system
-from core import geometry
-from core import chain
-from core import configuration
-from core import transition
-from core import simulation
-from core import quantities
-from core import io
-from core import log
-
-### Make sure to find the core modules
-core_dir = os.path.dirname(os.path.realpath(__file__)) + "/ui-python"
-# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "..", "/ui-python/core"))
-sys.path.insert(0, core_dir)
-
+### Import Spirit modules
+from Spirit import state
+from Spirit import system
+from Spirit import geometry
+from Spirit import chain
+from Spirit import configuration
+from Spirit import transition
+from Spirit import simulation
+from Spirit import quantities
+from Spirit import io
+from Spirit import log
 
 
 def configurations(p_state):
