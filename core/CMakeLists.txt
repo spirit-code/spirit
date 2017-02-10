@@ -250,6 +250,28 @@ endif()
 #############################################
 
 
+######### Python Test #######################
+macro(add_python_test test_name src)
+	add_test(
+		NAME                ${test_name}
+		WORKING_DIRECTORY   ${PROJECT_BINARY_DIR}
+		COMMAND             ${PYTHON_EXECUTABLE} "${PYLIB_OUTPUT_DIR}/test/${src}")
+
+	set_tests_properties(${test_name}
+		PROPERTIES ENVIRONMENT "PYTHONPATH=${PYLIB_OUTPUT_DIR}:$PYTHONPATH")
+endmacro(add_python_test)
+if( BUILD_UI_PYTHON )
+	MESSAGE( STATUS ">> Setting up unit tests for python core" )
+
+    ### Enable CTest testing
+    enable_testing()
+
+    ### Tests
+    # add_python_test( pycoretest_configuration   python/test/configuration.py )
+endif( )
+#############################################
+
+
 ######### Export
 set(CORE_LIBRARIES        core 				       PARENT_SCOPE)
 set(CORE_INCLUDE_DIRS     ${CORE_INCLUDE_DIRS}     PARENT_SCOPE)

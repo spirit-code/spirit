@@ -26,7 +26,8 @@ Contents
 3. [Branches](#Branches)
 4. [Code Dependencies](#Dependencies)
 5. [Installation Instructions](#Installation)
-5. [Contributing](#Contributing)
+6. [Unit Tests](#UnitTests)
+7. [Contributing](#Contributing)
 
 
 &nbsp;
@@ -206,6 +207,24 @@ When on pure **Windows** (no MSys etc), instead of using `make` or `./make.sh`,
 you need to open the generated Solution in Visual Studio and build it there.
 The execution folder should be 'build' and file paths at runtime will be
 relative to this folder.
+
+----------------------------------------
+
+&nbsp;
+   
+
+Unit Tests <a name="UnitTests"></a>
+-----------------------------------
+
+The core library includes a set of unit tests in order to make sure certain conditions are
+fulfilled by the librarys functions.
+We use `CMake`s `CTest` for unit testing. The `ctest.sh` script may be used to run all tests.
+Alternatively, you can run
+
+	cd build && ctest --output-on-failure && cd ..
+
+or execute any of the test executables manually.
+To execute the tests from the Visual Studio IDE, simply rebuild the `RUN_TESTS` project.
 
 ----------------------------------------
 
