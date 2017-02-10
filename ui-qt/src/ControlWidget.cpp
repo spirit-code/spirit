@@ -286,6 +286,8 @@ void ControlWidget::paste_image(std::string where)
 		// Make the llg_threads vector larger
 		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+		// Switch to the inserted image
+		Chain_prev_Image(this->state.get());
 	}
 	else if (where == "right")
 	{

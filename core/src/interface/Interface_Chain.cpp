@@ -155,6 +155,9 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
 		// Add to state
 		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
 
+        // Increment active image so that we don't switch between images
+        ++chain->idx_active_image;
+
         // Update state
         State_Update(state);
 
