@@ -81,7 +81,7 @@ find_package( Qt5OpenGL REQUIRED )
 
 ######### Where to search for library headers
 include_directories(${PROJECT_SOURCE_DIR}/include
-					${CORE_INCLUDE_DIRS}
+					${SPIRIT_INCLUDE_DIRS}
 					${GLAD_INCLUDE_DIRS}
 					${GLM_INCLUDE_DIRS}
 					${GL_INCLUDE_DIRS}
@@ -203,7 +203,7 @@ add_executable( ${EXECUTABLE_NAME} ${TMP_BUNDLE_VAR}
 target_include_directories( ${EXECUTABLE_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdparty-install/include/ )
 
 ######### Link the libraries into the executable
-target_link_libraries( ${EXECUTABLE_NAME} ${CORE_LIBRARIES} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
+target_link_libraries( ${EXECUTABLE_NAME} ${SPIRIT_LIBRARIES_STATIC} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
 ### OSX and Unix need libdl
 if( APPLE )
     target_link_libraries( ${EXECUTABLE_NAME} dl )

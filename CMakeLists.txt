@@ -16,38 +16,38 @@ option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .ap
 option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
-### Options for the Core
-option( CORE_BUILD_TEST  "Build unit tests for the core library."                       ON  )
-option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              OFF )
-option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code."       OFF )
-### Set the scalar type used in the core library
-set( CORE_SCALAR_TYPE double )
+### Options for Spirit
+option( SPIRIT_BUILD_TEST  "Build unit tests for the Spirit library."                   ON  )
+option( SPIRIT_USE_CUDA    "Use CUDA to speed up certain parts of the code."            OFF )
+option( SPIRIT_USE_THREADS "Use std threads to speed up certain parts of the code."     OFF )
+### Set the scalar type used in the Spirit library
+set( SPIRIT_SCALAR_TYPE double )
 #############################################
-if( CORE_USE_CUDA )
-	set( CORE_SCALAR_TYPE float )
+if( SPIRIT_USE_CUDA )
+	set( SPIRIT_SCALAR_TYPE float )
 	set( BUILD_UI_WEB       OFF )
 	set( BUILD_UI_JULIA     OFF )
 endif()
 #############################################
 if( BUILD_UI_WEB )
 	### UI-Web needs float
-	set( CORE_SCALAR_TYPE 	float )
+	set( SPIRIT_SCALAR_TYPE 	float )
 	### UI-Web needs to be built alone, as it
 	### uses a different toolchain
-	set( CORE_BUILD_TEST    OFF )
+	set( SPIRIT_BUILD_TEST    OFF )
 	set( BUILD_UI_JULIA 	OFF )
 	set( BUILD_UI_PYTHON 	OFF )
 	set( BUILD_UI_CXX 		OFF )
 	### Emscripten cannot use cuda or threads
-	set( CORE_USE_CUDA 		OFF )
-	set( CORE_USE_THREADS 	OFF )
+	set( SPIRIT_USE_CUDA 		OFF )
+	set( SPIRIT_USE_THREADS 	OFF )
 endif()
 #############################################
-if( CORE_BUILD_TEST )
+if( SPIRIT_BUILD_TEST )
     enable_testing()
 endif()
 #############################################
-if (CORE_USE_CUDA)
+if (SPIRIT_USE_CUDA)
     MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
     ### Set cuda toolkit path 
     if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
@@ -82,33 +82,12 @@ include(PathsIFF)
 #############################################
 
 
-######### Get git revision ##################
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
-#############################################
-
-
-######### Meta information about the project
-set(META_PROJECT_NAME         "Spirit")
-set(META_PROJECT_DESCRIPTION  "Modular Spin Code")
-set(META_AUTHOR_ORGANIZATION  "")
-set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
-set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
-set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "3")
-set(META_VERSION_PATCH        "0")
-set(META_VERSION_REVISION     "${GIT_REV}")
-set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
-set(META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})")
-#############################################
-
 
 ######### Set all Flags and Options #########
 ### Choose Compiler
 include(ChooseCompiler)
 ### Project Name
-PROJECT(${META_PROJECT_NAME})
+PROJECT(spirit)
 ### Print compiler info
 MESSAGE( STATUS ">> Please check the CMAKE_CXX_COMPILER to make sure it's the right one" )
 MESSAGE( STATUS ">> CMAKE_C_COMPILER:               " ${CMAKE_C_COMPILER} )
@@ -161,7 +140,7 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 
 
 ######### Add Subdirectory Projects #########
-### Core is built in any case
+### Spirit library is built in any case
 add_subdirectory( core )
 ### CXX UI
 if( BUILD_UI_CXX )
