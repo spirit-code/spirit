@@ -1,5 +1,5 @@
-#include <interface/Interface_Chain.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Chain.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>

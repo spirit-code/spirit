@@ -2,7 +2,7 @@
 #ifndef UTILITY_LOGGING_H
 #define UTILITY_LOGGING_H
 
-#include <interface/Interface_Log.h>
+#include <Spirit/Log.h>
 #include <utility/Timing.hpp>
 
 #include <iostream>

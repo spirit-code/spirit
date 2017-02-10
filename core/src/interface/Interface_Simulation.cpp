@@ -1,6 +1,6 @@
-#include <interface/Interface_Simulation.h>
-#include <interface/Interface_State.h>
-#include <interface/Interface_Chain.h>
+#include <Spirit/Simulation.h>
+#include <Spirit/State.h>
+#include <Spirit/Chain.h>
 #include <data/State.hpp>
 #include <utility/Logging.hpp>
 #include <engine/Optimizer.hpp>

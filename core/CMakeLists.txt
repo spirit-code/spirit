@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 #############################################
 
 
+### Set the cmake subdirectory
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
+
 
 ######### Get git revision ##################
 include(GetGitRevisionDescription)
@@ -23,9 +26,11 @@ set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
 set(META_VERSION_MINOR        "3")
 set(META_VERSION_PATCH        "0")
+set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
-set(SPIRIT_META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}" PARENT_SCOPE)
-set(SPIRIT_META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})"  PARENT_SCOPE)
+### Propagate version and name_version upwards
+set(SPIRIT_META_VERSION              "${META_VERSION}" PARENT_SCOPE)
+set(SPIRIT_META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})" PARENT_SCOPE)
 #############################################
 
 ######### Project Name ######################
@@ -80,7 +85,7 @@ endif()
 
 
 ######### Generate Spirit_Defines.h ################
-set(VERSION_STRING "${SPIRIT_META_VERSION}")
+set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
 string(TOUPPER ${SPIRIT_SCALAR_TYPE} SPIRIT_SCALAR_TYPE_UPPERCASE)
 if ( SPIRIT_USE_CUDA )

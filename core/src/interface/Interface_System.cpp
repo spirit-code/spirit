@@ -1,5 +1,5 @@
-#include <interface/Interface_System.h>
-#include <interface/Interface_State.h>
+#include <Spirit/System.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 
 int System_Get_Index(State * state)

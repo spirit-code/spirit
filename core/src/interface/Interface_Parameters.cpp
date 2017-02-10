@@ -1,5 +1,5 @@
-#include <interface/Interface_Parameters.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Parameters.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>

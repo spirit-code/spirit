@@ -1,5 +1,5 @@
-#include <interface/Interface_Transitions.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Transitions.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Configuration_Chain.hpp>

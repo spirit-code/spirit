@@ -1,5 +1,5 @@
-#include <interface/Interface_Geometry.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Geometry.h>
+#include <Spirit/State.h>
 
 #include <data/State.hpp>
 

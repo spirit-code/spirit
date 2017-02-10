@@ -1,5 +1,5 @@
-#include <interface/Interface_Quantities.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Quantities.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 

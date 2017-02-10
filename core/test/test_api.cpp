@@ -1,7 +1,7 @@
 #include <catch.hpp>
-#include <interface/Interface_State.h>
-#include <interface/Interface_Configurations.h>
-#include <interface/Interface_Quantities.h>
+#include <Spirit/State.h>
+#include <Spirit/Configurations.h>
+#include <Spirit/Quantities.h>
 
 
 TEST_CASE( "State", "[state]" )

@@ -1,4 +1,4 @@
-#include <interface/Interface_Log.h>
+#include <Spirit/Log.h>
 #include <utility/Logging.hpp>
 
 #include <iostream>

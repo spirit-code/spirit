@@ -1,5 +1,5 @@
-#include <interface/Interface_Hamiltonian.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Hamiltonian.h>
+#include <Spirit/State.h>
 
 #include <data/State.hpp>
 #include <data/Spin_System.hpp>

@@ -1,5 +1,5 @@
-#include <interface/Interface_Configurations.h>
-#include <interface/Interface_State.h>
+#include <Spirit/Configurations.h>
+#include <Spirit/State.h>
 #include "Core_Defines.h"
 #include <data/State.hpp>
 #include <utility/Configurations.hpp>
