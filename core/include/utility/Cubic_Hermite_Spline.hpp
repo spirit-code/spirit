@@ -2,7 +2,7 @@
 #ifndef UTILITY_CUBIC_HERMITE_SPLINE_H
 #define UTILITY_CUBIC_HERMITE_SPLINE_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 #include <vector>
 

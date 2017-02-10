@@ -3,15 +3,15 @@
 #include "MainWindow.hpp"
 #include "PlotWidget.hpp"
 
-#include "Interface_System.h"
-#include "Interface_Geometry.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Simulation.h"
-#include "Interface_Configurations.h"
-#include "Interface_Quantities.h"
-#include "Interface_IO.h"
-#include "Interface_Log.h"
+#include "Spirit/System.h"
+#include "Spirit/Geometry.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Quantities.h"
+#include "Spirit/IO.h"
+#include "Spirit/Log.h"
 
 
 MainWindow::MainWindow(std::shared_ptr<State> state)

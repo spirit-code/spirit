@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 

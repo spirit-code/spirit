@@ -5,7 +5,7 @@
 #include <random>
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 
 namespace Data

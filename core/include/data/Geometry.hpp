@@ -2,7 +2,7 @@
 #ifndef DATA_GEOMETRY_H
 #define DATA_GEOMETRY_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 
 #include <vector>

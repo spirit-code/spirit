@@ -2,7 +2,7 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
 #include <engine/Method.hpp>
 #include <utility/Logging.hpp>

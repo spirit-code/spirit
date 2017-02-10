@@ -2,7 +2,7 @@
 #ifndef METHOD_MMF_H
 #define METHOD_MMF_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Method.hpp>
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/Spin_System_Chain_Collection.hpp>

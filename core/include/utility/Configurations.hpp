@@ -2,7 +2,7 @@
 #ifndef UTILITY_CONFIGURATIONS_H
 #define UTILITY_CONFIGURATIONS_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
 
 #include <vector>

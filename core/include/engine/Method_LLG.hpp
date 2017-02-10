@@ -2,7 +2,7 @@
 #ifndef METHOD_LLG_H
 #define METHOD_LLG_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Method.hpp>
 #include <engine/Optimizer.hpp>
 #include <engine/Optimizer_SIB.hpp>

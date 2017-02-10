@@ -1,8 +1,8 @@
 #include "PlotWidget.hpp"
 
-#include "Interface_Chain.h"
-#include "Interface_System.h"
-#include "Interface_Parameters.h"
+#include "Spirit/Chain.h"
+#include "Spirit/System.h"
+#include "Spirit/Parameters.h"
 
 
 using namespace QtCharts;
@@ -16,8 +16,6 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 	chart = new QChart();
 	chart->legend()->hide();
 	chart->setTitle("");
-	// chart->axisX()->setTitleText("Rx");
-	// chart->axisY()->setTitleText("E");
 
     // Use Chart
 	this->setChart(chart);
@@ -35,6 +33,8 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 
 	// Axes
 	this->chart->createDefaultAxes();
+	this->chart->axisX()->setTitleText("Rx");
+	this->chart->axisY()->setTitleText("E");
 }
 
 

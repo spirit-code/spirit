@@ -4,7 +4,7 @@
 #include "DLL_Define_Export.h"
 struct State;
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 // Get Positions of Spins
 DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);

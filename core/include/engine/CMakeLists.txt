@@ -1,5 +1,5 @@
-set(HEADER_CORE_ENGINE
-    ${HEADER_CORE_ENGINE}
+set(HEADER_SPIRIT_ENGINE
+    ${HEADER_SPIRIT_ENGINE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Anisotropic.hpp

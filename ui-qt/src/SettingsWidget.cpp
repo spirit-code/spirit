@@ -4,16 +4,16 @@
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
 
-#include "Interface_Configurations.h"
-#include "Interface_Transitions.h"
-#include "Interface_Log.h"
-#include "Interface_System.h"
-#include "Interface_Geometry.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Hamiltonian.h"
-#include "Interface_Parameters.h"
-#include "Interface_Exception.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Transitions.h"
+#include "Spirit/Log.h"
+#include "Spirit/System.h"
+#include "Spirit/Geometry.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Hamiltonian.h"
+#include "Spirit/Parameters.h"
+#include "Spirit/Exception.h"
 
 #include <iostream>
 #include <memory>

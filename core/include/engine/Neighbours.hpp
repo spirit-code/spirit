@@ -2,7 +2,7 @@
 #ifndef NEIGHBOURS_H
 #define NEIGHBOURS_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
 

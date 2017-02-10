@@ -2,7 +2,7 @@
 #ifndef METHOD_H
 #define METHOD_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>

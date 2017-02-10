@@ -5,7 +5,7 @@
 #include <random>
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>

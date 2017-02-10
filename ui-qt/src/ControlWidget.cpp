@@ -2,12 +2,12 @@
 
 #include "ControlWidget.hpp"
 
-#include "Interface_System.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Simulation.h"
-#include "Interface_IO.h"
-#include "Interface_Log.h"
+#include "Spirit/System.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/IO.h"
+#include "Spirit/Log.h"
 
 
 std::string string_q2std(QString qs)

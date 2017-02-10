@@ -2,7 +2,7 @@
 #ifndef DATA_SPIN_SYSTEM_CHAIN_H
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 

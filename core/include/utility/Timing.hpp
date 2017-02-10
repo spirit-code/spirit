@@ -6,7 +6,7 @@
 #include <ctime>
 #include <chrono>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 // Use the System Clock (Wall Time) to handle Timing
 using std::chrono::system_clock;

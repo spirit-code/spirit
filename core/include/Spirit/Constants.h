@@ -3,7 +3,7 @@
 #define INTERFACE_CONSTANTS_H
 #include "DLL_Define_Export.h"
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 // The Bohr Magneton [meV / T]
 DLLEXPORT scalar Constants_mu_B();

@@ -5,7 +5,7 @@
 
 struct State;
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 // Info
 DLLEXPORT int System_Get_Index(State * state);

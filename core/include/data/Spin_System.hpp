@@ -5,7 +5,7 @@
 #include <random>
 #include <memory>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Hamiltonian_Isotropic.hpp>

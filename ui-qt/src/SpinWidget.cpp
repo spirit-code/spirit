@@ -15,10 +15,10 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Interface_Geometry.h"
-#include "Interface_System.h"
-#include "Interface_Simulation.h"
-#include "Interface_Hamiltonian.h"
+#include "Spirit/Geometry.h"
+#include "Spirit/System.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/Hamiltonian.h"
 
 
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)

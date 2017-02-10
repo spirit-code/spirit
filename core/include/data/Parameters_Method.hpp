@@ -2,7 +2,7 @@
 #ifndef DATA_PARAMETERS_METHOD_H
 #define DATA_PARAMETERS_METHOD_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 #include <string>
 #include <array>

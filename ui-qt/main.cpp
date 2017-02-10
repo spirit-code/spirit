@@ -1,10 +1,10 @@
 #include "MainWindow.hpp"
 
-#include "Interface_State.h"
-#include "Interface_Chain.h"
-#include "Interface_Configurations.h"
-#include "Interface_Transitions.h"
-#include "Interface_Log.h"
+#include "Spirit/State.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Transitions.h"
+#include "Spirit/Log.h"
 
 // Main
 int main(int argc, char ** argv)
@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
-	const char * cfgfile = "input/input.cfg";
+	 const char * cfgfile = "input/input.cfg";
 	// const char * cfgfile = "input/anisotropic/markus.cfg";
 	// const char * cfgfile = "input/anisotropic/markus-paper.cfg";
 	// const char * cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
