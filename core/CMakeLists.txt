@@ -246,7 +246,8 @@ endif()
 
 ######### Tell CMake to create the shared library for the Python UI
 if( SPIRIT_BUILD_FOR_PYTHON )
-	set( PYLIB_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/python/Spirit/ )
+	set( SPIRIT_PYDIR ${PROJECT_SOURCE_DIR}/python )
+	set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/Spirit )
 	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
 	if( NOT SPIRIT_USE_CUDA )
 		MESSAGE( STATUS ">> Building shared library for Python" )
@@ -311,7 +312,7 @@ macro( add_framework_test testName testSrc )
     target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/test)
     # Add the test
     add_test( NAME        ${testName}
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND           ${testName} --use-colour=yes )
 endmacro( add_framework_test testName testSrc )
 ### Create tests if needed
@@ -334,21 +335,24 @@ macro(add_python_test test_name src)
 	# Add the test
 	add_test(
 		NAME                ${test_name}
-		WORKING_DIRECTORY   ${PROJECT_BINARY_DIR}
-		COMMAND             ${PYTHON_EXECUTABLE} "${PYLIB_OUTPUT_DIR}/test/${src}")
+		WORKING_DIRECTORY   ${CMAKE_SOURCE_DIR}
+		COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYDIR}/test/${src}")
 	# Properties
 	set_tests_properties(${test_name}
-		PROPERTIES ENVIRONMENT "PYTHONPATH=${PYLIB_OUTPUT_DIR}:$PYTHONPATH")
+		PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
 endmacro(add_python_test)
 ### Create tests if needed
 if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
 	MESSAGE( STATUS ">> Setting up unit tests for python bindings" )
+	# find_package( PythonInterp 2.7 REQUIRED )
+	find_package( PythonInterp REQUIRED )
 
     ### Enable CTest testing
     enable_testing()
 
     ### Tests
-    # add_python_test( test_python_configuration   python/test/configuration.py )
+    add_python_test( test_python_state           state.py )
+    add_python_test( test_python_configuration   configuration.py )
 endif( )
 #############################################
 

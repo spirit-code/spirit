@@ -14,18 +14,16 @@ import unittest
 
 cfgfile = "input/input.cfg"
 
-class TestConfigurations(unittest.TestCase):
+class TestState(unittest.TestCase):
     def test(self):
         with state.State(cfgfile) as p_state:
-            configuration.Random(p_state)
-            configuration.PlusZ(p_state)
-            configuration.MinusZ(p_state)
+            pass
 
 #########
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestConfigurations))
+    suite.addTest(unittest.makeSuite(TestState))
   
     return suite
 

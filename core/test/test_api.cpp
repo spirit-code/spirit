@@ -6,13 +6,15 @@
 
 TEST_CASE( "State", "[state]" )
 {
+	// Test the default config
 	CHECK_NOTHROW(std::shared_ptr<State>(State_Setup(), State_Delete));
-	CHECK_NOTHROW(std::shared_ptr<State>(State_Setup("input/input.txt"), State_Delete));
+	// Test the default input file
+	CHECK_NOTHROW(std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete));
 }
 
 TEST_CASE( "Configurations", "[configurations]" )
 {
-	auto state = std::shared_ptr<State>(State_Setup("input/input.txt"), State_Delete);
+	auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
 	
 	// filters
 	float position[3]{0,0,0};
@@ -58,7 +60,7 @@ TEST_CASE( "Configurations", "[configurations]" )
 	{
 		auto dir_type = "real lattice";
 		float q[3]{0,0,0.1}, axis[3]{0,0,1}, theta{30};
-		REQUIRE_NOTHROW( Configuration_SpinSpiral(state.get(), dir_type, q, axis, theta, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted); );
+		CHECK_NOTHROW( Configuration_SpinSpiral(state.get(), dir_type, q, axis, theta, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted); );
 	}
 }
 
@@ -66,7 +68,7 @@ TEST_CASE( "Quantities", "[quantities]" )
 {
 	SECTION("Magnetization")
 	{
-		auto state = std::shared_ptr<State>(State_Setup("input/input.txt"), State_Delete);
+		auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
 		float m[3] = { 0,0,1 };
 
 		SECTION("001")

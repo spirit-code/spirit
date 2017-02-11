@@ -30,6 +30,10 @@ option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cl
 
 
 #############################################
+if( SPIRIT_BUILD_TEST )
+    enable_testing()
+endif()
+#############################################
 if (SPIRIT_USE_CUDA)
     MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
     ### Set cuda toolkit path 
