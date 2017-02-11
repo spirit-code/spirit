@@ -1,6 +1,6 @@
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/Spirit)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/data)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/engine)
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/Spirit)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/utility)
 
 set(SOURCE_SPIRIT_ROOT
@@ -23,7 +23,6 @@ set(SOURCE_SPIRIT_ENGINE
     ${SOURCE_SPIRIT_ENGINE}
     PARENT_SCOPE
 )
-
 
 set(SOURCE_SPIRIT_UTILITY
     ${SOURCE_SPIRIT_UTILITY}

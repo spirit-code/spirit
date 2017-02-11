@@ -6,7 +6,7 @@
  */
 #include <memory>
 
-#include "Interface_State.h"
+#include "Spirit/State.h"
 
 // TODO: is there a way to remove these?
 #include "State.hpp"

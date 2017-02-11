@@ -1,7 +1,7 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
 MESSAGE( STATUS ">> --------------------- ChooseCompiler.cmake ------------------------- <<" )
 ######## UI Web - this means we need emcc ###########################
-if (BUILD_UI_WEB)
+if (SPIRIT_BUILD_FOR_JS)
 	### 
 	MESSAGE( STATUS ">> Choosing compiler:             emcc" )
 	### Set the path to emscripten

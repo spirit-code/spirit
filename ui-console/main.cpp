@@ -1,13 +1,13 @@
 #include "Threading.hpp"
 #include "Handle_Signal.hpp"
 
-#include "Interface_State.h"
-#include "Interface_System.h"
-#include "Interface_Chain.h"
-#include "Interface_Configurations.h"
-#include "Interface_Transitions.h"
-#include "Interface_Simulation.h"
-#include "Interface_Log.h"
+#include "Spirit/State.h"
+#include "Spirit/System.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Transitions.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/Log.h"
 
 #include <memory>
 

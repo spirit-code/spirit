@@ -23,9 +23,7 @@ input_*
 */input_*
 
 ### Executables and Libraries ###
-spirit
-core.js
-core.js.mem
+/spirit
 
 ### Generated Files
 VERSION.txt

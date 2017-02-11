@@ -4,48 +4,31 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Build Flags #######################
-### These decide which projects are built
-option( BUILD_UI_WEB     "Build the JavaScript library for the Web UI."                 OFF )
-option( BUILD_UI_JULIA   "Build the shared library for the Julia UI."                   OFF )
-option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  ON  )
-option( BUILD_UI_CXX     "Build the C++ UIs (console or QT)"                            ON  )
-option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
-### Bundle option
-option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
 ### CMake Verbosity
-option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
-### Option for building on the IFF cluster
-option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+SET( SPIRIT_PRINT_SOURCES     OFF  CACHE BOOL "Print Spirit Headers and Sources from CMake." )
+### These decide which projects are built
+SET( SPIRIT_BUILD_FOR_JS      OFF  CACHE BOOL "Build the JavaScript library." )
+SET( SPIRIT_BUILD_FOR_JULIA   OFF  CACHE BOOL "Build the shared library for Julia." )
+SET( SPIRIT_BUILD_FOR_PYTHON  ON   CACHE BOOL "Build the shared library for Python." )
+SET( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ applications" )
 ### Options for Spirit
-option( SPIRIT_BUILD_TEST  "Build unit tests for the Spirit library."                   ON  )
-option( SPIRIT_USE_CUDA    "Use CUDA to speed up certain parts of the code."            OFF )
-option( SPIRIT_USE_THREADS "Use std threads to speed up certain parts of the code."     OFF )
+SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
+SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
+SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
 #############################################
-if( SPIRIT_USE_CUDA )
-	set( SPIRIT_SCALAR_TYPE float )
-	set( BUILD_UI_WEB       OFF )
-	set( BUILD_UI_JULIA     OFF )
-endif()
+### CMake Verbosity
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
+### Decide CXX UI
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
+### Bundle option
+option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
+### Option for building on the IFF cluster
+option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
 #############################################
-if( BUILD_UI_WEB )
-	### UI-Web needs float
-	set( SPIRIT_SCALAR_TYPE 	float )
-	### UI-Web needs to be built alone, as it
-	### uses a different toolchain
-	set( SPIRIT_BUILD_TEST    OFF )
-	set( BUILD_UI_JULIA 	OFF )
-	set( BUILD_UI_PYTHON 	OFF )
-	set( BUILD_UI_CXX 		OFF )
-	### Emscripten cannot use cuda or threads
-	set( SPIRIT_USE_CUDA 		OFF )
-	set( SPIRIT_USE_THREADS 	OFF )
-endif()
-#############################################
-if( SPIRIT_BUILD_TEST )
-    enable_testing()
-endif()
+
+
 #############################################
 if (SPIRIT_USE_CUDA)
     MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
@@ -143,7 +126,7 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 ### Spirit library is built in any case
 add_subdirectory( core )
 ### CXX UI
-if( BUILD_UI_CXX )
+if( SPIRIT_BUILD_FOR_CXX )
 	if ( UI_CXX_USE_QT )
 		add_subdirectory( VFRendering )
 		add_subdirectory( ui-qt )
@@ -152,7 +135,7 @@ if( BUILD_UI_CXX )
 	endif()
 endif()
 ### Web UI
-if( BUILD_UI_WEB )
+if( SPIRIT_BUILD_FOR_JS )
 	add_subdirectory( ui-web )
 endif()
 #############################################

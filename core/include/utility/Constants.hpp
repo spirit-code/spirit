@@ -11,6 +11,9 @@ namespace Utility
 
 		// The Boltzmann constant [meV / K]
         double const k_B  = 0.08617330350;
+
+        // Pi [rad]
+        double const Pi = 3.14159265358979323846;
     }
 }
 

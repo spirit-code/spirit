@@ -44,7 +44,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ### Include Core headers
 include_directories(${PROJECT_SOURCE_DIR}/include
-					${CORE_INCLUDE_DIRS})
+					${SPIRIT_INCLUDE_DIRS})
 
 ######### Declare File groups ###############
 ### Header Gropus
@@ -87,16 +87,16 @@ set(SOURCE_UI_WEB_ROOT)
 # add_custom_target(corejs ALL DEPENDS core.js coreinterface)
 
 
-add_executable( corejs main_js.cxx
+add_executable( spirit_js main_js.cxx
 				${HEADER_UI_WEB_ROOT}
 				${SOURCE_UI_WEB_ROOT})
 
-target_link_libraries( corejs core )
+target_link_libraries( spirit_js ${SPIRIT_LIBRARIES_STATIC} )
 
-set_target_properties( corejs PROPERTIES OUTPUT_NAME "core" )
+set_target_properties( spirit_js PROPERTIES OUTPUT_NAME "spirit" )
 ### We want it to be placed under ui-web/ s.t. it is directly part of the python core module/package
-set( COREJS_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-web/ )
-set_target_properties( corejs PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${COREJS_OUTPUT_DIR} )
+set( SPIRIT_JS_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-web/ )
+set_target_properties( spirit_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SPIRIT_JS_OUTPUT_DIR} )
 
 
 

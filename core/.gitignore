@@ -6,7 +6,6 @@
 !output/.gitkeep
 
 ### Executables and Libraries ###
-spirit
 spirit.js
 spirit.js.mem
 
