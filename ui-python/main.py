@@ -2,8 +2,8 @@ import os
 import sys
 
 ### Make sure to find the Spirit modules
-spirit_py_dir = os.path.dirname(os.path.realpath(__file__)) + "core/python/Spirit"
-# spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "..", "/ui-python/core"))
+# spirit_py_dir = os.path.dirname(os.path.realpath(__file__)) + "core/python/Spirit"
+spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "../core/python"))
 sys.path.insert(0, spirit_py_dir)
 
 

@@ -10,13 +10,13 @@ def LoadSpiritLibrary():
     ### Get the Operating System and set lib name accordingly
     if _platform == "linux" or _platform == "linux2":
         # Linux
-        libname = 'libspirit.so'
+        libname = 'libSpirit.so'
     elif _platform == "darwin":
         # OS X
-        libname = 'libspirit.dylib'
+        libname = 'libSpirit.dylib'
     elif _platform == "win32":
         # Windows
-        libname = 'spirit.dll'
+        libname = 'Spirit.dll'
 
     ### Load the Spirit library
     _spirit = ctypes.CDLL(spirit_py_dir + '/' + libname)

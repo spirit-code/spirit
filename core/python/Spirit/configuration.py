@@ -52,11 +52,11 @@ def Add_Noise_Temperature(p_state, temperature, pos=[0,0,0], border_rectangular=
 
 ### Skyrmion configuration
 _Skyrmion             = _spirit.Configuration_Skyrmion
-_Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, ctypes.c_bool, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, ctypes.c_bool, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Skyrmion.restype     = None
 def Skyrmion(p_state, radius, order=1, phase=1, upDown=False, achiral=False, rightleft=False, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Skyrmion(p_state, radius, order, phase, ctypes.c_bool(upDown), ctypes.c_bool(achiral), ctypes.c_bool(rightleft), vec3(*pos), vec3(*border_rectangular), border_cylindrical, border_spherical, ctypes.c_bool(inverted), False, idx_image, idx_chain)
+    _Skyrmion(p_state, radius, order, phase, ctypes.c_bool(upDown), ctypes.c_bool(achiral), ctypes.c_bool(rightleft), vec3(*pos), vec3(*border_rectangular), border_cylindrical, border_spherical, ctypes.c_bool(inverted), idx_image, idx_chain)
 
 
 ### Hopfion configuration

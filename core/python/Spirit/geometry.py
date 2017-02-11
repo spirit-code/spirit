@@ -5,8 +5,8 @@ import ctypes
 _spirit = spiritlib.LoadSpiritLibrary()
 
 ### Imports
-from spirit.scalar import scalar
-import spirit.system as system
+from Spirit.scalar import scalar
+import Spirit.system as system
 
 import numpy as np
 
