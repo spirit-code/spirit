@@ -17,9 +17,19 @@ cfgfile = "input/input.cfg"
 class TestConfigurations(unittest.TestCase):
     def test(self):
         with state.State(cfgfile) as p_state:
+            # Noise
             configuration.Random(p_state)
+            configuration.Add_Noise_Temperature(p_state, 5)
+            # Homogeneous
             configuration.PlusZ(p_state)
             configuration.MinusZ(p_state)
+            configuration.Domain(p_state, [1,1,1])
+            # Skyrmion
+            configuration.Skyrmion(p_state, 5)
+            # Hopfion
+            configuration.Hopfion(p_state, 5)
+            # Spin Spiral
+            configuration.SpinSpiral(p_state, "Real Lattice", [0,0,0.1], [0,0,1], 30)
 
 #########
 
