@@ -40,11 +40,12 @@ vec3 colormap(vec3 direction);
 bool is_visible(vec3 position, vec3 direction);
 
 void main(void) {
-  vfColor = colormap(normalize(ivInstanceDirection));
-  mat3 instanceMatrix = matrixFromDirection(ivInstanceDirection);
-  vfNormal = (uModelviewMatrix * vec4(instanceMatrix*ivNormal, 0.0)).xyz;
-  vfPosition = (uModelviewMatrix * vec4(instanceMatrix*ivPosition+ivInstanceOffset, 1.0)).xyz;
-  if (is_visible(ivInstanceOffset, ivInstanceDirection)) {
+  float direction_length = length(ivInstanceDirection);
+  if (is_visible(ivInstanceOffset, ivInstanceDirection) && direction_length > 0) {
+    vfColor = colormap(normalize(ivInstanceDirection));
+    mat3 instanceMatrix = direction_length * matrixFromDirection(ivInstanceDirection/direction_length);
+    vfNormal = (uModelviewMatrix * vec4(instanceMatrix*ivNormal, 0.0)).xyz;
+    vfPosition = (uModelviewMatrix * vec4(instanceMatrix*ivPosition+ivInstanceOffset, 1.0)).xyz;
     gl_Position = uProjectionMatrix * vec4(vfPosition, 1.0);
   } else {
     gl_Position = vec4(2.0, 2.0, 2.0, 0.0);
