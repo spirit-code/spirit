@@ -590,8 +590,24 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	
-	// Overall filter
+
+	// Overall filter X
+	horizontalSlider_overall_xmin->setInvertedAppearance(true);
+	horizontalSlider_overall_xmin->setRange(-100, 100);
+	horizontalSlider_overall_xmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_xmax->setRange(-100, 100);
+	horizontalSlider_overall_xmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_xmin->setTracking(true);
+	horizontalSlider_overall_xmax->setTracking(true);
+	// Overall filter Y
+	horizontalSlider_overall_ymin->setInvertedAppearance(true);
+	horizontalSlider_overall_ymin->setRange(-100, 100);
+	horizontalSlider_overall_ymin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_ymax->setRange(-100, 100);
+	horizontalSlider_overall_ymax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_ymin->setTracking(true);
+	horizontalSlider_overall_ymax->setTracking(true);
+	// Overall filter Z
 	horizontalSlider_overall_zmin->setInvertedAppearance(true);
 	horizontalSlider_overall_zmin->setRange(-100, 100);
 	horizontalSlider_overall_zmin->setValue((int)(-z_range.x * 100));
@@ -635,6 +651,13 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Colormap
 	int idx_cm = (int)_spinWidget->colormap();
 	comboBox_colormap->setCurrentIndex(idx_cm);
+	float cm_rotation = _spinWidget->colormap_rotation();
+	auto cm_inverted = _spinWidget->colormap_inverted();
+	horizontalSlider_colormap_rotate_phi->setRange(0, 360);
+	horizontalSlider_colormap_rotate_phi->setValue(cm_rotation);
+	lineEdit_colormap_rotate_phi->setText(QString::number(cm_rotation));
+	checkBox_colormap_invert_z->setChecked(cm_inverted[0]);
+	checkBox_colormap_invert_z->setChecked(cm_inverted[1]);
 
 	// Perspective / FOV
 	if (_spinWidget->verticalFieldOfView() == 0)
@@ -1354,31 +1377,74 @@ void SettingsWidget::set_visualization_system_surface()
 	float z_min = bounds_min[2] + (s_min / 100000.0) * (bounds_max[2] - bounds_min[2]);
 	float z_max = bounds_min[2] + (s_max / 100000.0) * (bounds_max[2] - bounds_min[2]);
 
+	// Set
 	glm::vec2 x_range(x_min, x_max);
 	glm::vec2 y_range(y_min, y_max);
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
 }
 
-void SettingsWidget::set_visualization_system_overall()
+void SettingsWidget::set_visualization_system_overall_direction_x()
 {
-	float z_range_min = -horizontalSlider_overall_zmin->value() / 100.0;
-	float z_range_max = horizontalSlider_overall_zmax->value() / 100.0;
-	if (z_range_min > z_range_max)
+	float range_min = -horizontalSlider_overall_xmin->value() / 100.0;
+	float range_max =  horizontalSlider_overall_xmax->value() / 100.0;
+	if (range_min > range_max)
 	{
-		float t = z_range_min;
-		z_range_min = z_range_max;
-		z_range_max = t;
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_xmin->blockSignals(true);
+	horizontalSlider_overall_xmax->blockSignals(true);
+	horizontalSlider_overall_xmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_xmax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_xmin->blockSignals(false);
+	horizontalSlider_overall_xmax->blockSignals(false);
+
+	glm::vec2 range(range_min, range_max);
+	_spinWidget->setXRange(range);
+}
+
+void SettingsWidget::set_visualization_system_overall_direction_y()
+{
+	float range_min = -horizontalSlider_overall_ymin->value() / 100.0;
+	float range_max =  horizontalSlider_overall_ymax->value() / 100.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_ymin->blockSignals(true);
+	horizontalSlider_overall_ymax->blockSignals(true);
+	horizontalSlider_overall_ymin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_ymax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_ymin->blockSignals(false);
+	horizontalSlider_overall_ymax->blockSignals(false);
+
+	glm::vec2 range(range_min, range_max);
+	_spinWidget->setYRange(range);
+}
+
+void SettingsWidget::set_visualization_system_overall_direction_z()
+{
+	float range_min = -horizontalSlider_overall_zmin->value() / 100.0;
+	float range_max =  horizontalSlider_overall_zmax->value() / 100.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
 	}
 	horizontalSlider_overall_zmin->blockSignals(true);
 	horizontalSlider_overall_zmax->blockSignals(true);
-	horizontalSlider_overall_zmin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_overall_zmax->setValue((int)(z_range_max * 100));
+	horizontalSlider_overall_zmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_zmax->setValue((int)( range_max * 100));
 	horizontalSlider_overall_zmin->blockSignals(false);
 	horizontalSlider_overall_zmax->blockSignals(false);
 
-	glm::vec2 z_range(z_range_min, z_range_max);
-	_spinWidget->setZRange(z_range);
+	glm::vec2 range(range_min, range_max);
+	_spinWidget->setZRange(range);
 }
 
 void SettingsWidget::set_visualization_system_isosurface()
@@ -1455,6 +1521,29 @@ void SettingsWidget::set_visualization_colormap()
 		colormap = SpinWidget::Colormap::BLACK;
 	}
 	_spinWidget->setColormap(colormap);
+}
+
+
+void SettingsWidget::set_visualization_colormap_rotation_slider()
+{
+	int phi   = this->horizontalSlider_colormap_rotate_phi->value();
+	bool invert_z = this->checkBox_colormap_invert_z->isChecked();
+	bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
+
+	this->lineEdit_colormap_rotate_phi->setText(QString::number(phi));
+
+	this->_spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
+}
+
+void SettingsWidget::set_visualization_colormap_rotation_lineEdit()
+{
+	int phi   = this->lineEdit_colormap_rotate_phi->text().toInt();
+	bool invert_z = this->checkBox_colormap_invert_z->isChecked();
+	bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
+
+	this->horizontalSlider_colormap_rotate_phi->setValue(phi);
+
+	this->_spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
 }
 
 void SettingsWidget::set_visualization_background()
@@ -1765,9 +1854,15 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	//		overall
-	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
-	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
+	connect(horizontalSlider_overall_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_x()));
+	connect(horizontalSlider_overall_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_x()));
+	connect(horizontalSlider_overall_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_y()));
+	connect(horizontalSlider_overall_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_y()));
+	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_z()));
+	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_z()));
 	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
@@ -1780,6 +1875,10 @@ void SettingsWidget::Setup_Visualization_Slots()
 	// Colors
 	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
 	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	connect(horizontalSlider_colormap_rotate_phi,   SIGNAL(valueChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
+	connect(this->lineEdit_colormap_rotate_phi,   SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
+	connect(this->checkBox_colormap_invert_z, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
+	connect(this->checkBox_colormap_invert_xy, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
 	// Camera
 	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
 	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
@@ -1905,6 +2004,8 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
 	//		Isovalue
 	this->lineEdit_isovalue->setValidator(this->number_validator);
+	//		Colormap
+	this->lineEdit_colormap_rotate_phi->setValidator(this->number_validator_int_unsigned);
 	//		Camera
 	this->lineEdit_camera_pos_x->setValidator(this->number_validator);
 	this->lineEdit_camera_pos_y->setValidator(this->number_validator);

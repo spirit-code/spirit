@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>677</width>
-    <height>1840</height>
+    <width>669</width>
+    <height>2149</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1791</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1316,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1791</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1731</height>
+            <width>643</width>
+            <height>2056</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2258,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1731</height>
+            <width>643</width>
+            <height>2056</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2724,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1791</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3112,8 +3112,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>1791</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3739,7 +3739,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_10">
              <property name="title">
-              <string>Overall Filter</string>
+              <string>Overall Direction Filter</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_71">
               <item row="0" column="1">
@@ -3791,6 +3791,80 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_67">
+                <property name="text">
+                 <string>y component</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_68">
+                <property name="text">
+                 <string>x component</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_83">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_ymin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_ymax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_85">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_xmin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_xmax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -4178,14 +4252,52 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>130</height>
+               <height>180</height>
               </size>
              </property>
              <property name="title">
               <string>Colors</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_52">
-              <item row="2" column="0">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_61">
+                <property name="text">
+                 <string>Rotate Colormap</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="comboBox_backgroundColor">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gray</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="5" column="0">
                <widget class="QLabel" name="label_38">
                 <property name="text">
                  <string>Background Color</string>
@@ -4198,26 +4310,6 @@
                  <string>Colormap</string>
                 </property>
                </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_61">
-                <property name="text">
-                 <string>Rotate Colormap</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_39">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="comboBox_colormap">
@@ -4275,41 +4367,30 @@
                 </item>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="comboBox_backgroundColor">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="checkBox_colormap_invert_z">
+                <property name="text">
+                 <string>Invert z-component</string>
                 </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Black</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Gray</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>White</string>
-                 </property>
-                </item>
                </widget>
               </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_39">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_72">
+               <layout class="QGridLayout" name="gridLayout_82">
                 <item row="0" column="0">
-                 <widget class="QLineEdit" name="lineEdit_colormap_rotate">
+                 <widget class="QLineEdit" name="lineEdit_colormap_rotate_phi">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -4328,7 +4409,7 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_colormap_rotate">
+                 <widget class="QSlider" name="horizontalSlider_colormap_rotate_phi">
                   <property name="maximumSize">
                    <size>
                     <width>100</width>
@@ -4341,6 +4422,13 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="4" column="1">
+               <widget class="QCheckBox" name="checkBox_colormap_invert_xy">
+                <property name="text">
+                 <string>Invert xy-component</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

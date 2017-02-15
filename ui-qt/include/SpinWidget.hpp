@@ -97,8 +97,12 @@ public:
   void setArrows(float size=1, int lod=20);
   float arrowSize() const;
   int arrowLOD() const;
+  glm::vec2 xRange() const;
+  void setXRange(glm::vec2 range);
+  glm::vec2 yRange() const;
+  void setYRange(glm::vec2 range);
   glm::vec2 zRange() const;
-  void setZRange(glm::vec2 z_range);
+  void setZRange(glm::vec2 range);
   //    Bounding Box
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
@@ -123,6 +127,9 @@ public:
   // --- Colors
   Colormap colormap() const;
   void setColormap(Colormap colormap);
+  float colormap_rotation();
+  std::array<bool, 2> colormap_inverted();
+  void setColormapRotationInverted(int phi=0, bool invert_z=false, bool invert_xy=false);
   Color backgroundColor() const;
   void setBackgroundColor(Color background_color);
   Color boundingBoxColor() const;
@@ -187,7 +194,13 @@ private:
 
   const VFRendering::Options& options() const;
   
+  // Parameters
   Colormap m_colormap;
+  int m_colormap_rotation;
+  bool m_colormap_invert_z;
+  bool m_colormap_invert_xy;
+  glm::vec2 m_x_range;
+  glm::vec2 m_y_range;
   glm::vec2 m_z_range;
   
   // Visualisation

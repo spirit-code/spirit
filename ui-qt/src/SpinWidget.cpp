@@ -1,4 +1,4 @@
-#include <fstream>
+// #include <fstream>
 #include <sstream>
 #include "SpinWidget.hpp"
 
@@ -13,6 +13,7 @@
 #include <VFRendering/VectorSphereRenderer.hxx>
 #include <VFRendering/CoordinateSystemRenderer.hxx>
 
+#include <locale>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Spirit/Geometry.h"
@@ -37,6 +38,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	// Default VFRendering Settings
 
     setColormap(Colormap::HSV);
+	setColormapRotationInverted(0, false, false);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
@@ -98,39 +100,31 @@ void SpinWidget::initializeGL()
 	glm::vec3 indis{ indi_length*periodical[0], indi_length*periodical[1], indi_length*periodical[2] };
 
 	this->m_renderer_boundingbox = std::make_shared<VFRendering::BoundingBoxRenderer>(VFRendering::BoundingBoxRenderer::forCuboid(m_view, bounding_box_center, bounding_box_side_lengths, indis, indi_dashes_per_length));
-	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
-	{
-		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
-		this->m_renderer_surface = m_renderer_surface_2D;
-	}
-	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
-	{
-		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
-		this->m_renderer_surface = m_renderer_surface_3D;
-		this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
-	}
+	
 	std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = {
 		m_renderer_arrows,
 		m_renderer_boundingbox
 	};
-	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
+	
 
 	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
 		// 2D Surface options
 		// No options yet...
+		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
+		this->m_renderer_surface = m_renderer_surface_2D;
 	}
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
+
 		// 3D Surface options
-		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
-		{
-			if (position.x < x_range.x || position.x > x_range.y || position.y < y_range.x || position.y > y_range.y || position.z < z_range.x || position.z > z_range.y) return 1;
-			else if (position.x == x_range.x || position.x == x_range.y || position.y == y_range.x || position.y == y_range.y || position.z == z_range.x || position.z == z_range.y) return 0;
-			else return -1;
-		});
+		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+		auto mini_diff = glm::vec2{0.00001f, -0.00001f};
+		setSurface(x_range + mini_diff, y_range + mini_diff, z_range + mini_diff);
+
 		// Isosurface options
+		this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 		if (this->m_isocomponent == 0)
 		{
 			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
@@ -169,7 +163,11 @@ void SpinWidget::initializeGL()
 			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return 1.0; }");
 		}
 		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
+
+		this->m_renderer_surface = m_renderer_surface_3D;
 	}
+
+	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
 
 	//	Sphere
 	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view);
@@ -339,7 +337,7 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 
 	if (event->modifiers() & Qt::ShiftModifier)
 	{
-		scale = 0.1;
+		scale = 0.1f;
 	}
 
 	float wheel_delta = event->angleDelta().y();
@@ -511,36 +509,108 @@ int SpinWidget::arrowLOD() const {
 	return LOD;
 }
 
-/////	Z Range (Arrows?)
+/////	X Range Directions
+glm::vec2 SpinWidget::xRange() const {
+	return m_x_range;
+}
+void SpinWidget::setXRange(glm::vec2 range) {
+	m_x_range = range;
+	std::string is_visible_implementation;
+	if (range.x <= -1 && range.y >= 1) {
+		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
+	}
+	else if (range.x <= -1) {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_max = ";
+		sstream << range.y;
+		sstream << "; return normalize(direction).x <= x_max; }";
+		is_visible_implementation = sstream.str();
+	}
+	else if (range.y >= 1) {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_min = ";
+		sstream << range.x;
+		sstream << "; return normalize(direction).x >= x_min; }";
+		is_visible_implementation = sstream.str();
+	}
+	else {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_min = ";
+		sstream << range.x;
+		sstream << "; float x_max = ";
+		sstream << range.y;
+		sstream << "; float x = normalize(direction).x;  return x >= x_min && x <= x_max; }";
+		is_visible_implementation = sstream.str();
+	}
+	makeCurrent();
+	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
+}
+/////	Y Range Directions
+glm::vec2 SpinWidget::yRange() const {
+	return m_y_range;
+}
+void SpinWidget::setYRange(glm::vec2 range) {
+	m_y_range = range;
+	std::string is_visible_implementation;
+	if (range.x <= -1 && range.y >= 1) {
+		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
+	}
+	else if (range.x <= -1) {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_max = ";
+		sstream << range.y;
+		sstream << "; return normalize(direction).y <= y_max; }";
+		is_visible_implementation = sstream.str();
+	}
+	else if (range.y >= 1) {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_min = ";
+		sstream << range.x;
+		sstream << "; return normalize(direction).y >= y_min; }";
+		is_visible_implementation = sstream.str();
+	}
+	else {
+		std::ostringstream sstream;
+		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_min = ";
+		sstream << range.x;
+		sstream << "; float y_max = ";
+		sstream << range.y;
+		sstream << "; float y = normalize(direction).y;  return y >= y_min && y <= y_max; }";
+		is_visible_implementation = sstream.str();
+	}
+	makeCurrent();
+	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
+}
+/////	Z Range Directions
 glm::vec2 SpinWidget::zRange() const {
 	return m_z_range;
 }
-void SpinWidget::setZRange(glm::vec2 z_range) {
-	m_z_range = z_range;
+void SpinWidget::setZRange(glm::vec2 range) {
+	m_z_range = range;
 	std::string is_visible_implementation;
-	if (z_range.x <= -1 && z_range.y >= 1) {
+	if (range.x <= -1 && range.y >= 1) {
 		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
 	}
-	else if (z_range.x <= -1) {
+	else if (range.x <= -1) {
 		std::ostringstream sstream;
 		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_max = ";
-		sstream << z_range.y;
+		sstream << range.y;
 		sstream << "; return normalize(direction).z <= z_max; }";
 		is_visible_implementation = sstream.str();
 	}
-	else if (z_range.y >= 1) {
+	else if (range.y >= 1) {
 		std::ostringstream sstream;
 		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_min = ";
-		sstream << z_range.x;
+		sstream << range.x;
 		sstream << "; return normalize(direction).z >= z_min; }";
 		is_visible_implementation = sstream.str();
 	}
 	else {
 		std::ostringstream sstream;
 		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_min = ";
-		sstream << z_range.x;
+		sstream << range.x;
 		sstream << "; float z_max = ";
-		sstream << z_range.y;
+		sstream << range.y;
 		sstream << "; float z = normalize(direction).z;  return z >= z_min && z <= z_max; }";
 		is_visible_implementation = sstream.str();
 	}
@@ -717,56 +787,167 @@ SpinWidget::Colormap SpinWidget::colormap() const
 void SpinWidget::setColormap(Colormap colormap)
 {
   m_colormap = colormap;
-  
-  std::string colormap_implementation;
-  switch (colormap) {
-    case Colormap::HSV:
-		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
-		break;
-    case Colormap::BLUE_RED:
-		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUERED);
-		break;
-    case Colormap::BLUE_GREEN_RED:
-		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEGREENRED);
-		break;
-    case Colormap::BLUE_WHITE_RED:
-		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLUEWHITERED);
-		break;
-    // Custom color maps not included in VFRendering:
-    case Colormap::HSV_NO_Z:
-		colormap_implementation = R"(
-		float atan2(float y, float x) {
-			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
-		}
-		vec3 hsv2rgb(vec3 c) {
-			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-		}
-		vec3 colormap(vec3 direction) {
-			vec2 xy = normalize(direction.xy);
-			float hue = atan2(xy.x, xy.y) / 3.14159 / 2.0;
-			return hsv2rgb(vec3(hue, 1.0, 1.0));
-		}
-		)";
-		break;
-    case Colormap::WHITE:
-		colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
-		break;
-    case Colormap::GRAY:
-		colormap_implementation = R"(
-			vec3 colormap(vec3 direction) {
-				return vec3(0.5, 0.5, 0.5);
+  setColormapRotationInverted(colormap_rotation(), colormap_inverted()[0], colormap_inverted()[1]);
+}
+
+float SpinWidget::colormap_rotation()
+{
+	return this->m_colormap_rotation;
+}
+
+std::array<bool, 2> SpinWidget::colormap_inverted()
+{
+	return std::array<bool, 2>{this->m_colormap_invert_z, this->m_colormap_invert_xy};
+}
+
+void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert_xy)
+{
+	this->m_colormap_rotation = phi;
+	this->m_colormap_invert_z = invert_z;
+	this->m_colormap_invert_xy = invert_xy;
+	int sign_z  = 1 - 2 * (int)invert_z;
+	int sign_xy = 1 - 2 * (int)invert_xy;
+
+	float P = glm::radians((float)phi)   / 3.14159;
+
+	// Get strings from floats - For some reason the locale is messed up...
+	auto old = std::locale::global(std::locale::classic());
+	std::locale::global(old);
+	// setlocale(LC_ALL, "en_US");
+	char s_phi[50];
+	sprintf (s_phi, "%f", P);
+	char s_sign_z[50];
+	sprintf (s_sign_z, "%i", sign_z);
+	char s_sign_xy[50];
+	sprintf (s_sign_xy, "%i", sign_xy);
+	// std::string s_phi   = std::to_string(P);
+	// std::cerr << "-  " << phi << " " << sign_z << " " << sign_xy << std::endl;
+	// std::cerr << "   " << s_phi << " " << s_sign_z << " " << s_sign_xy << std::endl;
+	std::string colormap_implementation;
+	switch (m_colormap)
+	{
+		case Colormap::WHITE:
+			colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
+			break;
+		case Colormap::GRAY:
+			colormap_implementation = R"(
+				vec3 colormap(vec3 direction) {
+					return vec3(0.5, 0.5, 0.5);
+				}
+			)";
+			break;
+		case Colormap::BLACK:
+			colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLACK);
+			break;
+		// Custom color maps not included in VFRendering:
+		case Colormap::HSV:
+			colormap_implementation = R"(
+			float atan2(float y, float x) {
+				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
 			}
-      	)";
-      break;
-    case Colormap::BLACK:
-      	colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLACK);
-      	break;
-    default:
-      	colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::HSV);
-      	break;
+			vec3 hsv2rgb(vec3 c) {
+				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+			}
+			vec3 colormap(vec3 direction) {
+				vec2 xy = normalize(direction.xy);
+				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
+				float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+				if (saturation > 0.0) {
+					return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
+				} else {
+					return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
+				}
+			}
+			)";
+			break;
+		case Colormap::HSV_NO_Z:
+			colormap_implementation = R"(
+			float atan2(float y, float x) {
+				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+			}
+			vec3 hsv2rgb(vec3 c) {
+				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+			}
+			vec3 colormap(vec3 direction) {
+				vec2 xy = normalize(direction.xy);
+				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(;
+				return hsv2rgb(vec3(hue, 1.0, 1.0));
+			}
+			)";
+			break;
+		case Colormap::BLUE_RED:
+			colormap_implementation = R"(
+			vec3 colormap(vec3 direction) {
+				float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+				vec3 color_down = vec3(0.0, 0.0, 1.0);
+				vec3 color_up = vec3(1.0, 0.0, 0.0);
+				return mix(color_down, color_up, z_sign*0.5+0.5);
+			}
+			)";
+			break;
+		case Colormap::BLUE_GREEN_RED:
+			colormap_implementation = R"(
+			float atan2(float y, float x) {
+				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+			}
+			vec3 hsv2rgb(vec3 c) {
+				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+			}
+
+			vec3 colormap(vec3 direction) {
+				float hue = 1.0/3.0-normalize(direction).z/3.0* )" + std::string(s_sign_z) + R"(;
+				return hsv2rgb(vec3(hue, 1.0, 1.0));
+			}
+			)";
+			break;
+		case Colormap::BLUE_WHITE_RED:
+			colormap_implementation = R"(
+			vec3 colormap(vec3 direction) {
+				float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+				if (z_sign < 0) {
+					vec3 color_down = vec3(0.0, 0.0, 1.0);
+					vec3 color_up = vec3(1.0, 1.0, 1.0);
+					return mix(color_down, color_up, z_sign+1);
+				} else {
+					vec3 color_down = vec3(1.0, 1.0, 1.0);
+					vec3 color_up = vec3(1.0, 0.0, 0.0);
+					return mix(color_down, color_up, z_sign);
+				}
+			}
+			)";
+			break;
+		// Default is regular HSV
+		default:
+			colormap_implementation = R"(
+			float atan2(float y, float x) {
+				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+			}
+			vec3 hsv2rgb(vec3 c) {
+				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+			}
+			vec3 colormap(vec3 direction) {
+				vec2 xy = normalize(direction.xy);
+				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
+				float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+				if (saturation > 0.0) {
+					return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
+				} else {
+					return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
+				}
+			}
+			)";
+			break;
   }
+
+  // Set colormap
   makeCurrent();
   m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
 }
@@ -1050,6 +1231,9 @@ void SpinWidget::writeSettings()
 	settings.beginGroup("Colors");
 	settings.setValue("Background Color", (int)backgroundColor());
 	settings.setValue("Colormap", (int)colormap());
+	settings.setValue("Colormap_invert_z", m_colormap_invert_z);
+	settings.setValue("Colormap_invert_xy", m_colormap_invert_xy);
+	settings.setValue("Colormap_rotation",   m_colormap_rotation);
 	settings.endGroup();
 
 	// Camera
@@ -1144,6 +1328,10 @@ void SpinWidget::readSettings()
 		else this->setBoundingBoxColor((Color)2);
 		int map = settings.value("Colormap").toInt();
 		this->setColormap((Colormap)map);
+		bool invert_z = settings.value("Colormap_invert_z").toInt();
+		bool invert_xy = settings.value("Colormap_invert_xy").toInt();
+		int phi   = settings.value("Colormap_rotation").toInt();
+		this->setColormapRotationInverted(phi, invert_z, invert_xy);
 		settings.endGroup();
 	}
 
