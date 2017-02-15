@@ -270,33 +270,17 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 		}
 	}
-	
-	// Custom Key Sequences (Shift)
-	else if (k->modifiers() & Qt::ShiftModifier)
-	{
-		switch (k->key())
-		{
-			// Camera
-			case Qt::Key_X:
-				this->spinWidget->setCameraToX(true);
-				break;
-			case Qt::Key_Y:
-				this->spinWidget->setCameraToY(true);
-				break;
-			case Qt::Key_Z:
-				this->spinWidget->setCameraToZ(true);
-				break;
-		}
-	}
 
 	// Single Keys
 	else
 	{
 		// Movement scaling
 		float scale = 20;
+		bool shiftpressed = false;
 		if (k->modifiers() & Qt::ShiftModifier)
 		{
 			scale = 2;
+			shiftpressed = true;
 		}
 
 		switch (k->key())
@@ -414,13 +398,13 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// Camera
 			case Qt::Key_X:
-				this->spinWidget->setCameraToX();
+				this->spinWidget->setCameraToX(shiftpressed);
 				break;
 			case Qt::Key_Y:
-				this->spinWidget->setCameraToY();
+				this->spinWidget->setCameraToY(shiftpressed);
 				break;
 			case Qt::Key_Z:
-				this->spinWidget->setCameraToZ();
+				this->spinWidget->setCameraToZ(shiftpressed);
 				break;
 		}
 	}
