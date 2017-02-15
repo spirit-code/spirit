@@ -44,9 +44,18 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(0.0625f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(0.35f);
-	
-    setZRange({-1, 1});
 
+	setOverallDirectionRange({ -1, 1 }, { -1, 1 }, { -1, 1 });
+
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
+	glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
+	glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
+	setOverallPositionRange(x_range, y_range, z_range);
+	
 	this->m_source = 0;
 	this->visMode = VisualizationMode::SYSTEM;
 	this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
@@ -509,114 +518,153 @@ int SpinWidget::arrowLOD() const {
 	return LOD;
 }
 
-/////	X Range Directions
-glm::vec2 SpinWidget::xRange() const {
-	return m_x_range;
+
+/////	Overall Range Directions
+glm::vec2 SpinWidget::xRangeDirection() const {
+	return m_x_range_direction;
 }
-void SpinWidget::setXRange(glm::vec2 range) {
-	m_x_range = range;
+glm::vec2 SpinWidget::yRangeDirection() const {
+	return m_y_range_direction;
+}
+glm::vec2 SpinWidget::zRangeDirection() const {
+	return m_z_range_direction;
+}
+
+void SpinWidget::setOverallDirectionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range) {
+	std::ostringstream sstream;
 	std::string is_visible_implementation;
-	if (range.x <= -1 && range.y >= 1) {
-		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
+	sstream << "bool is_visible(vec3 position, vec3 direction) {";
+	// X
+	m_x_range_direction = x_range;
+	if (x_range.x <= -1 && x_range.y >= 1) {
+		sstream << "bool is_visible_x = true;";
 	}
-	else if (range.x <= -1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_max = ";
-		sstream << range.y;
-		sstream << "; return normalize(direction).x <= x_max; }";
-		is_visible_implementation = sstream.str();
+	else if (x_range.x <= -1) {
+		sstream << "float x_max = ";
+		sstream << x_range.y;
+		sstream << "; bool is_visible_x = normalize(direction).x <= x_max;";
 	}
-	else if (range.y >= 1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_min = ";
-		sstream << range.x;
-		sstream << "; return normalize(direction).x >= x_min; }";
-		is_visible_implementation = sstream.str();
+	else if (x_range.y >= 1) {
+		sstream << "float x_min = ";
+		sstream << x_range.x;
+		sstream << "; bool is_visible_x = normalize(direction).x >= x_min;";
 	}
 	else {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float x_min = ";
-		sstream << range.x;
+		sstream << "float x_min = ";
+		sstream << x_range.x;
 		sstream << "; float x_max = ";
-		sstream << range.y;
-		sstream << "; float x = normalize(direction).x;  return x >= x_min && x <= x_max; }";
-		is_visible_implementation = sstream.str();
+		sstream << x_range.y;
+		sstream << "; float x = normalize(direction).x; bool is_visible_x = x >= x_min && x <= x_max;";
 	}
-	makeCurrent();
-	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
-}
-/////	Y Range Directions
-glm::vec2 SpinWidget::yRange() const {
-	return m_y_range;
-}
-void SpinWidget::setYRange(glm::vec2 range) {
-	m_y_range = range;
-	std::string is_visible_implementation;
-	if (range.x <= -1 && range.y >= 1) {
-		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
+	// Y
+	m_y_range_direction = y_range;
+	if (y_range.x <= -1 && y_range.y >= 1) {
+		sstream << "bool is_visible_y = true;";
 	}
-	else if (range.x <= -1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_max = ";
-		sstream << range.y;
-		sstream << "; return normalize(direction).y <= y_max; }";
-		is_visible_implementation = sstream.str();
+	else if (y_range.x <= -1) {
+		sstream << "float y_max = ";
+		sstream << y_range.y;
+		sstream << "; bool is_visible_y = normalize(direction).y <= y_max;";
 	}
-	else if (range.y >= 1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_min = ";
-		sstream << range.x;
-		sstream << "; return normalize(direction).y >= y_min; }";
-		is_visible_implementation = sstream.str();
+	else if (y_range.y >= 1) {
+		sstream << "float y_min = ";
+		sstream << y_range.x;
+		sstream << "; bool is_visible_y = normalize(direction).y >= y_min;";
 	}
 	else {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float y_min = ";
-		sstream << range.x;
+		sstream << "float y_min = ";
+		sstream << y_range.x;
 		sstream << "; float y_max = ";
-		sstream << range.y;
-		sstream << "; float y = normalize(direction).y;  return y >= y_min && y <= y_max; }";
-		is_visible_implementation = sstream.str();
+		sstream << y_range.y;
+		sstream << "; float y = normalize(direction).y;  bool is_visible_y = y >= y_min && y <= y_max;";
 	}
-	makeCurrent();
-	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
-}
-/////	Z Range Directions
-glm::vec2 SpinWidget::zRange() const {
-	return m_z_range;
-}
-void SpinWidget::setZRange(glm::vec2 range) {
-	m_z_range = range;
-	std::string is_visible_implementation;
-	if (range.x <= -1 && range.y >= 1) {
-		is_visible_implementation = "bool is_visible(vec3 position, vec3 direction) { return true; }";
+	// Z
+	m_z_range_direction = z_range;
+	if (z_range.x <= -1 && z_range.y >= 1) {
+		sstream << "bool is_visible_z = true;";
 	}
-	else if (range.x <= -1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_max = ";
-		sstream << range.y;
-		sstream << "; return normalize(direction).z <= z_max; }";
-		is_visible_implementation = sstream.str();
+	else if (z_range.x <= -1) {
+		sstream << "float z_max = ";
+		sstream << z_range.y;
+		sstream << "; bool is_visible_z = normalize(direction).z <= z_max;";
 	}
-	else if (range.y >= 1) {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_min = ";
-		sstream << range.x;
-		sstream << "; return normalize(direction).z >= z_min; }";
-		is_visible_implementation = sstream.str();
+	else if (z_range.y >= 1) {
+		sstream << "float z_min = ";
+		sstream << z_range.x;
+		sstream << "; bool is_visible_z = normalize(direction).z >= z_min;";
 	}
 	else {
-		std::ostringstream sstream;
-		sstream << "bool is_visible(vec3 position, vec3 direction) { float z_min = ";
-		sstream << range.x;
+		sstream << "float z_min = ";
+		sstream << z_range.x;
 		sstream << "; float z_max = ";
-		sstream << range.y;
-		sstream << "; float z = normalize(direction).z;  return z >= z_min && z <= z_max; }";
-		is_visible_implementation = sstream.str();
+		sstream << z_range.y;
+		sstream << "; float z = normalize(direction).z;  bool is_visible_z = z >= z_min && z <= z_max;";
 	}
+	//
+	sstream << " return is_visible_x && is_visible_y && is_visible_z; }";
+	is_visible_implementation = sstream.str();
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
 }
+
+/////	Overall Range Position
+glm::vec2 SpinWidget::xRangePosition() const {
+	return m_x_range_position;
+}
+glm::vec2 SpinWidget::yRangePosition() const {
+	return m_y_range_position;
+}
+glm::vec2 SpinWidget::zRangePosition() const {
+	return m_z_range_position;
+}
+
+void SpinWidget::setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range) {
+	std::ostringstream sstream;
+	std::string is_visible_implementation;
+	sstream << "bool is_visible(vec3 position, vec3 direction) {";
+	// X
+	m_x_range_position = x_range;
+	if (x_range.x >= x_range.y) {
+		sstream << "bool is_visible_x = true;";
+	}
+	else {
+		sstream << "float x_min = ";
+		sstream << x_range.x;
+		sstream << "; float x_max = ";
+		sstream << x_range.y;
+		sstream << "; bool is_visible_x = position.x <= x_max && position.x >= x_min;";
+	}
+	// Y
+	m_y_range_position = y_range;
+	if (y_range.x >= y_range.y) {
+		sstream << "bool is_visible_y = true;";
+	}
+	else {
+		sstream << "float y_min = ";
+		sstream << y_range.x;
+		sstream << "; float y_max = ";
+		sstream << y_range.y;
+		sstream << "; bool is_visible_y = position.y <= y_max && position.y >= y_min;";
+	}
+	// Z
+	m_z_range_position = z_range;
+	if (x_range.x >= x_range.y) {
+		sstream << "bool is_visible_z = true;";
+	}
+	else {
+		sstream << "float z_min = ";
+		sstream << z_range.x;
+		sstream << "; float z_max = ";
+		sstream << z_range.y;
+		sstream << "; bool is_visible_z = position.z <= z_max && position.z >= z_min;";
+	}
+	//
+	sstream << " return is_visible_x && is_visible_y && is_visible_z; }";
+	is_visible_implementation = sstream.str();
+	makeCurrent();
+	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
+}
+
 
 /////   Surface
 void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)

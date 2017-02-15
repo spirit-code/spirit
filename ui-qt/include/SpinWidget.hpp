@@ -97,12 +97,14 @@ public:
   void setArrows(float size=1, int lod=20);
   float arrowSize() const;
   int arrowLOD() const;
-  glm::vec2 xRange() const;
-  void setXRange(glm::vec2 range);
-  glm::vec2 yRange() const;
-  void setYRange(glm::vec2 range);
-  glm::vec2 zRange() const;
-  void setZRange(glm::vec2 range);
+  glm::vec2 xRangeDirection() const;
+  glm::vec2 yRangeDirection() const;
+  glm::vec2 zRangeDirection() const;
+  void setOverallDirectionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
+  glm::vec2 xRangePosition() const;
+  glm::vec2 yRangePosition() const;
+  glm::vec2 zRangePosition() const;
+  void setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
   //    Bounding Box
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
@@ -199,9 +201,12 @@ private:
   int m_colormap_rotation;
   bool m_colormap_invert_z;
   bool m_colormap_invert_xy;
-  glm::vec2 m_x_range;
-  glm::vec2 m_y_range;
-  glm::vec2 m_z_range;
+  glm::vec2 m_x_range_direction;
+  glm::vec2 m_y_range_direction;
+  glm::vec2 m_z_range_direction;
+  glm::vec2 m_x_range_position;
+  glm::vec2 m_y_range_position;
+  glm::vec2 m_z_range_position;
   
   // Visualisation
   VFRendering::View m_view;

@@ -82,9 +82,8 @@ private slots:
 	void set_visualization_system_arrows();
 	void set_visualization_system_boundingbox();
 	void set_visualization_system_surface();
-	void set_visualization_system_overall_direction_x();
-	void set_visualization_system_overall_direction_y();
-	void set_visualization_system_overall_direction_z();
+	void set_visualization_system_overall_direction();
+	void set_visualization_system_overall_position();
 	void set_visualization_system_isosurface();
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();

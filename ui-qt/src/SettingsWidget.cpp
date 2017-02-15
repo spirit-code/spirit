@@ -581,7 +581,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
 
 	// Z Range Arrows
-	auto z_range = _spinWidget->zRange();
+	auto z_range = _spinWidget->zRangeDirection();
 	if (z_range.x < -1)
 		z_range.x = -1;
 	if (z_range.x > 1)
@@ -591,31 +591,56 @@ void SettingsWidget::Load_Visualization_Contents()
 	if (z_range.y > 1)
 		z_range.y = 1;
 
-	// Overall filter X
-	horizontalSlider_overall_xmin->setInvertedAppearance(true);
-	horizontalSlider_overall_xmin->setRange(-100, 100);
-	horizontalSlider_overall_xmin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_overall_xmax->setRange(-100, 100);
-	horizontalSlider_overall_xmax->setValue((int)(z_range.y * 100));
-	horizontalSlider_overall_xmin->setTracking(true);
-	horizontalSlider_overall_xmax->setTracking(true);
-	// Overall filter Y
-	horizontalSlider_overall_ymin->setInvertedAppearance(true);
-	horizontalSlider_overall_ymin->setRange(-100, 100);
-	horizontalSlider_overall_ymin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_overall_ymax->setRange(-100, 100);
-	horizontalSlider_overall_ymax->setValue((int)(z_range.y * 100));
-	horizontalSlider_overall_ymin->setTracking(true);
-	horizontalSlider_overall_ymax->setTracking(true);
-	// Overall filter Z
-	horizontalSlider_overall_zmin->setInvertedAppearance(true);
-	horizontalSlider_overall_zmin->setRange(-100, 100);
-	horizontalSlider_overall_zmin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_overall_zmax->setRange(-100, 100);
-	horizontalSlider_overall_zmax->setValue((int)(z_range.y * 100));
-	horizontalSlider_overall_zmin->setTracking(true);
-	horizontalSlider_overall_zmax->setTracking(true);
+	// Overall direction filter X
+	horizontalSlider_overall_dir_xmin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_xmin->setRange(-100, 100);
+	horizontalSlider_overall_dir_xmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_xmax->setRange(-100, 100);
+	horizontalSlider_overall_dir_xmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_xmin->setTracking(true);
+	horizontalSlider_overall_dir_xmax->setTracking(true);
+	// Overall direction filter Y
+	horizontalSlider_overall_dir_ymin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_ymin->setRange(-100, 100);
+	horizontalSlider_overall_dir_ymin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_ymax->setRange(-100, 100);
+	horizontalSlider_overall_dir_ymax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_ymin->setTracking(true);
+	horizontalSlider_overall_dir_ymax->setTracking(true);
+	// Overall direction filter Z
+	horizontalSlider_overall_dir_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_zmin->setRange(-100, 100);
+	horizontalSlider_overall_dir_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_zmax->setRange(-100, 100);
+	horizontalSlider_overall_dir_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_zmin->setTracking(true);
+	horizontalSlider_overall_dir_zmax->setTracking(true);
 
+	z_range = _spinWidget->zRangePosition();
+	// Overall position filter X
+	//horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_xmin->setRange(0, 10000);
+	horizontalSlider_overall_pos_xmin->setValue(0);
+	horizontalSlider_overall_pos_xmax->setRange(0, 10000);
+	horizontalSlider_overall_pos_xmax->setValue(10000);
+	horizontalSlider_overall_pos_xmin->setTracking(true);
+	horizontalSlider_overall_pos_xmax->setTracking(true);
+	// Overall position filter Y
+	//horizontalSlider_overall_pos_ymin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_ymin->setRange(0, 10000);
+	horizontalSlider_overall_pos_ymin->setValue(0);
+	horizontalSlider_overall_pos_ymax->setRange(0, 10000);
+	horizontalSlider_overall_pos_ymax->setValue(10000);
+	horizontalSlider_overall_pos_ymin->setTracking(true);
+	horizontalSlider_overall_pos_ymax->setTracking(true);
+	// Overall position filter Z
+	//horizontalSlider_overall_pos_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_zmin->setRange(0, 10000);
+	horizontalSlider_overall_pos_zmin->setValue(0);
+	horizontalSlider_overall_pos_zmax->setRange(0, 10000);
+	horizontalSlider_overall_pos_zmax->setValue(10000);
+	horizontalSlider_overall_pos_zmin->setTracking(true);
+	horizontalSlider_overall_pos_zmax->setTracking(true);
 
 	// X Range Surface
 	horizontalSlider_surface_xmin->setRange(1, 99999);
@@ -1384,68 +1409,122 @@ void SettingsWidget::set_visualization_system_surface()
 	_spinWidget->setSurface(x_range, y_range, z_range);
 }
 
-void SettingsWidget::set_visualization_system_overall_direction_x()
+void SettingsWidget::set_visualization_system_overall_direction()
 {
-	float range_min = -horizontalSlider_overall_xmin->value() / 100.0;
-	float range_max =  horizontalSlider_overall_xmax->value() / 100.0;
+	// X
+	float range_min = -horizontalSlider_overall_dir_xmin->value() / 100.0;
+	float range_max =  horizontalSlider_overall_dir_xmax->value() / 100.0;
 	if (range_min > range_max)
 	{
 		float t = range_min;
 		range_min = range_max;
 		range_max = t;
 	}
-	horizontalSlider_overall_xmin->blockSignals(true);
-	horizontalSlider_overall_xmax->blockSignals(true);
-	horizontalSlider_overall_xmin->setValue((int)(-range_min * 100));
-	horizontalSlider_overall_xmax->setValue((int)( range_max * 100));
-	horizontalSlider_overall_xmin->blockSignals(false);
-	horizontalSlider_overall_xmax->blockSignals(false);
+	horizontalSlider_overall_dir_xmin->blockSignals(true);
+	horizontalSlider_overall_dir_xmax->blockSignals(true);
+	horizontalSlider_overall_dir_xmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_xmax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_xmin->blockSignals(false);
+	horizontalSlider_overall_dir_xmax->blockSignals(false);
+	glm::vec2 x_range(range_min, range_max);
 
-	glm::vec2 range(range_min, range_max);
-	_spinWidget->setXRange(range);
-}
-
-void SettingsWidget::set_visualization_system_overall_direction_y()
-{
-	float range_min = -horizontalSlider_overall_ymin->value() / 100.0;
-	float range_max =  horizontalSlider_overall_ymax->value() / 100.0;
+	// Y
+	range_min = -horizontalSlider_overall_dir_ymin->value() / 100.0;
+	range_max =  horizontalSlider_overall_dir_ymax->value() / 100.0;
 	if (range_min > range_max)
 	{
 		float t = range_min;
 		range_min = range_max;
 		range_max = t;
 	}
-	horizontalSlider_overall_ymin->blockSignals(true);
-	horizontalSlider_overall_ymax->blockSignals(true);
-	horizontalSlider_overall_ymin->setValue((int)(-range_min * 100));
-	horizontalSlider_overall_ymax->setValue((int)( range_max * 100));
-	horizontalSlider_overall_ymin->blockSignals(false);
-	horizontalSlider_overall_ymax->blockSignals(false);
+	horizontalSlider_overall_dir_ymin->blockSignals(true);
+	horizontalSlider_overall_dir_ymax->blockSignals(true);
+	horizontalSlider_overall_dir_ymin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_ymax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_ymin->blockSignals(false);
+	horizontalSlider_overall_dir_ymax->blockSignals(false);
+	glm::vec2 y_range(range_min, range_max);
 
-	glm::vec2 range(range_min, range_max);
-	_spinWidget->setYRange(range);
-}
-
-void SettingsWidget::set_visualization_system_overall_direction_z()
-{
-	float range_min = -horizontalSlider_overall_zmin->value() / 100.0;
-	float range_max =  horizontalSlider_overall_zmax->value() / 100.0;
+	// Z
+	range_min = -horizontalSlider_overall_dir_zmin->value() / 100.0;
+	range_max =  horizontalSlider_overall_dir_zmax->value() / 100.0;
 	if (range_min > range_max)
 	{
 		float t = range_min;
 		range_min = range_max;
 		range_max = t;
 	}
-	horizontalSlider_overall_zmin->blockSignals(true);
-	horizontalSlider_overall_zmax->blockSignals(true);
-	horizontalSlider_overall_zmin->setValue((int)(-range_min * 100));
-	horizontalSlider_overall_zmax->setValue((int)( range_max * 100));
-	horizontalSlider_overall_zmin->blockSignals(false);
-	horizontalSlider_overall_zmax->blockSignals(false);
+	horizontalSlider_overall_dir_zmin->blockSignals(true);
+	horizontalSlider_overall_dir_zmax->blockSignals(true);
+	horizontalSlider_overall_dir_zmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_zmax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_zmin->blockSignals(false);
+	horizontalSlider_overall_dir_zmax->blockSignals(false);
+	glm::vec2 z_range(range_min, range_max);
 
-	glm::vec2 range(range_min, range_max);
-	_spinWidget->setZRange(range);
+	_spinWidget->setOverallDirectionRange(x_range, y_range, z_range);
 }
+
+void SettingsWidget::set_visualization_system_overall_position()
+{
+	float b_min[3], b_max[3], b_range[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	for (int dim = 0; dim < 3; ++dim) b_range[dim] = b_max[dim] - b_min[dim];
+
+	// X
+	float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
+	float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_xmin->blockSignals(true);
+	horizontalSlider_overall_pos_xmax->blockSignals(true);
+	horizontalSlider_overall_pos_xmin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_xmax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_xmin->blockSignals(false);
+	horizontalSlider_overall_pos_xmax->blockSignals(false);
+	glm::vec2 x_range(b_min[0]+range_min*b_range[0], b_min[0]+range_max*b_range[0]);
+
+	// Y
+	range_min = horizontalSlider_overall_pos_ymin->value() / 10000.0;
+	range_max = horizontalSlider_overall_pos_ymax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_ymin->blockSignals(true);
+	horizontalSlider_overall_pos_ymax->blockSignals(true);
+	horizontalSlider_overall_pos_ymin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_ymax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_ymin->blockSignals(false);
+	horizontalSlider_overall_pos_ymax->blockSignals(false);
+	glm::vec2 y_range(b_min[1]+range_min*b_range[1], b_min[1]+range_max*b_range[1]);
+
+	// Z
+	range_min = horizontalSlider_overall_pos_zmin->value() / 10000.0;
+	range_max = horizontalSlider_overall_pos_zmax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_zmin->blockSignals(true);
+	horizontalSlider_overall_pos_zmax->blockSignals(true);
+	horizontalSlider_overall_pos_zmin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_zmax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_zmin->blockSignals(false);
+	horizontalSlider_overall_pos_zmax->blockSignals(false);
+	glm::vec2 z_range(b_min[2]+range_min*b_range[2], b_min[2]+range_max*b_range[2]);
+
+	_spinWidget->setOverallPositionRange(x_range, y_range, z_range);
+}
+
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
@@ -1856,13 +1935,20 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	//		overall
-	connect(horizontalSlider_overall_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_x()));
-	connect(horizontalSlider_overall_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_x()));
-	connect(horizontalSlider_overall_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_y()));
-	connect(horizontalSlider_overall_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_y()));
-	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_z()));
-	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_z()));
+	//		overall direction
+	connect(horizontalSlider_overall_dir_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	//		overall position
+	connect(horizontalSlider_overall_pos_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
