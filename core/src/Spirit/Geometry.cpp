@@ -40,6 +40,20 @@ void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_c
     }
 }
 
+void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3], int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto g = image->geometry;
+    for (int dim=0; dim<3; ++dim)
+    {
+        min[dim] = (float)g->cell_bounds_min[dim];
+        max[dim] = (float)g->cell_bounds_max[dim];
+    }   
+}
+
 // Get basis vectors ta, tb, tc
 void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image, int idx_chain)
 {

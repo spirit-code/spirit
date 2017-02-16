@@ -93,11 +93,11 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms)
+		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms, scalar & lattice_constant)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
-			scalar lattice_constant = 1.0;
+			lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
 			basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
@@ -185,6 +185,8 @@ namespace Utility
 			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
 			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
+			// Lattice Constant [Angstrom]
+			scalar lattice_constant = 1;
 			// Translation vectors [dim][nov]
 			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
@@ -225,11 +227,11 @@ namespace Utility
 					if (myfile.Find("basis_from_config"))
 					{
 						myfile.iss >> basis_file;
-						Basis_from_Config(basis_file, basis, basis_atoms);
+						Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
 					}
 					else if (myfile.Find("basis"))
 					{
-						Basis_from_Config(configFile, basis, basis_atoms);
+						Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
 					}
 					else {
 						Log(Log_Level::Error, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
@@ -279,7 +281,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, spin_pos));
+			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;

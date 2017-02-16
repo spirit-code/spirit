@@ -25,7 +25,7 @@ namespace Data
 	public:
 		// Constructor
 		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
-			const std::vector<int> n_cells, const std::vector<Vector3> basis_atoms,
+			const std::vector<int> n_cells, const std::vector<Vector3> basis_atoms, const scalar lattice_constant,
 			const vectorfield spin_pos);
 		// Destructor
 		//~Geometry();
@@ -34,6 +34,8 @@ namespace Data
 		// -------------------- Input constants ------------------
 		// Basis [dim][basis_vec]
 		const std::vector<Vector3> basis;
+		// Lattice Constant [Angstrom]
+		const scalar lattice_constant;
 		// Translation Vectors [dim][transl_vec]
 		const std::vector<Vector3> translation_vectors;
 		// Number of Translations {nta, ntb, ntc}
@@ -49,6 +51,8 @@ namespace Data
 
 		// Center and Bounds
 		Vector3 center, bounds_min, bounds_max;
+		// Unit Cell Bounds
+		Vector3 cell_bounds_min, cell_bounds_max;
 
 		// -------------------- Calculated Geometry ------------------
 		// number of boundary vectors

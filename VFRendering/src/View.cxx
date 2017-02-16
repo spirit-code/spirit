@@ -97,6 +97,7 @@ void View::mouseMove(const glm::vec2& position_before, const glm::vec2& position
         setCamera(center_position - forward * camera_distance, center_position, up_vector);
         m_is_centered = was_centered;
     }
+    break;
     case CameraMovementModes::ROTATE_BOUNDED: {
         auto zaxis = glm::vec3{0,0,1};
         // Get correct right-vector (in xy-plane) and orthogonal right and up

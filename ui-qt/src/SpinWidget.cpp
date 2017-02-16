@@ -63,6 +63,11 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_arrows = true;
 	this->show_boundingbox = true;
 	this->show_isosurface = false;
+
+	idx_cycle=0;
+	user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;
+	slab_displacements = glm::vec3{0,0,0};
+
 	this->m_isocomponent = 2;
 	this->m_isosurfaceshadows = false;
 	this->show_surface = false;
@@ -189,7 +194,8 @@ void SpinWidget::initializeGL()
 	this->setVisualizationMode(this->visMode);
 
 	// Configure System (Setup the renderers
-	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+	this->setSystemCycle(this->idx_cycle);
+	// this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 void SpinWidget::teardownGL() {
@@ -267,7 +273,6 @@ void SpinWidget::updateData()
 	else if (Geometry_Get_Dimensionality(state.get()) < 2)
 	{
 		geometry = VFRendering::Geometry(positions, {}, {}, true);
-		// std::cerr << std::endl << std::endl << "-------xxxxxxxx--------" << std::endl << std::endl;
 	}
   
 	//		get bounds
@@ -313,7 +318,7 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->modifiers() & Qt::ShiftModifier)
 	{
-		scale = 10;
+		scale = 0.1;
 	}
 
 	glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
@@ -363,9 +368,6 @@ const VFRendering::Options& SpinWidget::options() const
 
 void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
 {
-	float scale = 1.0;
-	//if (keyboardModifiers)
-
 	auto movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
 	m_view.mouseMove({ 0,0 }, { rightleft, updown }, movement_mode);
 	m_view.mouseScroll(backforth * 0.1);
@@ -462,6 +464,148 @@ void SpinWidget::setCoordinateSystemPosition(SpinWidget::WidgetLocation location
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- System ---
 
+
+void SpinWidget::setSlabRanges()
+{
+	float f_center[3], bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	Geometry_Get_Center(state.get(), f_center);
+	glm::vec2 x_range(bounds_min[0]+1e-5, bounds_max[0]-1e-5);
+	glm::vec2 y_range(bounds_min[1]+1e-5, bounds_max[1]-1e-5);
+	glm::vec2 z_range(bounds_min[2]+1e-5, bounds_max[2]-1e-5);
+	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
+	center += this->slab_displacements;
+
+	switch(this->idx_cycle)
+	{
+		case 2:
+		{
+			x_range = {center[0]-1, center[0]+1};
+			break;
+		}
+		case 3:
+		{
+			y_range = {center[1]-1, center[1]+1};
+			break;
+		}
+		case 4:
+		{
+			z_range = {center[2]-1, center[2]+1};
+			break;
+		}
+	}
+
+	this->setSurface(x_range, y_range, z_range);
+}
+
+void SpinWidget::setSystemCycle(int idx)
+{
+	this->idx_cycle = idx;
+	
+	switch(idx)
+	{
+		case 0:
+		{
+			// User settings
+			this->show_arrows = this->user_show_arrows;
+			this->show_surface = this->user_show_surface;
+			this->show_isosurface = this->user_show_isosurface;
+			this->show_boundingbox = this->user_show_boundingbox;
+			this->setVerticalFieldOfView(this->user_fov);
+			// Camera
+			break;
+		}
+		case 1:
+		{
+			// Isosurface
+			this->show_arrows = false;
+			this->show_surface = false;
+			this->show_isosurface = true;
+			this->setVerticalFieldOfView(this->user_fov);
+			break;
+		}
+		case 2:
+		{
+			// Slab x
+			this->show_arrows = false;
+			this->show_surface = true;
+			this->show_isosurface = false;
+			// camera
+			// this->setCameraToX();
+			// this->setVerticalFieldOfView(0);
+			break;
+		}
+		case 3:
+		{
+			// Slab y
+			this->show_arrows = false;
+			this->show_surface = true;
+			this->show_isosurface = false;
+			// camera
+			// this->setCameraToY();
+			// this->setVerticalFieldOfView(0);
+			break;
+		}
+		case 4:
+		{
+			// Slab z
+			this->show_arrows = false;
+			this->show_surface = true;
+			this->show_isosurface = false;
+			// camera
+			// this->setCameraToZ();
+			// this->setVerticalFieldOfView(0);
+			break;
+		}
+	}
+	this->setSlabRanges();
+}
+
+void SpinWidget::cycleSystem(bool forward)
+{
+	// save possible user settings
+	if (this->idx_cycle == 0)
+	{
+		this->user_show_arrows = this->show_arrows;
+		this->user_show_surface = this->show_surface;
+		this->user_show_isosurface = this->show_isosurface;
+		this->user_show_boundingbox = this->show_boundingbox;
+		this->user_fov = this->verticalFieldOfView();
+	}
+
+	if (forward)
+	{
+		++ this->idx_cycle;
+	}
+	else
+	{
+		-- this->idx_cycle;
+	}
+	if (this->idx_cycle < 0) idx_cycle += 5;
+	this->idx_cycle = this->idx_cycle % 5;
+
+	this->setSystemCycle(this->idx_cycle);
+
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+}
+
+
+glm::vec2 SpinWidget::surfaceXRange() const
+{
+	return m_surface_x_range;
+}
+
+glm::vec2 SpinWidget::surfaceYRange() const
+{
+	return m_surface_y_range;
+}
+
+glm::vec2 SpinWidget::surfaceZRange() const
+{
+	return m_surface_z_range;
+}
+
+
 /////	enable
 void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface)
 {
@@ -488,6 +632,42 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
 
 	this->setupRenderers();
 }
+
+void SpinWidget::moveSlab(int amount)
+{
+	float f_center[3], bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	Geometry_Get_Center(state.get(), f_center);
+	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
+	glm::vec3 pos = center +this->slab_displacements;
+
+	float cell_bounds_min[3], cell_bounds_max[3];
+	Geometry_Get_Cell_Bounds(state.get(), cell_bounds_min, cell_bounds_max);
+	if (this->idx_cycle == 2)
+	{
+		// X
+		amount *= cell_bounds_max[0] - cell_bounds_min[0];
+		if (bounds_min[0] < pos[0]+amount && pos[0]+amount < bounds_max[0])
+			this->slab_displacements[0] += amount;
+	}
+	else if (this->idx_cycle == 3)
+	{
+		// Y
+		amount *= cell_bounds_max[1] - cell_bounds_min[1];
+		if (bounds_min[1] < pos[1]+amount && pos[1]+amount < bounds_max[1])
+			this->slab_displacements[1] += amount;
+	}
+	else if (this->idx_cycle == 4)
+	{
+		// Z
+		amount *= cell_bounds_max[2] - cell_bounds_min[2];
+		if (bounds_min[2] < pos[2]+amount && pos[2]+amount < bounds_max[2])
+			this->slab_displacements[2] += amount;
+	}
+
+	this->setSlabRanges();
+}
+
 
 /////	Arrows
 void SpinWidget::setArrows(float size, int lod)
@@ -669,6 +849,10 @@ void SpinWidget::setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, g
 /////   Surface
 void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
 {
+	this->m_surface_x_range = x_range;
+	this->m_surface_y_range = y_range;
+	this->m_surface_z_range = z_range;
+
     makeCurrent();
 	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
@@ -868,9 +1052,6 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
 	sprintf (s_sign_z, "%i", sign_z);
 	char s_sign_xy[50];
 	sprintf (s_sign_xy, "%i", sign_xy);
-	// std::string s_phi   = std::to_string(P);
-	// std::cerr << "-  " << phi << " " << sign_z << " " << sign_xy << std::endl;
-	// std::cerr << "   " << s_phi << " " << s_sign_z << " " << s_sign_xy << std::endl;
 	std::string colormap_implementation;
 	switch (m_colormap)
 	{
@@ -1067,6 +1248,17 @@ void SpinWidget::updateBoundingBoxIndicators()
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Camera ---
+void SpinWidget::cycleCamera() {
+	if (this->verticalFieldOfView() == 0)
+	{
+		this->setVerticalFieldOfView(this->user_fov);
+	}
+	else
+	{
+		this->setVerticalFieldOfView(0);
+	}
+}
+
 void SpinWidget::setCameraToDefault() {
 	float camera_distance = 30.0f;
 	auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
@@ -1246,15 +1438,16 @@ void SpinWidget::writeSettings()
 	// VisMode
 	settings.setValue("Mode", (int)(this->visualizationMode()));
 	// Projection
-	settings.setValue("FOV", (int)(this->verticalFieldOfView() * 100));
+	settings.setValue("FOV", (int)(this->user_fov * 100));
 	// Sphere Point Size
 	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
 	settings.setValue("SpherePointSize2", (int)(this->spherePointSizeRange().y * 100));
 	// System
-	settings.setValue("Show Arrows", this->show_arrows);
-	settings.setValue("Show Bounding Box", this->show_boundingbox);
-	settings.setValue("Show Surface", this->show_surface);
-	settings.setValue("Show Isosurface", this->show_isosurface);
+	settings.setValue("Cycle Index", this->idx_cycle);
+	settings.setValue("Show Arrows", this->user_show_arrows);
+	settings.setValue("Show Bounding Box", this->user_show_boundingbox);
+	settings.setValue("Show Surface", this->user_show_surface);
+	settings.setValue("Show Isosurface", this->user_show_isosurface);
 	// MiniView
 	settings.setValue("Show MiniView", this->show_miniview);
 	settings.setValue("MiniView Position", (int)this->m_location_miniview);
@@ -1332,13 +1525,15 @@ void SpinWidget::readSettings()
 		this->visMode = VisualizationMode(settings.value("Mode").toInt());
 		// Projection
 		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt() / 100.0f));
+		this->user_fov = this->verticalFieldOfView();
 		// Sphere Point Size
 		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });
 		// System
-		this->show_arrows = settings.value("Show Arrows").toBool();
-		this->show_boundingbox = settings.value("Show Bounding Box").toBool();
-		this->show_surface = settings.value("Show Surface").toBool();
-		this->show_isosurface = settings.value("Show Isosurface").toBool();
+		this->idx_cycle = 0;//settings.value("Cycle Index").toInt();
+		this->user_show_arrows = settings.value("Show Arrows").toBool();
+		this->user_show_boundingbox = settings.value("Show Bounding Box").toBool();
+		this->user_show_surface = settings.value("Show Surface").toBool();
+		this->user_show_isosurface = settings.value("Show Isosurface").toBool();
 		// MiniView
 		this->show_miniview = settings.value("Show MiniView").toBool();
 		this->m_location_miniview = WidgetLocation(settings.value("MiniView Position").toInt());

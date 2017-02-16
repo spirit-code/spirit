@@ -566,10 +566,14 @@ void SettingsWidget::Load_Visualization_Contents()
 		this->radioButton_vismode_sphere->setChecked(true);
 	
 	// System
-	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
-	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
-	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
-	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+	bool show_arrows = _spinWidget->show_arrows;
+	bool show_boundingbox = _spinWidget->show_boundingbox;
+	bool show_surface = _spinWidget->show_surface;
+	bool show_isosurface = _spinWidget->show_isosurface;
+	this->checkBox_show_arrows->setChecked(show_arrows);
+	this->checkBox_showBoundingBox->setChecked(show_boundingbox);
+	this->checkBox_show_surface->setChecked(show_surface);
+	this->checkBox_show_isosurface->setChecked(show_isosurface);
 	this->checkBox_isosurfaceshadows->setChecked(_spinWidget->isosurfaceshadows());
 
 	// Miniview
@@ -642,27 +646,45 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_overall_pos_zmin->setTracking(true);
 	horizontalSlider_overall_pos_zmax->setTracking(true);
 
+	float bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	glm::vec3 sys_size{bounds_max[0]-bounds_min[0], bounds_max[1]-bounds_min[1], bounds_max[2]-bounds_min[2]};
+	horizontalSlider_surface_xmin->blockSignals(true);
+	horizontalSlider_surface_xmax->blockSignals(true);
+	horizontalSlider_surface_ymin->blockSignals(true);
+	horizontalSlider_surface_ymax->blockSignals(true);
+	horizontalSlider_surface_zmin->blockSignals(true);
+	horizontalSlider_surface_zmax->blockSignals(true);
 	// X Range Surface
+	auto surface_x_range = _spinWidget->surfaceXRange();
 	horizontalSlider_surface_xmin->setRange(1, 99999);
-	horizontalSlider_surface_xmin->setValue((int)(1));
+	horizontalSlider_surface_xmin->setValue((int)(surface_x_range[0]/sys_size[0]*100000));
 	horizontalSlider_surface_xmax->setRange(1, 99999);
-	horizontalSlider_surface_xmax->setValue((int)(99999));
+	horizontalSlider_surface_xmax->setValue((int)(surface_x_range[1]/sys_size[0]*100000));
 	horizontalSlider_surface_xmin->setTracking(true);
 	horizontalSlider_surface_xmax->setTracking(true);
 	// Y Range Surface
+	auto surface_y_range = _spinWidget->surfaceYRange();
 	horizontalSlider_surface_ymin->setRange(1, 99999);
-	horizontalSlider_surface_ymin->setValue((int)(1));
+	horizontalSlider_surface_ymin->setValue((int)(surface_y_range[0]/sys_size[1]*100000));
 	horizontalSlider_surface_ymax->setRange(1, 99999);
-	horizontalSlider_surface_ymax->setValue((int)(99999));
+	horizontalSlider_surface_ymax->setValue((int)(surface_y_range[1]/sys_size[1]*100000));
 	horizontalSlider_surface_ymin->setTracking(true);
 	horizontalSlider_surface_ymax->setTracking(true);
 	// Z Range Surface
+	auto surface_z_range = _spinWidget->surfaceZRange();
 	horizontalSlider_surface_zmin->setRange(1, 99999);
-	horizontalSlider_surface_zmin->setValue((int)(1));
+	horizontalSlider_surface_zmin->setValue((int)(surface_z_range[0]/sys_size[2]*100000));
 	horizontalSlider_surface_zmax->setRange(1, 99999);
-	horizontalSlider_surface_zmax->setValue((int)(99999));
+	horizontalSlider_surface_zmax->setValue((int)(surface_z_range[1]/sys_size[2]*100000));
 	horizontalSlider_surface_zmin->setTracking(true);
 	horizontalSlider_surface_zmax->setTracking(true);
+	horizontalSlider_surface_xmin->blockSignals(false);
+	horizontalSlider_surface_xmax->blockSignals(false);
+	horizontalSlider_surface_ymin->blockSignals(false);
+	horizontalSlider_surface_ymax->blockSignals(false);
+	horizontalSlider_surface_zmin->blockSignals(false);
+	horizontalSlider_surface_zmax->blockSignals(false);
   
 	// Isosurface
 	auto isovalue = _spinWidget->isovalue();

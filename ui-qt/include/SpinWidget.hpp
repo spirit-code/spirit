@@ -92,6 +92,8 @@ public:
 
   // --- System
   void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
+  void cycleSystem(bool forward=true);
+  void moveSlab(int amount);
   bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Arrows
   void setArrows(float size=1, int lod=20);
@@ -110,6 +112,9 @@ public:
   void enableBoundingBox(bool enabled);
   //    Surface
   void setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
+  glm::vec2 surfaceXRange() const;
+  glm::vec2 surfaceYRange() const;
+  glm::vec2 surfaceZRange() const;
   //float isovalue() const;
   //void setIsovalue(float isovalue);
   //    Isosurface
@@ -139,6 +144,7 @@ public:
   void updateBoundingBoxIndicators();
 
   // --- Camera
+  void cycleCamera();
   void setCameraToDefault();
   void setCameraToX(bool inverted=false);
   void setCameraToY(bool inverted=false);
@@ -176,6 +182,14 @@ private:
   bool m_camera_rotate_free;
   float m_light_theta, m_light_phi;
   
+  // temporaries for system cycle
+  void setSystemCycle(int idx);
+  void setSlabRanges();
+  int idx_cycle;
+  bool user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;
+  float user_fov;
+  glm::vec3 slab_displacements;
+
   // Renderers
   std::shared_ptr<VFRendering::RendererBase> m_mainview;
   std::shared_ptr<VFRendering::RendererBase> m_miniview;
@@ -207,6 +221,9 @@ private:
   glm::vec2 m_x_range_position;
   glm::vec2 m_y_range_position;
   glm::vec2 m_z_range_position;
+  glm::vec2 m_surface_x_range;
+  glm::vec2 m_surface_y_range;
+  glm::vec2 m_surface_z_range;
   
   // Visualisation
   VFRendering::View m_view;

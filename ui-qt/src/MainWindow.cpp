@@ -406,6 +406,23 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Z:
 				this->spinWidget->setCameraToZ(shiftpressed);
 				break;
+			case Qt::Key_C:
+				this->spinWidget->cycleCamera();
+				break;
+			// Visualisation: cycle and slab
+			case Qt::Key_Comma:
+				this->spinWidget->moveSlab(-1);
+				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Period:
+				this->spinWidget->moveSlab( 1);
+				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Slash:
+			case Qt::Key_Question:
+				this->spinWidget->cycleSystem(!shiftpressed);
+				this->settingsWidget->updateData();
+				break;
 		}
 	}
 	this->return_focus();
