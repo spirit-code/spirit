@@ -65,7 +65,6 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_isosurface = false;
 
 	idx_cycle=0;
-	user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;
 	slab_displacements = glm::vec3{0,0,0};
 
 	this->m_isocomponent = 2;
@@ -83,6 +82,11 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	// 		Read persistent settings
 	this->readSettings();
+	this->show_arrows = this->user_show_arrows;
+	this->show_surface = this->user_show_surface;
+	this->show_isosurface = this->user_show_isosurface;
+	this->show_boundingbox = this->user_show_boundingbox;
+	this->setVerticalFieldOfView(this->user_fov);
 }
 
 void SpinWidget::initializeGL()
@@ -195,7 +199,7 @@ void SpinWidget::initializeGL()
 
 	// Configure System (Setup the renderers
 	this->setSystemCycle(this->idx_cycle);
-	// this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 void SpinWidget::teardownGL() {
@@ -613,6 +617,15 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
 	this->show_boundingbox = boundingbox;
 	this->show_surface = surface;
 	this->show_isosurface = isosurface;
+
+	if (idx_cycle == 0)
+	{
+		this->user_show_arrows = this->show_arrows;
+		this->user_show_surface = this->show_surface;
+		this->user_show_isosurface = this->show_isosurface;
+		this->user_show_boundingbox = this->show_boundingbox;
+		this->user_fov = this->verticalFieldOfView();
+	}
 
 	// Create System
 	std::vector<std::shared_ptr<VFRendering::RendererBase>> system(0);

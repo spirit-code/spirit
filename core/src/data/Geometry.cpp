@@ -35,7 +35,7 @@ namespace Data
 		this->cell_bounds_min.setZero();
 		for (unsigned int ivec = 0; ivec < translation_vectors.size(); ++ivec)
 		{
-			for (unsigned int iatom = 0; iatom < translation_vectors.size(); ++iatom)
+			for (unsigned int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
 			{
 				auto neighbour1 = basis_atoms[iatom] + translation_vectors[ivec];
 				auto neighbour2 = basis_atoms[iatom] - translation_vectors[ivec];
