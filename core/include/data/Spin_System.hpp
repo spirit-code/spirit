@@ -35,6 +35,10 @@ namespace Data
 		void UpdateEnergy();
 		void UpdateEffectiveField();
 
+		// For multithreading
+		void Lock() const;
+		void Unlock() const;
+
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
@@ -56,9 +60,9 @@ namespace Data
 		// Total effective field of the spins [3][nos]
 		vectorfield effective_field;
 
-
-	//private:
-
+	private:
+		// Mutex for thread-safety
+		mutable std::mutex mutex;
 	};
 }
 #endif

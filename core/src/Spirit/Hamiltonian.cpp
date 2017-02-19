@@ -19,12 +19,16 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
+	image->Lock();
+
     image->hamiltonian->boundary_conditions[0] = periodical[0];
     image->hamiltonian->boundary_conditions[1] = periodical[1];
     image->hamiltonian->boundary_conditions[2] = periodical[2];
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set boundary conditions to " + std::to_string(periodical[0]) + " " + std::to_string(periodical[1]) + " " + std::to_string(periodical[2]), idx_image, idx_chain);
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain)
@@ -32,6 +36,8 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -46,6 +52,8 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set mu_s to " + std::to_string(mu_s), idx_image, idx_chain);
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
@@ -54,6 +62,10 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
+	// Lock mutex because simulations may be running
+	image->Lock();
+
+	// Set
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
         auto ham = (Engine::Hamiltonian_Isotropic*)image->hamiltonian.get();
@@ -103,6 +115,9 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set external field to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+
+	// Unlock mutex
+	image->Unlock();
 }
 
 void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
@@ -110,6 +125,8 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -159,6 +176,8 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set anisotropy to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image, int idx_chain)
@@ -166,6 +185,8 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -192,6 +213,8 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 		
 		ham->Update_Energy_Contributions();
     }
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
@@ -199,6 +222,8 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -222,6 +247,8 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
 
 		ham->Update_Energy_Contributions();
     }
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
@@ -229,6 +256,8 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -242,6 +271,8 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
     {
         Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "BQE is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain)
@@ -249,6 +280,8 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     if (image->hamiltonian->Name() == "Isotropic Heisenberg")
     {
@@ -262,6 +295,8 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
     {
         Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "FSC is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
     }
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
@@ -269,6 +304,8 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
 
     // Magnitude
     image->llg_parameters->stt_magnitude = magnitude;
@@ -285,6 +322,8 @@ void Hamiltonian_Set_STT(State *state, float magnitude, const float * normal, in
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set spin current to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+
+	image->Unlock();
 }
 
 void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_chain)
@@ -293,10 +332,14 @@ void Hamiltonian_Set_Temperature(State *state, float T, int idx_image, int idx_c
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
+	image->Lock();
+
     image->llg_parameters->temperature = T;
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set temperature to " + std::to_string(T), idx_image, idx_chain);
+
+	image->Unlock();
 }
 
 /*------------------------------------------------------------------------------------------------------ */
