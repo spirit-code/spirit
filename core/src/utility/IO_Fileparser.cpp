@@ -266,10 +266,12 @@ namespace Utility
 						else
 							file.iss >> sdump;
 					}
+					K_temp = { spin_K1, spin_K2, spin_K3 };
+					K_temp.normalize();
+					spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
-						K_temp = { spin_K1, spin_K2, spin_K3 };
 						spin_K1 = K_temp.dot(geometry.basis[0]);
 						spin_K2 = K_temp.dot(geometry.basis[1]);
 						spin_K3 = K_temp.dot(geometry.basis[2]);

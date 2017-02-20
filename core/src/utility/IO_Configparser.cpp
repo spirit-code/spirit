@@ -734,6 +734,7 @@ namespace Utility
 						// Read parameters from config if available
 						myfile.Read_Single(B, "external_field_magnitude");
 						myfile.Read_Vector3(B_normal, "external_field_normal");
+						B_normal.normalize();
 
 						if (B != 0)
 						{
@@ -768,7 +769,8 @@ namespace Utility
 						// Read parameters from config
 						myfile.Read_Single(K, "anisotropy_magnitude");
 						myfile.Read_Vector3(K_normal, "anisotropy_normal");
-						
+						K_normal.normalize();
+
 						if (K != 0)
 						{
 							// Fill the arrays
