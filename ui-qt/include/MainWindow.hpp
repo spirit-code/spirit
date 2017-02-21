@@ -101,6 +101,9 @@ private:
 	bool   pre_fullscreen_debug_hidden;
 	QSize  pre_fullscreen_debug_size;
 	QPoint pre_fullscreen_debug_pos;
+
+	// Screenshot numbering
+	int n_screenshots;
 };
 
 #endif

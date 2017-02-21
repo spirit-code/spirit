@@ -12,7 +12,8 @@ State * State_Setup(const char * config_file)
 {
     // Create the State
     State *state = new State();
-    
+    state->datetime_creation = Utility::Timing::CurrentDateTime();
+
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log(Log_Level::All, Log_Sender::All,  "========== Spirit State: Initialising... ============");
@@ -82,7 +83,7 @@ State * State_Setup(const char * config_file)
     // Save the config
     if (Log.save_input)
     {
-        std::string file = "input_" + Utility::Timing::CurrentDateTime() + ".txt";
+        std::string file = "input_" + state->datetime_creation + ".txt";
         State_To_Config(state, file.c_str(), config_file);
     }
 
@@ -157,6 +158,11 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     // Hamiltonian
     IO::Append_String_to_File("\n\n\n", cfg);
     IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
+}
+
+const char * State_DateTime(State * state)
+{
+	return state->datetime_creation.c_str();
 }
 
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)

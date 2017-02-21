@@ -3,6 +3,7 @@
 #include "MainWindow.hpp"
 #include "PlotWidget.hpp"
 
+#include "Spirit/State.h"
 #include "Spirit/System.h"
 #include "Spirit/Geometry.h"
 #include "Spirit/Chain.h"
@@ -139,6 +140,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//m_timer_spins->start(100);
 	//m_timer_debug->start(100);
 
+	this->n_screenshots = 0;
 
 	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
@@ -422,6 +424,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Question:
 				this->spinWidget->cycleSystem(!shiftpressed);
 				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Home:
+				std::string tag = State_DateTime(state.get());
+				++n_screenshots;
+				this->spinWidget->screenShot(tag + "_Screenshot_" + std::to_string(n_screenshots));
 				break;
 		}
 	}

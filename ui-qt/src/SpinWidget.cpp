@@ -212,6 +212,12 @@ void SpinWidget::resizeGL(int width, int height) {
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
+void SpinWidget::screenShot(std::string filename)
+{
+	auto pixmap = this->grab();
+	pixmap.save((filename+".bmp").c_str());
+}
+
 void SpinWidget::updateData()
 {
 	int nos = System_Get_NOS(state.get());

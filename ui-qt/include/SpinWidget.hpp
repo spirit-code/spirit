@@ -67,6 +67,7 @@ public:
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
+  void screenShot(std::string filename);
   float getFramesPerSecond() const;
   
   void setVisualisationSource(int source);

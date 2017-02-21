@@ -30,5 +30,11 @@ void State_Update(State * state);
 */
 DLLEXPORT void State_To_Config(State * state, const char * config_file, const char * original_config_file="");
 
+/*
+	State_DateTime
+	  Get the datetime tag (timepoint of creation) of this state
+*/
+DLLEXPORT const char * State_DateTime(State * state);
+
 #include "DLL_Undefine_Export.h"
 #endif
