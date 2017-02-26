@@ -4,6 +4,8 @@
 
 #include <memory>
 #include <QOpenGLWidget>
+#include "MouseDecoratorWidget.hpp"
+
 #include "glm/glm.hpp"
 
 #include <VFRendering/View.hxx>
@@ -228,6 +230,10 @@ private:
   
   // Visualisation
   VFRendering::View m_view;
+
+  // mouse decoration
+  MouseDecoratorWidget * mouse_decoration;
+  float mouse_decoration_radius;
   
 	// Persistent Settings
 	void writeSettings();

@@ -91,6 +91,12 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 void SpinWidget::initializeGL()
 {
+	mouse_decoration_radius = 30;
+	this->mouse_decoration = new MouseDecoratorWidget();
+	this->mouse_decoration->setMaximumSize(2*mouse_decoration_radius, 2*mouse_decoration_radius);
+	mouse_decoration->setParent(this);
+	this->setCursor(Qt::BlankCursor);
+
     // Get GL context
     makeCurrent();
     // Initialize the visualisation options
@@ -301,7 +307,11 @@ void SpinWidget::updateData()
 	m_view.update(geometry, directions);
 }
 
-void SpinWidget::paintGL() {
+void SpinWidget::paintGL()
+{
+	auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(mouse_decoration_radius, mouse_decoration_radius));
+	this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+
 	// ToDo: This does not catch the case that we have no simulation running
 	//		 but we switched between images or chains...
 	if (Simulation_Running_Any(state.get()))
