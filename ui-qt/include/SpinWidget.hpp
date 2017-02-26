@@ -63,6 +63,10 @@ public:
 		EFF_FIELD
 	};
 
+	enum class InteractionMode {
+		REGULAR,
+		DRAG
+	};
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
@@ -231,9 +235,12 @@ private:
   // Visualisation
   VFRendering::View m_view;
 
+  // Interaction mode
+  InteractionMode m_interactionmode;
+
   // mouse decoration
   MouseDecoratorWidget * mouse_decoration;
-  float mouse_decoration_radius;
+  float drag_radius;
   
 	// Persistent Settings
 	void writeSettings();

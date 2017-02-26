@@ -77,6 +77,13 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->_reset_camera = false;
 	this->m_camera_rotate_free = false;
 
+	//		Initial drag mode settings
+	drag_radius = 80;
+	this->mouse_decoration = new MouseDecoratorWidget();
+	this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
+	mouse_decoration->setParent(this);
+	m_interactionmode = InteractionMode::DRAG;
+
 	// 		Setup Arrays
 	this->updateData();
 
@@ -89,13 +96,59 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->setVerticalFieldOfView(this->user_fov);
 }
 
+// Return the relative mouse position where [0,1] represents the relevant quadrant left to right
+// ToDo: what if the system is not quadratic?
+glm::vec2 relative_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize)
+{
+	QTransform transform;
+	transform.translate(50, 50);
+	transform.scale(0.5, 1.0);
+	
+	glm::vec2 ret;
+	// We assume the zoom is adjusted so that either x or y is exactly as large as the system
+	float minsize = std::min(winsize.x, winsize.y);
+	float dx = winsize.x - minsize;
+	ret.x = (mouse_pos.x* -0.5*dx) / (winsize.x - dx);
+	float dy = winsize.y - minsize;
+	ret.y = (mouse_pos.y* -0.5*dy) / (winsize.y - dy);
+
+	return ret;
+}
+
+glm::vec2 system_coords_from_relative(glm::vec2 relative, glm::vec2 bounds_min, glm::vec2 bounds_max)
+{
+	glm::vec2 ret;
+
+	ret.x = bounds_min.x + (bounds_max.x - bounds_min.x)*relative.x;
+	ret.y = bounds_min.y + (bounds_max.y - bounds_min.y)*relative.y;
+
+	return ret;
+}
+
+// Return the relative radius where [0,1] is the range of the whole system size
+// ToDo: what about non-cubic systems?
+float relative_radius_from_mouse(float radius, glm::vec2 winsize)
+{
+	float minsize = std::min(winsize.x, winsize.y);
+	return radius/minsize;
+}
+
+float system_radius_from_relative(float radius, glm::vec2 bounds_min, glm::vec2 bounds_max)
+{
+	return radius * std::sqrt( std::pow((bounds_max.x - bounds_min.x), 2) + std::pow((bounds_max.y - bounds_min.y), 2) );
+}
+
 void SpinWidget::initializeGL()
 {
-	mouse_decoration_radius = 30;
-	this->mouse_decoration = new MouseDecoratorWidget();
-	this->mouse_decoration->setMaximumSize(2*mouse_decoration_radius, 2*mouse_decoration_radius);
-	mouse_decoration->setParent(this);
-	this->setCursor(Qt::BlankCursor);
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		this->setCursor(Qt::BlankCursor);
+	}
+	else
+	{
+		mouse_decoration->hide();
+	}
+
 
     // Get GL context
     makeCurrent();
@@ -309,8 +362,11 @@ void SpinWidget::updateData()
 
 void SpinWidget::paintGL()
 {
-	auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(mouse_decoration_radius, mouse_decoration_radius));
-	this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
+		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+	}
 
 	// ToDo: This does not catch the case that we have no simulation running
 	//		 but we switched between images or chains...
@@ -328,8 +384,13 @@ void SpinWidget::setVisualisationSource(int source)
 	this->m_source = source;
 }
 
-void SpinWidget::mousePressEvent(QMouseEvent *event) {
-  m_previous_mouse_position = event->pos();
+void SpinWidget::mousePressEvent(QMouseEvent *event)
+{
+	m_previous_mouse_position = event->pos();
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		// ToDo: copy spin configuration
+	}
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
@@ -341,20 +402,27 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 		scale = 0.1;
 	}
 
-	glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
-	glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
-	m_previous_mouse_position = event->pos();
-  
-	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
+	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-		if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
-		if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
+		// ToDo: paste spin configuration
+	}
+	else
+	{
+		glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
+		glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
+		m_previous_mouse_position = event->pos();
+  
+		if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
 		{
-			movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+			VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+			if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
+			if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
+			{
+				movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+			}
+			m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
+			((QWidget *)this)->update();
 		}
-		m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
-		((QWidget *)this)->update();
 	}
 }
 

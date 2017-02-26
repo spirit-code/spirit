@@ -4,7 +4,7 @@
 
 void MouseDecoratorWidget::paintEvent(QPaintEvent *)
 {
-	float radius = 30;
+	float radius = 80;
 	int shift = (int)std::min(5.0f, radius-5);
 
 
@@ -22,7 +22,7 @@ void MouseDecoratorWidget::paintEvent(QPaintEvent *)
 
 	// Draw a dashed front circle (blue)
 	pen = QPen(Qt::blue, 3, Qt::PenStyle::CustomDashLine);
-	pen.setDashPattern({ 8.5, 8.5 });
+	pen.setDashPattern({ 25, 25 });
 	painter.setPen(pen);
 	painter.drawArc(shift, shift, 2 * (radius - shift), 2 * (radius - shift), 0, 16 * 360);
 }
