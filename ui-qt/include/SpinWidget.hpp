@@ -177,6 +177,7 @@ public:
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseReleaseEvent(QMouseEvent *event);
   virtual void wheelEvent(QWheelEvent *event);
   
   protected slots:
@@ -239,6 +240,8 @@ private:
   InteractionMode m_interactionmode;
   glm::vec2 system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize);
   float system_radius_from_relative(float radius, glm::vec2 winsize);
+  QTimer * m_timer_drag;
+  void dragpaste();
 
   // mouse decoration
   MouseDecoratorWidget * mouse_decoration;

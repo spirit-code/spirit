@@ -125,7 +125,9 @@ void Configuration_From_Clipboard(State *state, const float position[3], const f
 	auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
 	// Apply configuration
+	image->Lock();
 	Utility::Configurations::Insert(*image, *state->clipboard_spins, filter);
+	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,

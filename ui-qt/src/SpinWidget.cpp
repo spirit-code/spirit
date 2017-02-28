@@ -130,6 +130,19 @@ float SpinWidget::system_radius_from_relative(float radius, glm::vec2 winsize)
 	return r2.x-r1.x;
 }
 
+void SpinWidget::dragpaste()
+{
+	glm::vec2 mouse_position = glm::vec2(cursor().pos().x(), cursor().pos().y()) * (float)devicePixelRatio();
+	glm::vec2 winsize{ this->size().width(),  this->size().height() };
+	auto coords = system_coords_from_mouse(mouse_position, winsize);
+	float radius = system_radius_from_relative(this->drag_radius, winsize);
+	float f_position[3]{ coords.x, coords.y, 0.0f };
+	float rect[3]{ -1, -1, -1 };
+	// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
+	Configuration_From_Clipboard(state.get(), f_position, rect, radius);
+}
+
+
 void SpinWidget::initializeGL()
 {
 	if (m_interactionmode == InteractionMode::DRAG)
@@ -383,7 +396,24 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 	{
 		// Copy spin configuration
 		Configuration_To_Clipboard(state.get());
+		// Set up Update Timers
+		m_timer_drag = new QTimer(this);
+		connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+		float ips = Simulation_Get_IterationsPerSecond(state.get());
+		if (ips > 1000)
+		{
+			m_timer_drag->start(1);
+		}
+		else if (ips > 0)
+		{
+			m_timer_drag->start((int)(1000/ips));
+		}
 	}
+}
+
+void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+	m_timer_drag->stop();
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
@@ -397,14 +427,7 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		glm::vec2 pos{ event->pos().x(), event->pos().y() };
-		glm::vec2 winsize{ this->size().width(),  this->size().height() };
-		auto coords = system_coords_from_mouse(pos, winsize);
-		float position[3]{ coords.x, coords.y, 0.0f };
-		float rect[3]{ -1, -1, -1 };
-		float radius = system_radius_from_relative(this->drag_radius, winsize);
-		// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
-		Configuration_From_Clipboard(state.get(), position, rect, radius);
+		dragpaste();
 	}
 	else
 	{
