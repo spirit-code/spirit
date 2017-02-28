@@ -18,6 +18,7 @@
 
 #include "Spirit/Geometry.h"
 #include "Spirit/System.h"
+#include "Spirit/Configurations.h"
 #include "Spirit/Simulation.h"
 #include "Spirit/Hamiltonian.h"
 
@@ -96,46 +97,37 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->setVerticalFieldOfView(this->user_fov);
 }
 
-// Return the relative mouse position where [0,1] represents the relevant quadrant left to right
-// ToDo: what if the system is not quadratic?
+// Return the relative mouse position [-1,1]
 glm::vec2 relative_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize)
 {
-	QTransform transform;
-	transform.translate(50, 50);
-	transform.scale(0.5, 1.0);
-	
-	glm::vec2 ret;
-	// We assume the zoom is adjusted so that either x or y is exactly as large as the system
-	float minsize = std::min(winsize.x, winsize.y);
-	float dx = winsize.x - minsize;
-	ret.x = (mouse_pos.x* -0.5*dx) / (winsize.x - dx);
-	float dy = winsize.y - minsize;
-	ret.y = (mouse_pos.y* -0.5*dy) / (winsize.y - dy);
-
-	return ret;
+	glm::vec2 relative = 2.0f*(mouse_pos - 0.5f*winsize);
+	relative.x /= winsize.x;
+	relative.y /= winsize.y;
+	return relative;
 }
 
-glm::vec2 system_coords_from_relative(glm::vec2 relative, glm::vec2 bounds_min, glm::vec2 bounds_max)
+glm::vec2 SpinWidget::system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize)
 {
-	glm::vec2 ret;
+	auto relative = relative_coords_from_mouse(mouse_pos, winsize);
+	glm::vec4 proj_back{ relative.x, relative.y, 0, 0 };
 
-	ret.x = bounds_min.x + (bounds_max.x - bounds_min.x)*relative.x;
-	ret.y = bounds_min.y + (bounds_max.y - bounds_min.y)*relative.y;
+	auto matrices = VFRendering::Utilities::getMatrices(m_view.options(), winsize.x/winsize.y);
+	auto model_view = glm::inverse(matrices.first);
+	auto projection = glm::inverse(matrices.second);
 
-	return ret;
+	proj_back = proj_back*projection;
+	proj_back = proj_back*model_view;
+
+	auto camera_position = options().get<VFRendering::View::Option::CAMERA_POSITION>();
+
+	return glm::vec2{ proj_back.x + camera_position.x, -proj_back.y + camera_position.y };
 }
 
-// Return the relative radius where [0,1] is the range of the whole system size
-// ToDo: what about non-cubic systems?
-float relative_radius_from_mouse(float radius, glm::vec2 winsize)
+float SpinWidget::system_radius_from_relative(float radius, glm::vec2 winsize)
 {
-	float minsize = std::min(winsize.x, winsize.y);
-	return radius/minsize;
-}
-
-float system_radius_from_relative(float radius, glm::vec2 bounds_min, glm::vec2 bounds_max)
-{
-	return radius * std::sqrt( std::pow((bounds_max.x - bounds_min.x), 2) + std::pow((bounds_max.y - bounds_min.y), 2) );
+	auto r1 = system_coords_from_mouse({ 0.0f, 0.0f }, winsize);
+	auto r2 = system_coords_from_mouse({ radius-5, 0.0f }, winsize);
+	return r2.x-r1.x;
 }
 
 void SpinWidget::initializeGL()
@@ -389,7 +381,8 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 	m_previous_mouse_position = event->pos();
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		// ToDo: copy spin configuration
+		// Copy spin configuration
+		Configuration_To_Clipboard(state.get());
 	}
 }
 
@@ -404,7 +397,14 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		// ToDo: paste spin configuration
+		glm::vec2 pos{ event->pos().x(), event->pos().y() };
+		glm::vec2 winsize{ this->size().width(),  this->size().height() };
+		auto coords = system_coords_from_mouse(pos, winsize);
+		float position[3]{ coords.x, coords.y, 0.0f };
+		float rect[3]{ -1, -1, -1 };
+		float radius = system_radius_from_relative(this->drag_radius, winsize);
+		// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
+		Configuration_From_Clipboard(state.get(), position, rect, radius);
 	}
 	else
 	{

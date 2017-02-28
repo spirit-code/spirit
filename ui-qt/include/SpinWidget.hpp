@@ -237,6 +237,8 @@ private:
 
   // Interaction mode
   InteractionMode m_interactionmode;
+  glm::vec2 system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize);
+  float system_radius_from_relative(float radius, glm::vec2 winsize);
 
   // mouse decoration
   MouseDecoratorWidget * mouse_decoration;
