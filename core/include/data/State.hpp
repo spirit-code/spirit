@@ -35,6 +35,9 @@ struct State
 	// Spin System instance in clipboard
 	std::shared_ptr<Data::Spin_System> clipboard_image;
 
+	// Spin configuration in clipboard
+	std::shared_ptr<vectorfield> clipboard_spins;
+
 	// Info
 	int nos /*Number of Spins*/, noi /*Number of Images*/, noc /*Number of Chains*/;
 	int idx_active_image, idx_active_chain;

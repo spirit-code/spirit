@@ -9,6 +9,11 @@ float const defaultPos[3] = {0,0,0};
 float const defaultRect[3] = {-1,-1,-1};
 
 
+// Copies the current spin configuration to the clipboard
+DLLEXPORT void Configuration_To_Clipboard(State *state, int idx_image=-1, int idx_chain=-1);
+// Pastes the clipboard spin configuration
+DLLEXPORT void Configuration_From_Clipboard(State *state, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1);
+
 // Orients all spins with x>pos into the direction of the v
 // DLLEXPORT void Configuration_DomainWall(State *state, const float pos[3], float v[3], const bool greater = true, int idx_image=-1, int idx_chain=-1);
 

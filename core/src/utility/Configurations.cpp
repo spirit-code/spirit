@@ -21,6 +21,26 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter)
+		{
+			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
+
+			if (s.nos != configuration.size())
+			{
+				Log(Log_Level::Warning, Log_Sender::All, "Tried to insert spin configuration with NOS != NOS_system");
+				return;
+			}
+
+			for (int iatom = 0; iatom < s.nos; ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					spins[iatom] = configuration[iatom];
+				}
+			}
+		}
+
 		void Domain(Data::Spin_System & s, Vector3 v, filterfunction filter)
 		{
 			try
