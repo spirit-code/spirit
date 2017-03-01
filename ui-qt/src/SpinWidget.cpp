@@ -1271,13 +1271,13 @@ void SpinWidget::cycleCamera()
 {
 	if (this->verticalFieldOfView() == 0)
 	{
-		//this->setVerticalFieldOfView(this->user_fov);
-		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->user_fov);
+		this->setVerticalFieldOfView(this->user_fov);
+		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->user_fov);
 	}
 	else
 	{
-		//this->setVerticalFieldOfView(0);
-		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
+		this->setVerticalFieldOfView(0);
+		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
 	}
 }
 
@@ -1471,7 +1471,10 @@ void SpinWidget::writeSettings()
 	// VisMode
 	settings.setValue("Mode", (int)(this->visualizationMode()));
 	// Projection
-	settings.setValue("FOV", (int)(this->user_fov * 100));
+	if (this->idx_cycle==0)
+		settings.setValue("FOV", (int)(this->verticalFieldOfView() * 100));
+	else
+		settings.setValue("FOV", (int)(this->user_fov * 100));
 	settings.setValue("FOV Orthogonal", (bool)(this->verticalFieldOfView()<1));
 	// Sphere Point Size
 	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
