@@ -704,7 +704,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_colormap_rotate_phi->setValue(cm_rotation);
 	lineEdit_colormap_rotate_phi->setText(QString::number(cm_rotation));
 	checkBox_colormap_invert_z->setChecked(cm_inverted[0]);
-	checkBox_colormap_invert_z->setChecked(cm_inverted[1]);
+	checkBox_colormap_invert_xy->setChecked(cm_inverted[1]);
 
 	// Perspective / FOV
 	if (_spinWidget->verticalFieldOfView() == 0)

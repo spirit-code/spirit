@@ -1038,7 +1038,7 @@ SpinWidget::Colormap SpinWidget::colormap() const
 void SpinWidget::setColormap(Colormap colormap)
 {
   m_colormap = colormap;
-  setColormapRotationInverted(colormap_rotation(), colormap_inverted()[0], colormap_inverted()[1]);
+  setColormapRotationInverted(colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
 }
 
 float SpinWidget::colormap_rotation()
