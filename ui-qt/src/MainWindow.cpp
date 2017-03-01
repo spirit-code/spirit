@@ -658,19 +658,16 @@ void MainWindow::updateStatusBar()
 void MainWindow::about()
 {
 	QMessageBox::about(this, tr("About Spirit"),
-		QString::fromLatin1("The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
+		QString::fromLatin1(
+			"The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
 			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
 			"into a cross-platform user interface.<br>"
 			"<br>"
-			"Libraries used are<br>"
-			"  - VTK 7<br>"
-			"  - QT 5.5<br>"
-			"<br>"
-			"This has been developed by<br>"
-			"  - Gideon M�ller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
-			"  - Daniel Sch�rhoff (<a href=\"mailto:d.schuerhoff@fz-juelich.de\">d.schuerhoff@fz-juelich.de</a>)<br>"
-			"at the Institute for Advanced Simulation 1 of the Forschungszentrum J�lich.<br>"
-			"For more information about us, visit the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
+			"Main developer:<br>"
+			"  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
+			"at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
+			"For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
+			"or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
 			"<br>"
 			"<b>Copyright 2016</b><br>"));
 }
