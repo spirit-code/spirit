@@ -86,7 +86,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_surface = this->user_show_surface;
 	this->show_isosurface = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
-	this->setVerticalFieldOfView(this->user_fov);
+	//this->setVerticalFieldOfView(this->user_fov);
 }
 
 void SpinWidget::initializeGL()
@@ -1267,14 +1267,17 @@ void SpinWidget::updateBoundingBoxIndicators()
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Camera ---
-void SpinWidget::cycleCamera() {
+void SpinWidget::cycleCamera()
+{
 	if (this->verticalFieldOfView() == 0)
 	{
-		this->setVerticalFieldOfView(this->user_fov);
+		//this->setVerticalFieldOfView(this->user_fov);
+		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->user_fov);
 	}
 	else
 	{
-		this->setVerticalFieldOfView(0);
+		//this->setVerticalFieldOfView(0);
+		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
 	}
 }
 
@@ -1407,10 +1410,21 @@ void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 		scale = std::tan(glm::radians(fov)/2.0) / std::tan(glm::radians(vertical_field_of_view)/2.0);
 		setCameraPositon(getCameraPositon()*scale);
 	}
+	else if (fov > 0)
+	{
+		scale = std::tan(glm::radians(fov) / 2.0);
+		setCameraPositon(getCameraPositon()*scale);
+	}
+	else if (vertical_field_of_view > 0)
+	{
+		scale = 1.0 / std::tan(glm::radians(vertical_field_of_view) / 2.0);
+		setCameraPositon(getCameraPositon()*scale);
+	}
 
 	// Set new FOV
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
+	enableSystem(show_arrows, show_boundingbox, show_surface, show_isosurface);
 }
 
 bool SpinWidget::getCameraRotationType()
@@ -1458,6 +1472,7 @@ void SpinWidget::writeSettings()
 	settings.setValue("Mode", (int)(this->visualizationMode()));
 	// Projection
 	settings.setValue("FOV", (int)(this->user_fov * 100));
+	settings.setValue("FOV Orthogonal", (bool)(this->verticalFieldOfView()<1));
 	// Sphere Point Size
 	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
 	settings.setValue("SpherePointSize2", (int)(this->spherePointSizeRange().y * 100));
@@ -1543,7 +1558,10 @@ void SpinWidget::readSettings()
 		// VisMode
 		this->visMode = VisualizationMode(settings.value("Mode").toInt());
 		// Projection
-		this->setVerticalFieldOfView((float)(settings.value("FOV").toInt() / 100.0f));
+		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>((float)(settings.value("FOV").toInt() / 100.0f));
+		auto y1 = verticalFieldOfView();
+		if (settings.value("FOV Orthogonal").toBool())
+			m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
 		this->user_fov = this->verticalFieldOfView();
 		// Sphere Point Size
 		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });

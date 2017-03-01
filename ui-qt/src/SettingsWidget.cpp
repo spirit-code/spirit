@@ -715,9 +715,9 @@ void SettingsWidget::Load_Visualization_Contents()
 	{
 		radioButton_orthographicProjection->setChecked(false);
 		this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
+		this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 	}
 	horizontalSlider_camera_fov->setRange(0, 160);
-	horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 
 
 	// Arrows: size and lod
