@@ -55,6 +55,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
 	glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
 	setOverallPositionRange(x_range, y_range, z_range);
+	this->m_surface_x_range = x_range;
+	this->m_surface_y_range = y_range;
+	this->m_surface_z_range = z_range;
 	
 	this->m_source = 0;
 	this->visMode = VisualizationMode::SYSTEM;
@@ -480,30 +483,43 @@ void SpinWidget::setSlabRanges()
 	float f_center[3], bounds_min[3], bounds_max[3];
 	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
 	Geometry_Get_Center(state.get(), f_center);
-	glm::vec2 x_range(bounds_min[0]+1e-5, bounds_max[0]-1e-5);
-	glm::vec2 y_range(bounds_min[1]+1e-5, bounds_max[1]-1e-5);
-	glm::vec2 z_range(bounds_min[2]+1e-5, bounds_max[2]-1e-5);
+	glm::vec2 x_range(bounds_min[0], bounds_max[0]);
+	glm::vec2 y_range(bounds_min[1], bounds_max[1]);
+	glm::vec2 z_range(bounds_min[2], bounds_max[2]);
 	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
 	center += this->slab_displacements;
+
+	float delta = 0.51;
 
 	switch(this->idx_cycle)
 	{
 		case 2:
 		{
-			x_range = {center[0]-1, center[0]+1};
+			if ((int)center.x == center.x) { center.x += 0.5; }
+			x_range = {center[0] - delta, center[0] + delta };
 			break;
 		}
 		case 3:
 		{
-			y_range = {center[1]-1, center[1]+1};
+			if ((int)center.y == center.y) { center.y += 0.5; }
+			y_range = {center[1] - delta, center[1] + delta };
 			break;
 		}
 		case 4:
 		{
-			z_range = {center[2]-1, center[2]+1};
+			if ((int)center.z == center.z) { center.z += 0.5; }
+			z_range = {center[2] - delta, center[2] + delta };
 			break;
 		}
 	}
+
+	float mini_shift = 1e-5;
+	x_range.x = std::max(bounds_min[0] + mini_shift, x_range.x );
+	x_range.y = std::min(bounds_max[0] - mini_shift, x_range.y);
+	y_range.x = std::max(bounds_min[1] + mini_shift, y_range.x);
+	y_range.y = std::min(bounds_max[1] - mini_shift, y_range.y);
+	z_range.x = std::max(bounds_min[2] + mini_shift, z_range.x);
+	z_range.y = std::min(bounds_max[2] - mini_shift, z_range.y);
 
 	this->setSurface(x_range, y_range, z_range);
 }
@@ -657,6 +673,7 @@ void SpinWidget::moveSlab(int amount)
 	float f_center[3], bounds_min[3], bounds_max[3];
 	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
 	Geometry_Get_Center(state.get(), f_center);
+	for (int i = 0; i < 3; ++i) if ((int)f_center[i] == f_center[i]) f_center[i] += 0.5;
 	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
 	glm::vec3 pos = center +this->slab_displacements;
 

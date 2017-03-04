@@ -1316,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>246</width>
+            <height>276</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2056</height>
+            <width>395</width>
+            <height>409</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2258,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2056</height>
+            <width>286</width>
+            <height>309</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2724,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>285</width>
+            <height>364</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3775,7 +3775,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>z component</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -3795,14 +3795,14 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_67">
                 <property name="text">
-                 <string>y component</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_68">
                 <property name="text">
-                 <string>x component</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -3894,7 +3894,7 @@
               <item row="2" column="0">
                <widget class="QLabel" name="label_69">
                 <property name="text">
-                 <string>x component</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -3931,7 +3931,7 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_66">
                 <property name="text">
-                 <string>y component</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
@@ -3998,7 +3998,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_65">
                 <property name="text">
-                 <string>z component</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -4104,7 +4104,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>z filter</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -4141,14 +4141,14 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="text">
-                 <string>y filter</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>x filter</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
