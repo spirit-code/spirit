@@ -148,6 +148,7 @@ Currently, the following options are available:
 | CoordinateSystemRenderer::Option::CYLINDER_HEIGHT | float | 0.7 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CYLINDER_HEIGHT > |
 | CoordinateSystemRenderer::Option::CYLINDER_RADIUS | float | 0.07 | CoordinateSystemRenderer.hxx | VFRendering::Utilities::Options::Option< CoordinateSystemRenderer::Option::CYLINDER_RADIUS > |
 | IsosurfaceRenderer::Option::ISOVALUE | float | 0.0 | IsosurfaceRenderer.hxx | VFRendering::Utilities::Options::Option< IsosurfaceRenderer::Option::ISOVALUE > |
+| IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION | std::string | float lighting(vec3 position, vec3 normal) { return 1.0; } | IsosurfaceRenderer.hxx | VFRendering::Utilities::Options::Option< IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION > |
 | IsosurfaceRenderer::Option::VALUE_FUNCTION | std::function<isovalue_type(const glm::vec3&, const glm::vec3&)> | [] (const glm::vec3& position, const glm::vec3& direction) { return direction.z; } | IsosurfaceRenderer.hxx | VFRendering::Utilities::Options::Option< IsosurfaceRenderer::Option::VALUE_FUNCTION > |
 | VectorSphereRenderer::Option::POINT_SIZE_RANGE |  glm::vec2 | {1.0, 4.0} | VectorSphereRenderer.hxx | VFRendering::Utilities::Options::Option< VectorSphereRenderer::Option::POINT_SIZE_RANGE > |
 | VectorSphereRenderer::Option::INNER_SPHERE_RADIUS | float | 0.95 | VectorSphereRenderer.hxx | VFRendering::Utilities::Options::Option< VectorSphereRenderer::Option::INNER_SPHERE_RADIUS > |

@@ -19,4 +19,16 @@ namespace Data
 		this->E_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
 		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(this->noi + (this->noi-1)*gneb_parameters->n_E_interpolations, 0));
 	}
+
+	void Spin_System_Chain::Lock() const
+	{
+		this->mutex.lock();
+		for (auto& image : this->images) image->Lock();
+	}
+
+	void Spin_System_Chain::Unlock() const
+	{
+		this->mutex.unlock();
+		for (auto& image : this->images) image->Unlock();
+	}
 }

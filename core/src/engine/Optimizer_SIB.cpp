@@ -1,5 +1,8 @@
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
+
+using namespace Utility;
 
 namespace Engine
 {
@@ -21,9 +24,9 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Vectormath::kB());
+			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Constants::k_B);
 			// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
-			this->Gen_Xi(*s, xi, epsilon);
+			Vectormath::get_random_vectorfield(*s, epsilon, xi);
 		}
 
 		// First part of the step
@@ -31,8 +34,10 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->VirtualForce(s->nos, *s->spins, *s->llg_parameters, force[i], xi, virtualforce[i]);
-			this->FirstStep(s->nos, *s->spins, virtualforce[i], *spins_temp[i]);
+			this->VirtualForce(*s->spins, *s->llg_parameters, force[i], xi, virtualforce[i]);
+			Vectormath::transform(*s->spins, virtualforce[i], *spins_temp[i]);
+			Vectormath::add_c_a(1, *s->spins, *spins_temp[i]);
+			Vectormath::scale(*spins_temp[i], 0.5);
 		}
 
 		// Second part of the step
@@ -40,26 +45,18 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->VirtualForce(s->nos, *spins_temp[i], *s->llg_parameters, force[i], xi, virtualforce[i]);
-			this->SecondStep(s->nos, virtualforce[i], *s->spins);
+			this->VirtualForce(*spins_temp[i], *s->llg_parameters, force[i], xi, virtualforce[i]);
+			Vectormath::transform(*s->spins, virtualforce[i], *s->spins);
 		}
 	}
 
 
-	void Optimizer_SIB::VirtualForce(const int nos, vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & gradient,  vectorfield & xi, vectorfield & force)
+	void Optimizer_SIB::VirtualForce(vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & gradient,  vectorfield & xi, vectorfield & force)
 	{
 		//========================= Init local vars ================================
-		// deterministic variables
-		Vector3 a1, b1, asc;
-		// stochastic variables
-		Vector3 s1, f1;
-		// aux variables
-		Vector3 A;
 		// time steps
 		scalar damping = llg_params.damping;
 		scalar sqrtdt = std::sqrt(llg_params.dt), dtg = llg_params.dt, sqrtdtg = sqrtdt;
-		// integration variables
-		Vector3 e1;
 		// STT
 		scalar a_j = llg_params.stt_magnitude;
 		Vector3 s_c_vec = llg_params.stt_polarisation_normal;
@@ -75,78 +72,6 @@ namespace Engine
 		Vectormath::add_c_cross(-0.5 * sqrtdtg * damping, spins, xi, force);
 	}
 
-
-	void Optimizer_SIB::FirstStep(const int nos, vectorfield & spins, vectorfield & force, vectorfield & spins_temp)
-	{
-		// aux variables
-		Vector3 a2, A;
-		scalar detAi;
-		// integration variables
-		Vector3 e1, et;
-		int dim = 0;
-
-		for (int i = 0; i < nos; ++i)
-		{
-			e1 = spins[i];
-			A = force[i];
-
-			// 1/determinant(A)
-			detAi = 1.0 / (1 + pow(A.norm(), 2.0));
-
-			// calculate equation without the predictor?
-			a2 = e1 + e1.cross(A);
-
-			et[0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
-			et[1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
-			et[2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
-
-			spins_temp[i] = (e1 + et)*0.5;
-		}
-	}
-
-	void Optimizer_SIB::SecondStep(const int nos, vectorfield & force, vectorfield & spins)
-	{
-		// aux variables
-		Vector3 a2, A;
-		scalar detAi;
-		// integration variables
-		Vector3 e1, et;
-		int dim = 0;
-
-		for (int i = 0; i < nos; ++i) {
-
-			e1 = spins[i];
-			A = force[i];
-
-			// 1/determinant(A)
-			detAi = 1.0 / (1 + pow(A.norm(), 2.0));
-
-			// calculate equation without the predictor?
-			a2 = e1 + e1.cross(A);
-
-			et[0] = (a2[0] * (1 + A[0] * A[0]) + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
-			et[1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1]) + a2[2] * (A[1] * A[2] + A[0]))*detAi;
-			et[2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
-
-			spins[i] = et;
-		}
-	}
-
-
-	void Optimizer_SIB::Gen_Xi(Data::Spin_System & s, vectorfield & xi, scalar eps)
-	{
-		//for (int i = 0; i < 3*s.nos; ++i) {
-		//	// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps
-		//	xi[i] = (s.llg_parameters->distribution_int(s.llg_parameters->prng) * 2 - 1)*eps;
-		//}//endfor i
-		for (int dim = 0; dim < 3; ++dim) {
-			for (int i = 0; i < s.nos; ++i) {
-				// PRNG gives RN int [0,1] -> [-1,1] -> multiply with eps
-				xi[i][dim] = (s.llg_parameters->distribution_int(s.llg_parameters->prng) * 2 - 1)*eps;
-			}//endfor i
-		}//enfor dim
-
-	}//end Gen_Xi
 
     // Optimizer name as string
     std::string Optimizer_SIB::Name() { return "SIB"; }

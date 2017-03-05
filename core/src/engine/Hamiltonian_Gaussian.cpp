@@ -69,7 +69,7 @@ namespace Engine
 				// Prefactor
 				scalar prefactor = this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2))) * l / std::pow(this->width[i],2);
 				// Gradient contribution
-				gradient[ispin] -= prefactor * this->center[i];
+				gradient[ispin] += prefactor * this->center[i];
 			}
 		}
 	}

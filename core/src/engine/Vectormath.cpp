@@ -8,26 +8,12 @@
 #include <Eigen/Dense>
 
 #include <array>
+#include <algorithm>
 
 namespace Engine
 {
 	namespace Vectormath
 	{
-		// Returns the Bohr Magneton [meV / T]
-		scalar MuB()
-		{
-			return 0.057883817555;
-		}
-
-		// Returns the Boltzmann constant [meV / K]
-		scalar kB()
-		{
-			return 0.08617330350;
-		}
-
-
-		/////////////////////////////////////////////////////////////////
-
 
 		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
 		{
@@ -35,46 +21,22 @@ namespace Engine
 		}
 
 
-
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells)
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells)
 		{
-			Vector3 a = translation_vectors[0];
-			Vector3 b = translation_vectors[1];
-			Vector3 c = translation_vectors[2];
-
-			int i, j, k, s, pos;
-			int nos_basic = basis_atoms.size();
-			int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
-			Vector3 build_array;
-			for (k = 0; k < n_cells[2]; ++k) {
-				for (j = 0; j < n_cells[1]; ++j) {
-					for (i = 0; i < n_cells[0]; ++i) {
-						for (s = 0; s < nos_basic; ++s) {
-							pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
-							build_array = i*a + j*b + k*c;
-							// paste initial spin orientations across the lattice translations
-							//spins[dim*nos + pos] = spins[dim*nos + s];
-							// calculate the spin positions
-							spin_pos[pos] = basis_atoms[s] + build_array;
-						}// endfor s
-					}// endfor k
-				}// endfor j
-			}// endfor dim
-
 			// Check for erronous input placing two spins on the same location
 			Vector3 sp;
 			for (unsigned int i = 0; i < basis_atoms.size(); ++i)
 			{
 				for (unsigned int j = 0; j < basis_atoms.size(); ++j)
 				{
-					for (int k1 = -2; k1 < 3; ++k1)
+					for (int k1 = -2; k1 <= 2; ++k1)
 					{
-						for (int k2 = -2; k2 < 3; ++k2)
+						for (int k2 = -2; k2 <= 2; ++k2)
 						{
-							for (int k3 = -2; k3 < 3; ++k3)
+							for (int k3 = -2; k3 <= 2; ++k3)
 							{
 								// Norm is zero if translated basis atom is at position of another basis atom
 								sp = basis_atoms[i] - (basis_atoms[j]
@@ -90,6 +52,27 @@ namespace Engine
 					}
 				}
 			}
+
+			// Build up the spins array
+			int i, j, k, s, pos;
+			int nos_basic = basis_atoms.size();
+			//int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+			Vector3 build_array;
+			for (k = 0; k < n_cells[2]; ++k) {
+				for (j = 0; j < n_cells[1]; ++j) {
+					for (i = 0; i < n_cells[0]; ++i) {
+						for (s = 0; s < nos_basic; ++s) {
+							pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
+							build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
+							// paste initial spin orientations across the lattice translations
+							//spins[dim*nos + pos] = spins[dim*nos + s];
+							// calculate the spin positions
+							spin_pos[pos] = basis_atoms[s] + build_array;
+						}// endfor s
+					}// endfor k
+				}// endfor j
+			}// endfor dim
+
 		};// end Build_Spins
 
 
@@ -107,9 +90,53 @@ namespace Engine
 			return M;
 		}
 
+		scalar TopologicalCharge(const vectorfield & vf)
+		{
+        	Log(Utility::Log_Level::Warning, Utility::Log_Sender::All, std::string("Calculating the topological charge is not yet implemented"));
+			return 0;
+		}
+
+		// Utility function for the SIB Optimizer
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
+		{
+			Vector3 e1, a2, A;
+			scalar detAi;
+			for (unsigned int i = 0; i < spins.size(); ++i)
+			{
+				e1 = spins[i];
+				A = force[i];
+
+				// 1/determinant(A)
+				detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+
+				// calculate equation without the predictor?
+				a2 = e1 + e1.cross(A);
+
+				out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
+				out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
+				out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
+			}
+		}
+		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+		{
+			for (int i = 0; i < sys.nos; ++i)
+			{
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					// PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
+					xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
+				}
+			}
+		}
+
 
 
 		/////////////////////////////////////////////////////////////////
+
+		void assign(scalarfield & sf_dest, const scalarfield& sf_source)
+		{
+			sf_dest = sf_source;
+		}
 
 		void fill(scalarfield & sf, scalar s)
 		{
@@ -162,6 +189,35 @@ namespace Engine
 				vf[i].normalize();
 			}
 		}
+		
+		std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
+		{
+			scalar min=1e6, max=-1e6;
+			std::pair<scalar, scalar> minmax;
+			for (unsigned int i = 0; i < v1.size(); ++i)
+			{
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					if (v1[i][dim] < min) min = v1[i][dim];
+					if (v1[i][dim] > max) max = v1[i][dim];
+				}
+			}
+			minmax.first = min;
+			minmax.second = max;
+			return minmax;
+		}
+    	scalar  max_abs_component(const vectorfield & vf)
+		{
+			// We want the Maximum of Absolute Values of all force components on all images
+			scalar absmax = 0;
+			// Find minimum and maximum values
+			std::pair<scalar,scalar> minmax = minmax_component(vf);
+			// Mamimum of absolute values
+			absmax = std::max(absmax, std::abs(minmax.first));
+			absmax = std::max(absmax, std::abs(minmax.second));
+			// Return
+			return absmax;
+		}
 
 		void scale(vectorfield & vf, const scalar & sc)
 		{
@@ -190,6 +246,7 @@ namespace Engine
 			}
 			return ret;
 		}
+
 
 
 		// computes the inner product of two vectorfields v1 and v2
@@ -224,6 +281,7 @@ namespace Engine
 		}
 
 
+
 		// out[i] += c*a
 		void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
 		{
@@ -232,13 +290,29 @@ namespace Engine
 				out[idx] += c*a;
 			}
 		}
-
 		// out[i] += c*a[i]
 		void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx];
+			}
+		}
+		
+		// out[i] = c*a
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a;
+			}
+		}
+		// out[i] = c*a[i]
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx];
 			}
 		}
 
@@ -251,13 +325,29 @@ namespace Engine
 				out[idx] += c*a.dot(b[idx]);
 			}
 		}
-
 		// out[i] += c * a[i]*b[i]
 		void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx].dot(b[idx]);
+			}
+		}
+
+		// out[i] = c * a*b[i]
+		void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a.dot(b[idx]);
+			}
+		}
+		// out[i] = c * a[i]*b[i]
+		void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx].dot(b[idx]);
 			}
 		}
 
@@ -270,13 +360,29 @@ namespace Engine
 				out[idx] += c*a.cross(b[idx]);
 			}
 		}
-
 		// out[i] += c * a[i] x b[i]
 		void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] += c*a[idx].cross(b[idx]);
+			}
+		}
+		
+		// out[i] = c * a x b[i]
+		void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a.cross(b[idx]);
+			}
+		}
+		// out[i] = c * a[i] x b[i]
+		void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = c*a[idx].cross(b[idx]);
 			}
 		}
 	}

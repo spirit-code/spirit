@@ -1,12 +1,13 @@
 #include "Handle_Signal.hpp"
 
-#include "Interface_Simulation.h"
-#include "Interface_Log.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/Log.h"
 
 // TODO: Replace this
 #include "Timing.hpp"
 
 #include <memory>
+#include <stdlib.h>
 
 struct State;
 std::shared_ptr<State> extern state;

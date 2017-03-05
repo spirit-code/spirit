@@ -3,14 +3,16 @@
 #include "MainWindow.hpp"
 #include "PlotWidget.hpp"
 
-#include "Interface_System.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Simulation.h"
-#include "Interface_Configurations.h"
-#include "Interface_Quantities.h"
-#include "Interface_IO.h"
-#include "Interface_Log.h"
+#include "Spirit/State.h"
+#include "Spirit/System.h"
+#include "Spirit/Geometry.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Quantities.h"
+#include "Spirit/IO.h"
+#include "Spirit/Log.h"
 
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
@@ -77,14 +79,14 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Status Bar
 	//		Spacer
-	this->m_Spacer_4 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
+	this->m_Spacer_5 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_5);
 	//		Torque
 	this->m_Label_Torque = new QLabel("F_max: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Torque);
 	//		Spacer
-	this->m_Spacer_3 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
+	this->m_Spacer_4 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
 	//		Energy
 	this->m_Label_E = new QLabel("E: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_E);
@@ -92,11 +94,17 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_Mz = new QLabel("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
 	//		Spacer
-	this->m_Spacer_2 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
+	this->m_Spacer_3 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
 	//		FPS
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
+	//		Spacer
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
+	//		N_Cells
+	this->m_Label_Dims = new QLabel("Dims: -  ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 	//		Spacer
 	this->m_Spacer_1 = new QLabel("    |    ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_1);
@@ -132,6 +140,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//m_timer_spins->start(100);
 	//m_timer_debug->start(100);
 
+	this->n_screenshots = 0;
 
 	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
@@ -149,19 +158,19 @@ void MainWindow::view_toggle_fullscreen_spins()
 		if (!this->pre_fullscreen_settings_hidden)
 		{
 			dockWidget_Settings->show();
-			dockWidget_Settings->resize(pre_fullscreen_settings_size);
+			dockWidget_Settings->topLevelWidget()->resize(pre_fullscreen_settings_size);
 			dockWidget_Settings->move(pre_fullscreen_settings_pos);
 		}
 		if (!this->pre_fullscreen_plots_hidden)
 		{
 			dockWidget_Plots->show();
-			dockWidget_Plots->resize(pre_fullscreen_plots_size);
+			dockWidget_Plots->topLevelWidget()->resize(pre_fullscreen_plots_size);
 			dockWidget_Plots->move(pre_fullscreen_plots_pos);
 		}
 		if (!this->pre_fullscreen_debug_hidden)
 		{
 			dockWidget_Debug->show();
-			dockWidget_Debug->resize(pre_fullscreen_debug_size);
+			dockWidget_Debug->topLevelWidget()->resize(pre_fullscreen_debug_size);
 			dockWidget_Debug->move(pre_fullscreen_debug_pos);
 		}
 		this->controlWidget->show();
@@ -171,15 +180,15 @@ void MainWindow::view_toggle_fullscreen_spins()
 		this->fullscreen_spins = true;
 		
 		this->pre_fullscreen_settings_hidden = dockWidget_Settings->isHidden();
-		this->pre_fullscreen_settings_size = dockWidget_Settings->size();
+		this->pre_fullscreen_settings_size = dockWidget_Settings->topLevelWidget()->size();
 		this->pre_fullscreen_settings_pos = dockWidget_Settings->pos();
 
 		this->pre_fullscreen_plots_hidden = dockWidget_Plots->isHidden();
-		this->pre_fullscreen_plots_size = dockWidget_Plots->size();
+		this->pre_fullscreen_plots_size = dockWidget_Plots->topLevelWidget()->size();
 		this->pre_fullscreen_plots_pos = dockWidget_Plots->pos();
 
 		this->pre_fullscreen_debug_hidden = dockWidget_Debug->isHidden();
-		this->pre_fullscreen_debug_size = dockWidget_Debug->size();
+		this->pre_fullscreen_debug_size = dockWidget_Debug->topLevelWidget()->size();
 		this->pre_fullscreen_debug_pos = dockWidget_Debug->pos();
 
 		this->dockWidget_Settings->hide();
@@ -192,6 +201,11 @@ void MainWindow::view_toggle_fullscreen_spins()
 
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
+	// Image index
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
 	// Key Sequences
 	if (k->matches(QKeySequence::Copy))
 	{
@@ -202,6 +216,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		// Cut the current Spin System from the chain
 		this->controlWidget->cut_image();
+		Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 		this->createStatusBar();
 	}
 	else if (k->matches(QKeySequence::Paste))
@@ -211,7 +226,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		this->createStatusBar();
 	}
 
-	// Custom Key Sequences
+	// Custom Key Sequences (Control)
 	else if (k->modifiers() & Qt::ControlModifier)
 	{
 		switch (k->key())
@@ -219,12 +234,14 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
 				this->controlWidget->paste_image("left");
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 				this->createStatusBar();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
 				this->controlWidget->paste_image("right");
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
 				this->createStatusBar();
 				break;
 			
@@ -232,78 +249,188 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_F:
 				this->view_toggle_fullscreen_spins();
 				break;
+
+			// CTRL+R - Randomize spins
+			case Qt::Key_R:
+				this->settingsWidget->randomPressed();
+				break;
+
+			// CTRL+N - Add noise
+			case Qt::Key_N:
+				this->settingsWidget->configurationAddNoise();
+				break;
+
+			// CTRL+M - Cycle Method
+			case Qt::Key_M:
+				this->controlWidget->cycleMethod();
+				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+				break;
+				// CTRL+O - Cycle Optimizer
+			case Qt::Key_O:
+				this->controlWidget->cycleOptimizer();
+				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+				break;
 		}
 	}
-	
+
 	// Single Keys
 	else
-	switch (k->key())
 	{
-		// Escape: try to return focus to MainWindow
-		case Qt::Key_Escape:
-			this->setFocus();
-			break;
-		// Up: ...
-		case Qt::Key_Up:
-			break;
-		// Left: switch to image left of current image
-		case Qt::Key_Left:
-			this->controlWidget->prev_image();
-			break;
-		// Left: switch to image left of current image
-		case Qt::Key_Right:
-			this->controlWidget->next_image();
-			break;
-		// Down: ...
-		case Qt::Key_Down:
-			break;
-		// Space: Play and Pause
-		case Qt::Key_Space:
-			this->controlWidget->play_pause();
-			break;
-		// F1: Show key bindings
-		case Qt::Key_F1:
-			this->keyBindings();
-			break;
-		// F2: Toggle settings widget
-		case Qt::Key_F2:
-			this->view_toggleSettings();
-			break;
-		// F3: Toggle Plots widget
-		case Qt::Key_F3:
-			this->view_togglePlots();
-			break;
-		// F2: Toggle debug widget
-		case Qt::Key_F4:
-			this->view_toggleDebug();
-			break;
-		// 0: ...
-		case Qt::Key_0:
-			break;
-		// 1: Select tab 1 of settings widget
-		case Qt::Key_1:
-			this->settingsWidget->SelectTab(0);
-			break;
-		// 2: Select tab 2 of settings widget 
-		case Qt::Key_2:
-			this->settingsWidget->SelectTab(1);
-			break;
-		// 3: Select tab 3 of settings widget
-		case Qt::Key_3:
-			this->settingsWidget->SelectTab(2);
-			break;
-		// 4: Select tab 4 of settings widget
-		case Qt::Key_4:
-			this->settingsWidget->SelectTab(3);
-			break;
-		// 5: Select tab 5 of settings widget
-		case Qt::Key_5:
-			this->settingsWidget->SelectTab(4);
-			break;
-		// Delete: Delete current image
-		case Qt::Key_Delete:
-			this->controlWidget->delete_image();
-			break;
+		// Movement scaling
+		float scale = 20;
+		bool shiftpressed = false;
+		if (k->modifiers() & Qt::ShiftModifier)
+		{
+			scale = 2;
+			shiftpressed = true;
+		}
+
+		switch (k->key())
+		{
+			// Escape: try to return focus to MainWindow
+			case Qt::Key_Escape:
+				this->setFocus();
+				break;
+			// Up: ...
+			case Qt::Key_Up:
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Left: switch to image left of current image
+			case Qt::Key_Left:
+				this->controlWidget->prev_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Left: switch to image left of current image
+			case Qt::Key_Right:
+				this->controlWidget->next_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Down: ...
+			case Qt::Key_Down:
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Space: Play and Pause
+			case Qt::Key_Space:
+				this->controlWidget->play_pause();
+				Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+				break;
+			// WASDQE
+			case Qt::Key_W:
+				this->spinWidget->moveCamera(-scale, 0, 0);
+				break;
+			// WASDQE
+			case Qt::Key_A:
+				this->spinWidget->rotateCamera(0, scale);
+				break;
+			// WASDQE
+			case Qt::Key_S:
+				this->spinWidget->moveCamera(scale, 0, 0);
+				break;
+			// WASDQE
+			case Qt::Key_D:
+				this->spinWidget->rotateCamera(0, -scale);
+				break;
+			// WASDQE
+			case Qt::Key_Q:
+				this->spinWidget->rotateCamera(scale, 0);
+				break;
+			// WASDQE
+			case Qt::Key_E:
+				this->spinWidget->rotateCamera(-scale, 0);
+				break;
+			// Movement
+			case Qt::Key_T:
+				this->spinWidget->moveCamera(0, 0, scale);
+				break;
+			// Movement
+			case Qt::Key_F:
+				this->spinWidget->moveCamera(0, scale, 0);
+				break;
+			// Movement
+			case Qt::Key_G:
+				this->spinWidget->moveCamera(0, 0, -scale);
+				break;
+			// Movement
+			case Qt::Key_H:
+				this->spinWidget->moveCamera(0, -scale, 0);
+				break;
+			// F1: Show key bindings
+			case Qt::Key_F1:
+				this->keyBindings();
+				break;
+			// F2: Toggle settings widget
+			case Qt::Key_F2:
+				this->view_toggleSettings();
+				break;
+			// F3: Toggle Plots widget
+			case Qt::Key_F3:
+				this->view_togglePlots();
+				break;
+			// F2: Toggle debug widget
+			case Qt::Key_F4:
+				this->view_toggleDebug();
+				break;
+			// 0: ...
+			case Qt::Key_0:
+				break;
+			// 1: Select tab 1 of settings widget
+			case Qt::Key_1:
+				this->settingsWidget->SelectTab(0);
+				break;
+			// 2: Select tab 2 of settings widget 
+			case Qt::Key_2:
+				this->settingsWidget->SelectTab(1);
+				break;
+			// 3: Select tab 3 of settings widget
+			case Qt::Key_3:
+				this->settingsWidget->SelectTab(2);
+				break;
+			// 4: Select tab 4 of settings widget
+			case Qt::Key_4:
+				this->settingsWidget->SelectTab(3);
+				break;
+			// 5: Select tab 5 of settings widget
+			case Qt::Key_5:
+				this->settingsWidget->SelectTab(4);
+				break;
+			// Delete: Delete current image
+			case Qt::Key_Delete:
+				this->controlWidget->delete_image();
+				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				break;
+			// Camera
+			case Qt::Key_X:
+				this->spinWidget->setCameraToX(shiftpressed);
+				break;
+			case Qt::Key_Y:
+				this->spinWidget->setCameraToY(shiftpressed);
+				break;
+			case Qt::Key_Z:
+				this->spinWidget->setCameraToZ(shiftpressed);
+				break;
+			case Qt::Key_C:
+				this->spinWidget->cycleCamera();
+				break;
+			// Visualisation: cycle and slab
+			case Qt::Key_Comma:
+				this->spinWidget->moveSlab(-1);
+				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Period:
+				this->spinWidget->moveSlab( 1);
+				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Slash:
+			case Qt::Key_Question:
+				this->spinWidget->cycleSystem(!shiftpressed);
+				this->settingsWidget->updateData();
+				break;
+			case Qt::Key_Home:
+				std::string tag = State_DateTime(state.get());
+				++n_screenshots;
+				this->spinWidget->screenShot(tag + "_Screenshot_" + std::to_string(n_screenshots));
+				break;
+		}
 	}
 	this->return_focus();
 }
@@ -336,9 +463,9 @@ void MainWindow::createStatusBar()
 		Ui::MainWindow::statusBar->removeWidget(this->m_Labels_IPS[i]);
 	}
 	// Remove Spacers and Torque
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_4);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_5);
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Torque);
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_4);
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>(0);
@@ -376,14 +503,14 @@ void MainWindow::createStatusBar()
 		}
 
 		//		Spacer
-		this->m_Spacer_4 = new QLabel("  |    ");
-		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
+		this->m_Spacer_5 = new QLabel("  |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_5);
 		//		Torque
 		this->m_Label_Torque = new QLabel("F_max: -");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Torque);
 		//		Spacer
-		this->m_Spacer_3 = new QLabel("    |    ");
-		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
+		this->m_Spacer_4 = new QLabel("    |    ");
+		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
 	}
 
 
@@ -400,14 +527,30 @@ void MainWindow::createStatusBar()
 
 
 	//		Spacer
-	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
-	this->m_Spacer_2 = new QLabel("    |    ");
-	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
+	this->m_Spacer_3 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
+
 
 	//		FPS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_FPS);
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_FPS);
+
+
+	//		Spacer
+	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
+	this->m_Spacer_2 = new QLabel("    |    ");
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
+
+	//		Dims
+	Ui::MainWindow::statusBar->removeWidget(this->m_Label_Dims);
+	this->m_Label_Dims = new QLabel;
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	this->m_Label_Dims->setText(QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") + QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]));
+	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
+
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_1);
@@ -515,19 +658,16 @@ void MainWindow::updateStatusBar()
 void MainWindow::about()
 {
 	QMessageBox::about(this, tr("About Spirit"),
-		QString::fromLatin1("The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
+		QString::fromLatin1(
+			"The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
 			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
 			"into a cross-platform user interface.<br>"
 			"<br>"
-			"Libraries used are<br>"
-			"  - VTK 7<br>"
-			"  - QT 5.5<br>"
-			"<br>"
-			"This has been developed by<br>"
-			"  - Gideon M�ller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
-			"  - Daniel Sch�rhoff (<a href=\"mailto:d.schuerhoff@fz-juelich.de\">d.schuerhoff@fz-juelich.de</a>)<br>"
-			"at the Institute for Advanced Simulation 1 of the Forschungszentrum J�lich.<br>"
-			"For more information about us, visit the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
+			"Main developer:<br>"
+			"  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
+			"at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
+			"For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
+			"or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
 			"<br>"
 			"<b>Copyright 2016</b><br>"));
 }
@@ -537,22 +677,37 @@ void MainWindow::keyBindings()
 	QMessageBox::about(this, tr("Spirit UI Key Bindings"),
 		QString::fromLatin1("The <b>Key Bindings</b> are as follows:<br>"
 			"<br>"
+			"<i>UI controls</i><br>"
 			" - <b>F1</b>:      Show this<br>"
 			" - <b>F2</b>:      Toggle Settings<br>"
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
 			" - <b>Ctrl+F</b>:  Toggle large visualisation<br>"
-			"<br>"
 			" - <b>1-5</b>:     Select Tab in Settings<br>"
-			"<br>"
-			" - <b>Arrows</b>:  Switch between arrows and chains<br>"
-			" - <b>WASD</b>:    Move the camera around (not yet functional)<br>"
-			" - <b>Space</b>:   Play/Pause<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
-			" - <b>Ctrl+X</b>:           Cut   Image<br>"
-			" - <b>Ctrl+C</b>:           Copy  Image<br>"
-			" - <b>Ctrl+V</b>:           Paste Image at current index<br>"
+			"<i>Camera controls</i><br>"
+			" - <b>Left mouse</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>Right mouse</b>:   Move the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>Scroll mouse</b>:  Zoom in on focus point (<b>shift</b> to go slow)<br>"
+			" - <b>WASD</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>TFGH</b>:    Move the camera around (<b>shift</b> to go slow)<br>"
+			" - <b>X,Y,Z</b>:   Set the camera in X, Y or Z direction (<b>shift</b> to invert)<br>"
+			"<br>"
+			"<i>Control Simulations</i><br>"
+			" - <b>Space</b>:   Play/Pause<br>"
+			" - <b>Ctrl+M</b>:  Cycle Method<br>"
+			" - <b>Ctrl+O</b>:  Cycle Optimizer<br>"
+			"<br>"
+			"<i>Manipulate the current images</i><br>"
+			" - <b>Ctrl+R</b>:  Random configuration<br>"
+			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
+			"<br>"
+			"<i>Manipulate the chain of images</i><br>"
+			" - <b>Arrows</b>:           Switch between images and chains<br>"
+			" - <b>Ctrl+X</b>:           Cut   image<br>"
+			" - <b>Ctrl+C</b>:           Copy  image<br>"
+			" - <b>Ctrl+V</b>:           Paste image at current index<br>"
 			" - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
 			" - <b>Del</b>:              Delete image<br>"));
 }
@@ -657,7 +812,7 @@ void MainWindow::readSettings()
 	// dockWidget_Settings->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
 	// dockWidget_Settings->setHidden(settings.value("hidden").toBool());
-	dockWidget_Settings->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Settings->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 
@@ -666,7 +821,7 @@ void MainWindow::readSettings()
 	// dockWidget_Plots->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Plots);
 	// dockWidget_Plots->setHidden(settings.value("hidden").toBool());
-	dockWidget_Plots->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Plots->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Plots->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 
@@ -675,7 +830,7 @@ void MainWindow::readSettings()
 	// dockWidget_Debug->setFloating(settings.value("docked").toBool());
 	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Debug);
 	// dockWidget_Debug->setHidden(settings.value("hidden").toBool());
-	dockWidget_Debug->resize(settings.value("size", QSize(1, 1)).toSize());
+	dockWidget_Debug->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
 	dockWidget_Debug->move(settings.value("pos", QPoint(200, 200)).toPoint());
 	settings.endGroup();
 }
@@ -692,7 +847,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
 	// settings.setValue("docked", dockWidget_Settings->isFloating());
 	// settings.setValue("hidden", dockWidget_Settings->isHidden());
-	settings.setValue("size", dockWidget_Settings->size());
+	settings.setValue("size", dockWidget_Settings->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Settings->pos());
 	settings.endGroup();
 
@@ -701,7 +856,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Plots));
 	// settings.setValue("docked", dockWidget_Plots->isFloating());
 	// settings.setValue("hidden", dockWidget_Plots->isHidden());
-	settings.setValue("size", dockWidget_Plots->size());
+	settings.setValue("size", dockWidget_Plots->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Plots->pos());
 	settings.endGroup();
 
@@ -710,7 +865,7 @@ void MainWindow::writeSettings()
 	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Debug));
 	// settings.setValue("docked", dockWidget_Debug->isFloating());
 	// settings.setValue("hidden", dockWidget_Debug->isHidden());
-	settings.setValue("size", dockWidget_Debug->size());
+	settings.setValue("size", dockWidget_Debug->topLevelWidget()->size());
 	settings.setValue("pos", dockWidget_Debug->pos());
 	settings.endGroup();
 }

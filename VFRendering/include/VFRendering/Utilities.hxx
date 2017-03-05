@@ -26,7 +26,9 @@ enum class Colormap {
     BLUERED,
     BLUEGREENRED,
     BLUEWHITERED,
-    HSV
+    HSV,
+    BLACK,
+    WHITE
 };
 
 std::string getColormapImplementation(const Colormap& colormap);

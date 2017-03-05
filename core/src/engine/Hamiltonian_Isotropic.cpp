@@ -8,6 +8,7 @@
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Constants.hpp>
 
 using namespace Utility;
 
@@ -16,7 +17,7 @@ namespace Engine
 	Hamiltonian_Isotropic::Hamiltonian_Isotropic(
 		std::vector<bool> boundary_conditions, scalar external_field_magnitude_i, Vector3 external_field_normal, scalar mu_s,
 		scalar anisotropy_magnitude, Vector3 anisotropy_normal,
-		int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius,
+		int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius,
 		Data::Geometry geometry) :
 		Hamiltonian(boundary_conditions),
 		mu_s(mu_s),
@@ -25,7 +26,7 @@ namespace Engine
 		n_neigh_shells(n_neigh_shells), jij(jij), dij(dij), bij(bij), kijkl(kijkl), dd_radius(dd_radius)
 	{
 		// Rescale magnetic field from Tesla to meV
-		external_field_magnitude = external_field_magnitude * Vectormath::MuB() * mu_s;
+		external_field_magnitude = external_field_magnitude * Constants::mu_B * mu_s;
 		external_field_normal.normalize();
 
 		this->Update_Energy_Contributions();
@@ -33,7 +34,7 @@ namespace Engine
 		// Calculate Neighbours
 		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
 		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
-			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, segments, segments_pos);
+			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, dm_chirality, segments, segments_pos);
 		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
 			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
 		Log(Log_Level::Info, Log_Sender::All, "Done Caclulating Neighbours");
@@ -213,7 +214,7 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
 	{
-		scalar mult = -std::pow(Vectormath::MuB(),2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar mult = -std::pow(Constants::mu_B,2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
 
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -364,7 +365,7 @@ namespace Engine
 
 	void Hamiltonian_Isotropic::Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
-		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
+		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_s^2
 		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
 		{
 			if (dd_distance[ispin][jneigh] > 0.0)

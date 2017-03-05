@@ -4,16 +4,16 @@
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
 
-#include "Interface_Configurations.h"
-#include "Interface_Transitions.h"
-#include "Interface_Log.h"
-#include "Interface_System.h"
-#include "Interface_Geometry.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Hamiltonian.h"
-#include "Interface_Parameters.h"
-#include "Interface_Exception.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Transitions.h"
+#include "Spirit/Log.h"
+#include "Spirit/System.h"
+#include "Spirit/Geometry.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Hamiltonian.h"
+#include "Spirit/Parameters.h"
+#include "Spirit/Exception.h"
 
 #include <iostream>
 #include <memory>
@@ -92,13 +92,72 @@ void SettingsWidget::updateData()
 
 
 // -----------------------------------------------------------------------------------
+// -------------- Helpers for fetching Configurations Settings -----------------------
+// -----------------------------------------------------------------------------------
+std::array<float,3> SettingsWidget::get_position()
+{
+	return std::array<float,3>
+	{
+		lineEdit_pos_x->text().toFloat(),
+		lineEdit_pos_y->text().toFloat(),
+		lineEdit_pos_z->text().toFloat()
+	};
+}
+std::array<float,3> SettingsWidget::get_border_rectangular()
+{
+	std::array<float,3> ret{-1,-1,-1};
+	if (checkBox_border_rectangular_x->isChecked())
+		ret[0] = lineEdit_border_x->text().toFloat();
+	if (checkBox_border_rectangular_y->isChecked())
+		ret[1] = lineEdit_border_y->text().toFloat();
+	if (checkBox_border_rectangular_z->isChecked())
+		ret[2] = lineEdit_border_z->text().toFloat();
+	return ret;
+}
+float SettingsWidget::get_border_cylindrical()
+{
+	if (checkBox_border_cylindrical->isChecked())
+	{
+		return lineEdit_border_cylindrical->text().toFloat();
+	}
+	else
+	{
+		return -1;
+	}
+}
+float SettingsWidget::get_border_spherical()
+{
+	if (checkBox_border_spherical->isChecked())
+	{
+		return lineEdit_border_spherical->text().toFloat();
+	}
+	else
+	{
+		return -1;
+	}
+}
+float SettingsWidget::get_inverted()
+{
+	return checkBox_inverted->isChecked();
+}
+
+
+// -----------------------------------------------------------------------------------
 // --------------------- Configurations and Transitions ------------------------------
 // -----------------------------------------------------------------------------------
-
 void SettingsWidget::randomPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
-	Configuration_Random(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_Random(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -107,6 +166,13 @@ void SettingsWidget::randomPressed()
 void SettingsWidget::addNoisePressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -115,7 +181,16 @@ void SettingsWidget::addNoisePressed()
 void SettingsWidget::minusZ()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Minus Z");
-	Configuration_MinusZ(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_MinusZ(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -124,7 +199,16 @@ void SettingsWidget::minusZ()
 void SettingsWidget::plusZ()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Plus Z");
-	Configuration_PlusZ(this->state.get());
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	Configuration_PlusZ(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -134,15 +218,18 @@ void SettingsWidget::plusZ()
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
-	float r = lineEdit_hopf_r->text().toFloat();
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float r = lineEdit_hopfion_radius->text().toFloat();
 	int order = lineEdit_hopfion_order->text().toInt();
-	std::vector<float> pos =
-	{
-		lineEdit_hopf_posx->text().toFloat(),
-		lineEdit_hopf_posy->text().toFloat(),
-		lineEdit_hopf_posz->text().toFloat()
-	};
-	Configuration_Hopfion(this->state.get(), pos.data(), r, order);
+	Configuration_Hopfion(this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -152,20 +239,23 @@ void SettingsWidget::create_Hopfion()
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
-	float speed = lineEdit_sky_order->text().toFloat();
-	float phase = lineEdit_sky_phase->text().toFloat();
-	bool upDown = checkBox_sky_UpDown->isChecked();
-	bool achiral = checkBox_sky_Achiral->isChecked();
-	bool rl = checkBox_sky_RL->isChecked();
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float rad = lineEdit_skyrmion_radius->text().toFloat();
+	float speed = lineEdit_skyrmion_order->text().toFloat();
+	float phase = lineEdit_skyrmion_phase->text().toFloat();
+	bool upDown = checkBox_skyrmion_UpDown->isChecked();
+	bool achiral = checkBox_skyrmion_achiral->isChecked();
+	bool rl = checkBox_skyrmion_RL->isChecked();
 	// bool experimental = checkBox_sky_experimental->isChecked();
-	std::vector<float> pos =
-	{
-		lineEdit_sky_posx->text().toFloat(),
-		lineEdit_sky_posy->text().toFloat(),
-		lineEdit_sky_posz->text().toFloat()
-	};
-	float rad = lineEdit_sky_rad->text().toFloat();
-	Configuration_Skyrmion(this->state.get(), pos.data(), rad, speed, phase, upDown, achiral, rl);
+	Configuration_Skyrmion(this->state.get(), rad, speed, phase, upDown, achiral, rl, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -175,27 +265,43 @@ void SettingsWidget::create_Skyrmion()
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
 	float direction[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
 	float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(), lineEdit_SS_axis_z->text().toFloat() };
 	float period = lineEdit_SS_period->text().toFloat();
 	const char * direction_type;
-	// And now an ugly workaround because the QT people are too stupid to fix a Bug with QString::toStdString on Windows...
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
-	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period);
+	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
 	this->_spinWidget->updateData();
 }
 
-void SettingsWidget::domainWallPressed()
+void SettingsWidget::domainPressed()
 {
-	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button DomainWall");
-	float vec[3] = { lineEdit_vx->text().toFloat(), lineEdit_vy->text().toFloat(), lineEdit_vz->text().toFloat() };
-	float pos[3] = { lineEdit_posx->text().toFloat(), lineEdit_posy->text().toFloat(), lineEdit_posz->text().toFloat() };
-	Configuration_DomainWall(this->state.get(), pos, vec, this->radioButton_DW_greater->isChecked());
+	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Domain");
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Create configuration
+	float dir[3] = { lineEdit_domain_dir_x->text().toFloat(), lineEdit_domain_dir_y->text().toFloat(), lineEdit_domain_dir_z->text().toFloat() };
+	Configuration_Domain(this->state.get(), dir, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	// Optionally add noise
 	this->configurationAddNoise();
 	print_Energies_to_console();
 	Chain_Update_Data(this->state.get());
@@ -207,8 +313,16 @@ void SettingsWidget::configurationAddNoise()
 	// Add Noise
 	if (this->checkBox_Configuration_Noise->isChecked())
 	{
+		// Get settings
+		auto pos = get_position();
+		auto border_rect = get_border_rectangular();
+		float border_cyl = get_border_cylindrical();
+		float border_sph = get_border_spherical();
+		bool inverted = get_inverted();
+		// Create configuration
 		float temperature = lineEdit_Configuration_Noise->text().toFloat();
-		Configuration_Add_Noise_Temperature(this->state.get(), temperature);
+		Configuration_Add_Noise_Temperature(this->state.get(), temperature, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
 		Chain_Update_Data(this->state.get());
 		this->_spinWidget->updateData();
 	}
@@ -452,10 +566,15 @@ void SettingsWidget::Load_Visualization_Contents()
 		this->radioButton_vismode_sphere->setChecked(true);
 	
 	// System
-	this->checkBox_show_arrows->setChecked(_spinWidget->show_arrows);
-	this->checkBox_showBoundingBox->setChecked(_spinWidget->show_boundingbox);
-	this->checkBox_show_surface->setChecked(_spinWidget->show_surface);
-	this->checkBox_show_isosurface->setChecked(_spinWidget->show_isosurface);
+	bool show_arrows = _spinWidget->show_arrows;
+	bool show_boundingbox = _spinWidget->show_boundingbox;
+	bool show_surface = _spinWidget->show_surface;
+	bool show_isosurface = _spinWidget->show_isosurface;
+	this->checkBox_show_arrows->setChecked(show_arrows);
+	this->checkBox_showBoundingBox->setChecked(show_boundingbox);
+	this->checkBox_show_surface->setChecked(show_surface);
+	this->checkBox_show_isosurface->setChecked(show_isosurface);
+	this->checkBox_isosurfaceshadows->setChecked(_spinWidget->isosurfaceshadows());
 
 	// Miniview
 	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
@@ -466,7 +585,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
 
 	// Z Range Arrows
-	auto z_range = _spinWidget->zRange();
+	auto z_range = _spinWidget->zRangeDirection();
 	if (z_range.x < -1)
 		z_range.x = -1;
 	if (z_range.x > 1)
@@ -475,38 +594,97 @@ void SettingsWidget::Load_Visualization_Contents()
 		z_range.y = -1;
 	if (z_range.y > 1)
 		z_range.y = 1;
-	
-	// Overall filter
-	horizontalSlider_overall_zmin->setInvertedAppearance(true);
-	horizontalSlider_overall_zmin->setRange(-100, 100);
-	horizontalSlider_overall_zmin->setValue((int)(-z_range.x * 100));
-	horizontalSlider_overall_zmax->setRange(-100, 100);
-	horizontalSlider_overall_zmax->setValue((int)(z_range.y * 100));
-	horizontalSlider_overall_zmin->setTracking(true);
-	horizontalSlider_overall_zmax->setTracking(true);
 
+	// Overall direction filter X
+	horizontalSlider_overall_dir_xmin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_xmin->setRange(-100, 100);
+	horizontalSlider_overall_dir_xmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_xmax->setRange(-100, 100);
+	horizontalSlider_overall_dir_xmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_xmin->setTracking(true);
+	horizontalSlider_overall_dir_xmax->setTracking(true);
+	// Overall direction filter Y
+	horizontalSlider_overall_dir_ymin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_ymin->setRange(-100, 100);
+	horizontalSlider_overall_dir_ymin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_ymax->setRange(-100, 100);
+	horizontalSlider_overall_dir_ymax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_ymin->setTracking(true);
+	horizontalSlider_overall_dir_ymax->setTracking(true);
+	// Overall direction filter Z
+	horizontalSlider_overall_dir_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_dir_zmin->setRange(-100, 100);
+	horizontalSlider_overall_dir_zmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_zmax->setRange(-100, 100);
+	horizontalSlider_overall_dir_zmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_zmin->setTracking(true);
+	horizontalSlider_overall_dir_zmax->setTracking(true);
 
+	z_range = _spinWidget->zRangePosition();
+	// Overall position filter X
+	//horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_xmin->setRange(0, 10000);
+	horizontalSlider_overall_pos_xmin->setValue(0);
+	horizontalSlider_overall_pos_xmax->setRange(0, 10000);
+	horizontalSlider_overall_pos_xmax->setValue(10000);
+	horizontalSlider_overall_pos_xmin->setTracking(true);
+	horizontalSlider_overall_pos_xmax->setTracking(true);
+	// Overall position filter Y
+	//horizontalSlider_overall_pos_ymin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_ymin->setRange(0, 10000);
+	horizontalSlider_overall_pos_ymin->setValue(0);
+	horizontalSlider_overall_pos_ymax->setRange(0, 10000);
+	horizontalSlider_overall_pos_ymax->setValue(10000);
+	horizontalSlider_overall_pos_ymin->setTracking(true);
+	horizontalSlider_overall_pos_ymax->setTracking(true);
+	// Overall position filter Z
+	//horizontalSlider_overall_pos_zmin->setInvertedAppearance(true);
+	horizontalSlider_overall_pos_zmin->setRange(0, 10000);
+	horizontalSlider_overall_pos_zmin->setValue(0);
+	horizontalSlider_overall_pos_zmax->setRange(0, 10000);
+	horizontalSlider_overall_pos_zmax->setValue(10000);
+	horizontalSlider_overall_pos_zmin->setTracking(true);
+	horizontalSlider_overall_pos_zmax->setTracking(true);
+
+	float bounds_min[3], bounds_max[3];
+	Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+	glm::vec3 sys_size{bounds_max[0]-bounds_min[0], bounds_max[1]-bounds_min[1], bounds_max[2]-bounds_min[2]};
+	horizontalSlider_surface_xmin->blockSignals(true);
+	horizontalSlider_surface_xmax->blockSignals(true);
+	horizontalSlider_surface_ymin->blockSignals(true);
+	horizontalSlider_surface_ymax->blockSignals(true);
+	horizontalSlider_surface_zmin->blockSignals(true);
+	horizontalSlider_surface_zmax->blockSignals(true);
 	// X Range Surface
+	auto surface_x_range = _spinWidget->surfaceXRange();
 	horizontalSlider_surface_xmin->setRange(1, 99999);
-	horizontalSlider_surface_xmin->setValue((int)(1));
+	horizontalSlider_surface_xmin->setValue((int)(surface_x_range[0]/sys_size[0]*100000));
 	horizontalSlider_surface_xmax->setRange(1, 99999);
-	horizontalSlider_surface_xmax->setValue((int)(99999));
+	horizontalSlider_surface_xmax->setValue((int)(surface_x_range[1]/sys_size[0]*100000));
 	horizontalSlider_surface_xmin->setTracking(true);
 	horizontalSlider_surface_xmax->setTracking(true);
 	// Y Range Surface
+	auto surface_y_range = _spinWidget->surfaceYRange();
 	horizontalSlider_surface_ymin->setRange(1, 99999);
-	horizontalSlider_surface_ymin->setValue((int)(1));
+	horizontalSlider_surface_ymin->setValue((int)(surface_y_range[0]/sys_size[1]*100000));
 	horizontalSlider_surface_ymax->setRange(1, 99999);
-	horizontalSlider_surface_ymax->setValue((int)(99999));
+	horizontalSlider_surface_ymax->setValue((int)(surface_y_range[1]/sys_size[1]*100000));
 	horizontalSlider_surface_ymin->setTracking(true);
 	horizontalSlider_surface_ymax->setTracking(true);
 	// Z Range Surface
+	auto surface_z_range = _spinWidget->surfaceZRange();
 	horizontalSlider_surface_zmin->setRange(1, 99999);
-	horizontalSlider_surface_zmin->setValue((int)(1));
+	horizontalSlider_surface_zmin->setValue((int)(surface_z_range[0]/sys_size[2]*100000));
 	horizontalSlider_surface_zmax->setRange(1, 99999);
-	horizontalSlider_surface_zmax->setValue((int)(99999));
+	horizontalSlider_surface_zmax->setValue((int)(surface_z_range[1]/sys_size[2]*100000));
 	horizontalSlider_surface_zmin->setTracking(true);
 	horizontalSlider_surface_zmax->setTracking(true);
+	horizontalSlider_surface_xmin->blockSignals(false);
+	horizontalSlider_surface_xmax->blockSignals(false);
+	horizontalSlider_surface_ymin->blockSignals(false);
+	horizontalSlider_surface_ymax->blockSignals(false);
+	horizontalSlider_surface_zmin->blockSignals(false);
+	horizontalSlider_surface_zmax->blockSignals(false);
   
 	// Isosurface
 	auto isovalue = _spinWidget->isovalue();
@@ -520,6 +698,13 @@ void SettingsWidget::Load_Visualization_Contents()
 	// Colormap
 	int idx_cm = (int)_spinWidget->colormap();
 	comboBox_colormap->setCurrentIndex(idx_cm);
+	float cm_rotation = _spinWidget->colormap_rotation();
+	auto cm_inverted = _spinWidget->colormap_inverted();
+	horizontalSlider_colormap_rotate_phi->setRange(0, 360);
+	horizontalSlider_colormap_rotate_phi->setValue(cm_rotation);
+	lineEdit_colormap_rotate_phi->setText(QString::number(cm_rotation));
+	checkBox_colormap_invert_z->setChecked(cm_inverted[0]);
+	checkBox_colormap_invert_xy->setChecked(cm_inverted[1]);
 
 	// Perspective / FOV
 	if (_spinWidget->verticalFieldOfView() == 0)
@@ -529,7 +714,10 @@ void SettingsWidget::Load_Visualization_Contents()
 	else
 	{
 		radioButton_orthographicProjection->setChecked(false);
+		this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
+		this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 	}
+	horizontalSlider_camera_fov->setRange(0, 160);
 
 
 	// Arrows: size and lod
@@ -542,6 +730,10 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_spherePointSize->setRange(1, 10);
 	horizontalSlider_spherePointSize->setValue((int)_spinWidget->spherePointSizeRange().y);
 
+	// Light
+	horizontalSlider_light_theta->setRange(0, 180);
+	horizontalSlider_light_phi->setRange(0, 360);
+
 	// Bounding Box
 	//checkBox_showBoundingBox->setChecked(_spinWidget->isBoundingBoxEnabled());
 
@@ -551,6 +743,15 @@ void SettingsWidget::Load_Visualization_Contents()
 
 	// Camera
 	this->read_camera();
+	if (this->_spinWidget->getCameraRotationType())
+		this->radioButton_camera_rotate_free->setChecked(true);
+	else
+		this->radioButton_camera_rotate_bounded->setChecked(true);
+
+	// Light
+	auto angles = this->_spinWidget->getLightPosition();
+	this->horizontalSlider_light_theta->setValue((int)angles[0]);
+	this->horizontalSlider_light_phi->setValue((int)angles[1]);
 }
 
 // -----------------------------------------------------------------------------------
@@ -815,6 +1016,7 @@ void SettingsWidget::set_hamiltonian_aniso_bc()
 			}
 		}
 	}
+	this->_spinWidget->updateBoundingBoxIndicators();
 }
 
 void SettingsWidget::set_hamiltonian_aniso_mu_s()
@@ -1059,6 +1261,10 @@ void SettingsWidget::set_hamiltonian_aniso_temp()
 // -----------------------------------------------------------------------------------
 // --------------------- Visualization -----------------------------------------------
 // -----------------------------------------------------------------------------------
+void SettingsWidget::set_visualisation_source()
+{
+	this->_spinWidget->setVisualisationSource(this->comboBox_VisualisationSource->currentIndex());
+}
 
 void SettingsWidget::set_visualization_mode()
 {
@@ -1081,7 +1287,7 @@ void SettingsWidget::set_visualization_perspective()
 	}
 	else
 	{
-		_spinWidget->setVerticalFieldOfView(45);
+		_spinWidget->setVerticalFieldOfView(this->lineEdit_camera_fov->text().toFloat());
 	}
 }
 
@@ -1218,36 +1424,133 @@ void SettingsWidget::set_visualization_system_surface()
 	float z_min = bounds_min[2] + (s_min / 100000.0) * (bounds_max[2] - bounds_min[2]);
 	float z_max = bounds_min[2] + (s_max / 100000.0) * (bounds_max[2] - bounds_min[2]);
 
+	// Set
 	glm::vec2 x_range(x_min, x_max);
 	glm::vec2 y_range(y_min, y_max);
 	glm::vec2 z_range(z_min, z_max);
 	_spinWidget->setSurface(x_range, y_range, z_range);
 }
 
-void SettingsWidget::set_visualization_system_overall()
+void SettingsWidget::set_visualization_system_overall_direction()
 {
-	float z_range_min = -horizontalSlider_overall_zmin->value() / 100.0;
-	float z_range_max = horizontalSlider_overall_zmax->value() / 100.0;
-	if (z_range_min > z_range_max)
+	// X
+	float range_min = -horizontalSlider_overall_dir_xmin->value() / 100.0;
+	float range_max =  horizontalSlider_overall_dir_xmax->value() / 100.0;
+	if (range_min > range_max)
 	{
-		float t = z_range_min;
-		z_range_min = z_range_max;
-		z_range_max = t;
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
 	}
-	horizontalSlider_overall_zmin->blockSignals(true);
-	horizontalSlider_overall_zmax->blockSignals(true);
-	horizontalSlider_overall_zmin->setValue((int)(-z_range_min * 100));
-	horizontalSlider_overall_zmax->setValue((int)(z_range_max * 100));
-	horizontalSlider_overall_zmin->blockSignals(false);
-	horizontalSlider_overall_zmax->blockSignals(false);
+	horizontalSlider_overall_dir_xmin->blockSignals(true);
+	horizontalSlider_overall_dir_xmax->blockSignals(true);
+	horizontalSlider_overall_dir_xmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_xmax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_xmin->blockSignals(false);
+	horizontalSlider_overall_dir_xmax->blockSignals(false);
+	glm::vec2 x_range(range_min, range_max);
 
-	glm::vec2 z_range(z_range_min, z_range_max);
-	_spinWidget->setZRange(z_range);
+	// Y
+	range_min = -horizontalSlider_overall_dir_ymin->value() / 100.0;
+	range_max =  horizontalSlider_overall_dir_ymax->value() / 100.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_dir_ymin->blockSignals(true);
+	horizontalSlider_overall_dir_ymax->blockSignals(true);
+	horizontalSlider_overall_dir_ymin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_ymax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_ymin->blockSignals(false);
+	horizontalSlider_overall_dir_ymax->blockSignals(false);
+	glm::vec2 y_range(range_min, range_max);
+
+	// Z
+	range_min = -horizontalSlider_overall_dir_zmin->value() / 100.0;
+	range_max =  horizontalSlider_overall_dir_zmax->value() / 100.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_dir_zmin->blockSignals(true);
+	horizontalSlider_overall_dir_zmax->blockSignals(true);
+	horizontalSlider_overall_dir_zmin->setValue((int)(-range_min * 100));
+	horizontalSlider_overall_dir_zmax->setValue((int)( range_max * 100));
+	horizontalSlider_overall_dir_zmin->blockSignals(false);
+	horizontalSlider_overall_dir_zmax->blockSignals(false);
+	glm::vec2 z_range(range_min, range_max);
+
+	_spinWidget->setOverallDirectionRange(x_range, y_range, z_range);
 }
+
+void SettingsWidget::set_visualization_system_overall_position()
+{
+	float b_min[3], b_max[3], b_range[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	for (int dim = 0; dim < 3; ++dim) b_range[dim] = b_max[dim] - b_min[dim];
+
+	// X
+	float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
+	float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_xmin->blockSignals(true);
+	horizontalSlider_overall_pos_xmax->blockSignals(true);
+	horizontalSlider_overall_pos_xmin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_xmax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_xmin->blockSignals(false);
+	horizontalSlider_overall_pos_xmax->blockSignals(false);
+	glm::vec2 x_range(b_min[0]+range_min*b_range[0], b_min[0]+range_max*b_range[0]);
+
+	// Y
+	range_min = horizontalSlider_overall_pos_ymin->value() / 10000.0;
+	range_max = horizontalSlider_overall_pos_ymax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_ymin->blockSignals(true);
+	horizontalSlider_overall_pos_ymax->blockSignals(true);
+	horizontalSlider_overall_pos_ymin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_ymax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_ymin->blockSignals(false);
+	horizontalSlider_overall_pos_ymax->blockSignals(false);
+	glm::vec2 y_range(b_min[1]+range_min*b_range[1], b_min[1]+range_max*b_range[1]);
+
+	// Z
+	range_min = horizontalSlider_overall_pos_zmin->value() / 10000.0;
+	range_max = horizontalSlider_overall_pos_zmax->value() / 10000.0;
+	if (range_min > range_max)
+	{
+		float t = range_min;
+		range_min = range_max;
+		range_max = t;
+	}
+	horizontalSlider_overall_pos_zmin->blockSignals(true);
+	horizontalSlider_overall_pos_zmax->blockSignals(true);
+	horizontalSlider_overall_pos_zmin->setValue((int)(range_min * 10000));
+	horizontalSlider_overall_pos_zmax->setValue((int)(range_max * 10000));
+	horizontalSlider_overall_pos_zmin->blockSignals(false);
+	horizontalSlider_overall_pos_zmax->blockSignals(false);
+	glm::vec2 z_range(b_min[2]+range_min*b_range[2], b_min[2]+range_max*b_range[2]);
+
+	_spinWidget->setOverallPositionRange(x_range, y_range, z_range);
+}
+
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
-
+	_spinWidget->setIsosurfaceshadows(this->checkBox_isosurfaceshadows->isChecked());
 }
 
 
@@ -1306,7 +1609,42 @@ void SettingsWidget::set_visualization_colormap()
 	{
 		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
 	}
+	if (comboBox_colormap->currentText() == "White")
+	{
+		colormap = SpinWidget::Colormap::WHITE;
+	}
+	if (comboBox_colormap->currentText() == "Gray")
+	{
+		colormap = SpinWidget::Colormap::GRAY;
+	}
+	if (comboBox_colormap->currentText() == "Black")
+	{
+		colormap = SpinWidget::Colormap::BLACK;
+	}
 	_spinWidget->setColormap(colormap);
+}
+
+
+void SettingsWidget::set_visualization_colormap_rotation_slider()
+{
+	int phi   = this->horizontalSlider_colormap_rotate_phi->value();
+	bool invert_z = this->checkBox_colormap_invert_z->isChecked();
+	bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
+
+	this->lineEdit_colormap_rotate_phi->setText(QString::number(phi));
+
+	this->_spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
+}
+
+void SettingsWidget::set_visualization_colormap_rotation_lineEdit()
+{
+	int phi   = this->lineEdit_colormap_rotate_phi->text().toInt();
+	bool invert_z = this->checkBox_colormap_invert_z->isChecked();
+	bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
+
+	this->horizontalSlider_colormap_rotate_phi->setValue(phi);
+
+	this->_spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
 }
 
 void SettingsWidget::set_visualization_background()
@@ -1382,6 +1720,40 @@ void SettingsWidget::set_camera_upvector()
 	float y = this->lineEdit_camera_upvector_y->text().toFloat();
 	float z = this->lineEdit_camera_upvector_z->text().toFloat();
     this->_spinWidget->setCameraUpVector({x, y, z});
+}
+
+void SettingsWidget::set_camera_fov_slider()
+{
+	float fov = this->horizontalSlider_camera_fov->value();
+	this->lineEdit_camera_fov->setText(QString::number(fov));
+	_spinWidget->setVerticalFieldOfView(fov);
+}
+
+void SettingsWidget::set_camera_fov_lineedit()
+{
+	float fov = this->lineEdit_camera_fov->text().toFloat();
+	horizontalSlider_camera_fov->setValue((int)(fov));
+	_spinWidget->setVerticalFieldOfView(fov);
+}
+
+void SettingsWidget::set_camera_rotation()
+{
+	if (this->radioButton_camera_rotate_free->isChecked())
+		this->_spinWidget->setCameraRotationType(true);
+	else
+		this->_spinWidget->setCameraRotationType(false);
+}
+
+
+// -----------------------------------------------------------------------------------
+// --------------------- Light -------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+void SettingsWidget::set_light_position()
+{
+	float theta = this->horizontalSlider_light_theta->value();
+	float phi   = this->horizontalSlider_light_phi->value();
+	this->_spinWidget->setLightPosition(theta, phi);
 }
 
 
@@ -1512,8 +1884,8 @@ void SettingsWidget::Setup_Configurations_Slots()
 	connect(this->pushButton_Random, SIGNAL(clicked()), this, SLOT(randomPressed()));
 	// Add Noise
 	connect(this->pushButton_AddNoise, SIGNAL(clicked()), this, SLOT(addNoisePressed()));
-	// Domain Wall
-	connect(this->pushButton_DomainWall, SIGNAL(clicked()), this, SLOT(domainWallPressed()));
+	// Domain
+	connect(this->pushButton_domain, SIGNAL(clicked()), this, SLOT(domainPressed()));
 	// Homogeneous
 	connect(this->pushButton_plusZ, SIGNAL(clicked()), this, SLOT(plusZ()));
 	connect(this->pushButton_minusZ, SIGNAL(clicked()), this, SLOT(minusZ()));
@@ -1524,28 +1896,19 @@ void SettingsWidget::Setup_Configurations_Slots()
 	// Spin Spiral
 	connect(this->pushButton_SS, SIGNAL(clicked()), this, SLOT(create_SpinSpiral()));
 
-	// Domain Wall LineEdits
-	connect(this->lineEdit_vx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_vy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_vz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posx, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posy, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
-	connect(this->lineEdit_posz, SIGNAL(returnPressed()), this, SLOT(domainWallPressed()));
+	// Domain  LineEdits
+	connect(this->lineEdit_domain_dir_x, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
+	connect(this->lineEdit_domain_dir_y, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
+	connect(this->lineEdit_domain_dir_z, SIGNAL(returnPressed()), this, SLOT(domainPressed()));
 
 	// Hopfion LineEdits
-	connect(this->lineEdit_hopf_posx, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_posy, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_posz, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
-	connect(this->lineEdit_hopf_r, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
+	connect(this->lineEdit_hopfion_radius, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 	connect(this->lineEdit_hopfion_order, SIGNAL(returnPressed()), this, SLOT(create_Hopfion()));
 
 	// Skyrmion LineEdits
-	connect(this->lineEdit_sky_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posx, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posy, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_posz, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
-	connect(this->lineEdit_sky_rad, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_skyrmion_radius, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 
 	// SpinSpiral LineEdits
 	connect(this->lineEdit_SS_dir_x, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
@@ -1566,6 +1929,7 @@ void SettingsWidget::Setup_Transitions_Slots()
 
 void SettingsWidget::Setup_Visualization_Slots()
 {
+	connect(comboBox_VisualisationSource, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualisation_source()));
 	// Mode
 	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
@@ -1591,20 +1955,38 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_surface_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
 	connect(horizontalSlider_surface_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
-	//		overall
-	connect(horizontalSlider_overall_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
-	connect(horizontalSlider_overall_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall()));
+	connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
+	//		overall direction
+	connect(horizontalSlider_overall_dir_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	connect(horizontalSlider_overall_dir_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+	//		overall position
+	connect(horizontalSlider_overall_pos_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+	connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	//		isosurface
 	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
 	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
 	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
+	connect(checkBox_isosurfaceshadows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system_isosurface()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
 	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
 	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	connect(horizontalSlider_colormap_rotate_phi,   SIGNAL(valueChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
+	connect(this->lineEdit_colormap_rotate_phi,   SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
+	connect(this->checkBox_colormap_invert_z, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
+	connect(this->checkBox_colormap_invert_xy, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
 	// Camera
 	connect(this->lineEdit_camera_pos_x, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
 	connect(this->lineEdit_camera_pos_y, SIGNAL(returnPressed()), this, SLOT(set_camera_position()));
@@ -1617,6 +1999,13 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(this->lineEdit_camera_upvector_z, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
 	connect(this->pushButton_set_camera, SIGNAL(clicked()), this, SLOT(set_camera()));
 	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
+	connect(this->lineEdit_camera_fov, SIGNAL(returnPressed()), this, SLOT(set_camera_fov_lineedit()));
+	connect(horizontalSlider_camera_fov, SIGNAL(valueChanged(int)), this, SLOT(set_camera_fov_slider()));
+	connect(radioButton_camera_rotate_free, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
+	connect(radioButton_camera_rotate_bounded, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
+	// Light
+	connect(horizontalSlider_light_theta, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));
+	connect(horizontalSlider_light_phi, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));
 }
 
 void SettingsWidget::Setup_Input_Validators()
@@ -1676,20 +2065,23 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_T_aniso->setValidator(this->number_validator_unsigned);
 
 	// Configurations
+	//		Settings
 	this->lineEdit_Configuration_Noise->setValidator(this->number_validator_unsigned);
+	this->lineEdit_pos_x->setValidator(this->number_validator);
+	this->lineEdit_pos_y->setValidator(this->number_validator);
+	this->lineEdit_pos_z->setValidator(this->number_validator);
+	this->lineEdit_border_x->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_y->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_z->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_cylindrical->setValidator(this->number_validator_unsigned);
+	this->lineEdit_border_spherical->setValidator(this->number_validator_unsigned);
 	//		Hopfion
-	this->lineEdit_hopf_posx->setValidator(this->number_validator);
-	this->lineEdit_hopf_posy->setValidator(this->number_validator);
-	this->lineEdit_hopf_posz->setValidator(this->number_validator);
-	this->lineEdit_hopf_r->setValidator(this->number_validator);
+	this->lineEdit_hopfion_radius->setValidator(this->number_validator);
 	this->lineEdit_hopfion_order->setValidator(this->number_validator_int_unsigned);
 	//		Skyrmion
-	this->lineEdit_sky_order->setValidator(this->number_validator_int_unsigned);
-	this->lineEdit_sky_phase->setValidator(this->number_validator);
-	this->lineEdit_sky_rad->setValidator(this->number_validator);
-	this->lineEdit_sky_posx->setValidator(this->number_validator);
-	this->lineEdit_sky_posy->setValidator(this->number_validator);
-	this->lineEdit_sky_posz->setValidator(this->number_validator);
+	this->lineEdit_skyrmion_order->setValidator(this->number_validator_int_unsigned);
+	this->lineEdit_skyrmion_phase->setValidator(this->number_validator);
+	this->lineEdit_skyrmion_radius->setValidator(this->number_validator);
 	//		Spin Spiral
 	this->lineEdit_SS_dir_x->setValidator(this->number_validator);
 	this->lineEdit_SS_dir_y->setValidator(this->number_validator);
@@ -1698,13 +2090,10 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_SS_axis_y->setValidator(this->number_validator);
 	this->lineEdit_SS_axis_z->setValidator(this->number_validator);
 	this->lineEdit_SS_period->setValidator(this->number_validator);
-	//		Domain Wall
-	this->lineEdit_vx->setValidator(this->number_validator);
-	this->lineEdit_vy->setValidator(this->number_validator);
-	this->lineEdit_vz->setValidator(this->number_validator);
-	this->lineEdit_posx->setValidator(this->number_validator);
-	this->lineEdit_posy->setValidator(this->number_validator);
-	this->lineEdit_posz->setValidator(this->number_validator);
+	//		Domain
+	this->lineEdit_domain_dir_x->setValidator(this->number_validator);
+	this->lineEdit_domain_dir_y->setValidator(this->number_validator);
+	this->lineEdit_domain_dir_z->setValidator(this->number_validator);
 
 	// Transitions
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
@@ -1723,6 +2112,8 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
 	//		Isovalue
 	this->lineEdit_isovalue->setValidator(this->number_validator);
+	//		Colormap
+	this->lineEdit_colormap_rotate_phi->setValidator(this->number_validator_int_unsigned);
 	//		Camera
 	this->lineEdit_camera_pos_x->setValidator(this->number_validator);
 	this->lineEdit_camera_pos_y->setValidator(this->number_validator);

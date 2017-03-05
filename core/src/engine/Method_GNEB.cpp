@@ -26,6 +26,10 @@ namespace Engine
 		this->energies = std::vector<scalar>(noi, 0.0);
 		this->Rx = std::vector<scalar>(noi, 0.0);
 
+		// History
+        this->history = std::map<std::string, std::vector<scalar>>{
+			{"max_torque_component", {this->force_maxAbsComponent}} };
+
 		// We assume that the chain is not converged before the first iteration
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
@@ -91,16 +95,19 @@ namespace Engine
 
 				// Calculate the spring force
 				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
-				for (int i = 0; i < nos; ++i)
-				{
-					F_spring[img][i] = d * tangents[img][i];
-				}
+				Vectormath::set_c_a(d, tangents[img], F_spring[img]);
+				// for (int i = 0; i < nos; ++i)
+				// {
+				// 	F_spring[img][i] = d * tangents[img][i];
+				// }
 
 				// Calculate the total force
-				for (int j = 0; j < nos; ++j)
-				{
-					F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
-				}
+				Vectormath::set_c_a(1, F_gradient[img], F_total[img]);
+				Vectormath::add_c_a(1, F_spring[img], F_total[img]);
+				// for (int j = 0; j < nos; ++j)
+				// {
+				// 	F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
+				// }
 			}
 			else
 			{
@@ -173,6 +180,10 @@ namespace Engine
 
 	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
+		// History save
+        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+
+		// File save
 		if (this->parameters->save_output_any && ( (initial && this->parameters->save_output_initial) || (final && this->parameters->save_output_final) ) )
 		{
 			// Get the file suffix

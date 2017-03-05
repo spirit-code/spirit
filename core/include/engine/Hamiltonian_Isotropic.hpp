@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
@@ -18,7 +18,7 @@ namespace Engine
 		// Constructor
 		Hamiltonian_Isotropic(std::vector<bool> boundary_conditions, scalar external_field_magnitude, Vector3 external_field_normal, scalar mu_s,
 			scalar anisotropy_magnitude, Vector3 anisotropy_normal,
-			int n_neigh_shells, std::vector<scalar> jij, scalar dij, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
+			int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
 		
 		void Update_Energy_Contributions() override;
 		

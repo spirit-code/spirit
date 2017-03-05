@@ -2,6 +2,7 @@
 #include <utility/IO_Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -92,11 +93,11 @@ namespace Utility
 		}// End Spin_System_from_Config		
 
 
-		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms)
+		void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms, scalar & lattice_constant)
 		{
 			// ---------- Default values
 			// Lattice constant [Angtrom]
-			scalar lattice_constant = 1.0;
+			lattice_constant = 1.0;
 			// Basis: vector {a, b, c}
 			basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
@@ -184,6 +185,8 @@ namespace Utility
 			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Atoms in the basis [dim][n_basis_atoms]
 			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
+			// Lattice Constant [Angstrom]
+			scalar lattice_constant = 1;
 			// Translation vectors [dim][nov]
 			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
@@ -224,11 +227,11 @@ namespace Utility
 					if (myfile.Find("basis_from_config"))
 					{
 						myfile.iss >> basis_file;
-						Basis_from_Config(basis_file, basis, basis_atoms);
+						Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
 					}
 					else if (myfile.Find("basis"))
 					{
-						Basis_from_Config(configFile, basis, basis_atoms);
+						Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
 					}
 					else {
 						Log(Log_Level::Error, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
@@ -278,7 +281,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, spin_pos));
+			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
@@ -334,7 +337,7 @@ namespace Utility
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
 					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Engine::Vectormath::MuB()*1.760859644*std::pow(10, 11);
+					dt = dt*std::pow(10, -12) / Constants::mu_B*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
@@ -566,6 +569,7 @@ namespace Utility
 			std::vector<scalar> jij = { 10.0, 0.0, 0.0, 0.0 };
 			// DM constant
 			scalar dij = 6.0;
+			int dm_chirality = 1;
 			// Biquidratic exchange constant
 			scalar bij = 0.0;
 			// 4 Spin Interaction constant
@@ -604,6 +608,7 @@ namespace Utility
 					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
 					
 					myfile.Read_Single(dij, "dij");
+					myfile.Read_Single(dm_chirality, "dm_chirality");
 					myfile.Read_Single(bij, "bij");
 					myfile.Read_Single(kijkl, "kijkl");
 					myfile.Read_Single(dd_radius, "dd_radius");
@@ -629,12 +634,13 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_neigh_shells      = " + std::to_string(n_neigh_shells));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij                = " + std::to_string(dij));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        DM chirality        = " + std::to_string(dm_chirality));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Isotropic>(new Engine::Hamiltonian_Isotropic(boundary_conditions, external_field_magnitude,
 					external_field_normal, mu_s, anisotropy_magnitude, anisotropy_normal,
-					n_neigh_shells, jij, dij, bij, kijkl, dd_radius, geometry));
+					n_neigh_shells, jij, dij, dm_chirality, bij, kijkl, dd_radius, geometry));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Isotropic: built");
 			return hamiltonian;
 		}// end Hamiltonian_Isotropic_from_Config
@@ -728,6 +734,7 @@ namespace Utility
 						// Read parameters from config if available
 						myfile.Read_Single(B, "external_field_magnitude");
 						myfile.Read_Vector3(B_normal, "external_field_normal");
+						B_normal.normalize();
 
 						if (B != 0)
 						{
@@ -762,7 +769,8 @@ namespace Utility
 						// Read parameters from config
 						myfile.Read_Single(K, "anisotropy_magnitude");
 						myfile.Read_Vector3(K_normal, "anisotropy_normal");
-						
+						K_normal.normalize();
+
 						if (K != 0)
 						{
 							// Fill the arrays

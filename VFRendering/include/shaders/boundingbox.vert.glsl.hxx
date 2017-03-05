@@ -7,9 +7,12 @@ static const std::string BOUNDINGBOX_VERT_GLSL = R"LITERAL(
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelviewMatrix;
 in vec3 ivPosition;
+in float ivDashingValue;
+out float vfDashingValue;
 
 void main(void) {
-  gl_Position = uProjectionMatrix * uModelviewMatrix * vec4(ivPosition, 1.0);
+    vfDashingValue = ivDashingValue;
+    gl_Position = uProjectionMatrix * uModelviewMatrix * vec4(ivPosition, 1.0);
 }
 )LITERAL";
 

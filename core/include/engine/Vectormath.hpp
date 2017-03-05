@@ -7,22 +7,13 @@
 
 #include <Eigen/Core>
 
+#include <data/Spin_System.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
 namespace Engine
 {
 	namespace Vectormath
 	{
-		/////////////////////////////////////////////////////////////////
-		//////// Regular Math
-		
-		// Returns the Bohr Magneton [meV / T]
-		scalar MuB();
-		// Returns the Boltzmann constant [meV / K]
-		scalar kB();
-
-
-
 		/////////////////////////////////////////////////////////////////
 		//////// Single Vector Math
 
@@ -34,9 +25,15 @@ namespace Engine
 		//////// Vectorfield Math - special stuff
 
 		// Build an array of spin positions
-		void Build_Spins(vectorfield & spin_pos, std::vector<Vector3> & basis_atoms, std::vector<Vector3> & translation_vectors, std::vector<int> & n_cells);
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells);
 		// Calculate the mean of a vectorfield
 		std::array<scalar, 3> Magnetization(const vectorfield & vf);
+		// Calculate the topological charge inside a vectorfield
+		scalar TopologicalCharge(const vectorfield & vf);
+
+		// Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
+		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
+		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi);
 
 
 		/////////////////////////////////////////////////////////////////
@@ -64,6 +61,9 @@ namespace Engine
 		// Normalize the vectors of a vectorfield
 		void normalize_vectors(vectorfield & vf);
 
+		// Maximum absolute component of a vectorfield
+    	scalar max_abs_component(const vectorfield & vf);
+
 		// Scale a vectorfield by a given value
 		void scale(vectorfield & vf, const scalar & sc);
 
@@ -72,6 +72,7 @@ namespace Engine
 
 		// Calculate the mean of a vectorfield
 		Vector3 mean(const vectorfield & vf);
+
 
 
 		// TODO: move this function to manifold??
@@ -86,23 +87,37 @@ namespace Engine
 		// v1 and v2 are vector fields
 		void cross(const vectorfield & vf1, const vectorfield & vf2, vectorfield & out);
 		
+
+
 		// out[i] += c*a
 		void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
-
 		// out[i] += c*a[i]
 		void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
 
+		// out[i] = c*a
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
+		// out[i] = c*a[i]
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
+
 		// out[i] += c * a*b[i]
 		void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
-
 		// out[i] += c * a[i]*b[i]
 		void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out);
+		
+		// out[i] = c * a*b[i]
+		void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
+		// out[i] = c * a[i]*b[i]
+		void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out);
 
 		// out[i] += c * a x b[i]
 		void add_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
-
 		// out[i] += c * a[i] x b[i]
 		void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
+		
+		// out[i] = c * a x b[i]
+		void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
+		// out[i] = c * a[i] x b[i]
+		void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
 	}
 }
 

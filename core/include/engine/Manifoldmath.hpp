@@ -31,6 +31,8 @@ namespace Engine
         // Invert v1's component orthogonal to v2
         //    This assumes normalized vectorfields
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2);
+        // Project vf1's vectors into the tangent plane of vf2
+        void project_tangential(vectorfield & vf1, const vectorfield & vf2);
 
 		// Greatcircle distance between two vectors
 		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2);

@@ -12,16 +12,15 @@
 namespace Data
 {
 	Geometry::Geometry(std::vector<Vector3> basis_i, const std::vector<Vector3> translation_vectors_i,
-		const std::vector<int> n_cells_i, const std::vector<Vector3> basis_atoms_i,
+		const std::vector<int> n_cells_i, const std::vector<Vector3> basis_atoms_i, const scalar lattice_constant_i,
 		const vectorfield spin_pos_i) :
 		basis(basis_i), translation_vectors(translation_vectors_i), n_cells(n_cells_i),
-		n_spins_basic_domain(basis_atoms_i.size()), basis_atoms(basis_atoms_i),
+		n_spins_basic_domain(basis_atoms_i.size()), basis_atoms(basis_atoms_i), lattice_constant(lattice_constant_i),
 		spin_pos(spin_pos_i), nos(basis_atoms_i.size() * n_cells_i[0] * n_cells_i[1] * n_cells_i[2])
 	{
+		// Calculate Bounds of the System
 		this->bounds_max.setZero();
 		this->bounds_min.setZero();
-
-		// Calculate Bounds of the System
 		for (int iatom = 0; iatom < nos; ++iatom)
 		{
 			for (int dim = 0; dim < 3; ++dim)
@@ -30,6 +29,27 @@ namespace Data
 				if (this->spin_pos[iatom][dim] > this->bounds_max[dim]) this->bounds_max[dim] = spin_pos[iatom][dim];
 			}
 		}
+
+		// Calculate Unit Cell Bounds
+		this->cell_bounds_max.setZero();
+		this->cell_bounds_min.setZero();
+		for (unsigned int ivec = 0; ivec < translation_vectors.size(); ++ivec)
+		{
+			for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
+			{
+				auto neighbour1 = basis_atoms[iatom] + translation_vectors[ivec];
+				auto neighbour2 = basis_atoms[iatom] - translation_vectors[ivec];
+				for (int dim = 0; dim < 3; ++dim)
+				{
+					if (neighbour1[dim] < this->cell_bounds_min[dim]) this->cell_bounds_min[dim] = neighbour1[dim];
+					if (neighbour1[dim] > this->cell_bounds_max[dim]) this->cell_bounds_max[dim] = neighbour1[dim];
+					if (neighbour2[dim] < this->cell_bounds_min[dim]) this->cell_bounds_min[dim] = neighbour2[dim];
+					if (neighbour2[dim] > this->cell_bounds_max[dim]) this->cell_bounds_max[dim] = neighbour2[dim];
+				}
+			}
+		}
+		this->cell_bounds_min *= 0.5;
+		this->cell_bounds_max *= 0.5;
 
 		// Calculate Center of the System
 		for (int dim = 0; dim < 3; ++dim)

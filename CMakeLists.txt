@@ -4,49 +4,37 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Build Flags #######################
+### CMake Verbosity
+SET( SPIRIT_PRINT_SOURCES     OFF  CACHE BOOL "Print Spirit Headers and Sources from CMake." )
 ### These decide which projects are built
-option( BUILD_UI_WEB     "Build the JavaScript library for the Web UI."                 OFF )
-option( BUILD_UI_JULIA   "Build the shared library for the Julia UI."                   OFF )
-option( BUILD_UI_PYTHON  "Build the shared library for the Python UI."                  ON  )
-option( BUILD_UI_CXX     "Build the C++ UIs (console or QT)"                            ON  )
+SET( SPIRIT_BUILD_FOR_JS      OFF  CACHE BOOL "Build the JavaScript library." )
+SET( SPIRIT_BUILD_FOR_JULIA   OFF  CACHE BOOL "Build the shared library for Julia." )
+SET( SPIRIT_BUILD_FOR_PYTHON  ON   CACHE BOOL "Build the shared library for Python." )
+SET( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ applications" )
+### Options for Spirit
+SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
+SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
+SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
+### Set the scalar type used in the Spirit library
+set( SPIRIT_SCALAR_TYPE double )
+#############################################
+### CMake Verbosity
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
+### Decide CXX UI
 option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
 option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
-### CMake Verbosity
-option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
-### Options for the Core
-option( CORE_BUILD_TEST  "Build unit tests for the core library."                       ON  )
-option( CORE_USE_CUDA    "Use CUDA to speed up certain parts of the code."              OFF )
-option( CORE_USE_THREADS "Use std threads to speed up certain parts of the code."       OFF )
-### Set the scalar type used in the core library
-set( CORE_SCALAR_TYPE double )
 #############################################
-if( CORE_USE_CUDA )
-	set( BUILD_UI_WEB       OFF )
-	set( BUILD_UI_JULIA     OFF )
-	set( BUILD_UI_PYTHON    OFF )
-endif()
+
+
 #############################################
-if( BUILD_UI_WEB )
-	### UI-Web needs float
-	set( CORE_SCALAR_TYPE 	float )
-	### UI-Web needs to be built alone, as it
-	### uses a different toolchain
-	set( BUILD_UI_JULIA 	OFF )
-	set( BUILD_UI_PYTHON 	OFF )
-	set( BUILD_UI_CXX 		OFF )
-	### Emscripten cannot use cuda or threads
-	set( CORE_USE_CUDA 		OFF )
-	set( CORE_USE_THREADS 	OFF )
-endif()
-#############################################
-if( CORE_BUILD_TEST )
+if( SPIRIT_BUILD_TEST )
     enable_testing()
 endif()
 #############################################
-if (CORE_USE_CUDA)
+if (SPIRIT_USE_CUDA)
     MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
     ### Set cuda toolkit path 
     if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
@@ -81,33 +69,12 @@ include(PathsIFF)
 #############################################
 
 
-######### Get git revision ##################
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
-#############################################
-
-
-######### Meta information about the project
-set(META_PROJECT_NAME         "Spirit")
-set(META_PROJECT_DESCRIPTION  "Modular Spin Code")
-set(META_AUTHOR_ORGANIZATION  "")
-set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
-set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
-set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "3")
-set(META_VERSION_PATCH        "0")
-set(META_VERSION_REVISION     "${GIT_REV}")
-set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
-set(META_NAME_VERSION         "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})")
-#############################################
-
 
 ######### Set all Flags and Options #########
 ### Choose Compiler
 include(ChooseCompiler)
 ### Project Name
-PROJECT(${META_PROJECT_NAME})
+PROJECT(spirit)
 ### Print compiler info
 MESSAGE( STATUS ">> Please check the CMAKE_CXX_COMPILER to make sure it's the right one" )
 MESSAGE( STATUS ">> CMAKE_C_COMPILER:               " ${CMAKE_C_COMPILER} )
@@ -144,13 +111,16 @@ add_library(libqhullstatic_r STATIC IMPORTED)
 set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullstatic_r PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 add_dependencies(libqhullstatic_r qhull)
 ### qhullcpp library
 add_library(libqhullcpp STATIC IMPORTED)
 set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
+set_property(TARGET libqhullcpp PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 add_dependencies(libqhullcpp qhull)
 set(qhull_LIBS libqhullcpp)
 ### Add corresponding include directories
@@ -160,10 +130,10 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 
 
 ######### Add Subdirectory Projects #########
-### Core is built in any case
+### Spirit library is built in any case
 add_subdirectory( core )
 ### CXX UI
-if( BUILD_UI_CXX )
+if( SPIRIT_BUILD_FOR_CXX )
 	if ( UI_CXX_USE_QT )
 		add_subdirectory( VFRendering )
 		add_subdirectory( ui-qt )
@@ -172,12 +142,12 @@ if( BUILD_UI_CXX )
 	endif()
 endif()
 ### Web UI
-if( BUILD_UI_WEB )
+if( SPIRIT_BUILD_FOR_JS )
 	add_subdirectory( ui-web )
 endif()
 #############################################
 
 
 ######### Write VERSION.txt #################
-file(WRITE "${CMAKE_SOURCE_DIR}/VERSION.txt" "${META_NAME_VERSION}")
+file(WRITE "${CMAKE_SOURCE_DIR}/VERSION.txt" "${SPIRIT_META_NAME_VERSION}")
 #############################################

@@ -591,9 +591,8 @@ $(document).ready(function() {
   });
 
   var isSimulating = false;
-
-  Module.ready(function() {
-    var sim = new Simulation();
+  
+  function updateSimulation(sim){  
     window.currentSimulation = sim;
     if (!webglspins.isTouchDevice) {
       $('#input-use-touch')[0].disabled="disabled";
@@ -636,7 +635,7 @@ $(document).ready(function() {
           update(sim)
         });
       }
-    }
+    };
     $("#btn-play").click(function() {
       isSimulating = !isSimulating;
       $("#btn-play").toggleClass("fa-play fa-pause");
@@ -647,8 +646,11 @@ $(document).ready(function() {
       }
     });
     update(sim);
-  });
+  };
+  Module.ready(function() {
+    new Simulation(updateSimulation);
   });
   $("#btn-extended-controls").click(function() {
-  $("#webgl-extended-controls").toggleClass("hidden");
+    $("#webgl-extended-controls").toggleClass("hidden");
+  });
 });

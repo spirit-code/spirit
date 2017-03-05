@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>692</width>
-    <height>1532</height>
+    <width>669</width>
+    <height>2149</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -73,47 +73,294 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1486</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QGridLayout" name="gridLayout_41">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="checkBox_Configuration_Noise">
-               <property name="text">
-                <string>Add Noise - magnitude:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
-               <property name="maximumSize">
-                <size>
-                 <width>50</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_17">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Settings</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_80">
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="1">
+               <layout class="QGridLayout" name="gridLayout_44">
+                <item row="0" column="1">
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_inverted">
+                  <property name="text">
+                   <string>Inverted</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_84">
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_cylindrical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QGridLayout" name="gridLayout_79">
+                  <item row="0" column="3">
+                   <widget class="QLineEdit" name="lineEdit_pos_z">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="lineEdit_pos_y">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="lineEdit_pos_x">
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_spherical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <layout class="QGridLayout" name="gridLayout_8">
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="lineEdit_border_x">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="3">
+                   <widget class="QLineEdit" name="lineEdit_border_y">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_y">
+                    <property name="text">
+                     <string>y</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="5">
+                   <widget class="QLineEdit" name="lineEdit_border_z">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_x">
+                    <property name="text">
+                     <string>x</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="4">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_z">
+                    <property name="text">
+                     <string>z</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_spherical">
+                  <property name="text">
+                   <string>Border (spherical)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_cylindrical">
+                  <property name="text">
+                   <string>Border (cylindrical)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Position (x,y,z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Border (rectangular)</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="1">
+               <spacer name="verticalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Maximum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>30</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_41">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_Configuration_Noise">
+                  <property name="maximumSize">
+                   <size>
+                    <width>180</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Add Noise - magnitude:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_15">
@@ -235,73 +482,84 @@
             </spacer>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_11">
-             <property name="title">
-              <string>Hopfion</string>
+            <widget class="QGroupBox" name="groupBox_Domain">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>160</height>
+              </size>
              </property>
-             <layout class="QGridLayout" name="gridLayout_56">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="pushButton_hopfion">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Create Hopfion</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <layout class="QGridLayout" name="gridLayout_57">
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="lineEdit_hopf_r">
+             <property name="title">
+              <string>Domain</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="3" column="0">
+               <layout class="QGridLayout" name="gridLayout_11">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_11">
                   <property name="maximumSize">
                    <size>
-                    <width>40</width>
+                    <width>100</width>
                     <height>16777215</height>
                    </size>
                   </property>
                   <property name="text">
-                   <string>3</string>
+                   <string>Direction (x,y,z)</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <layout class="QGridLayout" name="gridLayout_58">
-                  <item row="0" column="0">
-                   <widget class="QLineEdit" name="lineEdit_hopf_posx">
+                 <layout class="QGridLayout" name="gridLayout_10">
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="lineEdit_domain_dir_z">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>40</width>
                       <height>16777215</height>
                      </size>
                     </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
-                     <string>0</string>
+                     <string>1</string>
                     </property>
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QLineEdit" name="lineEdit_hopf_posy">
+                   <widget class="QLineEdit" name="lineEdit_domain_dir_y">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>40</width>
                       <height>16777215</height>
                      </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>0</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="lineEdit_hopf_posz">
+                  <item row="0" column="0">
+                   <widget class="QLineEdit" name="lineEdit_domain_dir_x">
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>0</height>
+                      <height>22</height>
                      </size>
                     </property>
                     <property name="maximumSize">
@@ -309,6 +567,9 @@
                       <width>40</width>
                       <height>16777215</height>
                      </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
                      <string>0</string>
@@ -317,50 +578,41 @@
                   </item>
                  </layout>
                 </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_50">
-                  <property name="text">
-                   <string>Radius</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_49">
-                  <property name="text">
-                   <string>Position (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_54">
-                  <property name="text">
-                   <string>Order</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLineEdit" name="lineEdit_hopfion_order">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </widget>
-                </item>
                </layout>
               </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_4">
+              <item row="1" column="0">
+               <widget class="QPushButton" name="pushButton_domain">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Create Domain</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>40</width>
+                  <width>60</width>
                   <height>20</height>
                  </size>
                 </property>
@@ -370,7 +622,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer">
+            <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -399,7 +651,7 @@
              <layout class="QGridLayout" name="gridLayout_4">
               <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_7">
-                <item row="2" column="0">
+                <item row="1" column="0">
                  <widget class="QLabel" name="label_sky_order">
                   <property name="minimumSize">
                    <size>
@@ -418,8 +670,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="0">
-                 <widget class="QCheckBox" name="checkBox_sky_UpDown">
+                <item row="3" column="0">
+                 <widget class="QCheckBox" name="checkBox_skyrmion_UpDown">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -431,8 +683,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
-                 <widget class="QLineEdit" name="lineEdit_sky_order">
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_skyrmion_order">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -462,8 +714,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="1">
-                 <widget class="QCheckBox" name="checkBox_sky_RL">
+                <item row="3" column="1">
+                 <widget class="QCheckBox" name="checkBox_skyrmion_RL">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -475,7 +727,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="0">
+                <item row="2" column="0">
                  <widget class="QLabel" name="label_sky_phase">
                   <property name="minimumSize">
                    <size>
@@ -483,13 +735,19 @@
                     <height>22</height>
                    </size>
                   </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>Phase</string>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="lineEdit_sky_rad">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_skyrmion_radius">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -507,8 +765,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="5" column="1">
-                 <widget class="QCheckBox" name="checkBox_sky_experimental">
+                <item row="4" column="1">
+                 <widget class="QCheckBox" name="checkBox_skyrmion_experimental">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -520,8 +778,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
-                 <widget class="QLineEdit" name="lineEdit_sky_phase">
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="lineEdit_skyrmion_phase">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -551,8 +809,8 @@
                   </property>
                  </widget>
                 </item>
-                <item row="5" column="0">
-                 <widget class="QCheckBox" name="checkBox_sky_Achiral">
+                <item row="4" column="0">
+                 <widget class="QCheckBox" name="checkBox_skyrmion_achiral">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -564,7 +822,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="0">
+                <item row="0" column="0">
                  <widget class="QLabel" name="label_10">
                   <property name="minimumSize">
                    <size>
@@ -582,86 +840,6 @@
                    <string>Radius</string>
                   </property>
                  </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_9">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Position (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <layout class="QGridLayout" name="gridLayout_8">
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="lineEdit_sky_posy">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QLineEdit" name="lineEdit_sky_posx">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="3">
-                   <widget class="QLineEdit" name="lineEdit_sky_posz">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </item>
                </layout>
               </item>
@@ -702,6 +880,113 @@
            </item>
            <item>
             <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="title">
+              <string>Hopfion</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_56">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton_hopfion">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Create Hopfion</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_57">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_hopfion_radius">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>3</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_50">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Radius</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_54">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Order</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_hopfion_order">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -830,7 +1115,7 @@
                      </size>
                     </property>
                     <property name="text">
-                     <string>0</string>
+                     <string>0.1</string>
                     </property>
                    </widget>
                   </item>
@@ -986,279 +1271,6 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>30</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_domainWall">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>160</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>DomainWall</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_5">
-              <item row="3" column="0">
-               <layout class="QGridLayout" name="gridLayout_11">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_11">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Direction (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_12">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Border (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <layout class="QGridLayout" name="gridLayout_12">
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="lineEdit_posy">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="3">
-                   <widget class="QLineEdit" name="lineEdit_posz">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QLineEdit" name="lineEdit_posx">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="0" column="1">
-                 <layout class="QGridLayout" name="gridLayout_10">
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="lineEdit_vz">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>1</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QLineEdit" name="lineEdit_vy">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QLineEdit" name="lineEdit_vx">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;v_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="pushButton_DomainWall">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>130</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>120</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Create DomainWall</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <spacer name="horizontalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="4" column="0">
-               <layout class="QGridLayout" name="gridLayout_44">
-                <item row="0" column="0">
-                 <widget class="QRadioButton" name="radioButton_DW_greater">
-                  <property name="text">
-                   <string>Greater</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_DW_lesser">
-                  <property name="text">
-                   <string>Lesser</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer_3">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1304,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1486</height>
+            <width>246</width>
+            <height>276</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1583,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1439</height>
+            <width>395</width>
+            <height>409</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2246,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1439</height>
+            <width>286</width>
+            <height>309</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2712,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1486</height>
+            <width>285</width>
+            <height>364</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -2949,7 +2961,7 @@
               <item row="6" column="1">
                <widget class="QRadioButton" name="radioButton_Stationary">
                 <property name="text">
-                 <string>Stationary</string>
+                 <string>Stationar&amp;y</string>
                 </property>
                </widget>
               </item>
@@ -3100,8 +3112,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>666</width>
-            <height>1486</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3584,31 +3596,51 @@
               <string>Isosurface</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_54">
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_22">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_48">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Isovalue</string>
-                </property>
-               </widget>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_55">
+                <item row="0" column="0">
+                 <widget class="QRadioButton" name="radioButton_isosurface_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>&amp;x</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QRadioButton" name="radioButton_isosurface_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>&amp;y</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QRadioButton" name="radioButton_isosurface_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>&amp;z</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item row="0" column="1">
                <layout class="QGridLayout" name="gridLayout_59">
@@ -3652,51 +3684,38 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_55">
-                <item row="0" column="0">
-                 <widget class="QRadioButton" name="radioButton_isosurface_x">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>x</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_isosurface_y">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>y</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QRadioButton" name="radioButton_isosurface_z">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>z</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_48">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Isovalue</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_22">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="checkBox_isosurfaceshadows">
+                <property name="text">
+                 <string>Draw Shadows</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -3720,13 +3739,13 @@
            <item>
             <widget class="QGroupBox" name="groupBox_10">
              <property name="title">
-              <string>Overall Filter</string>
+              <string>Overall Direction Filter</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_71">
               <item row="0" column="1">
                <layout class="QGridLayout" name="gridLayout_68">
                 <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_overall_zmin">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_zmin">
                   <property name="maximumSize">
                    <size>
                     <width>200</width>
@@ -3739,7 +3758,7 @@
                  </widget>
                 </item>
                 <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_overall_zmax">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_zmax">
                   <property name="maximumSize">
                    <size>
                     <width>200</width>
@@ -3756,7 +3775,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>z component</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -3772,6 +3791,80 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_67">
+                <property name="text">
+                 <string>y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_68">
+                <property name="text">
+                 <string>x</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_83">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_ymin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_ymax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_85">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_xmin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_dir_xmax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -3793,9 +3886,158 @@
             </spacer>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBox_16">
+             <property name="title">
+              <string>Overall Position Filter</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_72">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_69">
+                <property name="text">
+                 <string>x</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_86">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_zmin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_zmax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_66">
+                <property name="text">
+                 <string>y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_88">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_xmin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_xmax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_87">
+                <item row="0" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_ymin">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QSlider" name="horizontalSlider_overall_pos_ymax">
+                  <property name="maximumSize">
+                   <size>
+                    <width>200</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_65">
+                <property name="text">
+                 <string>z</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_44">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_21">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBox_14">
              <property name="title">
-              <string>Surface</string>
+              <string>Surface Rectangular Hull</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_64">
               <item row="0" column="2">
@@ -3862,7 +4104,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>z filter</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -3899,14 +4141,14 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="text">
-                 <string>y filter</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>x filter</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -3966,87 +4208,6 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_66">
               <item row="1" column="0">
-               <widget class="QLabel" name="label_59">
-                <property name="text">
-                 <string>y filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_60">
-                <property name="text">
-                 <string>x filter</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_39">
-                <property name="text">
-                 <string>LOD</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <layout class="QGridLayout" name="gridLayout_70">
-                <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_xmin">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_xmax">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_69">
-                <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_ymin">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_arrows_ymax">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="3" column="0">
                <widget class="QLabel" name="label_35">
                 <property name="maximumSize">
                  <size>
@@ -4059,20 +4220,14 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="lineEdit_arrows_lod">
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_39">
                 <property name="text">
-                 <string>20</string>
+                 <string>LOD</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
+              <item row="1" column="1">
                <widget class="QSlider" name="horizontalSlider_arrowsize">
                 <property name="maximumSize">
                  <size>
@@ -4085,44 +4240,20 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_40">
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="lineEdit_arrows_lod">
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>z filter</string>
+                 <string>20</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_65">
-                <item row="0" column="0">
-                 <widget class="QSlider" name="horizontalSlider">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QSlider" name="horizontalSlider_2">
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="2">
+              <item row="1" column="2">
                <spacer name="horizontalSpacer_38">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -4159,14 +4290,52 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>130</height>
+               <height>180</height>
               </size>
              </property>
              <property name="title">
               <string>Colors</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_52">
-              <item row="2" column="0">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_61">
+                <property name="text">
+                 <string>Rotate Colormap</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="comboBox_backgroundColor">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gray</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="5" column="0">
                <widget class="QLabel" name="label_38">
                 <property name="text">
                  <string>Background Color</string>
@@ -4179,26 +4348,6 @@
                  <string>Colormap</string>
                 </property>
                </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_61">
-                <property name="text">
-                 <string>Rotate Colormap</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <spacer name="horizontalSpacer_39">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="comboBox_colormap">
@@ -4239,25 +4388,9 @@
                   <string>Z-Component: Blue-Red</string>
                  </property>
                 </item>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="comboBox_backgroundColor">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
                 <item>
                  <property name="text">
-                  <string>Black</string>
+                  <string>White</string>
                  </property>
                 </item>
                 <item>
@@ -4267,15 +4400,35 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>White</string>
+                  <string>Black</string>
                  </property>
                 </item>
                </widget>
               </item>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="checkBox_colormap_invert_z">
+                <property name="text">
+                 <string>Invert z-component</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_39">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_72">
+               <layout class="QGridLayout" name="gridLayout_82">
                 <item row="0" column="0">
-                 <widget class="QLineEdit" name="lineEdit_colormap_rotate">
+                 <widget class="QLineEdit" name="lineEdit_colormap_rotate_phi">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -4294,7 +4447,7 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_colormap_rotate">
+                 <widget class="QSlider" name="horizontalSlider_colormap_rotate_phi">
                   <property name="maximumSize">
                    <size>
                     <width>100</width>
@@ -4307,6 +4460,13 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="4" column="1">
+               <widget class="QCheckBox" name="checkBox_colormap_invert_xy">
+                <property name="text">
+                 <string>Invert xy-component</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -4333,6 +4493,37 @@
               <string>Camera</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_60">
+              <item row="3" column="0">
+               <layout class="QGridLayout" name="gridLayout_12">
+                <item row="0" column="2">
+                 <widget class="QSlider" name="horizontalSlider_camera_fov">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_49">
+                  <property name="text">
+                   <string>FOV</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_camera_fov">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>45</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
               <item row="0" column="0">
                <layout class="QGridLayout" name="gridLayout_62">
                 <item row="0" column="1">
@@ -4562,6 +4753,94 @@
                 </item>
                </layout>
               </item>
+              <item row="4" column="0">
+               <layout class="QGridLayout" name="gridLayout_81">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_64">
+                  <property name="text">
+                   <string>Rotation type</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QRadioButton" name="radioButton_camera_rotate_free">
+                  <property name="text">
+                   <string>Free</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QRadioButton" name="radioButton_camera_rotate_bounded">
+                  <property name="text">
+                   <string>Bounded</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_20">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_15">
+             <property name="title">
+              <string>Light</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_58">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_63">
+                <property name="text">
+                 <string>Phi</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSlider" name="horizontalSlider_light_theta">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_62">
+                <property name="text">
+                 <string>Theta</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="horizontalSlider_light_phi">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_43">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
@@ -4590,16 +4869,13 @@
  </widget>
  <tabstops>
   <tabstop>pushButton_skyrmion</tabstop>
-  <tabstop>lineEdit_sky_posx</tabstop>
-  <tabstop>lineEdit_sky_posy</tabstop>
-  <tabstop>lineEdit_sky_posz</tabstop>
-  <tabstop>lineEdit_sky_rad</tabstop>
-  <tabstop>lineEdit_sky_order</tabstop>
-  <tabstop>lineEdit_sky_phase</tabstop>
-  <tabstop>checkBox_sky_UpDown</tabstop>
-  <tabstop>checkBox_sky_RL</tabstop>
-  <tabstop>checkBox_sky_Achiral</tabstop>
-  <tabstop>checkBox_sky_experimental</tabstop>
+  <tabstop>lineEdit_skyrmion_radius</tabstop>
+  <tabstop>lineEdit_skyrmion_order</tabstop>
+  <tabstop>lineEdit_skyrmion_phase</tabstop>
+  <tabstop>checkBox_skyrmion_UpDown</tabstop>
+  <tabstop>checkBox_skyrmion_RL</tabstop>
+  <tabstop>checkBox_skyrmion_achiral</tabstop>
+  <tabstop>checkBox_skyrmion_experimental</tabstop>
   <tabstop>pushButton_SS</tabstop>
   <tabstop>lineEdit_SS_period</tabstop>
   <tabstop>lineEdit_SS_dir_x</tabstop>
@@ -4609,15 +4885,10 @@
   <tabstop>lineEdit_SS_axis_y</tabstop>
   <tabstop>lineEdit_SS_axis_z</tabstop>
   <tabstop>comboBox_SS</tabstop>
-  <tabstop>pushButton_DomainWall</tabstop>
-  <tabstop>lineEdit_vx</tabstop>
-  <tabstop>lineEdit_vy</tabstop>
-  <tabstop>lineEdit_vz</tabstop>
-  <tabstop>lineEdit_posx</tabstop>
-  <tabstop>lineEdit_posy</tabstop>
-  <tabstop>lineEdit_posz</tabstop>
-  <tabstop>radioButton_DW_greater</tabstop>
-  <tabstop>radioButton_DW_lesser</tabstop>
+  <tabstop>pushButton_domain</tabstop>
+  <tabstop>lineEdit_domain_dir_x</tabstop>
+  <tabstop>lineEdit_domain_dir_y</tabstop>
+  <tabstop>lineEdit_domain_dir_z</tabstop>
   <tabstop>scrollArea_3</tabstop>
   <tabstop>scrollArea_4</tabstop>
   <tabstop>pushButton_Transition_Homogeneous</tabstop>
@@ -4712,9 +4983,7 @@
   <tabstop>lineEdit_camera_upvector_x</tabstop>
   <tabstop>lineEdit_camera_upvector_y</tabstop>
   <tabstop>lineEdit_camera_upvector_z</tabstop>
-  <tabstop>lineEdit_hopf_posy</tabstop>
-  <tabstop>lineEdit_hopf_posz</tabstop>
-  <tabstop>lineEdit_hopf_r</tabstop>
+  <tabstop>lineEdit_hopfion_radius</tabstop>
   <tabstop>horizontalSlider_isovalue</tabstop>
   <tabstop>lineEdit_isovalue</tabstop>
   <tabstop>checkBox_Configuration_Noise</tabstop>
@@ -4724,7 +4993,6 @@
   <tabstop>pushButton_plusZ</tabstop>
   <tabstop>pushButton_minusZ</tabstop>
   <tabstop>pushButton_hopfion</tabstop>
-  <tabstop>lineEdit_hopf_posx</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
@@ -74,7 +74,7 @@ namespace Engine
 	private:
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
-		void Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient);
+		void Gradient_Zeeman(vectorfield & gradient);
 		// Calculate the Anisotropy effective field of a single Spin
 		void Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient);
 		// Calculate the exchange interaction effective field of a Spin Pair

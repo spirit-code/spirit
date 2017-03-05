@@ -8,11 +8,13 @@
 #include <engine/Hamiltonian_Anisotropic.hpp>
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
+#include <utility/Constants.hpp>
 
 using std::vector;
 using std::function;
 
 using namespace Data;
+using namespace Utility;
 
 namespace Engine
 {
@@ -38,7 +40,7 @@ namespace Engine
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
 		{
-			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Vectormath::MuB() * mu_s[i];
+			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Constants::mu_B * mu_s[i];
 		}
 
 		this->Update_Energy_Contributions();
@@ -176,7 +178,7 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::E_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, scalarfield & Energy)
 	{
-		//scalar mult = -Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
@@ -209,15 +211,11 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
-		int nos = spins.size();
-		// Loop over Spins
-		for (int i = 0; i < nos; ++i)
-		{
-			gradient[i].setZero();
-		}
+		// Set to zero
+		Vectormath::fill(gradient, {0,0,0});
 
 		// External field
-		Gradient_Zeeman(spins, gradient);
+		Gradient_Zeeman(gradient);
 
 		// Anisotropy
 		Gradient_Anisotropy(spins, gradient);
@@ -253,7 +251,7 @@ namespace Engine
 		// Quadruplet Interactions
 	}
 
-	void Hamiltonian_Anisotropic::Gradient_Zeeman(const vectorfield & spins, vectorfield & gradient)
+	void Hamiltonian_Anisotropic::Gradient_Zeeman(vectorfield & gradient)
 	{
 		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
@@ -289,7 +287,7 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Gradient_DD(const vectorfield & spins, indexPairs & indices, scalarfield & DD_magnitude, vectorfield & DD_normal, vectorfield & gradient)
 	{
-		//scalar mult = Utility::Vectormath::MuB()*Utility::Vectormath::MuB()*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
 		for (unsigned int i_pair = 0; i_pair < indices.size(); ++i_pair)
@@ -371,21 +369,42 @@ namespace Engine
 		 				{
 		 					int idx_i = 3*DMI_indices[i_periodicity][i_pair][0] + alpha;
 		 					int idx_j = 3*DMI_indices[i_periodicity][i_pair][1] + beta;
-		 					if ( (alpha == 0 && beta == 1) || (alpha == 1 && beta == 0) )
+		 					if ( (alpha == 0 && beta == 1) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 						hessian(idx_j,idx_i) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
+		 					}
+		 					else if ( (alpha == 1 && beta == 0) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
 		 						hessian(idx_j,idx_i) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][2];
 		 					}
-		 					else if ( (alpha == 0 && beta == 2) || (alpha == 2 && beta == 0) )
+		 					else if ( (alpha == 0 && beta == 2) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 						hessian(idx_j,idx_i) +=
+		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
+		 					}
+		 					else if ( (alpha == 2 && beta == 0) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
 		 						hessian(idx_j,idx_i) +=
 		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][1];
 		 					}
-		 					else if ( (alpha == 1 && beta == 2) || (alpha == 2 && beta == 1) )
+		 					else if ( (alpha == 1 && beta == 2) )
+		 					{
+		 						hessian(idx_i,idx_j) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 						hessian(idx_j,idx_i) +=
+		 							-DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];
+		 					}
+		 					else if ( (alpha == 2 && beta == 1) )
 		 					{
 		 						hessian(idx_i,idx_j) +=
 		 							DMI_magnitude[i_periodicity][i_pair] * DMI_normal[i_periodicity][i_pair][0];

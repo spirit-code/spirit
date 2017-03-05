@@ -5,7 +5,7 @@
 #include <random>
 #include <memory>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Hamiltonian_Isotropic.hpp>
@@ -35,6 +35,10 @@ namespace Data
 		void UpdateEnergy();
 		void UpdateEffectiveField();
 
+		// For multithreading
+		void Lock() const;
+		void Unlock() const;
+
 		// Number of spins
 		int nos;
 		// Orientations of the Spins: spins[dim][nos]
@@ -51,12 +55,14 @@ namespace Data
 		// Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
 		scalar E;
 		std::vector<std::pair<std::string, scalar>> E_array;
+		// Mean of magnetization
+		Vector3 M;
 		// Total effective field of the spins [3][nos]
 		vectorfield effective_field;
 
-
-	//private:
-
+	private:
+		// Mutex for thread-safety
+		mutable std::mutex mutex;
 	};
 }
 #endif

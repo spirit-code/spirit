@@ -2,12 +2,12 @@
 
 #include "ControlWidget.hpp"
 
-#include "Interface_System.h"
-#include "Interface_Chain.h"
-#include "Interface_Collection.h"
-#include "Interface_Simulation.h"
-#include "Interface_IO.h"
-#include "Interface_Log.h"
+#include "Spirit/System.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Collection.h"
+#include "Spirit/Simulation.h"
+#include "Spirit/IO.h"
+#include "Spirit/Log.h"
 
 
 std::string string_q2std(QString qs)
@@ -38,6 +38,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	connect(this->pushButton_PlayPause, SIGNAL(clicked()), this, SLOT(play_pause()));
 	connect(this->pushButton_PreviousImage, SIGNAL(clicked()), this, SLOT(prev_image()));
 	connect(this->pushButton_NextImage, SIGNAL(clicked()), this, SLOT(next_image()));
+	connect(this->lineEdit_ImageNumber, SIGNAL(returnPressed()), this, SLOT(jump_to_image()));
     connect(this->pushButton_Reset, SIGNAL(clicked()), this, SLOT(resetPressed()));
     connect(this->pushButton_X, SIGNAL(clicked()), this, SLOT(xPressed()));
     connect(this->pushButton_Y, SIGNAL(clicked()), this, SLOT(yPressed()));
@@ -65,8 +66,30 @@ void ControlWidget::updateData()
 	{
 		this->pushButton_PlayPause->setText("Play");
 	}
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
+}
+
+void ControlWidget::cycleMethod()
+{
+	int idx = this->comboBox_Method->currentIndex();
+	int idx_max = this->comboBox_Method->count();
+	this->comboBox_Method->setCurrentIndex((idx + 1) % idx_max);
+}
+
+void ControlWidget::cycleOptimizer()
+{
+	int idx = this->comboBox_Optimizer->currentIndex();
+	int idx_max = this->comboBox_Optimizer->count();
+	this->comboBox_Optimizer->setCurrentIndex((idx + 1) % idx_max);
+}
+
+std::string ControlWidget::methodName()
+{
+	return this->comboBox_Method->currentText().toStdString();
+}
+
+std::string ControlWidget::optimizerName()
+{
+	return this->comboBox_Optimizer->currentText().toStdString();
 }
 
 void ControlWidget::play_pause()
@@ -206,6 +229,22 @@ void ControlWidget::prev_image()
 	}
 }
 
+void ControlWidget::jump_to_image()
+{
+	// Change active image
+	int idx = this->lineEdit_ImageNumber->text().toInt()-1;
+	Chain_Jump_To_Image(this->state.get(), idx);
+	// Update Play/Pause Button
+	if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
+	else this->pushButton_PlayPause->setText("Play");
+
+	// Update Image-dependent Widgets
+	this->spinWidget->updateData();
+	this->settingsWidget->updateData();
+	// this->plotsWidget->updateData();
+	// this->debugWidget->updateData();
+}
+
 void ControlWidget::cut_image()
 {
 	if (Chain_Get_NOI(state.get()) > 1)
@@ -227,6 +266,9 @@ void ControlWidget::cut_image()
 			this->threads_llg.erase(threads_llg.begin() + idx);
 		}
 	}
+
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
 }
 
 void ControlWidget::paste_image(std::string where)
@@ -244,6 +286,8 @@ void ControlWidget::paste_image(std::string where)
 		// Make the llg_threads vector larger
 		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+		// Switch to the inserted image
+		Chain_prev_Image(this->state.get());
 	}
 	else if (where == "right")
 	{
@@ -255,6 +299,9 @@ void ControlWidget::paste_image(std::string where)
 		// Switch to the inserted image
 		Chain_next_Image(this->state.get());
 	}
+
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
 
 	// Update the chain's data (primarily for the plot)
 	Chain_Update_Data(state.get());
@@ -283,6 +330,9 @@ void ControlWidget::delete_image()
 	}
 	this->spinWidget->updateData();
 	this->settingsWidget->updateData();
+
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
 }
 
 

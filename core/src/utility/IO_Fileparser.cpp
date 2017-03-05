@@ -33,18 +33,21 @@ namespace Utility
 			return out;
 		}
 
+		// TODO: this function does not make much sense... need to do this stuff coherently throughout the parser...
 		std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
 		{
 			std::vector<scalar> result;
 
-			size_t last = 0;
-			size_t next = 0;
+			scalar temp;
+			std::stringstream ss(source);
+			while (ss >> temp)
+			{
+				result.push_back(temp);
 
-			while ((next = source.find(delimiter, last)) != std::string::npos) {
-				result.push_back(std::stod(source.substr(last, next - last)));
-				last = next + delimiter.length();
+				if (ss.peek() == ',' || ss.peek() == ' ')
+					ss.ignore();
 			}
-			result.push_back(std::stod(source.substr(last)));
+
 			return result;
 		}
 
@@ -105,6 +108,8 @@ namespace Utility
 				Log(Log_Level::Info, Log_Sender::IO, "Done");
 			}
 		}
+
+
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
 		{
 			std::ifstream myfile(file);
@@ -138,8 +143,15 @@ namespace Utility
 								nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 							}
 						}//endif "Image No"
-						else if (iimage < noi)	// The line should contain a spin
+						else	// The line should contain a spin
 						{
+							if (iimage >= noi)
+							{
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage));
+								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+								c->images.push_back(new_system);
+							}
+							nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 
 							if (i >= nos)
 							{
@@ -254,10 +266,12 @@ namespace Utility
 						else
 							file.iss >> sdump;
 					}
+					K_temp = { spin_K1, spin_K2, spin_K3 };
+					K_temp.normalize();
+					spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
-						K_temp = { spin_K1, spin_K2, spin_K3 };
 						spin_K1 = K_temp.dot(geometry.basis[0]);
 						spin_K2 = K_temp.dot(geometry.basis[1]);
 						spin_K3 = K_temp.dot(geometry.basis[2]);

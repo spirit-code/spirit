@@ -53,7 +53,7 @@ source_group("src" FILES ${SOURCE_UI_CONSOLE_ROOT})
 
 ######### Header include directories
 include_directories(${PROJECT_SOURCE_DIR}/include
-					${CORE_INCLUDE_DIRS})
+					${SPIRIT_INCLUDE_DIRS})
 #############################################
 
 
@@ -63,7 +63,7 @@ add_executable(${EXECUTABLE_NAME} ${HEADER_UI_CONSOLE_ROOT} ${SOURCE_UI_CONSOLE_
 
 
 ######### Link the libraries into the executable
-target_link_libraries(${EXECUTABLE_NAME} core)
+target_link_libraries(${EXECUTABLE_NAME} ${SPIRIT_LIBRARIES_STATIC})
 #############################################
 
 

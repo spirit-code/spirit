@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 
 // Dynamic Eigen typedefs
 typedef Eigen::Matrix<scalar, -1,  1> VectorX;

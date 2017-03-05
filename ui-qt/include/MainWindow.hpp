@@ -79,12 +79,14 @@ private:
 	QLabel * m_Spacer_2;
 	QLabel * m_Spacer_3;
 	QLabel * m_Spacer_4;
+	QLabel * m_Spacer_5;
 	QLabel * m_Label_E;
 	QLabel * m_Label_Mz;
 	QLabel * m_Label_Torque;
 	QLabel * m_Label_NOC;
 	QLabel * m_Label_NOI;
 	QLabel * m_Label_NOS;
+	QLabel * m_Label_Dims;
 	QLabel * m_Label_FPS;
 	std::vector<QLabel*> m_Labels_IPS;
 
@@ -99,6 +101,9 @@ private:
 	bool   pre_fullscreen_debug_hidden;
 	QSize  pre_fullscreen_debug_size;
 	QPoint pre_fullscreen_debug_pos;
+
+	// Screenshot numbering
+	int n_screenshots;
 };
 
 #endif

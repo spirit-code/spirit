@@ -1,26 +1,26 @@
 import os
 import sys
 
+### Make sure to find the Spirit modules
+# spirit_py_dir = os.path.dirname(os.path.realpath(__file__)) + "core/python/Spirit"
+spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "../core/python"))
+sys.path.insert(0, spirit_py_dir)
+
+
 ### Import numpy
 import numpy as np
 
-### Import core library
-from core import state
-from core import system
-from core import geometry
-from core import chain
-from core import configuration
-from core import transition
-from core import simulation
-from core import quantities
-from core import io
-from core import log
-
-### Make sure to find the core modules
-core_dir = os.path.dirname(os.path.realpath(__file__)) + "/ui-python"
-# core_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "..", "/ui-python/core"))
-sys.path.insert(0, core_dir)
-
+### Import Spirit modules
+from Spirit import state
+from Spirit import system
+from Spirit import geometry
+from Spirit import chain
+from Spirit import configuration
+from Spirit import transition
+from Spirit import simulation
+from Spirit import quantities
+from Spirit import io
+from Spirit import log
 
 
 def configurations(p_state):
@@ -36,10 +36,10 @@ def configurations(p_state):
     # Chain_from_File(state.get(), chainfile);
 
     ### First image is homogeneous with a Skyrmion at pos
-    configuration.PlusZ(p_state, 0)
-    configuration.Skyrmion(p_state, [0,0,0], 5.0, 1, -90.0, False, False, False, 0)
+    configuration.PlusZ(p_state, idx_image=0)
+    configuration.Skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
     ### Last image is homogeneous
-    configuration.PlusZ(p_state, noi-1)
+    configuration.PlusZ(p_state, idx_image=noi-1)
 
     # spinsfile = "input/spins.txt"
     # io.Image_Read(p_state, spinsfile)

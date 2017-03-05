@@ -1,10 +1,10 @@
 #include "MainWindow.hpp"
 
-#include "Interface_State.h"
-#include "Interface_Chain.h"
-#include "Interface_Configurations.h"
-#include "Interface_Transitions.h"
-#include "Interface_Log.h"
+#include "Spirit/State.h"
+#include "Spirit/Chain.h"
+#include "Spirit/Configurations.h"
+#include "Spirit/Transitions.h"
+#include "Spirit/Log.h"
 
 // Main
 int main(int argc, char ** argv)
@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
 	
 	//---------------------- file names ---------------------------------------------
 	//--- Config Files
-	const char * cfgfile = "input/input.cfg";
+	 const char * cfgfile = "input/input.cfg";
 	// const char * cfgfile = "input/anisotropic/markus.cfg";
 	// const char * cfgfile = "input/anisotropic/markus-paper.cfg";
 	// const char * cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
@@ -41,20 +41,18 @@ int main(int argc, char ** argv)
 	//-------------------------------------------------------------------------------
 	
 	//----------------------- spin_system_chain -------------------------------------
-	// Parameters
-	float dir[3] = { 0,0,1 };
-	float pos[3] = { 0,0,0 };
-
 	// Read Image from file
 	//Configuration_from_File(state.get(), spinsfile, 0);
 	// Read Chain from file
 	//Chain_from_File(state.get(), chainfile);
 
 	// First image is homogeneous with a Skyrmion at pos
-	Configuration_Homogeneous(state.get(), dir, 0);
-	Configuration_Skyrmion(state.get(), pos, 6.0, 1.0, -90.0, false, false, false, 0);
+	Configuration_PlusZ(state.get());
+	Configuration_Skyrmion(state.get(), 6.0, 1.0, -90.0, false, false, false);
 	// Last image is homogeneous
-	Configuration_Homogeneous(state.get(), dir, Chain_Get_NOI(state.get())-1);
+	Chain_Jump_To_Image(state.get(), Chain_Get_NOI(state.get())-1);
+	Configuration_PlusZ(state.get());
+	Chain_Jump_To_Image(state.get(), 0);
 
 	// Create transition of images between first and last
 	Transition_Homogeneous(state.get(), 0, Chain_Get_NOI(state.get())-1);

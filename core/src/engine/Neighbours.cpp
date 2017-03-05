@@ -21,7 +21,7 @@ namespace Engine
 		const int n_shells, std::vector<std::vector<int>> &n_spins_in_shell,
 		std::vector<std::vector<std::vector<int>>> & neigh,
 		std::vector<int> &n_4spin, int &max_n_4spin, std::vector<std::vector<std::vector<int>>> &neigh_4spin,
-		std::vector<vectorfield> &dm_normal,
+		std::vector<vectorfield> &dm_normal, int dm_chirality,
 		std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos)
 	{
 		//========================= Init local vars ================================
@@ -124,7 +124,7 @@ namespace Engine
 		max_ndm = max_number_n_in_shell[0];
 		// Calculate DM normal vectors
 		dm_normal = std::vector<vectorfield>(nos, vectorfield(max_ndm));
-		Create_DM_Norm_Vectors_Bulk(nos, geometry.spin_pos, n_boundary_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal);
+		Create_DM_Norm_Vectors_Bulk(nos, geometry.spin_pos, n_boundary_vectors, boundary_vectors, n_shells, n_spins_in_shell, neigh, neigh_pos, max_ndm, dm_normal, dm_chirality);
 		//DM_Norm_Vectors_To_File(nos, n_shells, n_spins_in_shell, neigh, dm_normal);
 
 		Log(Log_Level::Info, Log_Sender::All, "Done creating Neighbours");
@@ -448,7 +448,7 @@ namespace Engine
 	void Neighbours::Create_DM_Norm_Vectors_Bulk(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-		const int max_ndm, std::vector<vectorfield> &dm_normal)
+		const int max_ndm, std::vector<vectorfield> &dm_normal, int chirality)
 	{
 		//========================= Init local vars ================================
 		int ispin, jspin, jneigh;
@@ -468,8 +468,24 @@ namespace Engine
 			{	// loop over all neighbours of that spin
 				jspin = neigh[ispin][0][jneigh];
 				jspin_pos = neigh_pos[ispin][0][jneigh];
-				//r_a = ispin_pos - jspin_pos; //get DMI vec with chirality "-"
-				r_a = jspin_pos - ispin_pos; // get DMI vec with chirality "+"
+				if (chirality == -1)
+				{
+					r_a = ispin_pos - jspin_pos; //get DMI vec with chirality "-"
+				}
+				else if (chirality == 2)
+				{
+					// This should only be used in 2D case, not in bulk
+					r_a = (jspin_pos - ispin_pos).cross(Vector3{ 0,0,1 });
+				}
+				else if (chirality == -2)
+				{
+					// This should only be used in 2D case, not in bulk
+					r_a = (ispin_pos - jspin_pos).cross(Vector3{ 0,0,1 });
+				}
+				else
+				{
+					r_a = jspin_pos - ispin_pos; // get DMI vec with chirality "+"
+				}
 				r_a.normalize();
 				dm_normal[ispin][jneigh] = r_a;
 			}//endfor jneigh
@@ -480,7 +496,7 @@ namespace Engine
 	void Neighbours::Create_DM_Norm_Vectors_Surface(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 		const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 		const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-		const int max_ndm, std::vector<vectorfield> &dm_normal)
+		const int max_ndm, std::vector<vectorfield> &dm_normal, int chirality)
 	{
 		//========================= Init local vars ================================
 		int ispin, jneigh;
@@ -494,9 +510,20 @@ namespace Engine
 		{
 			for (jneigh = 0; jneigh < max_ndm; ++jneigh)
 			{
-				build_array_1 = dm_normal[ispin][jneigh];
-				build_array_2 = build_array_1.cross(unit_vec_z);
-				dm_normal[ispin][jneigh] = build_array_2;
+				if (chirality == 2)
+				{
+					// This should only be used in 2D case, not in bulk
+					dm_normal[ispin][jneigh] = dm_normal[ispin][jneigh].cross(Vector3{ 0,0,1 });
+				}
+				else if (chirality == -2)
+				{
+					// This should only be used in 2D case, not in bulk
+					dm_normal[ispin][jneigh] = -dm_normal[ispin][jneigh].cross(Vector3{ 0,0,1 });
+				}
+				else if (chirality == -1)
+				{
+					dm_normal[ispin][jneigh] *= -1;
+				}
 			}
 		}
 		Log(Log_Level::Debug, Log_Sender::All, "Done calculating Surface DMI norm vectors.");

@@ -21,15 +21,13 @@ Log_*
 */Log_*
 input_*
 */input_*
+*_Screenshot_*
 
 ### Executables and Libraries ###
-spirit
-core.js
-core.js.mem
+/spirit
 
 ### Generated Files
 VERSION.txt
-Core_Defines.h
 scalar.py
 
 

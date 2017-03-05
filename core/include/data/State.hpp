@@ -46,6 +46,9 @@ struct State
 	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_gneb;
 	//    max. 1 MMF method
 	std::shared_ptr<Simulation_Information> simulation_information_mmf;
+
+	// Timepoint of creation
+	std::string datetime_creation;
 };
 
 

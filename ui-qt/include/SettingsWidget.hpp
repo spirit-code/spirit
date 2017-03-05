@@ -22,6 +22,11 @@ public:
 
 	std::shared_ptr<State> state;
 
+public slots:
+	// Configurations
+	void configurationAddNoise();
+	void randomPressed();
+
 private:
 	// Setup Input Validators
 	void Setup_Input_Validators();
@@ -43,6 +48,12 @@ private:
 	QRegularExpressionValidator * number_validator_int;
 	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
+	// Helpers
+	std::array<float,3> get_position();
+	std::array<float,3> get_border_rectangular();
+	float get_border_cylindrical();
+	float get_border_spherical();
+	float get_inverted();
 
 private slots:
 	// Parameters
@@ -57,6 +68,7 @@ private slots:
 	void set_hamiltonian_aniso_stt();
 	void set_hamiltonian_aniso_temp();
 	// Visualization
+	void set_visualisation_source();
 	void set_visualization_mode();
 	void set_visualization_perspective();
 	void set_visualization_miniview();
@@ -70,11 +82,14 @@ private slots:
 	void set_visualization_system_arrows();
 	void set_visualization_system_boundingbox();
 	void set_visualization_system_surface();
-	void set_visualization_system_overall();
+	void set_visualization_system_overall_direction();
+	void set_visualization_system_overall_position();
 	void set_visualization_system_isosurface();
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();
 	void set_visualization_colormap();
+	void set_visualization_colormap_rotation_slider();
+	void set_visualization_colormap_rotation_lineEdit();
 	void set_visualization_background();
 
 	// Visualisation - Camera
@@ -83,12 +98,16 @@ private slots:
 	void set_camera_position();
 	void set_camera_focus();
 	void set_camera_upvector();
+	void set_camera_fov_lineedit();
+	void set_camera_fov_slider();
+	void set_camera_rotation();
+
+	// Light
+	void set_light_position();
 
 	// Configurations
-	void configurationAddNoise();
-	void randomPressed();
 	void addNoisePressed();
-	void domainWallPressed();
+	void domainPressed();
 	void plusZ();
 	void minusZ();
 	void create_Hopfion();

@@ -61,9 +61,9 @@ else()
 endif()
 
 ### Don't do compiler autodetection, since we are cross-compiling.
-include(CMakeForceCompiler)
-CMAKE_FORCE_C_COMPILER("${CMAKE_C_COMPILER}" emcc)
-CMAKE_FORCE_CXX_COMPILER("${CMAKE_CXX_COMPILER}" emcc)
+# include(CMakeForceCompiler)
+# CMAKE_FORCE_C_COMPILER("${CMAKE_C_COMPILER}" emcc)
+# CMAKE_FORCE_CXX_COMPILER("${CMAKE_CXX_COMPILER}" emcc)
 
 # Specify the compilers to use for C and C++
 if ("${CMAKE_C_COMPILER}" STREQUAL "")

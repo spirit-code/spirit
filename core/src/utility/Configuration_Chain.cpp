@@ -51,7 +51,7 @@ namespace Utility
 
 					for (int img = idx_1+1; img < idx_2; ++img)
 					{
-						angle = img*rot_angle/noi;
+						angle = (img-idx_1)*rot_angle/noi;
 						Engine::Vectormath::rotate(a, rot_axis, angle, temp);
 
 						(*c->images[img]->spins)[i] = temp;

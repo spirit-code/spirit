@@ -2,7 +2,7 @@
 #ifndef DATA_SPIN_SYSTEM_CHAIN_H
 #define DATA_SPIN_SYSTEM_CHAIN_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 
@@ -21,6 +21,10 @@ namespace Data
 	public:
 		// Constructor
 		Spin_System_Chain(std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters, bool iteration_allowed = false);
+
+		// For multithreading
+		void Lock() const;
+		void Unlock() const;
 
 		int noi;	// Number of Images
 		std::vector<std::shared_ptr<Spin_System>> images;
@@ -45,9 +49,9 @@ namespace Data
 		std::vector<scalar> E_interpolated;
 		std::vector<std::vector<scalar>> E_array_interpolated;
 
-
 	private:
-	
+		// Mutex for thread-safety
+		mutable std::mutex mutex;
 	};
 }
 #endif

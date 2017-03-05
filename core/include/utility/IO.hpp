@@ -9,8 +9,8 @@
 #include <sstream>
 #include <type_traits>
 
-#include "Core_Defines.h"
-#include <interface/Interface_IO.h>
+#include "Spirit_Defines.h"
+#include <Spirit/IO.h>
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>

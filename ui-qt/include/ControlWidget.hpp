@@ -27,6 +27,10 @@ class ControlWidget : public QWidget, private Ui::ControlWidget
 public:
 	ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget);
 	void updateData();
+	void cycleMethod();
+	void cycleOptimizer();
+	std::string methodName();
+	std::string optimizerName();
 
 public slots:
 	void play_pause();
@@ -34,6 +38,7 @@ public slots:
 	void stop_current();
 	void next_image();
 	void prev_image();
+	void jump_to_image();
 	void cut_image();
 	void paste_image(std::string where="current");
 	void delete_image();

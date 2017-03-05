@@ -2,7 +2,7 @@
 #ifndef UTILITY_CONFIGURATION_CHAIN_H
 #define UTILITY_CONFIGURATION_CHAIN_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Spin_System_Chain.hpp>
 
 #include <vector>

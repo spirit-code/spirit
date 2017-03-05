@@ -62,6 +62,15 @@ Code optimizations, suggestions and feedback.
 -----------------
 
 
+### David Bauer
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Initial (Fortran90) implementations of the isotropic Hamiltonian, Neighbour calculations and the SIB optimizer.
+
+-----------------
+
+
 ### Graph
 You may also take a look at the [contributors graph][1].
 

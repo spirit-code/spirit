@@ -87,12 +87,34 @@ void View::mouseMove(const glm::vec2& position_before, const glm::vec2& position
     up_vector = glm::normalize(glm::cross(right, forward));
     delta = glm::normalize(delta);
     switch (mode) {
-    case CameraMovementModes::ROTATE: {
+    case CameraMovementModes::ROTATE_FREE: {
         auto axis = glm::normalize(delta.x * up_vector + delta.y * right);
         float angle = -length * 0.1f / 180 * 3.14f;
         auto rotation_matrix = glm::rotate(angle, axis);
         up_vector = glm::mat3(rotation_matrix) * up_vector;
         forward = glm::mat3(rotation_matrix) * forward;
+        bool was_centered = m_is_centered;
+        setCamera(center_position - forward * camera_distance, center_position, up_vector);
+        m_is_centered = was_centered;
+    }
+    break;
+    case CameraMovementModes::ROTATE_BOUNDED: {
+        auto zaxis = glm::vec3{0,0,1};
+        // Get correct right-vector (in xy-plane) and orthogonal right and up
+        right = right - zaxis * glm::dot(right, zaxis);
+        glm::normalize(right);
+        up_vector = up_vector - right*glm::dot(up_vector, right);
+        glm::normalize(up_vector);
+        forward = forward - right*glm::dot(forward, right);
+        glm::normalize(forward);
+        // Get rotation axis & angle
+        auto axis = glm::normalize(delta.x * zaxis + delta.y * right);
+        float angle = -length * 0.1f / 180 * 3.14f;
+        // Rotate up and forward vectors
+        auto rotation_matrix = glm::rotate(angle, axis);
+        up_vector = glm::mat3(rotation_matrix) * up_vector;
+        forward = glm::mat3(rotation_matrix) * forward;
+        // Set new camera position
         bool was_centered = m_is_centered;
         setCamera(center_position - forward * camera_distance, center_position, up_vector);
         m_is_centered = was_centered;

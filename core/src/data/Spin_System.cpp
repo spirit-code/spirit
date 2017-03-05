@@ -27,6 +27,7 @@ namespace Data
 		// ...
 		this->E = 0;
 		this->E_array = std::vector<std::pair<std::string, scalar>>(0);
+		this->M = Vector3{0,0,0};
 		this->effective_field = vectorfield(this->nos);
 
 	}//end Spin_System constructor
@@ -34,6 +35,8 @@ namespace Data
 	 // Copy Constructor
 	Spin_System::Spin_System(Spin_System const & other)
 	{
+		other.Lock();
+
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
 
@@ -59,11 +62,14 @@ namespace Data
 		this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));
 
 		this->iteration_allowed = false;
+
+		other.Unlock();
 	}
 
 	// Assignment operator
 	Spin_System& Spin_System::operator=(Spin_System const & other)
 	{
+		other.Lock();
 		if (this != &other)
 		{
 			this->nos = other.nos;
@@ -92,8 +98,9 @@ namespace Data
 
 			this->iteration_allowed = false;
 		}
-		return *this;
+		other.Unlock();
 
+		return *this;
 	}
 
 	void Spin_System::UpdateEnergy()
@@ -108,4 +115,13 @@ namespace Data
 		Engine::Vectormath::scale(this->effective_field, -1);
 	}
 
+	void Spin_System::Lock() const
+	{
+		this->mutex.lock();
+	}
+
+	void Spin_System::Unlock() const
+	{
+		this->mutex.unlock();
+	}
 }

@@ -2,7 +2,7 @@
 #ifndef Optimizer_VP_H
 #define Optimizer_VP_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Optimizer.hpp>
 
 namespace Engine

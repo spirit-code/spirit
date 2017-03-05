@@ -17,7 +17,6 @@ namespace Engine
         scalar norm(const vectorfield & vf)
         {
             scalar x = Vectormath::dot(vf, vf);
-            cudaDeviceSynchronize();
             return std::sqrt(x);
         }
 
@@ -25,7 +24,6 @@ namespace Engine
         {
             scalar sc = 1.0/norm(vf);
             Vectormath::scale(vf, sc);
-            cudaDeviceSynchronize();
         }
 
 
@@ -34,7 +32,6 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             Vectormath::add_c_a(-1, vf3, vf1);
-            cudaDeviceSynchronize();
         }
 
         __global__ void cu_project_orthogonal(Vector3 *vf1, const Vector3 *vf2, scalar proj, size_t N)
@@ -49,7 +46,7 @@ namespace Engine
 
         // The wrapper for the calling of the actual kernel
         void project_orthogonal(vectorfield & vf1, const vectorfield & vf2)
-        {        
+        {
             int n = vf1.size();
 
             // Get projection
@@ -63,7 +60,6 @@ namespace Engine
         {
             scalar proj=Vectormath::dot(vf1, vf2);
             Vectormath::add_c_a(-2*proj, vf2, vf1);
-            cudaDeviceSynchronize();
         }
         
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2)
@@ -71,8 +67,23 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             Vectormath::add_c_a(-2, vf3, vf1);
-            cudaDeviceSynchronize();
         }
+
+		__global__ void cu_project_tangential(Vector3 *vf1, const Vector3 *vf2, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+            if(idx < N)
+            {
+                vf1[idx] -= vf1[idx].dot(vf2[idx]) * vf2[idx];
+            }
+        }
+        void project_tangential(vectorfield & vf1, const vectorfield & vf2)
+		{
+            int n = vf1.size();
+            cu_project_tangential<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), n);
+            cudaDeviceSynchronize();
+		}
 
 
 		scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2)
@@ -205,13 +216,16 @@ namespace Engine
 
 				}
 
-				// Project tangents onto normal planes of spin vectors to make them actual tangents
-				//Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
-				for (int i = 0; i < nos; ++i)
-				{
-					// Get the scalar product of the vectors
-					tangents[idx_img][i] -= tangents[idx_img][i].dot(image[i]) * image[i];
-				}
+				// Project tangents into tangent planes of spin vectors to make them actual tangents
+        		project_tangential(tangents[idx_img], image);
+
+				// //Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
+				// scalar v1v2 = 0.0;
+				// for (int i = 0; i < nos; ++i)
+				// {
+				// 	// Get the scalar product of the vectors
+				// 	tangents[idx_img][i] -= tangents[idx_img][i].dot(image[i]) * image[i];
+				// }
 
 				// Normalise in 3N - dimensional space
 				Manifoldmath::normalize(tangents[idx_img]);

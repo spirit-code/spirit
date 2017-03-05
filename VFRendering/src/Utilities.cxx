@@ -10,6 +10,8 @@
 #include "shaders/colormap.bluered.glsl.hxx"
 #include "shaders/colormap.bluegreenred.glsl.hxx"
 #include "shaders/colormap.bluewhitered.glsl.hxx"
+#include "shaders/colormap.black.glsl.hxx"
+#include "shaders/colormap.white.glsl.hxx"
 
 namespace VFRendering {
 namespace Utilities {
@@ -90,6 +92,10 @@ std::string getColormapImplementation(const Colormap& colormap) {
         return COLORMAP_BLUEWHITERED_GLSL;
     case Colormap::HSV:
         return COLORMAP_HSV_GLSL;
+    case Colormap::BLACK:
+        return COLORMAP_BLACK_GLSL;
+    case Colormap::WHITE:
+        return COLORMAP_WHITE_GLSL;
     case Colormap::DEFAULT:
     default:
         return "vec3 colormap(vec3 direction) {return vec3(1.0, 1.0, 1.0);}";
@@ -97,7 +103,7 @@ std::string getColormapImplementation(const Colormap& colormap) {
 }
 
 std::pair<glm::mat4, glm::mat4> getMatrices(const VFRendering::Options& options, float aspect_ratio) {
-    auto vertical_field_of_view = options.get<View::Option::VERTICAL_FIELD_OF_VIEW>();
+    auto vertical_field_of_view = glm::radians(options.get<View::Option::VERTICAL_FIELD_OF_VIEW>());
     auto camera_position = options.get<View::Option::CAMERA_POSITION>();
     auto center_position = options.get<View::Option::CENTER_POSITION>();
     auto up_vector = options.get<View::Option::UP_VECTOR>();

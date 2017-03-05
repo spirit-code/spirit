@@ -16,12 +16,12 @@ set( INTERFACE_EXPORT_FUNCTIONS
 		'_Collection_Get_NOC'
 		'_Collection_next_Chain' '_Collection_prev_Chain'
 		# Geometry
+		'_Geometry_Get_Spin_Positions'
 		'_Geometry_Get_Bounds' '_Geometry_Get_Center'
 		'_Geometry_Get_Basis_Vectors' '_Geometry_Get_N_Cells' '_Geometry_Get_Translation_Vectors' '_Geometry_Get_Dimensionality'
 		# Hamiltonian
 		'_Hamiltonian_Set_Boundary_Conditions' '_Hamiltonian_Set_mu_s' '_Hamiltonian_Set_Field' '_Hamiltonian_Set_Exchange' '_Hamiltonian_Set_DMI' '_Hamiltonian_Set_Anisotropy' '_Hamiltonian_Set_STT' '_Hamiltonian_Set_Temperature'
 		'_Hamiltonian_Get_Boundary_Conditions' '_Hamiltonian_Get_mu_s' '_Hamiltonian_Get_Field' '_Hamiltonian_Get_Exchange' '_Hamiltonian_Get_DMI' '_Hamiltonian_Get_Anisotropy' '_Hamiltonian_Get_STT' '_Hamiltonian_Get_Temperature'
-		'_Hamiltonian_Is_Isotropic'
 		# Parameters
 		'_Parameters_Set_LLG_Time_Step' '_Parameters_Set_LLG_Damping' '_Parameters_Set_GNEB_Spring_Constant' '_Parameters_Set_GNEB_Climbing_Falling'
 		'_Parameters_Get_LLG_Time_Step' '_Parameters_Get_LLG_Damping' '_Parameters_Get_GNEB_Spring_Constant' '_Parameters_Get_GNEB_Climbing_Falling' '_Parameters_Get_GNEB_N_Energy_Interpolations'
@@ -64,7 +64,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
 		### Compiler Flags
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-warn-absolute-paths -O2 -DEIGEN_NO_DEBUG -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -DEIGEN_NO_DEBUG -s DISABLE_EXCEPTION_CATCHING=2 -s ASSERTIONS=1" )
 		### Linker Flags
 		### 	optimization, memory growth and exported functions
 		set( CMAKE_EXE_LINKER_FLAGS 	"${CMAKE_EXE_LINKER_FLAGS} -O2 -DEIGEN_NO_DEBUG -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\"" )

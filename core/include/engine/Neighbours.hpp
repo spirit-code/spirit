@@ -2,7 +2,7 @@
 #ifndef NEIGHBOURS_H
 #define NEIGHBOURS_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
@@ -18,7 +18,7 @@ namespace Engine
 			const int n_shells, std::vector<std::vector<int>> &n_spins_in_shell,
 			std::vector<std::vector<std::vector<int>>> & neigh,
 			std::vector<int> &n_4spin, int &max_n_4spin, std::vector<std::vector<std::vector<int>>> &neigh_4spin,
-			std::vector<vectorfield> &dm_normal,
+			std::vector<vectorfield> &dm_normal, int dm_chirality,
 			std::vector<std::vector<int>> &segments, std::vector<std::vector<Vector3>> &segments_pos);
 
 		// calculates shell radii for every shell
@@ -41,13 +41,13 @@ namespace Engine
 		void Create_DM_Norm_Vectors_Bulk(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 			const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-			const int max_ndm, std::vector<vectorfield> &dm_normal);
+			const int max_ndm, std::vector<vectorfield> &dm_normal, int dm_chirality=1);
 
 		// calculates the surface DMI vectors
 		void Create_DM_Norm_Vectors_Surface(const int nos, const vectorfield &spin_pos, const int number_b_vectors,
 			const std::vector<Vector3> &boundary_vectors, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell,
 			const std::vector<std::vector<std::vector<int>>> & neigh, std::vector<std::vector<std::vector<Vector3>>> & neigh_pos,
-			const int max_ndm, std::vector<vectorfield> &dm_normal);
+			const int max_ndm, std::vector<vectorfield> &dm_normal, int dm_chirality=0);
 
 		// prints DMI vectors to file
 		void DM_Norm_Vectors_To_File(const int nos, const int n_shells, const std::vector<std::vector<int>> &n_spins_in_shell, const std::vector<std::vector<std::vector<int>>> & neigh,

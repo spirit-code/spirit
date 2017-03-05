@@ -33,21 +33,15 @@ namespace Engine
 			auto& conf = *configurations[i];
 
 			dt = s->llg_parameters->dt;
-	
-			// Set temporaries to zero
-			Vectormath::fill(spins_temp[i], { 0,0,0 });
-			Vectormath::fill(temp1, { 0,0,0 });
-			Vectormath::fill(temp2, { 0,0,0 });
-			Vectormath::fill(temp3, { 0,0,0 });
 
 			// Update spins_temp
-			Vectormath::add_c_cross(1, conf, force[i], temp3);
-			Vectormath::add_c_cross(-100*dt*dt, conf, temp3, temp1);
-			Vectormath::add_c_a(1, conf, temp2);
+			Vectormath::set_c_cross(1, conf, force[i], temp3);
+			Vectormath::set_c_cross(-100*dt*dt, conf, temp3, temp1);
+			Vectormath::set_c_a(1, conf, temp2);
 			Vectormath::add_c_a(1, temp1, temp2);
 			Vectormath::add_c_cross(1, temp2, force[i], temp3);
 			Vectormath::add_c_cross(-100*dt*dt, temp2, temp3, temp1);
-			Vectormath::add_c_a(5*dt, conf, spins_temp[i]);
+			Vectormath::set_c_a(5*dt, conf, spins_temp[i]);
 			Vectormath::add_c_a(5*dt, temp1, spins_temp[i]);
 
 			// Normalize spins

@@ -2,7 +2,7 @@
 #ifndef METHOD_LLG_H
 #define METHOD_LLG_H
 
-#include "Core_Defines.h"
+#include "Spirit_Defines.h"
 #include <engine/Method.hpp>
 #include <engine/Optimizer.hpp>
 #include <engine/Optimizer_SIB.hpp>
@@ -44,7 +44,7 @@ namespace Engine
 
 	private:
 		// Last calculated forces
-		std::vector<vectorfield> F_total;
+		std::vector<vectorfield> Gradient;
 		// Convergence parameters
 		std::vector<bool> force_converged;
     };
