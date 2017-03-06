@@ -3,6 +3,7 @@
 #include "MainWindow.hpp"
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
+#include "IsosurfaceWidget.hpp"
 
 #include "Spirit/Configurations.h"
 #include "Spirit/Transitions.h"
@@ -36,6 +37,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	// Setup User Interface
 	this->setupUi(this);
 
+	// Defaults
+	m_isosurfaceshadows = false;
+	add_isosurface();
+	
 	// We use a regular expression (regex) to filter the input into the lineEdits
 	QRegularExpression re("[+|-]?[\\d]*[\\.]?[\\d]*");
 	this->number_validator = new QRegularExpressionValidator(re);
@@ -574,7 +579,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->checkBox_showBoundingBox->setChecked(show_boundingbox);
 	this->checkBox_show_surface->setChecked(show_surface);
 	this->checkBox_show_isosurface->setChecked(show_isosurface);
-	this->checkBox_isosurfaceshadows->setChecked(_spinWidget->isosurfaceshadows());
+	this->checkBox_isosurfaceshadows->setChecked(this->m_isosurfaceshadows);
 
 	// Miniview
 	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
@@ -684,16 +689,6 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_surface_ymin->blockSignals(false);
 	horizontalSlider_surface_ymax->blockSignals(false);
 	horizontalSlider_surface_zmin->blockSignals(false);
-	horizontalSlider_surface_zmax->blockSignals(false);
-  
-	// Isosurface
-	auto isovalue = _spinWidget->isovalue();
-	horizontalSlider_isovalue->setRange(0, 100);
-	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
-	int component = _spinWidget->isocomponent();
-	if (component == 0) this->radioButton_isosurface_x->setChecked(true);
-	else if (component == 1) this->radioButton_isosurface_y->setChecked(true);
-	else if (component == 2) this->radioButton_isosurface_z->setChecked(true);
 
 	// Colormap
 	int idx_cm = (int)_spinWidget->colormap();
@@ -1550,33 +1545,14 @@ void SettingsWidget::set_visualization_system_overall_position()
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
-	_spinWidget->setIsosurfaceshadows(this->checkBox_isosurfaceshadows->isChecked());
+	for (auto& isoWidget : this->isosurfaceWidgets) isoWidget->setDrawShadows(this->checkBox_isosurfaceshadows->isChecked());
 }
 
-
-
-void SettingsWidget::set_visualization_isovalue_fromslider()
+void SettingsWidget::add_isosurface()
 {
-	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
-	this->lineEdit_isovalue->setText(QString::number(isovalue));
-	_spinWidget->setIsovalue(isovalue);
-}
-
-void SettingsWidget::set_visualization_isovalue_fromlineedit()
-{
-	float isovalue = this->lineEdit_isovalue->text().toFloat();
-	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
-	_spinWidget->setIsovalue(isovalue);
-}
-
-void SettingsWidget::set_visualization_isocomponent()
-{
-	if (radioButton_isosurface_x->isChecked())
-		_spinWidget->setIsocomponent(0);
-	else if (radioButton_isosurface_y->isChecked())
-		_spinWidget->setIsocomponent(1);
-	else if (radioButton_isosurface_z->isChecked())
-		_spinWidget->setIsocomponent(2);
+	this->isosurfaceWidgets.push_back(new IsosurfaceWidget(state, _spinWidget));
+	this->verticalLayout_isosurface->addWidget(isosurfaceWidgets.back());
+	//this->set_visualization_system();
 }
 
 
@@ -1972,12 +1948,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	//		isosurface
-	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
-	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
-	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
-	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
-	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(checkBox_isosurfaceshadows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system_isosurface()));
+	connect(pushButton_addIsosurface, SIGNAL(clicked()), this, SLOT(add_isosurface()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
@@ -2110,8 +2082,6 @@ void SettingsWidget::Setup_Input_Validators()
 	// Visualisation
 	//		Arrows
 	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
-	//		Isovalue
-	this->lineEdit_isovalue->setValidator(this->number_validator);
 	//		Colormap
 	this->lineEdit_colormap_rotate_phi->setValidator(this->number_validator_int_unsigned);
 	//		Camera

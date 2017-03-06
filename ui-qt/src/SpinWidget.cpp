@@ -25,6 +25,7 @@
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
 {
     this->state = state;
+	this->m_gl_initialized = false;
 
 	// QT Widget Settings
     setFocusPolicy(Qt::StrongFocus);
@@ -70,8 +71,6 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	idx_cycle=0;
 	slab_displacements = glm::vec3{0,0,0};
 
-	this->m_isocomponent = 2;
-	this->m_isosurfaceshadows = false;
 	this->show_surface = false;
 	this->show_miniview = true;
 	this->show_coordinatesystem = true;
@@ -90,6 +89,28 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_isosurface = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
 	//this->setVerticalFieldOfView(this->user_fov);
+}
+
+const VFRendering::View * SpinWidget::view()
+{
+	return &(this->m_view);
+}
+
+void SpinWidget::addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer)
+{
+	if (Geometry_Get_Dimensionality(this->state.get()) == 3)
+	{
+		this->m_renderers_isosurface.insert(renderer);
+		if (m_gl_initialized)
+			this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+	}
+}
+
+void SpinWidget::removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer)
+{
+	this->m_renderers_isosurface.erase(renderer);
+	if (m_gl_initialized)
+		this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 void SpinWidget::initializeGL()
@@ -137,53 +158,11 @@ void SpinWidget::initializeGL()
 	}
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
-
 		// 3D Surface options
 		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
 		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 		auto mini_diff = glm::vec2{0.00001f, -0.00001f};
 		setSurface(x_range + mini_diff, y_range + mini_diff, z_range + mini_diff);
-
-		// Isosurface options
-		this->m_renderer_isosurface = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
-		if (this->m_isocomponent == 0)
-		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-				(void)position;
-				return direction.x;
-			});
-		}
-		else if (this->m_isocomponent == 1)
-		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-				(void)position;
-				return direction.y;
-			});
-		}
-		else if (this->m_isocomponent == 2)
-		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-				(void)position;
-				return direction.z;
-			});
-		}
-		if (this->m_isosurfaceshadows)
-		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-				"uniform vec3 uLightPosition;"
-				"float lighting(vec3 position, vec3 normal)"
-				"{"
-				"    vec3 lightDirection = -normalize(uLightPosition-position);"
-				"    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-				"	 float ambient = 0.2;"
-				"    return diffuse+ambient;"
-				"}");
-		}
-		else
-		{
-			m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return 1.0; }");
-		}
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 
 		this->m_renderer_surface = m_renderer_surface_3D;
 	}
@@ -203,6 +182,8 @@ void SpinWidget::initializeGL()
 	// Configure System (Setup the renderers
 	this->setSystemCycle(this->idx_cycle);
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+
+	this->m_gl_initialized = true;
 }
 
 void SpinWidget::teardownGL() {
@@ -658,7 +639,9 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
 	if (show_surface && (Geometry_Get_Dimensionality(this->state.get()) == 2 || Geometry_Get_Dimensionality(this->state.get()) == 3))
 		system.push_back(this->m_renderer_surface);
 	if (show_isosurface)
-		system.push_back(this->m_renderer_isosurface);
+	{
+		for (auto& iso : this->m_renderers_isosurface) system.push_back(iso);
+	}
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, system);
 	//*this->m_system = VFRendering::CombinedRenderer(m_view, system);
 
@@ -927,72 +910,6 @@ void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_ra
 	//this->setupRenderers();
 }
 
-/////	Isosurface
-float SpinWidget::isovalue() const
-{
-	return options().get<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>();
-}
-void SpinWidget::setIsovalue(float isovalue)
-{
-	makeCurrent();
-	m_view.setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(isovalue);
-}
-float SpinWidget::isocomponent() const
-{
-	return this->m_isocomponent;
-}
-void SpinWidget::setIsocomponent(int component)
-{
-	makeCurrent();
-	this->m_isocomponent = component;
-	if (this->m_isocomponent == 0)
-	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-			(void)position;
-			return direction.x;
-		});
-	}
-	else if (this->m_isocomponent == 1)
-	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-			(void)position;
-			return direction.y;
-		});
-	}
-	else if (this->m_isocomponent == 2)
-	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-			(void)position;
-			return direction.z;
-		});
-	}
-}
-bool SpinWidget::isosurfaceshadows() const
-{
-	return this->m_isosurfaceshadows;
-}
-void SpinWidget::setIsosurfaceshadows(bool show)
-{
-	this->m_isosurfaceshadows = show;
-	if (this->m_isosurfaceshadows)
-	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-			"uniform vec3 uLightPosition;"
-			"float lighting(vec3 position, vec3 normal)"
-			"{"
-			"    vec3 lightDirection = -normalize(uLightPosition-position);"
-			"    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-			"	 float ambient = 0.2;"
-			"    return diffuse+ambient;"
-			"}");
-	}
-	else
-	{
-		m_renderer_isosurface->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>("float lighting(vec3 position, vec3 normal) { return 1.0; }");
-	}
-	// The following setupRenderers should maybe not be necessary?
-	this->setupRenderers();
-}
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Sphere ---
@@ -1516,12 +1433,6 @@ void SpinWidget::writeSettings()
 	settings.setValue("LOD", this->arrowLOD());
 	settings.endGroup();
 
-	// Isosurface
-	settings.beginGroup("Isosurface");
-	settings.setValue("Component", this->isocomponent());
-	settings.setValue("Draw Shadows", this->isosurfaceshadows());
-	settings.endGroup();
-
 	// Colors
 	settings.beginGroup("Colors");
 	settings.setValue("Background Color", (int)backgroundColor());
@@ -1606,15 +1517,6 @@ void SpinWidget::readSettings()
 		settings.beginGroup("Arrows");
 		// Projection
 		this->setArrows((float)(settings.value("Size").toInt() / 100.0f), settings.value("LOD").toInt());
-		settings.endGroup();
-	}
-
-	// Isosurface
-	if (settings.childGroups().contains("Isosurface"))
-	{
-		settings.beginGroup("Isosurface");
-		this->m_isocomponent = settings.value("Component").toInt();
-		this->m_isosurfaceshadows = settings.value("Draw Shadows").toBool();
 		settings.endGroup();
 	}
 

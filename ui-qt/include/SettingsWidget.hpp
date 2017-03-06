@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "IsosurfaceWidget.hpp"
+
 #include "ui_SettingsWidget.h"
 
 class SpinWidget;
@@ -48,6 +50,8 @@ private:
 	QRegularExpressionValidator * number_validator_int;
 	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
+	bool m_isosurfaceshadows;
+	std::vector<IsosurfaceWidget *> isosurfaceWidgets;
 	// Helpers
 	std::array<float,3> get_position();
 	std::array<float,3> get_border_rectangular();
@@ -74,17 +78,13 @@ private slots:
 	void set_visualization_miniview();
 	void set_visualization_coordinatesystem();
 	void set_visualization_system();
-	// TODO: replace
-		void set_visualization_isovalue_fromslider();
-		void set_visualization_isovalue_fromlineedit();
-	//////
-	void set_visualization_isocomponent();
 	void set_visualization_system_arrows();
 	void set_visualization_system_boundingbox();
 	void set_visualization_system_surface();
 	void set_visualization_system_overall_direction();
 	void set_visualization_system_overall_position();
 	void set_visualization_system_isosurface();
+	void add_isosurface();
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();
 	void set_visualization_colormap();
