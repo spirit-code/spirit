@@ -277,13 +277,22 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	else
 	{
 		// Movement scaling
-		float scale = 20;
+		float scale = 10;
 		bool shiftpressed = false;
 		if (k->modifiers() & Qt::ShiftModifier)
 		{
-			scale = 2;
+			scale = 1;
 			shiftpressed = true;
 		}
+
+		// Detect visualisation mode cycle
+		std::map<SpinWidget::SystemMode, std::string> cycle_name{
+			{ SpinWidget::SystemMode::CUSTOM, "Custom" },
+			{ SpinWidget::SystemMode::ISOSURFACE, "Isosurface" },
+			{ SpinWidget::SystemMode::SLAB_X, "X slab" },
+			{ SpinWidget::SystemMode::SLAB_Y, "Y slab" },
+			{ SpinWidget::SystemMode::SLAB_Z, "Z slab" },
+		};
 
 		switch (k->key())
 		{
@@ -316,43 +325,43 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// WASDQE
 			case Qt::Key_W:
-				this->spinWidget->moveCamera(-scale, 0, 0);
+				this->spinWidget->moveCamera(-2 * scale, 0, 0);
 				break;
 			// WASDQE
 			case Qt::Key_A:
-				this->spinWidget->rotateCamera(0, scale);
+				this->spinWidget->rotateCamera(0, 2 * scale);
 				break;
 			// WASDQE
 			case Qt::Key_S:
-				this->spinWidget->moveCamera(scale, 0, 0);
+				this->spinWidget->moveCamera(2 * scale, 0, 0);
 				break;
 			// WASDQE
 			case Qt::Key_D:
-				this->spinWidget->rotateCamera(0, -scale);
+				this->spinWidget->rotateCamera(0, -2 * scale);
 				break;
 			// WASDQE
 			case Qt::Key_Q:
-				this->spinWidget->rotateCamera(scale, 0);
+				this->spinWidget->rotateCamera(2 * scale, 0);
 				break;
 			// WASDQE
 			case Qt::Key_E:
-				this->spinWidget->rotateCamera(-scale, 0);
+				this->spinWidget->rotateCamera(-2 * scale, 0);
 				break;
 			// Movement
 			case Qt::Key_T:
-				this->spinWidget->moveCamera(0, 0, scale);
+				this->spinWidget->moveCamera(0, 0, 2 * scale);
 				break;
 			// Movement
 			case Qt::Key_F:
-				this->spinWidget->moveCamera(0, scale, 0);
+				this->spinWidget->moveCamera(0, 2 * scale, 0);
 				break;
 			// Movement
 			case Qt::Key_G:
-				this->spinWidget->moveCamera(0, 0, -scale);
+				this->spinWidget->moveCamera(0, 0, -2 * scale);
 				break;
 			// Movement
 			case Qt::Key_H:
-				this->spinWidget->moveCamera(0, -scale, 0);
+				this->spinWidget->moveCamera(0, -2 * scale, 0);
 				break;
 			// F1: Show key bindings
 			case Qt::Key_F1:
@@ -373,25 +382,35 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// 0: ...
 			case Qt::Key_0:
 				break;
-			// 1: Select tab 1 of settings widget
+			// 1: Custom mode
 			case Qt::Key_1:
-				this->settingsWidget->SelectTab(0);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Custom mode"), 5000);
 				break;
-			// 2: Select tab 2 of settings widget 
+			// 2: Isosurface mode
 			case Qt::Key_2:
-				this->settingsWidget->SelectTab(1);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Isosurface mode"), 5000);
 				break;
-			// 3: Select tab 3 of settings widget
+			// 3: X slab mode
 			case Qt::Key_3:
-				this->settingsWidget->SelectTab(2);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("X slab mode"), 5000);
 				break;
-			// 4: Select tab 4 of settings widget
+			// 4: Y slab mode
 			case Qt::Key_4:
-				this->settingsWidget->SelectTab(3);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Y slab mode"), 5000);
 				break;
-			// 5: Select tab 5 of settings widget
+			// 5: Z slab mode
 			case Qt::Key_5:
-				this->settingsWidget->SelectTab(4);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Z slab mode"), 5000);
 				break;
 			// Delete: Delete current image
 			case Qt::Key_Delete:
@@ -413,22 +432,30 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// Visualisation: cycle and slab
 			case Qt::Key_Comma:
-				this->spinWidget->moveSlab(-1);
+			case Qt::Key_Less:
+			case Qt::Key_Semicolon:
+				this->spinWidget->moveSlab(-10.0 / scale);
 				this->settingsWidget->updateData();
 				break;
 			case Qt::Key_Period:
-				this->spinWidget->moveSlab( 1);
+			case Qt::Key_Greater:
+			case Qt::Key_Colon:
+				this->spinWidget->moveSlab( 10.0 / scale);
 				this->settingsWidget->updateData();
 				break;
 			case Qt::Key_Slash:
 			case Qt::Key_Question:
 				this->spinWidget->cycleSystem(!shiftpressed);
 				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr(("Cycled mode to " + cycle_name[spinWidget->systemCycle()]).c_str()), 5000);
 				break;
 			case Qt::Key_Home:
+			case Qt::Key_F12:
 				std::string tag = State_DateTime(state.get());
 				++n_screenshots;
-				this->spinWidget->screenShot(tag + "_Screenshot_" + std::to_string(n_screenshots));
+				std::string name = tag + "_Screenshot_" + std::to_string(n_screenshots);
+				this->spinWidget->screenShot(name);
+				Ui::MainWindow::statusBar->showMessage(tr(("Made Screenshot " + name).c_str()), 5000);
 				break;
 		}
 	}
@@ -682,8 +709,8 @@ void MainWindow::keyBindings()
 			" - <b>F2</b>:      Toggle Settings<br>"
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
+			" - <b>F12 and Home</b>:  Screenshot of Visualization region<br>"
 			" - <b>Ctrl+F</b>:  Toggle large visualisation<br>"
-			" - <b>1-5</b>:     Select Tab in Settings<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"
@@ -703,13 +730,22 @@ void MainWindow::keyBindings()
 			" - <b>Ctrl+R</b>:  Random configuration<br>"
 			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
 			"<br>"
+			"<i>Visualisation Mode</i><br>"
+			" - <b>1</b>:       Regular Visualisation Mode<br>"
+			" - <b>2</b>:       Isosurface Visualisation Mode<br>"
+			" - <b>3-5</b>:     Slab (X,Y,Z) Visualisation Mode<br>"
+			" - <b>/</b>:       Cycle Visualisation Mode<br>"
+			" - <b>, and .</b>: Move Slab (<b>shift</b> to go faster)<br>"
+			"<br>"
 			"<i>Manipulate the chain of images</i><br>"
 			" - <b>Arrows</b>:           Switch between images and chains<br>"
 			" - <b>Ctrl+X</b>:           Cut   image<br>"
 			" - <b>Ctrl+C</b>:           Copy  image<br>"
 			" - <b>Ctrl+V</b>:           Paste image at current index<br>"
 			" - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
-			" - <b>Del</b>:              Delete image<br>"));
+			" - <b>Del</b>:              Delete image<br>"
+			"<br>"
+			"<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
 }
 
 void MainWindow::return_focus()

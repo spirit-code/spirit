@@ -1545,7 +1545,8 @@ void SettingsWidget::set_visualization_system_overall_position()
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
-	for (auto& isoWidget : this->isosurfaceWidgets) isoWidget->setDrawShadows(this->checkBox_isosurfaceshadows->isChecked());
+	this->m_isosurfaceshadows = this->checkBox_isosurfaceshadows->isChecked();
+	for (auto& isoWidget : this->isosurfaceWidgets) isoWidget->setDrawShadows(this->m_isosurfaceshadows);
 }
 
 void SettingsWidget::add_isosurface()

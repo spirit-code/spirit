@@ -63,6 +63,13 @@ public:
 		EFF_FIELD
 	};
 
+	enum class SystemMode {
+		CUSTOM,
+		ISOSURFACE,
+		SLAB_X,
+		SLAB_Y,
+		SLAB_Z
+	};
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void updateData();
@@ -101,6 +108,8 @@ public:
   // --- System
   void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
   void cycleSystem(bool forward=true);
+  void cycleSystem(SystemMode mode);
+  SystemMode systemCycle();
   void moveSlab(int amount);
   bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Arrows
@@ -180,7 +189,7 @@ private:
   float m_light_theta, m_light_phi;
   
   // temporaries for system cycle
-  void setSystemCycle(int idx);
+  void setSystemCycle(SystemMode mode);
   void setSlabRanges();
   int idx_cycle;
   bool user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;

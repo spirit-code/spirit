@@ -180,7 +180,7 @@ void SpinWidget::initializeGL()
 	this->setVisualizationMode(this->visMode);
 
 	// Configure System (Setup the renderers
-	this->setSystemCycle(this->idx_cycle);
+	this->setSystemCycle(SystemMode(this->idx_cycle));
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 
 	this->m_gl_initialized = true;
@@ -505,13 +505,13 @@ void SpinWidget::setSlabRanges()
 	this->setSurface(x_range, y_range, z_range);
 }
 
-void SpinWidget::setSystemCycle(int idx)
+void SpinWidget::setSystemCycle(SystemMode mode)
 {
-	this->idx_cycle = idx;
+	this->idx_cycle = (int)mode;
 	
-	switch(idx)
+	switch(mode)
 	{
-		case 0:
+		case SystemMode::CUSTOM:
 		{
 			// User settings
 			this->show_arrows = this->user_show_arrows;
@@ -522,7 +522,7 @@ void SpinWidget::setSystemCycle(int idx)
 			// Camera
 			break;
 		}
-		case 1:
+		case SystemMode::ISOSURFACE:
 		{
 			// Isosurface
 			this->show_arrows = false;
@@ -531,7 +531,7 @@ void SpinWidget::setSystemCycle(int idx)
 			this->setVerticalFieldOfView(this->user_fov);
 			break;
 		}
-		case 2:
+		case SystemMode::SLAB_X:
 		{
 			// Slab x
 			this->show_arrows = false;
@@ -542,7 +542,7 @@ void SpinWidget::setSystemCycle(int idx)
 			// this->setVerticalFieldOfView(0);
 			break;
 		}
-		case 3:
+		case SystemMode::SLAB_Y:
 		{
 			// Slab y
 			this->show_arrows = false;
@@ -553,7 +553,7 @@ void SpinWidget::setSystemCycle(int idx)
 			// this->setVerticalFieldOfView(0);
 			break;
 		}
-		case 4:
+		case SystemMode::SLAB_Z:
 		{
 			// Slab z
 			this->show_arrows = false;
@@ -566,6 +566,25 @@ void SpinWidget::setSystemCycle(int idx)
 		}
 	}
 	this->setSlabRanges();
+}
+
+void SpinWidget::cycleSystem(SystemMode mode)
+{
+	// save possible user settings
+	if (this->idx_cycle == 0)
+	{
+		this->user_show_arrows = this->show_arrows;
+		this->user_show_surface = this->show_surface;
+		this->user_show_isosurface = this->show_isosurface;
+		this->user_show_boundingbox = this->show_boundingbox;
+		this->user_fov = this->verticalFieldOfView();
+	}
+
+	this->idx_cycle = (int)mode;
+
+	this->setSystemCycle(mode);
+
+	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 void SpinWidget::cycleSystem(bool forward)
@@ -591,9 +610,14 @@ void SpinWidget::cycleSystem(bool forward)
 	if (this->idx_cycle < 0) idx_cycle += 5;
 	this->idx_cycle = this->idx_cycle % 5;
 
-	this->setSystemCycle(this->idx_cycle);
+	this->setSystemCycle(SystemMode(this->idx_cycle));
 
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+}
+
+SpinWidget::SystemMode SpinWidget::systemCycle()
+{
+	return SystemMode(this->idx_cycle);
 }
 
 
@@ -658,30 +682,28 @@ void SpinWidget::moveSlab(int amount)
 	Geometry_Get_Center(state.get(), f_center);
 	for (int i = 0; i < 3; ++i) if ((int)f_center[i] == f_center[i]) f_center[i] += 0.5;
 	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
-	glm::vec3 pos = center +this->slab_displacements;
+	glm::vec3 pos = center + this->slab_displacements;
 
 	float cell_bounds_min[3], cell_bounds_max[3];
 	Geometry_Get_Cell_Bounds(state.get(), cell_bounds_min, cell_bounds_max);
+	glm::vec3 cell_size{ cell_bounds_max[0] - cell_bounds_min[0], cell_bounds_max[1] - cell_bounds_min[1], cell_bounds_max[2] - cell_bounds_min[2] };
 	if (this->idx_cycle == 2)
 	{
 		// X
-		amount *= cell_bounds_max[0] - cell_bounds_min[0];
-		if (bounds_min[0] < pos[0]+amount && pos[0]+amount < bounds_max[0])
-			this->slab_displacements[0] += amount;
+		amount *= cell_size[0];
+		this->slab_displacements[0] = std::min(std::max(bounds_min[0] + 0.5f*cell_size[0], pos[0] + amount), bounds_max[0] - 0.5f*cell_size[0]) - center[0];
 	}
 	else if (this->idx_cycle == 3)
 	{
 		// Y
-		amount *= cell_bounds_max[1] - cell_bounds_min[1];
-		if (bounds_min[1] < pos[1]+amount && pos[1]+amount < bounds_max[1])
-			this->slab_displacements[1] += amount;
+		amount *= cell_size[1];
+		this->slab_displacements[1] = std::min(std::max(bounds_min[1] + 0.5f*cell_size[1], pos[1] + amount), bounds_max[1] - 0.5f*cell_size[1]) - center[1];
 	}
 	else if (this->idx_cycle == 4)
 	{
 		// Z
-		amount *= cell_bounds_max[2] - cell_bounds_min[2];
-		if (bounds_min[2] < pos[2]+amount && pos[2]+amount < bounds_max[2])
-			this->slab_displacements[2] += amount;
+		amount *= cell_size[2];
+		this->slab_displacements[2] = std::min(std::max(bounds_min[2] + 0.5f*cell_size[2], pos[2] + amount), bounds_max[2]-0.5f*cell_size[2]) - center[2];
 	}
 
 	this->setSlabRanges();
