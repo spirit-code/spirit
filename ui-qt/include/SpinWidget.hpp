@@ -98,6 +98,8 @@ public:
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
   SpinWidget::VisualizationMode visualizationMode();
   SpinWidget::VisualizationMode visMode;
+  void setInteractionMode(SpinWidget::InteractionMode mode);
+  SpinWidget::InteractionMode interactionMode();
   bool show_miniview, show_coordinatesystem;
   // --- MiniView
   void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);

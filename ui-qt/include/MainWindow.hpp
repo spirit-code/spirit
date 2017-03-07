@@ -39,6 +39,7 @@ private slots:
 	void view_toggleSettings();
 	void view_toggle_spins_only();
 	void view_toggle_fullscreen();
+	void view_toggleDragMode();
     void about();
 	void keyBindings();
 	void load_Configuration();

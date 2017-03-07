@@ -400,9 +400,13 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_F3:
 				this->view_togglePlots();
 				break;
-			// F2: Toggle debug widget
+			// F4: Toggle debug widget
 			case Qt::Key_F4:
 				this->view_toggleDebug();
+				break;
+			// F5: Toggle drag mode
+			case Qt::Key_F5:
+				this->view_toggleDragMode();
 				break;
 			// 0: ...
 			case Qt::Key_0:
@@ -504,6 +508,24 @@ void MainWindow::view_toggleSettings()
 {
 	if (this->dockWidget_Settings->isVisible()) this->dockWidget_Settings->hide();
 	else this->dockWidget_Settings->show();
+}
+
+void MainWindow::view_toggleDragMode()
+{
+	if (spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
+	{
+		spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
+		if (this->spinWidget->verticalFieldOfView() == 0)
+			this->spinWidget->cycleCamera();
+		this->settingsWidget->updateData();
+	}
+	else
+	{
+		spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
+		if (this->spinWidget->verticalFieldOfView() != 0)
+			this->spinWidget->cycleCamera();
+		this->settingsWidget->updateData();
+	}
 }
 
 

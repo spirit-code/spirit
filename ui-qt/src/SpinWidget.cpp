@@ -84,8 +84,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	drag_radius = 80;
 	this->mouse_decoration = new MouseDecoratorWidget();
 	this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
-	mouse_decoration->setParent(this);
-	m_interactionmode = InteractionMode::DRAG;
+	this->mouse_decoration->setParent(this);
+	this->m_interactionmode = InteractionMode::REGULAR;
+	this->m_timer_drag = new QTimer(this);
 
 	// 		Setup Arrays
 	this->updateData();
@@ -382,10 +383,10 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 	m_previous_mouse_position = event->pos();
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
+		m_timer_drag->stop();
 		// Copy spin configuration
 		Configuration_To_Clipboard(state.get());
 		// Set up Update Timers
-		m_timer_drag = new QTimer(this);
 		connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
 		float ips = Simulation_Get_IterationsPerSecond(state.get());
 		if (ips > 1000)
@@ -505,6 +506,28 @@ void SpinWidget::setVisualizationMode(SpinWidget::VisualizationMode visualizatio
 SpinWidget::VisualizationMode SpinWidget::visualizationMode()
 {
 	return this->visMode;
+}
+
+void SpinWidget::setInteractionMode(InteractionMode mode)
+{
+	this->m_interactionmode = mode;
+
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		this->setCursor(Qt::BlankCursor);
+		this->mouse_decoration->show();
+		this->setCameraToZ();
+	}
+	else
+	{
+		this->unsetCursor();
+		this->mouse_decoration->hide();
+	}
+}
+
+SpinWidget::InteractionMode SpinWidget::interactionMode()
+{
+	return this->m_interactionmode;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
