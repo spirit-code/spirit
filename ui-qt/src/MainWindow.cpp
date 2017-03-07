@@ -53,10 +53,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->gridLayout_2->addWidget(this->controlWidget, 0, 0, 1, 1);
 
 	// Read Window settings of last session
-	this->fullscreen_spins = false;
+	this->view_spins_only = false;
+	this->view_fullscreen = false;
 	readSettings();
-
-	
 
 
 	// File Menu
@@ -71,7 +70,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
 	connect(this->actionShow_Plots, SIGNAL(triggered()), this, SLOT(view_togglePlots()));
 	connect(this->actionShow_Debug, SIGNAL(triggered()), this, SLOT(view_toggleDebug()));
-	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen_spins()));
+	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_spins_only()));
 
 	// Help Menu
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
@@ -149,52 +148,69 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 }
 
 
-void MainWindow::view_toggle_fullscreen_spins()
+void MainWindow::view_toggle_spins_only()
 {
-	if (this->fullscreen_spins)
+	if (this->view_spins_only)
 	{
-		this->fullscreen_spins = false;
+		this->view_spins_only = false;
 
-		if (!this->pre_fullscreen_settings_hidden)
+		if (!this->pre_spins_only_settings_hidden)
 		{
 			dockWidget_Settings->show();
-			dockWidget_Settings->topLevelWidget()->resize(pre_fullscreen_settings_size);
-			dockWidget_Settings->move(pre_fullscreen_settings_pos);
+			dockWidget_Settings->topLevelWidget()->resize(pre_spins_only_settings_size);
+			dockWidget_Settings->move(pre_spins_only_settings_pos);
 		}
-		if (!this->pre_fullscreen_plots_hidden)
+		if (!this->pre_spins_only_plots_hidden)
 		{
 			dockWidget_Plots->show();
-			dockWidget_Plots->topLevelWidget()->resize(pre_fullscreen_plots_size);
-			dockWidget_Plots->move(pre_fullscreen_plots_pos);
+			dockWidget_Plots->topLevelWidget()->resize(pre_spins_only_plots_size);
+			dockWidget_Plots->move(pre_spins_only_plots_pos);
 		}
-		if (!this->pre_fullscreen_debug_hidden)
+		if (!this->pre_spins_only_debug_hidden)
 		{
 			dockWidget_Debug->show();
-			dockWidget_Debug->topLevelWidget()->resize(pre_fullscreen_debug_size);
-			dockWidget_Debug->move(pre_fullscreen_debug_pos);
+			dockWidget_Debug->topLevelWidget()->resize(pre_spins_only_debug_size);
+			dockWidget_Debug->move(pre_spins_only_debug_pos);
 		}
 		this->controlWidget->show();
 	}
 	else
 	{
-		this->fullscreen_spins = true;
+		this->view_spins_only = true;
 		
-		this->pre_fullscreen_settings_hidden = dockWidget_Settings->isHidden();
-		this->pre_fullscreen_settings_size = dockWidget_Settings->topLevelWidget()->size();
-		this->pre_fullscreen_settings_pos = dockWidget_Settings->pos();
+		this->pre_spins_only_settings_hidden = dockWidget_Settings->isHidden();
+		this->pre_spins_only_settings_size = dockWidget_Settings->topLevelWidget()->size();
+		this->pre_spins_only_settings_pos = dockWidget_Settings->pos();
 
-		this->pre_fullscreen_plots_hidden = dockWidget_Plots->isHidden();
-		this->pre_fullscreen_plots_size = dockWidget_Plots->topLevelWidget()->size();
-		this->pre_fullscreen_plots_pos = dockWidget_Plots->pos();
+		this->pre_spins_only_plots_hidden = dockWidget_Plots->isHidden();
+		this->pre_spins_only_plots_size = dockWidget_Plots->topLevelWidget()->size();
+		this->pre_spins_only_plots_pos = dockWidget_Plots->pos();
 
-		this->pre_fullscreen_debug_hidden = dockWidget_Debug->isHidden();
-		this->pre_fullscreen_debug_size = dockWidget_Debug->topLevelWidget()->size();
-		this->pre_fullscreen_debug_pos = dockWidget_Debug->pos();
+		this->pre_spins_only_debug_hidden = dockWidget_Debug->isHidden();
+		this->pre_spins_only_debug_size = dockWidget_Debug->topLevelWidget()->size();
+		this->pre_spins_only_debug_pos = dockWidget_Debug->pos();
 
 		this->dockWidget_Settings->hide();
 		this->dockWidget_Plots->hide();
 		this->dockWidget_Debug->hide();
 		this->controlWidget->hide();
+	}
+}
+
+
+void MainWindow::view_toggle_fullscreen()
+{
+	if (this->view_fullscreen)
+	{
+		this->view_fullscreen = false;
+		this->showMaximized();
+	}
+	else
+	{
+		this->view_fullscreen = true;
+		this->windowHandle()->setScreen(qApp->screens().last());
+		this->showFullScreen();
+		this->setWindowState(Qt::WindowState::WindowFullScreen);
 	}
 }
 
@@ -247,7 +263,16 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			
 			// CTRL+F - Fullscreen mode
 			case Qt::Key_F:
-				this->view_toggle_fullscreen_spins();
+				if (k->modifiers() & Qt::ShiftModifier)
+				{
+					// Actual fullscreen
+					this->view_toggle_fullscreen();
+				}
+				else
+				{
+					// Hide all except SpinWidget, MenuBar and StatusBar
+					this->view_toggle_spins_only();
+				}
 				break;
 
 			// CTRL+R - Randomize spins
@@ -806,9 +831,11 @@ void MainWindow::readSettings()
 {
     QSettings settings("Spirit Code", "Spirit");
     restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("windowState").toByteArray());
-	bool fullscreen = settings.value("fullscreenSpins").toBool();
-	if (fullscreen) this->view_toggle_fullscreen_spins();
+    restoreState(settings.value("windowState", QByteArray()).toByteArray());
+	bool spins_only = settings.value("fullscreenSpins").toBool();
+	if (spins_only) this->view_toggle_spins_only();
+	bool fullscreen = settings.value("fullscreen").toBool();
+	if (fullscreen) this->view_toggle_fullscreen();
 
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -843,7 +870,8 @@ void MainWindow::writeSettings()
 	QSettings settings("Spirit Code", "Spirit");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-	settings.setValue("fullscreenSpins", this->fullscreen_spins);
+	settings.setValue("fullscreenSpins", this->view_spins_only);
+	settings.setValue("fullscreen", this->view_fullscreen);
 	
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
