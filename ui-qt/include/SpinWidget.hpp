@@ -3,6 +3,8 @@
 #define SPIN_WIDGET_H
 
 #include <memory>
+#include <set>
+
 #include <QOpenGLWidget>
 #include "MouseDecoratorWidget.hpp"
 
@@ -66,6 +68,14 @@ public:
 	enum class InteractionMode {
 		REGULAR,
 		DRAG
+  };
+
+	enum class SystemMode {
+		CUSTOM,
+		ISOSURFACE,
+		SLAB_X,
+		SLAB_Y,
+		SLAB_Z
 	};
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
@@ -78,6 +88,11 @@ public:
   
   void setVisualisationSource(int source);
   int m_source;
+
+  const VFRendering::View * view();
+
+  void addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer);
+  void removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer>);
 
   // --- Mode
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
@@ -100,6 +115,8 @@ public:
   // --- System
   void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
   void cycleSystem(bool forward=true);
+  void cycleSystem(SystemMode mode);
+  SystemMode systemCycle();
   void moveSlab(int amount);
   bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Arrows
@@ -122,17 +139,6 @@ public:
   glm::vec2 surfaceXRange() const;
   glm::vec2 surfaceYRange() const;
   glm::vec2 surfaceZRange() const;
-  //float isovalue() const;
-  //void setIsovalue(float isovalue);
-  //    Isosurface
-  float isovalue() const;
-  void setIsovalue(float isovalue);
-  bool m_isosurfaceshadows;
-  bool isosurfaceshadows() const;
-  void setIsosurfaceshadows(bool show);
-  int m_isocomponent;
-  float isocomponent() const;
-  void setIsocomponent(int component);
 
   // --- Sphere
   glm::vec2 spherePointSizeRange() const;
@@ -191,7 +197,7 @@ private:
   float m_light_theta, m_light_phi;
   
   // temporaries for system cycle
-  void setSystemCycle(int idx);
+  void setSystemCycle(SystemMode mode);
   void setSlabRanges();
   int idx_cycle;
   bool user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;
@@ -212,9 +218,10 @@ private:
   std::shared_ptr<VFRendering::RendererBase> m_renderer_surface;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface_3D;
   std::shared_ptr<VFRendering::SurfaceRenderer> m_renderer_surface_2D;
-  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_isosurface;
+  std::set<std::shared_ptr<VFRendering::IsosurfaceRenderer>> m_renderers_isosurface;
 
   void setupRenderers();
+  bool m_gl_initialized;
 
   const VFRendering::Options& options() const;
   

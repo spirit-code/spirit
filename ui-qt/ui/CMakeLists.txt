@@ -5,5 +5,6 @@ set(UI_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/IsosurfaceWidget.ui
 	PARENT_SCOPE
 )

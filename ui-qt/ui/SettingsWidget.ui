@@ -3591,113 +3591,26 @@
             </spacer>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_9">
+            <widget class="QGroupBox" name="groupBox_isosurface">
              <property name="title">
               <string>Isosurface</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_54">
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_55">
-                <item row="0" column="0">
-                 <widget class="QRadioButton" name="radioButton_isosurface_x">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;x</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_isosurface_y">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;y</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QRadioButton" name="radioButton_isosurface_z">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;z</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_59">
-                <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_isovalue">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLineEdit" name="lineEdit_isovalue">
-                  <property name="minimumSize">
-                   <size>
-                    <width>30</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_48">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
-                </property>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="pushButton_addIsosurface">
                 <property name="text">
-                 <string>Isovalue</string>
+                 <string>Add Isosurface</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_isosurfaceshadows">
+                <property name="text">
+                 <string>Draw Shadows</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <spacer name="horizontalSpacer_22">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -3710,12 +3623,8 @@
                 </property>
                </spacer>
               </item>
-              <item row="2" column="1">
-               <widget class="QCheckBox" name="checkBox_isosurfaceshadows">
-                <property name="text">
-                 <string>Draw Shadows</string>
-                </property>
-               </widget>
+              <item row="2" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_isosurface"/>
               </item>
              </layout>
             </widget>
@@ -3775,7 +3684,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>z component</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -3795,14 +3704,14 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_67">
                 <property name="text">
-                 <string>y component</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_68">
                 <property name="text">
-                 <string>x component</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -3894,7 +3803,7 @@
               <item row="2" column="0">
                <widget class="QLabel" name="label_69">
                 <property name="text">
-                 <string>x component</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -3931,7 +3840,7 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_66">
                 <property name="text">
-                 <string>y component</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
@@ -3998,7 +3907,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_65">
                 <property name="text">
-                 <string>z component</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -4104,7 +4013,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>z filter</string>
+                 <string>z</string>
                 </property>
                </widget>
               </item>
@@ -4141,14 +4050,14 @@
               <item row="1" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="text">
-                 <string>y filter</string>
+                 <string>y</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>x filter</string>
+                 <string>x</string>
                 </property>
                </widget>
               </item>
@@ -4984,8 +4893,6 @@
   <tabstop>lineEdit_camera_upvector_y</tabstop>
   <tabstop>lineEdit_camera_upvector_z</tabstop>
   <tabstop>lineEdit_hopfion_radius</tabstop>
-  <tabstop>horizontalSlider_isovalue</tabstop>
-  <tabstop>lineEdit_isovalue</tabstop>
   <tabstop>checkBox_Configuration_Noise</tabstop>
   <tabstop>lineEdit_Configuration_Noise</tabstop>
   <tabstop>pushButton_Random</tabstop>
@@ -4997,7 +4904,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>
