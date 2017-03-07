@@ -132,10 +132,14 @@ float SpinWidget::system_radius_from_relative(float radius, glm::vec2 winsize)
 
 void SpinWidget::dragpaste()
 {
-	glm::vec2 mouse_position = glm::vec2(cursor().pos().x(), cursor().pos().y()) * (float)devicePixelRatio();
-	glm::vec2 winsize{ this->size().width(),  this->size().height() };
-	auto coords = system_coords_from_mouse(mouse_position, winsize);
-	float radius = system_radius_from_relative(this->drag_radius, winsize);
+	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+	QSize  widgetSize = this->size();
+
+	glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+	glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+
+	glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
+	float radius = system_radius_from_relative(this->drag_radius, size);
 	float f_position[3]{ coords.x, coords.y, 0.0f };
 	float rect[3]{ -1, -1, -1 };
 	// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;

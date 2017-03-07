@@ -9,7 +9,7 @@ class MouseDecoratorWidget : public QWidget
 {
 public:
 	MouseDecoratorWidget();
-	void MouseDecoratorWidget::paintEvent(QPaintEvent *);
+	void paintEvent(QPaintEvent *);
 private slots:
 	void incrementRotation();
 private:
