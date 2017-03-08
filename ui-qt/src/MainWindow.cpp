@@ -483,6 +483,12 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				this->settingsWidget->updateData();
 				Ui::MainWindow::statusBar->showMessage(tr(("Cycled mode to " + cycle_name[spinWidget->systemCycle()]).c_str()), 5000);
 				break;
+			case Qt::Key_F10:
+				this->view_toggle_spins_only();
+				break;
+			case Qt::Key_F11:
+				this->view_toggle_fullscreen();
+				break;
 			case Qt::Key_Home:
 			case Qt::Key_F12:
 				std::string tag = State_DateTime(state.get());
@@ -760,9 +766,9 @@ void MainWindow::keyBindings()
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
 			" - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
+			" - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
+			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
 			" - <b>F12 and Home</b>:  Screenshot of Visualization region<br>"
-			" - <b>Ctrl+F</b>:        Toggle large visualisation<br>"
-			" - <b>Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"
