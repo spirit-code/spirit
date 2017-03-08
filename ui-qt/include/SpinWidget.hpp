@@ -172,6 +172,8 @@ public:
   glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
+  bool cameraProjection();
+  void setCameraProjection(bool perspective);
   // --- Move Camera
   void moveCamera(float backforth, float rightleft, float updown);
   void rotateCamera(float theta, float phi);
@@ -196,6 +198,7 @@ private:
   QPoint m_previous_mouse_position;
   bool _reset_camera;
   bool m_camera_rotate_free;
+  bool m_camera_projection_perspective;
   float m_light_theta, m_light_phi;
   
   // temporaries for system cycle

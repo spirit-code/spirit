@@ -79,6 +79,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	// 		Initial camera position
 	this->_reset_camera = false;
 	this->m_camera_rotate_free = false;
+	this->m_camera_projection_perspective = true;
 
 	//		Initial drag mode settings
 	drag_radius = 80;
@@ -97,7 +98,6 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_surface = this->user_show_surface;
 	this->show_isosurface = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
-	//this->setVerticalFieldOfView(this->user_fov);
 }
 
 const VFRendering::View * SpinWidget::view()
@@ -1353,16 +1353,15 @@ void SpinWidget::updateBoundingBoxIndicators()
 ///// --- Camera ---
 void SpinWidget::cycleCamera()
 {
-	if (this->verticalFieldOfView() == 0)
+	if (this->m_camera_projection_perspective)
 	{
-		this->setVerticalFieldOfView(this->user_fov);
-		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->user_fov);
+		this->m_camera_projection_perspective = false;
 	}
 	else
 	{
-		this->setVerticalFieldOfView(0);
-		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
+		this->m_camera_projection_perspective = true;
 	}
+	this->setVerticalFieldOfView(this->user_fov);
 }
 
 void SpinWidget::setCameraToDefault() {
@@ -1481,11 +1480,17 @@ glm::vec3 SpinWidget::getCameraUpVector()
 
 float SpinWidget::verticalFieldOfView() const
 {
-	return m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+	return this->user_fov;
 }
 
 void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 {
+	this->user_fov = vertical_field_of_view;
+	if (!this->m_camera_projection_perspective)
+	{
+		vertical_field_of_view = 0;
+	}
+
 	// Calculate new camera position
 	float scale = 1;
 	float fov = m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
@@ -1509,6 +1514,17 @@ void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
 	enableSystem(show_arrows, show_boundingbox, show_surface, show_isosurface);
+}
+
+bool SpinWidget::cameraProjection()
+{
+	return this->m_camera_projection_perspective;
+}
+
+void SpinWidget::setCameraProjection(bool perspective)
+{
+	this->m_camera_projection_perspective = perspective;
+	this->setVerticalFieldOfView(this->user_fov);
 }
 
 bool SpinWidget::getCameraRotationType()
@@ -1554,12 +1570,6 @@ void SpinWidget::writeSettings()
 	settings.beginGroup("General");
 	// VisMode
 	settings.setValue("Mode", (int)(this->visualizationMode()));
-	// Projection
-	if (this->idx_cycle==0)
-		settings.setValue("FOV", (int)(this->verticalFieldOfView() * 100));
-	else
-		settings.setValue("FOV", (int)(this->user_fov * 100));
-	settings.setValue("FOV Orthogonal", (bool)(this->verticalFieldOfView()<1));
 	// Sphere Point Size
 	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
 	settings.setValue("SpherePointSize2", (int)(this->spherePointSizeRange().y * 100));
@@ -1618,6 +1628,8 @@ void SpinWidget::writeSettings()
 		settings.setValue("vecu", (int)(100*up_vector[dim]));
 	}
 	settings.endArray();
+	settings.setValue("FOV", (int)(this->user_fov * 100));
+	settings.setValue("perspective projection", this->m_camera_projection_perspective);
 	settings.setValue("free rotation", m_camera_rotate_free);
 	settings.endGroup();
 
@@ -1638,12 +1650,6 @@ void SpinWidget::readSettings()
 		settings.beginGroup("General");
 		// VisMode
 		this->visMode = VisualizationMode(settings.value("Mode").toInt());
-		// Projection
-		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>((float)(settings.value("FOV").toInt() / 100.0f));
-		auto y1 = verticalFieldOfView();
-		if (settings.value("FOV Orthogonal").toBool())
-			m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
-		this->user_fov = this->verticalFieldOfView();
 		// Sphere Point Size
 		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });
 		// System
@@ -1691,6 +1697,10 @@ void SpinWidget::readSettings()
 	if (settings.childGroups().contains("Camera"))
 	{
 		settings.beginGroup("Camera");
+		this->user_fov = (float)(settings.value("FOV").toInt() / 100.0f);
+		this->m_camera_projection_perspective = settings.value("perspective projection").toBool();
+		this->m_camera_rotate_free = settings.value("free rotation").toBool();
+		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->m_camera_projection_perspective*this->user_fov);
 		glm::vec3 camera_position, center_position, up_vector;
 		settings.beginReadArray("position");
 		for(int dim=0; dim<3; ++dim)
@@ -1717,7 +1727,6 @@ void SpinWidget::readSettings()
 		}
 		settings.endArray();
 		this->setCameraUpVector(up_vector);
-		this->m_camera_rotate_free = settings.value("free rotation").toBool();
 		settings.endGroup();
 	}
 

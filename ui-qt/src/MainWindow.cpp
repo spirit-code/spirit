@@ -66,11 +66,15 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
 
+	// Control Menu
+	connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
+
 	// View Menu
 	connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
 	connect(this->actionShow_Plots, SIGNAL(triggered()), this, SLOT(view_togglePlots()));
 	connect(this->actionShow_Debug, SIGNAL(triggered()), this, SLOT(view_toggleDebug()));
 	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_spins_only()));
+	connect(this->actionToggle_fullscreen_window, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen()));
 
 	// Help Menu
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
@@ -458,6 +462,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			case Qt::Key_C:
 				this->spinWidget->cycleCamera();
+				this->settingsWidget->updateData();
 				break;
 			// Visualisation: cycle and slab
 			case Qt::Key_Comma:
@@ -515,17 +520,15 @@ void MainWindow::view_toggleDragMode()
 	if (spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
 	{
 		spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
-		if (this->spinWidget->verticalFieldOfView() == 0)
-			this->spinWidget->cycleCamera();
-		this->settingsWidget->updateData();
+		this->spinWidget->setCameraProjection(this->regular_mode_perspective);
 	}
 	else
 	{
-		spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
-		if (this->spinWidget->verticalFieldOfView() != 0)
-			this->spinWidget->cycleCamera();
-		this->settingsWidget->updateData();
+		this->regular_mode_perspective = this->spinWidget->cameraProjection();
+		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
+		this->spinWidget->setCameraProjection(false);
 	}
+	this->settingsWidget->updateData();
 }
 
 
@@ -756,8 +759,10 @@ void MainWindow::keyBindings()
 			" - <b>F2</b>:      Toggle Settings<br>"
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
+			" - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
 			" - <b>F12 and Home</b>:  Screenshot of Visualization region<br>"
-			" - <b>Ctrl+F</b>:  Toggle large visualisation<br>"
+			" - <b>Ctrl+F</b>:        Toggle large visualisation<br>"
+			" - <b>Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"

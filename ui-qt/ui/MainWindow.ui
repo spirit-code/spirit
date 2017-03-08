@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>22</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -132,10 +132,19 @@
     <addaction name="actionShow_Settings"/>
     <addaction name="actionShow_Plots"/>
     <addaction name="actionShow_Debug"/>
+    <addaction name="separator"/>
     <addaction name="actionToggle_large_visualisation"/>
+    <addaction name="actionToggle_fullscreen_window"/>
+   </widget>
+   <widget class="QMenu" name="menuControls">
+    <property name="title">
+     <string>&amp;Controls</string>
+    </property>
+    <addaction name="actionToggle_Dragging_mode"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuControls"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -149,7 +158,7 @@
    <property name="minimumSize">
     <size>
      <width>100</width>
-     <height>46</height>
+     <height>50</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -168,7 +177,7 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Settings</string>
+    <string>Setti&amp;ngs</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -187,7 +196,7 @@
    <property name="minimumSize">
     <size>
      <width>100</width>
-     <height>46</height>
+     <height>50</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -203,7 +212,7 @@
     </size>
    </property>
    <property name="windowTitle">
-    <string>Plots</string>
+    <string>P&amp;lots</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -222,7 +231,7 @@
    <property name="minimumSize">
     <size>
      <width>100</width>
-     <height>46</height>
+     <height>50</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -238,7 +247,7 @@
     </size>
    </property>
    <property name="windowTitle">
-    <string>Debug</string>
+    <string>&amp;Debug</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -277,7 +286,7 @@
   </action>
   <action name="actionLoad_Spin_Configuration">
    <property name="text">
-    <string>Load Spin Configuration</string>
+    <string>Load Spin &amp;Configuration</string>
    </property>
   </action>
   <action name="actionSave_2">
@@ -287,112 +296,122 @@
   </action>
   <action name="actionCopy">
    <property name="text">
-    <string>(Copy)</string>
+    <string>(&amp;Copy)</string>
    </property>
   </action>
   <action name="actionPaste">
    <property name="text">
-    <string>(Paste)</string>
+    <string>(&amp;Paste)</string>
    </property>
   </action>
   <action name="actionCopy_Configuration">
    <property name="text">
-    <string>(Copy Configuration)</string>
+    <string>(C&amp;opy Configuration)</string>
    </property>
   </action>
   <action name="actionPaste_Configuration">
    <property name="text">
-    <string>(Paste Configuration)</string>
+    <string>(Pa&amp;ste Configuration)</string>
    </property>
   </action>
   <action name="actionDelete_Configuration">
    <property name="text">
-    <string>(Delete Configuration)</string>
+    <string>(&amp;Delete Configuration)</string>
    </property>
   </action>
   <action name="actionAbout_this_Application">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
    </property>
   </action>
   <action name="actionShow_Settings">
    <property name="text">
-    <string>Toggle Settings</string>
+    <string>&amp;Toggle Settings</string>
    </property>
   </action>
   <action name="actionShow_Plots">
    <property name="text">
-    <string>Toggle Plots</string>
+    <string>Toggle &amp;Plots</string>
    </property>
   </action>
   <action name="actionShow_Debug">
    <property name="text">
-    <string>Toggle Debug</string>
+    <string>Toggle &amp;Debug</string>
    </property>
   </action>
   <action name="action_Load_Spin_System">
    <property name="text">
-    <string>(Load Spin System)</string>
+    <string>(Load Sp&amp;in System)</string>
    </property>
   </action>
   <action name="action_Load_Spin_System_Chain">
    <property name="text">
-    <string>(Load Spin System Chain)</string>
+    <string>(Load Spi&amp;n System Chain)</string>
    </property>
   </action>
   <action name="actionLoad_Configuration">
    <property name="text">
-    <string>Load Cfg File</string>
+    <string>&amp;Load Cfg File</string>
    </property>
   </action>
   <action name="action_Save_Spin_Configuration">
    <property name="text">
-    <string>Save Spin Configuration</string>
+    <string>Sa&amp;ve Spin Configuration</string>
    </property>
   </action>
   <action name="actionSave_Energies">
    <property name="text">
-    <string>Save Energies</string>
+    <string>&amp;Save Energies</string>
    </property>
   </action>
   <action name="action_Load_LLG_Parameters">
    <property name="text">
-    <string>(Load LLG Parameters)</string>
+    <string>(Load LLG &amp;Parameters)</string>
    </property>
   </action>
   <action name="action_Load_GNEB_Parameters">
    <property name="text">
-    <string>(Load GNEB Parameters)</string>
+    <string>(Load &amp;GNEB Parameters)</string>
    </property>
   </action>
   <action name="action_Load_Debug_Parameters">
    <property name="text">
-    <string>(Load Debug Parameters)</string>
+    <string>(Load &amp;Debug Parameters)</string>
    </property>
   </action>
   <action name="actionLoad_Hamiltonian">
    <property name="text">
-    <string>(Load Hamiltonian)</string>
+    <string>(Load &amp;Hamiltonian)</string>
    </property>
   </action>
   <action name="actionLoad_SpinChain_Configuration">
    <property name="text">
-    <string>Load SpinChain Configuration</string>
+    <string>L&amp;oad SpinChain Configuration</string>
    </property>
   </action>
   <action name="actionSave_SpinChain_Configuration">
    <property name="text">
-    <string>Save SpinChain Configuration</string>
+    <string>Sav&amp;e SpinChain Configuration</string>
    </property>
   </action>
   <action name="actionKey_Bindings">
    <property name="text">
-    <string>Key Bindings</string>
+    <string>&amp;Key Bindings</string>
    </property>
   </action>
   <action name="actionToggle_large_visualisation">
    <property name="text">
-    <string>Toggle large visualisation</string>
+    <string>Toggle &amp;large visualisation</string>
+   </property>
+  </action>
+  <action name="actionToggle_fullscreen_window">
+   <property name="text">
+    <string>Toggle fullscreen window</string>
+   </property>
+  </action>
+  <action name="actionToggle_Dragging_mode">
+   <property name="text">
+    <string>Toggle &quot;Dragging&quot; mode</string>
    </property>
   </action>
  </widget>
