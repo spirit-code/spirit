@@ -523,16 +523,13 @@ void MainWindow::view_toggleSettings()
 
 void MainWindow::view_toggleDragMode()
 {
-	if (spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
+	if (this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
 	{
-		spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
-		this->spinWidget->setCameraProjection(this->regular_mode_perspective);
+		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
 	}
 	else
 	{
-		this->regular_mode_perspective = this->spinWidget->cameraProjection();
 		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
-		this->spinWidget->setCameraProjection(false);
 	}
 	this->settingsWidget->updateData();
 }

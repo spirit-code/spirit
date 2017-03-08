@@ -95,7 +95,6 @@ private:
 	// Fullscreen state
 	bool   view_spins_only;
 	bool   view_fullscreen;
-	bool   regular_mode_perspective;
 	bool   pre_spins_only_settings_hidden;
 	QSize  pre_spins_only_settings_size;
 	QPoint pre_spins_only_settings_pos;

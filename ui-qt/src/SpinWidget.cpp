@@ -476,6 +476,10 @@ void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
 
 void SpinWidget::rotateCamera(float theta, float phi)
 {
+	if (this->m_interactionmode == InteractionMode::DRAG)
+	{
+		theta = 0;
+	}
 	VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
 	if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
 	m_view.mouseMove({ 0,0 }, { phi, theta }, movement_mode);
@@ -510,18 +514,34 @@ SpinWidget::VisualizationMode SpinWidget::visualizationMode()
 
 void SpinWidget::setInteractionMode(InteractionMode mode)
 {
-	this->m_interactionmode = mode;
-
-	if (m_interactionmode == InteractionMode::DRAG)
+	if (mode == InteractionMode::DRAG)
 	{
+		// Save latest regular mode settings
+		this->regular_mode_perspective = this->cameraProjection();
+		this->regular_mode_cam_pos   = this->getCameraPositon();
+		this->regular_mode_cam_focus = this->getCameraFocus();
+		this->regular_mode_cam_up    = this->getCameraUpVector();
+		// Set cursor
 		this->setCursor(Qt::BlankCursor);
 		this->mouse_decoration->show();
+		// Apply camera changes
 		this->setCameraToZ();
+		this->setCameraProjection(false);
+		// Set mode after changes so that changes are not blocked
+		this->m_interactionmode = mode;
 	}
 	else
 	{
+		// Unset cursor
 		this->unsetCursor();
 		this->mouse_decoration->hide();
+		// Set mode before changes so that changes are not blocked
+		this->m_interactionmode = mode;
+		// Apply camera changes
+		this->setCameraProjection(this->regular_mode_perspective);
+		this->setCameraPosition(this->regular_mode_cam_pos);
+		this->setCameraFocus(this->regular_mode_cam_focus);
+		this->setCameraUpVector(this->regular_mode_cam_up);
 	}
 }
 
@@ -1364,65 +1384,77 @@ void SpinWidget::cycleCamera()
 	this->setVerticalFieldOfView(this->user_fov);
 }
 
-void SpinWidget::setCameraToDefault() {
-	float camera_distance = 30.0f;
-	auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-	auto camera_position = center_position + camera_distance * glm::vec3(0, 0, 1);
-	auto up_vector = glm::vec3(0, 1, 0);
+void SpinWidget::setCameraToDefault()
+{
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		float camera_distance = 30.0f;
+		auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+		auto camera_position = center_position + camera_distance * glm::vec3(0, 0, 1);
+		auto up_vector = glm::vec3(0, 1, 0);
 
-	VFRendering::Options options;
-	options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
-	options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
-	options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-	m_view.updateOptions(options);
+		VFRendering::Options options;
+		options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
+		options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
+		options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
+		m_view.updateOptions(options);
+	}
 }
 
 void SpinWidget::setCameraToX(bool inverted)
 {
-	float camera_distance = glm::length(options().get<VFRendering::View::Option::CENTER_POSITION>() - options().get<VFRendering::View::Option::CAMERA_POSITION>());
-	auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-	auto camera_position = center_position;
-	auto up_vector = glm::vec3(0, 0, 1);
-
-	if (!inverted)
+	if (this->m_interactionmode == InteractionMode::REGULAR)
 	{
-		camera_position +=  camera_distance * glm::vec3(1, 0, 0);
-	}
-	else
-	{
-		camera_position -=  camera_distance * glm::vec3(1, 0, 0);
-	}
+		float camera_distance = glm::length(options().get<VFRendering::View::Option::CENTER_POSITION>() - options().get<VFRendering::View::Option::CAMERA_POSITION>());
+		auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+		auto camera_position = center_position;
+		auto up_vector = glm::vec3(0, 0, 1);
 
-	VFRendering::Options options;
-	options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
-	options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
-	options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-	m_view.updateOptions(options);
+		if (!inverted)
+		{
+			camera_position +=  camera_distance * glm::vec3(1, 0, 0);
+		}
+		else
+		{
+			camera_position -=  camera_distance * glm::vec3(1, 0, 0);
+		}
+
+		VFRendering::Options options;
+		options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
+		options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
+		options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
+		m_view.updateOptions(options);
+	}
 }
 
-void SpinWidget::setCameraToY(bool inverted) {
-	float camera_distance = glm::length(options().get<VFRendering::View::Option::CENTER_POSITION>() - options().get<VFRendering::View::Option::CAMERA_POSITION>());
-	auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-	auto camera_position = center_position;
-	auto up_vector = glm::vec3(0, 0, 1);
-
-	if (!inverted)
+void SpinWidget::setCameraToY(bool inverted)
+{
+	if (this->m_interactionmode == InteractionMode::REGULAR)
 	{
-		camera_position +=  camera_distance * glm::vec3(0, -1, 0);
-	}
-	else
-	{
-		camera_position -=  camera_distance * glm::vec3(0, -1, 0);
-	}
+		float camera_distance = glm::length(options().get<VFRendering::View::Option::CENTER_POSITION>() - options().get<VFRendering::View::Option::CAMERA_POSITION>());
+		auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+		auto camera_position = center_position;
+		auto up_vector = glm::vec3(0, 0, 1);
 
-	VFRendering::Options options;
-	options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
-	options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
-	options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
-	m_view.updateOptions(options);
+		if (!inverted)
+		{
+			camera_position +=  camera_distance * glm::vec3(0, -1, 0);
+		}
+		else
+		{
+			camera_position -=  camera_distance * glm::vec3(0, -1, 0);
+		}
+
+		VFRendering::Options options;
+		options.set<VFRendering::View::Option::CAMERA_POSITION>(camera_position);
+		options.set<VFRendering::View::Option::CENTER_POSITION>(center_position);
+		options.set<VFRendering::View::Option::UP_VECTOR>(up_vector);
+		m_view.updateOptions(options);
+	}
 }
 
-void SpinWidget::setCameraToZ(bool inverted) {
+void SpinWidget::setCameraToZ(bool inverted)
+{
 	float camera_distance = glm::length(options().get<VFRendering::View::Option::CENTER_POSITION>() - options().get<VFRendering::View::Option::CAMERA_POSITION>());
 	auto center_position = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
 	auto camera_position = center_position;
@@ -1444,21 +1476,30 @@ void SpinWidget::setCameraToZ(bool inverted) {
 	m_view.updateOptions(options);
 }
 
-void SpinWidget::setCameraPositon(const glm::vec3& camera_position)
+void SpinWidget::setCameraPosition(const glm::vec3& camera_position)
 {
-	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-	m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(system_center + camera_position);
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+		m_view.setOption<VFRendering::View::Option::CAMERA_POSITION>(system_center + camera_position);
+	}
 }
 
 void SpinWidget::setCameraFocus(const glm::vec3& center_position)
 {
-	auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-	m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(system_center + center_position);
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		auto system_center = options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+		m_view.setOption<VFRendering::View::Option::CENTER_POSITION>(system_center + center_position);
+	}
 }
 
 void SpinWidget::setCameraUpVector(const glm::vec3& up_vector)
 {
-	m_view.setOption<VFRendering::View::Option::UP_VECTOR>(up_vector);
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		m_view.setOption<VFRendering::View::Option::UP_VECTOR>(up_vector);
+	}
 }
 
 glm::vec3 SpinWidget::getCameraPositon()
@@ -1497,17 +1538,17 @@ void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 	if (fov > 0 && vertical_field_of_view > 0)
 	{
 		scale = std::tan(glm::radians(fov)/2.0) / std::tan(glm::radians(vertical_field_of_view)/2.0);
-		setCameraPositon(getCameraPositon()*scale);
+		setCameraPosition(getCameraPositon()*scale);
 	}
 	else if (fov > 0)
 	{
 		scale = std::tan(glm::radians(fov) / 2.0);
-		setCameraPositon(getCameraPositon()*scale);
+		setCameraPosition(getCameraPositon()*scale);
 	}
 	else if (vertical_field_of_view > 0)
 	{
 		scale = 1.0 / std::tan(glm::radians(vertical_field_of_view) / 2.0);
-		setCameraPositon(getCameraPositon()*scale);
+		setCameraPosition(getCameraPositon()*scale);
 	}
 
 	// Set new FOV
@@ -1523,8 +1564,11 @@ bool SpinWidget::cameraProjection()
 
 void SpinWidget::setCameraProjection(bool perspective)
 {
-	this->m_camera_projection_perspective = perspective;
-	this->setVerticalFieldOfView(this->user_fov);
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		this->m_camera_projection_perspective = perspective;
+		this->setVerticalFieldOfView(this->user_fov);
+	}
 }
 
 bool SpinWidget::getCameraRotationType()
@@ -1604,9 +1648,24 @@ void SpinWidget::writeSettings()
 
 	// Camera
 	settings.beginGroup("Camera");
-    auto camera_position = this->getCameraPositon();
-	auto center_position = this->getCameraFocus();
-	auto up_vector = this->getCameraUpVector();
+	glm::vec3 camera_position;
+	glm::vec3 center_position;
+	glm::vec3 up_vector;
+	bool perspective;
+	if (this->m_interactionmode == InteractionMode::REGULAR)
+	{
+		perspective = this->cameraProjection();
+		camera_position = this->getCameraPositon();
+		center_position = this->getCameraFocus();
+		up_vector = this->getCameraUpVector();
+	}
+	else
+	{
+		perspective = this->regular_mode_perspective;
+		camera_position = this->regular_mode_cam_pos;
+		center_position = this->regular_mode_cam_focus;
+		up_vector = this->regular_mode_cam_up;
+	}
 	settings.beginWriteArray("position");
 	for(int dim=0; dim<3; ++dim)
 	{
@@ -1629,8 +1688,8 @@ void SpinWidget::writeSettings()
 	}
 	settings.endArray();
 	settings.setValue("FOV", (int)(this->user_fov * 100));
-	settings.setValue("perspective projection", this->m_camera_projection_perspective);
-	settings.setValue("free rotation", m_camera_rotate_free);
+	settings.setValue("perspective projection", perspective);
+	settings.setValue("free rotation", this->m_camera_rotate_free);
 	settings.endGroup();
 
 	// Light
@@ -1699,6 +1758,7 @@ void SpinWidget::readSettings()
 		settings.beginGroup("Camera");
 		this->user_fov = (float)(settings.value("FOV").toInt() / 100.0f);
 		this->m_camera_projection_perspective = settings.value("perspective projection").toBool();
+		this->regular_mode_perspective = this->m_camera_projection_perspective;
 		this->m_camera_rotate_free = settings.value("free rotation").toBool();
 		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->m_camera_projection_perspective*this->user_fov);
 		glm::vec3 camera_position, center_position, up_vector;
@@ -1709,7 +1769,7 @@ void SpinWidget::readSettings()
 			camera_position[dim] = (float)(settings.value("vecp").toInt()/100.0f);
 		}
 		settings.endArray();
-		this->setCameraPositon(camera_position);
+		this->setCameraPosition(camera_position);
 		settings.beginReadArray("center");
 		for(int dim=0; dim<3; ++dim)
 		{

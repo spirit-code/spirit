@@ -164,7 +164,7 @@ public:
   void setCameraToX(bool inverted=false);
   void setCameraToY(bool inverted=false);
   void setCameraToZ(bool inverted=false);
-  void setCameraPositon(const glm::vec3& camera_position);
+  void setCameraPosition(const glm::vec3& camera_position);
   void setCameraFocus(const glm::vec3& center_position);
   void setCameraUpVector(const glm::vec3& up_vector);
   glm::vec3 getCameraPositon();
@@ -250,6 +250,10 @@ private:
 
   // Interaction mode
   InteractionMode m_interactionmode;
+	bool   regular_mode_perspective;
+	glm::vec3 regular_mode_cam_pos;
+	glm::vec3 regular_mode_cam_focus;
+	glm::vec3 regular_mode_cam_up;
   // Calculate coordinates relative to the system center from QT device pixel coordinates
   //  This assumes that mouse_pos is relative to the top left corner of the widget.
   //  winsize should be the device pixel size of the widget.

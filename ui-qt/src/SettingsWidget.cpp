@@ -1680,7 +1680,7 @@ void SettingsWidget::set_camera_position()
 	float x = this->lineEdit_camera_pos_x->text().toFloat();
 	float y = this->lineEdit_camera_pos_y->text().toFloat();
 	float z = this->lineEdit_camera_pos_z->text().toFloat();
-    this->_spinWidget->setCameraPositon({x, y, z});
+    this->_spinWidget->setCameraPosition({x, y, z});
 }
 
 void SettingsWidget::set_camera_focus()
