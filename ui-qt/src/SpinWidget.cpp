@@ -18,6 +18,7 @@
 
 #include "Spirit/Geometry.h"
 #include "Spirit/System.h"
+#include "Spirit/Configurations.h"
 #include "Spirit/Simulation.h"
 #include "Spirit/Hamiltonian.h"
 
@@ -78,6 +79,15 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	// 		Initial camera position
 	this->_reset_camera = false;
 	this->m_camera_rotate_free = false;
+	this->m_camera_projection_perspective = true;
+
+	//		Initial drag mode settings
+	drag_radius = 80;
+	this->mouse_decoration = new MouseDecoratorWidget();
+	this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
+	this->mouse_decoration->setParent(this);
+	this->m_interactionmode = InteractionMode::REGULAR;
+	this->m_timer_drag = new QTimer(this);
 
 	// 		Setup Arrays
 	this->updateData();
@@ -88,7 +98,6 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_surface = this->user_show_surface;
 	this->show_isosurface = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
-	//this->setVerticalFieldOfView(this->user_fov);
 }
 
 const VFRendering::View * SpinWidget::view()
@@ -113,8 +122,68 @@ void SpinWidget::removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRendere
 		this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
+// Return the relative mouse position [-1,1]
+glm::vec2 relative_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize)
+{
+	glm::vec2 relative = 2.0f*(mouse_pos - 0.5f*winsize);
+	relative.x /= winsize.x;
+	relative.y /= winsize.y;
+	return relative;
+}
+
+glm::vec2 SpinWidget::system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize)
+{
+	auto relative = relative_coords_from_mouse(mouse_pos, winsize);
+	glm::vec4 proj_back{ relative.x, relative.y, 0, 0 };
+
+	auto matrices = VFRendering::Utilities::getMatrices(m_view.options(), winsize.x/winsize.y);
+	auto model_view = glm::inverse(matrices.first);
+	auto projection = glm::inverse(matrices.second);
+
+	proj_back = proj_back*projection;
+	proj_back = proj_back*model_view;
+
+	auto camera_position = options().get<VFRendering::View::Option::CAMERA_POSITION>();
+
+	return glm::vec2{ proj_back.x + camera_position.x, -proj_back.y + camera_position.y };
+}
+
+float SpinWidget::system_radius_from_relative(float radius, glm::vec2 winsize)
+{
+	auto r1 = system_coords_from_mouse({ 0.0f, 0.0f }, winsize);
+	auto r2 = system_coords_from_mouse({ radius-5, 0.0f }, winsize);
+	return r2.x-r1.x;
+}
+
+void SpinWidget::dragpaste()
+{
+	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+	QSize  widgetSize = this->size();
+
+	glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+	glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+
+	glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
+	float radius = system_radius_from_relative(this->drag_radius, size);
+	float f_position[3]{ coords.x, coords.y, 0.0f };
+	float rect[3]{ -1, -1, -1 };
+	// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
+	Configuration_From_Clipboard(state.get(), f_position, rect, radius);
+}
+
+
 void SpinWidget::initializeGL()
 {
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		this->setCursor(Qt::BlankCursor);
+	}
+	else
+	{
+		mouse_decoration->hide();
+	}
+
+
     // Get GL context
     makeCurrent();
     // Initialize the visualisation options
@@ -285,7 +354,14 @@ void SpinWidget::updateData()
 	m_view.update(geometry, directions);
 }
 
-void SpinWidget::paintGL() {
+void SpinWidget::paintGL()
+{
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
+		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+	}
+
 	// ToDo: This does not catch the case that we have no simulation running
 	//		 but we switched between images or chains...
 	if (Simulation_Running_Any(state.get()))
@@ -302,8 +378,31 @@ void SpinWidget::setVisualisationSource(int source)
 	this->m_source = source;
 }
 
-void SpinWidget::mousePressEvent(QMouseEvent *event) {
-  m_previous_mouse_position = event->pos();
+void SpinWidget::mousePressEvent(QMouseEvent *event)
+{
+	m_previous_mouse_position = event->pos();
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		m_timer_drag->stop();
+		// Copy spin configuration
+		Configuration_To_Clipboard(state.get());
+		// Set up Update Timers
+		connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+		float ips = Simulation_Get_IterationsPerSecond(state.get());
+		if (ips > 1000)
+		{
+			m_timer_drag->start(1);
+		}
+		else if (ips > 0)
+		{
+			m_timer_drag->start((int)(1000/ips));
+		}
+	}
+}
+
+void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+	m_timer_drag->stop();
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
@@ -315,20 +414,27 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 		scale = 0.1;
 	}
 
-	glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
-	glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
-	m_previous_mouse_position = event->pos();
-  
-	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
+	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-		if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
-		if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
+		dragpaste();
+	}
+	else
+	{
+		glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
+		glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
+		m_previous_mouse_position = event->pos();
+  
+		if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
 		{
-			movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+			VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+			if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
+			if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
+			{
+				movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
+			}
+			m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
+			((QWidget *)this)->update();
 		}
-		m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
-		((QWidget *)this)->update();
 	}
 }
 
@@ -400,6 +506,28 @@ void SpinWidget::setVisualizationMode(SpinWidget::VisualizationMode visualizatio
 SpinWidget::VisualizationMode SpinWidget::visualizationMode()
 {
 	return this->visMode;
+}
+
+void SpinWidget::setInteractionMode(InteractionMode mode)
+{
+	this->m_interactionmode = mode;
+
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		this->setCursor(Qt::BlankCursor);
+		this->mouse_decoration->show();
+		this->setCameraToZ();
+	}
+	else
+	{
+		this->unsetCursor();
+		this->mouse_decoration->hide();
+	}
+}
+
+SpinWidget::InteractionMode SpinWidget::interactionMode()
+{
+	return this->m_interactionmode;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -1225,16 +1353,15 @@ void SpinWidget::updateBoundingBoxIndicators()
 ///// --- Camera ---
 void SpinWidget::cycleCamera()
 {
-	if (this->verticalFieldOfView() == 0)
+	if (this->m_camera_projection_perspective)
 	{
-		this->setVerticalFieldOfView(this->user_fov);
-		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->user_fov);
+		this->m_camera_projection_perspective = false;
 	}
 	else
 	{
-		this->setVerticalFieldOfView(0);
-		//m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
+		this->m_camera_projection_perspective = true;
 	}
+	this->setVerticalFieldOfView(this->user_fov);
 }
 
 void SpinWidget::setCameraToDefault() {
@@ -1353,11 +1480,17 @@ glm::vec3 SpinWidget::getCameraUpVector()
 
 float SpinWidget::verticalFieldOfView() const
 {
-	return m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+	return this->user_fov;
 }
 
 void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 {
+	this->user_fov = vertical_field_of_view;
+	if (!this->m_camera_projection_perspective)
+	{
+		vertical_field_of_view = 0;
+	}
+
 	// Calculate new camera position
 	float scale = 1;
 	float fov = m_view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
@@ -1381,6 +1514,17 @@ void SpinWidget::setVerticalFieldOfView(float vertical_field_of_view)
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(vertical_field_of_view);
 	enableSystem(show_arrows, show_boundingbox, show_surface, show_isosurface);
+}
+
+bool SpinWidget::cameraProjection()
+{
+	return this->m_camera_projection_perspective;
+}
+
+void SpinWidget::setCameraProjection(bool perspective)
+{
+	this->m_camera_projection_perspective = perspective;
+	this->setVerticalFieldOfView(this->user_fov);
 }
 
 bool SpinWidget::getCameraRotationType()
@@ -1426,12 +1570,6 @@ void SpinWidget::writeSettings()
 	settings.beginGroup("General");
 	// VisMode
 	settings.setValue("Mode", (int)(this->visualizationMode()));
-	// Projection
-	if (this->idx_cycle==0)
-		settings.setValue("FOV", (int)(this->verticalFieldOfView() * 100));
-	else
-		settings.setValue("FOV", (int)(this->user_fov * 100));
-	settings.setValue("FOV Orthogonal", (bool)(this->verticalFieldOfView()<1));
 	// Sphere Point Size
 	settings.setValue("SpherePointSize1", (int)(this->spherePointSizeRange().x * 100));
 	settings.setValue("SpherePointSize2", (int)(this->spherePointSizeRange().y * 100));
@@ -1490,6 +1628,8 @@ void SpinWidget::writeSettings()
 		settings.setValue("vecu", (int)(100*up_vector[dim]));
 	}
 	settings.endArray();
+	settings.setValue("FOV", (int)(this->user_fov * 100));
+	settings.setValue("perspective projection", this->m_camera_projection_perspective);
 	settings.setValue("free rotation", m_camera_rotate_free);
 	settings.endGroup();
 
@@ -1510,12 +1650,6 @@ void SpinWidget::readSettings()
 		settings.beginGroup("General");
 		// VisMode
 		this->visMode = VisualizationMode(settings.value("Mode").toInt());
-		// Projection
-		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>((float)(settings.value("FOV").toInt() / 100.0f));
-		auto y1 = verticalFieldOfView();
-		if (settings.value("FOV Orthogonal").toBool())
-			m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(0);
-		this->user_fov = this->verticalFieldOfView();
 		// Sphere Point Size
 		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });
 		// System
@@ -1563,6 +1697,10 @@ void SpinWidget::readSettings()
 	if (settings.childGroups().contains("Camera"))
 	{
 		settings.beginGroup("Camera");
+		this->user_fov = (float)(settings.value("FOV").toInt() / 100.0f);
+		this->m_camera_projection_perspective = settings.value("perspective projection").toBool();
+		this->m_camera_rotate_free = settings.value("free rotation").toBool();
+		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->m_camera_projection_perspective*this->user_fov);
 		glm::vec3 camera_position, center_position, up_vector;
 		settings.beginReadArray("position");
 		for(int dim=0; dim<3; ++dim)
@@ -1589,7 +1727,6 @@ void SpinWidget::readSettings()
 		}
 		settings.endArray();
 		this->setCameraUpVector(up_vector);
-		this->m_camera_rotate_free = settings.value("free rotation").toBool();
 		settings.endGroup();
 	}
 

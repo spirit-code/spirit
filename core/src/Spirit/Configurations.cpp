@@ -61,7 +61,7 @@ std::function< bool(const Vector3&, const Vector3&) > get_filter(Vector3 positio
 std::string filter_to_string(const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted)
 {
 	std::string ret = "";
-	if ( position[0]!=0 && position[1]!=0 && position[2]!=0 )
+	if ( position[0]!=0 || position[1]!=0 || position[2]!=0 )
 		ret += "Position: (" + std::to_string(position[0]) + "," + std::to_string(position[1]) + "," + std::to_string(position[2]) + ").";
 	if ( r_cut_rectangular[0] <= 0 && r_cut_rectangular[1] <= 0 && r_cut_rectangular[2] <= 0 &&
 		 r_cut_cylindrical <= 0 &&
@@ -73,7 +73,7 @@ std::string filter_to_string(const float position[3], const float r_cut_rectangu
 	}
 	else
 	{
-		if ( r_cut_rectangular[0] > 0 && r_cut_rectangular[1] > 0 && r_cut_rectangular[2] > 0 )
+		if ( r_cut_rectangular[0] > 0 || r_cut_rectangular[1] > 0 || r_cut_rectangular[2] > 0 )
 		{
 			if (ret != "") ret += " ";
 			ret += "Rectangular region: (" + std::to_string(r_cut_rectangular[0]) + "," + std::to_string(r_cut_rectangular[1]) + "," + std::to_string(r_cut_rectangular[2]) + ").";
@@ -97,6 +97,43 @@ std::string filter_to_string(const float position[3], const float r_cut_rectangu
 	}
 	return ret;
 }
+
+
+
+void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Copied spin configuration to clipboard.", idx_image, idx_chain);
+}
+
+void Configuration_From_Clipboard(State *state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	// Get relative position
+	Vector3 _pos{ position[0], position[1], position[2] };
+	Vector3 vpos = _pos;// image->geometry->center + _pos;
+
+	// Create position filter
+	auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+
+	// Apply configuration
+	image->Lock();
+	Utility::Configurations::Insert(*image, *state->clipboard_spins, filter);
+	image->Unlock();
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
+}
+
 
 void Configuration_Domain(State *state, const float direction[3], const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
 {

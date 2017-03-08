@@ -37,7 +37,9 @@ private slots:
 	void view_toggleDebug();
 	void view_togglePlots();
 	void view_toggleSettings();
-	void view_toggle_fullscreen_spins();
+	void view_toggle_spins_only();
+	void view_toggle_fullscreen();
+	void view_toggleDragMode();
     void about();
 	void keyBindings();
 	void load_Configuration();
@@ -91,16 +93,18 @@ private:
 	std::vector<QLabel*> m_Labels_IPS;
 
 	// Fullscreen state
-	bool   fullscreen_spins;
-	bool   pre_fullscreen_settings_hidden;
-	QSize  pre_fullscreen_settings_size;
-	QPoint pre_fullscreen_settings_pos;
-	bool   pre_fullscreen_plots_hidden;
-	QSize  pre_fullscreen_plots_size;
-	QPoint pre_fullscreen_plots_pos;
-	bool   pre_fullscreen_debug_hidden;
-	QSize  pre_fullscreen_debug_size;
-	QPoint pre_fullscreen_debug_pos;
+	bool   view_spins_only;
+	bool   view_fullscreen;
+	bool   regular_mode_perspective;
+	bool   pre_spins_only_settings_hidden;
+	QSize  pre_spins_only_settings_size;
+	QPoint pre_spins_only_settings_pos;
+	bool   pre_spins_only_plots_hidden;
+	QSize  pre_spins_only_plots_size;
+	QPoint pre_spins_only_plots_pos;
+	bool   pre_spins_only_debug_hidden;
+	QSize  pre_spins_only_debug_size;
+	QPoint pre_spins_only_debug_pos;
 
 	// Screenshot numbering
 	int n_screenshots;

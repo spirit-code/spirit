@@ -702,17 +702,17 @@ void SettingsWidget::Load_Visualization_Contents()
 	checkBox_colormap_invert_xy->setChecked(cm_inverted[1]);
 
 	// Perspective / FOV
-	if (_spinWidget->verticalFieldOfView() == 0)
+	if (_spinWidget->cameraProjection())
 	{
-		radioButton_orthographicProjection->setChecked(true);
+		radioButton_perspectiveProjection->setChecked(true);
 	}
 	else
 	{
-		radioButton_orthographicProjection->setChecked(false);
-		this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
-		this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
+		radioButton_orthographicProjection->setChecked(true);
 	}
-	horizontalSlider_camera_fov->setRange(0, 160);
+	this->horizontalSlider_camera_fov->setRange(0, 160);
+	this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
+	this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 
 
 	// Arrows: size and lod
@@ -1278,11 +1278,11 @@ void SettingsWidget::set_visualization_perspective()
 	// Perspective / FOV
 	if (radioButton_orthographicProjection->isChecked())
 	{
-		_spinWidget->setVerticalFieldOfView(0);
+		_spinWidget->setCameraProjection(false);
 	}
 	else
 	{
-		_spinWidget->setVerticalFieldOfView(this->lineEdit_camera_fov->text().toFloat());
+		_spinWidget->setCameraProjection(true);
 	}
 }
 

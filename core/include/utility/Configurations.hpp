@@ -18,7 +18,10 @@ namespace Utility
 		filterfunction const defaultfilter = [](const Vector3& spin, const Vector3& pos)->bool { return true; };
 
 		// TODO: replace the Spin_System references with smart pointers??
-		
+
+		// Insert data in certain region
+		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter = defaultfilter);
+
 		// orients all spins with x>pos into the direction of the v
 		void Domain(Data::Spin_System &s, Vector3 direction, filterfunction filter=defaultfilter);
 

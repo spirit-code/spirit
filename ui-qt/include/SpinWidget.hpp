@@ -6,6 +6,8 @@
 #include <set>
 
 #include <QOpenGLWidget>
+#include "MouseDecoratorWidget.hpp"
+
 #include "glm/glm.hpp"
 
 #include <VFRendering/View.hxx>
@@ -63,6 +65,11 @@ public:
 		EFF_FIELD
 	};
 
+	enum class InteractionMode {
+		REGULAR,
+		DRAG
+  };
+
 	enum class SystemMode {
 		CUSTOM,
 		ISOSURFACE,
@@ -91,6 +98,8 @@ public:
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
   SpinWidget::VisualizationMode visualizationMode();
   SpinWidget::VisualizationMode visMode;
+  void setInteractionMode(SpinWidget::InteractionMode mode);
+  SpinWidget::InteractionMode interactionMode();
   bool show_miniview, show_coordinatesystem;
   // --- MiniView
   void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);
@@ -163,6 +172,8 @@ public:
   glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
+  bool cameraProjection();
+  void setCameraProjection(bool perspective);
   // --- Move Camera
   void moveCamera(float backforth, float rightleft, float updown);
   void rotateCamera(float theta, float phi);
@@ -176,6 +187,7 @@ public:
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseReleaseEvent(QMouseEvent *event);
   virtual void wheelEvent(QWheelEvent *event);
   
   protected slots:
@@ -186,6 +198,7 @@ private:
   QPoint m_previous_mouse_position;
   bool _reset_camera;
   bool m_camera_rotate_free;
+  bool m_camera_projection_perspective;
   float m_light_theta, m_light_phi;
   
   // temporaries for system cycle
@@ -234,6 +247,21 @@ private:
   
   // Visualisation
   VFRendering::View m_view;
+
+  // Interaction mode
+  InteractionMode m_interactionmode;
+  // Calculate coordinates relative to the system center from QT device pixel coordinates
+  //  This assumes that mouse_pos is relative to the top left corner of the widget.
+  //  winsize should be the device pixel size of the widget.
+  //  This function also assumes an orthogonal z-projection.
+  glm::vec2 system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize);
+  float system_radius_from_relative(float radius, glm::vec2 winsize);
+  QTimer * m_timer_drag;
+  void dragpaste();
+
+  // mouse decoration
+  MouseDecoratorWidget * mouse_decoration;
+  float drag_radius;
   
 	// Persistent Settings
 	void writeSettings();
