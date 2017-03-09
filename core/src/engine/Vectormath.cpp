@@ -20,6 +20,11 @@ namespace Engine
 			v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
 		}
 
+		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
+		{
+			Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
+			return A.colPivHouseholderQr().solve(v);
+		}
 
 		/////////////////////////////////////////////////////////////////
 

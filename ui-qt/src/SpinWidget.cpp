@@ -165,10 +165,13 @@ void SpinWidget::dragpaste()
 
 	glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
 	float radius = system_radius_from_relative(this->drag_radius, size);
-	float f_position[3]{ coords.x, coords.y, 0.0f };
 	float rect[3]{ -1, -1, -1 };
 	// std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
-	Configuration_From_Clipboard(state.get(), f_position, rect, radius);
+
+	float last_position[3]{ last_drag_coords.x, last_drag_coords.y, 0.0f };
+	float current_position[3]{ coords.x, coords.y, 0.0f };
+	if ( Configuration_From_Clipboard_Shift(state.get(), last_position, current_position, rect, radius) )
+		this->last_drag_coords = coords;
 }
 
 
@@ -381,6 +384,13 @@ void SpinWidget::setVisualisationSource(int source)
 void SpinWidget::mousePressEvent(QMouseEvent *event)
 {
 	m_previous_mouse_position = event->pos();
+
+	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+	QSize  widgetSize = this->size();
+	glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+	glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+	last_drag_coords = system_coords_from_mouse(mouse_pos, size);
+
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
 		m_timer_drag->stop();

@@ -21,6 +21,14 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc)
+		{
+			int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
+			if (delta < 0)
+				delta += geometry.nos;
+			std::rotate(configuration.begin(), configuration.begin() + delta, configuration.end());
+		}
+
 		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter)
 		{
 			auto& spins = *s.spins;

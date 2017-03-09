@@ -19,6 +19,8 @@ namespace Utility
 
 		// TODO: replace the Spin_System references with smart pointers??
 
+		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc);
+
 		// Insert data in certain region
 		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter = defaultfilter);
 

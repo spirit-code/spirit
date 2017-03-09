@@ -262,6 +262,7 @@ private:
   float system_radius_from_relative(float radius, glm::vec2 winsize);
   QTimer * m_timer_drag;
   void dragpaste();
+  glm::vec2 last_drag_coords;
 
   // mouse decoration
   MouseDecoratorWidget * mouse_decoration;
