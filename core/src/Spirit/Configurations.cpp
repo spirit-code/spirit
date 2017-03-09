@@ -129,7 +129,7 @@ void Configuration_From_Clipboard(State *state, const float position[3], const f
 
 	// Apply configuration
 	image->Lock();
-	Utility::Configurations::Insert(*image, *state->clipboard_spins, filter);
+	Utility::Configurations::Insert(*image, *state->clipboard_spins, 0, filter);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -154,17 +154,18 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
 	int db = (int)std::round(decomposed[1]);
 	int dc = (int)std::round(decomposed[2]);
 
-	if (da != 0 || db != 0 || dc != 0)
-		Utility::Configurations::Move(*state->clipboard_spins, *image->geometry, (int)std::round(decomposed[0]), (int)std::round(decomposed[1]), (int)std::round(decomposed[2]));
-	else
+	if (da == 0 && db == 0 && dc == 0)
 		return false;
+
+	auto& geometry = *image->geometry;
+	int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
 
 	// Create position filter
 	auto filter = get_filter(pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
 	// Apply configuration
 	image->Lock();
-	Utility::Configurations::Insert(*image, *state->clipboard_spins, filter);
+	Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);

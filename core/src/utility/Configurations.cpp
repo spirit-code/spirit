@@ -29,22 +29,24 @@ namespace Utility
 			std::rotate(configuration.begin(), configuration.begin() + delta, configuration.end());
 		}
 
-		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter)
+		void Insert(Data::Spin_System &s, const vectorfield& configuration, int shift, filterfunction filter)
 		{
 			auto& spins = *s.spins;
 			auto& spin_pos = s.geometry->spin_pos;
+			int nos = s.nos;
+			if (shift < 0) shift += nos;
 
-			if (s.nos != configuration.size())
+			if (nos != configuration.size())
 			{
 				Log(Log_Level::Warning, Log_Sender::All, "Tried to insert spin configuration with NOS != NOS_system");
 				return;
 			}
 
-			for (int iatom = 0; iatom < s.nos; ++iatom)
+			for (int iatom = 0; iatom < nos; ++iatom)
 			{
 				if (filter(spins[iatom], spin_pos[iatom]))
 				{
-					spins[iatom] = configuration[iatom];
+					spins[iatom] = configuration[(iatom + shift) % nos];
 				}
 			}
 		}

@@ -22,7 +22,7 @@ namespace Utility
 		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc);
 
 		// Insert data in certain region
-		void Insert(Data::Spin_System &s, const vectorfield& configuration, filterfunction filter = defaultfilter);
+		void Insert(Data::Spin_System &s, const vectorfield& configuration, int shift = 0, filterfunction filter = defaultfilter);
 
 		// orients all spins with x>pos into the direction of the v
 		void Domain(Data::Spin_System &s, Vector3 direction, filterfunction filter=defaultfilter);

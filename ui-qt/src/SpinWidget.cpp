@@ -170,8 +170,7 @@ void SpinWidget::dragpaste()
 
 	float last_position[3]{ last_drag_coords.x, last_drag_coords.y, 0.0f };
 	float current_position[3]{ coords.x, coords.y, 0.0f };
-	if ( Configuration_From_Clipboard_Shift(state.get(), last_position, current_position, rect, radius) )
-		this->last_drag_coords = coords;
+	Configuration_From_Clipboard_Shift(state.get(), last_position, current_position, rect, radius);
 }
 
 
