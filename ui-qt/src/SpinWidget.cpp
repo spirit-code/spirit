@@ -88,6 +88,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->mouse_decoration->setParent(this);
 	this->m_interactionmode = InteractionMode::REGULAR;
 	this->m_timer_drag = new QTimer(this);
+	this->m_dragging = false;
 
 	// 		Setup Arrays
 	this->updateData();
@@ -364,9 +365,7 @@ void SpinWidget::paintGL()
 		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
 	}
 
-	// ToDo: This does not catch the case that we have no simulation running
-	//		 but we switched between images or chains...
-	if (Simulation_Running_Any(state.get()))
+	if (Simulation_Running_Any(state.get()) || this->m_dragging)
 	{
 		this->updateData();
 	}
@@ -406,12 +405,14 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 		{
 			m_timer_drag->start((int)(1000/ips));
 		}
+		m_dragging = true;
 	}
 }
 
 void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	m_timer_drag->stop();
+	m_dragging = false;
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
