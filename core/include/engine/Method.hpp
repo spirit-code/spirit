@@ -59,7 +59,7 @@ namespace Engine
 		
 	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
-		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force) final;
+		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
 		// History of relevant quantities

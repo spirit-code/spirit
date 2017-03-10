@@ -64,7 +64,7 @@ namespace Engine
     }
 
     // Return the maximum of absolute values of force components for an image
-    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force)
+    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force)
     {
         // Take out component in direction of v2
         Manifoldmath::project_tangential(force, image);
