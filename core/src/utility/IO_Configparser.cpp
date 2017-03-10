@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <ctime>
 
 namespace Utility
 {
@@ -296,7 +297,8 @@ namespace Utility
 			bool save_output_any = true, save_output_initial = false, save_output_final = true, save_output_energy = true;
 			bool save_output_archive = false, save_output_single = false;
 			// PRNG Seed
-			int seed = 0;
+			std::srand(std::time(0));
+			int seed = std::rand();
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;
 			// Number of iterations after which the system is logged to file
