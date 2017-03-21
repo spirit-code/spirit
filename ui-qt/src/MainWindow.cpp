@@ -157,6 +157,7 @@ void MainWindow::view_toggle_spins_only()
 	if (this->view_spins_only)
 	{
 		this->view_spins_only = false;
+		Ui::MainWindow::statusBar->showMessage(tr("Showing UI controls"), 5000);
 
 		if (!this->pre_spins_only_settings_hidden)
 		{
@@ -181,6 +182,7 @@ void MainWindow::view_toggle_spins_only()
 	else
 	{
 		this->view_spins_only = true;
+		Ui::MainWindow::statusBar->showMessage(tr("Hiding UI controls"), 5000);
 		
 		this->pre_spins_only_settings_hidden = dockWidget_Settings->isHidden();
 		this->pre_spins_only_settings_size = dockWidget_Settings->topLevelWidget()->size();
@@ -207,11 +209,13 @@ void MainWindow::view_toggle_fullscreen()
 	if (this->view_fullscreen)
 	{
 		this->view_fullscreen = false;
+		Ui::MainWindow::statusBar->showMessage(tr("Switching off fullscreen"), 5000);
 		this->showMaximized();
 	}
 	else
 	{
 		this->view_fullscreen = true;
+		Ui::MainWindow::statusBar->showMessage(tr("Switching to fullscreen"), 5000);
 		this->windowHandle()->setScreen(qApp->screens().last());
 		this->showFullScreen();
 		this->setWindowState(Qt::WindowState::WindowFullScreen);
@@ -453,15 +457,31 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			// Camera
 			case Qt::Key_X:
 				this->spinWidget->setCameraToX(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: X view (from back)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: X view (from front)"), 5000);
 				break;
 			case Qt::Key_Y:
 				this->spinWidget->setCameraToY(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Y view (from back)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Y view (from front)"), 5000);
 				break;
 			case Qt::Key_Z:
 				this->spinWidget->setCameraToZ(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Z view (from bottom)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Z view (from top)"), 5000);
 				break;
 			case Qt::Key_C:
 				this->spinWidget->cycleCamera();
+				if (this->spinWidget->cameraProjection())
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
 				this->settingsWidget->updateData();
 				break;
 			// Visualisation: cycle and slab
@@ -526,10 +546,12 @@ void MainWindow::view_toggleDragMode()
 	if (this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
 	{
 		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
+		Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Regular"), 5000);
 	}
 	else
 	{
 		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
+		Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Drag"), 5000);
 	}
 	this->settingsWidget->updateData();
 }
