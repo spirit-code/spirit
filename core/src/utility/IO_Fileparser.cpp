@@ -466,6 +466,12 @@ namespace Utility
 								periods_a = (na + pair_da) / Na;
 								periods_b = (nb + pair_db) / Nb;
 								periods_c = (nc + pair_dc) / Nc;
+
+								// Catch cases of negative periodicity
+								if (na + pair_da < 0) periods_a = -1;
+								if (nb + pair_db < 0) periods_b = -1;
+								if (nc + pair_dc < 0) periods_c = -1;
+
 								idx_j = pair_j	+ N*( (((na + pair_da) % Na) + Na) % Na )
 												+ N*Na*( (((nb + pair_db) % Nb) + Nb) % Nb )
 												+ N*Na*Nb*( (((nc + pair_dc) % Nc) + Nc) % Nc );
