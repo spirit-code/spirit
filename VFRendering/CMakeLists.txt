@@ -91,6 +91,7 @@ set(HEADER_FILES
 )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
+add_dependencies(${PROJECT_NAME} ${qhull_LIBS})
 target_link_libraries(${PROJECT_NAME} ${qhull_LIBS})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
