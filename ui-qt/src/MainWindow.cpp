@@ -66,14 +66,34 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Energies()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
-
+	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
+	
+	// Edit Menu
+	connect(this->actionCut_Configuration, SIGNAL(triggered()), this, SLOT(edit_cut()));
+	connect(this->actionCopy_Configuration, SIGNAL(triggered()), this, SLOT(edit_copy()));
+	connect(this->actionPaste_Configuration, SIGNAL(triggered()), this, SLOT(edit_paste()));
+	connect(this->actionInsert_Left, SIGNAL(triggered()), this, SLOT(edit_insert_left()));
+	connect(this->actionInsert_Right, SIGNAL(triggered()), this, SLOT(edit_insert_right()));
+	connect(this->actionDelete_Configuration, SIGNAL(triggered()), this, SLOT(edit_delete()));
+	
 	// Control Menu
+	connect(this->actionPlay_Pause_Simulation, SIGNAL(triggered()), this, SLOT(control_playpause()));
+	connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
+	connect(this->actionCycle_Method, SIGNAL(triggered()), this, SLOT(control_cycle_method()));
+	connect(this->actionCycle_Optimizer, SIGNAL(triggered()), this, SLOT(control_cycle_optimizer()));
 	connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
 
 	// View Menu
 	connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
 	connect(this->actionShow_Plots, SIGNAL(triggered()), this, SLOT(view_togglePlots()));
 	connect(this->actionShow_Debug, SIGNAL(triggered()), this, SLOT(view_toggleDebug()));
+	connect(this->actionToggle_camera_projection, SIGNAL(triggered()), this, SLOT(view_cycle_camera()));
+	connect(this->actionRegular_mode, SIGNAL(triggered()), this, SLOT(view_regular_mode()));
+	connect(this->actionIsosurface_mode, SIGNAL(triggered()), this, SLOT(view_isosurface_mode()));
+	connect(this->actionSlab_mode_X, SIGNAL(triggered()), this, SLOT(view_slab_x()));
+	connect(this->actionSlab_mode_Y, SIGNAL(triggered()), this, SLOT(view_slab_y()));
+	connect(this->actionSlab_mode_Z, SIGNAL(triggered()), this, SLOT(view_slab_z()));
+	connect(this->actionToggle_visualisation, SIGNAL(triggered()), this, SLOT(toggleSpinWidget()));
 	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_spins_only()));
 	connect(this->actionToggle_fullscreen_window, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen()));
 
@@ -250,20 +270,17 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	if (k->matches(QKeySequence::Copy))
 	{
 		// Copy the current Spin System
-		Chain_Image_to_Clipboard(state.get());
+		this->edit_copy();
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
 		// Cut the current Spin System from the chain
-		this->controlWidget->cut_image();
-		Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-		this->createStatusBar();
+		this->edit_cut();
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste clipboard image to current
-		this->controlWidget->paste_image();
-		this->createStatusBar();
+		this->edit_paste();
 	}
 
 	// Custom Key Sequences (Control)
@@ -273,16 +290,12 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		{
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
-				this->controlWidget->paste_image("left");
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-				this->createStatusBar();
+				this->edit_insert_left();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
-				this->controlWidget->paste_image("right");
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-				this->createStatusBar();
+				this->edit_insert_right();
 				break;
 			
 			// CTRL+F - Fullscreen mode
@@ -307,7 +320,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 
 			// CTRL+R - Randomize spins
 			case Qt::Key_R:
-				this->settingsWidget->randomPressed();
+				this->control_random();
 				break;
 
 			// CTRL+N - Add noise
@@ -317,13 +330,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 
 			// CTRL+M - Cycle Method
 			case Qt::Key_M:
-				this->controlWidget->cycleMethod();
-				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+				this->control_cycle_method();
 				break;
 				// CTRL+O - Cycle Optimizer
 			case Qt::Key_O:
-				this->controlWidget->cycleOptimizer();
-				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+				this->control_cycle_optimizer();
 				break;
 		}
 	}
@@ -375,8 +386,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// Space: Play and Pause
 			case Qt::Key_Space:
-				this->controlWidget->play_pause();
-				Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+				this->control_playpause();
 				break;
 			// WASDQE
 			case Qt::Key_W:
@@ -473,8 +483,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// Delete: Delete current image
 			case Qt::Key_Delete:
-				this->controlWidget->delete_image();
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				this->edit_delete();
 				break;
 			// Camera
 			case Qt::Key_X:
@@ -499,12 +508,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 					Ui::MainWindow::statusBar->showMessage(tr("Camera: Z view (from top)"), 5000);
 				break;
 			case Qt::Key_C:
-				this->spinWidget->cycleCamera();
-				if (this->spinWidget->cameraProjection())
-					Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
-				else
-					Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
-				this->settingsWidget->updateData();
+				this->view_cycle_camera();
 				break;
 			// Visualisation: cycle and slab
 			case Qt::Key_Comma:
@@ -533,11 +537,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			case Qt::Key_Home:
 			case Qt::Key_F12:
-				std::string tag = State_DateTime(state.get());
-				++n_screenshots;
-				std::string name = tag + "_Screenshot_" + std::to_string(n_screenshots);
-				this->spinWidget->screenShot(name);
-				Ui::MainWindow::statusBar->showMessage(tr(("Made Screenshot " + name).c_str()), 5000);
+				this->takeScreenshot();
 				break;
 		}
 	}
@@ -776,6 +776,138 @@ void MainWindow::updateStatusBar()
 			this->m_Labels_IPS[i]->setText(v_str[i]);
 		}
 	}
+}
+
+void MainWindow::takeScreenshot()
+{
+	std::string tag = State_DateTime(state.get());
+	++n_screenshots;
+	std::string name = tag + "_Screenshot_" + std::to_string(n_screenshots);
+	this->spinWidget->screenShot(name);
+	Ui::MainWindow::statusBar->showMessage(tr(("Made Screenshot " + name).c_str()), 5000);
+}
+
+void MainWindow::edit_cut()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->cut_image();
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_copy()
+{
+	Chain_Image_to_Clipboard(state.get());
+}
+
+void MainWindow::edit_paste()
+{
+	this->controlWidget->paste_image();
+	this->createStatusBar();
+}
+
+void MainWindow::edit_insert_right()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->paste_image("right");
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_insert_left()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->paste_image("left");
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_delete()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->delete_image();
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+}
+
+void MainWindow::control_random()
+{
+	this->settingsWidget->randomPressed();
+}
+
+void MainWindow::control_playpause()
+{
+	this->controlWidget->play_pause();
+	Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+}
+
+void MainWindow::control_cycle_method()
+{
+	this->controlWidget->cycleMethod();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+}
+
+void MainWindow::control_cycle_optimizer()
+{
+	this->controlWidget->cycleOptimizer();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+}
+
+void MainWindow::view_regular_mode()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Regular"), 5000);
+}
+
+void MainWindow::view_isosurface_mode()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Isosurface"), 5000);
+}
+
+void MainWindow::view_slab_x()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab X"), 5000);
+}
+
+void MainWindow::view_slab_y()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Y"), 5000);
+}
+
+void MainWindow::view_slab_z()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Z"), 5000);
+}
+
+
+void MainWindow::view_cycle_camera()
+{
+	this->spinWidget->cycleCamera();
+	if (this->spinWidget->cameraProjection())
+		Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
+	else
+		Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
+	this->settingsWidget->updateData();
 }
 
 

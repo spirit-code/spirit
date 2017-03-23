@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>29</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -98,6 +98,8 @@
     <addaction name="action_Save_Spin_Configuration"/>
     <addaction name="actionSave_SpinChain_Configuration"/>
     <addaction name="separator"/>
+    <addaction name="actionTake_Screenshot"/>
+    <addaction name="separator"/>
     <addaction name="actionSave_2"/>
     <addaction name="action_Load_Spin_System"/>
     <addaction name="action_Load_Spin_System_Chain"/>
@@ -111,11 +113,11 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionCopy"/>
-    <addaction name="actionPaste"/>
-    <addaction name="separator"/>
+    <addaction name="actionCut_Configuration"/>
     <addaction name="actionCopy_Configuration"/>
     <addaction name="actionPaste_Configuration"/>
+    <addaction name="actionInsert_Left"/>
+    <addaction name="actionInsert_Right"/>
     <addaction name="actionDelete_Configuration"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -133,6 +135,15 @@
     <addaction name="actionShow_Plots"/>
     <addaction name="actionShow_Debug"/>
     <addaction name="separator"/>
+    <addaction name="actionToggle_camera_projection"/>
+    <addaction name="separator"/>
+    <addaction name="actionRegular_mode"/>
+    <addaction name="actionIsosurface_mode"/>
+    <addaction name="actionSlab_mode_X"/>
+    <addaction name="actionSlab_mode_Y"/>
+    <addaction name="actionSlab_mode_Z"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggle_visualisation"/>
     <addaction name="actionToggle_large_visualisation"/>
     <addaction name="actionToggle_fullscreen_window"/>
    </widget>
@@ -140,6 +151,10 @@
     <property name="title">
      <string>&amp;Controls</string>
     </property>
+    <addaction name="actionPlay_Pause_Simulation"/>
+    <addaction name="actionRandomize_Spins"/>
+    <addaction name="actionCycle_Method"/>
+    <addaction name="actionCycle_Optimizer"/>
     <addaction name="actionToggle_Dragging_mode"/>
    </widget>
    <addaction name="menuFile"/>
@@ -306,17 +321,17 @@
   </action>
   <action name="actionCopy_Configuration">
    <property name="text">
-    <string>(C&amp;opy Configuration)</string>
+    <string>Copy System</string>
    </property>
   </action>
   <action name="actionPaste_Configuration">
    <property name="text">
-    <string>(Pa&amp;ste Configuration)</string>
+    <string>Paste System</string>
    </property>
   </action>
   <action name="actionDelete_Configuration">
    <property name="text">
-    <string>(&amp;Delete Configuration)</string>
+    <string>Delete System</string>
    </property>
   </action>
   <action name="actionAbout_this_Application">
@@ -412,6 +427,81 @@
   <action name="actionToggle_Dragging_mode">
    <property name="text">
     <string>Toggle &quot;Dragging&quot; mode</string>
+   </property>
+  </action>
+  <action name="actionTake_Screenshot">
+   <property name="text">
+    <string>Take Screenshot</string>
+   </property>
+  </action>
+  <action name="actionToggle_camera_projection">
+   <property name="text">
+    <string>Toggle camera projection</string>
+   </property>
+  </action>
+  <action name="actionToggle_visualisation">
+   <property name="text">
+    <string>Toggle visualisation</string>
+   </property>
+  </action>
+  <action name="actionRegular_mode">
+   <property name="text">
+    <string>Regular mode</string>
+   </property>
+  </action>
+  <action name="actionIsosurface_mode">
+   <property name="text">
+    <string>Isosurface mode</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_X">
+   <property name="text">
+    <string>Slab mode X</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_Y">
+   <property name="text">
+    <string>Slab mode Y</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_Z">
+   <property name="text">
+    <string>Slab mode Z</string>
+   </property>
+  </action>
+  <action name="actionInsert_Left">
+   <property name="text">
+    <string>Insert Left</string>
+   </property>
+  </action>
+  <action name="actionInsert_Right">
+   <property name="text">
+    <string>Insert Right</string>
+   </property>
+  </action>
+  <action name="actionCut_Configuration">
+   <property name="text">
+    <string>Cut System</string>
+   </property>
+  </action>
+  <action name="actionPlay_Pause_Simulation">
+   <property name="text">
+    <string>Play/Pause Simulation</string>
+   </property>
+  </action>
+  <action name="actionCycle_Method">
+   <property name="text">
+    <string>Cycle Method</string>
+   </property>
+  </action>
+  <action name="actionCycle_Optimizer">
+   <property name="text">
+    <string>Cycle Optimizer</string>
+   </property>
+  </action>
+  <action name="actionRandomize_Spins">
+   <property name="text">
+    <string>Randomize Spins</string>
    </property>
   </action>
  </widget>

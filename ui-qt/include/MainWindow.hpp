@@ -34,9 +34,26 @@ protected:
 
 private slots:
 	void keyPressEvent(QKeyEvent *ev) override;
+	void takeScreenshot();
+	void edit_cut();
+	void edit_copy();
+	void edit_paste();
+	void edit_insert_right();
+	void edit_insert_left();
+	void edit_delete();
+	void control_random();
+	void control_playpause();
+	void control_cycle_method();
+	void control_cycle_optimizer();
 	void view_toggleDebug();
 	void view_togglePlots();
 	void view_toggleSettings();
+	void view_regular_mode();
+	void view_isosurface_mode();
+	void view_slab_x();
+	void view_slab_y();
+	void view_slab_z();
+	void view_cycle_camera();
 	void view_toggle_spins_only();
 	void view_toggle_fullscreen();
 	void toggleSpinWidget();
