@@ -79,6 +79,7 @@ public:
 	};
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
+  void setSuspended(bool suspended);
   void updateData();
   void initializeGL();
   void resizeGL(int width, int height);
@@ -227,6 +228,7 @@ private:
 
   void setupRenderers();
   bool m_gl_initialized;
+  bool m_suspended;
 
   const VFRendering::Options& options() const;
   

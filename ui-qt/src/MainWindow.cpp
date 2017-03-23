@@ -55,6 +55,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// Read Window settings of last session
 	this->view_spins_only = false;
 	this->view_fullscreen = false;
+	this->m_spinWidgetActive = true;
 	readSettings();
 
 
@@ -223,6 +224,21 @@ void MainWindow::view_toggle_fullscreen()
 }
 
 
+void MainWindow::toggleSpinWidget()
+{
+	if (this->m_spinWidgetActive)
+	{
+		this->spinWidget->setSuspended(true);
+		this->m_spinWidgetActive = false;
+	}
+	else
+	{
+		this->spinWidget->setSuspended(false);
+		this->m_spinWidgetActive = true;
+	}
+}
+
+
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
 	// Image index
@@ -281,6 +297,12 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 					// Hide all except SpinWidget, MenuBar and StatusBar
 					this->view_toggle_spins_only();
 				}
+				break;
+
+			// CTRL+V - Toggle SpinWidget Visibility
+			case Qt::Key_V:
+				if (k->modifiers() & Qt::ShiftModifier)
+					this->toggleSpinWidget();
 				break;
 
 			// CTRL+R - Randomize spins
@@ -787,7 +809,8 @@ void MainWindow::keyBindings()
 			" - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
 			" - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
 			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
-			" - <b>F12 and Home</b>:  Screenshot of Visualization region<br>"
+			" - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
+			" - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"

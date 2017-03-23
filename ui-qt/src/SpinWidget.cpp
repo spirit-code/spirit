@@ -27,6 +27,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 {
     this->state = state;
 	this->m_gl_initialized = false;
+	this->m_suspended = false;
 
 	// QT Widget Settings
     setFocusPolicy(Qt::StrongFocus);
@@ -99,6 +100,15 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->show_surface = this->user_show_surface;
 	this->show_isosurface = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
+}
+
+void SpinWidget::setSuspended(bool suspended)
+{
+	this->m_suspended = suspended;
+	if (!suspended)
+	{
+		this->update();
+	}
 }
 
 const VFRendering::View * SpinWidget::view()
@@ -258,13 +268,15 @@ void SpinWidget::initializeGL()
 	this->m_gl_initialized = true;
 }
 
-void SpinWidget::teardownGL() {
+void SpinWidget::teardownGL()
+{
 	// GLSpins::terminate();
 }
 
-void SpinWidget::resizeGL(int width, int height) {
-  m_view.setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
-  //update();
+void SpinWidget::resizeGL(int width, int height)
+{
+	m_view.setFramebufferSize(width*devicePixelRatio(), height*devicePixelRatio());
+	//update();
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -359,6 +371,9 @@ void SpinWidget::updateData()
 
 void SpinWidget::paintGL()
 {
+	if (this->m_suspended)
+		return;
+
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
 		auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
@@ -381,6 +396,9 @@ void SpinWidget::setVisualisationSource(int source)
 
 void SpinWidget::mousePressEvent(QMouseEvent *event)
 {
+	if (this->m_suspended)
+		return;
+
 	m_previous_mouse_position = event->pos();
 
 	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
@@ -411,12 +429,18 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 
 void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+	if (this->m_suspended)
+		return;
+
 	m_timer_drag->stop();
 	m_dragging = false;
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 {
+	if (this->m_suspended)
+		return;
+
 	float scale = 1;
 
 	if (event->modifiers() & Qt::ShiftModifier)
@@ -478,6 +502,9 @@ const VFRendering::Options& SpinWidget::options() const
 
 void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
 {
+	if (this->m_suspended)
+		return;
+
 	auto movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
 	m_view.mouseMove({ 0,0 }, { rightleft, updown }, movement_mode);
 	m_view.mouseScroll(backforth * 0.1);
@@ -486,6 +513,9 @@ void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
 
 void SpinWidget::rotateCamera(float theta, float phi)
 {
+	if (this->m_suspended)
+		return;
+		
 	if (this->m_interactionmode == InteractionMode::DRAG)
 	{
 		theta = 0;

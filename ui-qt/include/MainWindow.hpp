@@ -39,6 +39,7 @@ private slots:
 	void view_toggleSettings();
 	void view_toggle_spins_only();
 	void view_toggle_fullscreen();
+	void toggleSpinWidget();
 	void view_toggleDragMode();
     void about();
 	void keyBindings();
@@ -95,6 +96,7 @@ private:
 	// Fullscreen state
 	bool   view_spins_only;
 	bool   view_fullscreen;
+	bool   m_spinWidgetActive;
 	bool   pre_spins_only_settings_hidden;
 	QSize  pre_spins_only_settings_size;
 	QPoint pre_spins_only_settings_pos;
