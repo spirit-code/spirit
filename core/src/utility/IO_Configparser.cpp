@@ -355,6 +355,9 @@ namespace Utility
 			}
 			else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
 
+			// Normalize vectors
+			stt_polarisation_normal.normalize();
+
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        seed                = " + std::to_string(seed));
@@ -625,6 +628,10 @@ namespace Utility
 			}
 			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Isotropic: Using default configuration!");
 			
+			// Normalize vectors
+			external_field_normal.normalize();
+			anisotropy_normal.normalize();
+
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Isotropic:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
