@@ -9,7 +9,7 @@ namespace Engine
 	Optimizer_SIB::Optimizer_SIB(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
-		this->xi = vectorfield(this->nos);
+		this->xi = vectorfield(this->nos, {0,0,0});
 		this->virtualforce = std::vector<vectorfield>(this->noi, vectorfield(this->nos));	// [noi][nos]
 		
 		this->spins_temp = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -24,9 +24,12 @@ namespace Engine
 		for (int i = 0; i < this->noi; ++i)
 		{
 			s = method->systems[i];
-			this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Constants::k_B);
-			// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
-			Vectormath::get_random_vectorfield(*s, epsilon, xi);
+			if (s->llg_parameters->temperature > 0)
+			{
+				this->epsilon = std::sqrt(2.0*s->llg_parameters->damping / (1.0 + std::pow(s->llg_parameters->damping, 2))*s->llg_parameters->temperature*Constants::k_B);
+				// Precalculate RNs --> move this up into Iterate and add array dimension n for no of iterations?
+				Vectormath::get_random_vectorfield(*s, epsilon, xi);
+			}
 		}
 
 		// First part of the step
@@ -65,11 +68,20 @@ namespace Engine
 		Vectormath::fill       (force, {0,0,0});
 		Vectormath::add_c_a    (-0.5 * dtg, gradient, force);
 		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, gradient, force);
-		Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
-		Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, spins, force);
 
-		Vectormath::add_c_a    (-0.5 * sqrtdtg, xi, force);
-		Vectormath::add_c_cross(-0.5 * sqrtdtg * damping, spins, xi, force);
+		// STT
+		if (a_j > 0)
+		{
+			Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
+			Vectormath::add_c_cross( 0.5 * dtg * a_j, s_c_vec, spins, force);
+		}
+
+		// Temperature
+		if (llg_params.temperature > 0)
+		{
+			Vectormath::add_c_a    (-0.5 * sqrtdtg, xi, force);
+			Vectormath::add_c_cross(-0.5 * sqrtdtg * damping, spins, xi, force);
+		}
 	}
 
 
