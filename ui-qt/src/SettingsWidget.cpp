@@ -2075,7 +2075,7 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Parameters
 	//		LLG
-	this->lineEdit_Damping->setValidator(this->number_validator);
+	this->lineEdit_Damping->setValidator(this->number_validator_unsigned);
 	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
