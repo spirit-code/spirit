@@ -18,6 +18,8 @@ DLLEXPORT void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3]
 
 // Get basis vectors ta, tb, tc
 DLLEXPORT void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image=-1, int idx_chain=-1);
+// Get number of atoms in a basis cell
+DLLEXPORT int Geometry_Get_N_Basis_Atoms(State *state, int idx_image=-1, int idx_chain=-1);
 // TODO: Get basis atoms
 // DLLEXPORT void Geometry_Get_Basis_Atoms(State *state, float ** atoms);
 

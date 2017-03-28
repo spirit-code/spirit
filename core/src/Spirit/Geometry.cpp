@@ -77,6 +77,16 @@ void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3]
 //     *n_atoms = g->n_spins_basic_domain;
 // }
 
+// Get number of atoms in a basis cell
+int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    return image->geometry->n_spins_basic_domain;
+}
+
 // Get number of basis cells in the three translation directions
 void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_chain)
 {

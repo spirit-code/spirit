@@ -348,8 +348,9 @@ void SpinWidget::updateData()
 			tatc += ta[dim] * tc[dim];
 			tbtc += tb[dim] * tc[dim];
 		}
-		// Rectilinear
-		if (std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
+		// Rectilinear with one basis atom
+		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
+			std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
 		{
 			int n_cells[3];
 			Geometry_Get_N_Cells(state.get(), n_cells);
