@@ -338,15 +338,33 @@ void SpinWidget::updateData()
 	}
 	else if (Geometry_Get_Dimensionality(state.get()) == 2)
 	{
-		bool is_2d = (Geometry_Get_Dimensionality(state.get()) < 3);
-		int n_cells[3];
-		Geometry_Get_N_Cells(state.get(), n_cells);
-		//geometry = VFRendering::Geometry(positions, {}, {}, true);
-		std::vector<float> xs(n_cells[0]), ys(n_cells[1]), zs(n_cells[2]);
-		for (int i = 0; i < n_cells[0]; ++i) xs[i] = positions[i].x;
-		for (int i = 0; i < n_cells[1]; ++i) ys[i] = positions[i*n_cells[0]].y;
-		for (int i = 0; i < n_cells[2]; ++i) zs[i] = positions[i*n_cells[0] * n_cells[1]].z;
-		geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
+		// Determine orthogonality of translation vectors
+		float ta[3], tb[3], tc[3];
+		Geometry_Get_Translation_Vectors(state.get(), ta, tb, tc);
+		float tatb=0, tatc=0, tbtc=0;
+		for (int dim=0; dim<3; ++dim)
+		{
+			tatb += ta[dim] * tb[dim];
+			tatc += ta[dim] * tc[dim];
+			tbtc += tb[dim] * tc[dim];
+		}
+		// Rectilinear
+		if (std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
+		{
+			int n_cells[3];
+			Geometry_Get_N_Cells(state.get(), n_cells);
+			std::vector<float> xs(n_cells[0]), ys(n_cells[1]), zs(n_cells[2]);
+			for (int i = 0; i < n_cells[0]; ++i) xs[i] = positions[i].x;
+			for (int i = 0; i < n_cells[1]; ++i) ys[i] = positions[i*n_cells[0]].y;
+			for (int i = 0; i < n_cells[2]; ++i) zs[i] = positions[i*n_cells[0] * n_cells[1]].z;
+			geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
+		}
+		// All others
+		else
+		{
+			geometry = VFRendering::Geometry(positions, {}, {}, true);
+		}
+
 	}
 	else if (Geometry_Get_Dimensionality(state.get()) < 2)
 	{
