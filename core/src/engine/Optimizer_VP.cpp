@@ -17,6 +17,8 @@ namespace Engine
     void Optimizer_VP::Iteration()
     {
 		std::shared_ptr<Data::Spin_System> s;
+		scalar projection_full  = 0;
+		scalar force_norm2_full = 0;
 
 		// Set previous
 		for (int i = 0; i < noi; ++i)
@@ -45,16 +47,31 @@ namespace Engine
 			// Get the projection of the velocity on the force
 			projection[i] = Vectormath::dot(l_velocity, l_force);
 			force_norm2[i] = Vectormath::dot(l_force, l_force);
+		}
+		for (int i = 0; i < noi; ++i)
+		{
+			projection_full += projection[i];
+			force_norm2_full += force_norm2[i];
+		}
+		for (int i = 0; i < noi; ++i)
+		{
+			auto& l_velocity = velocity[i];
+			auto& l_force = force[i];
+			auto& l_force_prev = force_previous[i];
+			auto& configuration = *(configurations[i]);
+
+			s = method->systems[i];
+			scalar dt = s->llg_parameters->dt;
 
 			// Calculate the projected velocity
-			if (projection[i] <= 0)
+			if (projection_full <= 0)
 			{
 				Vectormath::fill(l_velocity, { 0,0,0 });
 			}
 			else
 			{
 				Vectormath::set_c_a(1.0, l_force, l_velocity);
-				Vectormath::scale(l_velocity, projection[i] / force_norm2[i]);
+				Vectormath::scale(l_velocity, projection_full / force_norm2_full);
 			}
 
 			// Copy in
