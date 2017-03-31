@@ -21,7 +21,7 @@ cannot change the geometry of the systems in your state once they are
 initialized.*
 
 The interface exposes functions for:
-* Control of pimulations
+* Control of simulations
 * Manipulation of parameters
 * Extracting information
 * Generating spin configurations and transitions

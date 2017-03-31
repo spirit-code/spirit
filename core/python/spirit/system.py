@@ -1,10 +1,10 @@
-import Spirit.spiritlib as spiritlib
+import spirit.spiritlib as spiritlib
 import ctypes
 
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 
-from Spirit.scalar import scalar
+from spirit.scalar import scalar
 import numpy as np
 
 ### Get Chain index

@@ -27,8 +27,10 @@ input_*
 /spirit
 
 ### Generated Files
+core/python/LICENSE.txt
 VERSION.txt
 scalar.py
+version.py
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

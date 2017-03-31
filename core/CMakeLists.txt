@@ -65,7 +65,7 @@ string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
 
 ######### Meta information about the project
 set(META_PROJECT_NAME         "Spirit")
-set(META_PROJECT_DESCRIPTION  "Modular Spin Code")
+set(META_PROJECT_DESCRIPTION  "Optimizations and Dynamics Framework for atomistic Spin systems")
 set(META_AUTHOR_ORGANIZATION  "")
 set(META_AUTHOR_DOMAIN        "https://github.com/spirit-code/spirit")
 set(META_AUTHOR_MAINTAINER    "g.mueller@fz-juelich.de")
@@ -250,7 +250,12 @@ endif()
 if( SPIRIT_BUILD_FOR_PYTHON )
 	set( SPIRIT_PYDIR ${PROJECT_SOURCE_DIR}/python )
 	set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/Spirit )
+	### Utility python files
+	configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
+	configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
 	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
+	file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"")
+	###
 	if( NOT SPIRIT_USE_CUDA )
 		MESSAGE( STATUS ">> Building shared library for Python" )
 		#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )

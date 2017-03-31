@@ -2,6 +2,7 @@ import os
 import sys
 
 ### Make sure to find the Spirit modules
+### This is only needed if you did not install the package
 # spirit_py_dir = os.path.dirname(os.path.realpath(__file__)) + "core/python/Spirit"
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "../core/python"))
 sys.path.insert(0, spirit_py_dir)
@@ -11,16 +12,16 @@ sys.path.insert(0, spirit_py_dir)
 import numpy as np
 
 ### Import Spirit modules
-from Spirit import state
-from Spirit import system
-from Spirit import geometry
-from Spirit import chain
-from Spirit import configuration
-from Spirit import transition
-from Spirit import simulation
-from Spirit import quantities
-from Spirit import io
-from Spirit import log
+from spirit import state
+from spirit import system
+from spirit import geometry
+from spirit import chain
+from spirit import configuration
+from spirit import transition
+from spirit import simulation
+from spirit import quantities
+from spirit import io
+from spirit import log
 
 
 def configurations(p_state):
