@@ -60,9 +60,11 @@ def find_meta(meta):
 
 
 if __name__ == "__main__":
+    long_description = read('README.md')
     setup(
         name=NAME,
         description=find_meta("description"),
+        long_description=long_description,
         license=find_meta("license"),
         url=find_meta("uri"),
         version=find_meta("version"),
@@ -74,4 +76,7 @@ if __name__ == "__main__":
         packages=PACKAGES,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
+        package_data={
+            'spirit': ['libSpirit.dylib'],
+        },
     )

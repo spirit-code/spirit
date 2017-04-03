@@ -1,3 +1,0 @@
-include *.rst *.txt *.md setup.cfg
-include spirit/libSpirit.dylib spirit/libSpirit.so spirit/Spirit.dll
-recursive-include spirit *.py
