@@ -60,6 +60,11 @@ namespace Engine
 
 	bool Method_LLG::Force_Converged()
 	{
+		for (unsigned int img = 0; img < systems.size(); ++img)
+		{
+			if (this->systems[img]->llg_parameters->temperature > 0 || this->systems[img]->llg_parameters->stt_magnitude > 0)
+				return false;
+		}
 		// Check if all images converged
 		return std::all_of(this->force_converged.begin(),
 							this->force_converged.end(),
