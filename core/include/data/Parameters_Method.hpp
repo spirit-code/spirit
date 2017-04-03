@@ -14,19 +14,17 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, std::array<bool,4> save_output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method(std::string output_folder, std::array<bool,3> output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
 
 		// Data output folder
 		std::string output_folder;
 
 		// Save any output when logging
-		bool save_output_any;
+		bool output_any;
 		// Save output at initial state
-		bool save_output_initial;
+		bool output_initial;
 		// Save output at final state
-		bool save_output_final;
-		// Save energy output
-		bool save_output_energy;
+		bool output_final;
 
 		// Force convergence criterium
 		scalar force_convergence;

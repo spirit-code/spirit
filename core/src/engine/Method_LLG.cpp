@@ -137,7 +137,7 @@ namespace Engine
         this->history["M_z"].push_back(mag[2]);
 
 		// File save
-		if (this->parameters->save_output_any)
+		if (this->parameters->output_any)
 		{
 			// Convert indices to formatted strings
 			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
@@ -147,61 +147,74 @@ namespace Engine
 			std::string preEnergyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img;
 
 			// Function to write or append image and energy files
-			auto writeoutput = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
-				// File names
+				// File name
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
-				std::string energyFile = preEnergyFile + suffix + ".txt";
 
 				// Spin Configuration
+				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			};
+
+			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+			{
+				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+
+				// File name
+				std::string energyFile = preEnergyFile + suffix + ".txt";
+				std::string energyFilePerSpin = preEnergyFile + suffix + "_perSpin.txt";
+
+				// Energy
 				if (append)
 				{
-					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+					// Check if Energy File exists and write Header if it doesn't
+					std::ifstream f(energyFile);
+					if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+					// Append Energy to File
+					Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile, normalize);
 				}
 				else
 				{
-					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
-				}
-				// Energy
-				if (this->parameters->save_output_energy)
-				{
-					if (append)
+					Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+					Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile, normalize);
+					if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
 					{
-						// Check if Energy File exists and write Header if it doesn't
-						std::ifstream f(energyFile);
-						if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
-						// Append Energy to File
-						Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
-					}
-					else
-					{
-						Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
-						Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
+						Utility::IO::Save_Energy_Spins(*this->systems[0], energyFilePerSpin, normalize);
 					}
 				}
 			};
 			
 			// Initial image before simulation
-			if (initial && this->parameters->save_output_initial)
+			if (initial && this->parameters->output_initial)
 			{
-				writeoutput("_" + s_iter + "_initial", false);
+				writeOutputConfiguration("_" + s_iter + "_initial", false);
+				writeOutputEnergy("_" + s_iter + "_initial", false);
 			}
 			// Final image after simulation
-			else if (final && this->parameters->save_output_final)
+			else if (final && this->parameters->output_final)
 			{
-				writeoutput("_" + s_iter + "_final", false);
+				writeOutputConfiguration("_" + s_iter + "_final", false);
+				writeOutputEnergy("_" + s_iter + "_final", false);
 			}
 			
-			// Single image file output
-			if (this->systems[0]->llg_parameters->save_output_single)
+			// Single file output
+			if (this->systems[0]->llg_parameters->output_configuration_single)
 			{
-				writeoutput("_" + s_iter, false);
+				writeOutputConfiguration("_" + s_iter, false);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_single)
+			{
+				writeOutputEnergy("_" + s_iter, false);
 			}
 
-			// Archive file (appending)
-			if (this->systems[0]->llg_parameters->save_output_archive)
+			// Archive file output (appending)
+			if (this->systems[0]->llg_parameters->output_configuration_archive)
 			{
-				writeoutput("_archive", true);
+				writeOutputConfiguration("_archive", true);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_archive)
+			{
+				writeOutputEnergy("_archive", true);
 			}
 
 			// Save Log

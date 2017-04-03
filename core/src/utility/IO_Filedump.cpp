@@ -61,7 +61,7 @@ namespace Utility
 		}
 		// ------------------------------------------------------------
 
-		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions)
+		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
 
@@ -97,12 +97,11 @@ namespace Utility
 			String_to_File(header, fileName);
 		}
 
-		void Append_Energy(Data::Spin_System & s, const int iteration, const std::string fileName)
+		void Append_Energy(Data::Spin_System & s, const int iteration, const std::string fileName, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
-			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			if (divide_by_nos) nd = 1.0 / s.nos;
+			if (normalize_by_nos) nd = 1.0 / s.nos;
 			else nd = 1;
 
 			s.UpdateEnergy();
@@ -124,12 +123,11 @@ namespace Utility
 			Append_String_to_File(line, fileName);
 		}
 
-		void Save_Energy_Spins(Data::Spin_System & s, const std::string fileName)
+		void Save_Energy_Spins(Data::Spin_System & s, const std::string fileName, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
-			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			if (divide_by_nos) nd = 1.0 / s.nos;
+			if (normalize_by_nos) nd = 1.0 / s.nos;
 			else nd = 1;
 
 			s.UpdateEnergy();
@@ -162,13 +160,12 @@ namespace Utility
 			Append_String_to_File(data, fileName);
 		}
 
-		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName)
+		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName, bool normalize_by_nos)
 		{
 			int isystem;
 			bool readability_toggle = true;
-			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			if (divide_by_nos) nd = 1.0 / c.images[0]->nos;
+			if (normalize_by_nos) nd = 1.0 / c.images[0]->nos;
 			else nd = 1;
 
 			Write_Energy_Header(*c.images[0], fileName, {"image", "Rx", "E_tot"});
@@ -195,13 +192,12 @@ namespace Utility
 		}
 
 
-		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName)
+		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
 		{
 			int isystem, iinterp, idx;
 			bool readability_toggle = true;
-			bool divide_by_nos = true;
 			scalar nd = 1.0; // nos divide
-			if (divide_by_nos) nd = 1.0 / c.images[0]->nos;
+			if (normalize_by_nos) nd = 1.0 / c.images[0]->nos;
 			else nd = 1;
 
 			Write_Energy_Header(*c.images[0], fileName, {"image", "iinterp", "Rx", "E_tot"});
@@ -238,7 +234,7 @@ namespace Utility
 		}
 
 
-		void Save_Energies_Spins(Data::Spin_System_Chain & c, const std::string fileName)
+		void Save_Energies_Spins(Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
 		{
 			/////////////////
 			// TODO: rewrite like other save_energy functions
@@ -247,7 +243,6 @@ namespace Utility
 			// //========================= Init local vars ================================
 			// int isystem, ispin, iE;
 			// bool readability_toggle = true;
-			// bool divide_by_nos = true;
 			// scalar nd = 1.0; // nos divide
 			// const int buffer_length = 200;
 			// std::string output_to_file = "";
@@ -275,7 +270,7 @@ namespace Utility
 			// 		}
 			// 	}
 			// 	// Normalise?
-			// 	if (divide_by_nos) { nd = 1.0 / nos; }
+			// 	if (normalize_by_nos) { nd = 1.0 / nos; }
 			// 	else { nd = 1; }
 			// 	// Write
 			// 	for (ispin = 0; ispin < nos; ++ispin)

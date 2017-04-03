@@ -70,12 +70,15 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# LLG Parameters #################\n";
-			config += "llg_output_save_any            " + std::to_string(parameters->save_output_any) + "\n";
-			config += "llg_output_save_initial        " + std::to_string(parameters->save_output_initial) + "\n";
-			config += "llg_output_save_final          " + std::to_string(parameters->save_output_final) + "\n";
-			config += "llg_output_save_energy         " + std::to_string(parameters->save_output_energy) + "\n";
-			config += "llg_output_save_single         " + std::to_string(parameters->save_output_single) + "\n";
-			config += "llg_output_save_archive        " + std::to_string(parameters->save_output_archive) + "\n";
+			config += "llg_output_any            " + std::to_string(parameters->output_any) + "\n";
+			config += "llg_output_initial        " + std::to_string(parameters->output_initial) + "\n";
+			config += "llg_output_final          " + std::to_string(parameters->output_final) + "\n";
+			config += "llg_output_energy_single           " + std::to_string(parameters->output_energy_single) + "\n";
+			config += "llg_output_energy_archive          " + std::to_string(parameters->output_energy_archive) + "\n";
+			config += "llg_output_energy_spin_resolved    " + std::to_string(parameters->output_energy_spin_resolved) + "\n";
+			config += "llg_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
+			config += "llg_output_configuration_single    " + std::to_string(parameters->output_configuration_single) + "\n";
+			config += "llg_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
 			config += "llg_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "llg_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
@@ -94,10 +97,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# GNEB Parameters ################\n";
-			config += "gneb_output_save_any           " + std::to_string(parameters->save_output_any) + "\n";
-			config += "gneb_output_save_initial       " + std::to_string(parameters->save_output_initial) + "\n";
-			config += "gneb_output_save_final         " + std::to_string(parameters->save_output_final) + "\n";
-			config += "gneb_output_save_energy        " + std::to_string(parameters->save_output_energy) + "\n";
+			config += "gneb_output_any           " + std::to_string(parameters->output_any) + "\n";
+			config += "gneb_output_initial       " + std::to_string(parameters->output_initial) + "\n";
+			config += "gneb_output_final         " + std::to_string(parameters->output_final) + "\n";
+			config += "gneb_output_energy        " + std::to_string(parameters->output_energy) + "\n";
 			config += "gneb_force_convergence         " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "gneb_n_iterations              " + std::to_string(parameters->n_iterations) + "\n";
 			config += "gneb_n_iterations_log          " + std::to_string(parameters->n_iterations_log) + "\n";
@@ -112,10 +115,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "################# MMF Parameters #################\n";
-			config += "mmf_output_save_any            " + std::to_string(parameters->save_output_any) + "\n";
-			config += "mmf_output_save_initial        " + std::to_string(parameters->save_output_initial) + "\n";
-			config += "mmf_output_save_final          " + std::to_string(parameters->save_output_final) + "\n";
-			config += "mmf_output_save_energy         " + std::to_string(parameters->save_output_energy) + "\n";
+			config += "mmf_output_any            " + std::to_string(parameters->output_any) + "\n";
+			config += "mmf_output_initial        " + std::to_string(parameters->output_initial) + "\n";
+			config += "mmf_output_final          " + std::to_string(parameters->output_final) + "\n";
+			config += "mmf_output_energy         " + std::to_string(parameters->output_energy) + "\n";
 			config += "mmf_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "mmf_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "mmf_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";

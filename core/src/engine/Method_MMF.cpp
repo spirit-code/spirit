@@ -342,9 +342,9 @@ namespace Engine
         this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
 
 		// File save
-		if (this->parameters->save_output_any)
+		if (this->parameters->output_any)
 		{
-			//if (initial && this->parameters->save_output_initial) return;
+			//if (initial && this->parameters->output_initial) return;
 
 			// Insert copies of the current systems into their corresponding chains
 			// - this way we will be able to look at the history of the optimizations
@@ -366,7 +366,7 @@ namespace Engine
 			// Append Each chain's new image to it's corresponding archive
 
 			// In the final save, we save all chains to file?
-			if (final && this->parameters->save_output_final)
+			if (final && this->parameters->output_final)
 			{
 
 			}
@@ -377,13 +377,13 @@ namespace Engine
 				auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
 				auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
 
-				// if (this->parameters->save_output_archive)
+				// if (this->parameters->output_archive)
 				// {
 					// Append Spin configuration to Spin_Archieve_File
 					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
 					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
 					
-					if (this->parameters->save_output_energy)
+					if (this->collection->parameters->output_energy)
 					{
 						// Append iteration, Rx and E to Energy file
 						scalar nd = 1.0 / this->systems[0]->nos; // nos divide

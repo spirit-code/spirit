@@ -184,7 +184,7 @@ namespace Engine
         this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
 
 		// File save
-		if (this->parameters->save_output_any && ( (initial && this->parameters->save_output_initial) || (final && this->parameters->save_output_final) ) )
+		if (this->parameters->output_any && ( (initial && this->parameters->output_initial) || (final && this->parameters->output_final) ) )
 		{
 			// Get the file suffix
 			std::string suffix = "";
@@ -198,7 +198,7 @@ namespace Engine
 			auto imagesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_Images_" + s_iter + suffix + ".txt";
 			Utility::IO::Save_SpinChain_Configuration(this->chain, imagesFile);
 
-			if (this->parameters->save_output_energy)
+			if (this->chain->gneb_parameters->output_energy)
 			{
 				// Save current Energies with reaction coordinates
 				auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
