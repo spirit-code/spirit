@@ -249,7 +249,7 @@ endif()
 ######### Tell CMake to create the shared library for the Python UI
 if( SPIRIT_BUILD_FOR_PYTHON )
 	set( SPIRIT_PYDIR ${PROJECT_SOURCE_DIR}/python )
-	set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/Spirit )
+	set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/spirit )
 	### Utility python files
 	configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
 	configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
