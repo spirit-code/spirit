@@ -66,6 +66,7 @@ private slots:
 	void save_SpinChain_Configuration();
 	void load_SpinChain_Configuration();
 	void save_Energies();
+	void save_Energy_Spins();
 	void return_focus();
 
 private:

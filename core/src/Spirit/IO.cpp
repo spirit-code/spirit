@@ -119,6 +119,16 @@ void IO_Collection_Write(State * state, const char * file, int idx_image, int id
 /*--------------------------------------- Data --------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
+void IO_Energy_Spins_Save(State * state, const char * file, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	// Write the data
+	Utility::IO::Save_Energy_Spins(*image, std::string(file));
+}
+
 void IO_Energies_Save(State * state, const char * file, int idx_chain)
 {
 	int idx_image = -1;
@@ -127,7 +137,7 @@ void IO_Energies_Save(State * state, const char * file, int idx_chain)
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Save_Energies(*chain, 0, std::string(file));
+	Utility::IO::Save_Energies(*chain, idx_chain, std::string(file));
 }
 
 

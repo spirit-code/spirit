@@ -99,6 +99,8 @@ namespace Utility
 		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true);
 		// Appends the current Energy of the current image with energy contributions, without header
 		void Append_Energy(Data::Spin_System &s, const int iteration, const std::string fileName);
+		// Save energy contributions per spin
+		void Save_Energy_Spins(Data::Spin_System & s, const std::string fileName);
 		// Saves Energies of all images with header and contributions
 		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName);
 		// Saves the Energies interpolated by the GNEB method

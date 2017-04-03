@@ -29,6 +29,7 @@ DLLEXPORT void IO_Collection_Read(State * state, const char * file, int idx_imag
 DLLEXPORT void IO_Collection_Write(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
 
 // Data
+DLLEXPORT void IO_Energy_Spins_Save(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void IO_Energies_Save(State * state, const char * file, int idx_chain = -1);
 DLLEXPORT void IO_Energies_Spins_Save(State * state, const char * file, int idx_chain = -1);
 DLLEXPORT void IO_Energies_Interpolated_Save(State * state, const char * file, int idx_chain = -1);

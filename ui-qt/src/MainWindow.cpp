@@ -64,6 +64,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Energies()));
+	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_Energy_Spins()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
@@ -1061,9 +1062,21 @@ void MainWindow::save_Energies()
 {
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
 		auto file = string_q2std(fileName);
 		IO_Energies_Save(this->state.get(), file.c_str());
+	}
+}
+
+void MainWindow::save_Energy_Spins()
+{
+	this->return_focus();
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies per Spin"), "./output", tr("Text (*.txt)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		IO_Energy_Spins_Save(this->state.get(), file.c_str());
 	}
 }
 

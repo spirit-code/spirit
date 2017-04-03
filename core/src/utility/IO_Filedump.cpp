@@ -124,6 +124,44 @@ namespace Utility
 			Append_String_to_File(line, fileName);
 		}
 
+		void Save_Energy_Spins(Data::Spin_System & s, const std::string fileName)
+		{
+			bool readability_toggle = true;
+			bool divide_by_nos = true;
+			scalar nd = 1.0; // nos divide
+			if (divide_by_nos) nd = 1.0 / s.nos;
+			else nd = 1;
+
+			s.UpdateEnergy();
+
+			Write_Energy_Header(s, fileName, {"ispin", "E_tot"});
+			
+			std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
+			s.hamiltonian->Energy_Contributions_per_Spin(*s.spins, contributions_spins);
+
+			std::string data = "";
+			for (int ispin=0; ispin<s.nos; ++ispin)
+			{
+				scalar E_spin=0;
+				for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
+				data += center(ispin, 0, 20) + "||" + center(E_spin * nd, 10, 20) + "||";
+				bool first = true;
+				for (auto pair : contributions_spins)
+				{
+					if (first) first = false;
+					else
+					{
+						data += "|";;
+					}
+					data += center(pair.second[ispin] * nd, 10, 20);
+				}
+				data += "\n";
+			}
+
+			if (!readability_toggle) std::replace( data.begin(), data.end(), '|', ' ');
+			Append_String_to_File(data, fileName);
+		}
+
 		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName)
 		{
 			int isystem;
