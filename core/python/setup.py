@@ -23,6 +23,7 @@ CLASSIFIERS = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: C",
+    "Programming Language :: C++",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -59,6 +60,14 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+class bdist_wheel(bdist_wheel_):
+    def finalize_options(self):
+        bdist_wheel_.finalize_options(self)
+        self.universal = True
+        self.plat_name_supplied = True
+        self.plat_name = get_platform()
+
+
 if __name__ == "__main__":
     long_description = read('README.md')
     setup(
@@ -77,6 +86,7 @@ if __name__ == "__main__":
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
         package_data={
-            'spirit': ['libSpirit.dylib'],
+            'spirit': ['libSpirit.dylib', 'libSpirit.so', 'libSpirit.dll'],
         },
+        cmdclass={'bdist_wheel': bdist_wheel},
     )
