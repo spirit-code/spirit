@@ -57,7 +57,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 
 void ControlWidget::updateData()
 {
-	// Check for running simulations
+	// Check for running simulations - update Play/Pause Button
 	if (Simulation_Running_Any(state.get()))
 	{
 		this->pushButton_PlayPause->setText("Pause");
@@ -66,6 +66,20 @@ void ControlWidget::updateData()
 	{
 		this->pushButton_PlayPause->setText("Play");
 	}
+
+	// Update the chain's data (primarily for the plot)
+	Chain_Update_Data(state.get());
+
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+	// Update NOI counter
+	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+
+	// Update Image-dependent Widgets
+	this->spinWidget->updateData();
+	this->settingsWidget->updateData();
+	// this->plotsWidget->updateData();
+	// this->debugWidget->updateData();
 }
 
 void ControlWidget::cycleMethod()
@@ -196,16 +210,9 @@ void ControlWidget::next_image()
 	{
 		// Change active image
 		Chain_next_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
-		// Update Play/Pause Button
-		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
-		else this->pushButton_PlayPause->setText("Play");
 
-		// Update Image-dependent Widgets
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();
-		// this->plotsWidget->updateData();
-		// this->debugWidget->updateData();
+		// Update
+		this->updateData();
 	}
 }
 
@@ -216,16 +223,9 @@ void ControlWidget::prev_image()
 	{
 		// Change active image!
 		Chain_prev_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
-		// Update Play/Pause Button
-		if (Simulation_Running_Any(state.get())) this->pushButton_PlayPause->setText("Pause");
-		else this->pushButton_PlayPause->setText("Play");
-
-		// Update Image-dependent Widgets
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();
-		// this->plotsWidget->updateData();
-		// this->debugWidget->updateData();
+		
+		// Update
+		this->updateData();
 	}
 }
 
@@ -234,15 +234,9 @@ void ControlWidget::jump_to_image()
 	// Change active image
 	int idx = this->lineEdit_ImageNumber->text().toInt()-1;
 	Chain_Jump_To_Image(this->state.get(), idx);
-	// Update Play/Pause Button
-	if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
-	else this->pushButton_PlayPause->setText("Play");
-
-	// Update Image-dependent Widgets
-	this->spinWidget->updateData();
-	this->settingsWidget->updateData();
-	// this->plotsWidget->updateData();
-	// this->debugWidget->updateData();
+	
+	// Update
+	this->updateData();
 }
 
 void ControlWidget::cut_image()
@@ -256,9 +250,6 @@ void ControlWidget::cut_image()
 
 		int idx = System_Get_Index(state.get());
 		if (idx > 0) Chain_prev_Image(this->state.get());
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();		
-		//else this->nextImagePressed();
 
 		if (Chain_Delete_Image(state.get(), idx)) 
 		{
@@ -267,8 +258,8 @@ void ControlWidget::cut_image()
 		}
 	}
 
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
+	// Update
+	this->updateData();
 }
 
 void ControlWidget::paste_image(std::string where)
@@ -300,15 +291,8 @@ void ControlWidget::paste_image(std::string where)
 		Chain_next_Image(this->state.get());
 	}
 
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
-
-	// Update the chain's data (primarily for the plot)
-	Chain_Update_Data(state.get());
-	// Update Visualisation
-	this->spinWidget->updateData();
-	// Update settings
-	this->settingsWidget->updateData();
+	// Update
+	this->updateData();
 }
 
 void ControlWidget::delete_image()
@@ -328,11 +312,9 @@ void ControlWidget::delete_image()
 
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 	}
-	this->spinWidget->updateData();
-	this->settingsWidget->updateData();
-
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
+	
+	// Update
+	this->updateData();
 }
 
 

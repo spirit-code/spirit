@@ -147,9 +147,14 @@ namespace Utility
 						{
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage+1));
+
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+								// Add to chain
+								c->noi++;
 								c->images.push_back(new_system);
+								c->image_type.push_back(Data::GNEB_Image_Type::Normal);
+								noi = c->noi;
 							}
 							nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 

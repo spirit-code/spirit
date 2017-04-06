@@ -1,5 +1,7 @@
 #include <Spirit/IO.h>
+#include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
+#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
@@ -87,6 +89,15 @@ void IO_Chain_Read(State * state, const char * file, int idx_image, int idx_chai
 
 	// Read the data
 	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
+
+	// Update state
+	State_Update(state);
+
+	// Update array lengths
+	Chain_Setup_Data(state, idx_chain);
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Read chain from file " + std::string(file), -1, idx_chain);
 }
 
 void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_chain)

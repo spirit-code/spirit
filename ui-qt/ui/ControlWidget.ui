@@ -244,19 +244,6 @@
    </item>
    <item row="0" column="9">
     <layout class="QGridLayout" name="gridLayout_1">
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pushButton_NextImage">
-       <property name="maximumSize">
-        <size>
-         <width>30</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>&gt;</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="pushButton_PreviousImage">
        <property name="maximumSize">
@@ -267,6 +254,19 @@
        </property>
        <property name="text">
         <string>&lt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="pushButton_NextImage">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>&gt;</string>
        </property>
       </widget>
      </item>
@@ -283,6 +283,13 @@
          <width>40</width>
          <height>40</height>
         </size>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="label_NOI">
+       <property name="text">
+        <string>/ 0</string>
        </property>
       </widget>
      </item>

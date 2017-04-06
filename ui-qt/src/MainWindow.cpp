@@ -1032,6 +1032,8 @@ void MainWindow::load_SpinChain_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Chain_Read(this->state.get(), file.c_str());
 	}
+	this->createStatusBar();
+	this->controlWidget->updateData();
 	this->spinWidget->updateData();
 }
 
