@@ -202,11 +202,11 @@ namespace Engine
 			{
 				// Save current Energies with reaction coordinates
 				auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Save_Energies(*this->chain, iteration, energiesFile);
+				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile);
 
 				// Save interpolated Energies
 				auto energiesInterpFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Save_Energies_Interpolated(*this->chain, energiesInterpFile);
+				Utility::IO::Write_Chain_Energies_Interpolated(*this->chain, energiesInterpFile);
 			}
 
 			// Save Log

@@ -51,6 +51,7 @@ private slots:
 	void save_EPressed();
 
 private:
+	void updateOthers();
 	void readSettings();
 	void writeSettings();
 	// State

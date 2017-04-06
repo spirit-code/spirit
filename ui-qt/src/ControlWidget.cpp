@@ -59,21 +59,20 @@ void ControlWidget::updateData()
 {
 	// Check for running simulations - update Play/Pause Button
 	if (Simulation_Running_Any(state.get()))
-	{
 		this->pushButton_PlayPause->setText("Pause");
-	}
 	else
-	{
 		this->pushButton_PlayPause->setText("Play");
-	}
-
-	// Update the chain's data (primarily for the plot)
-	Chain_Update_Data(state.get());
 
 	// Update Image number
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 	// Update NOI counter
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+}
+
+void ControlWidget::updateOthers()
+{
+	// Update the chain's data (primarily for the plot)
+	Chain_Update_Data(state.get());
 
 	// Update Image-dependent Widgets
 	this->spinWidget->updateData();
@@ -81,6 +80,7 @@ void ControlWidget::updateData()
 	// this->plotsWidget->updateData();
 	// this->debugWidget->updateData();
 }
+
 
 void ControlWidget::cycleMethod()
 {
@@ -213,6 +213,7 @@ void ControlWidget::next_image()
 
 		// Update
 		this->updateData();
+		this->updateOthers();
 	}
 }
 
@@ -226,6 +227,7 @@ void ControlWidget::prev_image()
 		
 		// Update
 		this->updateData();
+		this->updateOthers();
 	}
 }
 
@@ -237,6 +239,7 @@ void ControlWidget::jump_to_image()
 	
 	// Update
 	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::cut_image()
@@ -260,6 +263,7 @@ void ControlWidget::cut_image()
 
 	// Update
 	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::paste_image(std::string where)
@@ -293,6 +297,7 @@ void ControlWidget::paste_image(std::string where)
 
 	// Update
 	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::delete_image()
@@ -315,6 +320,7 @@ void ControlWidget::delete_image()
 	
 	// Update
 	this->updateData();
+	this->updateOthers();
 }
 
 
@@ -345,7 +351,7 @@ void ControlWidget::save_Energies()
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
 		auto file = string_q2std(fileName);
-		IO_Energies_Save(this->state.get(), file.c_str());
+		IO_Write_Chain_Energies(this->state.get(), file.c_str());
 	}
 }
 
@@ -370,9 +376,9 @@ void ControlWidget::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	IO_Energies_Save(this->state.get(), fullName.c_str());
-	IO_Energies_Spins_Save(this->state.get(), fullNameSpins.c_str());
-	IO_Energies_Interpolated_Save(this->state.get(), fullNameInterpolated.c_str());
+	IO_Write_System_Energy_per_Spin(this->state.get(), fullNameSpins.c_str());
+	IO_Write_Chain_Energies(this->state.get(), fullName.c_str());
+	IO_Write_Chain_Energies_Interpolated(this->state.get(), fullNameInterpolated.c_str());
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");

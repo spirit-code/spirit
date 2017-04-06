@@ -63,8 +63,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
-	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Energies()));
-	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_Energy_Spins()));
+	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
+	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
+	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
@@ -1060,25 +1061,38 @@ void MainWindow::load_Configuration()
 	}
 }
 
-void MainWindow::save_Energies()
-{
-	this->return_focus();
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		IO_Energies_Save(this->state.get(), file.c_str());
-	}
-}
 
-void MainWindow::save_Energy_Spins()
+
+void MainWindow::save_System_Energy_Spins()
 {
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies per Spin"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Energy_Spins_Save(this->state.get(), file.c_str());
+		IO_Write_System_Energy_per_Spin(this->state.get(), file.c_str());
+	}
+}
+
+void MainWindow::save_Chain_Energies()
+{
+	this->return_focus();
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		IO_Write_Chain_Energies(this->state.get(), file.c_str());
+	}
+}
+
+void MainWindow::save_Chain_Energies_Interpolated()
+{
+	this->return_focus();
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		IO_Write_Chain_Energies_Interpolated(this->state.get(), file.c_str());
 	}
 }
 

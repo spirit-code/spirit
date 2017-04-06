@@ -61,7 +61,7 @@ namespace Utility
 		}
 		// ------------------------------------------------------------
 
-		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions, bool normalize_by_nos)
+		void Write_Energy_Header(const Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
 
@@ -97,14 +97,14 @@ namespace Utility
 			String_to_File(header, fileName);
 		}
 
-		void Append_Energy(Data::Spin_System & s, const int iteration, const std::string fileName, bool normalize_by_nos)
+		void Append_System_Energy(const Data::Spin_System & s, const int iteration, const std::string fileName, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
 			scalar nd = 1.0; // nos divide
 			if (normalize_by_nos) nd = 1.0 / s.nos;
 			else nd = 1;
 
-			s.UpdateEnergy();
+			// s.UpdateEnergy();
 
 			std::string line = center(iteration, 0, 20) + "||" + center(s.E * nd, 10, 20) + "||";
 			bool first = true;
@@ -123,14 +123,40 @@ namespace Utility
 			Append_String_to_File(line, fileName);
 		}
 
-		void Save_Energy_Spins(Data::Spin_System & s, const std::string fileName, bool normalize_by_nos)
+		void Write_System_Energy(const Data::Spin_System & system, const std::string fileName, bool normalize_by_nos)
+		{
+			bool readability_toggle = true;
+			scalar nd = 1.0; // nos divide
+			if (normalize_by_nos) nd = 1.0 / system.nos;
+			else nd = 1;
+
+			Write_Energy_Header(system, fileName, {"E_tot"});
+
+			std::string line = center(system.E * nd, 10, 20) + "||";
+			bool first = true;
+			for (auto pair : system.E_array)
+			{
+				if (first) first = false;
+				else
+				{
+					line += "|";;
+				}
+				line += center(pair.second * nd, 10, 20);
+			}
+			line += "\n";
+
+			if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
+			Append_String_to_File(line, fileName);
+		}
+
+		void Write_System_Energy_per_Spin(const Data::Spin_System & s, const std::string fileName, bool normalize_by_nos)
 		{
 			bool readability_toggle = true;
 			scalar nd = 1.0; // nos divide
 			if (normalize_by_nos) nd = 1.0 / s.nos;
 			else nd = 1;
 
-			s.UpdateEnergy();
+			// s.UpdateEnergy();
 
 			Write_Energy_Header(s, fileName, {"ispin", "E_tot"});
 			
@@ -160,7 +186,11 @@ namespace Utility
 			Append_String_to_File(data, fileName);
 		}
 
-		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName, bool normalize_by_nos)
+		void Write_System_Force(const Data::Spin_System & s, const std::string fileName)
+		{
+		}
+
+		void Write_Chain_Energies(const Data::Spin_System_Chain & c, const int iteration, const std::string fileName, bool normalize_by_nos)
 		{
 			int isystem;
 			bool readability_toggle = true;
@@ -173,7 +203,7 @@ namespace Utility
 			for (isystem = 0; isystem < (int)c.noi; ++isystem)
 			{
 				auto& system = *c.images[isystem];
-				std::string line = center(isystem, 0, 20) + "||" + center(c.Rx[isystem], 0, 20) + "||" + center(system.E * nd, 10, 20) + "||";
+				std::string line = center(isystem, 0, 20) + "||" + center(c.Rx[isystem], 10, 20) + "||" + center(system.E * nd, 10, 20) + "||";
 				bool first = true;
 				for (auto pair : system.E_array)
 				{
@@ -191,8 +221,7 @@ namespace Utility
 			}
 		}
 
-
-		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
+		void Write_Chain_Energies_Interpolated(const Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
 		{
 			int isystem, iinterp, idx;
 			bool readability_toggle = true;
@@ -209,7 +238,7 @@ namespace Utility
 				for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations+1; ++iinterp)
 				{
 					idx = isystem * (c.gneb_parameters->n_E_interpolations+1) + iinterp;
-					std::string line = center(isystem, 0, 20) + "||" + center(iinterp, 0, 20) + "||" + center(c.Rx_interpolated[idx], 0, 20) + "||" + center(c.E_interpolated[idx] * nd, 10, 20) + "||";
+					std::string line = center(isystem, 0, 20) + "||" + center(iinterp, 0, 20) + "||" + center(c.Rx_interpolated[idx], 10, 20) + "||" + center(c.E_interpolated[idx] * nd, 10, 20) + "||";
 					
 					// TODO: interpolated Energy contributions
 					// bool first = true;
@@ -234,61 +263,7 @@ namespace Utility
 		}
 
 
-		void Save_Energies_Spins(Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
-		{
-			/////////////////
-			// TODO: rewrite like other save_energy functions
-			/////////////////
-
-			// //========================= Init local vars ================================
-			// int isystem, ispin, iE;
-			// bool readability_toggle = true;
-			// scalar nd = 1.0; // nos divide
-			// const int buffer_length = 200;
-			// std::string output_to_file = "";
-			// output_to_file.reserve(int(1E+08));
-			// char buffer_string_conversion[buffer_length + 2];
-			// snprintf(buffer_string_conversion, buffer_length, " isystem ||  ispin  ||         E_tot        ||       E_Zeeman      |       E_Aniso       |      E_Exchange     |        E_DMI        |        E_BQC        |       E_FourSC       |   E_DipoleDipole\n");
-			// if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			// output_to_file.append(buffer_string_conversion);
-			// snprintf(buffer_string_conversion, buffer_length, "---------++---------++----------------------++---------------------+---------------------+---------------------+---------------------+---------------------+----------------------+---------------------");
-			// if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-			// //------------------------ End Init ----------------------------------------
-
-			// int nos = (int)c.images[0]->nos;
-			// int noi = (int)c.noi;
-			// auto Energies_spins = std::vector<std::vector<scalar>>(nos, std::vector<scalar>(7, 0.0));
-			// auto E_tot_spins = std::vector<scalar>(nos, 0.0);
-			// for (isystem = 0; isystem < noi; ++isystem) {
-			// 	// Get Energies
-			// 	Energies_spins = c.images[isystem]->hamiltonian->Energy_Array_per_Spin(*c.images[isystem]->spins);
-			// 	for (ispin = 0; ispin < nos; ++ispin)
-			// 	{
-			// 		for (iE = 0; iE < 7; ++iE)
-			// 		{
-			// 			E_tot_spins[ispin] += Energies_spins[ispin][iE];
-			// 		}
-			// 	}
-			// 	// Normalise?
-			// 	if (normalize_by_nos) { nd = 1.0 / nos; }
-			// 	else { nd = 1; }
-			// 	// Write
-			// 	for (ispin = 0; ispin < nos; ++ispin)
-			// 	{
-			// 		snprintf(buffer_string_conversion, buffer_length, "\n %6i  || %6i  ||  %18.10f  ||  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f |  %18.10f  |  %18.10f",
-			// 			isystem, ispin, E_tot_spins[ispin] * nd, Energies_spins[ispin][ENERGY_POS_ZEEMAN] * nd, Energies_spins[ispin][ENERGY_POS_ANISOTROPY] * nd,
-			// 			Energies_spins[ispin][ENERGY_POS_EXCHANGE] * nd, Energies_spins[ispin][ENERGY_POS_DMI] * nd,
-			// 			Energies_spins[ispin][ENERGY_POS_BQC] * nd, Energies_spins[ispin][ENERGY_POS_FSC] * nd,
-			// 			Energies_spins[ispin][ENERGY_POS_DD] * nd);
-			// 		if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-			// 		output_to_file.append(buffer_string_conversion);
-			// 	}
-			// }
-			// Dump_to_File(output_to_file, fileName);
-		}
-
-
-		void Save_Forces(Data::Spin_System_Chain & c, const std::string fileName)
+		void Write_Chain_Forces(const Data::Spin_System_Chain & c, const std::string fileName)
 		{
 			/////////////////
 			// TODO: rewrite like save_energy functions
