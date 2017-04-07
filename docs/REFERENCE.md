@@ -1,18 +1,18 @@
 # Reference
 
-**Spirit** is a scientific project.
+The **Spirit** framework is a scientific project.
 If you present and/or publish scientific results that used Spirit,
 you should add a reference.
-
-
-### Papers
-Currently, the publication should you reference is:<br />
-(TBA)
 
 You may use e.g. the following TeX code:
     
     \bibitem{spirit}
     {Spirit spin simulation framework} (see spirit-code.github.io)
+
+
+### Papers
+Currently, the publication should you reference is:<br />
+(TBA)
 
 **Earlier papers**:
 
