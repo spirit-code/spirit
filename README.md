@@ -101,14 +101,15 @@ See [BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
 
 ![Desktop UI with Isosurfaces in a thin layer](http://imgur.com/QUcN4aG.jpg "Isosurfaces in a thin layer")
 
-The user interface provides a powerful OpenGL visualisation window.
+The user interface provides a powerful OpenGL visualisation window
+using the [VFRendering](https://github.com/FlorianRhiem/VFRendering) library.
 It provides functionality to
-- control calculations
-- locally insert configurations (homogeneous, skyrmions, spin spiral, ... )
-- generate homogeneous transition paths
-- change parameters of the Hamiltonian
-- change parameters of the Method and Optimizer
-- configure the visualization (arrows, isosurfaces, lighting, ...)
+- Control Calculations
+- Locally insert Configurations (homogeneous, skyrmions, spin spiral, ... )
+- Generate homogeneous Transition Paths
+- Change parameters of the Hamiltonian
+- Change parameters of the Method and Optimizer
+- Configure the Visualization (arrows, isosurfaces, lighting, ...)
 
 *Unfortunately, distribution of binaries for the Desktop UI is not possible due
 to the restrictive license on QT-Charts.*
@@ -129,7 +130,7 @@ or simply use
 
 	pip install spirit
 
-With this package you have access to powerful Python APIs to run and control
+With this package you have access to powerful [Python APIs](core/docs/API.md) to run and control
 dynamics simulations or optimizations.
 This is especially useful for work on clusters, where you can now script your
 workflow, never having to re-compile when testing, debugging or adding features.
