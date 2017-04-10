@@ -214,6 +214,17 @@ namespace Engine
 		}
 	}
 
+
+	void Method_GNEB::Lock()
+	{
+		this->chain->Lock();
+	}
+
+	void Method_GNEB::Unlock()
+	{
+		this->chain->Unlock();
+	}
+
 	// Optimizer name as string
     std::string Method_GNEB::Name() { return "GNEB"; }
 }

@@ -43,6 +43,11 @@ namespace Engine
 		// Finalize the optimization of the systems
 		virtual void Finalize();
 
+		// Lock systems in order to prevent otherwise access
+		virtual void Lock();
+		// Unlock systems to re-enable access
+		virtual void Unlock();
+
 		// Method name as string
 		virtual std::string Name();
 		// Method name as enum

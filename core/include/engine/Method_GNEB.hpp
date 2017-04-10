@@ -25,6 +25,11 @@ namespace Engine
 		// Check if the Forces are converged
 		bool Force_Converged() override;
 
+		// Lock systems in order to prevent otherwise access
+		void Lock();
+		// Unlock systems to re-enable access
+		void Unlock();
+
 		// Method name as string
 		std::string Name() override;
 

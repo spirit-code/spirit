@@ -86,7 +86,7 @@ namespace Engine
 		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
 		{
 			// Lock Systems
-			this->LockSystems();
+			this->method->Lock();
 
             // Pre-Iteration hook
             this->method->Hook_Pre_Iteration();
@@ -129,7 +129,7 @@ namespace Engine
 			}
 
 			// Unlock Systems
-			this->UnlockSystems();
+			this->method->Unlock();
 		}// endif i
 
         //---- End timings
@@ -208,14 +208,4 @@ namespace Engine
         Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Optimizer::Fullname() of the Optimizer base class!"), this->method->idx_image, this->method->idx_chain);
         return "--";
     }
-
-	void Optimizer::LockSystems()
-	{
-		for (auto system : this->method->systems) system->Lock();
-	}
-
-	void Optimizer::UnlockSystems()
-	{
-		for (auto system : this->method->systems) system->Unlock();
-	}
 }

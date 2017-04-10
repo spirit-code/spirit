@@ -72,7 +72,7 @@ void ControlWidget::updateData()
 void ControlWidget::updateOthers()
 {
 	// Update the chain's data (primarily for the plot)
-	Chain_Update_Data(state.get());
+	// Chain_Update_Data(state.get());
 
 	// Update Image-dependent Widgets
 	this->spinWidget->updateData();

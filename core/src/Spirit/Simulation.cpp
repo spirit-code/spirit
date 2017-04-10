@@ -312,6 +312,59 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 	return 0;
 }
 
+
+const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_chain)
+{
+    // Fetch correct indices and pointers for image and chain
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+	{
+		if (state->simulation_information_llg[idx_chain][idx_image])
+			return state->simulation_information_llg[idx_chain][idx_image]->optimizer->Name().c_str();
+	}
+	else if (Simulation_Running_GNEB(state, idx_chain))
+    {
+		if (state->simulation_information_gneb[idx_chain])
+			return state->simulation_information_gneb[idx_chain]->optimizer->Name().c_str();
+    }
+	else if (Simulation_Running_MMF(state))
+    {
+		if (state->simulation_information_mmf)
+			return state->simulation_information_mmf->optimizer->Name().c_str();
+    }
+
+	return "";
+}
+
+const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain)
+{
+    // Fetch correct indices and pointers for image and chain
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+	{
+		if (state->simulation_information_llg[idx_chain][idx_image])
+			return state->simulation_information_llg[idx_chain][idx_image]->method->Name().c_str();
+	}
+	else if (Simulation_Running_GNEB(state, idx_chain))
+    {
+		if (state->simulation_information_gneb[idx_chain])
+			return state->simulation_information_gneb[idx_chain]->method->Name().c_str();
+    }
+	else if (Simulation_Running_MMF(state))
+    {
+		if (state->simulation_information_mmf)
+			return state->simulation_information_mmf->method->Name().c_str();
+    }
+
+	return "";
+}
+
 bool Simulation_Running_Any_Anywhere(State *state)
 {
     if (Simulation_Running_LLG_Anywhere(state) ||

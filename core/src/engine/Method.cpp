@@ -73,6 +73,16 @@ namespace Engine
         return Vectormath::max_abs_component(force);
     }
 
+	void Method::Lock()
+	{
+		for (auto system : this->systems) system->Lock();
+	}
+
+	void Method::Unlock()
+	{
+		for (auto system : this->systems) system->Unlock();
+	}
+
     std::string Method::Name()
     {
         // Not Implemented!
