@@ -1,6 +1,5 @@
 // #include <QtWidgets>
 
-#include "MainWindow.hpp"
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
 #include "IsosurfaceWidget.hpp"
@@ -1753,6 +1752,11 @@ void SettingsWidget::SelectTab(int index)
 	this->tabWidget_Settings->setCurrentIndex(index);
 }
 
+void SettingsWidget::incrementNCellStep(int increment)
+{
+	this->spinBox_n_cell_steps->setValue(this->spinBox_n_cell_steps->value()+increment);
+	this->set_visualisation_n_cell_steps();
+}
 
 void SettingsWidget::print_Energies_to_console()
 {

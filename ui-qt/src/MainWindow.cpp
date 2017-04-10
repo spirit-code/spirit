@@ -450,6 +450,15 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_F5:
 				this->view_toggleDragMode();
 				break;
+			case Qt::Key_Equal:
+			case Qt::Key_Plus:
+				this->settingsWidget->incrementNCellStep(-1);
+				this->updateStatusBar();
+				break;
+			case Qt::Key_Minus:
+				this->settingsWidget->incrementNCellStep(1);
+				this->updateStatusBar();
+				break;
 			// 0: ...
 			case Qt::Key_0:
 				break;
@@ -674,7 +683,22 @@ void MainWindow::createStatusBar()
 	this->m_Label_Dims = new QLabel;
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
-	this->m_Label_Dims->setText(QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") + QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]));
+	int nth = this->spinWidget->visualisationNCellSteps();
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
+		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	if (nth == 2)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
+	}
+	else if (nth == 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("rd)");
+	}
+	else if (nth > 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("th)");
+	}
+	this->m_Label_Dims->setText(text);
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 
 
@@ -778,6 +802,26 @@ void MainWindow::updateStatusBar()
 			this->m_Labels_IPS[i]->setText(v_str[i]);
 		}
 	}
+
+	
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	int nth = this->spinWidget->visualisationNCellSteps();
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
+		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	if (nth == 2)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
+	}
+	else if (nth == 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("rd)");
+	}
+	else if (nth > 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("th)");
+	}
+	this->m_Label_Dims->setText(text);
 }
 
 void MainWindow::takeScreenshot()
@@ -964,7 +1008,8 @@ void MainWindow::keyBindings()
 			" - <b>Ctrl+R</b>:  Random configuration<br>"
 			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
 			"<br>"
-			"<i>Visualisation Mode</i><br>"
+			"<i>Visualisation</i><br>"
+			" - <b>+/-</b>:     Use more/fewer data points of the vector field<br>"
 			" - <b>1</b>:       Regular Visualisation Mode<br>"
 			" - <b>2</b>:       Isosurface Visualisation Mode<br>"
 			" - <b>3-5</b>:     Slab (X,Y,Z) Visualisation Mode<br>"
