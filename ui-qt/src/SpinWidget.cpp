@@ -595,7 +595,9 @@ int SpinWidget::visualisationNCellSteps()
 
 void SpinWidget::setVisualisationNCellSteps(int n_cell_steps)
 {
+	float size_before = this->arrowSize();
 	this->n_cell_step = n_cell_steps;
+	this->setArrows(size_before, this->arrowLOD());
 	this->updateData();
 }
 
@@ -980,20 +982,60 @@ void SpinWidget::setArrows(float size, int lod)
 	float cylinderradius = 0.125f;
 	float cylinderheight = 0.7f;
 
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
+	glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
+	glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
+	glm::vec3 bounding_box_center = { (bounds_min[0] + bounds_max[0]) / 2, (bounds_min[1] + bounds_max[1]) / 2, (bounds_min[2] + bounds_max[2]) / 2 };
+	glm::vec3 bounding_box_side_lengths = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
+
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+
+	float density = 0.01;
+	if (n_cells[0] > 1) density = std::max(density, n_cells[0] / (bounds_max[0] - bounds_min[0]));
+	if (n_cells[1] > 1) density = std::max(density, n_cells[1] / (bounds_max[1] - bounds_min[1]));
+	if (n_cells[2] > 1) density = std::max(density, n_cells[2] / (bounds_max[2] - bounds_min[2]));
+	density /= n_cell_step;
+
 	makeCurrent();
-	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(coneheight * size);
-	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(coneradius * size);
-	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(cylinderheight* size);
-	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(coneheight * size / density);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(coneradius * size / density);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>(cylinderheight* size / density);
+	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size / density);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>(lod);
 }
 
-float SpinWidget::arrowSize() const {
-	float size = options().get<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>() / 0.6f;
+float SpinWidget::arrowSize() const
+{
+	float b_min[3], b_max[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	glm::vec3 bounds_min = glm::make_vec3(b_min);
+	glm::vec3 bounds_max = glm::make_vec3(b_max);
+	glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
+	glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
+	glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
+	glm::vec3 bounding_box_center = { (bounds_min[0] + bounds_max[0]) / 2, (bounds_min[1] + bounds_max[1]) / 2, (bounds_min[2] + bounds_max[2]) / 2 };
+	glm::vec3 bounding_box_side_lengths = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
+
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	
+	float density = 0.01;
+	if (n_cells[0] > 1) density = std::max(density, n_cells[0] / (bounds_max[0] - bounds_min[0]));
+	if (n_cells[1] > 1) density = std::max(density, n_cells[1] / (bounds_max[1] - bounds_min[1]));
+	if (n_cells[2] > 1) density = std::max(density, n_cells[2] / (bounds_max[2] - bounds_min[2]));
+	density /= n_cell_step;
+
+	float size = options().get<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>() / 0.6f * density;
 	return size;
 }
 
-int SpinWidget::arrowLOD() const {
+int SpinWidget::arrowLOD() const
+{
 	int LOD = options().get<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>();
 	return LOD;
 }

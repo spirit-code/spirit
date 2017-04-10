@@ -1755,7 +1755,6 @@ void SettingsWidget::SelectTab(int index)
 void SettingsWidget::incrementNCellStep(int increment)
 {
 	this->spinBox_n_cell_steps->setValue(this->spinBox_n_cell_steps->value()+increment);
-	this->set_visualisation_n_cell_steps();
 }
 
 void SettingsWidget::print_Energies_to_console()
