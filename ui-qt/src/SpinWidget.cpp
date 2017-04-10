@@ -329,15 +329,15 @@ void SpinWidget::updateData()
 	/*positions.assign(spin_pos, spin_pos + 3*nos);
 	directions.assign(spins, spins + 3*nos);*/
 	int icell = 0;
-	for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
+	for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
 	{
-		for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+		for (int cell_b=0; cell_b<n_cells_draw[1]; cell_b++)
 		{
-			for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+			for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
 			{
 				for (int ibasis=0; ibasis < n_basis_atoms; ++ibasis)
 				{
-					int idx = ibasis + n_basis_atoms*cell_a + n_basis_atoms*n_cells[0]*cell_b + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c;
+					int idx = ibasis + n_basis_atoms*cell_a*n_cell_step + n_basis_atoms*n_cells[0]*cell_b*n_cell_step + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
 					// std::cerr << idx << " " << icell << std::endl;
 					positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
 					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
@@ -395,12 +395,10 @@ void SpinWidget::updateData()
 		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
 			std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
 		{
-			int n_cells[3];
-			Geometry_Get_N_Cells(state.get(), n_cells);
-			std::vector<float> xs(n_cells[0]), ys(n_cells[1]), zs(n_cells[2]);
-			for (int i = 0; i < n_cells[0]; ++i) xs[i] = positions[i].x;
-			for (int i = 0; i < n_cells[1]; ++i) ys[i] = positions[i*n_cells[0]].y;
-			for (int i = 0; i < n_cells[2]; ++i) zs[i] = positions[i*n_cells[0] * n_cells[1]].z;
+			std::vector<float> xs(n_cells_draw[0]), ys(n_cells_draw[1]), zs(n_cells_draw[2]);
+			for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = positions[i].x;
+			for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = positions[i*n_cells_draw[0]].y;
+			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
 			geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
 		}
 		// All others

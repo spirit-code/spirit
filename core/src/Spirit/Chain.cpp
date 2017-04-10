@@ -289,7 +289,8 @@ void Chain_Push_Back(State * state, int idx_chain_i)
 
         // Add to chain
         chain->noi++;
-        chain->images.push_back(copy);
+		chain->images.push_back(copy);
+		chain->images.back()->Lock();
         chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
             
 		// Add to state
