@@ -73,6 +73,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	idx_cycle=0;
 	slab_displacements = glm::vec3{0,0,0};
 
+	this->n_cell_step = 1;
+
 	this->show_surface = false;
 	this->show_miniview = true;
 	this->show_coordinatesystem = true;
@@ -304,8 +306,15 @@ void SpinWidget::screenShot(std::string filename)
 void SpinWidget::updateData()
 {
 	int nos = System_Get_NOS(state.get());
-	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos);
-	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos);
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(this->state.get());
+
+	int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
+	int nos_draw = n_basis_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+
+	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos_draw);
+	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos_draw);
 
 	// ToDo: Update the pointer to our Data instead of copying Data?
 	// Positions and directions
@@ -319,10 +328,23 @@ void SpinWidget::updateData()
 	//		copy
 	/*positions.assign(spin_pos, spin_pos + 3*nos);
 	directions.assign(spins, spins + 3*nos);*/
-	for (int i = 0; i < nos; ++i)
+	int icell = 0;
+	for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
 	{
-		positions[i] = glm::vec3(spin_pos[3*i], spin_pos[1 + 3*i], spin_pos[2 + 3*i]);
-		directions[i] = glm::vec3(spins[3*i], spins[1 + 3*i], spins[2 + 3*i]);
+		for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+		{
+			for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+			{
+				for (int ibasis=0; ibasis < n_basis_atoms; ++ibasis)
+				{
+					int idx = ibasis + n_basis_atoms*cell_a + n_basis_atoms*n_cells[0]*cell_b + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c;
+					// std::cerr << idx << " " << icell << std::endl;
+					positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
+					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
+					++icell;
+				}
+			}
+		}
 	}
 	//		rescale if effective field
 	if (this->m_source == 1)
@@ -340,16 +362,22 @@ void SpinWidget::updateData()
 			}
 		}
 	}
-
 	// Triangles and Tetrahedra
 	VFRendering::Geometry geometry;
 	//		get tetrahedra
 	if (Geometry_Get_Dimensionality(state.get()) == 3)
 	{
-		const std::array<VFRendering::Geometry::index_type, 4> *tetrahedra_indices_ptr = nullptr;
-		int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr));
-		std::vector<std::array<VFRendering::Geometry::index_type, 4>>  tetrahedra_indices(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
-		geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
+		if (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2)
+		{
+			geometry = VFRendering::Geometry(positions, {}, {}, true);
+		}
+		else
+		{
+			const std::array<VFRendering::Geometry::index_type, 4> *tetrahedra_indices_ptr = nullptr;
+			int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr), n_cell_step);
+			std::vector<std::array<VFRendering::Geometry::index_type, 4>>  tetrahedra_indices(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
+			geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
+		}
 	}
 	else if (Geometry_Get_Dimensionality(state.get()) == 2)
 	{
@@ -562,6 +590,17 @@ void SpinWidget::rotateCamera(float theta, float phi)
 
 
 //////////////////////////////////////////////////////////////////////////////////////
+int SpinWidget::visualisationNCellSteps()
+{
+	return this->n_cell_step;
+}
+
+void SpinWidget::setVisualisationNCellSteps(int n_cell_steps)
+{
+	this->n_cell_step = n_cell_steps;
+	this->updateData();
+}
+
 ///// --- Mode ---
 void SpinWidget::setVisualizationMode(SpinWidget::VisualizationMode visualization_mode)
 {

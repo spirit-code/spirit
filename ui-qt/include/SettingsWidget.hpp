@@ -73,6 +73,7 @@ private slots:
 	void set_hamiltonian_aniso_temp();
 	// Visualization
 	void set_visualisation_source();
+	void set_visualisation_n_cell_steps();
 	void set_visualization_mode();
 	void set_visualization_perspective();
 	void set_visualization_miniview();

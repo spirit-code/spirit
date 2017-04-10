@@ -84,14 +84,19 @@ namespace Data
         return tetrahedra;
     }
 
-	const std::vector<tetrahedron_t>& Geometry::triangulation()
+	const std::vector<tetrahedron_t>& Geometry::triangulation(int n_cell_step)
 	{
 		if (dimensionality == 2)
 		{
 			_triangulation.clear();
 			return _triangulation;
 		}
-		if (_triangulation.size() == 0)
+		if (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2)
+		{
+			_triangulation.clear();
+			return _triangulation;
+		}
+		if (_triangulation.size() != 6*n_cells[0]*n_cells[1]*n_cells[2]/n_cell_step/n_cell_step/n_cell_step)
 		{
 			bool is_simple_regular_geometry = true;
 			if (is_simple_regular_geometry)
@@ -106,18 +111,18 @@ namespace Data
 					0, 4, 3, 5
 					};
 				int x_offset = 1;
-				int y_offset = n_cells[0];
-				int z_offset = n_cells[0]*n_cells[1];
+				int y_offset = n_cells[0]/n_cell_step;
+				int z_offset = n_cells[0]/n_cell_step*n_cells[1]/n_cell_step;
 				int offsets[] = {
 					0, x_offset, x_offset+y_offset, y_offset,
 					z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
 					};
-        
-				for (int ix = 0; ix < n_cells[0]-1; ix++)
+			 
+				for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
 				{
-					for (int iy = 0; iy < n_cells[1]-1; iy++)
+					for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
 					{
-						for (int iz = 0; iz < n_cells[2]-1; iz++)
+						for (int iz = 0; iz < (n_cells[2]-1)/n_cell_step; iz++)
 						{
 							int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
 							for (int j = 0; j < 6; j++)
@@ -138,15 +143,29 @@ namespace Data
 			{
 				std::vector<vector_t> points;
 				points.resize(spin_pos.size());
-				for (std::vector<vector_t>::size_type i = 0; i < points.size(); i++)
+
+				int icell = 0, idx;
+				for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
 				{
-					points[i].x = spin_pos[i][0];
-					points[i].y = spin_pos[i][1];
-					points[i].z = spin_pos[i][2];
+					for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+					{
+						for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+						{
+							for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
+							{
+								idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
+								points[icell].x = spin_pos[idx][0];
+								points[icell].y = spin_pos[idx][1];
+								points[icell].z = spin_pos[idx][2];
+								++icell;
+							}
+						}
+					}
 				}
 				_triangulation = compute_delaunay_triangulation(points);
 			}
 		}
+				
 	return _triangulation;
 	}
 

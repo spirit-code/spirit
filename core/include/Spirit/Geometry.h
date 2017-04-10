@@ -33,7 +33,7 @@ DLLEXPORT int Geometry_Get_Dimensionality(State * state, int idx_image=-1, int i
 
 // Get the 3D Delaunay triangulation. Returns the number of tetrahedrons and
 // sets *indices_ptr to point to a list of index 4-tuples.
-DLLEXPORT int Geometry_Get_Triangulation(State * state, const int **indices_ptr, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT int Geometry_Get_Triangulation(State * state, const int **indices_ptr, int n_cell_step=1, int idx_image=-1, int idx_chain=-1);
 
 #include "DLL_Undefine_Export.h"
 #endif

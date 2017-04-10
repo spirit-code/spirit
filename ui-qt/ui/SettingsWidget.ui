@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1316,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2056</height>
+            <width>645</width>
+            <height>2036</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2258,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2056</height>
+            <width>645</width>
+            <height>2036</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2724,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3112,8 +3112,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3123,7 +3123,7 @@
               <string>General</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_61">
-              <item row="2" column="2">
+              <item row="3" column="2">
                <layout class="QGridLayout" name="gridLayout_76">
                 <item row="0" column="2">
                  <widget class="QRadioButton" name="radioButton_vismode_sphere">
@@ -3181,7 +3181,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_55">
                 <property name="maximumSize">
                  <size>
@@ -3194,7 +3194,7 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="9" column="0">
                <widget class="QLabel" name="label_57">
                 <property name="maximumSize">
                  <size>
@@ -3207,7 +3207,7 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="2">
+              <item row="4" column="2">
                <layout class="QGridLayout" name="gridLayout_67">
                 <item row="2" column="4">
                  <widget class="QCheckBox" name="checkBox_show_isosurface">
@@ -3275,7 +3275,7 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_56">
                 <property name="maximumSize">
                  <size>
@@ -3288,7 +3288,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="2">
+              <item row="7" column="2">
                <widget class="QSlider" name="horizontalSlider_spherePointSize">
                 <property name="minimumSize">
                  <size>
@@ -3307,7 +3307,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_47">
                 <property name="minimumSize">
                  <size>
@@ -3339,7 +3339,7 @@
                 </property>
                </spacer>
               </item>
-              <item row="8" column="2">
+              <item row="9" column="2">
                <layout class="QGridLayout" name="gridLayout_73">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_showMiniView">
@@ -3429,7 +3429,7 @@
                 </item>
                </widget>
               </item>
-              <item row="9" column="2">
+              <item row="10" column="2">
                <layout class="QGridLayout" name="gridLayout_74">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_showCoordinateSystem">
@@ -3488,7 +3488,7 @@
                 </item>
                </layout>
               </item>
-              <item row="9" column="0">
+              <item row="10" column="0">
                <widget class="QLabel" name="label_58">
                 <property name="maximumSize">
                  <size>
@@ -3501,7 +3501,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QLabel" name="label_46">
                 <property name="minimumSize">
                  <size>
@@ -3520,7 +3520,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="2">
+              <item row="5" column="2">
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
                  <widget class="QRadioButton" name="radioButton_perspectiveProjection">
@@ -3570,6 +3570,26 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>Every N'th translation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QSpinBox" name="spinBox_n_cell_steps">
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

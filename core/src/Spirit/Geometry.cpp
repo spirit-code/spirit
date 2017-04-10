@@ -126,14 +126,14 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
 }
 
 
-int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int idx_image, int idx_chain)
+int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain)
 {
   std::shared_ptr<Data::Spin_System> image;
   std::shared_ptr<Data::Spin_System_Chain> chain;
   from_indices(state, idx_image, idx_chain, image, chain);
 
   auto g = image->geometry;
-  auto& tetrahedra = g->triangulation();
+  auto& tetrahedra = g->triangulation(n_cell_step);
   if (indices_ptr != nullptr) {
 	  *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
   }

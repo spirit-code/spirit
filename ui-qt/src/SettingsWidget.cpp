@@ -570,6 +570,9 @@ void SettingsWidget::Load_Visualization_Contents()
 	else
 		this->radioButton_vismode_sphere->setChecked(true);
 	
+	// N_cell_steps (draw every N'th unit cell)
+	this->spinBox_n_cell_steps->setValue(this->_spinWidget->visualisationNCellSteps());
+
 	// System
 	bool show_arrows = _spinWidget->show_arrows;
 	bool show_boundingbox = _spinWidget->show_boundingbox;
@@ -1261,6 +1264,12 @@ void SettingsWidget::set_visualisation_source()
 	this->_spinWidget->setVisualisationSource(this->comboBox_VisualisationSource->currentIndex());
 }
 
+void SettingsWidget::set_visualisation_n_cell_steps()
+{
+	// N_cell_steps (draw every N'th unit cell)
+	this->_spinWidget->setVisualisationNCellSteps(this->spinBox_n_cell_steps->value());
+}
+
 void SettingsWidget::set_visualization_mode()
 {
 	SpinWidget::VisualizationMode mode;
@@ -1907,6 +1916,7 @@ void SettingsWidget::Setup_Transitions_Slots()
 void SettingsWidget::Setup_Visualization_Slots()
 {
 	connect(comboBox_VisualisationSource, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualisation_source()));
+	connect(spinBox_n_cell_steps, SIGNAL(valueChanged(int)), this, SLOT(set_visualisation_n_cell_steps()));
 	// Mode
 	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));

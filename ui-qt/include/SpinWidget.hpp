@@ -96,6 +96,8 @@ public:
   void removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer>);
 
   // --- Mode
+  int visualisationNCellSteps();
+  void setVisualisationNCellSteps(int n_cell_steps);
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
   SpinWidget::VisualizationMode visualizationMode();
   SpinWidget::VisualizationMode visMode;
@@ -229,6 +231,9 @@ private:
   void setupRenderers();
   bool m_gl_initialized;
   bool m_suspended;
+
+  int n_cell_step;
+  int n_basis_atoms;
 
   const VFRendering::Options& options() const;
   
