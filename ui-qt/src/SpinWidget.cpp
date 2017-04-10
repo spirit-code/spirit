@@ -233,10 +233,25 @@ void SpinWidget::initializeGL()
 
 	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
-		// 2D Surface options
-		// No options yet...
-		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
-		this->m_renderer_surface = m_renderer_surface_2D;
+		// Determine orthogonality of translation vectors
+		float ta[3], tb[3], tc[3];
+		Geometry_Get_Translation_Vectors(state.get(), ta, tb, tc);
+		float tatb = 0, tatc = 0, tbtc = 0;
+		for (int dim = 0; dim<3; ++dim)
+		{
+			tatb += ta[dim] * tb[dim];
+			tatc += ta[dim] * tc[dim];
+			tbtc += tb[dim] * tc[dim];
+		}
+		// Rectilinear with one basis atom
+		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
+			std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
+		{
+			// 2D Surface options
+			// No options yet...
+			this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
+			this->m_renderer_surface = m_renderer_surface_2D;
+		}
 	}
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
@@ -367,7 +382,7 @@ void SpinWidget::updateData()
 		}
 
 	}
-	else if (Geometry_Get_Dimensionality(state.get()) < 2)
+	else
 	{
 		geometry = VFRendering::Geometry(positions, {}, {}, true);
 	}
