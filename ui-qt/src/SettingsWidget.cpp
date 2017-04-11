@@ -613,30 +613,30 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
 
 	// Z Range Arrows
+	auto x_range = _spinWidget->xRangeDirection();
+	auto y_range = _spinWidget->yRangeDirection();
 	auto z_range = _spinWidget->zRangeDirection();
-	if (z_range.x < -1)
-		z_range.x = -1;
-	if (z_range.x > 1)
-		z_range.x = 1;
-	if (z_range.y < -1)
-		z_range.y = -1;
-	if (z_range.y > 1)
-		z_range.y = 1;
+	x_range.x = std::max(-1.0f, std::min(1.0f, x_range.x));
+	x_range.y = std::max(-1.0f, std::min(1.0f, x_range.y));
+	y_range.x = std::max(-1.0f, std::min(1.0f, y_range.x));
+	y_range.y = std::max(-1.0f, std::min(1.0f, y_range.y));
+	z_range.x = std::max(-1.0f, std::min(1.0f, z_range.x));
+	z_range.y = std::max(-1.0f, std::min(1.0f, z_range.y));
 
 	// Overall direction filter X
 	horizontalSlider_overall_dir_xmin->setInvertedAppearance(true);
 	horizontalSlider_overall_dir_xmin->setRange(-100, 100);
-	horizontalSlider_overall_dir_xmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_xmin->setValue((int)(-x_range.x * 100));
 	horizontalSlider_overall_dir_xmax->setRange(-100, 100);
-	horizontalSlider_overall_dir_xmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_xmax->setValue((int)(x_range.y * 100));
 	horizontalSlider_overall_dir_xmin->setTracking(true);
 	horizontalSlider_overall_dir_xmax->setTracking(true);
 	// Overall direction filter Y
 	horizontalSlider_overall_dir_ymin->setInvertedAppearance(true);
 	horizontalSlider_overall_dir_ymin->setRange(-100, 100);
-	horizontalSlider_overall_dir_ymin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_ymin->setValue((int)(-y_range.x * 100));
 	horizontalSlider_overall_dir_ymax->setRange(-100, 100);
-	horizontalSlider_overall_dir_ymax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_ymax->setValue((int)(y_range.y * 100));
 	horizontalSlider_overall_dir_ymin->setTracking(true);
 	horizontalSlider_overall_dir_ymax->setTracking(true);
 	// Overall direction filter Z
@@ -648,29 +648,45 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_overall_dir_zmin->setTracking(true);
 	horizontalSlider_overall_dir_zmax->setTracking(true);
 
+	x_range = _spinWidget->xRangePosition();
+	y_range = _spinWidget->yRangePosition();
 	z_range = _spinWidget->zRangePosition();
+
+	float b_min[3], b_max[3], b_range[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	for (int dim = 0; dim < 3; ++dim) b_range[dim] = b_max[dim] - b_min[dim];
+
+	float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
+	float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+
 	// Overall position filter X
 	//horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
+	range_min = x_range.x / b_range[0] - b_min[0];
+	range_max = x_range.y / b_range[0] - b_min[0];
 	horizontalSlider_overall_pos_xmin->setRange(0, 10000);
-	horizontalSlider_overall_pos_xmin->setValue(0);
+	horizontalSlider_overall_pos_xmin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_xmax->setRange(0, 10000);
-	horizontalSlider_overall_pos_xmax->setValue(10000);
+	horizontalSlider_overall_pos_xmax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_xmin->setTracking(true);
 	horizontalSlider_overall_pos_xmax->setTracking(true);
 	// Overall position filter Y
 	//horizontalSlider_overall_pos_ymin->setInvertedAppearance(true);
+	range_min = y_range.x / b_range[1] - b_min[1];
+	range_max = y_range.y / b_range[1] - b_min[1];
 	horizontalSlider_overall_pos_ymin->setRange(0, 10000);
-	horizontalSlider_overall_pos_ymin->setValue(0);
+	horizontalSlider_overall_pos_ymin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_ymax->setRange(0, 10000);
-	horizontalSlider_overall_pos_ymax->setValue(10000);
+	horizontalSlider_overall_pos_ymax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_ymin->setTracking(true);
 	horizontalSlider_overall_pos_ymax->setTracking(true);
 	// Overall position filter Z
 	//horizontalSlider_overall_pos_zmin->setInvertedAppearance(true);
+	range_min = z_range.x / b_range[2] - b_min[2];
+	range_max = z_range.y / b_range[2] - b_min[2];
 	horizontalSlider_overall_pos_zmin->setRange(0, 10000);
-	horizontalSlider_overall_pos_zmin->setValue(0);
+	horizontalSlider_overall_pos_zmin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_zmax->setRange(0, 10000);
-	horizontalSlider_overall_pos_zmax->setValue(10000);
+	horizontalSlider_overall_pos_zmax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_zmin->setTracking(true);
 	horizontalSlider_overall_pos_zmax->setTracking(true);
 

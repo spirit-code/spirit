@@ -505,7 +505,7 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->modifiers() & Qt::ShiftModifier)
 	{
-		scale = 0.1;
+		scale = 0.1f;
 	}
 
 	if (m_interactionmode == InteractionMode::DRAG)
@@ -755,7 +755,7 @@ void SpinWidget::setSlabRanges()
 		}
 	}
 
-	float mini_shift = 1e-5;
+	float mini_shift = 1e-5f;
 	x_range.x = std::max(bounds_min[0] + mini_shift, x_range.x );
 	x_range.y = std::min(bounds_max[0] - mini_shift, x_range.y);
 	y_range.x = std::max(bounds_min[1] + mini_shift, y_range.x);
@@ -995,7 +995,7 @@ void SpinWidget::setArrows(float size, int lod)
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 
-	float density = 0.01;
+	float density = 0.01f;
 	if (n_cells[0] > 1) density = std::max(density, n_cells[0] / (bounds_max[0] - bounds_min[0]));
 	if (n_cells[1] > 1) density = std::max(density, n_cells[1] / (bounds_max[1] - bounds_min[1]));
 	if (n_cells[2] > 1) density = std::max(density, n_cells[2] / (bounds_max[2] - bounds_min[2]));
@@ -1024,7 +1024,7 @@ float SpinWidget::arrowSize() const
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 	
-	float density = 0.01;
+	float density = 0.01f;
 	if (n_cells[0] > 1) density = std::max(density, n_cells[0] / (bounds_max[0] - bounds_min[0]));
 	if (n_cells[1] > 1) density = std::max(density, n_cells[1] / (bounds_max[1] - bounds_min[1]));
 	if (n_cells[2] > 1) density = std::max(density, n_cells[2] / (bounds_max[2] - bounds_min[2]));

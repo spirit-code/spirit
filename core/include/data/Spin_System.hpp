@@ -4,6 +4,7 @@
 
 #include <random>
 #include <memory>
+#include <mutex>
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>

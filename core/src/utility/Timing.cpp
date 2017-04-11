@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <ctime>
 
 namespace Utility
 {
