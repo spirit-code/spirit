@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OPTIMIZER_CG_H
-#define OPTIMIZER_CG_H
+#ifndef OPTIMIZER_NCG_H
+#define OPTIMIZER_NCG_H
 
 #include <engine/Optimizer.hpp>
 
@@ -9,10 +9,10 @@ namespace Engine
 	/*
 		Conjugate Gradient Optimizer
 	*/
-	class Optimizer_CG : public Optimizer
+	class Optimizer_NCG : public Optimizer
 	{
 	public:
-		Optimizer_CG(std::shared_ptr<Engine::Method> method);
+		Optimizer_NCG(std::shared_ptr<Engine::Method> method);
 
 		// One Iteration
 		void Iteration() override;

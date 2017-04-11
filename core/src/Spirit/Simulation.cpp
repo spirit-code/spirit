@@ -6,9 +6,10 @@
 #include <engine/Optimizer_Heun.hpp>
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Optimizer_SIB2.hpp>
-#include <engine/Optimizer_CG.hpp>
+#include <engine/Optimizer_NCG.hpp>
 #include <engine/Optimizer_VP.hpp>
 #include <engine/Method_LLG.hpp>
+#include <engine/Method_MC.hpp>
 #include <engine/Method_GNEB.hpp>
 #include <engine/Method_MMF.hpp>
 #include <utility/Logging.hpp>
@@ -36,6 +37,11 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
         if (n_iterations_log > 0) image->llg_parameters->n_iterations_log = n_iterations_log;
         method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
     }
+    else if (method_type == "MC")
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Monte Carlo is not yet implemented!");
+        return;
+    }
     else if (method_type == "GNEB")
     {
         if (Simulation_Running_LLG_Chain(state, idx_chain))
@@ -53,6 +59,8 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     }
     else if (method_type == "MMF")
     {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not yet implemented!");
+        return;
         if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
@@ -85,9 +93,11 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     {
         optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
     }
-    else if (optimizer_type == "CG")
+    else if (optimizer_type == "NCG")
     {
-        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "NCG is not yet implemented!");
+        return;
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_NCG(method));
     }
     else if (optimizer_type == "VP")
     {
@@ -148,6 +158,11 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			if (n_iterations_log > 0) image->llg_parameters->n_iterations_log = n_iterations_log;
             method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(image, idx_image, idx_chain));
         }
+        else if (method_type == "MC")
+        {
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Monte Carlo is not implemented!");
+            return;
+        }
         else if (method_type == "GNEB")
         {
             if (Simulation_Running_LLG_Chain(state, idx_chain))
@@ -170,6 +185,8 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         }
         else if (method_type == "MMF")
         {
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not implemented!");
+            return;
             if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
@@ -202,9 +219,11 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         {
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
         }
-        else if (optimizer_type == "CG")
+        else if (optimizer_type == "NCG")
         {
-            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_CG(method));
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "NCG is not implemented!");
+            return;
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_NCG(method));
         }
         else if (optimizer_type == "VP")
         {
@@ -223,6 +242,10 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		if (method_type == "LLG")
 		{
 			state->simulation_information_llg[idx_chain][idx_image] = info;
+		}
+		else if (method_type == "MC")
+		{
+			// state->simulation_information_mc[idx_chain][idx_image] = info;
 		}
 		else if (method_type == "GNEB")
 		{

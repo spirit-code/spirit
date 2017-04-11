@@ -19,9 +19,10 @@
 #define Log_Sender_IO   1
 #define Log_Sender_GNEB 2
 #define Log_Sender_LLG  3
-#define Log_Sender_MMF  4
-#define Log_Sender_API  5
-#define Log_Sender_UI   6
+#define Log_Sender_MC   4
+#define Log_Sender_MMF  5
+#define Log_Sender_API  6
+#define Log_Sender_UI   7
 
 struct State;
 

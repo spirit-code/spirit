@@ -194,7 +194,7 @@
        </item>
        <item>
         <property name="text">
-         <string>CG</string>
+         <string>NCG</string>
         </property>
        </item>
        <item>
@@ -216,12 +216,12 @@
        </item>
        <item>
         <property name="text">
-         <string>GNEB</string>
+         <string>MC</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>MMF</string>
+         <string>GNEB</string>
         </property>
        </item>
       </widget>

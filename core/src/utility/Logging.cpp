@@ -39,6 +39,7 @@ namespace Utility
 		else if(entry.sender == Log_Sender::API)  result.append("API ");
 		else if(entry.sender == Log_Sender::GNEB) result.append("GNEB");
 		else if(entry.sender == Log_Sender::LLG)  result.append("LLG ");
+		else if(entry.sender == Log_Sender::MC)   result.append("MC  ");
 		else if(entry.sender == Log_Sender::MMF)  result.append("MMF ");
 		else if(entry.sender == Log_Sender::UI)   result.append("UI  ");
 		// Chain Index

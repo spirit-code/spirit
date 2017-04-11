@@ -25,13 +25,14 @@ namespace Utility
 	*/
 	enum class Log_Sender
 	{
-		All = Log_Sender_All,
-		IO = Log_Sender_IO,
+		All  = Log_Sender_All,
+		IO   = Log_Sender_IO,
 		GNEB = Log_Sender_GNEB,
-		LLG = Log_Sender_LLG,
-		MMF = Log_Sender_MMF,
-		API = Log_Sender_API,
-		UI = Log_Sender_UI
+		LLG  = Log_Sender_LLG,
+		MC   = Log_Sender_MC,
+		MMF  = Log_Sender_MMF,
+		API  = Log_Sender_API,
+		UI   = Log_Sender_UI
 	};
 
 	// Unfortunately, we must ensure the equivalence of the defines and

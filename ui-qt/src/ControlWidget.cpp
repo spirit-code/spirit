@@ -146,6 +146,13 @@ void ControlWidget::play_pause()
 			this->threads_llg[System_Get_Index(state.get())] =
 				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
 		}
+		else if (this->s_method == "MC")
+		{
+			int idx = System_Get_Index(state.get());
+			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			this->threads_llg[System_Get_Index(state.get())] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+		}
 		else if (this->s_method == "GNEB")
 		{
 			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
