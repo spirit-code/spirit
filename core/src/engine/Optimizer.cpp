@@ -52,7 +52,7 @@ namespace Engine
 		this->starttime = Timing::CurrentDateTime();
         auto sender     = method->SenderName;
         //----
-		int i=0, step = 0;
+		int iteration=0, step = 0;
         //----
         std::stringstream maxforce_stream;
         maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
@@ -80,10 +80,10 @@ namespace Engine
 		auto t_last = system_clock::now();
 
         //---- Initial save
-		this->method->Save_Current(this->starttime, i, true, false);
+		this->method->Save_Current(this->starttime, iteration, true, false);
 
         //---- Iteration loop
-		for (i = 0; i < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++i)
+		for (iteration = 0; iteration < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++iteration)
 		{
 			// Lock Systems
 			this->method->Lock();
@@ -100,7 +100,7 @@ namespace Engine
 			this->t_iterations.push_back(system_clock::now());
 
 			// Log Output every n_iterations_log steps
-			if (i>0 && 0 == fmod(i, n_iterations_log))
+			if (iteration>0 && 0 == fmod(iteration, n_iterations_log))
 			{
 				++step;
 
@@ -114,16 +114,16 @@ namespace Engine
 
 				Log.SendBlock(Log_Level::All, sender,
 					{
-						"----- " + this->Name() + " Calculation",
-						"    Iteration step               " + std::to_string(step) + " / " + std::to_string(n_log),
-						"                               = " + std::to_string(i) + " / " + std::to_string(n_iterations),
-						"    Time since last step:        " + std::to_string(Timing::SecondsPassed(t_last, t_current)) + " seconds",
+						"----- " + this->method->Name() + " Calculation (" + this->Name() + " Optimizer): " + Timing::DateTimePassed(t_start, t_current),
+						"    Step                         " + std::to_string(step) + " / " + std::to_string(n_log),
+						"    Iteration                    " + std::to_string(iteration) + " / " + std::to_string(n_iterations),
+						"    Time since last step:        " + Timing::DateTimePassed(t_last, t_current),
 						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)),
 						"    Force convergence parameter: " + force_param,
 						"    Maximum force component:     " + maxforce
 					}, this->method->idx_image, this->method->idx_chain);
 
-				this->method->Save_Current(this->starttime, i, false, false);
+				this->method->Save_Current(this->starttime, iteration, false, false);
 
 				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
 			}
@@ -153,9 +153,10 @@ namespace Engine
 		block.push_back("------------ Terminated " + this->method->Name() + " Calculation ------------");
 		if (reason.length() > 0)
 			block.push_back("----- Reason:   " + reason);
-		block.push_back("----- Duration: " + std::to_string(Timing::MinutesPassed(t_start, t_end)) + " minutes.");
-		block.push_back("    Iteration step " + std::to_string(step) + " / " + std::to_string(n_log));
-		block.push_back("                 = " + std::to_string(i) + " / " + std::to_string(n_iterations));
+		block.push_back("----- Duration:       " + Timing::DateTimePassed(t_start, t_end));
+		block.push_back("    Step              " + std::to_string(step) + " / " + std::to_string(n_log));
+		block.push_back("    Iteration         " + std::to_string(iteration) + " / " + std::to_string(n_iterations));
+        block.push_back("    Iterations / sec: " + std::to_string(iteration / Timing::SecondsPassed(t_start, t_end)));
 		block.push_back("    Force convergence parameter: " + force_param);
 		block.push_back("    Maximum force component:     " + maxforce);
 		block.push_back("    Optimizer: " + this->FullName());
@@ -163,7 +164,7 @@ namespace Engine
 		Log.SendBlock(Log_Level::All, sender, block, this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
-		this->method->Save_Current(this->starttime, i, false, true);
+		this->method->Save_Current(this->starttime, iteration, false, true);
         //---- Finalize (set iterations_allowed to false etc.)
         this->method->Finalize();
     }

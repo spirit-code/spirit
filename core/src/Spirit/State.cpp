@@ -13,7 +13,7 @@ State * State_Setup(const char * config_file)
 {
     // Create the State
     State *state = new State();
-    state->datetime_creation = Utility::Timing::CurrentDateTime();
+    state->datetime_creation = system_clock::now();
 
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -84,7 +84,7 @@ State * State_Setup(const char * config_file)
     // Save the config
     if (Log.save_input)
     {
-        std::string file = "input_" + state->datetime_creation + ".txt";
+        std::string file = "input_" + Utility::Timing::TimePointToString(state->datetime_creation) + ".txt";
         State_To_Config(state, file.c_str(), config_file);
     }
 
@@ -103,6 +103,9 @@ void State_Delete(State * state)
 {
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
+    auto now = system_clock::now();
+    auto diff = Timing::DateTimePassed(state->datetime_creation, now);
+    Log(Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
 	delete(state);
     Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -163,7 +166,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
 
 const char * State_DateTime(State * state)
 {
-	return state->datetime_creation.c_str();
+	return Utility::Timing::TimePointToString(state->datetime_creation).c_str();
 }
 
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)

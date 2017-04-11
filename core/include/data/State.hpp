@@ -1,6 +1,7 @@
 #include <data/Spin_System_Chain_Collection.hpp>
 #include <engine/Optimizer.hpp>
 #include <engine/Method.hpp>
+#include <utility/Timing.hpp>
 
 /*
 	Simulation_Information
@@ -49,7 +50,7 @@ struct State
 	std::shared_ptr<Simulation_Information> simulation_information_mmf;
 
 	// Timepoint of creation
-	std::string datetime_creation;
+	system_clock::time_point datetime_creation;
 };
 
 
