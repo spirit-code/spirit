@@ -390,6 +390,12 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Space:
 				this->control_playpause();
 				break;
+			// Enter: Insert Configuration
+			case Qt::Key_Enter:
+			case Qt::Key_Return:
+				if (this->hasFocus() || this->spinWidget->hasFocus())
+					this->control_insertconfiguration();
+				break;
 			// WASDQE
 			case Qt::Key_W:
 				this->spinWidget->moveCamera(-2 * scale, 0, 0);
@@ -890,6 +896,11 @@ void MainWindow::edit_delete()
 void MainWindow::control_random()
 {
 	this->settingsWidget->randomPressed();
+}
+
+void MainWindow::control_insertconfiguration()
+{
+	this->settingsWidget->lastConfiguration();
 }
 
 void MainWindow::control_playpause()

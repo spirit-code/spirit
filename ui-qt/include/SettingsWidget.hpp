@@ -29,6 +29,7 @@ public slots:
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();
+	void lastConfiguration();
 
 private:
 	// Setup Input Validators
@@ -45,6 +46,8 @@ private:
 	void Load_Hamiltonian_Anisotropic_Contents();
 	void Load_Parameters_Contents();
 	void Load_Visualization_Contents();
+	// Last used configuration
+	std::string last_configuration;
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;
 	QRegularExpressionValidator * number_validator_unsigned;

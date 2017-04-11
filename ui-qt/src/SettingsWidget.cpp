@@ -69,6 +69,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 		this->tabWidget_Settings->removeTab(2);
 	}
 
+	this->last_configuration = "";
+
 	// Load information from Spin Systems
 	this->updateData();
 	//this->set_visualization_mode();
@@ -149,6 +151,21 @@ float SettingsWidget::get_inverted()
 // -----------------------------------------------------------------------------------
 // --------------------- Configurations and Transitions ------------------------------
 // -----------------------------------------------------------------------------------
+void SettingsWidget::lastConfiguration()
+{
+	if (last_configuration != "")
+	{
+		Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Inserting last used configuration");
+		if (this->last_configuration == "hopfion")
+			this->create_Hopfion();
+		else if (this->last_configuration == "skyrmion")
+			this->create_Skyrmion();
+		else if (this->last_configuration == "spinspiral")
+			this->create_SpinSpiral();
+		else if (this->last_configuration == "domain")
+			this->domainPressed();
+	}
+}
 void SettingsWidget::randomPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
@@ -222,6 +239,7 @@ void SettingsWidget::plusZ()
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
+	this->last_configuration = "hopfion";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -243,6 +261,7 @@ void SettingsWidget::create_Hopfion()
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
+	this->last_configuration = "skyrmion";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -269,6 +288,7 @@ void SettingsWidget::create_Skyrmion()
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
+	this->last_configuration = "spinspiral";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -295,6 +315,7 @@ void SettingsWidget::create_SpinSpiral()
 void SettingsWidget::domainPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Domain");
+	this->last_configuration = "domain";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();

@@ -42,6 +42,7 @@ private slots:
 	void edit_insert_left();
 	void edit_delete();
 	void control_random();
+	void control_insertconfiguration();
 	void control_playpause();
 	void control_cycle_method();
 	void control_cycle_optimizer();
