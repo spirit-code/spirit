@@ -3,7 +3,7 @@ SPIRIT
 **SPIN SIMULATION FRAMEWORK**<br />
 
 The code is released under [MIT License](LICENSE.txt).<br />
-If you intend to *present and/or publish* scientific results for which you used Spirit,
+If you intend to *present and/or publish* scientific results or visualisations for which you used Spirit,
 please read the [REFERENCE.md](docs/REFERENCE.md)
 
 This is an open project and contributions and collaborations are always welcome!!
