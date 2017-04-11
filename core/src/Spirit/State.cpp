@@ -106,6 +106,8 @@ void State_Delete(State * state)
     auto now = system_clock::now();
     auto diff = Timing::DateTimePassed(state->datetime_creation, now);
     Log(Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
+    Log(Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + std::to_string(Log_Get_N_Errors(state)) );
+    Log(Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + std::to_string(Log_Get_N_Warnings(state)) );
 	delete(state);
     Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");

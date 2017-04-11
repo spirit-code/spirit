@@ -69,6 +69,8 @@ namespace Utility
 		save_output   = false;
 		save_input    = true;
 		n_entries     = 0;
+		n_errors      = 0;
+		n_warnings    = 0;
 	}
 
 	void LoggingHandler::Send(Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
@@ -82,6 +84,12 @@ namespace Utility
 
 		// Increment message count
 		n_entries++;
+		// Increment error count
+		if (level == Log_Level::Error)
+			n_errors++;
+		// Increment warning count
+		if (level == Log_Level::Warning)
+			n_warnings++;
 
 		// If level <= verbosity, we print to console
 		if (level <= print_level && level <= accept_level)

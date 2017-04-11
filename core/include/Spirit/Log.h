@@ -36,14 +36,20 @@ namespace Utility
 }
 std::vector<Utility::LogEntry> Log_Get_Entries(State *state);
 
-// Get the number of Log entries
-DLLEXPORT int Log_Get_N_Entries(State *state);
-
 // Append the Log to it's file
 DLLEXPORT void Log_Append(State *state);
 
 // Dump the Log into it's file
 DLLEXPORT void Log_Dump(State *state);
+
+// Get the number of Log entries
+DLLEXPORT int Log_Get_N_Entries(State *state);
+
+// Get the number of errors in the Log
+DLLEXPORT int Log_Get_N_Errors(State *state);
+
+// Get the number of warnings in the Log
+DLLEXPORT int Log_Get_N_Warnings(State *state);
 
 #include "DLL_Undefine_Export.h"
 #endif

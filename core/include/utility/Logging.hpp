@@ -101,6 +101,10 @@ namespace Utility
 		std::string fileName;
 		// Number of Log entries
 		int n_entries;
+		// Number of errors in the Log
+		int n_errors;
+		// Number of warnings in the Log
+		int n_warnings;
 
 		// Retrieve the singleton instance
 		static LoggingHandler& getInstance()
