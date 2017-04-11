@@ -1,12 +1,8 @@
 #include <engine/Method_LLG.hpp>
-#include <engine/Optimizer_Heun.hpp>
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/IO.hpp>
-#include <utility/Configurations.hpp>
-#include <utility/Timing.hpp>
-#include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>

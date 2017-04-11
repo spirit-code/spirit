@@ -1,15 +1,17 @@
-#include <Spirit/Simulation.h>
 #include <Spirit/State.h>
+#include <Spirit/Simulation.h>
 #include <Spirit/Chain.h>
+
 #include <data/State.hpp>
-#include <utility/Logging.hpp>
-#include <engine/Optimizer.hpp>
 #include <engine/Optimizer_Heun.hpp>
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Optimizer_SIB2.hpp>
 #include <engine/Optimizer_CG.hpp>
 #include <engine/Optimizer_VP.hpp>
-#include <engine/Method.hpp>
+#include <engine/Method_LLG.hpp>
+#include <engine/Method_GNEB.hpp>
+#include <engine/Method_MMF.hpp>
+#include <utility/Logging.hpp>
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 

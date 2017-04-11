@@ -1,5 +1,4 @@
 #include <Spirit/Quantities.h>
-#include <Spirit/State.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 

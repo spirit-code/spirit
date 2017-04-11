@@ -4,7 +4,6 @@
 #include <engine/Manifoldmath.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/IO.hpp>
-#include <utility/Timing.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>

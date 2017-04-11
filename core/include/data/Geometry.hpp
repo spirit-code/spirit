@@ -6,7 +6,6 @@
 #include <engine/Vectormath_Defines.hpp>
 
 #include <vector>
-#include <array>
 
 namespace Data
 {

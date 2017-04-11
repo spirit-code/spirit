@@ -1,5 +1,5 @@
-#include <Spirit/Chain.h>
 #include <Spirit/State.h>
+#include <Spirit/Chain.h>
 #include <Spirit/Simulation.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>

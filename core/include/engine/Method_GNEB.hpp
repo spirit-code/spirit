@@ -26,9 +26,9 @@ namespace Engine
 		bool Force_Converged() override;
 
 		// Lock systems in order to prevent otherwise access
-		void Lock();
+		void Lock() override;
 		// Unlock systems to re-enable access
-		void Unlock();
+		void Unlock() override;
 
 		// Method name as string
 		std::string Name() override;

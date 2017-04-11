@@ -7,6 +7,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>
 #include <utility/Timing.hpp>
+#include <utility/Logging.hpp>
 
 #include <deque>
 #include <fstream>

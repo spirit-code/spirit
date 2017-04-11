@@ -1,6 +1,4 @@
 #include <Spirit/Geometry.h>
-#include <Spirit/State.h>
-
 #include <data/State.hpp>
 
 scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain)

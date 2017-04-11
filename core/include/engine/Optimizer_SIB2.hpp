@@ -7,7 +7,7 @@
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Optimizer.hpp>
-#include <data/Spin_System_Chain.hpp>
+#include <data/Spin_System.hpp>
 
 namespace Engine
 {

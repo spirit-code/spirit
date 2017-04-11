@@ -1,5 +1,4 @@
 #include <engine/Optimizer_Heun.hpp>
-#include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
 
 #include <Eigen/Dense>

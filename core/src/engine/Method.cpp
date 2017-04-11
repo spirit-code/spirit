@@ -1,6 +1,8 @@
 #include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 namespace Engine
 {

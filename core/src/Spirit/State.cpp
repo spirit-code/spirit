@@ -1,10 +1,11 @@
 #include <Spirit/State.h>
 #include <data/State.hpp>
 #include "Spirit_Defines.h"
-#include <utility/Logging.hpp>
 #include <utility/IO.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 using namespace Utility;
 

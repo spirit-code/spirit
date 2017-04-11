@@ -9,6 +9,8 @@
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
 
+#include <array>
+
 namespace Data
 {
 	Geometry::Geometry(std::vector<Vector3> basis_i, const std::vector<Vector3> translation_vectors_i,

@@ -3,7 +3,6 @@
 #define UTILITY_TIMING_H
 
 #include <string>
-#include <ctime>
 #include <chrono>
 
 #include "Spirit_Defines.h"

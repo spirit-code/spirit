@@ -3,7 +3,6 @@
 #define OPTIMIZER_H
 
 #include "Spirit_Defines.h"
-#include <data/Spin_System.hpp>
 #include <engine/Method.hpp>
 #include <utility/Logging.hpp>
 
