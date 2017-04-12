@@ -1,9 +1,9 @@
-#include <engine/Optimizer_CG.hpp>
+#include <engine/Optimizer_NCG.hpp>
 
 
 namespace Engine
 {
-    Optimizer_CG::Optimizer_CG(std::shared_ptr<Engine::Method> method) :
+    Optimizer_NCG::Optimizer_NCG(std::shared_ptr<Engine::Method> method) :
         Optimizer(method)
     {
 		// int jmax = 500;
@@ -19,7 +19,7 @@ namespace Engine
 		// d = r //+ beta*d
     }
 
-    void Optimizer_CG::Iteration()
+    void Optimizer_NCG::Iteration()
     {
         // Not Implemented!
         Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Optimizer::Step() of the Optimizer base class!"));
@@ -51,6 +51,6 @@ namespace Engine
     }
 
     // Optimizer name as string
-    std::string Optimizer_CG::Name() { return "CG"; }
-    std::string Optimizer_CG::FullName() { return "Conjugate Gradient"; }
+    std::string Optimizer_NCG::Name() { return "NCG"; }
+    std::string Optimizer_NCG::FullName() { return "Nonlinear Conjugate Gradient"; }
 }

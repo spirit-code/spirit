@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <ctime>
 
 namespace Utility
 {
@@ -46,10 +47,15 @@ namespace Utility
         
         std::string DateTimePassed(system_clock::time_point t1, system_clock::time_point t2)
         {
-            // Time Difference
-            auto dt = system_clock::time_point(t2 - t1);
+            // Time Differences
+            duration<scalar> _dt = t2 - t1;
+            scalar dt = _dt.count();
+            int dt_h  = (int)(dt / 3600.0);
+            int dt_m  = (int)((dt-3600*dt_h) / 60.0);
+            int dt_s  = (int)(dt-3600*dt_h-60*dt_m);
+            int dt_ms = (int)((dt-3600*dt_h-60*dt_m-dt_s)*1e3);
             // Return String
-            return TimePointToString(dt);
+            return std::to_string(dt_h) + ":" + std::to_string(dt_m) + ":" + std::to_string(dt_s) + "." + std::to_string(dt_ms);
         }
         
         scalar MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
@@ -73,7 +79,7 @@ namespace Utility
         scalar HoursPassed(system_clock::time_point t1, system_clock::time_point t2)
         {
             duration<scalar> dt = t2 - t1;
-			return dt.count() / 360.0;
+			return dt.count() / 3600.0;
         }
     }
 }

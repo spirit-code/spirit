@@ -53,25 +53,51 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->gridLayout_2->addWidget(this->controlWidget, 0, 0, 1, 1);
 
 	// Read Window settings of last session
-	this->fullscreen_spins = false;
+	this->view_spins_only = false;
+	this->view_fullscreen = false;
+	this->m_spinWidgetActive = true;
 	readSettings();
-
-	
 
 
 	// File Menu
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
-	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Energies()));
+	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
+	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
+	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
+	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
+	
+	// Edit Menu
+	connect(this->actionCut_Configuration, SIGNAL(triggered()), this, SLOT(edit_cut()));
+	connect(this->actionCopy_Configuration, SIGNAL(triggered()), this, SLOT(edit_copy()));
+	connect(this->actionPaste_Configuration, SIGNAL(triggered()), this, SLOT(edit_paste()));
+	connect(this->actionInsert_Left, SIGNAL(triggered()), this, SLOT(edit_insert_left()));
+	connect(this->actionInsert_Right, SIGNAL(triggered()), this, SLOT(edit_insert_right()));
+	connect(this->actionDelete_Configuration, SIGNAL(triggered()), this, SLOT(edit_delete()));
+	
+	// Control Menu
+	connect(this->actionPlay_Pause_Simulation, SIGNAL(triggered()), this, SLOT(control_playpause()));
+	connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
+	connect(this->actionCycle_Method, SIGNAL(triggered()), this, SLOT(control_cycle_method()));
+	connect(this->actionCycle_Optimizer, SIGNAL(triggered()), this, SLOT(control_cycle_optimizer()));
+	connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
 
 	// View Menu
 	connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
 	connect(this->actionShow_Plots, SIGNAL(triggered()), this, SLOT(view_togglePlots()));
 	connect(this->actionShow_Debug, SIGNAL(triggered()), this, SLOT(view_toggleDebug()));
-	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen_spins()));
+	connect(this->actionToggle_camera_projection, SIGNAL(triggered()), this, SLOT(view_cycle_camera()));
+	connect(this->actionRegular_mode, SIGNAL(triggered()), this, SLOT(view_regular_mode()));
+	connect(this->actionIsosurface_mode, SIGNAL(triggered()), this, SLOT(view_isosurface_mode()));
+	connect(this->actionSlab_mode_X, SIGNAL(triggered()), this, SLOT(view_slab_x()));
+	connect(this->actionSlab_mode_Y, SIGNAL(triggered()), this, SLOT(view_slab_y()));
+	connect(this->actionSlab_mode_Z, SIGNAL(triggered()), this, SLOT(view_slab_z()));
+	connect(this->actionToggle_visualisation, SIGNAL(triggered()), this, SLOT(toggleSpinWidget()));
+	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(view_toggle_spins_only()));
+	connect(this->actionToggle_fullscreen_window, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen()));
 
 	// Help Menu
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
@@ -149,52 +175,88 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 }
 
 
-void MainWindow::view_toggle_fullscreen_spins()
+void MainWindow::view_toggle_spins_only()
 {
-	if (this->fullscreen_spins)
+	if (this->view_spins_only)
 	{
-		this->fullscreen_spins = false;
+		this->view_spins_only = false;
+		Ui::MainWindow::statusBar->showMessage(tr("Showing UI controls"), 5000);
 
-		if (!this->pre_fullscreen_settings_hidden)
+		if (!this->pre_spins_only_settings_hidden)
 		{
 			dockWidget_Settings->show();
-			dockWidget_Settings->topLevelWidget()->resize(pre_fullscreen_settings_size);
-			dockWidget_Settings->move(pre_fullscreen_settings_pos);
+			dockWidget_Settings->topLevelWidget()->resize(pre_spins_only_settings_size);
+			dockWidget_Settings->move(pre_spins_only_settings_pos);
 		}
-		if (!this->pre_fullscreen_plots_hidden)
+		if (!this->pre_spins_only_plots_hidden)
 		{
 			dockWidget_Plots->show();
-			dockWidget_Plots->topLevelWidget()->resize(pre_fullscreen_plots_size);
-			dockWidget_Plots->move(pre_fullscreen_plots_pos);
+			dockWidget_Plots->topLevelWidget()->resize(pre_spins_only_plots_size);
+			dockWidget_Plots->move(pre_spins_only_plots_pos);
 		}
-		if (!this->pre_fullscreen_debug_hidden)
+		if (!this->pre_spins_only_debug_hidden)
 		{
 			dockWidget_Debug->show();
-			dockWidget_Debug->topLevelWidget()->resize(pre_fullscreen_debug_size);
-			dockWidget_Debug->move(pre_fullscreen_debug_pos);
+			dockWidget_Debug->topLevelWidget()->resize(pre_spins_only_debug_size);
+			dockWidget_Debug->move(pre_spins_only_debug_pos);
 		}
 		this->controlWidget->show();
 	}
 	else
 	{
-		this->fullscreen_spins = true;
+		this->view_spins_only = true;
+		Ui::MainWindow::statusBar->showMessage(tr("Hiding UI controls"), 5000);
 		
-		this->pre_fullscreen_settings_hidden = dockWidget_Settings->isHidden();
-		this->pre_fullscreen_settings_size = dockWidget_Settings->topLevelWidget()->size();
-		this->pre_fullscreen_settings_pos = dockWidget_Settings->pos();
+		this->pre_spins_only_settings_hidden = dockWidget_Settings->isHidden();
+		this->pre_spins_only_settings_size = dockWidget_Settings->topLevelWidget()->size();
+		this->pre_spins_only_settings_pos = dockWidget_Settings->pos();
 
-		this->pre_fullscreen_plots_hidden = dockWidget_Plots->isHidden();
-		this->pre_fullscreen_plots_size = dockWidget_Plots->topLevelWidget()->size();
-		this->pre_fullscreen_plots_pos = dockWidget_Plots->pos();
+		this->pre_spins_only_plots_hidden = dockWidget_Plots->isHidden();
+		this->pre_spins_only_plots_size = dockWidget_Plots->topLevelWidget()->size();
+		this->pre_spins_only_plots_pos = dockWidget_Plots->pos();
 
-		this->pre_fullscreen_debug_hidden = dockWidget_Debug->isHidden();
-		this->pre_fullscreen_debug_size = dockWidget_Debug->topLevelWidget()->size();
-		this->pre_fullscreen_debug_pos = dockWidget_Debug->pos();
+		this->pre_spins_only_debug_hidden = dockWidget_Debug->isHidden();
+		this->pre_spins_only_debug_size = dockWidget_Debug->topLevelWidget()->size();
+		this->pre_spins_only_debug_pos = dockWidget_Debug->pos();
 
 		this->dockWidget_Settings->hide();
 		this->dockWidget_Plots->hide();
 		this->dockWidget_Debug->hide();
 		this->controlWidget->hide();
+	}
+}
+
+
+void MainWindow::view_toggle_fullscreen()
+{
+	if (this->view_fullscreen)
+	{
+		this->view_fullscreen = false;
+		Ui::MainWindow::statusBar->showMessage(tr("Switching off fullscreen"), 5000);
+		this->showMaximized();
+	}
+	else
+	{
+		this->view_fullscreen = true;
+		Ui::MainWindow::statusBar->showMessage(tr("Switching to fullscreen"), 5000);
+		this->windowHandle()->setScreen(qApp->screens().last());
+		this->showFullScreen();
+		this->setWindowState(Qt::WindowState::WindowFullScreen);
+	}
+}
+
+
+void MainWindow::toggleSpinWidget()
+{
+	if (this->m_spinWidgetActive)
+	{
+		this->spinWidget->setSuspended(true);
+		this->m_spinWidgetActive = false;
+	}
+	else
+	{
+		this->spinWidget->setSuspended(false);
+		this->m_spinWidgetActive = true;
 	}
 }
 
@@ -210,20 +272,17 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	if (k->matches(QKeySequence::Copy))
 	{
 		// Copy the current Spin System
-		Chain_Image_to_Clipboard(state.get());
+		this->edit_copy();
 	}
 	else if (k->matches(QKeySequence::Cut))
 	{
 		// Cut the current Spin System from the chain
-		this->controlWidget->cut_image();
-		Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-		this->createStatusBar();
+		this->edit_cut();
 	}
 	else if (k->matches(QKeySequence::Paste))
 	{
 		// Paste clipboard image to current
-		this->controlWidget->paste_image();
-		this->createStatusBar();
+		this->edit_paste();
 	}
 
 	// Custom Key Sequences (Control)
@@ -233,26 +292,37 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		{
 			// CTRL+Left - Paste image to left of current image
 			case Qt::Key_Left:
-				this->controlWidget->paste_image("left");
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-				this->createStatusBar();
+				this->edit_insert_left();
 				break;
 
 			// CTRL+Right - Paste image to right of current image
 			case Qt::Key_Right:
-				this->controlWidget->paste_image("right");
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-				this->createStatusBar();
+				this->edit_insert_right();
 				break;
 			
 			// CTRL+F - Fullscreen mode
 			case Qt::Key_F:
-				this->view_toggle_fullscreen_spins();
+				if (k->modifiers() & Qt::ShiftModifier)
+				{
+					// Actual fullscreen
+					this->view_toggle_fullscreen();
+				}
+				else
+				{
+					// Hide all except SpinWidget, MenuBar and StatusBar
+					this->view_toggle_spins_only();
+				}
+				break;
+
+			// CTRL+V - Toggle SpinWidget Visibility
+			case Qt::Key_V:
+				if (k->modifiers() & Qt::ShiftModifier)
+					this->toggleSpinWidget();
 				break;
 
 			// CTRL+R - Randomize spins
 			case Qt::Key_R:
-				this->settingsWidget->randomPressed();
+				this->control_random();
 				break;
 
 			// CTRL+N - Add noise
@@ -262,13 +332,11 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 
 			// CTRL+M - Cycle Method
 			case Qt::Key_M:
-				this->controlWidget->cycleMethod();
-				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+				this->control_cycle_method();
 				break;
 				// CTRL+O - Cycle Optimizer
 			case Qt::Key_O:
-				this->controlWidget->cycleOptimizer();
-				Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+				this->control_cycle_optimizer();
 				break;
 		}
 	}
@@ -277,13 +345,22 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 	else
 	{
 		// Movement scaling
-		float scale = 20;
+		float scale = 10;
 		bool shiftpressed = false;
 		if (k->modifiers() & Qt::ShiftModifier)
 		{
-			scale = 2;
+			scale = 1;
 			shiftpressed = true;
 		}
+
+		// Detect visualisation mode cycle
+		std::map<SpinWidget::SystemMode, std::string> cycle_name{
+			{ SpinWidget::SystemMode::CUSTOM, "Custom" },
+			{ SpinWidget::SystemMode::ISOSURFACE, "Isosurface" },
+			{ SpinWidget::SystemMode::SLAB_X, "X slab" },
+			{ SpinWidget::SystemMode::SLAB_Y, "Y slab" },
+			{ SpinWidget::SystemMode::SLAB_Z, "Z slab" },
+		};
 
 		switch (k->key())
 		{
@@ -311,48 +388,53 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// Space: Play and Pause
 			case Qt::Key_Space:
-				this->controlWidget->play_pause();
-				Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+				this->control_playpause();
+				break;
+			// Enter: Insert Configuration
+			case Qt::Key_Enter:
+			case Qt::Key_Return:
+				if (this->hasFocus() || this->spinWidget->hasFocus())
+					this->control_insertconfiguration();
 				break;
 			// WASDQE
 			case Qt::Key_W:
-				this->spinWidget->moveCamera(-scale, 0, 0);
+				this->spinWidget->moveCamera(-2 * scale, 0, 0);
 				break;
 			// WASDQE
 			case Qt::Key_A:
-				this->spinWidget->rotateCamera(0, scale);
+				this->spinWidget->rotateCamera(0, 2 * scale);
 				break;
 			// WASDQE
 			case Qt::Key_S:
-				this->spinWidget->moveCamera(scale, 0, 0);
+				this->spinWidget->moveCamera(2 * scale, 0, 0);
 				break;
 			// WASDQE
 			case Qt::Key_D:
-				this->spinWidget->rotateCamera(0, -scale);
+				this->spinWidget->rotateCamera(0, -2 * scale);
 				break;
 			// WASDQE
 			case Qt::Key_Q:
-				this->spinWidget->rotateCamera(scale, 0);
+				this->spinWidget->rotateCamera(2 * scale, 0);
 				break;
 			// WASDQE
 			case Qt::Key_E:
-				this->spinWidget->rotateCamera(-scale, 0);
+				this->spinWidget->rotateCamera(-2 * scale, 0);
 				break;
 			// Movement
 			case Qt::Key_T:
-				this->spinWidget->moveCamera(0, 0, scale);
+				this->spinWidget->moveCamera(0, 0, 2 * scale);
 				break;
 			// Movement
 			case Qt::Key_F:
-				this->spinWidget->moveCamera(0, scale, 0);
+				this->spinWidget->moveCamera(0, 2 * scale, 0);
 				break;
 			// Movement
 			case Qt::Key_G:
-				this->spinWidget->moveCamera(0, 0, -scale);
+				this->spinWidget->moveCamera(0, 0, -2 * scale);
 				break;
 			// Movement
 			case Qt::Key_H:
-				this->spinWidget->moveCamera(0, -scale, 0);
+				this->spinWidget->moveCamera(0, -2 * scale, 0);
 				break;
 			// F1: Show key bindings
 			case Qt::Key_F1:
@@ -366,69 +448,113 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_F3:
 				this->view_togglePlots();
 				break;
-			// F2: Toggle debug widget
+			// F4: Toggle debug widget
 			case Qt::Key_F4:
 				this->view_toggleDebug();
+				break;
+			// F5: Toggle drag mode
+			case Qt::Key_F5:
+				this->view_toggleDragMode();
+				break;
+			case Qt::Key_Equal:
+			case Qt::Key_Plus:
+				this->settingsWidget->incrementNCellStep(-1);
+				this->updateStatusBar();
+				break;
+			case Qt::Key_Minus:
+				this->settingsWidget->incrementNCellStep(1);
+				this->updateStatusBar();
 				break;
 			// 0: ...
 			case Qt::Key_0:
 				break;
-			// 1: Select tab 1 of settings widget
+			// 1: Custom mode
 			case Qt::Key_1:
-				this->settingsWidget->SelectTab(0);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Custom mode"), 5000);
 				break;
-			// 2: Select tab 2 of settings widget 
+			// 2: Isosurface mode
 			case Qt::Key_2:
-				this->settingsWidget->SelectTab(1);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Isosurface mode"), 5000);
 				break;
-			// 3: Select tab 3 of settings widget
+			// 3: X slab mode
 			case Qt::Key_3:
-				this->settingsWidget->SelectTab(2);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("X slab mode"), 5000);
 				break;
-			// 4: Select tab 4 of settings widget
+			// 4: Y slab mode
 			case Qt::Key_4:
-				this->settingsWidget->SelectTab(3);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Y slab mode"), 5000);
 				break;
-			// 5: Select tab 5 of settings widget
+			// 5: Z slab mode
 			case Qt::Key_5:
-				this->settingsWidget->SelectTab(4);
+				this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
+				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr("Z slab mode"), 5000);
 				break;
 			// Delete: Delete current image
 			case Qt::Key_Delete:
-				this->controlWidget->delete_image();
-				Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+				this->edit_delete();
 				break;
 			// Camera
 			case Qt::Key_X:
 				this->spinWidget->setCameraToX(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: X view (from back)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: X view (from front)"), 5000);
 				break;
 			case Qt::Key_Y:
 				this->spinWidget->setCameraToY(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Y view (from back)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Y view (from front)"), 5000);
 				break;
 			case Qt::Key_Z:
 				this->spinWidget->setCameraToZ(shiftpressed);
+				if (shiftpressed)
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Z view (from bottom)"), 5000);
+				else
+					Ui::MainWindow::statusBar->showMessage(tr("Camera: Z view (from top)"), 5000);
 				break;
 			case Qt::Key_C:
-				this->spinWidget->cycleCamera();
+				this->view_cycle_camera();
 				break;
 			// Visualisation: cycle and slab
 			case Qt::Key_Comma:
-				this->spinWidget->moveSlab(-1);
+			case Qt::Key_Less:
+			case Qt::Key_Semicolon:
+				this->spinWidget->moveSlab(-10.0 / scale);
 				this->settingsWidget->updateData();
 				break;
 			case Qt::Key_Period:
-				this->spinWidget->moveSlab( 1);
+			case Qt::Key_Greater:
+			case Qt::Key_Colon:
+				this->spinWidget->moveSlab( 10.0 / scale);
 				this->settingsWidget->updateData();
 				break;
 			case Qt::Key_Slash:
 			case Qt::Key_Question:
 				this->spinWidget->cycleSystem(!shiftpressed);
 				this->settingsWidget->updateData();
+				Ui::MainWindow::statusBar->showMessage(tr(("Cycled mode to " + cycle_name[spinWidget->systemCycle()]).c_str()), 5000);
+				break;
+			case Qt::Key_F10:
+				this->view_toggle_spins_only();
+				break;
+			case Qt::Key_F11:
+				this->view_toggle_fullscreen();
 				break;
 			case Qt::Key_Home:
-				std::string tag = State_DateTime(state.get());
-				++n_screenshots;
-				this->spinWidget->screenShot(tag + "_Screenshot_" + std::to_string(n_screenshots));
+			case Qt::Key_F12:
+				this->takeScreenshot();
 				break;
 		}
 	}
@@ -452,6 +578,21 @@ void MainWindow::view_toggleSettings()
 {
 	if (this->dockWidget_Settings->isVisible()) this->dockWidget_Settings->hide();
 	else this->dockWidget_Settings->show();
+}
+
+void MainWindow::view_toggleDragMode()
+{
+	if (this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
+	{
+		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
+		Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Regular"), 5000);
+	}
+	else
+	{
+		this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
+		Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Drag"), 5000);
+	}
+	this->settingsWidget->updateData();
 }
 
 
@@ -548,7 +689,22 @@ void MainWindow::createStatusBar()
 	this->m_Label_Dims = new QLabel;
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
-	this->m_Label_Dims->setText(QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") + QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]));
+	int nth = this->spinWidget->visualisationNCellSteps();
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
+		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	if (nth == 2)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
+	}
+	else if (nth == 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("rd)");
+	}
+	else if (nth > 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("th)");
+	}
+	this->m_Label_Dims->setText(text);
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 
 
@@ -652,6 +808,164 @@ void MainWindow::updateStatusBar()
 			this->m_Labels_IPS[i]->setText(v_str[i]);
 		}
 	}
+
+	
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	int nth = this->spinWidget->visualisationNCellSteps();
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
+		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	if (nth == 2)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
+	}
+	else if (nth == 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("rd)");
+	}
+	else if (nth > 3)
+	{
+		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("th)");
+	}
+	this->m_Label_Dims->setText(text);
+}
+
+void MainWindow::takeScreenshot()
+{
+	std::string tag = State_DateTime(state.get());
+	++n_screenshots;
+	std::string name = tag + "_Screenshot_" + std::to_string(n_screenshots);
+	this->spinWidget->screenShot(name);
+	Ui::MainWindow::statusBar->showMessage(tr(("Made Screenshot " + name).c_str()), 5000);
+}
+
+void MainWindow::edit_cut()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->cut_image();
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_copy()
+{
+	Chain_Image_to_Clipboard(state.get());
+}
+
+void MainWindow::edit_paste()
+{
+	this->controlWidget->paste_image();
+	this->createStatusBar();
+}
+
+void MainWindow::edit_insert_right()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->paste_image("right");
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_insert_left()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->paste_image("left");
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::edit_delete()
+{
+	auto str_image = [](int idx_img, int noi, int idx_chain) {
+		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+	};
+
+	this->controlWidget->delete_image();
+	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
+}
+
+void MainWindow::control_random()
+{
+	this->settingsWidget->randomPressed();
+}
+
+void MainWindow::control_insertconfiguration()
+{
+	this->settingsWidget->lastConfiguration();
+}
+
+void MainWindow::control_playpause()
+{
+	this->controlWidget->play_pause();
+	Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+}
+
+void MainWindow::control_cycle_method()
+{
+	this->controlWidget->cycleMethod();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+}
+
+void MainWindow::control_cycle_optimizer()
+{
+	this->controlWidget->cycleOptimizer();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+}
+
+void MainWindow::view_regular_mode()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Regular"), 5000);
+}
+
+void MainWindow::view_isosurface_mode()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Isosurface"), 5000);
+}
+
+void MainWindow::view_slab_x()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab X"), 5000);
+}
+
+void MainWindow::view_slab_y()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Y"), 5000);
+}
+
+void MainWindow::view_slab_z()
+{
+	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
+	this->settingsWidget->updateData();
+	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Z"), 5000);
+}
+
+
+void MainWindow::view_cycle_camera()
+{
+	this->spinWidget->cycleCamera();
+	if (this->spinWidget->cameraProjection())
+		Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
+	else
+		Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
+	this->settingsWidget->updateData();
 }
 
 
@@ -682,8 +996,11 @@ void MainWindow::keyBindings()
 			" - <b>F2</b>:      Toggle Settings<br>"
 			" - <b>F3</b>:      Toggle Plots<br>"
 			" - <b>F4</b>:      Toggle Debug<br>"
-			" - <b>Ctrl+F</b>:  Toggle large visualisation<br>"
-			" - <b>1-5</b>:     Select Tab in Settings<br>"
+			" - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
+			" - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
+			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
+			" - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
+			" - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"
@@ -702,6 +1019,15 @@ void MainWindow::keyBindings()
 			"<i>Manipulate the current images</i><br>"
 			" - <b>Ctrl+R</b>:  Random configuration<br>"
 			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
+			" - <b>Enter</b>:   Insert last used configuration<br>"
+			"<br>"
+			"<i>Visualisation</i><br>"
+			" - <b>+/-</b>:     Use more/fewer data points of the vector field<br>"
+			" - <b>1</b>:       Regular Visualisation Mode<br>"
+			" - <b>2</b>:       Isosurface Visualisation Mode<br>"
+			" - <b>3-5</b>:     Slab (X,Y,Z) Visualisation Mode<br>"
+			" - <b>/</b>:       Cycle Visualisation Mode<br>"
+			" - <b>, and .</b>: Move Slab (<b>shift</b> to go faster)<br>"
 			"<br>"
 			"<i>Manipulate the chain of images</i><br>"
 			" - <b>Arrows</b>:           Switch between images and chains<br>"
@@ -709,7 +1035,9 @@ void MainWindow::keyBindings()
 			" - <b>Ctrl+C</b>:           Copy  image<br>"
 			" - <b>Ctrl+V</b>:           Paste image at current index<br>"
 			" - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
-			" - <b>Del</b>:              Delete image<br>"));
+			" - <b>Del</b>:              Delete image<br>"
+			"<br>"
+			"<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
 }
 
 void MainWindow::return_focus()
@@ -763,6 +1091,8 @@ void MainWindow::load_SpinChain_Configuration()
 		auto file = string_q2std(fileName);
 		IO_Chain_Read(this->state.get(), file.c_str());
 	}
+	this->createStatusBar();
+	this->controlWidget->updateData();
 	this->spinWidget->updateData();
 }
 
@@ -789,13 +1119,38 @@ void MainWindow::load_Configuration()
 	}
 }
 
-void MainWindow::save_Energies()
+
+
+void MainWindow::save_System_Energy_Spins()
+{
+	this->return_focus();
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies per Spin"), "./output", tr("Text (*.txt)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		IO_Write_System_Energy_per_Spin(this->state.get(), file.c_str());
+	}
+}
+
+void MainWindow::save_Chain_Energies()
 {
 	this->return_focus();
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
 		auto file = string_q2std(fileName);
-		IO_Energies_Save(this->state.get(), file.c_str());
+		IO_Write_Chain_Energies(this->state.get(), file.c_str());
+	}
+}
+
+void MainWindow::save_Chain_Energies_Interpolated()
+{
+	this->return_focus();
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		IO_Write_Chain_Energies_Interpolated(this->state.get(), file.c_str());
 	}
 }
 
@@ -803,9 +1158,11 @@ void MainWindow::readSettings()
 {
     QSettings settings("Spirit Code", "Spirit");
     restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("windowState").toByteArray());
-	bool fullscreen = settings.value("fullscreenSpins").toBool();
-	if (fullscreen) this->view_toggle_fullscreen_spins();
+    restoreState(settings.value("windowState", QByteArray()).toByteArray());
+	bool spins_only = settings.value("fullscreenSpins").toBool();
+	if (spins_only) this->view_toggle_spins_only();
+	bool fullscreen = settings.value("fullscreen").toBool();
+	if (fullscreen) this->view_toggle_fullscreen();
 
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -840,7 +1197,8 @@ void MainWindow::writeSettings()
 	QSettings settings("Spirit Code", "Spirit");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-	settings.setValue("fullscreenSpins", this->fullscreen_spins);
+	settings.setValue("fullscreenSpins", this->view_spins_only);
+	settings.setValue("fullscreen", this->view_fullscreen);
 	
 	// Settings Dock
 	settings.beginGroup("SettingsDock");

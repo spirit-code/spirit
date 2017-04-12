@@ -1,8 +1,7 @@
 #include <data/Spin_System_Chain_Collection.hpp>
 #include <engine/Optimizer.hpp>
-#include <engine/Method_LLG.hpp>
-#include <engine/Method_GNEB.hpp>
-#include <engine/Method_MMF.hpp>
+#include <engine/Method.hpp>
+#include <utility/Timing.hpp>
 
 /*
 	Simulation_Information
@@ -35,6 +34,9 @@ struct State
 	// Spin System instance in clipboard
 	std::shared_ptr<Data::Spin_System> clipboard_image;
 
+	// Spin configuration in clipboard
+	std::shared_ptr<vectorfield> clipboard_spins;
+
 	// Info
 	int nos /*Number of Spins*/, noi /*Number of Images*/, noc /*Number of Chains*/;
 	int idx_active_image, idx_active_chain;
@@ -48,7 +50,7 @@ struct State
 	std::shared_ptr<Simulation_Information> simulation_information_mmf;
 
 	// Timepoint of creation
-	std::string datetime_creation;
+	system_clock::time_point datetime_creation;
 };
 
 

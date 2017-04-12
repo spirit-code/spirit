@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1316,8 +1316,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>246</width>
-            <height>276</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,8 +1595,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>395</width>
-            <height>409</height>
+            <width>645</width>
+            <height>2036</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
@@ -2258,8 +2258,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>286</width>
-            <height>309</height>
+            <width>645</width>
+            <height>2036</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
@@ -2724,8 +2724,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>285</width>
-            <height>364</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
@@ -3112,8 +3112,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>643</width>
-            <height>2103</height>
+            <width>645</width>
+            <height>2098</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3123,7 +3123,7 @@
               <string>General</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_61">
-              <item row="2" column="2">
+              <item row="3" column="2">
                <layout class="QGridLayout" name="gridLayout_76">
                 <item row="0" column="2">
                  <widget class="QRadioButton" name="radioButton_vismode_sphere">
@@ -3181,7 +3181,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_55">
                 <property name="maximumSize">
                  <size>
@@ -3194,7 +3194,7 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="9" column="0">
                <widget class="QLabel" name="label_57">
                 <property name="maximumSize">
                  <size>
@@ -3207,7 +3207,7 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="2">
+              <item row="4" column="2">
                <layout class="QGridLayout" name="gridLayout_67">
                 <item row="2" column="4">
                  <widget class="QCheckBox" name="checkBox_show_isosurface">
@@ -3275,7 +3275,7 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_56">
                 <property name="maximumSize">
                  <size>
@@ -3288,7 +3288,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="2">
+              <item row="7" column="2">
                <widget class="QSlider" name="horizontalSlider_spherePointSize">
                 <property name="minimumSize">
                  <size>
@@ -3307,7 +3307,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_47">
                 <property name="minimumSize">
                  <size>
@@ -3339,7 +3339,7 @@
                 </property>
                </spacer>
               </item>
-              <item row="8" column="2">
+              <item row="9" column="2">
                <layout class="QGridLayout" name="gridLayout_73">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_showMiniView">
@@ -3429,7 +3429,7 @@
                 </item>
                </widget>
               </item>
-              <item row="9" column="2">
+              <item row="10" column="2">
                <layout class="QGridLayout" name="gridLayout_74">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_showCoordinateSystem">
@@ -3488,7 +3488,7 @@
                 </item>
                </layout>
               </item>
-              <item row="9" column="0">
+              <item row="10" column="0">
                <widget class="QLabel" name="label_58">
                 <property name="maximumSize">
                  <size>
@@ -3501,7 +3501,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QLabel" name="label_46">
                 <property name="minimumSize">
                  <size>
@@ -3520,7 +3520,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="2">
+              <item row="5" column="2">
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
                  <widget class="QRadioButton" name="radioButton_perspectiveProjection">
@@ -3571,6 +3571,26 @@
                 </item>
                </layout>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>Every N'th translation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QSpinBox" name="spinBox_n_cell_steps">
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -3591,113 +3611,26 @@
             </spacer>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_9">
+            <widget class="QGroupBox" name="groupBox_isosurface">
              <property name="title">
               <string>Isosurface</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_54">
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_55">
-                <item row="0" column="0">
-                 <widget class="QRadioButton" name="radioButton_isosurface_x">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;x</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_isosurface_y">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;y</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QRadioButton" name="radioButton_isosurface_z">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>&amp;z</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_59">
-                <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_isovalue">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>200</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLineEdit" name="lineEdit_isovalue">
-                  <property name="minimumSize">
-                   <size>
-                    <width>30</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_48">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
-                </property>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="pushButton_addIsosurface">
                 <property name="text">
-                 <string>Isovalue</string>
+                 <string>Add Isosurface</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_isosurfaceshadows">
+                <property name="text">
+                 <string>Draw Shadows</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <spacer name="horizontalSpacer_22">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -3710,12 +3643,8 @@
                 </property>
                </spacer>
               </item>
-              <item row="2" column="1">
-               <widget class="QCheckBox" name="checkBox_isosurfaceshadows">
-                <property name="text">
-                 <string>Draw Shadows</string>
-                </property>
-               </widget>
+              <item row="2" column="0">
+               <layout class="QVBoxLayout" name="verticalLayout_isosurface"/>
               </item>
              </layout>
             </widget>
@@ -4984,8 +4913,6 @@
   <tabstop>lineEdit_camera_upvector_y</tabstop>
   <tabstop>lineEdit_camera_upvector_z</tabstop>
   <tabstop>lineEdit_hopfion_radius</tabstop>
-  <tabstop>horizontalSlider_isovalue</tabstop>
-  <tabstop>lineEdit_isovalue</tabstop>
   <tabstop>checkBox_Configuration_Noise</tabstop>
   <tabstop>lineEdit_Configuration_Noise</tabstop>
   <tabstop>pushButton_Random</tabstop>
@@ -4997,7 +4924,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

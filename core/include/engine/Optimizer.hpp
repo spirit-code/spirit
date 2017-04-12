@@ -3,7 +3,6 @@
 #define OPTIMIZER_H
 
 #include "Spirit_Defines.h"
-#include <data/Spin_System.hpp>
 #include <engine/Method.hpp>
 #include <utility/Logging.hpp>
 
@@ -41,10 +40,6 @@ namespace Engine
 		virtual std::string FullName();
 
 	protected:
-		// Lock/Unlock Systems
-		void LockSystems();
-		void UnlockSystems();
-
 		// The Method instance with which to calculate the forces on configurations
 		std::shared_ptr<Engine::Method> method;
 

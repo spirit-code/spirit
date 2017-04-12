@@ -1,5 +1,8 @@
+#include <Spirit/State.h>
 #include <Spirit/IO.h>
+#include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
+
 #include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
@@ -87,6 +90,15 @@ void IO_Chain_Read(State * state, const char * file, int idx_image, int idx_chai
 
 	// Read the data
 	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
+
+	// Update state
+	State_Update(state);
+
+	// Update array lengths
+	Chain_Setup_Data(state, idx_chain);
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Read chain from file " + std::string(file), -1, idx_chain);
 }
 
 void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_chain)
@@ -119,7 +131,8 @@ void IO_Collection_Write(State * state, const char * file, int idx_image, int id
 /*--------------------------------------- Data --------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void IO_Energies_Save(State * state, const char * file, int idx_chain)
+//IO_Energies_Spins_Save
+void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_chain)
 {
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
@@ -127,22 +140,22 @@ void IO_Energies_Save(State * state, const char * file, int idx_chain)
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Save_Energies(*chain, 0, std::string(file));
+	Utility::IO::Write_System_Energy_per_Spin(*image, std::string(file));
 }
 
-
-void IO_Energies_Spins_Save(State * state, const char * file, int idx_chain)
+//IO_Energy_Spins_Save
+void IO_Write_System_Energy(State * state, const char * file, int idx_image, int idx_chain)
 {
-	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Save_Energies_Spins(*state->active_chain, std::string(file));
+	Utility::IO::Write_System_Energy(*image, std::string(file));
 }
 
-void IO_Energies_Interpolated_Save(State * state, const char * file, int idx_chain)
+//IO_Energies_Save
+void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain)
 {
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
@@ -150,5 +163,17 @@ void IO_Energies_Interpolated_Save(State * state, const char * file, int idx_cha
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Save_Energies_Interpolated(*state->active_chain, std::string(file));
+	Utility::IO::Write_Chain_Energies(*chain, idx_chain, std::string(file));
+}
+
+//IO_Energies_Interpolated_Save
+void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int idx_chain)
+{
+	int idx_image = -1;
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	// Write the data
+	Utility::IO::Write_Chain_Energies_Interpolated(*chain, std::string(file));
 }

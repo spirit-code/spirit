@@ -1,4 +1,4 @@
-import Spirit.spiritlib as spiritlib
+import spirit.spiritlib as spiritlib
 import ctypes
 
 ### Load Library

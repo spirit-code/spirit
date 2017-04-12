@@ -15,18 +15,27 @@ std::vector<Utility::LogEntry> Log_Get_Entries(State *state)
     return Log.GetEntries();
 }
 
-int Log_Get_N_Entries(State *state)
-{
-    return Log.n_entries;
-}
-
 void Log_Append(State *state)
 {
     Log.Append_to_File();
 }
 
-
 void Log_Dump(State *state)
 {
     Log.Dump_to_File();
+}
+
+int Log_Get_N_Entries(State *state)
+{
+    return Log.n_entries;
+}
+
+int Log_Get_N_Errors(State *state)
+{
+    return Log.n_errors;
+}
+
+int Log_Get_N_Warnings(State *state)
+{
+    return Log.n_warnings;
 }

@@ -28,7 +28,7 @@ namespace Data
 
 	void Spin_System_Chain::Unlock() const
 	{
-		this->mutex.unlock();
 		for (auto& image : this->images) image->Unlock();
+		this->mutex.unlock();
 	}
 }

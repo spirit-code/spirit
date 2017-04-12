@@ -1,5 +1,6 @@
-#include <Spirit/Chain.h>
 #include <Spirit/State.h>
+#include <Spirit/Chain.h>
+#include <Spirit/Simulation.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -119,11 +120,16 @@ void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
         // Copy the clipboard image
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
+        chain->Lock();
+
         // Replace in chain
         chain->images[idx_image] = copy;
         
         // Update state
         state->active_image = state->active_chain->images[state->idx_active_image];
+
+        chain->Unlock();
+
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Replaced image.", idx_image, idx_chain);
     }
@@ -142,11 +148,23 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
 
+    bool running = Simulation_Running_GNEB(state, idx_chain);
+    std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
+
     if (state->clipboard_image.get())
     {
+        if (running)
+        {
+    	    chain->iteration_allowed = false;
+        }
+
         // Copy the clipboard image
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
+        chain->Lock();
+		copy->Lock();
+
         // Add to chain
         chain->noi++;
         chain->images.insert(chain->images.begin() + idx_image, copy);
@@ -158,6 +176,8 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         // Increment active image so that we don't switch between images
         ++chain->idx_active_image;
 
+        chain->Unlock();
+
         // Update state
         State_Update(state);
 
@@ -166,6 +186,11 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Inserted image before. NOI is now " + std::to_string(chain->noi), idx_image, idx_chain);
+        
+        if (running)
+        {
+    	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        }
     }
     else
     {
@@ -182,11 +207,23 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
+    bool running = Simulation_Running_GNEB(state, idx_chain);
+    std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
+
     if (state->clipboard_image.get())
     {
+        if (running)
+        {
+    	    chain->iteration_allowed = false;
+        }
+
         // Copy the clipboard image
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
+        chain->Lock();
+		copy->Lock();
+
         // Add to chain
         chain->noi++;
         // if (idx_image < state->noi - 1)
@@ -202,7 +239,9 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         // }
 
 		// Add to state
-		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
+		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image + 1, std::shared_ptr<Simulation_Information>());
+
+        chain->Unlock();
 
         // Update state
         State_Update(state);
@@ -212,6 +251,11 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Inserted image after. NOI is now " + std::to_string(chain->noi), idx_image, idx_chain);
+        
+        if (running)
+        {
+    	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        }
     }
     else
     {
@@ -229,18 +273,32 @@ void Chain_Push_Back(State * state, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
+    bool running = Simulation_Running_GNEB(state, idx_chain);
+    std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
+
     if (state->clipboard_image.get())
     {
+        if (running)
+        {
+    	    chain->iteration_allowed = false;
+        }
+
         // Copy the clipboard image
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
+        chain->Lock();
+		copy->Lock();
+
         // Add to chain
         chain->noi++;
-        chain->images.push_back(copy);
+		chain->images.push_back(copy);
         chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
             
 		// Add to state
 		state->simulation_information_llg[idx_chain].push_back(std::shared_ptr<Simulation_Information>());
+
+        chain->Unlock();
 
         // Update state
         State_Update(state);
@@ -250,6 +308,11 @@ void Chain_Push_Back(State * state, int idx_chain_i)
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Pushed back image from clipboard to chain. NOI is now " + std::to_string(chain->noi), -1, idx_chain);
+
+        if (running)
+        {
+    	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        }
     }
     else
     {
@@ -266,9 +329,20 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
 
+    bool running = Simulation_Running_GNEB(state, idx_chain);
+    std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
+
     // Apply
     if (chain->noi > 1)
     {
+        if (running)
+        {
+    	    chain->iteration_allowed = false;
+        }
+
+        chain->Lock();
+
         chain->noi--;
         state->noi = state->active_chain->noi;
         
@@ -278,6 +352,8 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
 		// Remove from state
 		state->simulation_information_llg[idx_chain].erase(state->simulation_information_llg[idx_chain].begin() + idx_image);
 
+        chain->Unlock();
+
 		// Update State
         State_Update(state);
 
@@ -286,6 +362,12 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Deleted image " + std::to_string(idx_image+1) + " of " + std::to_string(chain->noi+1), -1, idx_chain);
+
+        if (running)
+        {
+    	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        }
+
         return true;
     }
     else
@@ -304,9 +386,19 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
+    bool running = Simulation_Running_GNEB(state, idx_chain);
+    std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
     
     if (chain->noi > 1)
     {
+        if (running)
+        {
+    	    chain->iteration_allowed = false;
+        }
+
+        chain->Lock();
+
         // Add to chain
         chain->noi--;
         state->noi = state->active_chain->noi;
@@ -317,6 +409,8 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
         // Add to state
         state->simulation_information_llg[idx_chain].pop_back();
 
+        chain->Unlock();
+
         // Update state
         State_Update(state);
 
@@ -325,6 +419,12 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Popped back image of chain. NOI is now " + std::to_string(chain->noi), -1, idx_chain);
+
+        if (running)
+        {
+    	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        }
+
 		return true;
     }
     else
@@ -422,8 +522,11 @@ void Chain_Update_Data(State * state, int idx_chain_i)
     {
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
+
+	    image->Lock();
         chain->images[i]->UpdateEnergy();
         if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
+	    image->Unlock();
     }
 }
 
@@ -435,12 +538,16 @@ void Chain_Setup_Data(State * state, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
 
+    chain->Lock();
+
     // Apply
     chain->Rx = std::vector<scalar>(state->noi, 0);
     chain->Rx_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
     chain->E_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
     chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
+    chain->Unlock();
+    
     // Initial data update
     Chain_Update_Data(state, idx_chain);
 }

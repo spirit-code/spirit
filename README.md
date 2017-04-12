@@ -1,238 +1,208 @@
-Spirit
-========
-**Spin Simulation Framework**<br />
-The code is released under [MIT License](../master/LICENSE.txt).<br />
-If you intend to *present and/or publish* scientific results for which you used Spirit,
-please read the [REFERENCE.md](../master/REFERENCE.md)
+SPIRIT
+=============================
+**SPIN SIMULATION FRAMEWORK**<br />
 
-For contributions and affiliations, see [CONTRIBUTORS.md](../master/CONTRIBUTORS.md)
+The code is released under [MIT License](LICENSE.txt).<br />
+If you intend to *present and/or publish* scientific results or visualisations for which you used Spirit,
+please read the [REFERENCE.md](docs/REFERENCE.md)
+
+This is an open project and contributions and collaborations are always welcome!!
+See [Contributing](#Contributing) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
+For contributions and affiliations, see [CONTRIBUTORS.md](docs/CONTRIBUTORS.md)
 
 Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
 
-Please note that a version of the Spirit Web interface is hosted by the Research Centre Jülich at
+Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
 http://juspin.de
+
+
+
+&nbsp;
 
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
 -->
 
+![Skyrmions](http://imgur.com/JgPj8t5.jpg "Skyrmions on a 2D grid")
 
-![Skyrmions](http://imgur.com/BInvmEs.jpg "Skyrmions on a 2D grid")
+&nbsp;
+
+
 
 Contents
 --------
+
 1. [Introduction](#Introduction)
-2. [User Interfaces](#UserInterfaces)
-3. [Branches](#Branches)
-4. [Code Dependencies](#Dependencies)
-5. [Installation Instructions](#Installation)
-6. [Unit Tests](#UnitTests)
-7. [Contributing](#Contributing)
+2. [Getting started with the Desktop User Interface](#Desktop)
+3. [Getting started with the Python Package](#Python)
+4. [Contributing](#Contributing)
+
+---------------------------------------------
+
 
 
 &nbsp;
- 
+
+
 
 Introduction <a name="Introduction"></a>
-----------------------------------------
+---------------------------------------------
 
-**Platform-independent** code with optional visualization, written in C++11.
-The build process is platform-independent as well, using CMake. 
-This code has been developed as a flexible solution to various use-cases, including:
+#### A modern framework for magnetism science on clusters, desktops & laptops and even your Phone
+
+**Spirit** is a **platform-independent** framework for spin dynamics, written in C++11.
+It combines the traditional cluster work, using using the command-line, with modern
+visualisation capabilites in order to maximize scientists' productivity.
+
+> "It is unworthy of excellent men to lose hours like slaves in
+>  the labour of calculation which could safely be relegated to
+>  anyone else if machines were used."
+> - Gottfried Wilhelm Leibniz
+
+*Our goal is to build such machines*. The core library of the *Spirit* framework provides an
+**easy to use API**, which can be used from almost any programming language,
+and includes ready-to-use python bindings.
+A **powerful desktop user interface** is available, providing real-time visualisation and
+control of parameters.
+<br />More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me...").
+
+### *Physics Features*
+* Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
 * **Spin Dynamics simulations** obeying the
   [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation "Titel, der beim Überfahren mit der Maus angezeigt wird")
-* Direct **Energy minimisation** of a spin system
+* Direct **Energy minimisation** with different optimizers
 * **Minimum Energy Path calculations** for transitions between different
   spin configurations, using the GNEB method
-* Energy Landscape **Saddlepoint searches** using the MMF method
 
-More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me...").
+### *Highlights of the Framework*
+* Cross-platform: everything can be built and run on Linux, OSX and Windows
+* Standalone core library with C API which can be used from almost any programming language
+* **Python package** making complex simulation workflows easy
+* Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
+* Modular backends including **GPU parallelisation**
 
-----------------------------------------
+### *Documentation*
+* [Framework build instructions](docs/BUILD.md)
+* [Core build instructions](core/docs/BUILD.md)
+* [Core API Reference](core/docs/API.md)
 
-&nbsp;
-   
-
-User Interfaces <a name="UserInterfaces"></a>
----------------------------------------------
-The overall code is separated into several folders, representing the 'core' physics code
-and the various user interfaces you may build.
-* **core**:        Core Physics code
-* **ui-console**:  C++ command line interface
-* **ui-python**:   Python command line interface
-* **ui-qt**:       OpenGL visualisation inside QT
-* **ui-web**:      WebGL visualisation inside a website
-
-Due to this modularisation and the fact that the core library exposes an API written
-in C, arbitrary user interfaces may be placed on top of the core physics code.
-The command-line versions may be useful to be run on clusters or for repetitive tasks,
-whereas the GUI-versions are useful to provide live visualisations of the simulations
-to the user.
-Note that the current web interface is primarily meant for educational purposes and has
-less features. Since the core needs to be transpiled to JavaScript and is executed
-user-side, it is necessarily slower than the regular code.
-
-----------------------------------------
-
-&nbsp;
-
-
-Branches <a name="Branches"></a>
---------------------------------
-We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-successful-git-branching-model/
-
->Release (`master` branch) versions are tagged `x.x.x`, starting at `1.0.0`
-
-Download the latest stable version from https://github.com/spirit-code/spirit/releases
-
-The develop branch contains the latest updates, but is generally less consistently tested than the releases.
-
-----------------------------------------
-
-&nbsp;
-
-
-Code Dependencies <a name="Dependencies"></a>
 ---------------------------------------------
 
-The core library does not have dependencies, except for C++11.
-Due to the modular CMake Project structure, when building only a specific library or UI,
-one does thus not need any libraries on which other projects may depend.
-Most *external* dependencies are included in the thirdparty folder. 
 
-The following lists all *external* dependencies which are not included: 
-
-### Core
-* gcc >= 4.8.1 (C++11 stdlib) or any modern compiler
-* CMake >= 2.8.12
-
-This is pretty much a standalone library and should be easy to implement into existing
-projects in which CMake is already used.
-
-### VFRendering
-* OpenGL Drivers >= 3.3
-* CMake >= 3.5
-
-Necessary OpenGL drivers *should* be available through the regular drivers for any
-remotely modern graphics card.
-
-### UI-QT
-* QT >= 5.7
-
-Building and installing QT manually can be a big pain, but usually their installers or packages should work fine.
-This UI needs at least version 5.7 due to the usage of the **QTCharts** library.
-
-**Note** that you must install QTCharts (it may be deactivated by default).
-
-### UI-Python
-* Python
-
-We have not tested how far backwards the Python UI is compatible.
-It should not matter if you use Python 2 or 3.
-
-### UI-Web
-* emscripten
-
-In order to build the core.js JavaScript library, you need emscripten.
-Note we have not tested this process on different machines.
-
-----------------------------------------
 
 &nbsp;
 
 
 
-Installation Instructions <a name="Installation"></a>
------------------------------------------------------
+Getting started with the Desktop Interface <a name="Desktop"></a>
+---------------------------------------------
 
->The following assumes you are in the Spirit root directory.
+See [BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
 
-Please be aware that our CMake scripts are written for our use cases and
-you may need to adapt some paths and options in the Root CMakeLists.txt, specifically:
+![Desktop UI with Isosurfaces in a thin layer](http://imgur.com/QUcN4aG.jpg "Isosurfaces in a thin layer")
 
-The important **Options** you can set under *### Build Flags ###* are:
-* BUILD_UI_WEB    - build the web interface instead of others
-* BUILD_UI_PYTHON - build the python library
-* BUILD_UI_JULIA  - build the julia library
-* BUILD_UI_CXX    - build the C++ interfaces (console or QT) instead of others
-* UI_CXX_USE_QT   - build qt user interface instead of console version
+The user interface provides a powerful OpenGL visualisation window
+using the [VFRendering](https://github.com/FlorianRhiem/VFRendering) library.
+It provides functionality to
+- Control Calculations
+- Locally insert Configurations (homogeneous, skyrmions, spin spiral, ... )
+- Generate homogeneous Transition Paths
+- Change parameters of the Hamiltonian
+- Change parameters of the Method and Optimizer
+- Configure the Visualization (arrows, isosurfaces, lighting, ...)
 
-Core options:
-* CORE_BUILD_TEST  - build unit tests for the core library
-* CORE_USE_CUDA    - use CUDA to speed up numerically intensive parts of the core
-* CORE_SCALAR_TYPE - should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc.
+*Unfortunately, distribution of binaries for the Desktop UI is not possible due
+to the restrictive license on QT-Charts.*
 
-Further Options include:
-* OSX_BUNDLE_APP - not yet functional
-* PRINT_SOURCES - print all source files (for debugging)
-* USER_PATHS_IFF - use default IFF (FZJ) cluster paths
+---------------------------------------------
 
-The **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
-* USER_COMPILER_C and USER_COMPILER_CXX for the compiler name you wish to use
-* USER_PATH_COMPILER for the directory your compiler is located in
-* USER_PATH_QT for the path to your CMake installation
-Otherwise, the developers' defaults will be used or CMake will try to use it's defaults.
+
+
+&nbsp;
+
  
-**Note** that in order to build with QT as a dependency on Windows, you need to have `path/to/qt/qtbase/bin` in your PATH variable.
 
-Clear the build directory using
+Getting started with the Python Package <a name="Python"></a>
+---------------------------------------------
 
-	./clean.sh
-	or
-	rm -rf build && mkdir build
-	
-### Generate Build Files
-`./cmake.sh` lets cmake generate makefiles for your system inside a 'build' folder.
-Simply call
+To install the *Spirit python package*, either [build and install from source](docs/BUILD.md)
+or simply use
 
-	./cmake.sh
-	or
-	cd build && cmake .. && cd ..
+	pip install spirit
 
-Passing `-debug` to the script will cause it to create a debug configuration,
-meaning that you will be able to properly debug the entire application.	
-When on pure **Windows** (no MSys etc), you can simply use the git bash to do this.
-When using MSys etc., CMake will create corresponding MSys makefiles.
+With this package you have access to powerful [Python APIs](core/docs/API.md) to run and control
+dynamics simulations or optimizations.
+This is especially useful for work on clusters, where you can now script your
+workflow, never having to re-compile when testing, debugging or adding features.
 
-### Building the Projects
-`./make.sh` executes the build and linking of the executable. Simply call
+The most simple example of a **spin dynamics simulation** would be
+``` python
+    from spirit import state, simulation
+    with state.State("input/input.cfg") as p_state:
+        simulation.PlayPause(p_state, "LLG", "SIB")
+```
+Where `"SIB"` denotes the semi-implicit method B and the starting configuration
+will be random.
 
-	./make.sh
-	or
-	cd build && make && cd ..
+To add some meaningful content, we can change the **initial configuration** by
+inserting a Skyrmion into a homogeneous background:
+``` python
+    def skyrmion_on_homogeneous(p_state):
+        from spirit import configuration
+        configuration.PlusZ(p_state)
+        configuration.Skyrmion(p_state, 5.0, phase=-90.0)
+```
 
-If building any C++ UI, the executable `spirit` should now be in the root folder
+If we want to calculate a **minimum energy path** for a transition, we need to generate
+a sensible initial guess for the path and use the **GNEB method**. Let us consider
+the collapse of a skyrmion to the homogeneous state:
+``` python
+    from spirit import state, chain, configuration, transition, simulation 
 
-When on pure **Windows** (no MSys etc), instead of using `make` or `./make.sh`,
-you need to open the generated Solution in Visual Studio and build it there.
-The execution folder should be 'build' and file paths at runtime will be
-relative to this folder.
+    ### Copy the system a few times
+    chain.Image_to_Clipboard(p_state)
+    for number in range(1,7):
+    	chain.Insert_Image_After(p_state)
+    noi = chain.Get_NOI(p_state)
 
-----------------------------------------
+    ### First image is homogeneous with a Skyrmion in the center
+    configuration.PlusZ(p_state, idx_image=0)
+    configuration.Skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
+    simulation.PlayPause(p_state, "LLG", "VP", idx_image=0)
+    ### Last image is homogeneous
+    configuration.PlusZ(p_state, idx_image=noi-1)
+    simulation.PlayPause(p_state, "LLG", "VP", idx_image=noi-1)
+
+    ### Create transition of images between first and last
+    transition.Homogeneous(p_state, 0, noi-1)
+
+    ### GNEB calculation
+    simulation.PlayPause(p_state, "GNEB", "VP")
+```
+where `"VP"` denotes a direct minimization with the velocity projection algorithm.
+
+You may also use *Spirit* order to **extract quantitative data**, such as the energy.
+``` python
+    def evaluate(p_state):
+        from spirit import system, quantities
+        M = quantities.Get_Magnetization(p_state)
+        E = system.Get_Energy(p_state)
+        return M, E
+```
+
+Obviously you may easily create significantly more complex workflows and use Python
+to e.g. pre- or post-process data or to distribute your work on a cluster and much more!
+
+---------------------------------------------
+
+
 
 &nbsp;
-   
 
-Unit Tests <a name="UnitTests"></a>
------------------------------------
 
-The core library includes a set of unit tests in order to make sure certain conditions are
-fulfilled by the librarys functions.
-We use `CMake`s `CTest` for unit testing. The `ctest.sh` script may be used to run all tests.
-Alternatively, you can run
-
-	cd build && ctest --output-on-failure && cd ..
-
-or execute any of the test executables manually.
-To execute the tests from the Visual Studio IDE, simply rebuild the `RUN_TESTS` project.
-
-----------------------------------------
-
-&nbsp;
-   
 
 Contributing <a name="Contributing"></a>
------------------------------------------
+---------------------------------------------
 
 Contributions are always welcome!
 
@@ -243,7 +213,7 @@ Contributions are always welcome!
 5. Push to the branch: `git push origin feature-something`
 6. Submit a pull request
 
-Please keep your pull requests feature-specific and limit yourself
+Please keep your pull requests *feature-specific* and limit yourself
 to one feature per feature branch.
 Remember to pull updates from this repository before opening a new
 feature branch.
@@ -254,3 +224,14 @@ do not hesitate to contact us.
 There is no strict coding guideline, but please try to match your
 code style to the code you edited or to the style in the respective
 module.
+
+
+### *Branches*
+
+We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-successful-git-branching-model/
+
+> Release versions (`master` branch) are tagged `major.minor.patch`, starting at `1.0.0`
+
+Download the latest stable version from https://github.com/spirit-code/spirit/releases
+
+The develop branch contains the latest updates, but is generally less consistently tested than the releases.

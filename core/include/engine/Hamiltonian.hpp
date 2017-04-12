@@ -7,8 +7,6 @@
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
-#include <utility/Logging.hpp>
-#include <utility/Exception.hpp>
 
 namespace Engine
 {

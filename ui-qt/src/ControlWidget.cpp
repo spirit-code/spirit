@@ -57,16 +57,30 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 
 void ControlWidget::updateData()
 {
-	// Check for running simulations
+	// Check for running simulations - update Play/Pause Button
 	if (Simulation_Running_Any(state.get()))
-	{
 		this->pushButton_PlayPause->setText("Pause");
-	}
 	else
-	{
 		this->pushButton_PlayPause->setText("Play");
-	}
+
+	// Update Image number
+	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+	// Update NOI counter
+	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
 }
+
+void ControlWidget::updateOthers()
+{
+	// Update the chain's data (primarily for the plot)
+	// Chain_Update_Data(state.get());
+
+	// Update Image-dependent Widgets
+	this->spinWidget->updateData();
+	this->settingsWidget->updateData();
+	// this->plotsWidget->updateData();
+	// this->debugWidget->updateData();
+}
+
 
 void ControlWidget::cycleMethod()
 {
@@ -126,6 +140,13 @@ void ControlWidget::play_pause()
 	{
 		// Not running, so we start it
 		if (this->s_method == "LLG")
+		{
+			int idx = System_Get_Index(state.get());
+			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+			this->threads_llg[System_Get_Index(state.get())] =
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+		}
+		else if (this->s_method == "MC")
 		{
 			int idx = System_Get_Index(state.get());
 			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
@@ -196,16 +217,10 @@ void ControlWidget::next_image()
 	{
 		// Change active image
 		Chain_next_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
-		// Update Play/Pause Button
-		if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
-		else this->pushButton_PlayPause->setText("Play");
 
-		// Update Image-dependent Widgets
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();
-		// this->plotsWidget->updateData();
-		// this->debugWidget->updateData();
+		// Update
+		this->updateData();
+		this->updateOthers();
 	}
 }
 
@@ -216,16 +231,10 @@ void ControlWidget::prev_image()
 	{
 		// Change active image!
 		Chain_prev_Image(this->state.get());
-		this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
-		// Update Play/Pause Button
-		if (Simulation_Running_Any(state.get())) this->pushButton_PlayPause->setText("Pause");
-		else this->pushButton_PlayPause->setText("Play");
-
-		// Update Image-dependent Widgets
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();
-		// this->plotsWidget->updateData();
-		// this->debugWidget->updateData();
+		
+		// Update
+		this->updateData();
+		this->updateOthers();
 	}
 }
 
@@ -234,15 +243,10 @@ void ControlWidget::jump_to_image()
 	// Change active image
 	int idx = this->lineEdit_ImageNumber->text().toInt()-1;
 	Chain_Jump_To_Image(this->state.get(), idx);
-	// Update Play/Pause Button
-	if (Simulation_Running_Any(this->state.get())) this->pushButton_PlayPause->setText("Pause");
-	else this->pushButton_PlayPause->setText("Play");
-
-	// Update Image-dependent Widgets
-	this->spinWidget->updateData();
-	this->settingsWidget->updateData();
-	// this->plotsWidget->updateData();
-	// this->debugWidget->updateData();
+	
+	// Update
+	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::cut_image()
@@ -256,9 +260,6 @@ void ControlWidget::cut_image()
 
 		int idx = System_Get_Index(state.get());
 		if (idx > 0) Chain_prev_Image(this->state.get());
-		this->spinWidget->updateData();
-		this->settingsWidget->updateData();		
-		//else this->nextImagePressed();
 
 		if (Chain_Delete_Image(state.get(), idx)) 
 		{
@@ -267,8 +268,9 @@ void ControlWidget::cut_image()
 		}
 	}
 
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
+	// Update
+	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::paste_image(std::string where)
@@ -281,34 +283,28 @@ void ControlWidget::paste_image(std::string where)
 	}
 	else if (where == "left")
 	{
+		int idx = System_Get_Index(state.get());
 		// Insert Image
 		Chain_Insert_Image_Before(state.get());
 		// Make the llg_threads vector larger
-		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
 		// Switch to the inserted image
 		Chain_prev_Image(this->state.get());
 	}
 	else if (where == "right")
 	{
+		int idx = System_Get_Index(state.get());
 		// Insert Image
 		Chain_Insert_Image_After(state.get());
 		// Make the llg_threads vector larger
-		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
 		// Switch to the inserted image
 		Chain_next_Image(this->state.get());
 	}
 
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
-
-	// Update the chain's data (primarily for the plot)
-	Chain_Update_Data(state.get());
-	// Update Visualisation
-	this->spinWidget->updateData();
-	// Update settings
-	this->settingsWidget->updateData();
+	// Update
+	this->updateData();
+	this->updateOthers();
 }
 
 void ControlWidget::delete_image()
@@ -328,11 +324,10 @@ void ControlWidget::delete_image()
 
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
 	}
-	this->spinWidget->updateData();
-	this->settingsWidget->updateData();
-
-	// Update Image number
-	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get()) + 1));
+	
+	// Update
+	this->updateData();
+	this->updateOthers();
 }
 
 
@@ -363,7 +358,7 @@ void ControlWidget::save_Energies()
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
 		auto file = string_q2std(fileName);
-		IO_Energies_Save(this->state.get(), file.c_str());
+		IO_Write_Chain_Energies(this->state.get(), file.c_str());
 	}
 }
 
@@ -388,9 +383,9 @@ void ControlWidget::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	IO_Energies_Save(this->state.get(), fullName.c_str());
-	IO_Energies_Spins_Save(this->state.get(), fullNameSpins.c_str());
-	IO_Energies_Interpolated_Save(this->state.get(), fullNameInterpolated.c_str());
+	IO_Write_System_Energy_per_Spin(this->state.get(), fullNameSpins.c_str());
+	IO_Write_Chain_Energies(this->state.get(), fullName.c_str());
+	IO_Write_Chain_Energies_Interpolated(this->state.get(), fullNameInterpolated.c_str());
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");

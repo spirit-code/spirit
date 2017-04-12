@@ -185,9 +185,9 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            scalarfield out_min(blocks);
-            scalarfield out_max(blocks);
-            scalarfield temp(1);
+            static scalarfield out_min(blocks);
+            static scalarfield out_max(blocks);
+            static scalarfield temp(1);
 
             cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
             cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
@@ -206,6 +206,11 @@ namespace Engine
 			v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
 		}
 
+		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
+		{
+			Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
+			return A.colPivHouseholderQr().solve(v);
+		}
 
 
 		/////////////////////////////////////////////////////////////////
@@ -372,7 +377,7 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            scalarfield ret(1, 0);
+            static scalarfield ret(1, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -384,7 +389,7 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            scalarfield ret(1, 0);
+            static scalarfield ret(1, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -456,7 +461,7 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            vectorfield ret(1, {0,0,0});
+            static vectorfield ret(1, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -468,7 +473,7 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            vectorfield ret(1, {0,0,0});
+            static vectorfield ret(1, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -490,7 +495,7 @@ namespace Engine
         scalar dot(const vectorfield & vf1, const vectorfield & vf2)
         {
             int n = vf1.size();
-            scalarfield sf(n);
+            static scalarfield sf(n);
             scalar ret;
 
             // Dot product

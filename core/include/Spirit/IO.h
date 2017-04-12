@@ -28,10 +28,17 @@ DLLEXPORT void IO_Chain_Write(State * state, const char * file, int idx_image=-1
 DLLEXPORT void IO_Collection_Read(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void IO_Collection_Write(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
 
-// Data
-DLLEXPORT void IO_Energies_Save(State * state, const char * file, int idx_chain = -1);
-DLLEXPORT void IO_Energies_Spins_Save(State * state, const char * file, int idx_chain = -1);
-DLLEXPORT void IO_Energies_Interpolated_Save(State * state, const char * file, int idx_chain = -1);
+
+// Save the spin-resolved energy contributions of a spin system
+DLLEXPORT void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_chain = -1);
+// Save the Energy contributions of a spin system
+DLLEXPORT void IO_Write_System_Energy(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
+
+// Save the Energy contributions of a chain of spin systems
+DLLEXPORT void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain = -1);
+// Save the interpolated energies of a chain of spin systems
+DLLEXPORT void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int idx_chain = -1);
+
 
 #include "DLL_Undefine_Export.h"
 #endif

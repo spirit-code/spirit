@@ -34,10 +34,31 @@ protected:
 
 private slots:
 	void keyPressEvent(QKeyEvent *ev) override;
+	void takeScreenshot();
+	void edit_cut();
+	void edit_copy();
+	void edit_paste();
+	void edit_insert_right();
+	void edit_insert_left();
+	void edit_delete();
+	void control_random();
+	void control_insertconfiguration();
+	void control_playpause();
+	void control_cycle_method();
+	void control_cycle_optimizer();
 	void view_toggleDebug();
 	void view_togglePlots();
 	void view_toggleSettings();
-	void view_toggle_fullscreen_spins();
+	void view_regular_mode();
+	void view_isosurface_mode();
+	void view_slab_x();
+	void view_slab_y();
+	void view_slab_z();
+	void view_cycle_camera();
+	void view_toggle_spins_only();
+	void view_toggle_fullscreen();
+	void toggleSpinWidget();
+	void view_toggleDragMode();
     void about();
 	void keyBindings();
 	void load_Configuration();
@@ -45,7 +66,9 @@ private slots:
 	void load_Spin_Configuration();
 	void save_SpinChain_Configuration();
 	void load_SpinChain_Configuration();
-	void save_Energies();
+	void save_System_Energy_Spins();
+	void save_Chain_Energies();
+	void save_Chain_Energies_Interpolated();
 	void return_focus();
 
 private:
@@ -91,16 +114,18 @@ private:
 	std::vector<QLabel*> m_Labels_IPS;
 
 	// Fullscreen state
-	bool   fullscreen_spins;
-	bool   pre_fullscreen_settings_hidden;
-	QSize  pre_fullscreen_settings_size;
-	QPoint pre_fullscreen_settings_pos;
-	bool   pre_fullscreen_plots_hidden;
-	QSize  pre_fullscreen_plots_size;
-	QPoint pre_fullscreen_plots_pos;
-	bool   pre_fullscreen_debug_hidden;
-	QSize  pre_fullscreen_debug_size;
-	QPoint pre_fullscreen_debug_pos;
+	bool   view_spins_only;
+	bool   view_fullscreen;
+	bool   m_spinWidgetActive;
+	bool   pre_spins_only_settings_hidden;
+	QSize  pre_spins_only_settings_size;
+	QPoint pre_spins_only_settings_pos;
+	bool   pre_spins_only_plots_hidden;
+	QSize  pre_spins_only_plots_size;
+	QPoint pre_spins_only_plots_pos;
+	bool   pre_spins_only_debug_hidden;
+	QSize  pre_spins_only_debug_size;
+	QPoint pre_spins_only_debug_pos;
 
 	// Screenshot numbering
 	int n_screenshots;

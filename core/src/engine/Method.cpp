@@ -1,6 +1,8 @@
 #include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 namespace Engine
 {
@@ -64,7 +66,7 @@ namespace Engine
     }
 
     // Return the maximum of absolute values of force components for an image
-    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force)
+    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force)
     {
         // Take out component in direction of v2
         Manifoldmath::project_tangential(force, image);
@@ -72,6 +74,16 @@ namespace Engine
         // We want the Maximum of Absolute Values of all force components on all images
         return Vectormath::max_abs_component(force);
     }
+
+	void Method::Lock()
+	{
+		for (auto system : this->systems) system->Lock();
+	}
+
+	void Method::Unlock()
+	{
+		for (auto system : this->systems) system->Unlock();
+	}
 
     std::string Method::Name()
     {

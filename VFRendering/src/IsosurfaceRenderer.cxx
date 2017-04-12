@@ -71,7 +71,8 @@ void IsosurfaceRenderer::optionsHaveChanged(const std::vector<int>& changed_opti
             case Option::VALUE_FUNCTION:
                 m_value_function_changed = true;
                 break;
-            case View::Option::COLORMAP_IMPLEMENTATION:
+			case Option::LIGHTING_IMPLEMENTATION:
+			case View::Option::COLORMAP_IMPLEMENTATION:
             case View::Option::IS_VISIBLE_IMPLEMENTATION:
             update_shader = true;
             break;

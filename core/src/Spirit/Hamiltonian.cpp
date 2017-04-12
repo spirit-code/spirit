@@ -1,10 +1,12 @@
 #include <Spirit/Hamiltonian.h>
-#include <Spirit/State.h>
 
 #include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Gaussian.hpp>
 #include <utility/Constants.hpp>
 
 using namespace Utility;

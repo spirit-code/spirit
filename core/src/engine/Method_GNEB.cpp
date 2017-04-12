@@ -4,7 +4,6 @@
 #include <engine/Manifoldmath.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/IO.hpp>
-#include <utility/Timing.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
@@ -56,7 +55,16 @@ namespace Engine
 		{
 			// Calculate the Energy of the image
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
-			if (i>0) Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
+			if (i>0)
+			{
+				Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
+				if (Rx[i] - Rx[i-1] < 1e-10)
+				{
+        			Log(Log_Level::Error, Log_Sender::GNEB, std::string("The geodesic distance between two images is zero! Stopping..."), -1, this->idx_chain);
+					this->chain->iteration_allowed = false;
+					return;
+				}
+			}
 		}
 
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
@@ -184,7 +192,7 @@ namespace Engine
         this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
 
 		// File save
-		if (this->parameters->save_output_any && ( (initial && this->parameters->save_output_initial) || (final && this->parameters->save_output_final) ) )
+		if (this->parameters->output_any && ( (initial && this->parameters->output_initial) || (final && this->parameters->output_final) ) )
 		{
 			// Get the file suffix
 			std::string suffix = "";
@@ -198,20 +206,31 @@ namespace Engine
 			auto imagesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_Images_" + s_iter + suffix + ".txt";
 			Utility::IO::Save_SpinChain_Configuration(this->chain, imagesFile);
 
-			if (this->parameters->save_output_energy)
+			if (this->chain->gneb_parameters->output_energy)
 			{
 				// Save current Energies with reaction coordinates
 				auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Save_Energies(*this->chain, iteration, energiesFile);
+				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile);
 
 				// Save interpolated Energies
 				auto energiesInterpFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Save_Energies_Interpolated(*this->chain, energiesInterpFile);
+				Utility::IO::Write_Chain_Energies_Interpolated(*this->chain, energiesInterpFile);
 			}
 
 			// Save Log
 			Log.Append_to_File();
 		}
+	}
+
+
+	void Method_GNEB::Lock()
+	{
+		this->chain->Lock();
+	}
+
+	void Method_GNEB::Unlock()
+	{
+		this->chain->Unlock();
 	}
 
 	// Optimizer name as string

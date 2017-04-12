@@ -1,12 +1,8 @@
 #include <engine/Method_LLG.hpp>
-#include <engine/Optimizer_Heun.hpp>
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/IO.hpp>
-#include <utility/Configurations.hpp>
-#include <utility/Timing.hpp>
-#include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
@@ -60,6 +56,11 @@ namespace Engine
 
 	bool Method_LLG::Force_Converged()
 	{
+		for (unsigned int img = 0; img < systems.size(); ++img)
+		{
+			if (this->systems[img]->llg_parameters->temperature > 0 || this->systems[img]->llg_parameters->stt_magnitude > 0)
+				return false;
+		}
 		// Check if all images converged
 		return std::all_of(this->force_converged.begin(),
 							this->force_converged.end(),
@@ -132,56 +133,85 @@ namespace Engine
         this->history["M_z"].push_back(mag[2]);
 
 		// File save
-		if (this->parameters->save_output_any)
+		if (this->parameters->output_any)
 		{
-			auto writeoutput = [this, starttime, iteration](std::string suffix, bool override_single)
+			// Convert indices to formatted strings
+			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
+			auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+
+			std::string preSpinsFile  = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img;
+			std::string preEnergyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img;
+
+			// Function to write or append image and energy files
+			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
-				// Convert indices to formatted strings
-				auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
-				auto s_iter = IO::int_to_formatted_string(iteration, 6);
-				
-				if (this->systems[0]->llg_parameters->save_output_archive)
-				{
-					// Append Spin configuration to Spin_Archieve_File
-					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
-				}
-				
-				if (this->systems[0]->llg_parameters->save_output_archive && this->parameters->save_output_energy)
+				// File name
+				std::string spinsFile = preSpinsFile + suffix + ".txt";
+
+				// Spin Configuration
+				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			};
+
+			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+			{
+				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+
+				// File name
+				std::string energyFile = preEnergyFile + suffix + ".txt";
+				std::string energyFilePerSpin = preEnergyFile + suffix + "_perSpin.txt";
+
+				// Energy
+				if (append)
 				{
 					// Check if Energy File exists and write Header if it doesn't
-					auto energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
 					std::ifstream f(energyFile);
 					if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
 					// Append Energy to File
-					Utility::IO::Append_Energy(*this->systems[0], iteration, energyFile);
+					Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
 				}
-
-				if (this->systems[0]->llg_parameters->save_output_single || override_single)
+				else
 				{
-					// Save Spin configuration to new "spins" File
-					auto spinsIterFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + "_" + s_iter + ".txt";
-					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsIterFile);
+					Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+					Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+					if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
+					{
+						Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+					}
 				}
 			};
 			
-			std::string suffix = "";
-			
-			if (initial && this->parameters->save_output_initial)
+			// Initial image before simulation
+			if (initial && this->parameters->output_initial)
 			{
-				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_initial";
-				suffix = s_fix;
-				writeoutput(suffix, true);
+				writeOutputConfiguration("_" + s_iter + "_initial", false);
+				writeOutputEnergy("_" + s_iter + "_initial", false);
 			}
-			else if (final && this->parameters->save_output_final)
+			// Final image after simulation
+			else if (final && this->parameters->output_final)
 			{
-				auto s_fix = "_" + IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations)) + "_final";
-				suffix = s_fix;
-				writeoutput(suffix, true);
+				writeOutputConfiguration("_" + s_iter + "_final", false);
+				writeOutputEnergy("_" + s_iter + "_final", false);
 			}
 			
-			suffix = "_archive";
-			writeoutput(suffix, false);
+			// Single file output
+			if (this->systems[0]->llg_parameters->output_configuration_single)
+			{
+				writeOutputConfiguration("_" + s_iter, false);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_single)
+			{
+				writeOutputEnergy("_" + s_iter, false);
+			}
+
+			// Archive file output (appending)
+			if (this->systems[0]->llg_parameters->output_configuration_archive)
+			{
+				writeOutputConfiguration("_archive", true);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_archive)
+			{
+				writeOutputEnergy("_archive", true);
+			}
 
 			// Save Log
 			Log.Append_to_File();

@@ -96,21 +96,26 @@ namespace Engine
 
 	void Hamiltonian_Anisotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
+		if (contributions.size() != this->energy_contributions_per_spin.size())
+		{
+			contributions = this->energy_contributions_per_spin;
+		}
+		
 		int nos = spins.size();
-		for (auto& pair : energy_contributions_per_spin)
+		for (auto& pair : contributions)
 		{
 			// Allocate if not already allocated
 			if (pair.second.size() != nos) pair.second = scalarfield(nos, 0);
 			// Otherwise set to zero
-			else for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
+			else Vectormath::fill(pair.second, 0);
 		}
 		
 
 		// External field
-		if (this->idx_zeeman >=0 ) E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
+		if (this->idx_zeeman >=0 ) E_Zeeman(spins, contributions[idx_zeeman].second);
 
 		// Anisotropy
-		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, energy_contributions_per_spin[idx_anisotropy].second);
+		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, contributions[idx_anisotropy].second);
 
 		// Pairs
 		//		Loop over periodicity
@@ -128,18 +133,15 @@ namespace Engine
 			{
 				//		Energies of this periodicity
 				// Exchange
-				if (this->idx_exchange >=0 ) E_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], energy_contributions_per_spin[idx_exchange].second);
+				if (this->idx_exchange >=0 ) E_Exchange(spins, Exchange_indices[i_periodicity], Exchange_magnitude[i_periodicity], contributions[idx_exchange].second);
 				// DMI
-				if (this->idx_dmi >=0 ) E_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], energy_contributions_per_spin[idx_dmi].second);
+				if (this->idx_dmi >=0 ) E_DMI(spins, DMI_indices[i_periodicity], DMI_magnitude[i_periodicity], DMI_normal[i_periodicity], contributions[idx_dmi].second);
 				// DD
-				if (this->idx_dd >=0 ) E_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], energy_contributions_per_spin[idx_dd].second);
+				if (this->idx_dd >=0 ) E_DD(spins, DD_indices[i_periodicity], DD_magnitude[i_periodicity], DD_normal[i_periodicity], contributions[idx_dd].second);
 				// Quadruplet
-				if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], energy_contributions_per_spin[idx_quadruplet].second);
+				if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, Quadruplet_indices[i_periodicity], Quadruplet_magnitude[i_periodicity], contributions[idx_quadruplet].second);
 			}
 		}
-
-		// Return
-		//return this->E;
 	}
 
 	void Hamiltonian_Anisotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)

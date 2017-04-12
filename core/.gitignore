@@ -11,8 +11,11 @@ spirit.js.mem
 
 ### Generated Files
 VERSION.txt
+python/LICENSE.txt
 Spirit_Defines.h
+__init__.py
 scalar.py
+version.py
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

@@ -1,8 +1,8 @@
 // #include <QtWidgets>
 
-#include "MainWindow.hpp"
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
+#include "IsosurfaceWidget.hpp"
 
 #include "Spirit/Configurations.h"
 #include "Spirit/Transitions.h"
@@ -36,6 +36,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	// Setup User Interface
 	this->setupUi(this);
 
+	// Defaults
+	m_isosurfaceshadows = false;
+	add_isosurface();
+	
 	// We use a regular expression (regex) to filter the input into the lineEdits
 	QRegularExpression re("[+|-]?[\\d]*[\\.]?[\\d]*");
 	this->number_validator = new QRegularExpressionValidator(re);
@@ -64,6 +68,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 		this->tabWidget_Settings->removeTab(2);
 		this->tabWidget_Settings->removeTab(2);
 	}
+
+	this->last_configuration = "";
 
 	// Load information from Spin Systems
 	this->updateData();
@@ -145,6 +151,21 @@ float SettingsWidget::get_inverted()
 // -----------------------------------------------------------------------------------
 // --------------------- Configurations and Transitions ------------------------------
 // -----------------------------------------------------------------------------------
+void SettingsWidget::lastConfiguration()
+{
+	if (last_configuration != "")
+	{
+		Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Inserting last used configuration");
+		if (this->last_configuration == "hopfion")
+			this->create_Hopfion();
+		else if (this->last_configuration == "skyrmion")
+			this->create_Skyrmion();
+		else if (this->last_configuration == "spinspiral")
+			this->create_SpinSpiral();
+		else if (this->last_configuration == "domain")
+			this->domainPressed();
+	}
+}
 void SettingsWidget::randomPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Random");
@@ -218,6 +239,7 @@ void SettingsWidget::plusZ()
 void SettingsWidget::create_Hopfion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion");
+	this->last_configuration = "hopfion";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -239,6 +261,7 @@ void SettingsWidget::create_Hopfion()
 void SettingsWidget::create_Skyrmion()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion");
+	this->last_configuration = "skyrmion";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -265,6 +288,7 @@ void SettingsWidget::create_Skyrmion()
 void SettingsWidget::create_SpinSpiral()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral");
+	this->last_configuration = "spinspiral";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -291,6 +315,7 @@ void SettingsWidget::create_SpinSpiral()
 void SettingsWidget::domainPressed()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "button Domain");
+	this->last_configuration = "domain";
 	// Get settings
 	auto pos = get_position();
 	auto border_rect = get_border_rectangular();
@@ -565,6 +590,9 @@ void SettingsWidget::Load_Visualization_Contents()
 	else
 		this->radioButton_vismode_sphere->setChecked(true);
 	
+	// N_cell_steps (draw every N'th unit cell)
+	this->spinBox_n_cell_steps->setValue(this->_spinWidget->visualisationNCellSteps());
+
 	// System
 	bool show_arrows = _spinWidget->show_arrows;
 	bool show_boundingbox = _spinWidget->show_boundingbox;
@@ -574,7 +602,7 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->checkBox_showBoundingBox->setChecked(show_boundingbox);
 	this->checkBox_show_surface->setChecked(show_surface);
 	this->checkBox_show_isosurface->setChecked(show_isosurface);
-	this->checkBox_isosurfaceshadows->setChecked(_spinWidget->isosurfaceshadows());
+	this->checkBox_isosurfaceshadows->setChecked(this->m_isosurfaceshadows);
 
 	// Miniview
 	this->checkBox_showMiniView->setChecked(_spinWidget->isMiniviewEnabled());
@@ -585,30 +613,30 @@ void SettingsWidget::Load_Visualization_Contents()
 	this->comboBox_coordinateSystemPosition->setCurrentIndex((int)_spinWidget->coordinateSystemPosition());
 
 	// Z Range Arrows
+	auto x_range = _spinWidget->xRangeDirection();
+	auto y_range = _spinWidget->yRangeDirection();
 	auto z_range = _spinWidget->zRangeDirection();
-	if (z_range.x < -1)
-		z_range.x = -1;
-	if (z_range.x > 1)
-		z_range.x = 1;
-	if (z_range.y < -1)
-		z_range.y = -1;
-	if (z_range.y > 1)
-		z_range.y = 1;
+	x_range.x = std::max(-1.0f, std::min(1.0f, x_range.x));
+	x_range.y = std::max(-1.0f, std::min(1.0f, x_range.y));
+	y_range.x = std::max(-1.0f, std::min(1.0f, y_range.x));
+	y_range.y = std::max(-1.0f, std::min(1.0f, y_range.y));
+	z_range.x = std::max(-1.0f, std::min(1.0f, z_range.x));
+	z_range.y = std::max(-1.0f, std::min(1.0f, z_range.y));
 
 	// Overall direction filter X
 	horizontalSlider_overall_dir_xmin->setInvertedAppearance(true);
 	horizontalSlider_overall_dir_xmin->setRange(-100, 100);
-	horizontalSlider_overall_dir_xmin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_xmin->setValue((int)(-x_range.x * 100));
 	horizontalSlider_overall_dir_xmax->setRange(-100, 100);
-	horizontalSlider_overall_dir_xmax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_xmax->setValue((int)(x_range.y * 100));
 	horizontalSlider_overall_dir_xmin->setTracking(true);
 	horizontalSlider_overall_dir_xmax->setTracking(true);
 	// Overall direction filter Y
 	horizontalSlider_overall_dir_ymin->setInvertedAppearance(true);
 	horizontalSlider_overall_dir_ymin->setRange(-100, 100);
-	horizontalSlider_overall_dir_ymin->setValue((int)(-z_range.x * 100));
+	horizontalSlider_overall_dir_ymin->setValue((int)(-y_range.x * 100));
 	horizontalSlider_overall_dir_ymax->setRange(-100, 100);
-	horizontalSlider_overall_dir_ymax->setValue((int)(z_range.y * 100));
+	horizontalSlider_overall_dir_ymax->setValue((int)(y_range.y * 100));
 	horizontalSlider_overall_dir_ymin->setTracking(true);
 	horizontalSlider_overall_dir_ymax->setTracking(true);
 	// Overall direction filter Z
@@ -620,29 +648,45 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_overall_dir_zmin->setTracking(true);
 	horizontalSlider_overall_dir_zmax->setTracking(true);
 
+	x_range = _spinWidget->xRangePosition();
+	y_range = _spinWidget->yRangePosition();
 	z_range = _spinWidget->zRangePosition();
+
+	float b_min[3], b_max[3], b_range[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	for (int dim = 0; dim < 3; ++dim) b_range[dim] = b_max[dim] - b_min[dim];
+
+	float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
+	float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+
 	// Overall position filter X
 	//horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
+	range_min = x_range.x / b_range[0] - b_min[0];
+	range_max = x_range.y / b_range[0] - b_min[0];
 	horizontalSlider_overall_pos_xmin->setRange(0, 10000);
-	horizontalSlider_overall_pos_xmin->setValue(0);
+	horizontalSlider_overall_pos_xmin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_xmax->setRange(0, 10000);
-	horizontalSlider_overall_pos_xmax->setValue(10000);
+	horizontalSlider_overall_pos_xmax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_xmin->setTracking(true);
 	horizontalSlider_overall_pos_xmax->setTracking(true);
 	// Overall position filter Y
 	//horizontalSlider_overall_pos_ymin->setInvertedAppearance(true);
+	range_min = y_range.x / b_range[1] - b_min[1];
+	range_max = y_range.y / b_range[1] - b_min[1];
 	horizontalSlider_overall_pos_ymin->setRange(0, 10000);
-	horizontalSlider_overall_pos_ymin->setValue(0);
+	horizontalSlider_overall_pos_ymin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_ymax->setRange(0, 10000);
-	horizontalSlider_overall_pos_ymax->setValue(10000);
+	horizontalSlider_overall_pos_ymax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_ymin->setTracking(true);
 	horizontalSlider_overall_pos_ymax->setTracking(true);
 	// Overall position filter Z
 	//horizontalSlider_overall_pos_zmin->setInvertedAppearance(true);
+	range_min = z_range.x / b_range[2] - b_min[2];
+	range_max = z_range.y / b_range[2] - b_min[2];
 	horizontalSlider_overall_pos_zmin->setRange(0, 10000);
-	horizontalSlider_overall_pos_zmin->setValue(0);
+	horizontalSlider_overall_pos_zmin->setValue((int)(range_min*10000));
 	horizontalSlider_overall_pos_zmax->setRange(0, 10000);
-	horizontalSlider_overall_pos_zmax->setValue(10000);
+	horizontalSlider_overall_pos_zmax->setValue((int)(range_max*10000));
 	horizontalSlider_overall_pos_zmin->setTracking(true);
 	horizontalSlider_overall_pos_zmax->setTracking(true);
 
@@ -684,16 +728,6 @@ void SettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_surface_ymin->blockSignals(false);
 	horizontalSlider_surface_ymax->blockSignals(false);
 	horizontalSlider_surface_zmin->blockSignals(false);
-	horizontalSlider_surface_zmax->blockSignals(false);
-  
-	// Isosurface
-	auto isovalue = _spinWidget->isovalue();
-	horizontalSlider_isovalue->setRange(0, 100);
-	horizontalSlider_isovalue->setValue((int)(isovalue+1*50));
-	int component = _spinWidget->isocomponent();
-	if (component == 0) this->radioButton_isosurface_x->setChecked(true);
-	else if (component == 1) this->radioButton_isosurface_y->setChecked(true);
-	else if (component == 2) this->radioButton_isosurface_z->setChecked(true);
 
 	// Colormap
 	int idx_cm = (int)_spinWidget->colormap();
@@ -707,17 +741,17 @@ void SettingsWidget::Load_Visualization_Contents()
 	checkBox_colormap_invert_xy->setChecked(cm_inverted[1]);
 
 	// Perspective / FOV
-	if (_spinWidget->verticalFieldOfView() == 0)
+	if (_spinWidget->cameraProjection())
 	{
-		radioButton_orthographicProjection->setChecked(true);
+		radioButton_perspectiveProjection->setChecked(true);
 	}
 	else
 	{
-		radioButton_orthographicProjection->setChecked(false);
-		this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
-		this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
+		radioButton_orthographicProjection->setChecked(true);
 	}
-	horizontalSlider_camera_fov->setRange(0, 160);
+	this->horizontalSlider_camera_fov->setRange(0, 160);
+	this->lineEdit_camera_fov->setText(QString::number(_spinWidget->verticalFieldOfView()));
+	this->horizontalSlider_camera_fov->setValue((int)(_spinWidget->verticalFieldOfView()));
 
 
 	// Arrows: size and lod
@@ -1266,6 +1300,12 @@ void SettingsWidget::set_visualisation_source()
 	this->_spinWidget->setVisualisationSource(this->comboBox_VisualisationSource->currentIndex());
 }
 
+void SettingsWidget::set_visualisation_n_cell_steps()
+{
+	// N_cell_steps (draw every N'th unit cell)
+	this->_spinWidget->setVisualisationNCellSteps(this->spinBox_n_cell_steps->value());
+}
+
 void SettingsWidget::set_visualization_mode()
 {
 	SpinWidget::VisualizationMode mode;
@@ -1283,11 +1323,11 @@ void SettingsWidget::set_visualization_perspective()
 	// Perspective / FOV
 	if (radioButton_orthographicProjection->isChecked())
 	{
-		_spinWidget->setVerticalFieldOfView(0);
+		_spinWidget->setCameraProjection(false);
 	}
 	else
 	{
-		_spinWidget->setVerticalFieldOfView(this->lineEdit_camera_fov->text().toFloat());
+		_spinWidget->setCameraProjection(true);
 	}
 }
 
@@ -1550,33 +1590,15 @@ void SettingsWidget::set_visualization_system_overall_position()
 
 void SettingsWidget::set_visualization_system_isosurface()
 {
-	_spinWidget->setIsosurfaceshadows(this->checkBox_isosurfaceshadows->isChecked());
+	this->m_isosurfaceshadows = this->checkBox_isosurfaceshadows->isChecked();
+	for (auto& isoWidget : this->isosurfaceWidgets) isoWidget->setDrawShadows(this->m_isosurfaceshadows);
 }
 
-
-
-void SettingsWidget::set_visualization_isovalue_fromslider()
+void SettingsWidget::add_isosurface()
 {
-	float isovalue = horizontalSlider_isovalue->value() / 50.0f - 1.0f;
-	this->lineEdit_isovalue->setText(QString::number(isovalue));
-	_spinWidget->setIsovalue(isovalue);
-}
-
-void SettingsWidget::set_visualization_isovalue_fromlineedit()
-{
-	float isovalue = this->lineEdit_isovalue->text().toFloat();
-	this->horizontalSlider_isovalue->setValue((int)(isovalue*50 + 50));
-	_spinWidget->setIsovalue(isovalue);
-}
-
-void SettingsWidget::set_visualization_isocomponent()
-{
-	if (radioButton_isosurface_x->isChecked())
-		_spinWidget->setIsocomponent(0);
-	else if (radioButton_isosurface_y->isChecked())
-		_spinWidget->setIsocomponent(1);
-	else if (radioButton_isosurface_z->isChecked())
-		_spinWidget->setIsocomponent(2);
+	this->isosurfaceWidgets.push_back(new IsosurfaceWidget(state, _spinWidget));
+	this->verticalLayout_isosurface->addWidget(isosurfaceWidgets.back());
+	//this->set_visualization_system();
 }
 
 
@@ -1703,7 +1725,7 @@ void SettingsWidget::set_camera_position()
 	float x = this->lineEdit_camera_pos_x->text().toFloat();
 	float y = this->lineEdit_camera_pos_y->text().toFloat();
 	float z = this->lineEdit_camera_pos_z->text().toFloat();
-    this->_spinWidget->setCameraPositon({x, y, z});
+    this->_spinWidget->setCameraPosition({x, y, z});
 }
 
 void SettingsWidget::set_camera_focus()
@@ -1767,6 +1789,10 @@ void SettingsWidget::SelectTab(int index)
 	this->tabWidget_Settings->setCurrentIndex(index);
 }
 
+void SettingsWidget::incrementNCellStep(int increment)
+{
+	this->spinBox_n_cell_steps->setValue(this->spinBox_n_cell_steps->value()+increment);
+}
 
 void SettingsWidget::print_Energies_to_console()
 {
@@ -1930,6 +1956,7 @@ void SettingsWidget::Setup_Transitions_Slots()
 void SettingsWidget::Setup_Visualization_Slots()
 {
 	connect(comboBox_VisualisationSource, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualisation_source()));
+	connect(spinBox_n_cell_steps, SIGNAL(valueChanged(int)), this, SLOT(set_visualisation_n_cell_steps()));
 	// Mode
 	connect(radioButton_vismode_sphere, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
 	connect(radioButton_vismode_system, SIGNAL(toggled(bool)), this, SLOT(set_visualization_mode()));
@@ -1972,12 +1999,8 @@ void SettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
 	//		isosurface
-	connect(horizontalSlider_isovalue, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_isovalue_fromslider()));
-	connect(this->lineEdit_isovalue, SIGNAL(returnPressed()), this, SLOT(set_visualization_isovalue_fromlineedit()));
-	connect(radioButton_isosurface_x, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
-	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
-	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(set_visualization_isocomponent()));
 	connect(checkBox_isosurfaceshadows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system_isosurface()));
+	connect(pushButton_addIsosurface, SIGNAL(clicked()), this, SLOT(add_isosurface()));
 	// Sphere
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
@@ -2102,7 +2125,7 @@ void SettingsWidget::Setup_Input_Validators()
 
 	// Parameters
 	//		LLG
-	this->lineEdit_Damping->setValidator(this->number_validator);
+	this->lineEdit_Damping->setValidator(this->number_validator_unsigned);
 	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
@@ -2110,8 +2133,6 @@ void SettingsWidget::Setup_Input_Validators()
 	// Visualisation
 	//		Arrows
 	this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
-	//		Isovalue
-	this->lineEdit_isovalue->setValidator(this->number_validator);
 	//		Colormap
 	this->lineEdit_colormap_rotate_phi->setValidator(this->number_validator_int_unsigned);
 	//		Camera

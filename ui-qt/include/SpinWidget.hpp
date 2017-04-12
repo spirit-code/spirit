@@ -3,7 +3,11 @@
 #define SPIN_WIDGET_H
 
 #include <memory>
+#include <set>
+
 #include <QOpenGLWidget>
+#include "MouseDecoratorWidget.hpp"
+
 #include "glm/glm.hpp"
 
 #include <VFRendering/View.hxx>
@@ -61,8 +65,21 @@ public:
 		EFF_FIELD
 	};
 
+	enum class InteractionMode {
+		REGULAR,
+		DRAG
+  };
+
+	enum class SystemMode {
+		CUSTOM,
+		ISOSURFACE,
+		SLAB_X,
+		SLAB_Y,
+		SLAB_Z
+	};
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
+  void setSuspended(bool suspended);
   void updateData();
   void initializeGL();
   void resizeGL(int width, int height);
@@ -73,10 +90,19 @@ public:
   void setVisualisationSource(int source);
   int m_source;
 
+  const VFRendering::View * view();
+
+  void addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer);
+  void removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer>);
+
   // --- Mode
+  int visualisationNCellSteps();
+  void setVisualisationNCellSteps(int n_cell_steps);
   void setVisualizationMode(SpinWidget::VisualizationMode visualization_mode);
   SpinWidget::VisualizationMode visualizationMode();
   SpinWidget::VisualizationMode visMode;
+  void setInteractionMode(SpinWidget::InteractionMode mode);
+  SpinWidget::InteractionMode interactionMode();
   bool show_miniview, show_coordinatesystem;
   // --- MiniView
   void setVisualizationMiniview(bool show, SpinWidget::WidgetLocation location);
@@ -94,6 +120,8 @@ public:
   // --- System
   void enableSystem(bool arrows, bool boundingbox, bool surface, bool isosurface);
   void cycleSystem(bool forward=true);
+  void cycleSystem(SystemMode mode);
+  SystemMode systemCycle();
   void moveSlab(int amount);
   bool show_arrows, show_boundingbox, show_surface, show_isosurface;
   //    Arrows
@@ -108,6 +136,7 @@ public:
   glm::vec2 yRangePosition() const;
   glm::vec2 zRangePosition() const;
   void setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
+  void updateIsVisibleImplementation();
   //    Bounding Box
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
@@ -116,17 +145,6 @@ public:
   glm::vec2 surfaceXRange() const;
   glm::vec2 surfaceYRange() const;
   glm::vec2 surfaceZRange() const;
-  //float isovalue() const;
-  //void setIsovalue(float isovalue);
-  //    Isosurface
-  float isovalue() const;
-  void setIsovalue(float isovalue);
-  bool m_isosurfaceshadows;
-  bool isosurfaceshadows() const;
-  void setIsosurfaceshadows(bool show);
-  int m_isocomponent;
-  float isocomponent() const;
-  void setIsocomponent(int component);
 
   // --- Sphere
   glm::vec2 spherePointSizeRange() const;
@@ -150,7 +168,7 @@ public:
   void setCameraToX(bool inverted=false);
   void setCameraToY(bool inverted=false);
   void setCameraToZ(bool inverted=false);
-  void setCameraPositon(const glm::vec3& camera_position);
+  void setCameraPosition(const glm::vec3& camera_position);
   void setCameraFocus(const glm::vec3& center_position);
   void setCameraUpVector(const glm::vec3& up_vector);
   glm::vec3 getCameraPositon();
@@ -158,6 +176,8 @@ public:
   glm::vec3 getCameraUpVector();
   float verticalFieldOfView() const;
   void setVerticalFieldOfView(float vertical_field_of_view);
+  bool cameraProjection();
+  void setCameraProjection(bool perspective);
   // --- Move Camera
   void moveCamera(float backforth, float rightleft, float updown);
   void rotateCamera(float theta, float phi);
@@ -171,6 +191,7 @@ public:
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseReleaseEvent(QMouseEvent *event);
   virtual void wheelEvent(QWheelEvent *event);
   
   protected slots:
@@ -181,10 +202,11 @@ private:
   QPoint m_previous_mouse_position;
   bool _reset_camera;
   bool m_camera_rotate_free;
+  bool m_camera_projection_perspective;
   float m_light_theta, m_light_phi;
   
   // temporaries for system cycle
-  void setSystemCycle(int idx);
+  void setSystemCycle(SystemMode mode);
   void setSlabRanges();
   int idx_cycle;
   bool user_show_arrows, user_show_boundingbox, user_show_surface, user_show_isosurface;
@@ -205,9 +227,14 @@ private:
   std::shared_ptr<VFRendering::RendererBase> m_renderer_surface;
   std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_surface_3D;
   std::shared_ptr<VFRendering::SurfaceRenderer> m_renderer_surface_2D;
-  std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer_isosurface;
+  std::set<std::shared_ptr<VFRendering::IsosurfaceRenderer>> m_renderers_isosurface;
 
   void setupRenderers();
+  bool m_gl_initialized;
+  bool m_suspended;
+
+  int n_cell_step;
+  int n_basis_atoms;
 
   const VFRendering::Options& options() const;
   
@@ -228,6 +255,27 @@ private:
   
   // Visualisation
   VFRendering::View m_view;
+
+  // Interaction mode
+  InteractionMode m_interactionmode;
+	bool   regular_mode_perspective;
+	glm::vec3 regular_mode_cam_pos;
+	glm::vec3 regular_mode_cam_focus;
+	glm::vec3 regular_mode_cam_up;
+  // Calculate coordinates relative to the system center from QT device pixel coordinates
+  //  This assumes that mouse_pos is relative to the top left corner of the widget.
+  //  winsize should be the device pixel size of the widget.
+  //  This function also assumes an orthogonal z-projection.
+  glm::vec2 system_coords_from_mouse(glm::vec2 mouse_pos, glm::vec2 winsize);
+  float system_radius_from_relative(float radius, glm::vec2 winsize);
+  QTimer * m_timer_drag;
+  void dragpaste();
+  bool m_dragging;
+  glm::vec2 last_drag_coords;
+
+  // mouse decoration
+  MouseDecoratorWidget * mouse_decoration;
+  float drag_radius;
   
 	// Persistent Settings
 	void writeSettings();

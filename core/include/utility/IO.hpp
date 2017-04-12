@@ -96,16 +96,22 @@ namespace Utility
 		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const std::string fileName);
 
 		// =========================== Saving Energies ===========================
-		void Write_Energy_Header(Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true);
-		// Appends the current Energy of the current image with energy contributions, without header
-		void Append_Energy(Data::Spin_System &s, const int iteration, const std::string fileName);
+		void Write_Energy_Header(const Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true, bool normalize_nos=true);
+		// Appends the Energy of a spin system with energy contributions (without header)
+		void Append_System_Energy(const Data::Spin_System &s, const int iteration, const std::string fileName, bool normalize_nos=true);
+		// Save energy contributions of a spin system
+		void Write_System_Energy(const Data::Spin_System & system, const std::string fileName, bool normalize_by_nos=true);
+		// Save energy contributions of a spin system per spin
+		void Write_System_Energy_per_Spin(const Data::Spin_System & s, const std::string fileName, bool normalize_nos=true);
+		// Saves the forces on an image chain
+		void Write_System_Force(const Data::Spin_System & s, const std::string fileName);
+		
 		// Saves Energies of all images with header and contributions
-		void Save_Energies(Data::Spin_System_Chain & c, const int iteration, const std::string fileName);
+		void Write_Chain_Energies(const Data::Spin_System_Chain & c, const int iteration, const std::string fileName, bool normalize_nos=true);
 		// Saves the Energies interpolated by the GNEB method
-		void Save_Energies_Interpolated(Data::Spin_System_Chain & c, const std::string fileName);
-		// Saves the energy contributions of every spin of an image
-		void Save_Energies_Spins(Data::Spin_System_Chain & c, const std::string fileName);
-		void Save_Forces(Data::Spin_System_Chain & c, const std::string fileName);
+		void Write_Chain_Energies_Interpolated(const Data::Spin_System_Chain & c, const std::string fileName, bool normalize_nos=true);
+		// Saves the forces on an image chain
+		void Write_Chain_Forces(const Data::Spin_System_Chain & c, const std::string fileName);
 
 
 		// ========================= Saving Helpers =========================

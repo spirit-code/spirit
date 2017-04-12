@@ -4,15 +4,14 @@
 
 #include <random>
 #include <memory>
+#include <mutex>
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
-#include <engine/Hamiltonian_Isotropic.hpp>
-#include <engine/Hamiltonian_Anisotropic.hpp>
-#include <engine/Hamiltonian_Gaussian.hpp>
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method_LLG.hpp>
+#include <data/Parameters_Method_MC.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 
 namespace Data
@@ -47,8 +46,10 @@ namespace Data
 		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
 		// Geometric Information
 		std::shared_ptr<Geometry> geometry;
-		// Parameters for LLG Iterations (MC, SIB, ...)
+		// Parameters for LLG iterations
 		std::shared_ptr<Parameters_Method_LLG> llg_parameters;
+		// Parameters for MC iterations
+		std::shared_ptr<Parameters_Method_MC> mc_parameters;
 		// Is it allowed to iterate on this system?
 		bool iteration_allowed;
 

@@ -6,7 +6,6 @@
 #include <engine/Vectormath_Defines.hpp>
 
 #include <vector>
-#include <array>
 
 namespace Data
 {
@@ -69,7 +68,7 @@ namespace Data
 		// Position of the Segments: segments_pos[dim][nos][4]
     //const std::vector<std::vector<std::vector<scalar>>> segments_pos;
 
-    const std::vector<tetrahedron_t>& triangulation();
+    const std::vector<tetrahedron_t>& triangulation(int n_cell_step=1);
 
     int dimensionality;
 	int calculateDimensionality() const;

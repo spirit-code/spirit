@@ -21,6 +21,36 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc)
+		{
+			int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
+			if (delta < 0)
+				delta += geometry.nos;
+			std::rotate(configuration.begin(), configuration.begin() + delta, configuration.end());
+		}
+
+		void Insert(Data::Spin_System &s, const vectorfield& configuration, int shift, filterfunction filter)
+		{
+			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
+			int nos = s.nos;
+			if (shift < 0) shift += nos;
+
+			if (nos != configuration.size())
+			{
+				Log(Log_Level::Warning, Log_Sender::All, "Tried to insert spin configuration with NOS != NOS_system");
+				return;
+			}
+
+			for (int iatom = 0; iatom < nos; ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					spins[iatom] = configuration[(iatom + shift) % nos];
+				}
+			}
+		}
+
 		void Domain(Data::Spin_System & s, Vector3 v, filterfunction filter)
 		{
 			try

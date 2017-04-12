@@ -20,6 +20,8 @@ namespace Engine
 		// Rotate a vector around an axis by a certain degree
 		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
 
+		// Decompose a vector into numbers of translations in a basis
+		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis);
 
 		/////////////////////////////////////////////////////////////////
 		//////// Vectorfield Math - special stuff

@@ -7,6 +7,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>
 #include <utility/Timing.hpp>
+#include <utility/Logging.hpp>
 
 #include <deque>
 #include <fstream>
@@ -43,6 +44,11 @@ namespace Engine
 		// Finalize the optimization of the systems
 		virtual void Finalize();
 
+		// Lock systems in order to prevent otherwise access
+		virtual void Lock();
+		// Unlock systems to re-enable access
+		virtual void Unlock();
+
 		// Method name as string
 		virtual std::string Name();
 		// Method name as enum
@@ -59,7 +65,7 @@ namespace Engine
 		
 	protected:
 		// Calculate force_maxAbsComponent for a spin configuration
-		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield force) final;
+		virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
 		// Check if iterations_allowed
 		virtual bool Iterations_Allowed();
 		// History of relevant quantities

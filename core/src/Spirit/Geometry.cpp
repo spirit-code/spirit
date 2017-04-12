@@ -1,6 +1,4 @@
 #include <Spirit/Geometry.h>
-#include <Spirit/State.h>
-
 #include <data/State.hpp>
 
 scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain)
@@ -77,6 +75,16 @@ void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3]
 //     *n_atoms = g->n_spins_basic_domain;
 // }
 
+// Get number of atoms in a basis cell
+int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    return image->geometry->n_spins_basic_domain;
+}
+
 // Get number of basis cells in the three translation directions
 void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_chain)
 {
@@ -116,14 +124,14 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
 }
 
 
-int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int idx_image, int idx_chain)
+int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain)
 {
   std::shared_ptr<Data::Spin_System> image;
   std::shared_ptr<Data::Spin_System_Chain> chain;
   from_indices(state, idx_image, idx_chain, image, chain);
 
   auto g = image->geometry;
-  auto& tetrahedra = g->triangulation();
+  auto& tetrahedra = g->triangulation(n_cell_step);
   if (indices_ptr != nullptr) {
 	  *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
   }

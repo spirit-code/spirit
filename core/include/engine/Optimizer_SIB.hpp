@@ -8,7 +8,6 @@
 
 #include "Spirit_Defines.h"
 #include <engine/Optimizer.hpp>
-#include <data/Spin_System_Chain.hpp>
 
 namespace Engine
 {
