@@ -1146,7 +1146,7 @@ void SpinWidget::updateIsVisibleImplementation()
 		sstream << m_x_range_direction.x;
 		sstream << "; float x_max_dir = ";
 		sstream << m_x_range_direction.y;
-		sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = x_dir >= x_min_dir && x <= x_max_dir;";
+		sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = x_dir >= x_min_dir && x_dir <= x_max_dir;";
 	}
 	// Y
 	if (m_y_range_direction.x <= -1 && m_y_range_direction.y >= 1) {

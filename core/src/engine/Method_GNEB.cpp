@@ -55,7 +55,16 @@ namespace Engine
 		{
 			// Calculate the Energy of the image
 			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
-			if (i>0) Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
+			if (i>0)
+			{
+				Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
+				if (Rx[i] - Rx[i-1] < 1e-10)
+				{
+        			Log(Log_Level::Error, Log_Sender::GNEB, std::string("The geodesic distance between two images is zero! Stopping..."), -1, this->idx_chain);
+					this->chain->iteration_allowed = false;
+					return;
+				}
+			}
 		}
 
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images

@@ -891,6 +891,7 @@ void MainWindow::edit_delete()
 
 	this->controlWidget->delete_image();
 	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+	this->createStatusBar();
 }
 
 void MainWindow::control_random()
@@ -1018,6 +1019,7 @@ void MainWindow::keyBindings()
 			"<i>Manipulate the current images</i><br>"
 			" - <b>Ctrl+R</b>:  Random configuration<br>"
 			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
+			" - <b>Enter</b>:   Insert last used configuration<br>"
 			"<br>"
 			"<i>Visualisation</i><br>"
 			" - <b>+/-</b>:     Use more/fewer data points of the vector field<br>"

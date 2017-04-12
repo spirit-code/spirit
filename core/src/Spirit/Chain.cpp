@@ -163,6 +163,7 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
         chain->Lock();
+		copy->Lock();
 
         // Add to chain
         chain->noi++;
@@ -221,6 +222,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
         chain->Lock();
+		copy->Lock();
 
         // Add to chain
         chain->noi++;
@@ -237,7 +239,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         // }
 
 		// Add to state
-		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
+		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image + 1, std::shared_ptr<Simulation_Information>());
 
         chain->Unlock();
 
@@ -286,11 +288,11 @@ void Chain_Push_Back(State * state, int idx_chain_i)
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
         
         chain->Lock();
+		copy->Lock();
 
         // Add to chain
         chain->noi++;
 		chain->images.push_back(copy);
-		chain->images.back()->Lock();
         chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
             
 		// Add to state
