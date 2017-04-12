@@ -283,20 +283,20 @@ void ControlWidget::paste_image(std::string where)
 	}
 	else if (where == "left")
 	{
+		int idx = System_Get_Index(state.get());
 		// Insert Image
 		Chain_Insert_Image_Before(state.get());
 		// Make the llg_threads vector larger
-		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
 		// Switch to the inserted image
 		Chain_prev_Image(this->state.get());
 	}
 	else if (where == "right")
 	{
+		int idx = System_Get_Index(state.get());
 		// Insert Image
 		Chain_Insert_Image_After(state.get());
 		// Make the llg_threads vector larger
-		int idx = System_Get_Index(state.get());
 		this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
 		// Switch to the inserted image
 		Chain_next_Image(this->state.get());
