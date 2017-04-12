@@ -1052,81 +1052,13 @@ glm::vec2 SpinWidget::zRangeDirection() const {
 	return m_z_range_direction;
 }
 
-void SpinWidget::setOverallDirectionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range) {
-	std::ostringstream sstream;
-	std::string is_visible_implementation;
-	sstream << "bool is_visible(vec3 position, vec3 direction) {";
-	// X
+void SpinWidget::setOverallDirectionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
+{
 	m_x_range_direction = x_range;
-	if (x_range.x <= -1 && x_range.y >= 1) {
-		sstream << "bool is_visible_x = true;";
-	}
-	else if (x_range.x <= -1) {
-		sstream << "float x_max = ";
-		sstream << x_range.y;
-		sstream << "; bool is_visible_x = normalize(direction).x <= x_max;";
-	}
-	else if (x_range.y >= 1) {
-		sstream << "float x_min = ";
-		sstream << x_range.x;
-		sstream << "; bool is_visible_x = normalize(direction).x >= x_min;";
-	}
-	else {
-		sstream << "float x_min = ";
-		sstream << x_range.x;
-		sstream << "; float x_max = ";
-		sstream << x_range.y;
-		sstream << "; float x = normalize(direction).x; bool is_visible_x = x >= x_min && x <= x_max;";
-	}
-	// Y
 	m_y_range_direction = y_range;
-	if (y_range.x <= -1 && y_range.y >= 1) {
-		sstream << "bool is_visible_y = true;";
-	}
-	else if (y_range.x <= -1) {
-		sstream << "float y_max = ";
-		sstream << y_range.y;
-		sstream << "; bool is_visible_y = normalize(direction).y <= y_max;";
-	}
-	else if (y_range.y >= 1) {
-		sstream << "float y_min = ";
-		sstream << y_range.x;
-		sstream << "; bool is_visible_y = normalize(direction).y >= y_min;";
-	}
-	else {
-		sstream << "float y_min = ";
-		sstream << y_range.x;
-		sstream << "; float y_max = ";
-		sstream << y_range.y;
-		sstream << "; float y = normalize(direction).y;  bool is_visible_y = y >= y_min && y <= y_max;";
-	}
-	// Z
 	m_z_range_direction = z_range;
-	if (z_range.x <= -1 && z_range.y >= 1) {
-		sstream << "bool is_visible_z = true;";
-	}
-	else if (z_range.x <= -1) {
-		sstream << "float z_max = ";
-		sstream << z_range.y;
-		sstream << "; bool is_visible_z = normalize(direction).z <= z_max;";
-	}
-	else if (z_range.y >= 1) {
-		sstream << "float z_min = ";
-		sstream << z_range.x;
-		sstream << "; bool is_visible_z = normalize(direction).z >= z_min;";
-	}
-	else {
-		sstream << "float z_min = ";
-		sstream << z_range.x;
-		sstream << "; float z_max = ";
-		sstream << z_range.y;
-		sstream << "; float z = normalize(direction).z;  bool is_visible_z = z >= z_min && z <= z_max;";
-	}
-	//
-	sstream << " return is_visible_x && is_visible_y && is_visible_z; }";
-	is_visible_implementation = sstream.str();
-	makeCurrent();
-	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
+
+	this->updateIsVisibleImplementation();
 }
 
 /////	Overall Range Position
@@ -1140,48 +1072,126 @@ glm::vec2 SpinWidget::zRangePosition() const {
 	return m_z_range_position;
 }
 
-void SpinWidget::setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range) {
+void SpinWidget::setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range)
+{
+	m_x_range_position = x_range;
+	m_y_range_position = y_range;
+	m_z_range_position = z_range;
+
+	this->updateIsVisibleImplementation();
+}
+
+void SpinWidget::updateIsVisibleImplementation()
+{
 	std::ostringstream sstream;
 	std::string is_visible_implementation;
 	sstream << "bool is_visible(vec3 position, vec3 direction) {";
+	//		position
 	// X
-	m_x_range_position = x_range;
-	if (x_range.x >= x_range.y) {
-		sstream << "bool is_visible_x = true;";
+	if (m_x_range_position.x >= m_x_range_position.y)
+	{
+		sstream << "bool is_visible_x_pos = true;";
 	}
-	else {
-		sstream << "float x_min = ";
-		sstream << x_range.x;
-		sstream << "; float x_max = ";
-		sstream << x_range.y;
-		sstream << "; bool is_visible_x = position.x <= x_max && position.x >= x_min;";
+	else
+	{
+		sstream << "float x_min_pos = ";
+		sstream << m_x_range_position.x;
+		sstream << "; float x_max_pos = ";
+		sstream << m_x_range_position.y;
+		sstream << "; bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;";
 	}
 	// Y
-	m_y_range_position = y_range;
-	if (y_range.x >= y_range.y) {
-		sstream << "bool is_visible_y = true;";
+	if (m_y_range_position.x >= m_y_range_position.y) {
+		sstream << "bool is_visible_y_pos = true;";
 	}
 	else {
-		sstream << "float y_min = ";
-		sstream << y_range.x;
-		sstream << "; float y_max = ";
-		sstream << y_range.y;
-		sstream << "; bool is_visible_y = position.y <= y_max && position.y >= y_min;";
+		sstream << "float y_min_pos = ";
+		sstream << m_y_range_position.x;
+		sstream << "; float y_max_pos = ";
+		sstream << m_y_range_position.y;
+		sstream << "; bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;";
 	}
 	// Z
-	m_z_range_position = z_range;
-	if (x_range.x >= x_range.y) {
-		sstream << "bool is_visible_z = true;";
+	if (m_z_range_position.x >= m_z_range_position.y) {
+		sstream << "bool is_visible_z_pos = true;";
 	}
 	else {
-		sstream << "float z_min = ";
-		sstream << z_range.x;
-		sstream << "; float z_max = ";
-		sstream << z_range.y;
-		sstream << "; bool is_visible_z = position.z <= z_max && position.z >= z_min;";
+		sstream << "float z_min_pos = ";
+		sstream << m_z_range_position.x;
+		sstream << "; float z_max_pos = ";
+		sstream << m_z_range_position.y;
+		sstream << "; bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;";
+	}
+	//		direction
+	// X
+	if (m_x_range_direction.x <= -1 && m_x_range_direction.y >= 1)
+	{
+		sstream << "bool is_visible_x_dir = true;";
+	}
+	else if (m_x_range_direction.x <= -1)
+	{
+		sstream << "float x_max_dir = ";
+		sstream << m_x_range_direction.y;
+		sstream << "; bool is_visible_x_dir = normalize(direction).x <= x_max_dir;";
+	}
+	else if (m_x_range_direction.y >= 1)
+	{
+		sstream << "float x_min_dir = ";
+		sstream << m_x_range_direction.x;
+		sstream << "; bool is_visible_x_dir = normalize(direction).x >= x_min_dir;";
+	}
+	else
+	{
+		sstream << "float x_min_dir = ";
+		sstream << m_x_range_direction.x;
+		sstream << "; float x_max_dir = ";
+		sstream << m_x_range_direction.y;
+		sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = x_dir >= x_min_dir && x <= x_max_dir;";
+	}
+	// Y
+	if (m_y_range_direction.x <= -1 && m_y_range_direction.y >= 1) {
+		sstream << "bool is_visible_y_dir = true;";
+	}
+	else if (m_y_range_direction.x <= -1) {
+		sstream << "float y_max_dir = ";
+		sstream << m_y_range_direction.y;
+		sstream << "; bool is_visible_y_dir = normalize(direction).y <= y_max_dir;";
+	}
+	else if (m_y_range_direction.y >= 1) {
+		sstream << "float y_min_dir = ";
+		sstream << m_y_range_direction.x;
+		sstream << "; bool is_visible_y_dir = normalize(direction).y >= y_min_dir;";
+	}
+	else {
+		sstream << "float y_min_dir = ";
+		sstream << m_y_range_direction.x;
+		sstream << "; float y_max_dir = ";
+		sstream << m_y_range_direction.y;
+		sstream << "; float y_dir = normalize(direction).y;  bool is_visible_y_dir = y_dir >= y_min_dir && y_dir <= y_max_dir;";
+	}
+	// Z
+	if (m_z_range_direction.x <= -1 && m_z_range_direction.y >= 1) {
+		sstream << "bool is_visible_z_dir = true;";
+	}
+	else if (m_z_range_direction.x <= -1) {
+		sstream << "float z_max_dir = ";
+		sstream << m_z_range_direction.y;
+		sstream << "; bool is_visible_z_dir = normalize(direction).z <= z_max_dir;";
+	}
+	else if (m_z_range_direction.y >= 1) {
+		sstream << "float z_min_dir = ";
+		sstream << m_z_range_direction.x;
+		sstream << "; bool is_visible_z_dir = normalize(direction).z >= z_min_dir;";
+	}
+	else {
+		sstream << "float z_min_dir = ";
+		sstream << m_z_range_direction.x;
+		sstream << "; float z_max_dir = ";
+		sstream << m_z_range_direction.y;
+		sstream << "; float z_dir = normalize(direction).z;  bool is_visible_z_dir = z_dir >= z_min_dir && z_dir <= z_max_dir;";
 	}
 	//
-	sstream << " return is_visible_x && is_visible_y && is_visible_z; }";
+	sstream << " return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir; }";
 	is_visible_implementation = sstream.str();
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);

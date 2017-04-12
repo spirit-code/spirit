@@ -136,6 +136,7 @@ public:
   glm::vec2 yRangePosition() const;
   glm::vec2 zRangePosition() const;
   void setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range);
+  void updateIsVisibleImplementation();
   //    Bounding Box
   bool isBoundingBoxEnabled() const;
   void enableBoundingBox(bool enabled);
