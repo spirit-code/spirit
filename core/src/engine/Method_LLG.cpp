@@ -139,8 +139,18 @@ namespace Engine
 			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 			auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
 
-			std::string preSpinsFile  = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img;
-			std::string preEnergyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img;
+			std::string preSpinsFile;
+			std::string preEnergyFile;
+			if (this->systems[0]->llg_parameters->output_tag_time)
+			{
+				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img;
+				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img;
+			}
+			else
+			{
+				preSpinsFile = this->parameters->output_folder + "/Spins_" + s_img;
+				preEnergyFile = this->parameters->output_folder + "/Energy_" + s_img;
+			}
 
 			// Function to write or append image and energy files
 			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -183,22 +193,22 @@ namespace Engine
 			// Initial image before simulation
 			if (initial && this->parameters->output_initial)
 			{
-				writeOutputConfiguration("_" + s_iter + "_initial", false);
-				writeOutputEnergy("_" + s_iter + "_initial", false);
+				writeOutputConfiguration("_initial", false);
+				writeOutputEnergy("_initial", false);
 			}
 			// Final image after simulation
 			else if (final && this->parameters->output_final)
 			{
-				writeOutputConfiguration("_" + s_iter + "_final", false);
-				writeOutputEnergy("_" + s_iter + "_final", false);
+				writeOutputConfiguration("_final", false);
+				writeOutputEnergy("_final", false);
 			}
 			
 			// Single file output
-			if (this->systems[0]->llg_parameters->output_configuration_single)
+			if (this->systems[0]->llg_parameters->output_configuration_step)
 			{
 				writeOutputConfiguration("_" + s_iter, false);
 			}
-			if (this->systems[0]->llg_parameters->output_energy_single)
+			if (this->systems[0]->llg_parameters->output_energy_step)
 			{
 				writeOutputEnergy("_" + s_iter, false);
 			}

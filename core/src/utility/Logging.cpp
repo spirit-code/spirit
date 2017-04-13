@@ -63,10 +63,13 @@ namespace Utility
 	LoggingHandler::LoggingHandler()
 	{
 		// Set the default Log parameters
-		print_level   = Log_Level::Warning;
+		print_level   = Log_Level::Parameter;
 		accept_level  = Log_Level::Debug;
 		output_folder = ".";
-		fileName      = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+		if (tag_time)
+			fileName  = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+		else
+			fileName = "Log.txt";
 		save_output   = false;
 		save_input    = true;
 		n_entries     = 0;

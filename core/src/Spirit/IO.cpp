@@ -108,7 +108,7 @@ void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_cha
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Read the data
-	Utility::IO::Save_SpinChain_Configuration(chain, std::string(file));
+	Utility::IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
 }
 
 

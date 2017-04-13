@@ -14,11 +14,13 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, std::array<bool,3> output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method(std::string output_folder, std::array<bool,4> output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
 
 		// Data output folder
 		std::string output_folder;
 
+		// Put a time tag in front of output files
+		bool output_tag_time;
 		// Save any output when logging
 		bool output_any;
 		// Save output at initial state

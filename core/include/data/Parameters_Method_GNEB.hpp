@@ -15,9 +15,12 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method_GNEB(std::string output_folder, std::array<bool,4> save_output, scalar force_convergence, long int n_iterations, long int n_iterations_log, scalar spring_constant, int n_E_interpolations);
+		Parameters_Method_GNEB(std::string output_folder, std::array<bool,8> output, scalar force_convergence, long int n_iterations, long int n_iterations_log, scalar spring_constant, int n_E_interpolations);
 
-		bool output_energy;
+		bool output_energies_step;
+		bool output_energies_divide_by_nspins;
+		bool output_energies_interpolated;
+		bool output_chain_step;
 		
 		// Strength of springs between images
 		scalar spring_constant;

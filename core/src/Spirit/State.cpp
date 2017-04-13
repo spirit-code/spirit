@@ -145,7 +145,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     std::string header = "###\n### Original configuration file was called\n###   " + std::string(original_config_file) + "\n###\n\n";
     IO::Append_String_to_File(header, cfg);
     // Folders
-    IO::Folders_to_Config(cfg, state->active_image->llg_parameters, state->active_chain->gneb_parameters, state->collection->parameters);
+    IO::Folders_to_Config(cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, state->active_chain->gneb_parameters, state->collection->parameters);
     // Log Parameters
     IO::Append_String_to_File("\n\n\n", cfg);
     IO::Log_Levels_to_Config(cfg);
