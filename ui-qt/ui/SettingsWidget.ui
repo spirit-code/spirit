@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2098</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -123,23 +123,10 @@
               </item>
               <item row="2" column="1">
                <layout class="QGridLayout" name="gridLayout_84">
-                <item row="2" column="1">
-                 <widget class="QLineEdit" name="lineEdit_border_cylindrical">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="1">
                  <layout class="QGridLayout" name="gridLayout_79">
-                  <item row="0" column="3">
-                   <widget class="QLineEdit" name="lineEdit_pos_z">
+                  <item row="0" column="2">
+                   <widget class="QLineEdit" name="lineEdit_pos_y">
                     <property name="maximumSize">
                      <size>
                       <width>40</width>
@@ -151,8 +138,8 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="2">
-                   <widget class="QLineEdit" name="lineEdit_pos_y">
+                  <item row="0" column="3">
+                   <widget class="QLineEdit" name="lineEdit_pos_z">
                     <property name="maximumSize">
                      <size>
                       <width>40</width>
@@ -177,23 +164,43 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="0" column="4">
+                   <spacer name="horizontalSpacer_53">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLineEdit" name="lineEdit_border_spherical">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
                 </item>
                 <item row="1" column="1">
                  <layout class="QGridLayout" name="gridLayout_8">
+                  <item row="0" column="2">
+                   <spacer name="horizontalSpacer_54">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_x">
+                    <property name="text">
+                     <string>x</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="0" column="1">
                    <widget class="QLineEdit" name="lineEdit_border_x">
                     <property name="minimumSize">
@@ -216,7 +223,65 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="3">
+                 </layout>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Position (x,y,z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_cylindrical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_cylindrical">
+                  <property name="text">
+                   <string>Border (cylindrical)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Border (rectangular)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_spherical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_spherical">
+                  <property name="text">
+                   <string>Border (spherical)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <layout class="QGridLayout" name="gridLayout_97">
+                  <item row="0" column="1">
                    <widget class="QLineEdit" name="lineEdit_border_y">
                     <property name="minimumSize">
                      <size>
@@ -238,14 +303,14 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="2">
+                  <item row="0" column="0">
                    <widget class="QCheckBox" name="checkBox_border_rectangular_y">
                     <property name="text">
                      <string>y</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="5">
+                  <item row="1" column="1">
                    <widget class="QLineEdit" name="lineEdit_border_z">
                     <property name="minimumSize">
                      <size>
@@ -267,49 +332,27 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="0">
-                   <widget class="QCheckBox" name="checkBox_border_rectangular_x">
-                    <property name="text">
-                     <string>x</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="4">
+                  <item row="1" column="0">
                    <widget class="QCheckBox" name="checkBox_border_rectangular_z">
                     <property name="text">
                      <string>z</string>
                     </property>
                    </widget>
                   </item>
+                  <item row="0" column="2">
+                   <spacer name="horizontalSpacer_55">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QCheckBox" name="checkBox_border_spherical">
-                  <property name="text">
-                   <string>Border (spherical)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QCheckBox" name="checkBox_border_cylindrical">
-                  <property name="text">
-                   <string>Border (cylindrical)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_9">
-                  <property name="text">
-                   <string>Position (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Border (rectangular)</string>
-                  </property>
-                 </widget>
                 </item>
                </layout>
               </item>
@@ -357,6 +400,19 @@
                   </property>
                  </widget>
                 </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_56">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </item>
              </layout>
@@ -368,7 +424,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -380,19 +436,6 @@
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout_9">
-             <item row="1" column="4">
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
              <item row="1" column="1">
               <widget class="QPushButton" name="pushButton_Random">
                <property name="sizePolicy">
@@ -463,6 +506,19 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="4">
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </item>
            <item>
@@ -471,7 +527,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -627,7 +683,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -884,7 +940,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -991,7 +1047,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -1316,8 +1372,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2098</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1595,154 +1651,23 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2036</height>
+            <width>643</width>
+            <height>2056</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="checkBox_extH">
-             <property name="text">
-              <string>External Field</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <property name="tristate">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="19" column="0">
-            <layout class="QGridLayout" name="gridLayout_24">
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_19">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Polarisation (x,y,z)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_15">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Minimum</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>30</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="13" column="0">
-            <layout class="QGridLayout" name="gridLayout_23">
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_17">
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Direction (x,y,z)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_14">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Minimum</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>30</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="22" column="0">
-            <widget class="QCheckBox" name="checkBox_bqe">
-             <property name="text">
-              <string>BQE Magnitude</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QCheckBox" name="checkBox_exchange">
-             <property name="text">
-              <string>Exchange Magnitudes</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QLineEdit" name="lineEdit_dmi">
-             <property name="maximumSize">
-              <size>
-               <width>40</width>
-               <height>16777215</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="23" column="1">
-            <widget class="QLineEdit" name="lineEdit_fourspin">
-             <property name="maximumSize">
-              <size>
-               <width>40</width>
-               <height>16777215</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="23" column="0">
-            <widget class="QCheckBox" name="checkBox_fourspin">
-             <property name="text">
-              <string>FourSpin Magnitude</string>
-             </property>
-            </widget>
-           </item>
            <item row="22" column="1">
-            <widget class="QLineEdit" name="lineEdit_bqe">
-             <property name="maximumSize">
+            <spacer name="verticalSpacer_23">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
-               <height>16777215</height>
+               <width>20</width>
+               <height>40</height>
               </size>
              </property>
-            </widget>
-           </item>
-           <item row="17" column="0">
-            <widget class="QCheckBox" name="checkBox_spin_torque">
-             <property name="text">
-              <string>Spin Torque Magnitude</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QCheckBox" name="checkBox_dmi">
-             <property name="text">
-              <string>DMI Magnitude</string>
-             </property>
-            </widget>
+            </spacer>
            </item>
            <item row="5" column="1">
             <layout class="QGridLayout" name="gridLayout_15">
@@ -1801,63 +1726,55 @@
              </item>
             </layout>
            </item>
-           <item row="11" column="1">
-            <layout class="QGridLayout" name="gridLayout_17">
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_10">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
+           <item row="20" column="1">
+            <widget class="QLineEdit" name="lineEdit_bqe">
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
            </item>
-           <item row="17" column="1">
-            <layout class="QGridLayout" name="gridLayout_20">
-             <item row="0" column="0">
-              <layout class="QGridLayout" name="gridLayout_19">
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_spin_torque">
-                 <property name="maximumSize">
-                  <size>
-                   <width>40</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="2">
-                <spacer name="horizontalSpacer_12">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
-            </layout>
+           <item row="21" column="1">
+            <widget class="QLineEdit" name="lineEdit_fourspin">
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QCheckBox" name="checkBox_dmi">
+             <property name="text">
+              <string>DMI Magnitude</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QLineEdit" name="lineEdit_dmi">
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkBox_extH">
+             <property name="text">
+              <string>External Field</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="3" column="1">
             <layout class="QGridLayout" name="gridLayout_14">
@@ -1885,6 +1802,94 @@
               </spacer>
              </item>
             </layout>
+           </item>
+           <item row="20" column="0">
+            <widget class="QCheckBox" name="checkBox_bqe">
+             <property name="text">
+              <string>BQE Magnitude</string>
+             </property>
+            </widget>
+           </item>
+           <item row="21" column="0">
+            <widget class="QCheckBox" name="checkBox_fourspin">
+             <property name="text">
+              <string>FourSpin Magnitude</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <layout class="QGridLayout" name="gridLayout_17">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_10">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="7" column="0">
+            <widget class="QCheckBox" name="checkBox_exchange">
+             <property name="text">
+              <string>Exchange Magnitudes</string>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <layout class="QGridLayout" name="gridLayout_23">
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_17">
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Direction (x,y,z)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <spacer name="horizontalSpacer_14">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_iso_periodical_b">
+             <property name="text">
+              <string>(Periodical b)</string>
+             </property>
+            </widget>
            </item>
            <item row="7" column="1">
             <layout class="QGridLayout" name="gridLayout_16">
@@ -1968,134 +1973,10 @@
              </item>
             </layout>
            </item>
-           <item row="19" column="1">
-            <layout class="QGridLayout" name="gridLayout_22">
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_spin_torquex">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="QLineEdit" name="lineEdit_spin_torquez">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="lineEdit_spin_torquey">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="5">
-              <spacer name="horizontalSpacer_13">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="13" column="1">
-            <layout class="QGridLayout" name="gridLayout_18">
-             <item row="0" column="3">
-              <widget class="QLineEdit" name="lineEdit_anisoz">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="lineEdit_anisoy">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_anisox">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="5">
-              <spacer name="horizontalSpacer_11">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="24" column="0">
-            <widget class="QCheckBox" name="checkBox_Temperature">
-             <property name="text">
-              <string>Temperature</string>
-             </property>
-            </widget>
-           </item>
            <item row="11" column="0">
             <widget class="QCheckBox" name="checkBox_aniso">
              <property name="text">
               <string>Anisotropy Magnitude</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <spacer name="horizontalSpacer_6">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="24" column="1">
-            <widget class="QLineEdit" name="lineEdit_temper">
-             <property name="maximumSize">
-              <size>
-               <width>40</width>
-               <height>16777215</height>
-              </size>
              </property>
             </widget>
            </item>
@@ -2149,12 +2030,65 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_iso_periodical_b">
-             <property name="text">
-              <string>(Periodical b)</string>
+           <item row="3" column="2">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
-            </widget>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="13" column="1">
+            <layout class="QGridLayout" name="gridLayout_18">
+             <item row="0" column="3">
+              <widget class="QLineEdit" name="lineEdit_anisoz">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="lineEdit_anisoy">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_anisox">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="5">
+              <spacer name="horizontalSpacer_11">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </item>
            <item row="2" column="0">
             <widget class="QCheckBox" name="checkBox_iso_periodical_c">
@@ -2258,35 +2192,35 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2036</height>
+            <width>643</width>
+            <height>2056</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_29">
            <item row="9" column="1">
-            <layout class="QGridLayout" name="gridLayout_50">
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="lineEdit_sttz_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="lineEdit_sttx_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="checkBox_ani_aniso">
+             <property name="text">
+              <string>Anisotropy</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <layout class="QGridLayout" name="gridLayout_36">
              <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_stty_aniso">
+              <widget class="QLineEdit" name="lineEdit_extH_aniso">
                <property name="maximumSize">
                 <size>
                  <width>40</width>
@@ -2295,8 +2229,8 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="3">
-              <spacer name="horizontalSpacer_34">
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_27">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -2310,19 +2244,36 @@
              </item>
             </layout>
            </item>
-           <item row="9" column="0">
-            <layout class="QGridLayout" name="gridLayout_48">
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
+             <property name="text">
+              <string>Periodical b</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
+             <property name="text">
+              <string>Periodical a</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <layout class="QGridLayout" name="gridLayout_40">
              <item row="0" column="1">
-              <widget class="QLabel" name="label_34">
+              <widget class="QLabel" name="label_25">
                <property name="text">
-                <string>Polarisation (x,y,z)</string>
+                <string>mu_spin</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_37">
+             <item row="1" column="0">
+              <spacer name="horizontalSpacer_32">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Minimum</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2332,90 +2283,71 @@
                </property>
               </spacer>
              </item>
-            </layout>
-           </item>
-           <item row="11" column="1">
-            <layout class="QGridLayout" name="gridLayout_45">
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="lineEdit_T_aniso">
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_15">
                <property name="maximumSize">
                 <size>
-                 <width>40</width>
+                 <width>100</width>
                  <height>16777215</height>
                 </size>
                </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <spacer name="horizontalSpacer_33">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="6" column="1">
-            <layout class="QGridLayout" name="gridLayout_42">
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="lineEdit_ani_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <spacer name="horizontalSpacer_29">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="7" column="0">
-            <layout class="QGridLayout" name="gridLayout_46">
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_21">
                <property name="text">
                 <string>Direction (x,y,z)</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_36">
+            </layout>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkBox_extH_aniso">
+             <property name="text">
+              <string>External Field</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <layout class="QGridLayout" name="gridLayout_32">
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="lineEdit_extHy_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="lineEdit_extHx_aniso">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="5">
+              <spacer name="horizontalSpacer_24">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>30</width>
+                 <width>40</width>
                  <height>20</height>
                 </size>
                </property>
               </spacer>
              </item>
-            </layout>
-           </item>
-           <item row="8" column="1">
-            <layout class="QGridLayout" name="gridLayout_43">
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="lineEdit_stt_aniso">
+             <item row="1" column="3">
+              <widget class="QLineEdit" name="lineEdit_extHz_aniso">
                <property name="maximumSize">
                 <size>
                  <width>40</width>
@@ -2425,19 +2357,23 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <spacer name="horizontalSpacer_30">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
+              <widget class="QLineEdit" name="lineEdit_muSpin_aniso">
+               <property name="maximumSize">
                 <size>
                  <width>40</width>
-                 <height>20</height>
+                 <height>16777215</height>
                 </size>
                </property>
-              </spacer>
+              </widget>
              </item>
             </layout>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
+             <property name="text">
+              <string>Periodical c</string>
+             </property>
+            </widget>
            </item>
            <item row="7" column="1">
             <layout class="QGridLayout" name="gridLayout_47">
@@ -2499,49 +2435,19 @@
              </property>
             </spacer>
            </item>
-           <item row="3" column="1">
-            <layout class="QGridLayout" name="gridLayout_36">
+           <item row="7" column="0">
+            <layout class="QGridLayout" name="gridLayout_46">
              <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_extH_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_27">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="5" column="0">
-            <layout class="QGridLayout" name="gridLayout_40">
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_25">
+              <widget class="QLabel" name="label_21">
                <property name="text">
-                <string>mu_spin</string>
+                <string>Direction (x,y,z)</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <spacer name="horizontalSpacer_32">
+             <item row="0" column="0">
+              <spacer name="horizontalSpacer_36">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Minimum</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2551,25 +2457,12 @@
                </property>
               </spacer>
              </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_15">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Direction (x,y,z)</string>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
-           <item row="5" column="1">
-            <layout class="QGridLayout" name="gridLayout_32">
-             <item row="1" column="2">
-              <widget class="QLineEdit" name="lineEdit_extHy_aniso">
+           <item row="6" column="1">
+            <layout class="QGridLayout" name="gridLayout_42">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="lineEdit_ani_aniso">
                <property name="maximumSize">
                 <size>
                  <width>40</width>
@@ -2578,18 +2471,8 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="lineEdit_extHx_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="5">
-              <spacer name="horizontalSpacer_24">
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer_29">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -2601,95 +2484,7 @@
                </property>
               </spacer>
              </item>
-             <item row="1" column="3">
-              <widget class="QLineEdit" name="lineEdit_extHz_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_muSpin_aniso">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
             </layout>
-           </item>
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="checkBox_extH_aniso">
-             <property name="text">
-              <string>External Field</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <property name="tristate">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="1">
-            <spacer name="verticalSpacer_5">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="6" column="0">
-            <widget class="QCheckBox" name="checkBox_ani_aniso">
-             <property name="text">
-              <string>Anisotropy</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
-             <property name="text">
-              <string>Periodical a</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
-             <property name="text">
-              <string>Periodical b</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QCheckBox" name="checkBox_stt_aniso">
-             <property name="text">
-              <string>Spin Torque</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
-             <property name="text">
-              <string>Periodical c</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="0">
-            <widget class="QCheckBox" name="checkBox_T_aniso">
-             <property name="text">
-              <string>Temperature</string>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>
@@ -2724,12 +2519,28 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2098</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
-           <item row="4" column="0">
+           <item row="3" column="0">
+            <spacer name="verticalSpacer_22">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="9" column="0">
             <spacer name="verticalSpacer_10">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -2797,114 +2608,138 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
-            <spacer name="verticalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>30</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
            <item row="1" column="0">
             <widget class="QGroupBox" name="groupBox_4">
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>100</height>
+               <height>250</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>100</height>
+               <height>250</height>
               </size>
              </property>
              <property name="title">
               <string>LLG Parameters</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_35">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Damping</string>
-                </property>
-               </widget>
+              <item row="2" column="0">
+               <layout class="QGridLayout" name="gridLayout_91">
+                <item row="0" column="1">
+                 <widget class="QLabel" name="label_71">
+                  <property name="text">
+                   <string>Polarisation (x y z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <spacer name="horizontalSpacer_47">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Minimum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="lineEdit_Damping">
-                <property name="minimumSize">
-                 <size>
-                  <width>40</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_31">
-                <property name="text">
-                 <string>Time Step</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLineEdit" name="lineEdit_dt">
-                <property name="minimumSize">
-                 <size>
-                  <width>40</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="5">
-               <spacer name="horizontalSpacer_25">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="4">
-               <widget class="QLabel" name="label_41">
-                <property name="text">
-                 <string>[ps]</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
+              <item row="5" column="0">
                <widget class="QLabel" name="label_42">
                 <property name="text">
                  <string>n_iterations</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_llg_temperature">
+                <property name="text">
+                 <string>Temperature</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_llg_stt">
+                <property name="text">
+                 <string>Spin Torque</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_90">
+                <item row="0" column="0">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_polarisation_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="minimum">
+                   <double>-100.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>100.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_polarisation_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="minimum">
+                   <double>-100.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>100.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_polarisation_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="minimum">
+                   <double>-100.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>100.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer_57">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="5" column="1">
                <widget class="QLineEdit" name="lineEdit_llg_n_iterations">
                 <property name="minimumSize">
                  <size>
@@ -2920,14 +2755,148 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
+              <item row="10" column="0">
                <widget class="QLabel" name="label_43">
                 <property name="text">
                  <string>log steps</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="3">
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_65">
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer_46">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Damping</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_31">
+                <property name="text">
+                 <string>Time Step</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="lineEdit_Damping">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <layout class="QGridLayout" name="gridLayout_92">
+                <item row="0" column="0">
+                 <widget class="QLineEdit" name="lineEdit_dt">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLabel" name="label_41">
+                  <property name="text">
+                   <string>[ps]</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_48">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_89">
+                <item row="0" column="3">
+                 <widget class="QLabel" name="label_72">
+                  <property name="text">
+                   <string>K</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_temperature"/>
+                </item>
+                <item row="0" column="4">
+                 <spacer name="horizontalSpacer_49">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="2">
+               <spacer name="horizontalSpacer_25">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="10" column="1">
                <widget class="QLineEdit" name="lineEdit_llg_log_steps">
                 <property name="maximumSize">
                  <size>
@@ -2940,7 +2909,7 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="7" column="0">
             <widget class="QGroupBox" name="groupBox_5">
              <property name="minimumSize">
               <size>
@@ -2958,21 +2927,68 @@
               <string>GNEB Parameters</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_78">
-              <item row="6" column="1">
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_75">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>Spring Constant</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_gneb_springconstant">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1.0</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="7" column="1">
                <widget class="QRadioButton" name="radioButton_Stationary">
                 <property name="text">
                  <string>Stationar&amp;y</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="6" column="1">
                <widget class="QRadioButton" name="radioButton_FallingImage">
                 <property name="text">
                  <string>Falling Image</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
+              <item row="2" column="1">
+               <widget class="QRadioButton" name="radioButton_Normal">
+                <property name="text">
+                 <string>Normal</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QRadioButton" name="radioButton_ClimbingImage">
+                <property name="text">
+                 <string>Climbing Image</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
                <spacer name="horizontalSpacer_40">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -2985,7 +3001,7 @@
                 </property>
                </spacer>
               </item>
-              <item row="7" column="0" colspan="2">
+              <item row="8" column="0" colspan="2">
                <layout class="QGridLayout" name="gridLayout_77">
                 <item row="0" column="0">
                  <widget class="QLabel" name="label_44">
@@ -3029,52 +3045,428 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_75">
+             </layout>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="0">
+            <widget class="QGroupBox" name="groupBox_9">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>100</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>MC Parameters</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_55">
+              <item row="0" column="3">
+               <spacer name="horizontalSpacer_45">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_69">
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_mc_temperature"/>
+                </item>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_2">
+                 <widget class="QCheckBox" name="checkBox_mc_temperature">
                   <property name="text">
-                   <string>Spring Constant</string>
+                   <string>Temperature</string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_gneb_springconstant">
-                  <property name="minimumSize">
-                   <size>
-                    <width>40</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
+                <item row="1" column="0">
+                 <widget class="QCheckBox" name="checkBox_mc_acceptance">
                   <property name="text">
-                   <string>1.0</string>
+                   <string>Acceptance Ratio</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_mc_acceptance">
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.500000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_59">
+                  <property name="text">
+                   <string>K</string>
                   </property>
                  </widget>
                 </item>
                </layout>
               </item>
-              <item row="4" column="1">
-               <widget class="QRadioButton" name="radioButton_ClimbingImage">
-                <property name="text">
-                 <string>Climbing Image</string>
-                </property>
-               </widget>
+              <item row="2" column="0">
+               <layout class="QGridLayout" name="gridLayout_59">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_60">
+                  <property name="text">
+                   <string>n_iterations</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_mc_n_iterations"/>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QSpinBox" name="spinBox_mc_log_steps"/>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_48">
+                  <property name="text">
+                   <string>log steps</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="1" column="1">
-               <widget class="QRadioButton" name="radioButton_Normal">
-                <property name="text">
-                 <string>Normal</string>
+             </layout>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QGroupBox" name="groupBox_17">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>150</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>LLG Output</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_93">
+              <item row="3" column="4">
+               <spacer name="horizontalSpacer_50">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-                <property name="checked">
-                 <bool>true</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_98">
+                <item row="0" column="2">
+                 <widget class="QCheckBox" name="checkBox_5">
+                  <property name="text">
+                   <string>Final</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_4">
+                  <property name="text">
+                   <string>Initial</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_2">
+                  <property name="text">
+                   <string>Any</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <layout class="QGridLayout" name="gridLayout_99">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_6">
+                  <property name="text">
+                   <string>Energy Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QCheckBox" name="checkBox_9">
+                  <property name="text">
+                   <string>Energy divide by NOS</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_7">
+                  <property name="text">
+                   <string>Energy Archive</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QCheckBox" name="checkBox_8">
+                  <property name="text">
+                   <string>Energy Spin Resolved</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QCheckBox" name="checkBox_10">
+                  <property name="text">
+                   <string>Configuration Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QCheckBox" name="checkBox_11">
+                  <property name="text">
+                   <string>Configuration Archive</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0">
+               <layout class="QGridLayout" name="gridLayout_100">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit">
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_73">
+                  <property name="text">
+                   <string>Folder</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_58">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QGroupBox" name="groupBox_19">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>150</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>GNEB Output</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_95">
+              <item row="0" column="3">
+               <spacer name="horizontalSpacer_52">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_103">
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_22">
+                  <property name="text">
+                   <string>Initial</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QCheckBox" name="checkBox_23">
+                  <property name="text">
+                   <string>Final</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_21">
+                  <property name="text">
+                   <string>Any</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_104">
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_25">
+                  <property name="text">
+                   <string>Energies Interpolated</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QCheckBox" name="checkBox_27">
+                  <property name="text">
+                   <string>Energies divide by NOS</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_24">
+                  <property name="text">
+                   <string>Energies Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QCheckBox" name="checkBox_26">
+                  <property name="text">
+                   <string>Chain Step</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QGroupBox" name="groupBox_18">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>150</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>MC Output</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_94">
+              <item row="0" column="4">
+               <spacer name="horizontalSpacer_51">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_102">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_15">
+                  <property name="text">
+                   <string>Energy Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_18">
+                  <property name="text">
+                   <string>Energy Archive</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QCheckBox" name="checkBox_19">
+                  <property name="text">
+                   <string>Energy Spin Resolved</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QCheckBox" name="checkBox_16">
+                  <property name="text">
+                   <string>Configuration Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QCheckBox" name="checkBox_20">
+                  <property name="text">
+                   <string>Energy divide by NOS</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QCheckBox" name="checkBox_17">
+                  <property name="text">
+                   <string>Configuration Archive</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_101">
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_13">
+                  <property name="text">
+                   <string>Initial</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QCheckBox" name="checkBox_14">
+                  <property name="text">
+                   <string>Final</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_12">
+                  <property name="text">
+                   <string>Any</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -3112,8 +3504,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>645</width>
-            <height>2098</height>
+            <width>643</width>
+            <height>2103</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3600,7 +3992,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -3655,7 +4047,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -3804,7 +4196,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -3953,7 +4345,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -4120,7 +4512,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -4204,7 +4596,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -4406,7 +4798,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
+              <enum>QSizePolicy::Fixed</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -4715,10 +5107,13 @@
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>40</height>
+               <height>30</height>
               </size>
              </property>
             </spacer>
@@ -4850,17 +5245,10 @@
   <tabstop>lineEdit_anisox</tabstop>
   <tabstop>lineEdit_anisoy</tabstop>
   <tabstop>lineEdit_anisoz</tabstop>
-  <tabstop>checkBox_spin_torque</tabstop>
-  <tabstop>lineEdit_spin_torque</tabstop>
-  <tabstop>lineEdit_spin_torquex</tabstop>
-  <tabstop>lineEdit_spin_torquey</tabstop>
-  <tabstop>lineEdit_spin_torquez</tabstop>
   <tabstop>checkBox_bqe</tabstop>
   <tabstop>lineEdit_bqe</tabstop>
   <tabstop>checkBox_fourspin</tabstop>
   <tabstop>lineEdit_fourspin</tabstop>
-  <tabstop>checkBox_Temperature</tabstop>
-  <tabstop>lineEdit_temper</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
   <tabstop>checkBox_aniso_periodical_a</tabstop>
@@ -4877,19 +5265,8 @@
   <tabstop>lineEdit_anix_aniso</tabstop>
   <tabstop>lineEdit_aniy_aniso</tabstop>
   <tabstop>lineEdit_aniz_aniso</tabstop>
-  <tabstop>checkBox_stt_aniso</tabstop>
-  <tabstop>lineEdit_stt_aniso</tabstop>
-  <tabstop>lineEdit_sttx_aniso</tabstop>
-  <tabstop>lineEdit_stty_aniso</tabstop>
-  <tabstop>lineEdit_sttz_aniso</tabstop>
-  <tabstop>checkBox_T_aniso</tabstop>
-  <tabstop>lineEdit_T_aniso</tabstop>
   <tabstop>scrollArea_5</tabstop>
   <tabstop>comboBox_Parameters_ApplyTo</tabstop>
-  <tabstop>lineEdit_Damping</tabstop>
-  <tabstop>lineEdit_dt</tabstop>
-  <tabstop>lineEdit_llg_n_iterations</tabstop>
-  <tabstop>lineEdit_llg_log_steps</tabstop>
   <tabstop>lineEdit_gneb_springconstant</tabstop>
   <tabstop>radioButton_FallingImage</tabstop>
   <tabstop>lineEdit_gneb_n_iterations</tabstop>

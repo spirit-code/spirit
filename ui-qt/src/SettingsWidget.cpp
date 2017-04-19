@@ -407,10 +407,11 @@ void SettingsWidget::homogeneousTransitionPressed()
 
 void SettingsWidget::Load_Parameters_Contents()
 {
-	float d;
+	float d, vd[3];
 	int image_type;
 	int i;
 
+	//		LLG
 	// LLG Damping
 	Parameters_Get_LLG_Damping(state.get(), &d);
 	this->lineEdit_Damping->setText(QString::number(d));
@@ -422,6 +423,19 @@ void SettingsWidget::Load_Parameters_Contents()
 	this->lineEdit_llg_n_iterations->setText(QString::number(i));
 	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
 	this->lineEdit_llg_log_steps->setText(QString::number(i));
+	// Spin polarized current
+	Hamiltonian_Get_STT(state.get(), &d, vd);
+	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
+	this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
+	this->doubleSpinBox_llg_stt_polarisation_y->setValue(vd[1]);
+	this->doubleSpinBox_llg_stt_polarisation_z->setValue(vd[2]);
+	if (d > 0.0) this->checkBox_llg_stt->setChecked(true);
+	// Temperature
+	Hamiltonian_Get_Temperature(state.get(), &d);
+	this->doubleSpinBox_llg_temperature->setValue(d);
+	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
+
+	//		GNEB
 	// GNEB Interation Params
 	i = Parameters_Get_GNEB_N_Iterations(state.get());
 	this->lineEdit_gneb_n_iterations->setText(QString::number(i));
@@ -511,14 +525,6 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 	this->lineEdit_anisoz->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_aniso->setChecked(true);
 
-	// Spin polarized current (does not really belong to interactions)
-	Hamiltonian_Get_STT(state.get(), &d, vd);
-	this->lineEdit_spin_torque->setText(QString::number(d));
-	this->lineEdit_spin_torquex->setText(QString::number(vd[0]));
-	this->lineEdit_spin_torquey->setText(QString::number(vd[1]));
-	this->lineEdit_spin_torquez->setText(QString::number(vd[2]));
-	if (d > 0.0) this->checkBox_spin_torque->setChecked(true);
-
 	// BQE
 	Hamiltonian_Get_BQE(state.get(), &d);
 	this->lineEdit_bqe->setText(QString::number(d));
@@ -528,11 +534,6 @@ void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
 	Hamiltonian_Get_FSC(state.get(), &d);
 	this->lineEdit_fourspin->setText(QString::number(d));
 	if (d > 0.0) this->checkBox_fourspin->setChecked(true);
-
-	// Temperature (does not really belong to interactions)
-	Hamiltonian_Get_Temperature(state.get(), &d);
-	this->lineEdit_temper->setText(QString::number(d));
-	if (d > 0.0) this->checkBox_Temperature->setChecked(true);
 }
 
 
@@ -567,19 +568,6 @@ void SettingsWidget::Load_Hamiltonian_Anisotropic_Contents()
 	this->lineEdit_aniy_aniso->setText(QString::number(vd[1]));
 	this->lineEdit_aniz_aniso->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_ani_aniso->setChecked(true);
-
-	// Spin polarised current
-	Hamiltonian_Get_STT(state.get(), &d, vd);
-	this->lineEdit_stt_aniso->setText(QString::number(d));
-	this->lineEdit_sttx_aniso->setText(QString::number(vd[0]));
-	this->lineEdit_stty_aniso->setText(QString::number(vd[1]));
-	this->lineEdit_sttz_aniso->setText(QString::number(vd[2]));
-	if (d > 0.0) this->checkBox_stt_aniso->setChecked(true);
-
-	// Temperature
-	Hamiltonian_Get_Temperature(state.get(), &d);
-	this->lineEdit_T_aniso->setText(QString::number(d));
-	if (d > 0.0) this->checkBox_T_aniso->setChecked(true);
 }
 
 void SettingsWidget::Load_Visualization_Contents()
@@ -798,9 +786,10 @@ void SettingsWidget::set_parameters()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d;
+		float d, vd[3];
 		int i;
 
+		//		LLG
 		// Time step [ps]
 		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
 		d = this->lineEdit_dt->text().toFloat();
@@ -819,6 +808,38 @@ void SettingsWidget::set_parameters()
 		Parameters_Set_LLG_N_Iterations_Log(state.get(), i);
 		i = this->lineEdit_gneb_log_steps->text().toInt();
 		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
+		// Spin polarised current
+		if (this->checkBox_llg_stt->isChecked())
+			d = this->doubleSpinBox_llg_stt_magnitude->value();
+		else
+			d = 0.0;
+		vd[0] = doubleSpinBox_llg_stt_polarisation_x->value();
+		vd[1] = doubleSpinBox_llg_stt_polarisation_y->value();
+		vd[2] = doubleSpinBox_llg_stt_polarisation_z->value();
+		try {
+			normalize(vd);
+		}
+		catch (int ex) {
+			if (ex == Exception_Division_by_zero) {
+				vd[0] = 0.0;
+				vd[1] = 0.0;
+				vd[2] = 1.0;
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
+				doubleSpinBox_llg_stt_polarisation_x->setValue(0.0);
+				doubleSpinBox_llg_stt_polarisation_y->setValue(0.0);
+				doubleSpinBox_llg_stt_polarisation_z->setValue(1.0);
+			}
+			else { throw(ex); }
+		}
+		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
+		// Temperature
+		if (this->checkBox_llg_temperature->isChecked())
+			d = this->doubleSpinBox_llg_temperature->value();
+		else
+			d = 0.0;
+		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
+
+		//		GNEB
 		// Spring Constant
 		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
@@ -956,41 +977,6 @@ void SettingsWidget::set_hamiltonian_iso()
 		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toFloat();
 		else d = 0.0;
 		Hamiltonian_Set_FSC(state.get(), d, idx_image, idx_chain);
-
-		// These belong in Parameters, not Hamiltonian
-		// Spin polarised current
-		if (this->checkBox_spin_torque->isChecked()) {
-			d = this->lineEdit_spin_torque->text().toFloat();
-		}
-		else {
-			d = 0.0;
-		}
-		vd[0] = lineEdit_spin_torquex->text().toFloat();
-		vd[1] = lineEdit_spin_torquey->text().toFloat();
-		vd[2] = lineEdit_spin_torquez->text().toFloat();
-		try {
-			normalize(vd);
-		}
-		catch (int ex) {
-			if (ex == Exception_Division_by_zero) {
-				vd[0] = 0.0;
-				vd[1] = 0.0;
-				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_spin_torquex->setText(QString::number(0.0));
-				lineEdit_spin_torquey->setText(QString::number(0.0));
-				lineEdit_spin_torquez->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
-
-		// Temperature
-		if (this->checkBox_Temperature->isChecked())
-			d = this->lineEdit_temper->text().toFloat();
-		else
-			d = 0.0;
-		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -1173,99 +1159,6 @@ void SettingsWidget::set_hamiltonian_aniso_ani()
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
-	};
-	
-	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
-	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
-		{
-			apply(i, Chain_Get_Index(state.get()));
-		}
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
-	{
-		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
-		{
-			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
-		}
-	}
-}
-
-void SettingsWidget::set_hamiltonian_aniso_stt()
-{
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
-	{
-		float d, vd[3];
-
-		// TODO: Make these anisotropic for Anisotropic Hamiltonian
-		//		 or move them to Parameters...
-		// Spin polarised current
-		if (this->checkBox_stt_aniso->isChecked())
-			d = this->lineEdit_stt_aniso->text().toFloat();
-		else d = 0.0;
-		vd[0] = lineEdit_sttx_aniso->text().toFloat();
-		vd[1] = lineEdit_stty_aniso->text().toFloat();
-		vd[2] = lineEdit_sttz_aniso->text().toFloat();
-		try {
-			normalize(vd);
-		}
-		catch (int ex) {
-			if (ex == Exception_Division_by_zero) {
-				vd[0] = 0.0;
-				vd[1] = 0.0;
-				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_sttx_aniso->setText(QString::number(0.0));
-				lineEdit_stty_aniso->setText(QString::number(0.0));
-				lineEdit_sttz_aniso->setText(QString::number(1.0));
-			}
-			else { throw(ex); }
-		}
-		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
-	};
-	
-	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
-	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (int i=0; i<Chain_Get_NOI(state.get()); ++i)
-		{
-			apply(i, Chain_Get_Index(state.get()));
-		}
-	}
-	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
-	{
-		for (int ichain=0; ichain<Collection_Get_NOC(state.get()); ++ichain)
-		{
-			for (int img=0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
-		}
-	}
-}
-
-void SettingsWidget::set_hamiltonian_aniso_temp()
-{
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
-	{
-		float d = 0.0;
-
-		// Temperature
-		if (this->checkBox_T_aniso->isChecked())
-			d = this->lineEdit_T_aniso->text().toFloat();
-		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
 	};
 	
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
@@ -1841,15 +1734,6 @@ void SettingsWidget::Setup_Hamiltonian_Isotropic_Slots()
 	// FourSpin Interaction
 	connect(this->checkBox_fourspin, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_fourspin, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	// Spin Torque (does not really belong to interactions)
-	connect(this->checkBox_spin_torque, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torque, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquex, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquey, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_spin_torquez, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	// Temperature (does not really belong to interactions)
-	connect(this->checkBox_Temperature, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_temper, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 
 }
 
@@ -1873,29 +1757,33 @@ void SettingsWidget::Setup_Hamiltonian_Anisotropic_Slots()
 	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
 	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
 	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
-	// Spin polarised current
-	connect(this->checkBox_stt_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_stt()));
-	connect(this->lineEdit_stt_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
-	connect(this->lineEdit_sttx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
-	connect(this->lineEdit_stty_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
-	connect(this->lineEdit_sttz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_stt()));
-	// Temperature
-	connect(this->checkBox_T_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_temp()));
-	connect(this->lineEdit_T_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_temp()));
 }
 
 void SettingsWidget::Setup_Parameters_Slots()
 {
-	// LLG Damping
+	// Iteration params
+	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
+
+	//		LLG
+	// Temperature
+	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters()));
+	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
+	// STT
+	connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters()));
+	connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
+	connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
+	connect(this->doubleSpinBox_llg_stt_polarisation_y, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
+	connect(this->doubleSpinBox_llg_stt_polarisation_z, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
+	// Damping
 	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	// LLG iteration params
+	// iteration params
 	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	// GNEB iteration params
-	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	// GNEB Spring Constant
+
+	//		GNEB
+	// Spring Constant
 	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
 	// Normal/Climbing/Falling image radioButtons
 	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters()));
@@ -2054,17 +1942,10 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_anisox->setValidator(this->number_validator);
 	this->lineEdit_anisoy->setValidator(this->number_validator);
 	this->lineEdit_anisoz->setValidator(this->number_validator);
-	//		spin polarised current
-	this->lineEdit_spin_torque->setValidator(this->number_validator);
-	this->lineEdit_spin_torquex->setValidator(this->number_validator);
-	this->lineEdit_spin_torquey->setValidator(this->number_validator);
-	this->lineEdit_spin_torquez->setValidator(this->number_validator);
 	//		BQE
 	this->lineEdit_bqe->setValidator(this->number_validator);
 	//		FSC
 	this->lineEdit_fourspin->setValidator(this->number_validator);
-	//		temperature
-	this->lineEdit_temper->setValidator(this->number_validator_unsigned);
 
 	// Anisotropic Hamiltonian
 	//		mu_s
@@ -2079,13 +1960,6 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_anix_aniso->setValidator(this->number_validator);
 	this->lineEdit_aniy_aniso->setValidator(this->number_validator);
 	this->lineEdit_aniz_aniso->setValidator(this->number_validator);
-	//		spin polarised current
-	this->lineEdit_stt_aniso->setValidator(this->number_validator);
-	this->lineEdit_sttx_aniso->setValidator(this->number_validator);
-	this->lineEdit_stty_aniso->setValidator(this->number_validator);
-	this->lineEdit_sttz_aniso->setValidator(this->number_validator);
-	//		temperature
-	this->lineEdit_T_aniso->setValidator(this->number_validator_unsigned);
 
 	// Configurations
 	//		Settings

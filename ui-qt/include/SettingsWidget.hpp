@@ -73,8 +73,6 @@ private slots:
 	void set_hamiltonian_aniso_mu_s();
 	void set_hamiltonian_aniso_field();
 	void set_hamiltonian_aniso_ani();
-	void set_hamiltonian_aniso_stt();
-	void set_hamiltonian_aniso_temp();
 	// Visualization
 	void set_visualisation_source();
 	void set_visualisation_n_cell_steps();

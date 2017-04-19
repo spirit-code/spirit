@@ -92,6 +92,11 @@ State * State_Setup(const char * config_file)
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
     Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
     Log(Log_Level::All, Log_Sender::All, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
+	auto now = system_clock::now();
+	auto diff = Timing::DateTimePassed(state->datetime_creation, now);
+	Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
+	Log(Log_Level::All, Log_Sender::All, "    Number of  Errors:  " + std::to_string(Log_Get_N_Errors(state)));
+	Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + std::to_string(Log_Get_N_Warnings(state)));
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
     Log.Append_to_File();
     
