@@ -132,21 +132,30 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     if (image->iteration_allowed)
     {
         // Currently iterating image, so we stop
+        image->Lock();
     	image->iteration_allowed = false;
+        image->Unlock();
     }
     else if (chain->iteration_allowed)
     {
         // Currently iterating chain, so we stop
+        chain->Lock();
     	chain->iteration_allowed = false;
+        chain->Unlock();
     }
     else if (state->collection->iteration_allowed)
     {
         // Currently iterating collection, so we stop
+        // collection->Lock();
         state->collection->iteration_allowed = false;
+        // collection->Unlock();
     }
     else
     {
         // ------ Nothing is iterating, so we start a simulation ------
+
+        // Lock the chain in order to prevent unexpected things
+        chain->Lock();
 
         // Determine the method and chain(s) or image(s) involved
         std::shared_ptr<Engine::Method> method;
@@ -256,6 +265,9 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 			state->simulation_information_mmf = info;
 		}
 
+        // Unlock chain in order to be able to iterate
+        chain->Unlock();
+
         // Start the simulation
         optim->Iterate();
     }
@@ -264,22 +276,32 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 void Simulation_Stop_All(State *state)
 {
     // MMF
+    // collection->Lock();
     state->collection->iteration_allowed = false;
+    // collection->Unlock();
 
     // GNEB
+    state->active_chain->Lock();
     state->active_chain->iteration_allowed = false;
+    state->active_chain->Unlock();
     for (int i=0; i<state->noc; ++i)
     {
+        state->collection->chains[i]->Lock();
         state->collection->chains[i]->iteration_allowed = false;
+        state->collection->chains[i]->Unlock();
     }
 
     // LLG
+    state->active_image->Lock();
     state->active_image->iteration_allowed = false;
+    state->active_image->Unlock();
     for (int ichain=0; ichain<state->noc; ++ichain)
     {
         for (int img = 0; img < state->collection->chains[ichain]->noi; ++img)
         {
+            state->collection->chains[ichain]->images[img]->Lock();
             state->collection->chains[ichain]->images[img]->iteration_allowed = false;
+            state->collection->chains[ichain]->images[img]->Unlock();
         }
     }
 }

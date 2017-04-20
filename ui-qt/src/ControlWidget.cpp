@@ -67,6 +67,13 @@ void ControlWidget::updateData()
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 	// Update NOI counter
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+
+	// Update thread arrays
+	if (Chain_Get_NOI(state.get()) > threads_llg.size())
+	{
+		for (int i=threads_llg.size(); i < Chain_Get_NOI(state.get()); ++i)
+			this->threads_llg.push_back(std::thread());
+	}
 }
 
 void ControlWidget::updateOthers()
