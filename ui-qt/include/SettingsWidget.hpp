@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "IsosurfaceWidget.hpp"
+#include "ParametersWidget.hpp"
 
 #include "ui_SettingsWidget.h"
 
@@ -39,12 +40,10 @@ private:
 	void Setup_Transitions_Slots();
 	void Setup_Hamiltonian_Isotropic_Slots();
 	void Setup_Hamiltonian_Anisotropic_Slots();
-	void Setup_Parameters_Slots();
 	void Setup_Visualization_Slots();
 	// Load a set of parameters from the spin systems
 	void Load_Hamiltonian_Isotropic_Contents();
 	void Load_Hamiltonian_Anisotropic_Contents();
-	void Load_Parameters_Contents();
 	void Load_Visualization_Contents();
 	// Last used configuration
 	std::string last_configuration;
@@ -54,6 +53,7 @@ private:
 	QRegularExpressionValidator * number_validator_int;
 	QRegularExpressionValidator * number_validator_int_unsigned;
 	SpinWidget *_spinWidget;
+	ParametersWidget * parametersWidget;
 	bool m_isosurfaceshadows;
 	std::vector<IsosurfaceWidget *> isosurfaceWidgets;
 	// Helpers
@@ -64,8 +64,6 @@ private:
 	float get_inverted();
 
 private slots:
-	// Parameters
-	void set_parameters();
 	// Configurations
 	void set_hamiltonian_iso();
 	// void set_hamiltonian_aniso();

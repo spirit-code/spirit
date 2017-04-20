@@ -5,6 +5,7 @@ set(SOURCE_UI_QT_ROOT
 	${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotWidget.cpp

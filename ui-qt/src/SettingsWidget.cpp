@@ -36,6 +36,9 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	// Setup User Interface
 	this->setupUi(this);
 
+	this->parametersWidget = new ParametersWidget(state);
+	this->tab_Settings_Parameters->layout()->addWidget(this->parametersWidget);
+	
 	// Defaults
 	m_isosurfaceshadows = false;
 	add_isosurface();
@@ -80,7 +83,6 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->Setup_Transitions_Slots();
 	this->Setup_Hamiltonian_Isotropic_Slots();
 	this->Setup_Hamiltonian_Anisotropic_Slots();
-	this->Setup_Parameters_Slots();
 	this->Setup_Visualization_Slots();
 }
 
@@ -90,8 +92,7 @@ void SettingsWidget::updateData()
 	std::string H_name = Hamiltonian_Get_Name(state.get());
 	if (H_name == "Isotropic Heisenberg") this->Load_Hamiltonian_Isotropic_Contents();
 	else if (H_name == "Anisotropic Heisenberg") this->Load_Hamiltonian_Anisotropic_Contents();
-	// Load Parameters Contents
-	this->Load_Parameters_Contents();
+	this->parametersWidget->updateData();
 	// ToDo: Also update Debug etc!
 	this->Load_Visualization_Contents();
 }
@@ -405,58 +406,7 @@ void SettingsWidget::homogeneousTransitionPressed()
 // -----------------------------------------------------------------------------------
 
 
-void SettingsWidget::Load_Parameters_Contents()
-{
-	float d, vd[3];
-	int image_type;
-	int i;
 
-	//		LLG
-	// LLG Damping
-	Parameters_Get_LLG_Damping(state.get(), &d);
-	this->lineEdit_Damping->setText(QString::number(d));
-	// Converto to PicoSeconds
-	Parameters_Get_LLG_Time_Step(state.get(), &d);
-	this->lineEdit_dt->setText(QString::number(d));
-	// LLG Iteration Params
-	i = Parameters_Get_LLG_N_Iterations(state.get());
-	this->lineEdit_llg_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
-	this->lineEdit_llg_log_steps->setText(QString::number(i));
-	// Spin polarized current
-	Hamiltonian_Get_STT(state.get(), &d, vd);
-	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
-	this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
-	this->doubleSpinBox_llg_stt_polarisation_y->setValue(vd[1]);
-	this->doubleSpinBox_llg_stt_polarisation_z->setValue(vd[2]);
-	if (d > 0.0) this->checkBox_llg_stt->setChecked(true);
-	// Temperature
-	Hamiltonian_Get_Temperature(state.get(), &d);
-	this->doubleSpinBox_llg_temperature->setValue(d);
-	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
-
-	//		GNEB
-	// GNEB Interation Params
-	i = Parameters_Get_GNEB_N_Iterations(state.get());
-	this->lineEdit_gneb_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_GNEB_N_Iterations_Log(state.get());
-	this->lineEdit_gneb_log_steps->setText(QString::number(i));
-
-	// GNEB Spring Constant
-	Parameters_Get_GNEB_Spring_Constant(state.get(), &d);
-	this->lineEdit_gneb_springconstant->setText(QString::number(d));
-
-	// Normal/Climbing/Falling image radioButtons
-	Parameters_Get_GNEB_Climbing_Falling(state.get(), &image_type);
-	if (image_type == 0)
-		this->radioButton_Normal->setChecked(true);
-	else if (image_type == 1)
-		this->radioButton_ClimbingImage->setChecked(true);
-	else if (image_type == 2)
-		this->radioButton_FallingImage->setChecked(true);
-	else if (image_type == 3)
-		this->radioButton_Stationary->setChecked(true);
-}
 
 
 void SettingsWidget::Load_Hamiltonian_Isotropic_Contents()
@@ -780,102 +730,6 @@ void SettingsWidget::Load_Visualization_Contents()
 // --------------------- Setters for Hamiltonians and Parameters ---------------------
 // -----------------------------------------------------------------------------------
 
-
-void SettingsWidget::set_parameters()
-{
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
-	{
-		float d, vd[3];
-		int i;
-
-		//		LLG
-		// Time step [ps]
-		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-		d = this->lineEdit_dt->text().toFloat();
-		Parameters_Set_LLG_Time_Step(state.get(), d, idx_image, idx_chain);
-		
-		// Damping
-		d = this->lineEdit_Damping->text().toFloat();
-		Parameters_Set_LLG_Damping(state.get(), d);
-		// n iterations
-		i = this->lineEdit_llg_n_iterations->text().toInt();
-		Parameters_Set_LLG_N_Iterations(state.get(), i);
-		i = this->lineEdit_gneb_n_iterations->text().toInt();
-		Parameters_Set_GNEB_N_Iterations(state.get(), i);
-		// log steps
-		i = this->lineEdit_llg_log_steps->text().toInt();
-		Parameters_Set_LLG_N_Iterations_Log(state.get(), i);
-		i = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
-		// Spin polarised current
-		if (this->checkBox_llg_stt->isChecked())
-			d = this->doubleSpinBox_llg_stt_magnitude->value();
-		else
-			d = 0.0;
-		vd[0] = doubleSpinBox_llg_stt_polarisation_x->value();
-		vd[1] = doubleSpinBox_llg_stt_polarisation_y->value();
-		vd[2] = doubleSpinBox_llg_stt_polarisation_z->value();
-		try {
-			normalize(vd);
-		}
-		catch (int ex) {
-			if (ex == Exception_Division_by_zero) {
-				vd[0] = 0.0;
-				vd[1] = 0.0;
-				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}");
-				doubleSpinBox_llg_stt_polarisation_x->setValue(0.0);
-				doubleSpinBox_llg_stt_polarisation_y->setValue(0.0);
-				doubleSpinBox_llg_stt_polarisation_z->setValue(1.0);
-			}
-			else { throw(ex); }
-		}
-		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
-		// Temperature
-		if (this->checkBox_llg_temperature->isChecked())
-			d = this->doubleSpinBox_llg_temperature->value();
-		else
-			d = 0.0;
-		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
-
-		//		GNEB
-		// Spring Constant
-		d = this->lineEdit_gneb_springconstant->text().toFloat();
-		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
-		// Climbing/Falling Image
-		int image_type = 0;
-		if (this->radioButton_ClimbingImage->isChecked())
-			image_type = 1;
-		if (this->radioButton_FallingImage->isChecked())
-			image_type = 2;
-		if (this->radioButton_Stationary->isChecked())
-			image_type = 3;
-		Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, idx_image, idx_chain);
-	};
-
-	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
-	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
-	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (int img=0; img<Chain_Get_NOI(state.get()); ++img)
-		{
-			apply(img, Chain_Get_Index(state.get()));
-		}
-	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
-	{
-		for (int ich=0; ich<Collection_Get_NOC(state.get()); ++ich)
-		{
-			for (int img=0; img<Chain_Get_NOI(state.get(),ich); ++img)
-			{
-				apply(img, ich);
-			}
-		}
-	}
-}
 
 
 void SettingsWidget::set_hamiltonian_iso()
@@ -1759,38 +1613,6 @@ void SettingsWidget::Setup_Hamiltonian_Anisotropic_Slots()
 	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
 }
 
-void SettingsWidget::Setup_Parameters_Slots()
-{
-	// Iteration params
-	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-
-	//		LLG
-	// Temperature
-	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters()));
-	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
-	// STT
-	connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters()));
-	connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_y, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_z, SIGNAL(editingFinished()), this, SLOT(set_parameters()));
-	// Damping
-	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	// iteration params
-	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-
-	//		GNEB
-	// Spring Constant
-	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters()));
-	// Normal/Climbing/Falling image radioButtons
-	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters()));
-	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
-	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters()));
-	connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters()));
-}
 
 void SettingsWidget::Setup_Configurations_Slots()
 {
@@ -1996,13 +1818,6 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
 	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_int_unsigned);
 	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_int_unsigned);
-
-	// Parameters
-	//		LLG
-	this->lineEdit_Damping->setValidator(this->number_validator_unsigned);
-	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
-	//		GNEB
-	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
 
 	// Visualisation
 	//		Arrows
