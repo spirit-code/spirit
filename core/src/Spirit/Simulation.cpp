@@ -170,6 +170,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (method_type == "MC")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Monte Carlo is not implemented!");
+            chain->Unlock();
             return;
         }
         else if (method_type == "GNEB")
@@ -177,11 +178,13 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
             if (Simulation_Running_LLG_Chain(state, idx_chain))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+                chain->Unlock();
 				return;
             }
             else if (Chain_Get_NOI(state, idx_chain) < 3)
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are less than 3 images in the specified chain! Please insert more before starting a GNEB calculation.");
+                chain->Unlock();
 				return;
             }
             else
@@ -195,10 +198,12 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (method_type == "MMF")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not implemented!");
+            chain->Unlock();
             return;
             if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+                chain->Unlock();
 				return;
             }
             else
@@ -212,6 +217,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		else
 		{
 			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Method selected: " + method_type);
+            chain->Unlock();
 			return;
 		}
 
@@ -231,6 +237,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (optimizer_type == "NCG")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "NCG is not implemented!");
+            chain->Unlock();
             return;
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_NCG(method));
         }
@@ -241,6 +248,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		else
 		{
 			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Optimizer selected: "+optimizer_type);
+            chain->Unlock();
 			return;
 		}
 

@@ -9,7 +9,7 @@
 
 using namespace Utility;
 
-State * State_Setup(const char * config_file)
+State * State_Setup(const char * config_file, bool quiet)
 {
     // Create the State
     State *state = new State();
@@ -21,6 +21,10 @@ State * State_Setup(const char * config_file)
     Log(Log_Level::All, Log_Sender::All,  "==========     Version:  " + std::string(VERSION));
     Log(Log_Level::Info, Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log(Log_Level::All, Log_Sender::All,  "Config file: " + std::string(config_file));
+    if (quiet)
+        Log(Log_Level::All, Log_Sender::All,  "Going to run in QUIET mode (only Error messages, no output files)");
+
     
     try
     {
