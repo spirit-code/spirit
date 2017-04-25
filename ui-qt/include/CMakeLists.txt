@@ -6,6 +6,7 @@ set(HEADER_UI_QT_ROOT
     ${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/VisualisationSettingsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotWidget.hpp

@@ -14,8 +14,23 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="0" column="0">
     <widget class="QScrollArea" name="scrollArea_2">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -24,8 +39,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>442</width>
-        <height>787</height>
+        <width>462</width>
+        <height>807</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_13">
@@ -106,7 +121,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>424</width>
+            <width>444</width>
             <height>442</height>
            </rect>
           </property>
@@ -563,8 +578,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>424</width>
-            <height>442</height>
+            <width>306</width>
+            <height>316</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -798,6 +813,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="page">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>313</width>
+            <height>416</height>
+           </rect>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -1064,6 +1087,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="page_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>98</width>
+            <height>28</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>MMF</string>
           </attribute>
