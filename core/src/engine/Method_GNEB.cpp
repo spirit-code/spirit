@@ -227,7 +227,7 @@ namespace Engine
 				// File name
 				std::string energiesFile = preEnergiesFile + suffix + ".txt";
 				std::string energiesFileInterpolated = preEnergiesFile + suffix + "_interpolated.txt";
-				std::string energíesFilePerSpin = preEnergiesFile + suffix + "_perSpin.txt";
+				std::string energiesFilePerSpin = preEnergiesFile + suffix + "_perSpin.txt";
 
 				// Energies
 				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile, normalize);

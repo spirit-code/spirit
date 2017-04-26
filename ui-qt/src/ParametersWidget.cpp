@@ -41,6 +41,9 @@ ParametersWidget::ParametersWidget(std::shared_ptr<State> state)
 	// Setup the validators for the various input fields
 	this->Setup_Input_Validators();
 
+	// Load variables from State
+	this->updateData();
+
 	// Connect signals and slots
 	this->Setup_Parameters_Slots();
 }
