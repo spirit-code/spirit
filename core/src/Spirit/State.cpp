@@ -14,6 +14,7 @@ State * State_Setup(const char * config_file, bool quiet)
     // Create the State
     State *state = new State();
     state->datetime_creation = system_clock::now();
+    state->datetime_creation_string = Utility::Timing::TimePointToString(state->datetime_creation);
 
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -88,7 +89,7 @@ State * State_Setup(const char * config_file, bool quiet)
     // Save the config
     if (Log.save_input)
     {
-        std::string file = "input_" + Utility::Timing::TimePointToString(state->datetime_creation) + ".txt";
+        std::string file = "input_" + state->datetime_creation_string + ".txt";
         State_To_Config(state, file.c_str(), config_file);
     }
 
@@ -172,7 +173,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
 
 const char * State_DateTime(State * state)
 {
-	return Utility::Timing::TimePointToString(state->datetime_creation).c_str();
+	return state->datetime_creation_string.c_str();
 }
 
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
