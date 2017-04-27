@@ -44,11 +44,14 @@ private slots:
 	void create_Hopfion();
 	void create_Skyrmion();
 	void create_SpinSpiral();
+	// Transitions
+	void homogeneousTransitionPressed();
 
 
 private:
 	void Setup_Input_Validators();
 	void Setup_Configurations_Slots();
+	void Setup_Transitions_Slots();
 
 	// Helpers
 	std::array<float, 3> get_position();

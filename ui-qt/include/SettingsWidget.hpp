@@ -37,7 +37,6 @@ private:
 	// Setup Input Validators
 	void Setup_Input_Validators();
 	// Setup Slots
-	void Setup_Transitions_Slots();
 	void Setup_Hamiltonian_Isotropic_Slots();
 	void Setup_Hamiltonian_Anisotropic_Slots();
 	// Load a set of parameters from the spin systems
@@ -61,8 +60,6 @@ private slots:
 	void set_hamiltonian_aniso_mu_s();
 	void set_hamiltonian_aniso_field();
 	void set_hamiltonian_aniso_ani();
-	// Transitions
-	void homogeneousTransitionPressed();
 };
 
 #endif

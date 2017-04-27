@@ -3,13 +3,12 @@
 #include "SettingsWidget.hpp"
 #include "SpinWidget.hpp"
 #include "IsosurfaceWidget.hpp"
-#include "Spirit/Transitions.h"
+
 #include "Spirit/Log.h"
 #include "Spirit/System.h"
 #include "Spirit/Chain.h"
 #include "Spirit/Collection.h"
 #include "Spirit/Hamiltonian.h"
-#include "Spirit/Parameters.h"
 #include "Spirit/Exception.h"
 
 #include <iostream>
@@ -52,13 +51,6 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	// Setup the validators for the various input fields
 	this->Setup_Input_Validators();
 
-	// Setup Configurations Tab
-	//this->greater = true;
-	//this->pushButton_GreaterLesser->setText("Greater");
-
-	// Setup Transitions Tab
-	this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(Chain_Get_NOI(this->state.get())));
-
 	// Setup Interactions Tab
 	std::string H_name = Hamiltonian_Get_Name(state.get());
 	if (H_name == "Isotropic Heisenberg")
@@ -79,7 +71,6 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 
 
 	// Connect slots
-	this->Setup_Transitions_Slots();
 	this->Setup_Hamiltonian_Isotropic_Slots();
 	this->Setup_Hamiltonian_Anisotropic_Slots();
 }
@@ -97,58 +88,6 @@ void SettingsWidget::updateData()
 }
 
 
-
-
-
-// -----------------------------------------------------------------------------------
-// --------------------- Transitions -------------------------------------------------
-// -----------------------------------------------------------------------------------
-
-void SettingsWidget::homogeneousTransitionPressed()
-{
-	int idx_1 = this->lineEdit_Transition_Homogeneous_First->text().toInt() - 1;
-	int idx_2 = this->lineEdit_Transition_Homogeneous_Last->text().toInt() - 1;
-
-	int noi = Chain_Get_NOI(this->state.get());
-
-	// Check the validity of the indices
-	if (idx_1 < 0 || idx_1 >= noi)
-	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "First index for homogeneous transition is invalid! setting to 1...");
-		this->lineEdit_Transition_Homogeneous_First->setText(QString::number(1));
-		return;
-	}
-	if (idx_2 < 0 || idx_2 >= noi)
-	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Second index for homogeneous transition is invalid! setting to NOI...");
-		this->lineEdit_Transition_Homogeneous_Last->setText(QString::number(noi));
-		return;
-	}
-	if (idx_1 == idx_2)
-	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Indices are equal in homogeneous transition! Aborting...");
-		return;
-	}
-	if (idx_2 < idx_1)
-	{
-		Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, "Index 2 is smaller than index 1 in homogeneous transition! Aborting...");
-		return;
-	}
-
-	// Do the transition
-	Transition_Homogeneous(this->state.get(), idx_1, idx_2);
-
-	// Add Noise
-	if (this->checkBox_Transition_Noise->isChecked())
-	{
-		float temperature = lineEdit_Transition_Noise->text().toFloat();
-		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
-	}
-
-	// Update
-	Chain_Update_Data(this->state.get());
-	this->_spinWidget->updateData();
-}
 
 
 // -----------------------------------------------------------------------------------
@@ -680,11 +619,6 @@ void SettingsWidget::Setup_Hamiltonian_Anisotropic_Slots()
 
 
 
-void SettingsWidget::Setup_Transitions_Slots()
-{
-	// Homogeneous Transition
-	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
-}
 
 void SettingsWidget::Setup_Input_Validators()
 {
@@ -727,9 +661,4 @@ void SettingsWidget::Setup_Input_Validators()
 	this->lineEdit_anix_aniso->setValidator(this->number_validator);
 	this->lineEdit_aniy_aniso->setValidator(this->number_validator);
 	this->lineEdit_aniz_aniso->setValidator(this->number_validator);
-
-	// Transitions
-	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
-	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_int_unsigned);
-	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_int_unsigned);
 }
