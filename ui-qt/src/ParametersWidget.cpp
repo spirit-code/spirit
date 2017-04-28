@@ -8,7 +8,6 @@
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
 #include <Spirit/Exception.h>
-#include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
 
 // Small function for normalization of vectors
 template <typename T>
@@ -73,16 +72,21 @@ void ParametersWidget::Load_Parameters_Contents()
 	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
 	this->lineEdit_llg_log_steps->setText(QString::number(i));
 	// Spin polarized current
-	Hamiltonian_Get_STT(state.get(), &d, vd);
+	Parameters_Get_LLG_STT(state.get(), &d, vd);
 	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
 	this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
 	this->doubleSpinBox_llg_stt_polarisation_y->setValue(vd[1]);
 	this->doubleSpinBox_llg_stt_polarisation_z->setValue(vd[2]);
 	if (d > 0.0) this->checkBox_llg_stt->setChecked(true);
 	// Temperature
-	Hamiltonian_Get_Temperature(state.get(), &d);
+	Parameters_Get_LLG_Temperature(state.get(), &d);
 	this->doubleSpinBox_llg_temperature->setValue(d);
 	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
+
+	//		MC
+	Parameters_Get_MC_Temperature(state.get(), &d);
+	// this->doubleSpinBox_mc_temperature->setValue(d);
+	// if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
 
 	//		GNEB
 	// GNEB Interation Params
@@ -158,13 +162,20 @@ void ParametersWidget::set_parameters()
 			}
 			else { throw(ex); }
 		}
-		Hamiltonian_Set_STT(state.get(), d, vd, idx_image, idx_chain);
+		Parameters_Set_LLG_STT(state.get(), d, vd, idx_image, idx_chain);
 		// Temperature
 		if (this->checkBox_llg_temperature->isChecked())
 			d = this->doubleSpinBox_llg_temperature->value();
 		else
 			d = 0.0;
-		Hamiltonian_Set_Temperature(state.get(), d, idx_image, idx_chain);
+		Parameters_Set_LLG_Temperature(state.get(), d, idx_image, idx_chain);
+
+		//		MC
+		// if (this->checkBox_mc_temperature->isChecked())
+		// 	d = this->doubleSpinBox_mc_temperature->value();
+		// else
+		// 	d = 0.0;
+		// Parameters_Set_MC_Temperature(state.get(), d, idx_image, idx_chain);
 
 		//		GNEB
 		// Spring Constant
