@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HamiltonianIsotropicWidget_H
-#define HamiltonianIsotropicWidget_H
+#ifndef HAMILTONIANISOTROPICWIDGET_H
+#define HAMILTONIANISOTROPICWIDGET_H
 
 #include <QWidget>
 

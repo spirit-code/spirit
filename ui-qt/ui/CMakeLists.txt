@@ -10,6 +10,7 @@ set(UI_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianIsotropicWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianAnisotropicWidget.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/VisualisationSettingsWidget.ui
 	PARENT_SCOPE
 )

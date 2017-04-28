@@ -2,16 +2,12 @@
 
 #include "HamiltonianAnisotropicWidget.hpp"
 
-#include <Spirit/Parameters.h>
-#include <Spirit/Configurations.h>
-#include "Spirit/Transitions.h"
 #include <Spirit/System.h>
-#include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
 #include <Spirit/Exception.h>
-#include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
+#include <Spirit/Hamiltonian.h>
 
 // Small function for normalization of vectors
 template <typename T>

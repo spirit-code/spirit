@@ -10,6 +10,7 @@
 #include "ParametersWidget.hpp"
 #include "HamiltonianIsotropicWidget.hpp"
 #include "HamiltonianAnisotropicWidget.hpp"
+#include "HamiltonianGaussianWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
 
 #include "ui_SettingsWidget.h"
@@ -41,6 +42,7 @@ private:
 	ParametersWidget * parametersWidget;
 	HamiltonianIsotropicWidget * hamiltonianIsotropicWidget;
 	HamiltonianAnisotropicWidget * hamiltonianAnisotropicWidget;
+	HamiltonianGaussianWidget * hamiltonianGaussianWidget;
 	VisualisationSettingsWidget * visualisationSettingsWidget;
 };
 

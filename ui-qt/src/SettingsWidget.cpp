@@ -4,12 +4,7 @@
 #include "SpinWidget.hpp"
 #include "IsosurfaceWidget.hpp"
 
-#include "Spirit/Log.h"
-#include "Spirit/System.h"
-#include "Spirit/Chain.h"
-#include "Spirit/Collection.h"
 #include "Spirit/Hamiltonian.h"
-#include "Spirit/Exception.h"
 
 #include <iostream>
 #include <memory>
@@ -43,6 +38,11 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 		this->hamiltonianAnisotropicWidget = new HamiltonianAnisotropicWidget(state, spinWidget);
 		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianAnisotropicWidget);
 	}
+	else if (H_name == "Gaussian")
+	{
+		this->hamiltonianGaussianWidget = new HamiltonianGaussianWidget(state);
+		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianGaussianWidget);
+	}
 	else
 	{
 		this->tabWidget_Settings->removeTab(2);
@@ -61,6 +61,7 @@ void SettingsWidget::updateData()
 	std::string H_name = Hamiltonian_Get_Name(state.get());
 	if (H_name == "Isotropic Heisenberg") this->hamiltonianIsotropicWidget->updateData();
 	else if (H_name == "Anisotropic Heisenberg") this->hamiltonianAnisotropicWidget->updateData();
+	else if (H_name == "Gaussian") this->hamiltonianGaussianWidget->updateData();
 	// Visualisation
 	this->visualisationSettingsWidget->updateData();
 
