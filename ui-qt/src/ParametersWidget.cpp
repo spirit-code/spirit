@@ -57,20 +57,19 @@ void ParametersWidget::Load_Parameters_Contents()
 {
 	float d, vd[3];
 	int image_type;
-	int i;
+	int i1, i2;
 
 	//		LLG
 	// LLG Damping
-	Parameters_Get_LLG_Damping(state.get(), &d);
+	d = Parameters_Get_LLG_Damping(state.get());
 	this->lineEdit_Damping->setText(QString::number(d));
 	// Converto to PicoSeconds
-	Parameters_Get_LLG_Time_Step(state.get(), &d);
+	d = Parameters_Get_LLG_Time_Step(state.get());
 	this->lineEdit_dt->setText(QString::number(d));
 	// LLG Iteration Params
-	i = Parameters_Get_LLG_N_Iterations(state.get());
-	this->lineEdit_llg_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_LLG_N_Iterations_Log(state.get());
-	this->lineEdit_llg_log_steps->setText(QString::number(i));
+	Parameters_Get_LLG_N_Iterations(state.get(), &i1, &i2);
+	this->lineEdit_llg_n_iterations->setText(QString::number(i1));
+	this->lineEdit_llg_log_steps->setText(QString::number(i2));
 	// Spin polarized current
 	Parameters_Get_LLG_STT(state.get(), &d, vd);
 	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
@@ -79,28 +78,29 @@ void ParametersWidget::Load_Parameters_Contents()
 	this->doubleSpinBox_llg_stt_polarisation_z->setValue(vd[2]);
 	if (d > 0.0) this->checkBox_llg_stt->setChecked(true);
 	// Temperature
-	Parameters_Get_LLG_Temperature(state.get(), &d);
+	d = Parameters_Get_LLG_Temperature(state.get());
 	this->doubleSpinBox_llg_temperature->setValue(d);
 	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
 
 	//		MC
-	Parameters_Get_MC_Temperature(state.get(), &d);
-	// this->doubleSpinBox_mc_temperature->setValue(d);
-	// if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
+	d = Parameters_Get_MC_Temperature(state.get());
+	this->doubleSpinBox_mc_temperature->setValue(d);
+	if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
+	d = Parameters_Get_MC_Acceptance_Ratio(state.get());
+	this->doubleSpinBox_mc_acceptance->setValue(d);
 
 	//		GNEB
 	// GNEB Interation Params
-	i = Parameters_Get_GNEB_N_Iterations(state.get());
-	this->lineEdit_gneb_n_iterations->setText(QString::number(i));
-	i = Parameters_Get_GNEB_N_Iterations_Log(state.get());
-	this->lineEdit_gneb_log_steps->setText(QString::number(i));
+	Parameters_Get_GNEB_N_Iterations(state.get(), &i1, &i2);
+	this->lineEdit_gneb_n_iterations->setText(QString::number(i1));
+	this->lineEdit_gneb_log_steps->setText(QString::number(i2));
 
 	// GNEB Spring Constant
-	Parameters_Get_GNEB_Spring_Constant(state.get(), &d);
+	d = Parameters_Get_GNEB_Spring_Constant(state.get());
 	this->lineEdit_gneb_springconstant->setText(QString::number(d));
 
 	// Normal/Climbing/Falling image radioButtons
-	Parameters_Get_GNEB_Climbing_Falling(state.get(), &image_type);
+	image_type = Parameters_Get_GNEB_Climbing_Falling(state.get());
 	if (image_type == 0)
 		this->radioButton_Normal->setChecked(true);
 	else if (image_type == 1)
@@ -118,7 +118,7 @@ void ParametersWidget::set_parameters()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		float d, vd[3];
-		int i;
+		int i1, i2;
 
 		//		LLG
 		// Time step [ps]
@@ -130,15 +130,12 @@ void ParametersWidget::set_parameters()
 		d = this->lineEdit_Damping->text().toFloat();
 		Parameters_Set_LLG_Damping(this->state.get(), d);
 		// n iterations
-		i = this->lineEdit_llg_n_iterations->text().toInt();
-		Parameters_Set_LLG_N_Iterations(state.get(), i);
-		i = this->lineEdit_gneb_n_iterations->text().toInt();
-		Parameters_Set_GNEB_N_Iterations(state.get(), i);
-		// log steps
-		i = this->lineEdit_llg_log_steps->text().toInt();
-		Parameters_Set_LLG_N_Iterations_Log(state.get(), i);
-		i = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_N_Iterations_Log(state.get(), i);
+		i1 = this->lineEdit_llg_n_iterations->text().toInt();
+		i2 = this->lineEdit_llg_log_steps->text().toInt();
+		Parameters_Set_LLG_N_Iterations(state.get(), i1, i2);
+		i1 = this->lineEdit_gneb_n_iterations->text().toInt();
+		i2 = this->lineEdit_gneb_log_steps->text().toInt();
+		Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2);
 		// Spin polarised current
 		if (this->checkBox_llg_stt->isChecked())
 			d = this->doubleSpinBox_llg_stt_magnitude->value();
@@ -171,11 +168,13 @@ void ParametersWidget::set_parameters()
 		Parameters_Set_LLG_Temperature(state.get(), d, idx_image, idx_chain);
 
 		//		MC
-		// if (this->checkBox_mc_temperature->isChecked())
-		// 	d = this->doubleSpinBox_mc_temperature->value();
-		// else
-		// 	d = 0.0;
-		// Parameters_Set_MC_Temperature(state.get(), d, idx_image, idx_chain);
+		if (this->checkBox_mc_temperature->isChecked())
+			d = this->doubleSpinBox_mc_temperature->value();
+		else
+			d = 0.0;
+		Parameters_Set_MC_Temperature(state.get(), d, idx_image, idx_chain);
+		d = this->doubleSpinBox_mc_acceptance->value();
+		Parameters_Set_MC_Acceptance_Ratio(state.get(), d, idx_image, idx_chain);
 
 		//		GNEB
 		// Spring Constant

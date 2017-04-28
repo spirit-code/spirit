@@ -447,7 +447,7 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit">
+                 <widget class="QLineEdit" name="lineEdit_llg_output_folder">
                   <property name="maximumSize">
                    <size>
                     <width>80</width>
@@ -474,21 +474,21 @@
               <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_98">
                 <item row="0" column="2">
-                 <widget class="QCheckBox" name="checkBox_5">
+                 <widget class="QCheckBox" name="checkBox_llg_output_final">
                   <property name="text">
                    <string>Final</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_4">
+                 <widget class="QCheckBox" name="checkBox_llg_output_initial">
                   <property name="text">
                    <string>Initial</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_2">
+                 <widget class="QCheckBox" name="checkBox_llg_output_any">
                   <property name="text">
                    <string>Any</string>
                   </property>
@@ -499,42 +499,42 @@
               <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_99">
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_6">
+                 <widget class="QCheckBox" name="checkBox_llg_output_energy_step">
                   <property name="text">
                    <string>Energy Step</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QCheckBox" name="checkBox_9">
+                 <widget class="QCheckBox" name="checkBox_llg_output_energy_divide">
                   <property name="text">
                    <string>Energy divide by NOS</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_7">
+                 <widget class="QCheckBox" name="checkBox_llg_output_energy_archive">
                   <property name="text">
                    <string>Energy Archive</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QCheckBox" name="checkBox_8">
+                 <widget class="QCheckBox" name="checkBox_llg_output_energy_spin_resolved">
                   <property name="text">
                    <string>Energy Spin Resolved</string>
                   </property>
                  </widget>
                 </item>
                 <item row="3" column="0">
-                 <widget class="QCheckBox" name="checkBox_10">
+                 <widget class="QCheckBox" name="checkBox_llg_output_configuration_step">
                   <property name="text">
                    <string>Configuration Step</string>
                   </property>
                  </widget>
                 </item>
                 <item row="3" column="1">
-                 <widget class="QCheckBox" name="checkBox_11">
+                 <widget class="QCheckBox" name="checkBox_llg_output_configuration_archive">
                   <property name="text">
                    <string>Configuration Archive</string>
                   </property>
@@ -578,8 +578,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>306</width>
-            <height>316</height>
+            <width>444</width>
+            <height>442</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -633,42 +633,42 @@
               <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_102">
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_15">
+                 <widget class="QCheckBox" name="checkBox_mc_output_energy_step">
                   <property name="text">
                    <string>Energy Step</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_18">
+                 <widget class="QCheckBox" name="checkBox_mc_output_energy_archive">
                   <property name="text">
                    <string>Energy Archive</string>
                   </property>
                  </widget>
                 </item>
                 <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_19">
+                 <widget class="QCheckBox" name="checkBox_mc_output_energy_spin_resolved">
                   <property name="text">
                    <string>Energy Spin Resolved</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QCheckBox" name="checkBox_16">
+                 <widget class="QCheckBox" name="checkBox_mc_output_configuration_step">
                   <property name="text">
                    <string>Configuration Step</string>
                   </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
-                 <widget class="QCheckBox" name="checkBox_20">
+                 <widget class="QCheckBox" name="checkBox_mc_output_energy_divide">
                   <property name="text">
                    <string>Energy divide by NOS</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QCheckBox" name="checkBox_17">
+                 <widget class="QCheckBox" name="checkBox_mc_output_configuration_archive">
                   <property name="text">
                    <string>Configuration Archive</string>
                   </property>
@@ -679,21 +679,21 @@
               <item row="0" column="0">
                <layout class="QGridLayout" name="gridLayout_101">
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_13">
+                 <widget class="QCheckBox" name="checkBox_mc_output_initial">
                   <property name="text">
                    <string>Initial</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="2">
-                 <widget class="QCheckBox" name="checkBox_14">
+                 <widget class="QCheckBox" name="checkBox_mc_output_final">
                   <property name="text">
                    <string>Final</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_12">
+                 <widget class="QCheckBox" name="checkBox_mc_output_any">
                   <property name="text">
                    <string>Any</string>
                   </property>
@@ -817,8 +817,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>313</width>
-            <height>416</height>
+            <width>444</width>
+            <height>442</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -1014,28 +1014,28 @@
               <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_104">
                 <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_27">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_divide">
                   <property name="text">
                    <string>Energies divide by NOS</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_25">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_interpolated">
                   <property name="text">
                    <string>Energies Interpolated</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QCheckBox" name="checkBox_26">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_chain_step">
                   <property name="text">
                    <string>Chain Step</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_24">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_step">
                   <property name="text">
                    <string>Energies Step</string>
                   </property>
@@ -1059,21 +1059,21 @@
               <item row="0" column="0">
                <layout class="QGridLayout" name="gridLayout_103">
                 <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_22">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_initial">
                   <property name="text">
                    <string>Initial</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="2">
-                 <widget class="QCheckBox" name="checkBox_23">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_final">
                   <property name="text">
                    <string>Final</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_21">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_any">
                   <property name="text">
                    <string>Any</string>
                   </property>
@@ -1091,8 +1091,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>98</width>
-            <height>28</height>
+            <width>444</width>
+            <height>442</height>
            </rect>
           </property>
           <attribute name="label">
