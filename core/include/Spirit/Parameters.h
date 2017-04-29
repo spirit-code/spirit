@@ -70,7 +70,7 @@ DLLEXPORT float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image=-
 DLLEXPORT const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_GNEB_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, bool * energies_interpolated, bool * energies_divide_by_nos, int idx_chain=-1);
-DLLEXPORT void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, bool *, int idx_chain=-1);
+DLLEXPORT void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_chain=-1);
 // Simulation Parameters
 DLLEXPORT float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image=-1, int idx_chain=-1);

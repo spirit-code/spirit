@@ -578,7 +578,7 @@ void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, boo
     *energies_divide_by_nos = chain->gneb_parameters->output_energies_divide_by_nspins;
 }
 
-void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, bool *, int idx_chain)
+void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain)
 {
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;

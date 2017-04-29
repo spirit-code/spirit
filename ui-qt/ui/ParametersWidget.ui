@@ -99,12 +99,25 @@
          </item>
         </layout>
        </item>
+       <item row="2" column="0">
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item row="1" column="0">
         <widget class="QToolBox" name="toolBox">
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>550</height>
+           <height>600</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -122,7 +135,7 @@
             <x>0</x>
             <y>0</y>
             <width>444</width>
-            <height>442</height>
+            <height>492</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -153,6 +166,12 @@
            </item>
            <item row="4" column="0">
             <widget class="QGroupBox" name="groupBox">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>150</height>
+              </size>
+             </property>
              <property name="title">
               <string>Parameters</string>
              </property>
@@ -175,31 +194,7 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="1">
-               <layout class="QGridLayout" name="gridLayout_65">
-                <item row="0" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <spacer name="horizontalSpacer_46">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <layout class="QGridLayout" name="gridLayout_91">
                 <item row="0" column="1">
                  <widget class="QLabel" name="label_71">
@@ -226,7 +221,14 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="1">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Damping</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
                <layout class="QGridLayout" name="gridLayout_90">
                 <item row="0" column="0">
                  <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_polarisation_x">
@@ -235,6 +237,9 @@
                     <width>45</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
                   </property>
                   <property name="minimum">
                    <double>-100.000000000000000</double>
@@ -252,6 +257,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
                   <property name="minimum">
                    <double>-100.000000000000000</double>
                   </property>
@@ -267,6 +275,9 @@
                     <width>45</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
                   </property>
                   <property name="minimum">
                    <double>-100.000000000000000</double>
@@ -291,7 +302,7 @@
                 </item>
                </layout>
               </item>
-              <item row="4" column="1">
+              <item row="5" column="1">
                <layout class="QGridLayout" name="gridLayout_92">
                 <item row="0" column="0">
                  <widget class="QLineEdit" name="lineEdit_dt">
@@ -331,75 +342,41 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="checkBox_llg_temperature">
-                <property name="text">
-                 <string>Temperature</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Damping</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <widget class="QCheckBox" name="checkBox_llg_stt">
                 <property name="text">
                  <string>Spin Torque</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_31">
-                <property name="text">
-                 <string>Time Step</string>
-                </property>
-               </widget>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_65">
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer_46">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="lineEdit_llg_n_iterations">
-                <property name="minimumSize">
-                 <size>
-                  <width>20</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>80</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_42">
-                <property name="text">
-                 <string>n_iterations</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_43">
-                <property name="text">
-                 <string>log steps</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLineEdit" name="lineEdit_llg_log_steps">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
+              <item row="4" column="1">
                <widget class="QLineEdit" name="lineEdit_Damping">
                 <property name="minimumSize">
                  <size>
@@ -428,50 +405,36 @@
                 </property>
                </spacer>
               </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_31">
+                <property name="text">
+                 <string>Time Step</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_llg_temperature">
+                <property name="text">
+                 <string>Temperature</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
            <item row="8" column="0">
             <widget class="QGroupBox" name="groupBox_2">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>200</height>
+              </size>
+             </property>
              <property name="title">
               <string>Output</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayout_100">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_73">
-                  <property name="text">
-                   <string>Folder</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_llg_output_folder">
-                  <property name="maximumSize">
-                   <size>
-                    <width>80</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_58">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_98">
                 <item row="0" column="2">
                  <widget class="QCheckBox" name="checkBox_llg_output_final">
@@ -496,7 +459,41 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="0">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_100">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_73">
+                  <property name="text">
+                   <string>Folder</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_llg_output_folder">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_58">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
                <layout class="QGridLayout" name="gridLayout_99">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_llg_output_energy_step">
@@ -555,6 +552,50 @@
                 </property>
                </spacer>
               </item>
+              <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_8">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_llg_n_iterations">
+                  <property name="minimumSize">
+                   <size>
+                    <width>20</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_42">
+                  <property name="text">
+                   <string>n_iterations</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_43">
+                  <property name="text">
+                   <string>log steps</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLineEdit" name="lineEdit_llg_log_steps">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
              </layout>
             </widget>
            </item>
@@ -579,7 +620,7 @@
             <x>0</x>
             <y>0</y>
             <width>444</width>
-            <height>442</height>
+            <height>492</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -610,27 +651,14 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>150</height>
+               <height>200</height>
               </size>
              </property>
              <property name="title">
               <string>MC Output</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_94">
-              <item row="0" column="4">
-               <spacer name="horizontalSpacer_51">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_102">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_mc_output_energy_step">
@@ -676,7 +704,7 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="0">
+              <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_101">
                 <item row="0" column="1">
                  <widget class="QCheckBox" name="checkBox_mc_output_initial">
@@ -701,6 +729,51 @@
                 </item>
                </layout>
               </item>
+              <item row="1" column="4">
+               <spacer name="horizontalSpacer_51">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_59">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_60">
+                  <property name="text">
+                   <string>n_iterations</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_mc_n_iterations">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QSpinBox" name="spinBox_mc_log_steps">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_48">
+                  <property name="text">
+                   <string>log steps</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
              </layout>
             </widget>
            </item>
@@ -719,7 +792,11 @@
               <item row="0" column="0">
                <layout class="QGridLayout" name="gridLayout_69">
                 <item row="0" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_mc_temperature"/>
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_mc_temperature">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                 </widget>
                 </item>
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_mc_temperature">
@@ -737,6 +814,9 @@
                 </item>
                 <item row="1" column="1">
                  <widget class="QDoubleSpinBox" name="doubleSpinBox_mc_acceptance">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
                   <property name="singleStep">
                    <double>0.100000000000000</double>
                   </property>
@@ -749,30 +829,6 @@
                  <widget class="QLabel" name="label_59">
                   <property name="text">
                    <string>K</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="2" column="0">
-               <layout class="QGridLayout" name="gridLayout_59">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_60">
-                  <property name="text">
-                   <string>n_iterations</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QSpinBox" name="spinBox_mc_n_iterations"/>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QSpinBox" name="spinBox_mc_log_steps"/>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QLabel" name="label_48">
-                  <property name="text">
-                   <string>log steps</string>
                   </property>
                  </widget>
                 </item>
@@ -818,7 +874,7 @@
             <x>0</x>
             <y>0</y>
             <width>444</width>
-            <height>442</height>
+            <height>492</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -865,13 +921,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>200</height>
+               <height>150</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>200</height>
+               <height>150</height>
               </size>
              </property>
              <property name="title">
@@ -952,7 +1008,126 @@
                 </property>
                </spacer>
               </item>
-              <item row="8" column="0" colspan="2">
+             </layout>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QGroupBox" name="groupBox_19">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>GNEB Output</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_95">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_gneb_output_folder">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label">
+                  <property name="text">
+                   <string>Folder</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="3">
+               <spacer name="horizontalSpacer_52">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="4" column="0">
+               <layout class="QGridLayout" name="gridLayout_104">
+                <item row="1" column="0">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_divide">
+                  <property name="text">
+                   <string>Energies divide by NOS</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_interpolated">
+                  <property name="text">
+                   <string>Energies Interpolated</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_chain_step">
+                  <property name="text">
+                   <string>Chain Step</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_step">
+                  <property name="text">
+                   <string>Energies Step</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0">
+               <layout class="QGridLayout" name="gridLayout_103">
+                <item row="0" column="1">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_initial">
+                  <property name="text">
+                   <string>Initial</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_final">
+                  <property name="text">
+                   <string>Final</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_gneb_output_any">
+                  <property name="text">
+                   <string>Any</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_77">
                 <item row="0" column="0">
                  <widget class="QLabel" name="label_44">
@@ -999,91 +1174,6 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QGroupBox" name="groupBox_19">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>150</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>GNEB Output</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_95">
-              <item row="2" column="0">
-               <layout class="QGridLayout" name="gridLayout_104">
-                <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_divide">
-                  <property name="text">
-                   <string>Energies divide by NOS</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_interpolated">
-                  <property name="text">
-                   <string>Energies Interpolated</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_chain_step">
-                  <property name="text">
-                   <string>Chain Step</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_energies_step">
-                  <property name="text">
-                   <string>Energies Step</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="3">
-               <spacer name="horizontalSpacer_52">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayout_103">
-                <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_initial">
-                  <property name="text">
-                   <string>Initial</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_final">
-                  <property name="text">
-                   <string>Final</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_gneb_output_any">
-                  <property name="text">
-                   <string>Any</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_2">
@@ -1092,7 +1182,7 @@
             <x>0</x>
             <y>0</y>
             <width>444</width>
-            <height>442</height>
+            <height>492</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1100,19 +1190,6 @@
           </attribute>
          </widget>
         </widget>
-       </item>
-       <item row="2" column="0">
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

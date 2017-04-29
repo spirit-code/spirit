@@ -29,7 +29,10 @@ public:
 	void updateData();
 
 private slots:
-	void set_parameters();
+	void set_parameters_llg();
+	void set_parameters_mc();
+	void set_parameters_gneb();
+	void set_parameters_mmf();
    
 private:
 	void Setup_Input_Validators();
