@@ -163,14 +163,23 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
 	auto filter = get_filter(pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
 	// Apply configuration
-	image->Lock();
-	Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
-	image->Unlock();
+	if (state->clipboard_spins.get())
+	{
+		image->Lock();
+		Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
+		image->Unlock();
 
-	auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
-	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-		"Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
-	return true;
+		auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+		Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+			"Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
+		return true;
+	}
+	else
+	{
+		Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+			"Tried to insert configuration, but clipboard was empty.", idx_image, idx_chain);
+		return false;
+	}
 }
 
 

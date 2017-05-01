@@ -2,8 +2,9 @@
 
 #include <QPainter>
 
-MouseDecoratorWidget::MouseDecoratorWidget()
+MouseDecoratorWidget::MouseDecoratorWidget(float radius)
 {
+	this->setRadius(radius);
 	this->m_rotation_angle = 0;
 	this->m_rotation_updates_per_second = 40;
 	this->m_rpm = 30;
@@ -13,10 +14,15 @@ MouseDecoratorWidget::MouseDecoratorWidget()
 	this->m_rotation_timer->start(std::max(1,1000/this->m_rotation_updates_per_second));
 }
 
+void MouseDecoratorWidget::setRadius(float radius)
+{
+	this->m_radius = radius;
+	this->m_dash_length = 0.333f * radius;
+}
+
 void MouseDecoratorWidget::paintEvent(QPaintEvent *)
 {
-	float radius = 80;
-	int shift = (int)std::min(5.0f, radius-5);
+	int shift = (int)std::min(5.0f, m_radius-5);
 
 
     QPainter painter(this);
@@ -29,13 +35,13 @@ void MouseDecoratorWidget::paintEvent(QPaintEvent *)
 	// Draw a solid background circle (gray)
 	pen = QPen(Qt::gray, 3, Qt::PenStyle::SolidLine);
     painter.setPen(pen);
-	painter.drawArc(shift, shift, 2 * (radius - shift), 2 * (radius - shift), 0, 16 * 360);
+	painter.drawArc(shift, shift, 2 * (m_radius - shift), 2 * (m_radius - shift), 0, 16 * 360);
 
 	// Draw a dashed front circle (blue)
 	pen = QPen(Qt::blue, 3, Qt::PenStyle::CustomDashLine);
-	pen.setDashPattern({ 25, 25 });
+	pen.setDashPattern({ this->m_dash_length, this->m_dash_length });
 	painter.setPen(pen);
-	painter.drawArc(shift, shift, 2 * (radius - shift), 2 * (radius - shift), 16 * this->m_rotation_angle, 16 * 360);
+	painter.drawArc(shift, shift, 2 * (m_radius - shift), 2 * (m_radius - shift), 16 * this->m_rotation_angle, 16 * 360);
 }
 
 void MouseDecoratorWidget::incrementRotation()

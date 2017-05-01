@@ -1,5 +1,7 @@
 // #include <fstream>
 #include <sstream>
+#include <algorithm> 
+
 #include "SpinWidget.hpp"
 
 #include <QTimer>
@@ -86,7 +88,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	//		Initial drag mode settings
 	drag_radius = 80;
-	this->mouse_decoration = new MouseDecoratorWidget();
+	this->mouse_decoration = new MouseDecoratorWidget(drag_radius);
+	this->mouse_decoration->setMinimumSize(2 * drag_radius, 2 * drag_radius);
 	this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
 	this->mouse_decoration->setParent(this);
 	this->m_interactionmode = InteractionMode::REGULAR;
@@ -562,9 +565,20 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 		scale = 0.1f;
 	}
 
-	float wheel_delta = event->angleDelta().y();
-	m_view.mouseScroll(wheel_delta * 0.1 * scale);
-	((QWidget *)this)->update();
+	if (event->modifiers() & Qt::ControlModifier)
+	{
+		float wheel_delta = scale*event->angleDelta().y()/10.0f;
+		drag_radius = std::max(1.0f, std::min(500.0f, drag_radius + wheel_delta));
+		this->mouse_decoration->setRadius(drag_radius);
+		this->mouse_decoration->setMinimumSize(2 * drag_radius, 2 * drag_radius);
+		this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
+	}
+	else
+	{
+		float wheel_delta = event->angleDelta().y();
+		m_view.mouseScroll(wheel_delta * 0.1 * scale);
+		((QWidget *)this)->update();
+	}
 }
 
 const VFRendering::Options& SpinWidget::options() const
