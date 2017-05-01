@@ -298,7 +298,7 @@ namespace Utility
 			bool output_energy_divide_by_nspins=true, output_energy_spin_resolved=true, output_energy_single=true, output_energy_archive=true;
 			bool output_configuration_single = false, output_configuration_archive = false;
 			// PRNG Seed
-			std::srand(std::time(0));
+			std::srand((unsigned int)std::time(0));
 			int seed = std::rand();
 			// number of iterations carried out when pressing "play" or calling "iterate"
 			int n_iterations = (int)2E+6;

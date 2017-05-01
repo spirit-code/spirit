@@ -69,7 +69,7 @@ void ControlWidget::updateData()
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
 
 	// Update thread arrays
-	if (Chain_Get_NOI(state.get()) > threads_llg.size())
+	if (Chain_Get_NOI(state.get()) > (int)threads_llg.size())
 	{
 		for (int i=threads_llg.size(); i < Chain_Get_NOI(state.get()); ++i)
 			this->threads_llg.push_back(std::thread());
