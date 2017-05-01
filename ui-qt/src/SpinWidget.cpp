@@ -459,31 +459,34 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 	if (this->m_suspended)
 		return;
 
-	m_previous_mouse_position = event->pos();
-
-	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
-	QSize  widgetSize = this->size();
-	glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
-	glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
-	last_drag_coords = system_coords_from_mouse(mouse_pos, size);
-
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		m_timer_drag->stop();
-		// Copy spin configuration
-		Configuration_To_Clipboard(state.get());
-		// Set up Update Timers
-		connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
-		float ips = Simulation_Get_IterationsPerSecond(state.get());
-		if (ips > 1000)
+		if (event->button() == Qt::LeftButton)
 		{
-			m_timer_drag->start(1);
+			m_previous_mouse_position = event->pos();
+
+			QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+			QSize  widgetSize = this->size();
+			glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+			glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+			last_drag_coords = system_coords_from_mouse(mouse_pos, size);
+
+			m_timer_drag->stop();
+			// Copy spin configuration
+			Configuration_To_Clipboard(state.get());
+			// Set up Update Timers
+			connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+			float ips = Simulation_Get_IterationsPerSecond(state.get());
+			if (ips > 1000)
+			{
+				m_timer_drag->start(1);
+			}
+			else if (ips > 0)
+			{
+				m_timer_drag->start((int)(1000/ips));
+			}
+			m_dragging = true;
 		}
-		else if (ips > 0)
-		{
-			m_timer_drag->start((int)(1000/ips));
-		}
-		m_dragging = true;
 	}
 }
 
@@ -492,8 +495,19 @@ void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
 	if (this->m_suspended)
 		return;
 
-	m_timer_drag->stop();
-	m_dragging = false;
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		if (event->button() == Qt::LeftButton)
+		{
+			m_timer_drag->stop();
+			m_dragging = false;
+		}
+		else if (event->button() == Qt::RightButton)
+		{
+			dragpaste();
+			this->updateData();
+		}
+	}
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
