@@ -226,8 +226,8 @@ namespace Engine
 
 				// File name
 				std::string energiesFile = preEnergiesFile + suffix + ".txt";
-				std::string energiesFileInterpolated = preEnergiesFile + suffix + "_interpolated.txt";
-				std::string energiesFilePerSpin = preEnergiesFile + suffix + "_perSpin.txt";
+				std::string energiesFileInterpolated = preEnergiesFile + "-interpolated" + suffix + ".txt";
+				// std::string energiesFilePerSpin = preEnergiesFile + "PerSpin" + suffix + ".txt";
 
 				// Energies
 				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile, normalize);
@@ -239,7 +239,7 @@ namespace Engine
 				}
 				/*if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
 				{
-					Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energíesFilePerSpin, normalize);
+					Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
 				}*/
 			};
 
@@ -247,14 +247,14 @@ namespace Engine
 			// Initial chain before simulation
 			if (initial && this->parameters->output_initial)
 			{
-				writeOutputChain("_initial");
-				writeOutputEnergies("_initial");
+				writeOutputChain("-initial");
+				writeOutputEnergies("-initial");
 			}
 			// Final chain after simulation
 			else if (final && this->parameters->output_final)
 			{
-				writeOutputChain("_final");
-				writeOutputEnergies("_final");
+				writeOutputChain("-final");
+				writeOutputEnergies("-final");
 			}
 
 			// Single file output
