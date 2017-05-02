@@ -27,11 +27,23 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>382</width>
-        <height>806</height>
+        <width>376</width>
+        <height>785</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_29">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="9" column="0">
         <widget class="QCheckBox" name="checkBox_ani_aniso">
          <property name="text">

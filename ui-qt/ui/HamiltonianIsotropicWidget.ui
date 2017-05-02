@@ -14,6 +14,18 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
@@ -89,11 +101,23 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>390</width>
-        <height>748</height>
+        <width>400</width>
+        <height>770</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item row="22" column="1">
         <spacer name="verticalSpacer_23">
          <property name="orientation">
