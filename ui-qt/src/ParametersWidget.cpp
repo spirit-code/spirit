@@ -155,7 +155,7 @@ void ParametersWidget::set_parameters_llg()
 
 		// Damping
 		d = this->lineEdit_Damping->text().toFloat();
-		Parameters_Set_LLG_Damping(this->state.get(), d);
+		Parameters_Set_LLG_Damping(this->state.get(), d, idx_image, idx_chain);
 
 
 		// Spin polarised current
@@ -282,7 +282,7 @@ void ParametersWidget::set_parameters_gneb()
 
 		// Spring Constant
 		d = this->lineEdit_gneb_springconstant->text().toFloat();
-		Parameters_Set_GNEB_Spring_Constant(state.get(), d);
+		Parameters_Set_GNEB_Spring_Constant(state.get(), d, idx_image, idx_chain);
 		// Climbing/Falling Image
 		int image_type = 0;
 		if (this->radioButton_ClimbingImage->isChecked())
@@ -296,7 +296,7 @@ void ParametersWidget::set_parameters_gneb()
 		// Output
 		i1 = this->lineEdit_gneb_n_iterations->text().toInt();
 		i2 = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2);
+		Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2, idx_chain);
 		std::string folder = this->lineEdit_gneb_output_folder->text().toStdString();
 		Parameters_Set_GNEB_Output_Folder(state.get(), folder.c_str(), idx_chain);
 	};
