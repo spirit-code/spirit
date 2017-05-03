@@ -462,12 +462,12 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 	if (this->m_suspended)
 		return;
 
+	m_previous_mouse_position = event->pos();
+
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
 		if (event->button() == Qt::LeftButton)
 		{
-			m_previous_mouse_position = event->pos();
-
 			QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
 			QSize  widgetSize = this->size();
 			glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
