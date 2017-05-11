@@ -34,63 +34,39 @@ def Stop_All(p_state):
     _Stop_All(p_state)
 
 
-### Check if any Simulation is running on any image/chain/collection
-_Running_Any_Anywhere            = _spirit.Simulation_Running_Any_Anywhere
-_Running_Any_Anywhere.argtypes   = [ctypes.c_void_p]
-_Running_Any_Anywhere.restype    = ctypes.c_bool
-def Running_Any_Anywhere(p_state):
-    return bool(_Running_Any_Anywhere(p_state))
 
-### Check if LLG is running on any image in any chain
-_Running_LLG_Anywhere            = _spirit.Simulation_Running_LLG_Anywhere
-_Running_LLG_Anywhere.argtypes   = [ctypes.c_void_p]
-_Running_LLG_Anywhere.restype    = ctypes.c_bool
-def Running_LLG_Anywhere(p_state):
-    return bool(_Running_LLG_Anywhere(p_state))
+### Check if a simulation is running on a specific image
+_Running_Image            = _spirit.Simulation_Running_Image
+_Running_Image.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Running_Image.restype    = ctypes.c_bool
+def Running_Image(p_state, idx_image=-1, idx_chain=-1):
+    return bool(_Running_Image(p_state, idx_image, idx_chain))
 
-### Check if LLG running
-_Running_GNEB_Anywhere            = _spirit.Simulation_Running_GNEB_Anywhere
-_Running_GNEB_Anywhere.argtypes   = [ctypes.c_void_p]
-_Running_GNEB_Anywhere.restype    = ctypes.c_bool
-def Running_GNEB_Anywhere(p_state):
-    return bool(_Running_GNEB_Anywhere(p_state))
+### Check if a simulation is running across a specific chain
+_Running_Chain            = _spirit.Simulation_Running_Chain
+_Running_Chain.argtypes   = [ctypes.c_void_p, ctypes.c_int]
+_Running_Chain.restype    = ctypes.c_bool
+def Running_Chain(p_state, idx_chain=-1):
+    return bool(_Running_Chain(p_state, idx_chain))
 
-
-### Check if LLG running on a chain
-_Running_LLG_Chain            = _spirit.Simulation_Running_LLG_Chain
-_Running_LLG_Chain.argtypes   = [ctypes.c_void_p, ctypes.c_int]
-_Running_LLG_Chain.restype    = ctypes.c_bool
-def Running_LLG_Chain(p_state, idx_chain=-1):
-    return bool(_Running_LLG_Chain(p_state, idx_chain))
+### Check if a simulation is running on across the collection
+_Running_Collection            = _spirit.Simulation_Running_Collection
+_Running_Collection.argtypes   = [ctypes.c_void_p]
+_Running_Collection.restype    = ctypes.c_bool
+def Running_Collection(p_state):
+    return bool(_Running_Collection(p_state))
 
 
-### Check if any simulation running on current image, chain or collection
-_Running_Any            = _spirit.Simulation_Running_Any
-_Running_Any.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Running_Any.restype    = ctypes.c_bool
-def Running_Any(p_state, idx_image=-1, idx_chain=-1):
-    return bool(_Running_Any(p_state, idx_image, idx_chain))
+### Check if any simulation running on any image of - or the entire - chain
+_Running_Anywhere_Chain           = _spirit.Simulation_Running_Anywhere_Chain
+_Running_Anywhere_Chain.argtypes  = [ctypes.c_void_p, ctypes.c_int]
+_Running_Anywhere_Chain.restype   = ctypes.c_bool
+def Running_Anywhere_Chain(p_state, idx_chain=-1):
+    return bool(_Running_Anywhere_Chain(p_state, idx_chain))
 
-
-### Check if LLG running on image
-_Running_LLG            = _spirit.Simulation_Running_LLG
-_Running_LLG.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Running_LLG.restype    = ctypes.c_bool
-def Running_LLG(p_state, idx_image=-1, idx_chain=-1):
-    return bool(_Running_LLG(p_state, idx_image, idx_chain))
-
-
-### Check if GNEB running on chain
-_Running_GNEB           = _spirit.Simulation_Running_GNEB
-_Running_GNEB.argtypes  = [ctypes.c_void_p, ctypes.c_int]
-_Running_GNEB.restype   = ctypes.c_bool
-def Running_GNEB(p_state, idx_chain=-1):
-    return bool(_Running_GNEB(p_state, idx_chain))
-
-
-### Check if MMF running
-_Running_MMF            = _spirit.Simulation_Running_MMF
-_Running_MMF.argtypes   = [ctypes.c_void_p]
-_Running_MMF.restype    = ctypes.c_bool
-def Running_MMF(p_state):
-    return bool(_Running_MMF(p_state))
+### Check if any simulation running on any image or chain of - or the entire - collection
+_Running_Anywhere_Collection            = _spirit.Simulation_Running_Anywhere_Collection
+_Running_Anywhere_Collection.argtypes   = [ctypes.c_void_p]
+_Running_Anywhere_Collection.restype    = ctypes.c_bool
+def Running_Anywhere_Collection(p_state):
+    return bool(_Running_Anywhere_Collection(p_state))
