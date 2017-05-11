@@ -82,9 +82,9 @@ State * State_Setup(const char * config_file, bool quiet)
     state->nos = state->active_image->nos;
 
     // Methods
-    state->simulation_information_llg = std::vector<std::vector<std::shared_ptr<Simulation_Information>>>(state->noc, std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
-    state->simulation_information_gneb = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
-    state->simulation_information_mmf = std::shared_ptr<Simulation_Information>();
+    state->simulation_information_image = std::vector<std::vector<std::shared_ptr<Simulation_Information>>>(state->noc, std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
+    state->simulation_information_chain = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
+    state->simulation_information_collection = std::shared_ptr<Simulation_Information>();
 
     // Save the config
     if (Log.save_input)

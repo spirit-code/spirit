@@ -443,7 +443,10 @@ void SpinWidget::paintGL()
 		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
 	}
 
-	if (Simulation_Running_Any(state.get()) || this->m_dragging)
+	if ( Simulation_Running_Image(this->state.get())      ||
+		 Simulation_Running_Chain(this->state.get())      ||
+		 Simulation_Running_Collection(this->state.get()) ||
+		 this->m_dragging)
 	{
 		this->updateData();
 	}
