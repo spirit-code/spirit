@@ -17,7 +17,7 @@ namespace Data
 	public:
 		// Constructor
 		Parameters_Method_LLG(std::string output_folder, std::array<bool,10> output, scalar force_convergence, long int n_iterations, long int n_iterations_log,
-			int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i, bool renorm_sd_i,
+			long int max_walltime_sec, int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i, bool renorm_sd_i,
 			scalar stt_magnitude_i, Vector3 stt_polarisation_normal_i);
 
 		//PRNG Seed

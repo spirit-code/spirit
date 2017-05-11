@@ -24,6 +24,9 @@ namespace Engine
 		// Constructor to be used in derived classes
 		Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
+		// Check if walltime ran out
+		virtual bool Walltime_Expired(duration<scalar> dt_seconds);
+
 		// Calculate Forces onto Systems
 		virtual void Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
 		// Maximum of the absolutes of all components of the force - needs to be updated at each calculation

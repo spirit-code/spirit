@@ -14,7 +14,7 @@ namespace Data
 	class Parameters_Method_MMF : public Parameters_Method
 	{
 	public:
-		Parameters_Method_MMF(std::string output_folder, std::array<bool,9> output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method_MMF(std::string output_folder, std::array<bool,9> output, scalar force_convergence, long int n_iterations, long int n_iterations_log, long int max_walltime_sec);
 
 		// Energy output settings
 		bool output_energy_step;

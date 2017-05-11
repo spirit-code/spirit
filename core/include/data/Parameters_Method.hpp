@@ -14,7 +14,7 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, std::array<bool,4> output, scalar force_convergence, long int n_iterations, long int n_iterations_log);
+		Parameters_Method(std::string output_folder, std::array<bool,4> output, scalar force_convergence, long int n_iterations, long int n_iterations_log, long int max_walltime_sec);
 
 		// Data output folder
 		std::string output_folder;
@@ -30,6 +30,9 @@ namespace Data
 
 		// Force convergence criterium
 		scalar force_convergence;
+
+		// Maximum walltime for Iterate in seconds
+		long int max_walltime_sec;
 
 		// Number of iterations carried out when pressing "play" or calling "iterate"
 		long int n_iterations;

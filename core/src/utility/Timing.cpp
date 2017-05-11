@@ -1,8 +1,9 @@
 #include <utility/Timing.hpp>
 
 #include <string>
-#include <iostream>
-#include <ctime>
+#include <sstream>
+#include <iomanip>
+
 
 namespace Utility
 {
@@ -15,7 +16,7 @@ namespace Utility
             // Convert to C-Time
             std::time_t t_c = system_clock::to_time_t(t);
             // Convert to TM Struct
-            struct tm time_s = *localtime(&t_c);
+            std::tm time_s = *localtime(&t_c);
             // Convert TM Struct to String
 			char   buf[80];
             strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", &time_s);
@@ -28,7 +29,7 @@ namespace Utility
             // Convert to C-Time
             std::time_t t_c = system_clock::to_time_t(t);
             // Convert to TM Struct
-            struct tm time_s = *localtime(&t_c);
+			std::tm time_s = *localtime(&t_c);
             // Convert TM Struct to String
 			char   buf[80];
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &time_s);
@@ -45,41 +46,54 @@ namespace Utility
 		}
         
         
-        std::string DateTimePassed(system_clock::time_point t1, system_clock::time_point t2)
+        std::string DateTimePassed(duration<scalar> _dt)
         {
             // Time Differences
-            duration<scalar> _dt = t2 - t1;
             scalar dt = _dt.count();
             int dt_h  = (int)(dt / 3600.0);
             int dt_m  = (int)((dt-3600*dt_h) / 60.0);
             int dt_s  = (int)(dt-3600*dt_h-60*dt_m);
             int dt_ms = (int)((dt-3600*dt_h-60*dt_m-dt_s)*1e3);
             // Return String
-            return std::to_string(dt_h) + ":" + std::to_string(dt_m) + ":" + std::to_string(dt_s) + "." + std::to_string(dt_ms);
+            // return 
+			std::string retstring = std::to_string(dt_h) + ":" + std::to_string(dt_m) + ":" + std::to_string(dt_s) + "." + std::to_string(dt_ms);
+
+            return retstring;
         }
         
-        scalar MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
+        scalar MillisecondsPassed(duration<scalar> dt)
         {
-            duration<scalar> dt = t2 - t1; 
             return  dt.count() * 10e-3;
         }
         
-        scalar SecondsPassed(system_clock::time_point t1, system_clock::time_point t2)
+        scalar SecondsPassed(duration<scalar> dt)
         {
-            duration<scalar> dt = t2 - t1;
             return dt.count();
         }
         
-        scalar MinutesPassed(system_clock::time_point t1, system_clock::time_point t2)
+        scalar MinutesPassed(duration<scalar> dt)
         {
-            duration<scalar> dt = t2 - t1;
 			return dt.count() / 60.0;
         }
         
-        scalar HoursPassed(system_clock::time_point t1, system_clock::time_point t2)
+        scalar HoursPassed(duration<scalar> dt)
         {
-            duration<scalar> dt = t2 - t1;
 			return dt.count() / 3600.0;
         }
+
+
+		duration<scalar> DurationFromString(std::string dt)
+		{
+			// Convert std::string to std::tm
+			std::tm tm;
+			std::istringstream iss(dt);
+			iss >> std::get_time(&tm, "%H:%M:%S");
+
+			// Get total seconds from std::tm
+			std::chrono::seconds sec(tm.tm_hour*60*60 + tm.tm_min*60 + tm.tm_sec);
+
+			// Return duration
+			return duration<scalar>(sec);
+		}
     }
 }
