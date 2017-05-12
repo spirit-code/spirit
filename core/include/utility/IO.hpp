@@ -53,6 +53,7 @@ namespace Utility
 		std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile);
+		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile);
 		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile);
 		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry);
@@ -63,11 +64,13 @@ namespace Utility
 		// ======================== Configwriter ========================
 		void Folders_to_Config(const std::string configFile,
 				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
 				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
 				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf);
 		void Log_Levels_to_Config(const std::string configFile);
 		void Geometry_to_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
 		void Parameters_Method_LLG_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_LLG> parameters);
+		void Parameters_Method_MC_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MC> parameters);
 		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
 		void Parameters_Method_MMF_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MMF> parameters);
 		void Hamiltonian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
@@ -93,7 +96,7 @@ namespace Utility
 		// Append Spin_Configuration to file
 		void Append_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName);
 		// Saves Spin_Chain_Configuration to file
-		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const std::string fileName);
+		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const int iteration, const std::string fileName);
 
 		// =========================== Saving Energies ===========================
 		void Write_Energy_Header(const Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true, bool normalize_nos=true);

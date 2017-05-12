@@ -332,7 +332,7 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
 	Vector3 vpos = image->geometry->center + _pos;
 
 	// Set cutoff radius
-	if (r_cut_spherical < 0) r_cut_spherical = r*M_PI;
+	if (r_cut_spherical < 0) r_cut_spherical = (float)r*M_PI;
 
 	// Create position filter
 	auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);

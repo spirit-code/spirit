@@ -344,6 +344,104 @@ namespace Engine
 		// File save
 		if (this->parameters->output_any)
 		{
+			// Convert indices to formatted strings
+			auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
+
+			std::string preSpinsFile;
+			std::string preEnergyFile;
+			if (this->collection->parameters->output_tag_time)
+			{
+				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img;
+				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img;
+			}
+			else
+			{
+				preSpinsFile = this->parameters->output_folder + "/Spins_" + s_img;
+				preEnergyFile = this->parameters->output_folder + "/Energy_" + s_img;
+			}
+
+			// Function to write or append image and energy files
+			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+			{
+				// File name
+				std::string spinsFile = preSpinsFile + suffix + ".txt";
+
+				// Spin Configuration
+				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			};
+
+			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+			{
+				auto s_iter = Utility::IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+
+				// File name
+				std::string energyFile = preEnergyFile + suffix + ".txt";
+				std::string energyFilePerSpin = preEnergyFile + suffix + "_perSpin.txt";
+
+				// Energy
+				// Check if Energy File exists and write Header if it doesn't
+				std::ifstream f(energyFile);
+				if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+				// Append Energy to File
+				//Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+
+				scalar nd = 1.0;
+				if (this->collection->parameters->output_energy_divide_by_nspins) nd /= this->systems[0]->nos; // nos divide
+				const int buffer_length = 200;
+				std::string output_to_file = "";
+				output_to_file.reserve(int(1E+08));
+				char buffer_string_conversion[buffer_length + 2];
+				//
+				scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
+				//
+				snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
+					Rx, this->systems[0]->E * nd);
+				//
+				spins_last[0] = *this->systems[0]->spins;
+				Rx_last = Rx;
+				//
+				output_to_file += s_iter;
+				output_to_file.append(buffer_string_conversion);
+				Utility::IO::Append_String_to_File(output_to_file, energyFile);
+			};
+
+
+			// Initial image before simulation
+			if (initial && this->parameters->output_initial)
+			{
+				writeOutputConfiguration("_initial", false);
+				writeOutputEnergy("_initial", false);
+			}
+			// Final image after simulation
+			else if (final && this->parameters->output_final)
+			{
+				writeOutputConfiguration("_final", false);
+				writeOutputEnergy("_final", false);
+			}
+
+			// Single file output
+			auto s_iter = Utility::IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+			if (this->systems[0]->llg_parameters->output_configuration_step)
+			{
+				writeOutputConfiguration("_" + s_iter, false);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_step)
+			{
+				writeOutputEnergy("_" + s_iter, false);
+			}
+
+			// Archive file output (appending)
+			if (this->systems[0]->llg_parameters->output_configuration_archive)
+			{
+				writeOutputConfiguration("_archive", true);
+			}
+			if (this->systems[0]->llg_parameters->output_energy_archive)
+			{
+				writeOutputEnergy("_archive", true);
+			}
+
+
 			//if (initial && this->parameters->output_initial) return;
 
 			// Insert copies of the current systems into their corresponding chains
@@ -366,67 +464,74 @@ namespace Engine
 			// Append Each chain's new image to it's corresponding archive
 
 			// In the final save, we save all chains to file?
-			if (final && this->parameters->output_final)
-			{
+			//if (final && this->parameters->output_final)
+			//{
 
-			}
+			//}
 
-			auto writeoutput = [this, starttime, iteration](std::string suffix)
-			{
-				// Convert indices to formatted strings
-				auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
-				auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
+			//auto writeoutput = [this, starttime, iteration](std::string suffix)
+			//{
+			//	// Convert indices to formatted strings
+			//	auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
+			//	auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
 
-				// if (this->parameters->output_archive)
-				// {
-					// Append Spin configuration to Spin_Archieve_File
-					auto spinsFile = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img + suffix + ".txt";
-					Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
-					
-					if (this->collection->parameters->output_energy)
-					{
-						// Append iteration, Rx and E to Energy file
-						scalar nd = 1.0 / this->systems[0]->nos; // nos divide
-						const int buffer_length = 200;
-						std::string output_to_file = "";
-						output_to_file.reserve(int(1E+08));
-						char buffer_string_conversion[buffer_length + 2];
-						auto energyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img + suffix + ".txt";
-						//
-						scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
-						//
-						snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
-							Rx, this->systems[0]->E * nd);
-						//
-						spins_last[0] = *this->systems[0]->spins;
-						Rx_last = Rx;
-						//
-						output_to_file += s_iter;
-						output_to_file.append(buffer_string_conversion);
-						Utility::IO::Append_String_to_File(output_to_file, energyFile);
-					}
-				// }
+			//	// if (this->parameters->output_archive)
+			//	// {
+			//		// Append Spin configuration to Spin_Archieve_File
+			//		std::string spinsFile, energyFile;
+			//		if (this->collection->parameters->output_tag_time)
+			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
+			//		else
+			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
+			//		Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			//		
+			//		if (this->collection->parameters->output_energy)
+			//		{
+			//			// Append iteration, Rx and E to Energy file
+			//			scalar nd = 1.0 / this->systems[0]->nos; // nos divide
+			//			const int buffer_length = 200;
+			//			std::string output_to_file = "";
+			//			output_to_file.reserve(int(1E+08));
+			//			char buffer_string_conversion[buffer_length + 2];
+			//			if (this->collection->parameters->output_tag_time)
+			//				energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
+			//			else
+			//				energyFile = this->parameters->output_folder + "/Energy_" + s_img + suffix + ".txt";
+			//			//
+			//			scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
+			//			//
+			//			snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
+			//				Rx, this->systems[0]->E * nd);
+			//			//
+			//			spins_last[0] = *this->systems[0]->spins;
+			//			Rx_last = Rx;
+			//			//
+			//			output_to_file += s_iter;
+			//			output_to_file.append(buffer_string_conversion);
+			//			Utility::IO::Append_String_to_File(output_to_file, energyFile);
+			//		}
+			//	// }
 
-				//// Do it manually to avoid the adding of header
-				//auto s = this->systems[0];
-				//const int buffer_length = 80;
-				//std::string output_to_file = "";
-				//output_to_file.reserve(int(1E+08));
-				//char buffer_string_conversion[buffer_length + 2];
-				////------------------------ End Init ----------------------------------------
+			//	//// Do it manually to avoid the adding of header
+			//	//auto s = this->systems[0];
+			//	//const int buffer_length = 80;
+			//	//std::string output_to_file = "";
+			//	//output_to_file.reserve(int(1E+08));
+			//	//char buffer_string_conversion[buffer_length + 2];
+			//	////------------------------ End Init ----------------------------------------
 
-				//for (int iatom = 0; iatom < s->nos; ++iatom) {
-				//	snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-				//		(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
-				//	output_to_file.append(buffer_string_conversion);
-				//}
-				//output_to_file.append("\n");
-				//Utility::IO::Append_String_to_File(output_to_file, spinsFile);
+			//	//for (int iatom = 0; iatom < s->nos; ++iatom) {
+			//	//	snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
+			//	//		(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
+			//	//	output_to_file.append(buffer_string_conversion);
+			//	//}
+			//	//output_to_file.append("\n");
+			//	//Utility::IO::Append_String_to_File(output_to_file, spinsFile);
 
-			};
+			//};
 
-			std::string suffix = "_archive";
-			writeoutput(suffix);
+			//std::string suffix = "_archive";
+			//writeoutput(suffix);
 		}
     }
 

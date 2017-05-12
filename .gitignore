@@ -17,6 +17,7 @@ output_mmf/*
 !output/.gitkeep
 
 ### Output Logs ###
+Log.txt
 Log_*
 */Log_*
 input_*

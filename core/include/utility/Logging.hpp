@@ -88,6 +88,8 @@ namespace Utility
 		void Append_to_File();
 		void Dump_to_File();
 
+		// Wether to tag the time in front of the Log file name
+		bool tag_time;
 		// All messages up to (including) this level are printed to console
 		Log_Level print_level;
 		// All log entries at or above reject level are immediately rejected and not saved
