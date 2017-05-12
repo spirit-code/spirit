@@ -26,13 +26,13 @@ C API
 
 The State struct is passed around in an application to make the simulation's state available.
 
-| State manipulation function                                           | Effect |
-| ----------------------------------------------------------------------| ------ |
-| `State_Setup( const char * config_file )`                             | Create new state by passing a config file |
-| `State_Update( State * )`                                             | Update the state to hold current values |
-| `State_Delete( State * )`                                             | Delete a state |
-| `State_To_Config( State *, const char * config_file, const char * original_config_file)`  | Write a config file which will result in the same state if used in `State_Setup()`  |
-| `State_DateTime( State * )`                                           | Get datetime tag of the creation of the state |
+| State manipulation function                                                                                 | Return    | Effect |
+| ----------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| `State_Setup( const char * config_file )`                                                                   | `State *` | Create new state by passing a config file |
+| `State_Update( State * )`                                                                                   | `void`    | Update the state to hold current values |
+| `State_Delete( State * )`                                                                                   | `void`    | Delete a state |
+| `State_To_Config( State *, const char * config_file, const char * original_config_file)`                    | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
+| `State_DateTime( State * )`                                                                                 | `const char *` | Get datetime tag of the creation of the state |
 
 A new state can be created with `State_Setup()`, where you can pass
 a config file specifying your initial system parameters
@@ -49,10 +49,10 @@ initialized.*
 
 ### System
 
-| System Information           | Effect |
-| ---------------------------- | ------------ |
-| `System_Get_Index( State *)` | Returns System's Index |
-| `System_Get_NOS( State *, int idx_image, int idx_chain )` | Return System's number of spins |
+| System Information                                              | Return           | Effect                          |
+| --------------------------------------------------------------- | ---------------- | ------------------------------- |
+| `System_Get_Index( State *)`                                    | `int`            | Returns System's Index          |
+| `System_Get_NOS( State *, int idx_image, int idx_chain )`       | `int`            | Return System's number of spins |
 
 | System Data                                                                                     | Return     | Effect |
 | ------------------------------------------------------------------------------------------------| ---------- | ------ |
@@ -87,16 +87,16 @@ With `Simulation_*` functions one can control and get information from the State
 | `Simulation_Get_Optimizer_Name( State *, int idx_image, int idx_chain )`        | `const char *`  | Get Optimizer's name                       |
 | `Simulation_Get_Method_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Method's name                          |
 
-| Simulation Running Checking                                                     | Return          | Effect |
-| ------------------------------------------------------------------------------- | --------------- | ------ |
-| `Simulation_Running_Any_Anywhere( State * )`                                    | `bool`          |        |
-| `Simulation_Running_LLG_Anywhere( State * )`                                    | `bool`          |        |
-| `Simulation_Running_GNEB_Anywhere( State * )`                                   | `bool`          |        |
-| `Simulation_Running_LLG_Chain( State *state, int idx_chain )`                   | `bool`          |        |
-| `Simulation_Running_Any( State *, int idx_image, int idx_chain )`               | `bool`          |        |
-| `Simulation_Running_LLG( State *, int idx_image, int idx_chain)`                | `bool`          |        |
-| `Simulation_Running_GNEB( State *, int idx_chain )`                             | `bool`          |        |
-| `Simulation_Running_MMF( State * )`                                             | `bool`          |        |
+| Simulation Running Checking                                                     | Return          |
+| ------------------------------------------------------------------------------- | --------------- |
+| `Simulation_Running_Any_Anywhere( State * )`                                    | `bool`          |
+| `Simulation_Running_LLG_Anywhere( State * )`                                    | `bool`          |
+| `Simulation_Running_GNEB_Anywhere( State * )`                                   | `bool`          |
+| `Simulation_Running_LLG_Chain( State *state, int idx_chain )`                   | `bool`          |
+| `Simulation_Running_Any( State *, int idx_image, int idx_chain )`               | `bool`          |
+| `Simulation_Running_LLG( State *, int idx_image, int idx_chain)`                | `bool`          |
+| `Simulation_Running_GNEB( State *, int idx_chain )`                             | `bool`          |
+| `Simulation_Running_MMF( State * )`                                             | `bool`          |
 
 ### Geometry  
 
@@ -333,17 +333,3 @@ This is provided for homogeneous exception handling between core and C++ UIs
 | `Exception_Not_Implemented`            | 4     |
 | `Exception_Unknown_Exception`          | 5     |
 
-Python API
-----------
-
-A new `State` can be created with
-
-```python
-    from spirit import state
-    with state.State("") as p_state:
-        pass
-```
-
-where you can pass a config file specifying your initial system parameters.
-If you do not pass a config file, the implemented defaults are used.
-*Note that you currently cannot change the geometry of the systems in your state once they are initialized.*
