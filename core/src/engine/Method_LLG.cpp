@@ -143,32 +143,32 @@ namespace Engine
 			std::string preEnergyFile;
 			if (this->systems[0]->llg_parameters->output_tag_time)
 			{
-				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Spins";
-				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Energy";
+				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Spins";
+				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Energy";
 			}
 			else
 			{
-				preSpinsFile = this->parameters->output_folder + "/Spins";
-				preEnergyFile = this->parameters->output_folder + "/Energy";
+				preSpinsFile = this->parameters->output_folder + "/Image-" + s_img + "_Spins";
+				preEnergyFile = this->parameters->output_folder + "/_Image-" + s_img + "_Energy";
 			}
 
 			// Function to write or append image and energy files
-			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, s_img, iteration](std::string suffix, bool append)
+			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
 				// File name
-				std::string spinsFile = preSpinsFile + suffix + "_" + s_img + ".txt";
+				std::string spinsFile = preSpinsFile + suffix + ".txt";
 
 				// Spin Configuration
 				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
 			};
 
-			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, s_img, iteration](std::string suffix, bool append)
+			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
 				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
 
 				// File name
-				std::string energyFile = preEnergyFile + suffix + "_" + s_img + ".txt";
-				std::string energyFilePerSpin = preEnergyFile + "-perSpin" + suffix + "_" + s_img + ".txt";
+				std::string energyFile = preEnergyFile + suffix + ".txt";
+				std::string energyFilePerSpin = preEnergyFile + "-perSpin" + suffix + ".txt";
 
 				// Energy
 				if (append)
