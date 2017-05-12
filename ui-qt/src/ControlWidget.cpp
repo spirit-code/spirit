@@ -271,6 +271,7 @@ void ControlWidget::cut_image()
 		if (Chain_Delete_Image(state.get(), idx)) 
 		{
 			// Make the llg_threads vector smaller
+			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
 			this->threads_llg.erase(threads_llg.begin() + idx);
 		}
 	}

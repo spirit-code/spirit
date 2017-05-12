@@ -33,12 +33,12 @@ void MouseDecoratorWidget::paintEvent(QPaintEvent *)
 	QPen pen;
 
 	// Draw a solid background circle (gray)
-	pen = QPen(Qt::gray, 3, Qt::PenStyle::SolidLine);
+	pen = QPen(Qt::white, 3, Qt::PenStyle::SolidLine);
     painter.setPen(pen);
 	painter.drawArc(shift, shift, 2 * (m_radius - shift), 2 * (m_radius - shift), 0, 16 * 360);
 
 	// Draw a dashed front circle (blue)
-	pen = QPen(Qt::blue, 3, Qt::PenStyle::CustomDashLine);
+	pen = QPen(Qt::black, 3, Qt::PenStyle::CustomDashLine);
 	pen.setDashPattern({ this->m_dash_length, this->m_dash_length });
 	painter.setPen(pen);
 	painter.drawArc(shift, shift, 2 * (m_radius - shift), 2 * (m_radius - shift), 16 * this->m_rotation_angle, 16 * 360);
