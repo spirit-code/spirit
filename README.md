@@ -10,14 +10,15 @@ This is an open project and contributions and collaborations are always welcome!
 See [Contributing](#Contributing) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
 For contributions and affiliations, see [CONTRIBUTORS.md](docs/CONTRIBUTORS.md)
 
-Wiki Page: https://iffwiki.fz-juelich.de/index.php/Spirit
-
 Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
 http://juspin.de
 
 
 
 &nbsp;
+
+| master: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit) | develop: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
+|---|---|
 
 <!--
 ![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
@@ -64,7 +65,6 @@ visualisation capabilites in order to maximize scientists' productivity.
 and includes ready-to-use python bindings.
 A **powerful desktop user interface** is available, providing real-time visualisation and
 control of parameters.
-<br />More details may be found in the [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me...").
 
 ### *Physics Features*
 * Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
@@ -82,9 +82,13 @@ control of parameters.
 * Modular backends including **GPU parallelisation**
 
 ### *Documentation*
+More details may be found in the [Reference section](docs/Readme.md) including
 * [Framework build instructions](docs/BUILD.md)
 * [Core build instructions](core/docs/BUILD.md)
 * [Core API Reference](core/docs/API.md)
+
+There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
+hosted by the Research Centre Jülich.
 
 ---------------------------------------------
 
