@@ -27,7 +27,7 @@ namespace Utility
         {
             system_clock::time_point t_now = system_clock::now();
 
-            if ( Timing::SecondsPassed(t_last_sigint, t_now) < 2.0 )
+            if ( Timing::SecondsPassed(t_now - t_last_sigint) < 2.0 )
             {
                 Log_Send(state.get(), Log_Level_All, Log_Sender_All, "SIGINT received! Received second time in less than 2s.");
                 Log_Send(state.get(), Log_Level_All, Log_Sender_All, "                 Terminating Program.");
