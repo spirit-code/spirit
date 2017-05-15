@@ -1,6 +1,6 @@
 General Information
 * [Contributors](CONTRIBUTORS.md)
-* [How To Refer](REFERENCE.md) to this code
+* How to [Reference](REFERENCE.md) this code
 
 Details
 * [Framework build instructions](BUILD.md)
@@ -10,3 +10,4 @@ See the [Core reference section](../core/docs/README.md) for further information
 It includes
 * [Core build instructions](../core/docs/BUILD.md)
 * [Core API Reference](../core/docs/API.md)
+* [Python API Reference](core/docs/API_Python.md)

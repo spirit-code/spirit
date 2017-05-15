@@ -146,7 +146,7 @@ or simply use
 
 	pip install spirit
 
-With this package you have access to powerful [Python APIs](core/docs/API.md) to run and control
+With this package you have access to powerful [Python APIs](core/docs/API_Python.md) to run and control
 dynamics simulations or optimizations.
 This is especially useful for work on clusters, where you can now script your
 workflow, never having to re-compile when testing, debugging or adding features.
