@@ -8,7 +8,6 @@ struct State;
 #include <vector>
 
 // Single Optimization iteration with a Method
-//		To be used with caution! It does not inquire if an iteration is allowed!
 DLLEXPORT void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
 	int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1);
 
