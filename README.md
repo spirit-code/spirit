@@ -6,10 +6,10 @@ SPIRIT
 &nbsp;
 
 
-| Service | System | Compiler | Branch | Status |
-| ------- | ------ | -------- | ------ | -----: |
-|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master<br />develop | [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />[![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
-|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 |master<br />develop | [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />[![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
+| Service | System | Compiler | Status |
+| :------ | :----: | :------: | -----: |
+|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />develop: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
+|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
 
 
 &nbsp;
@@ -123,6 +123,8 @@ It provides functionality to
 - Change parameters of the Hamiltonian
 - Change parameters of the Method and Optimizer
 - Configure the Visualization (arrows, isosurfaces, lighting, ...)
+
+See the [UI-QT Reference](docs/UI-Qt.md) for the key bindings of the various features.
 
 *Unfortunately, distribution of binaries for the Desktop UI is not possible due
 to the restrictive license on QT-Charts.*
