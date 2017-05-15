@@ -91,7 +91,7 @@ control of parameters.
 * Modular backends including **GPU parallelisation**
 
 ### *Documentation*
-More details may be found in the [Reference section](docs/Readme.md) including
+More details may be found in the [Reference section](docs/README.md) including
 * [Framework build instructions](docs/BUILD.md)
 * [Core build instructions](core/docs/BUILD.md)
 * [Core API Reference](core/docs/API.md)
