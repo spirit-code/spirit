@@ -33,4 +33,4 @@ build:
 
 test_script:
   - cd Build
-  - ctest -V -R -j2 -C %CONFIGURATION%
+  - ctest -V -j2 -C %CONFIGURATION%
