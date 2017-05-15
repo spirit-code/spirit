@@ -35,7 +35,7 @@ namespace Data
 	 // Copy Constructor
 	Spin_System::Spin_System(Spin_System const & other)
 	{
-		other.Unlock();
+		// other.Unlock();
 		other.Lock();
 
 		this->nos = other.nos;
@@ -72,7 +72,7 @@ namespace Data
 	// Assignment operator
 	Spin_System& Spin_System::operator=(Spin_System const & other)
 	{
-		other.Unlock();
+		// other.Unlock();
 		other.Lock();
 		if (this != &other)
 		{
