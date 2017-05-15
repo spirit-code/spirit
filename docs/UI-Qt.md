@@ -1,6 +1,8 @@
 Spirit UI Key Bindings
 ======================
 
+<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i>
+
 The The <b>Key Bindings</b> are as follows:
 
 UI Controls 
@@ -17,7 +19,7 @@ UI Controls
 | Toggle full-screen window                                         | <kbd>F11</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> |
 | Screenshot of Visualization region                                | <kbd>F12</kbd> / <kbd>Home</kbd>                     |
 | Toggle OpenGL Visualization                                       | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>        |
-| Try to return focus to main UI (does not always work)             | <kbd>Esc</kbd>                                       |
+| Try to return focus to main UI                                    | <kbd>Esc</kbd>                                       |
 
 Camera Controls
 ---------------
@@ -72,4 +74,3 @@ Manipulate the chain of images
 | Delete image                                     | <kbd>Del</kbd>                              |
 
 
-<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>

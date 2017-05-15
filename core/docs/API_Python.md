@@ -9,6 +9,7 @@ A new `State` can be created with
 ```python
     from spirit import state
     with state.State("") as p_state:
+        # do something with p_state
         pass
 ```
 
@@ -16,7 +17,8 @@ where you can pass a config file specifying your initial system parameters.
 If you do not pass a config file, the implemented defaults are used.
 *Note that you currently cannot change the geometry of the systems in your state once they are initialized.*
 
-### Chain 
+Chain
+-----
 
 | Get Info                                                                    | Return         | Description                                                |
 | --------------------------------------------------------------------------- | -------------- | ---------------------------------------------------------- |
@@ -46,14 +48,16 @@ If you do not pass a config file, the implemented defaults are used.
 | `Setup_Data( p_state, idx_chain=-1 )`                                       | `None`         | Setup the chain's data arrays (when is this necessary?)    |
 
 
-###  Constants
+Constants
+---------
 
 | Physical Constants                                                          | Return         | Description                                        |
 | --------------------------------------------------------------------------- | -------------- | -------------------------------------------------- |
 | `mu_B( )`                                                                   | `Float`        | The Bohr Magneton [meV / T]                        |
 | `k_B( )`                                                                    | `Float`        | The Boltzmann constant [meV / K]                   |
 
-### Geometry
+Geometry
+--------
 
 | Get Geometry parameters                                                         | Return                | Description                                        |
 | ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
@@ -65,7 +69,8 @@ If you do not pass a config file, the implemented defaults are used.
 | `Get_Dimensionality( p_state, idx_image=-1, idx_chain=-1 )`                     | `Int`                 | Get Translation Vectors                            |
 | `Get_Spin_Positions( p_state, idx_image=-1, idx_chain=-1 )`                     | `Array`               | Get Pointer to Spin Positions                      |
 
-### Hamiltonian 
+Hamiltonian
+-----------
 
 | Set Parameters                                                                  | Return                | Description                                        |
 | ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
@@ -74,16 +79,18 @@ If you do not pass a config file, the implemented defaults are used.
 | `Set_STT(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`            | `None`                | Set spin transfer torque                           |
 | `Set_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1)`             | `None`                | Set temperature                                    |
 
-### Log
+Log
+---
 
-|                                                                          | Return    | Description                 |
+| Log manipulation                                                         | Return    | Description                 |
 | ------------------------------------------------------------------------ | --------- | --------------------------- |
 | `Send( p_state, level, sender, message, idx_image=-1, idx_chain=-1 )`    | `None`    | Send a Log message          |
 | `Append( p_state )`                                                      | `None`    | Append Log to file          |
 
-### Parameters
+Parameters
+----------
 
-#### LLG
+### LLG
 
 | Set LLG Parameters                                                                  | Return        |
 | ----------------------------------------------------------------------------------- | ------------- |
@@ -99,7 +106,7 @@ If you do not pass a config file, the implemented defaults are used.
 | `Get_LLG_N_Iterations( p_state, n_iterations, idx_image=-1, idx_chain=-1 )`         | `Int`         |
 | `Get_LLG_N_Iterations_Log( p_state, n_iterations_log, idx_image=-1, idx_chain=-1 )` | `Int`         |
 
-#### GNEB
+### GNEB
 
 | Set GNEB Parameters                                                                  | Return        |
 | ------------------------------------------------------------------------------------ | ------------- |
@@ -116,9 +123,10 @@ If you do not pass a config file, the implemented defaults are used.
 | `Get_GNEB_N_Iterations_Log( p_state, idx_chain=-1 )`                                    | `Int`         |
 | `Get_GNEB_N_Energy_Interpolations( p_state, idx_chain=-1 )`                             | `Int`         |
 
-### Simulation
+Simulation
+----------
 
-| Set Parameters                                                                                                            | Return     |
+| Simulation state                                                                                                          | Return     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `SingleShot( p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`    | `None`     |
 | `PlayPause( p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`     | `None`     |
@@ -132,16 +140,18 @@ If you do not pass a config file, the implemented defaults are used.
 | `Running_Any( p_state, idx_image=-1, idx_chain=-1 )`                                                                      | `Boolean`  |
 | `Running_Any_Anywhere( p_state )`                                                                                         | `Boolean`  |
 
-### State
+State
+-----
 
-| Set Parameters                                                                      | Return     |
+| State manipulation                                                                  | Return     |
 | ----------------------------------------------------------------------------------- | ---------- |
 | `setup( configfile="", quiet=False )`                                               | `None`     |
 | `delete( p_state )`                                                                 | `None`     |
 
-### System 
+System
+------
 
-| Set Parameters                                                           | Return     |
+| System                                                                   | Return     |
 | ------------------------------------------------------------------------ | --------   |
 | `Get_Index( p_state )`                                                   | `Int`      |
 | `Get_NOS( p_state, idx_image=-1, idx_chain=-1 )`                         | `Int`      |
@@ -151,10 +161,11 @@ If you do not pass a config file, the implemented defaults are used.
 | `Update_Data( p_state, idx_image=-1, idx_chain=-1 )`                     | `None`     |
 | `Print_Energy_Array( p_state, idx_image=-1, idx_chain=-1 )`              | `None`     |
 
-### Transition
+Transition
+----------
 
-| Set Parameters                                                               | Return   | Description                                                                        |
+| Transition options                                                           | Return   | Description                                                                        |
 | ---------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------- |
-| Homogeneous( p_state, idx_1, idx_2, idx_chain=-1 )                           | `None`   | Generate homogeneous transition between two images of a chain                      |
-| Add_Noise_Temperature( p_state, temperature, idx_1, idx_2, idx_chain=-1)     | `None`   | Add some temperature-scaled noise to a transition between two images of a chain    |
+| `Homogeneous( p_state, idx_1, idx_2, idx_chain=-1 )`                         | `None`   | Generate homogeneous transition between two images of a chain                      |
+| `Add_Noise_Temperature( p_state, temperature, idx_1, idx_2, idx_chain=-1)`   | `None`   | Add some temperature-scaled noise to a transition between two images of a chain    |
 
