@@ -82,10 +82,10 @@ namespace Utility
 		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format = VectorFileFormat::CSV_POS_SPIN);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
-		//External_Field_from_File ....
-		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
-			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
-			vectorfield & anisotropy_normal);
+		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal);
+		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
+			intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
 			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
 			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal);
