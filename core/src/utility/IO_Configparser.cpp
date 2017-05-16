@@ -660,11 +660,11 @@ namespace Utility
 			
 			// Hamiltonian
 			std::unique_ptr<Engine::Hamiltonian> hamiltonian;
-			if (hamiltonian_type == "isotropic")
+			if (hamiltonian_type == "heisenberg_neighbours")
 			{
-				hamiltonian = Hamiltonian_Isotropic_from_Config(configFile, geometry);
+				hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
 			}// endif isotropic
-			else if (hamiltonian_type == "anisotropic")
+			else if (hamiltonian_type == "heisenberg_pairs")
 			{
 				// TODO: to std::move or not to std::move, that is the question...
 				hamiltonian = std::move(Hamiltonian_Anisotropic_from_Config(configFile, geometry));
@@ -683,7 +683,7 @@ namespace Utility
 			return hamiltonian;
 		}
 
-		std::unique_ptr<Engine::Hamiltonian_Isotropic> Hamiltonian_Isotropic_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, Data::Geometry geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Boundary conditions (a, b, c)
@@ -715,7 +715,7 @@ namespace Utility
 			scalar dd_radius = 0.0;
 
 			//------------------------------- Parser --------------------------------
-			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Isotropic: building");
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: building");
 			// iteration variables
 			int iatom = 0;
 			if (configFile != "")
@@ -742,7 +742,7 @@ namespace Utility
 							myfile.iss >> jij[iatom];
 						}						
 					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Isotropic: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
 					
 					myfile.Read_Single(dij, "dij");
 					myfile.Read_Single(dm_chirality, "dm_chirality");
@@ -753,19 +753,19 @@ namespace Utility
 				catch (Exception ex) {
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_isotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Isotropic: Using default configuration!");
+			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
 			
 			// Normalize vectors
 			external_field_normal.normalize();
 			anisotropy_normal.normalize();
 
 			// Return
-			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Isotropic:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B                   = " + std::to_string(external_field_magnitude));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal            = " + std::to_string(external_field_normal[0]) + " " + std::to_string(external_field_normal[1]) + " " + std::to_string(external_field_normal[2]));
@@ -779,12 +779,12 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
-			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Isotropic>(new Engine::Hamiltonian_Isotropic(boundary_conditions, external_field_magnitude,
+			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(boundary_conditions, external_field_magnitude,
 					external_field_normal, mu_s, anisotropy_magnitude, anisotropy_normal,
 					n_neigh_shells, jij, dij, dm_chirality, bij, kijkl, dd_radius, geometry));
-			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Isotropic: built");
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: built");
 			return hamiltonian;
-		}// end Hamiltonian_Isotropic_from_Config
+		}// end Hamiltonian_Heisenberg_Neighbours_from_Config
 
 
 		

@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 
-#include <engine/Hamiltonian_Isotropic.hpp>
+#include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <utility/Logging.hpp>
@@ -14,7 +14,7 @@ using namespace Utility;
 
 namespace Engine
 {
-	Hamiltonian_Isotropic::Hamiltonian_Isotropic(
+	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
 		std::vector<bool> boundary_conditions, scalar external_field_magnitude_i, Vector3 external_field_normal, scalar mu_s,
 		scalar anisotropy_magnitude, Vector3 anisotropy_normal,
 		int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius,
@@ -41,7 +41,7 @@ namespace Engine
 	}
 
 
-	void Hamiltonian_Isotropic::Update_Energy_Contributions()
+	void Hamiltonian_Heisenberg_Neighbours::Update_Energy_Contributions()
 	{
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
@@ -102,7 +102,7 @@ namespace Engine
 
 
 
-	void Hamiltonian_Isotropic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
+	void Hamiltonian_Heisenberg_Neighbours::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
@@ -128,7 +128,7 @@ namespace Engine
 		if (idx_dd >= 0)         E_DipoleDipole(spins, energy_contributions_per_spin[idx_dd].second);
 	};
 
-	void Hamiltonian_Isotropic::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -136,7 +136,7 @@ namespace Engine
 		}
 	}//end Zeeman
 
-	void Hamiltonian_Isotropic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -151,7 +151,7 @@ namespace Engine
 		}
 	}//end Exchange
 
-	void Hamiltonian_Isotropic::E_Anisotropic(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropic(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -159,7 +159,7 @@ namespace Engine
 		}
 	}//end Anisotropic
 
-	void Hamiltonian_Isotropic::E_BQC(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_BQC(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -172,7 +172,7 @@ namespace Engine
 		}
 	}//end BQC
 
-	void Hamiltonian_Isotropic::E_FourSC(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_FourSC(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -199,7 +199,7 @@ namespace Engine
 		}
 	}//end FourSC
 
-	void Hamiltonian_Isotropic::E_DM(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_DM(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
@@ -212,7 +212,7 @@ namespace Engine
 		}
 	}// end DM
 
-	void Hamiltonian_Isotropic::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
 	{
 		scalar mult = -std::pow(Constants::mu_B,2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
 
@@ -230,7 +230,7 @@ namespace Engine
 		}
 	}// end DipoleDipole
 
-	void Hamiltonian_Isotropic::Gradient(const vectorfield & spins, vectorfield & gradient)
+	void Hamiltonian_Heisenberg_Neighbours::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		//========================= Init local vars ================================
 		int nos = spins.size();
@@ -302,13 +302,13 @@ namespace Engine
 		Vectormath::scale(gradient, -1);
 	}
 
-	void Hamiltonian_Isotropic::Field_Zeeman(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_Zeeman(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		eff_field[ispin] += this->external_field_magnitude*this->external_field_normal;
 	}
 
 	//Exchange Interaction
-	void Hamiltonian_Isotropic::Field_Exchange(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_Exchange(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		for (int shell = 0; shell < this->n_neigh_shells; ++shell)
 		{
@@ -321,13 +321,13 @@ namespace Engine
 	}//end Exchange
 
 	 //Anisotropy
-	void Hamiltonian_Isotropic::Field_Anisotropic(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_Anisotropic(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		eff_field[ispin] += 2 * this->anisotropy_magnitude*this->anisotropy_normal * this->anisotropy_normal.dot(spins[ispin]);
 	}//end Anisotropic
 
 	 // Biquadratic Coupling
-	void Hamiltonian_Isotropic::Field_BQC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_BQC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		int shell = 0;
 		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
@@ -338,7 +338,7 @@ namespace Engine
 	}//end BQC
 
 	 // Four Spin Interaction
-	void Hamiltonian_Isotropic::Field_FourSC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_FourSC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		for (int t = 0; t < this->n_4spin[ispin]; ++t)
 		{
@@ -353,7 +353,7 @@ namespace Engine
 	}//end FourSC effective field
 
 	 // Dzyaloshinskii-Moriya Interaction 
-	void Hamiltonian_Isotropic::Field_DM(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_DM(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		int shell = 0;
 		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
@@ -363,7 +363,7 @@ namespace Engine
 		}
 	}//end DM effective Field
 
-	void Hamiltonian_Isotropic::Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
 	{
 		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_s^2
 		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
@@ -377,7 +377,7 @@ namespace Engine
 		}
 	}//end Field_DipoleDipole
 
-	void Hamiltonian_Isotropic::Hessian(const vectorfield & spins, MatrixX & hessian)
+	void Hamiltonian_Heisenberg_Neighbours::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
 		//int nos = spins.size() / 3;
 
@@ -393,6 +393,6 @@ namespace Engine
 	}
 
 	// Hamiltonian name as string
-	static const std::string name = "Isotropic Heisenberg";
-	const std::string& Hamiltonian_Isotropic::Name() { return name; }
+	static const std::string name = "Heisenberg (Neighbours)";
+	const std::string& Hamiltonian_Heisenberg_Neighbours::Name() { return name; }
 }

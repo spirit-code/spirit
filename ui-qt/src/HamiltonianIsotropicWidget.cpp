@@ -42,16 +42,16 @@ HamiltonianIsotropicWidget::HamiltonianIsotropicWidget(std::shared_ptr<State> st
 	this->updateData();
 
 	// Connect signals and slots
-	this->Setup_Hamiltonian_Isotropic_Slots();
+	this->Setup_Hamiltonian_Heisenberg_Neighbours_Slots();
 }
 
 void HamiltonianIsotropicWidget::updateData()
 {
-	Load_Hamiltonian_Isotropic_Contents();
+	Load_Hamiltonian_Heisenberg_Neighbours_Contents();
 }
 
 
-void HamiltonianIsotropicWidget::Load_Hamiltonian_Isotropic_Contents()
+void HamiltonianIsotropicWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents()
 {
 	float d, vd[3], mu_s, jij[5];
 	int n_neigh_shells;
@@ -294,7 +294,7 @@ void HamiltonianIsotropicWidget::Setup_Input_Validators()
 
 
 
-void HamiltonianIsotropicWidget::Setup_Hamiltonian_Isotropic_Slots()
+void HamiltonianIsotropicWidget::Setup_Hamiltonian_Heisenberg_Neighbours_Slots()
 {
 	// Boundary conditions
 	connect(this->checkBox_iso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));

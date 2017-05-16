@@ -148,7 +148,7 @@ namespace Utility
 							if (iimage >= noi)
 							{
 								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage+1));
-
+								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
 								// Add to chain
 								c->noi++;

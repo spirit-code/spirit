@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIAN_ISOTROPIC_NEW_H
-#define HAMILTONIAN_ISOTROPIC_NEW_H
+#ifndef HAMILTONIAN_HEISENBERG_NEIGHBOURS_H
+#define HAMILTONIAN_HEISENBERG_NEIGHBOURS_H
 
 #include <vector>
 
@@ -12,11 +12,11 @@
 namespace Engine
 {
 	// Hamiltonian contains all exchange- and interaction-information about the spin system
-	class Hamiltonian_Isotropic : public Hamiltonian
+	class Hamiltonian_Heisenberg_Neighbours : public Hamiltonian
 	{
 	public:
 		// Constructor
-		Hamiltonian_Isotropic(std::vector<bool> boundary_conditions, scalar external_field_magnitude, Vector3 external_field_normal, scalar mu_s,
+		Hamiltonian_Heisenberg_Neighbours(std::vector<bool> boundary_conditions, scalar external_field_magnitude, Vector3 external_field_normal, scalar mu_s,
 			scalar anisotropy_magnitude, Vector3 anisotropy_normal,
 			int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
 		

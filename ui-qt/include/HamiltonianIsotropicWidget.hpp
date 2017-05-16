@@ -33,9 +33,9 @@ private slots:
 	void set_hamiltonian_iso();
 
 private:
-	void Load_Hamiltonian_Isotropic_Contents();
+	void Load_Hamiltonian_Heisenberg_Neighbours_Contents();
 	void Setup_Input_Validators();
-	void Setup_Hamiltonian_Isotropic_Slots();
+	void Setup_Hamiltonian_Heisenberg_Neighbours_Slots();
 
 	std::shared_ptr<State> state;
 	//SpinWidget * spinWidget;

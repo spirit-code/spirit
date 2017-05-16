@@ -44,11 +44,11 @@ namespace Data
 
 		this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 		
-		if (other.hamiltonian->Name() == "Isotropic Heisenberg")
+		if (other.hamiltonian->Name() == "Heisenberg (Neighbours)")
 		{
-			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Isotropic(*(Engine::Hamiltonian_Isotropic*)(other.hamiltonian.get())));
+			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Neighbours(*(Engine::Hamiltonian_Heisenberg_Neighbours*)(other.hamiltonian.get())));
 		}
-		else if (other.hamiltonian->Name() == "Anisotropic Heisenberg")
+		else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
 		{
 			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
 		}
@@ -78,11 +78,11 @@ namespace Data
 
 			this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 			
-			if (other.hamiltonian->Name() == "Isotropic Heisenberg")
+			if (other.hamiltonian->Name() == "Heisenberg (Neighbours)")
 			{
-				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Isotropic(*(Engine::Hamiltonian_Isotropic*)(other.hamiltonian.get())));
+				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Neighbours(*(Engine::Hamiltonian_Heisenberg_Neighbours*)(other.hamiltonian.get())));
 			}
-			else if (other.hamiltonian->Name() == "Anisotropic Heisenberg")
+			else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
 			{
 				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
 			}
