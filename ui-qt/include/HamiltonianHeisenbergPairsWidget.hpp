@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIANANISOTROPICWIDGET_H
-#define HAMILTONIANANISOTROPICWIDGET_H
+#ifndef HAMILTONIAN_HEISENBERG_PAIRS_WIDGET_H
+#define HAMILTONIAN_HEISENBERG_PAIRS_WIDGET_H
 
 #include <QWidget>
 
@@ -11,7 +11,7 @@
 #include "IsosurfaceWidget.hpp"
 //#include "SettingsWidget.hpp"
 
-#include "ui_HamiltonianAnisotropicWidget.h"
+#include "ui_HamiltonianHeisenbergPairsWidget.h"
 
 struct State;
 
@@ -21,12 +21,12 @@ struct State;
 */
 std::string string_q2std(QString qs);
 
-class HamiltonianAnisotropicWidget : public QWidget, private Ui::HamiltonianAnisotropicWidget
+class HamiltonianHeisenbergPairsWidget : public QWidget, private Ui::HamiltonianHeisenbergPairsWidget
 {
     Q_OBJECT
 
 public:
-	HamiltonianAnisotropicWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
+	HamiltonianHeisenbergPairsWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
 	void updateData();
 
 private slots:
@@ -37,9 +37,9 @@ private slots:
 
 
 private:
-	void Load_Hamiltonian_Anisotropic_Contents();
+	void Load_Hamiltonian_Heisenberg_Pairs_Contents();
 	void Setup_Input_Validators();
-	void Setup_Hamiltonian_Anisotropic_Slots();
+	void Setup_Hamiltonian_Heisenberg_Pairs_Slots();
 
 	std::shared_ptr<State> state;
 	SpinWidget * spinWidget;

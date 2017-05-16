@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "HamiltonianAnisotropicWidget.hpp"
+#include "HamiltonianHeisenbergPairsWidget.hpp"
 
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
@@ -19,7 +19,7 @@ void normalize(T v[3])
 	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
 }
 
-HamiltonianAnisotropicWidget::HamiltonianAnisotropicWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
+HamiltonianHeisenbergPairsWidget::HamiltonianHeisenbergPairsWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
 {
 	this->state = state;
 	this->spinWidget = spinWidget;
@@ -43,17 +43,17 @@ HamiltonianAnisotropicWidget::HamiltonianAnisotropicWidget(std::shared_ptr<State
 	this->updateData();
 
 	// Connect signals and slots
-	this->Setup_Hamiltonian_Anisotropic_Slots();
+	this->Setup_Hamiltonian_Heisenberg_Pairs_Slots();
 }
 
-void HamiltonianAnisotropicWidget::updateData()
+void HamiltonianHeisenbergPairsWidget::updateData()
 {
-	Load_Hamiltonian_Anisotropic_Contents();
+	Load_Hamiltonian_Heisenberg_Pairs_Contents();
 }
 
 
 
-void HamiltonianAnisotropicWidget::Load_Hamiltonian_Anisotropic_Contents()
+void HamiltonianHeisenbergPairsWidget::Load_Hamiltonian_Heisenberg_Pairs_Contents()
 {
 	float d, vd[3], mu_s;
 
@@ -93,7 +93,7 @@ void HamiltonianAnisotropicWidget::Load_Hamiltonian_Anisotropic_Contents()
 // -----------------------------------------------------------------------------------
 
 
-void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_bc()
+void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_bc()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -130,7 +130,7 @@ void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_bc()
 	this->spinWidget->updateBoundingBoxIndicators();
 }
 
-void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_mu_s()
+void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_mu_s()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -163,7 +163,7 @@ void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_mu_s()
 	}
 }
 
-void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_field()
+void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_field()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -219,7 +219,7 @@ void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_field()
 	}
 }
 
-void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_ani()
+void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_ani()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -281,7 +281,7 @@ void HamiltonianAnisotropicWidget::set_hamiltonian_aniso_ani()
 // --------------------------------- Setup -------------------------------------------
 // -----------------------------------------------------------------------------------
 
-void HamiltonianAnisotropicWidget::Setup_Input_Validators()
+void HamiltonianHeisenbergPairsWidget::Setup_Input_Validators()
 {
 	//		mu_s
 	this->lineEdit_muSpin_aniso->setValidator(this->number_validator);
@@ -300,7 +300,7 @@ void HamiltonianAnisotropicWidget::Setup_Input_Validators()
 
 
 
-void HamiltonianAnisotropicWidget::Setup_Hamiltonian_Anisotropic_Slots()
+void HamiltonianHeisenbergPairsWidget::Setup_Hamiltonian_Heisenberg_Pairs_Slots()
 {
 	// Boundary Conditions
 	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));

@@ -9,7 +9,7 @@
 #include "ConfigurationsWidget.hpp"
 #include "ParametersWidget.hpp"
 #include "HamiltonianIsotropicWidget.hpp"
-#include "HamiltonianAnisotropicWidget.hpp"
+#include "HamiltonianHeisenbergPairsWidget.hpp"
 #include "HamiltonianGaussianWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
 
@@ -41,7 +41,7 @@ private:
 	ConfigurationsWidget * configurationsWidget;
 	ParametersWidget * parametersWidget;
 	HamiltonianIsotropicWidget * hamiltonianIsotropicWidget;
-	HamiltonianAnisotropicWidget * hamiltonianAnisotropicWidget;
+	HamiltonianHeisenbergPairsWidget * hamiltonianHeisenbergPairsWidget;
 	HamiltonianGaussianWidget * hamiltonianGaussianWidget;
 	VisualisationSettingsWidget * visualisationSettingsWidget;
 };

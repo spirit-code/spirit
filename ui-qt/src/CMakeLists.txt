@@ -4,7 +4,7 @@ set(SOURCE_UI_QT_ROOT
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianIsotropicWidget.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianAnisotropicWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergPairsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ConfigurationsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.cpp

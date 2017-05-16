@@ -5,7 +5,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
-#include <engine/Hamiltonian_Anisotropic.hpp>
+#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <utility/Constants.hpp>
 
@@ -48,7 +48,7 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         for (auto& m : ham->mu_s) m = mu_s;
     }
 
@@ -90,7 +90,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         int nos = image->nos;
 
         // Indices and Magnitudes
@@ -151,7 +151,7 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 		int nos = image->nos;
 
 		// Indices and Magnitudes
@@ -203,7 +203,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
 		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
 		{
@@ -237,7 +237,7 @@ void Hamiltonian_Set_DMI(State *state, float dij, int idx_image, int idx_chain)
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-		auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
 		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
 		{
@@ -271,7 +271,7 @@ void Hamiltonian_Set_BQE(State *state, float bij, int idx_image, int idx_chain)
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "BQE is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "BQE is not implemented in Hamiltonian_Heisenberg_Pairs - use Quadruplet interaction instead!");
     }
 
 	image->Unlock();
@@ -295,7 +295,7 @@ void Hamiltonian_Set_FSC(State *state, float kijkl, int idx_image, int idx_chain
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "FSC is not implemented in Hamiltonian_Anisotropic - use Quadruplet interaction instead!");
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "FSC is not implemented in Hamiltonian_Heisenberg_Pairs - use Quadruplet interaction instead!");
     }
 
 	image->Unlock();
@@ -338,7 +338,7 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         *mu_s = (float)ham->mu_s[0];
     }
 }
@@ -363,7 +363,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
         if (ham->external_field_index.size() > 0)
         {
@@ -429,7 +429,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Anisotropic*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         
         if (ham->anisotropy_index.size() > 0)
         {

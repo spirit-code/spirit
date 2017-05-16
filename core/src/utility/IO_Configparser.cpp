@@ -667,7 +667,7 @@ namespace Utility
 			else if (hamiltonian_type == "heisenberg_pairs")
 			{
 				// TODO: to std::move or not to std::move, that is the question...
-				hamiltonian = std::move(Hamiltonian_Anisotropic_from_Config(configFile, geometry));
+				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
 			}// endif anisotropic
 			else if (hamiltonian_type == "gaussian")
 			{
@@ -788,7 +788,7 @@ namespace Utility
 
 
 		
-		std::unique_ptr<Engine::Hamiltonian_Anisotropic> Hamiltonian_Anisotropic_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, Data::Geometry geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Boundary conditions (a, b, c)
@@ -831,7 +831,7 @@ namespace Utility
 			std::vector<indexQuadruplets> quadruplet_indices(8); std::vector<scalarfield> quadruplet_magnitude(8);
 
 			//------------------------------- Parser --------------------------------
-			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: building");
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: building");
 			// iteration variables
 			int iatom = 0;
 			if (configFile != "")
@@ -946,7 +946,7 @@ namespace Utility
 					}
 					//else
 					//{
-					//	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Default Interaction pairs have not been implemented yet.");
+					//	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Default Interaction pairs have not been implemented yet.");
 					//	throw Exception::System_not_Initialized;
 					//	// Not implemented!
 					//}
@@ -954,7 +954,7 @@ namespace Utility
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(dd_radius, "dd_radius");
-					// if (dd_radius >0 ) Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_anisotropic: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
+					// if (dd_radius >0 ) Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
 					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
 					// std::vector<std::vector<int>> dd_neigh;
 					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
@@ -986,15 +986,15 @@ namespace Utility
 				{
 					if (ex == Exception::File_not_Found)
 					{
-						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
 					}
 					else throw ex;
 				}// end catch
 			}
-			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Anisotropic: Using default configuration!");
+			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
 			
 			// Return
-			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Anisotropic:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
 			if (external_field_from_file)
 				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
@@ -1006,7 +1006,7 @@ namespace Utility
 				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
-			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(
+			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
 				mu_s,
 				external_field_index, external_field_magnitude, external_field_normal,
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
@@ -1016,9 +1016,9 @@ namespace Utility
 				quadruplet_indices, quadruplet_magnitude,
 				boundary_conditions
 			));
-			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Anisotropic: built");
+			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: built");
 			return hamiltonian;
-		}// end Hamiltonian_Anisotropic_From_Config
+		}// end Hamiltonian_Heisenberg_Pairs_From_Config
 		
 		
 		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry)

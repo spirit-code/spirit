@@ -170,7 +170,7 @@ namespace Utility
 			config += "boundary_conditions      " + std::to_string((int)hamiltonian->boundary_conditions[0]) + " " + std::to_string((int)hamiltonian->boundary_conditions[1]) + " " + std::to_string((int)hamiltonian->boundary_conditions[2]) + "\n";
 			Append_String_to_File(config, configFile);
 
-			if (hamiltonian->Name() == "Heisenberg (Pairs)") Hamiltonian_Anisotropic_to_Config(configFile, hamiltonian, geometry);
+			if (hamiltonian->Name() == "Heisenberg (Pairs)") Hamiltonian_Heisenberg_Pairs_to_Config(configFile, hamiltonian, geometry);
 			else if (hamiltonian->Name() == "Heisenberg (Neighbours)") Hamiltonian_Heisenberg_Neighbours_to_Config(configFile, hamiltonian);
 			else if (hamiltonian->Name() == "Gaussian") Hamiltonian_Gaussian_to_Config(configFile, hamiltonian);
 
@@ -198,11 +198,11 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_Heisenberg_Neighbours_to_Config
 
-		void Hamiltonian_Anisotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
+		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
 		{
 			int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
 			std::string config = "";
-			Engine::Hamiltonian_Anisotropic* ham_aniso = (Engine::Hamiltonian_Anisotropic *)hamiltonian.get();
+			Engine::Hamiltonian_Heisenberg_Pairs* ham_aniso = (Engine::Hamiltonian_Heisenberg_Pairs *)hamiltonian.get();
 			config += "###\n### Note the pairs and quadruplets are not yet logged here!\n###\n";
 			config += "### The following can be used as input if you remove the '#'s\n";
 			
@@ -243,7 +243,7 @@ namespace Utility
 			// }
 
 			Append_String_to_File(config, configFile);
-		}// end Hamiltonian_Anisotropic_to_Config
+		}// end Hamiltonian_Heisenberg_Pairs_to_Config
 		
 		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
 		{

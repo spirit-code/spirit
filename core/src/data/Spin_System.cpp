@@ -50,7 +50,7 @@ namespace Data
 		}
 		else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
 		{
-			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
+			this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Pairs(*(Engine::Hamiltonian_Heisenberg_Pairs*)(other.hamiltonian.get())));
 		}
 		else if (other.hamiltonian->Name() == "Gaussian")
 		{
@@ -84,7 +84,7 @@ namespace Data
 			}
 			else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
 			{
-				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Anisotropic(*(Engine::Hamiltonian_Anisotropic*)(other.hamiltonian.get())));
+				this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Pairs(*(Engine::Hamiltonian_Heisenberg_Pairs*)(other.hamiltonian.get())));
 			}
 			else if (other.hamiltonian->Name() == "Gaussian")
 			{
