@@ -16,11 +16,14 @@ namespace Engine
 		
 		std::vector<scalar> Get_Shell_Radius(const Data::Geometry & geometry, const int n_shells);
 		void Pairs_from_Neighbour_Shells(const Data::Geometry & geometry, int nShells, std::vector<int> & shellIndex, pairfield & pairs);
+		void Neighbours_from_Shells(const Data::Geometry & geometry, int nShells, neighbourfield & neighbours);
+
 		Vector3 DMI_Normal_from_Pair(const Data::Geometry & geometry, Pair pair, int chirality=1);
 		void DDI_Pairs_from_Neighbours(const Data::Geometry & geometry, scalar radius, pairfield & pairs, scalarfield & ddi_magnitude, vectorfield & ddi_normal);
 
 		void Create_Dipole_Pairs(const Data::Geometry & geometry, scalar dd_radius,
 		std::vector<indexPairs> & DD_indices, std::vector<scalarfield> & DD_magnitude, std::vector<vectorfield> & DD_normal);
+		// void Create_Dipole_Neighbours();
 
 		// Convert a list of neighbour shells into a list of pairs.
 		void Create_DD_Pairs_from_Neighbours(const Data::Geometry & geometry, const std::vector<std::vector<int>> & dd_neighbours,

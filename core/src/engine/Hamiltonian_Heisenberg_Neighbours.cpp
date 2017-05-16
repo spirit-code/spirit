@@ -7,6 +7,7 @@
 
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
@@ -90,8 +91,11 @@ namespace Engine
 		}
 
 		// Generate Exchange neighbours
+		Neighbours::Neighbours_from_Shells(*geometry, exchange_magnitude.size(), exchange_neighbours);
 		// Generate DMI neighbours and normals
+		Neighbours::Neighbours_from_Shells(*geometry, dmi_magnitude.size(), dmi_neighbours);
 		// Generate DDI neighbours, magnitudes and normals
+		// Create_Dipole_Neighbours();
 
 		this->Update_Energy_Contributions();
 	}
@@ -202,12 +206,12 @@ namespace Engine
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
-			for (unsigned int i_pair = 0; i_pair < exchange_neighbours.size(); ++i_pair)
+			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[i_pair].translations) )
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[i_pair].translations);
-					Energy[ispin] -= 0.5 * exchange_magnitude[i_pair] * spins[ispin].dot(spins[jspin]);
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					Energy[ispin] -= 0.5 * exchange_magnitude[exchange_neighbours[ineigh].idx_shell] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
@@ -218,12 +222,12 @@ namespace Engine
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
-			for (unsigned int i_pair = 0; i_pair < dmi_neighbours.size(); ++i_pair)
+			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[i_pair].translations) )
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[i_pair].translations);
-					Energy[ispin] -= 0.5 * dmi_magnitude[i_pair] * dmi_normal[i_pair].dot(spins[ispin].cross(spins[jspin]));
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
+					Energy[ispin] -= 0.5 * dmi_magnitude[dmi_neighbours[ineigh].idx_shell] * dmi_normal[dmi_neighbours[ineigh].idx_shell].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
@@ -235,14 +239,14 @@ namespace Engine
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
-		for (unsigned int i_pair = 0; i_pair < ddi_neighbours.size(); ++i_pair)
+		for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
 		{
-			if (ddi_magnitude[i_pair] > 0.0)
+			if (ddi_magnitude[ineigh] > 0.0)
 			{
-				// Energy[neighbours[i_pair][0]] -= mult / std::pow(ddi_magnitude[i_pair], 3.0) *
-				// 	(3 * spins[neighbours[i_pair][1]].dot(DD_normal[i_pair]) * spins[neighbours[i_pair][0]].dot(DD_normal[i_pair]) - spins[neighbours[i_pair][0]].dot(spins[neighbours[i_pair][1]]));
-				// Energy[neighbours[i_pair][1]] -= mult / std::pow(ddi_magnitude[i_pair], 3.0) *
-				// 	(3 * spins[neighbours[i_pair][1]].dot(DD_normal[i_pair]) * spins[neighbours[i_pair][0]].dot(DD_normal[i_pair]) - spins[neighbours[i_pair][0]].dot(spins[neighbours[i_pair][1]]));
+				// Energy[neighbours[ineigh][0]] -= mult / std::pow(ddi_magnitude[ineigh], 3.0) *
+				// 	(3 * spins[neighbours[ineigh][1]].dot(DD_normal[ineigh]) * spins[neighbours[ineigh][0]].dot(DD_normal[ineigh]) - spins[neighbours[ineigh][0]].dot(spins[neighbours[ineigh][1]]));
+				// Energy[neighbours[ineigh][1]] -= mult / std::pow(ddi_magnitude[ineigh], 3.0) *
+				// 	(3 * spins[neighbours[ineigh][1]].dot(DD_normal[ineigh]) * spins[neighbours[ineigh][0]].dot(DD_normal[ineigh]) - spins[neighbours[ineigh][0]].dot(spins[neighbours[ineigh][1]]));
 			}
 
 		}
@@ -291,12 +295,12 @@ namespace Engine
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
-			for (unsigned int i_pair = 0; i_pair < exchange_neighbours.size(); ++i_pair)
+			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[i_pair].translations) )
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[i_pair].translations);
-					gradient[ispin] -= exchange_magnitude[i_pair] * spins[jspin];
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					gradient[ispin] -= exchange_magnitude[exchange_neighbours[ineigh].idx_shell] * spins[jspin];
 				}
 			}
 		}
@@ -307,12 +311,12 @@ namespace Engine
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
-			for (unsigned int i_pair = 0; i_pair < dmi_neighbours.size(); ++i_pair)
+			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[i_pair].translations) )
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[i_pair].translations);
-					gradient[ispin] -= dmi_magnitude[i_pair] * spins[jspin].cross(dmi_normal[i_pair]);
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
+					gradient[ispin] -= dmi_magnitude[dmi_neighbours[ineigh].idx_shell] * spins[jspin].cross(dmi_normal[dmi_neighbours[ineigh].idx_shell]);
 				}
 			}
 		}
@@ -323,13 +327,13 @@ namespace Engine
 		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
-		for (unsigned int i_pair = 0; i_pair < ddi_neighbours.size(); ++i_pair)
+		for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
 		{
-			if (ddi_magnitude[i_pair] > 0.0)
+			if (ddi_magnitude[ineigh] > 0.0)
 			{
-				scalar skalar_contrib = mult / std::pow(ddi_magnitude[i_pair], 3.0);
-				// gradient[indices[i_pair][0]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
-				// gradient[indices[i_pair][1]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
+				scalar skalar_contrib = mult / std::pow(ddi_magnitude[ineigh], 3.0);
+				// gradient[indices[ineigh][0]] -= skalar_contrib * (3 * DD_normal[ineigh] * spins[indices[ineigh][1]].dot(DD_normal[ineigh]) - spins[indices[ineigh][1]]);
+				// gradient[indices[ineigh][1]] -= skalar_contrib * (3 * DD_normal[ineigh] * spins[indices[ineigh][0]].dot(DD_normal[ineigh]) - spins[indices[ineigh][0]]);
 			}
 		}
 	}//end Field_DipoleDipole
