@@ -89,7 +89,7 @@ namespace Utility
 			// MC Parameters
 			auto mc_params = Parameters_Method_MC_from_Config(configFile);
 			// Hamiltonian
-			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, *geometry));
+			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
 			// Spin System
 			auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
 			// ----------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ namespace Utility
 			Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 		}// End Basis_from_Config
 
-		std::unique_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile)
+		std::shared_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Basis from separate file?
@@ -288,7 +288,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::unique_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
+			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
@@ -630,7 +630,7 @@ namespace Utility
 			return mmf_params;
 		}
 
-		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// The type of hamiltonian we will use
@@ -667,11 +667,11 @@ namespace Utility
 			else if (hamiltonian_type == "heisenberg_pairs")
 			{
 				// TODO: to std::move or not to std::move, that is the question...
-				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
+				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, *geometry));
 			}// endif anisotropic
 			else if (hamiltonian_type == "gaussian")
 			{
-				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, *geometry));
 			}
 			else
 			{
@@ -683,34 +683,41 @@ namespace Utility
 			return hamiltonian;
 		}
 
-		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Boundary conditions (a, b, c)
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
-			std::vector<bool> boundary_conditions = { false, false, false };
-			// Magnetic field magnitude
-			scalar external_field_magnitude = 25;
-			// Magnetic field vector
-			Vector3 external_field_normal = { 0, 0, 1 };
-			// mu_spin
-			scalar mu_s = 2;
-			// Anisotropy constant
-			scalar anisotropy_magnitude = 0;
-			// Anisotropy vector
-			Vector3 anisotropy_normal = { 0, 0, 1 };
+			intfield boundary_conditions = { false, false, false };
+
+			// Spin moment
+			scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
+			// External Magnetic Field
+			std::string external_field_file = "";
+			scalar B = 0;
+			Vector3 B_normal = { 0.0, 0.0, 1.0 };
+			bool external_field_from_file = false;
+			intfield    external_field_index(geometry->nos);				// [nos]
+			scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
+			vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
+			
+			// Anisotropy
+			std::string anisotropy_file = "";
+			scalar K = 0;
+			Vector3 K_normal = { 0.0, 0.0, 1.0 };
+			bool anisotropy_from_file = false;
+			intfield    anisotropy_index(geometry->nos);				// [nos]
+			scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
+			vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
 
 			// Number of shells in which we calculate neighbours
-			int n_neigh_shells = 4;
+			int n_neigh_shells_exchange = 2;
 			// Jij
-			std::vector<scalar> jij = { 10.0, 0.0, 0.0, 0.0 };
+			std::vector<scalar> jij = { 10.0, 1.0 };
 			// DM constant
-			scalar dij = 6.0;
+			int n_neigh_shells_dmi = 1;
+			std::vector<scalar> dij = { 6.0 };
 			int dm_chirality = 1;
-			// Biquidratic exchange constant
-			scalar bij = 0.0;
-			// 4 Spin Interaction constant
-			scalar kijkl = 0.0;
 			// Dipole-Dipole interaction radius
 			scalar dd_radius = 0.0;
 
@@ -727,27 +734,102 @@ namespace Utility
 					boundary_conditions[0] = (boundary_conditions_i[0] != 0);
 					boundary_conditions[1] = (boundary_conditions_i[1] != 0);
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
+					
+					// External Field
+					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
+					if (external_field_file.length() > 0)
+					{
+						int n;
+						// The file name should be valid so we try to read it
+						External_Field_from_File(external_field_file, *geometry, n,
+							external_field_index, external_field_magnitude, external_field_normal);
+						
+						external_field_from_file = true;
+						B = external_field_magnitude[0];
+						B_normal = external_field_normal[0];
+					}
+					else
+					{
+						// Read parameters from config if available
+						myfile.Read_Single(B, "external_field_magnitude");
+						myfile.Read_Vector3(B_normal, "external_field_normal");
+						B_normal.normalize();
 
-					myfile.Read_Single(external_field_magnitude, "external_field_magnitude");
-					myfile.Read_Vector3(external_field_normal, "external_field_normal");
-					myfile.Read_Single(mu_s, "mu_s");
-					myfile.Read_Single(anisotropy_magnitude, "anisotropy_magnitude");
-					myfile.Read_Vector3(anisotropy_normal, "anisotropy_normal");
-					myfile.Read_Single(n_neigh_shells, "n_neigh_shells");
+						if (B != 0)
+						{
+							// Fill the arrays
+							for (int i = 0; i < geometry->nos; ++i)
+							{
+								external_field_index[i] = i;
+								external_field_magnitude[i] = B;
+								external_field_normal[i] = B_normal;
+							}
+						}
+						else
+						{
+							external_field_index = intfield(0);
+							external_field_magnitude = scalarfield(0);
+							external_field_normal = vectorfield(0);
+						}
+					}
 
-					jij = std::vector<scalar>(n_neigh_shells);
+					// Anisotropy
+					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
+					if (anisotropy_file.length() > 0)
+					{
+						int n;
+						// The file name should be valid so we try to read it
+						Anisotropy_from_File(anisotropy_file, *geometry, n,
+							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
+
+						anisotropy_from_file = true;
+						K = anisotropy_magnitude[0];
+						K_normal = anisotropy_normal[0];
+					}
+					else
+					{
+						// Read parameters from config
+						myfile.Read_Single(K, "anisotropy_magnitude");
+						myfile.Read_Vector3(K_normal, "anisotropy_normal");
+						K_normal.normalize();
+
+						if (K != 0)
+						{
+							// Fill the arrays
+							for (int i = 0; i < geometry->nos; ++i)
+							{
+								anisotropy_index[i] = i;
+								anisotropy_magnitude[i] = K;
+								anisotropy_normal[i] = K_normal;
+							}
+						}
+						else
+						{
+							anisotropy_index = intfield(0);
+							anisotropy_magnitude = scalarfield(0);
+							anisotropy_normal = vectorfield(0);
+						}
+					}
+
+					myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
+					jij = std::vector<scalar>(n_neigh_shells_exchange);
 					if (myfile.Find("jij"))
 					{
-						for (iatom = 0; iatom < n_neigh_shells; ++iatom) {
+						for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
 							myfile.iss >> jij[iatom];
-						}						
 					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0, 0.5, 0.0, 0.0 }");
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0, 1.0 }");
 					
-					myfile.Read_Single(dij, "dij");
+					myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
+					dij = std::vector<scalar>(n_neigh_shells_dmi);
+					if (myfile.Find("dij"))
+					{
+						for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
+							myfile.iss >> dij[iatom];
+					}
+					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
 					myfile.Read_Single(dm_chirality, "dm_chirality");
-					myfile.Read_Single(bij, "bij");
-					myfile.Read_Single(kijkl, "kijkl");
+					
 					myfile.Read_Single(dd_radius, "dd_radius");
 				}// end try
 				catch (Exception ex) {
@@ -759,29 +841,34 @@ namespace Utility
 				}// end catch
 			}
 			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
-			
-			// Normalize vectors
-			external_field_normal.normalize();
-			anisotropy_normal.normalize();
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B                   = " + std::to_string(external_field_magnitude));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal            = " + std::to_string(external_field_normal[0]) + " " + std::to_string(external_field_normal[1]) + " " + std::to_string(external_field_normal[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s                = " + std::to_string(mu_s));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K                   = " + std::to_string(anisotropy_magnitude));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal            = " + std::to_string(anisotropy_normal[0]) + " " + std::to_string(anisotropy_normal[1]) + " " + std::to_string(anisotropy_normal[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_neigh_shells      = " + std::to_string(n_neigh_shells));
+			if (external_field_from_file)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+			if (anisotropy_from_file)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_exchange   = " + std::to_string(n_neigh_shells_exchange));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij                = " + std::to_string(dij));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_dmi        = " + std::to_string(n_neigh_shells_dmi));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij[0]             = " + std::to_string(dij[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        DM chirality        = " + std::to_string(dm_chirality));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        B_ij                = " + std::to_string(bij));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        K_ijkl              = " + std::to_string(kijkl));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
-			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(boundary_conditions, external_field_magnitude,
-					external_field_normal, mu_s, anisotropy_magnitude, anisotropy_normal,
-					n_neigh_shells, jij, dij, dm_chirality, bij, kijkl, dd_radius, geometry));
+			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
+					mu_s, external_field_index, external_field_magnitude, external_field_normal,
+					anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+					jij,
+					dij, dm_chirality,
+					dd_radius,
+					geometry,
+					boundary_conditions
+				));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: built");
 			return hamiltonian;
 		}// end Hamiltonian_Heisenberg_Neighbours_from_Config
@@ -793,7 +880,7 @@ namespace Utility
 			//-------------- Insert default values here -----------------------------
 			// Boundary conditions (a, b, c)
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
-			std::vector<bool> boundary_conditions = { false, false, false };
+			intfield boundary_conditions = { false, false, false };
 			// Spin moment
 			scalarfield mu_s = scalarfield(geometry.nos, 2);	// [nos]
 			// External Magnetic Field
@@ -1003,7 +1090,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
 			if (anisotropy_from_file)
-				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
+				Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(

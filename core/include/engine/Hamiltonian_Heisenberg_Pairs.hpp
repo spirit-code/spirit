@@ -27,7 +27,7 @@ namespace Engine
 			std::vector<indexPairs> DMI_indices, std::vector<scalarfield> DMI_magnitude, std::vector<vectorfield> DMI_normal,
 			std::vector<indexPairs> DD_indices, std::vector<scalarfield> DD_magnitude, std::vector<vectorfield> DD_normal,
 			std::vector<indexQuadruplets> quadruplet_indices, std::vector<scalarfield> quadruplet_magnitude,
-			std::vector<bool> boundary_conditions
+			intfield boundary_conditions
 		);
 
 		void Update_Energy_Contributions() override;

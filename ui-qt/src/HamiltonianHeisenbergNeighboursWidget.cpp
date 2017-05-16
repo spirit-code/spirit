@@ -53,8 +53,8 @@ void HamiltonianHeisenbergNeighboursWidget::updateData()
 
 void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents()
 {
-	float d, vd[3], mu_s, jij[5];
-	int n_neigh_shells;
+	float d, dij[5], vd[3], mu_s, jij[5];
+	int n_neigh_shells_exchange, n_neigh_shells_dmi;
 
 	// Boundary conditions
 	bool boundary_conditions[3];
@@ -76,28 +76,28 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbou
 	if (d > 0.0) this->checkBox_extH->setChecked(true);
 
 	// Exchange interaction
-	Hamiltonian_Get_Exchange(state.get(), &n_neigh_shells, jij);
-	if (n_neigh_shells > 0) {
+	Hamiltonian_Get_Exchange(state.get(), &n_neigh_shells_exchange, jij);
+	if (n_neigh_shells_exchange > 0) {
 		lineEdit_exchange1->setText(QString::number(jij[0]));
 		lineEdit_exchange1->setEnabled(true);
 	}
 	else { lineEdit_exchange1->hide(); }
-	if (n_neigh_shells > 1) {
+	if (n_neigh_shells_exchange > 1) {
 		lineEdit_exchange2->setText(QString::number(jij[1]));
 		lineEdit_exchange2->setEnabled(true);
 	}
 	else { lineEdit_exchange2->hide(); }
-	if (n_neigh_shells > 2) {
+	if (n_neigh_shells_exchange > 2) {
 		lineEdit_exchange3->setText(QString::number(jij[2]));
 		lineEdit_exchange3->setEnabled(true);
 	}
 	else { lineEdit_exchange3->hide(); }
-	if (n_neigh_shells > 3) {
+	if (n_neigh_shells_exchange > 3) {
 		lineEdit_exchange4->setText(QString::number(jij[3]));
 		lineEdit_exchange4->setEnabled(true);
 	}
 	else { lineEdit_exchange4->hide(); }
-	if (n_neigh_shells > 4) {
+	if (n_neigh_shells_exchange > 4) {
 		lineEdit_exchange5->setText(QString::number(jij[4]));
 		lineEdit_exchange5->setEnabled(true);
 	}
@@ -105,7 +105,7 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbou
 	checkBox_exchange->setChecked(true);
 
 	// DMI
-	Hamiltonian_Get_DMI(state.get(), &d);
+	Hamiltonian_Get_DMI(state.get(), &n_neigh_shells_dmi, dij);
 	this->lineEdit_dmi->setText(QString::number(d));
 	if (d > 0.0) this->checkBox_dmi->setChecked(true);
 
@@ -116,16 +116,6 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbou
 	this->lineEdit_anisoy->setText(QString::number(vd[1]));
 	this->lineEdit_anisoz->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_aniso->setChecked(true);
-
-	// BQE
-	Hamiltonian_Get_BQE(state.get(), &d);
-	this->lineEdit_bqe->setText(QString::number(d));
-	if (d > 0.0) this->checkBox_bqe->setChecked(true);
-
-	// FourSpin
-	Hamiltonian_Get_FSC(state.get(), &d);
-	this->lineEdit_fourspin->setText(QString::number(d));
-	if (d > 0.0) this->checkBox_fourspin->setChecked(true);
 }
 
 
@@ -140,7 +130,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_hamiltonian_iso()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5];
+		float d, vd[3], jij[5], dij[5];
 		int i;
 
 		// Boundary conditions
@@ -196,9 +186,9 @@ void HamiltonianHeisenbergNeighboursWidget::set_hamiltonian_iso()
 		Hamiltonian_Set_Exchange(state.get(), i, jij, idx_image, idx_chain);
 
 		// DMI
-		if (this->checkBox_dmi->isChecked()) d = this->lineEdit_dmi->text().toFloat();
-		else d = 0.0;
-		Hamiltonian_Set_DMI(state.get(), d, idx_image, idx_chain);
+		if (this->checkBox_dmi->isChecked()) dij[0] = this->lineEdit_dmi->text().toFloat();
+		else dij[0] = 0.0;
+		Hamiltonian_Set_DMI(state.get(), 1, dij, idx_image, idx_chain);
 
 		// Anisotropy
 		//		magnitude
@@ -224,16 +214,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_hamiltonian_iso()
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
-
-		// BQE
-		if (this->checkBox_bqe->isChecked()) d = this->lineEdit_bqe->text().toFloat();
-		else d = 0.0;
-		Hamiltonian_Set_BQE(state.get(), d, idx_image, idx_chain);
-
-		// FSC
-		if (this->checkBox_fourspin->isChecked()) d = this->lineEdit_fourspin->text().toFloat();
-		else d = 0.0;
-		Hamiltonian_Set_FSC(state.get(), d, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -324,11 +304,4 @@ void HamiltonianHeisenbergNeighboursWidget::Setup_Hamiltonian_Heisenberg_Neighbo
 	connect(this->lineEdit_anisox, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_anisoy, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
 	connect(this->lineEdit_anisoz, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	// Biquadratic Exchange
-	connect(this->checkBox_bqe, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_bqe, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-	// FourSpin Interaction
-	connect(this->checkBox_fourspin, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));
-	connect(this->lineEdit_fourspin, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_iso()));
-
 }

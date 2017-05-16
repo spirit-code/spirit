@@ -1,116 +1,159 @@
+#ifndef USE_CUDA
+
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <iostream>
 
 #include <Eigen/Dense>
 
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Vectormath.hpp>
-#include <engine/Neighbours.hpp>
-#include <utility/Logging.hpp>
+#include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
+using std::vector;
+using std::function;
+
+using namespace Data;
 using namespace Utility;
 
 namespace Engine
 {
-	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
-		std::vector<bool> boundary_conditions, scalar external_field_magnitude_i, Vector3 external_field_normal, scalar mu_s,
-		scalar anisotropy_magnitude, Vector3 anisotropy_normal,
-		int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius,
-		Data::Geometry geometry) :
-		Hamiltonian(boundary_conditions),
-		mu_s(mu_s),
-		external_field_magnitude(external_field_magnitude_i), external_field_normal(external_field_normal),
-		anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
-		n_neigh_shells(n_neigh_shells), jij(jij), dij(dij), bij(bij), kijkl(kijkl), dd_radius(dd_radius)
+	inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int,3> & translations_i, const std::array<int,3> & translations_j)
 	{
-		// Rescale magnetic field from Tesla to meV
-		external_field_magnitude = external_field_magnitude * Constants::mu_B * mu_s;
-		external_field_normal.normalize();
-
-		this->Update_Energy_Contributions();
-
-		// Calculate Neighbours
-		Log(Log_Level::Info, Log_Sender::All, "Building Neighbours ...");
-		Engine::Neighbours::Create_Neighbours(geometry, boundary_conditions, n_neigh_shells,
-			n_spins_in_shell, neigh, n_4spin, max_n_4spin, neigh_4spin, dm_normal, dm_chirality, segments, segments_pos);
-		Engine::Neighbours::Create_Dipole_Neighbours(geometry, boundary_conditions,
-			dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-		Log(Log_Level::Info, Log_Sender::All, "Done Caclulating Neighbours");
+		int da = translations_i[0]+translations_j[0];
+		int db = translations_i[1]+translations_j[1];
+		int dc = translations_i[2]+translations_j[2];
+		return  ( ( boundary_conditions[0] || (0 <= da && da < n_cells[0]) ) &&
+				  ( boundary_conditions[1] || (0 <= db && db < n_cells[1]) ) &&
+				  ( boundary_conditions[2] || (0 <= dc && dc < n_cells[2]) ) );
 	}
 
+	inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int,3> & translations_i, const std::array<int,3> & translations)
+	{
+		int Na = n_cells[0];
+		int Nb = n_cells[1];
+		int Nc = n_cells[2];
+		int N  = n_spins_basic_domain;
+		
+		int da = translations_i[0]+translations[0];
+		int db = translations_i[1]+translations[1];
+		int dc = translations_i[2]+translations[2];
+
+		if (translations[0] < 0)
+			da += N*Na;
+		if (translations[1] < 0)
+			db += N*Na*Nb;
+		if (translations[2] < 0)
+			dc += N*Na*Nb*Nc;
+			
+		int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
+		
+		return idx;
+	}
+
+	inline std::array<int,3> translations_from_idx(const intfield & n_cells, const int n_spins_basic_domain, int idx)
+	{
+		std::array<int,3> ret;
+		int Na = n_cells[0];
+		int Nb = n_cells[1];
+		int Nc = n_cells[2];
+		int N  = n_spins_basic_domain;
+		ret[2] = idx/(Na*Nb);
+		ret[1] = (idx-ret[2]*Na*Nb)/Na;
+		ret[0] = idx-ret[2]*Na*Nb-ret[1]*Na;
+		return ret;
+	}
+
+	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
+			scalarfield mu_s,
+			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
+			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
+			scalarfield exchange_magnitude,
+			scalarfield dmi_magnitude, int dm_chirality,
+			scalar ddi_radius,
+			std::shared_ptr<Data::Geometry> geometry,
+			intfield boundary_conditions
+	) :
+		Hamiltonian(boundary_conditions),
+		geometry(geometry),
+		mu_s(mu_s),
+		external_field_index(external_field_index), external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
+		anisotropy_index(anisotropy_index), anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
+		exchange_magnitude(exchange_magnitude),
+		dmi_magnitude(dmi_magnitude),
+		ddi_radius(ddi_radius)
+	{
+		// Renormalize the external field from Tesla to meV
+		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
+		{
+			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Constants::mu_B * mu_s[i];
+		}
+
+		// Generate Exchange neighbours
+		// Generate DMI neighbours and normals
+		// Generate DDI neighbours, magnitudes and normals
+
+		this->Update_Energy_Contributions();
+	}
+	
+	void Hamiltonian_Heisenberg_Neighbours::Update_N_Neighbour_Shells(int n_shells_exchange, int n_shells_dmi)
+	{
+		if (this->exchange_magnitude.size() != n_shells_exchange)
+		{
+			this->exchange_magnitude = scalarfield(n_shells_exchange);
+			// Re-calculate exchange neighbour list
+		}
+		if (this->dmi_magnitude.size() != n_shells_dmi)
+		{
+			this->dmi_magnitude = scalarfield(n_shells_dmi);
+			// Re-calculate dmi neighbour list
+		}
+	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Update_Energy_Contributions()
 	{
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
 		// External field
-		if (this->external_field_magnitude != 0)
+		if (this->external_field_index.size() > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
 			this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_zeeman = -1;
 		// Anisotropy
-		if (this->anisotropy_magnitude != 0)
+		if (this->anisotropy_index.size() > 0)
 		{
-			this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0)});
+			this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
 			this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_anisotropy = -1;
 		// Exchange
-		for (auto _j : jij)
+		if (this->exchange_neighbours.size() > 0)
 		{
-			if (_j != 0)
-			{
-				this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0)});
-				this->idx_exchange = this->energy_contributions_per_spin.size()-1;
-				break;
-			}
-			else this->idx_exchange = -1;
+			this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
+			this->idx_exchange = this->energy_contributions_per_spin.size()-1;
 		}
+		else this->idx_exchange = -1;
 		// DMI
-		if (dij != 0)
+		if (this->dmi_neighbours.size() > 0)
 		{
-			this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0)});
+			this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
 			this->idx_dmi = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dmi = -1;
-		// BQC
-		if (bij != 0)
-		{
-			this->energy_contributions_per_spin.push_back({"BQC", scalarfield(0)});
-			this->idx_bqc = this->energy_contributions_per_spin.size()-1;
-		}
-		else this->idx_bqc = -1;
-		// FSC
-		if (kijkl != 0)
-		{
-			this->energy_contributions_per_spin.push_back({"FSC", scalarfield(0)});
-			this->idx_fsc = this->energy_contributions_per_spin.size()-1;
-		}
-		else this->idx_fsc = -1;
 		// Dipole-Dipole
-		if (this->dd_radius > 0)
+		if (this->ddi_neighbours.size() > 0)
 		{
-			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0)});
+			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0) });
 			this->idx_dd = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_dd = -1;
 	}
 
-
-
 	void Hamiltonian_Heisenberg_Neighbours::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
-		//========================= Init local vars ================================
 		int nos = spins.size();
-		int i = 0, istart = -1, istop = istart + 1;
-		scalar f0 = 1.0;
-		if (istart == -1) { istart = 0; istop = nos; f0 = 0.5; }
-		//------------------------ End Init ----------------------------------------
-
 		for (auto& pair : energy_contributions_per_spin)
 		{
 			// Allocate if not already allocated
@@ -118,281 +161,309 @@ namespace Engine
 			// Otherwise set to zero
 			else for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
 		}
+		
 
-		if (idx_zeeman >= 0)     E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
-		if (idx_exchange >= 0)   E_Exchange(spins, energy_contributions_per_spin[idx_exchange].second);
-		if (idx_anisotropy >= 0) E_Anisotropic(spins, energy_contributions_per_spin[idx_anisotropy].second);
-		if (idx_bqc >= 0)        E_BQC(spins, energy_contributions_per_spin[idx_bqc].second);
-		if (idx_fsc >= 0)        E_FourSC(spins, energy_contributions_per_spin[idx_fsc].second);
-		if (idx_dmi >= 0)        E_DM(spins, energy_contributions_per_spin[idx_dmi].second);
-		if (idx_dd >= 0)         E_DipoleDipole(spins, energy_contributions_per_spin[idx_dd].second);
-	};
+		// External field
+		if (this->idx_zeeman >=0 ) E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
+
+		// Anisotropy
+		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, energy_contributions_per_spin[idx_anisotropy].second);
+
+		// neighbours
+		// Exchange
+		if (this->idx_exchange >=0 )   E_Exchange(spins,energy_contributions_per_spin[idx_exchange].second);
+		// DMI
+		if (this->idx_dmi >=0 )        E_DMI(spins, energy_contributions_per_spin[idx_dmi].second);
+		// DD
+		if (this->idx_dd >=0 )         E_DD(spins, energy_contributions_per_spin[idx_dd].second);
+
+		// Return
+		//return this->E;
+	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
 		{
-			Energy[ispin] -= this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+			Energy[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
 		}
-	}//end Zeeman
+	}
+
+	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
+	{
+		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
+		{
+			Energy[anisotropy_index[i]] -= this->anisotropy_magnitude[i] * std::pow(anisotropy_normal[i].dot(spins[anisotropy_index[i]]), 2.0);
+		}
+	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			for (int shell = 0; shell < this->n_neigh_shells; ++shell)
+			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int i_pair = 0; i_pair < exchange_neighbours.size(); ++i_pair)
 			{
-				for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[i_pair].translations) )
 				{
-					int jspin = this->neigh[ispin][shell][jneigh];
-					Energy[ispin] -= 0.5 * this->jij[shell] * spins[ispin].dot(spins[jspin]);
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[i_pair].translations);
+					Energy[ispin] -= 0.5 * exchange_magnitude[i_pair] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
-	}//end Exchange
+	}
 
-	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropic(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			Energy[ispin] -= this->anisotropy_magnitude * std::pow(this->anisotropy_normal.dot(spins[ispin]), 2.0);
-		}
-	}//end Anisotropic
-
-	void Hamiltonian_Heisenberg_Neighbours::E_BQC(const vectorfield & spins, scalarfield & Energy)
-	{
-		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
-		{
-			int shell = 0;
-			for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int i_pair = 0; i_pair < dmi_neighbours.size(); ++i_pair)
 			{
-				int jspin = this->neigh[ispin][shell][jneigh];
-				Energy[ispin] -= 0.5 * this->bij * spins[ispin].dot(spins[jspin]);
-			}
-		}
-	}//end BQC
-
-	void Hamiltonian_Heisenberg_Neighbours::E_FourSC(const vectorfield & spins, scalarfield & Energy)
-	{
-		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
-		{
-			scalar result = 0.0;
-			scalar products[6];
-			for (int t = 0; t < this->n_4spin[ispin]; ++t)
-			{
-				int jspin = this->neigh_4spin[0][ispin][t];
-				int kspin = this->neigh_4spin[1][ispin][t];
-				int lspin = this->neigh_4spin[2][ispin][t];
-
-				products[0] = spins[ispin].dot(spins[jspin]);
-				products[1] = spins[kspin].dot(spins[lspin]);
-				products[2] = spins[ispin].dot(spins[lspin]);
-				products[3] = spins[jspin].dot(spins[kspin]);
-				products[4] = spins[ispin].dot(spins[kspin]);
-				products[5] = spins[jspin].dot(spins[lspin]);
-
-				Energy[ispin] -= 0.25 * this->kijkl *
-					(products[0] * products[1]
-						+ products[2] * products[3]
-						- products[4] * products[5]);
-			}
-		}
-	}//end FourSC
-
-	void Hamiltonian_Heisenberg_Neighbours::E_DM(const vectorfield & spins, scalarfield & Energy)
-	{
-		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
-		{
-			int shell = 0;
-			for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
-			{
-				int jspin = this->neigh[ispin][shell][jneigh];
-				Energy[ispin] -= 0.5 * this->dij * this->dm_normal[ispin][jneigh].dot(spins[ispin].cross(spins[jspin]));
-			}
-		}
-	}// end DM
-
-	void Hamiltonian_Heisenberg_Neighbours::E_DipoleDipole(const vectorfield& spins, scalarfield & Energy)
-	{
-		scalar mult = -std::pow(Constants::mu_B,2) * 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_B^2
-
-		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
-		{
-			for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
-			{
-				if (dd_distance[ispin][jneigh] > 0.0)
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[i_pair].translations) )
 				{
-					int jspin = this->dd_neigh[ispin][jneigh];
-					Energy[ispin] += 0.5 * mult / std::pow(dd_distance[ispin][jneigh], 3.0) *
-						(3 * spins[jspin].dot(dd_normal[ispin][jneigh]) * spins[ispin].dot(dd_normal[ispin][jneigh]) - spins[ispin].dot(spins[jspin]));
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[i_pair].translations);
+					Energy[ispin] -= 0.5 * dmi_magnitude[i_pair] * dmi_normal[i_pair].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
+		}
+	}
+
+	void Hamiltonian_Heisenberg_Neighbours::E_DD(const vectorfield & spins, scalarfield & Energy)
+	{
+		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		scalar result = 0.0;
+
+		for (unsigned int i_pair = 0; i_pair < ddi_neighbours.size(); ++i_pair)
+		{
+			if (ddi_magnitude[i_pair] > 0.0)
+			{
+				// Energy[neighbours[i_pair][0]] -= mult / std::pow(ddi_magnitude[i_pair], 3.0) *
+				// 	(3 * spins[neighbours[i_pair][1]].dot(DD_normal[i_pair]) * spins[neighbours[i_pair][0]].dot(DD_normal[i_pair]) - spins[neighbours[i_pair][0]].dot(spins[neighbours[i_pair][1]]));
+				// Energy[neighbours[i_pair][1]] -= mult / std::pow(ddi_magnitude[i_pair], 3.0) *
+				// 	(3 * spins[neighbours[i_pair][1]].dot(DD_normal[i_pair]) * spins[neighbours[i_pair][0]].dot(DD_normal[i_pair]) - spins[neighbours[i_pair][0]].dot(spins[neighbours[i_pair][1]]));
+			}
+
 		}
 	}// end DipoleDipole
 
+
+
 	void Hamiltonian_Heisenberg_Neighbours::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
-		//========================= Init local vars ================================
-		int nos = spins.size();
-		int istart = -1, istop = istart + 1, i;
-		if (istart == -1) { istart = 0; istop = nos; }
-		std::vector<scalar> build_array = { 0.0, 0.0, 0.0 };
-		std::vector<scalar> build_array_2 = { 0.0, 0.0, 0.0 };
-		//Initialize field to { 0 }
+		// Set to zero
 		Vectormath::fill(gradient, {0,0,0});
-		//------------------------ End Init ----------------------------------------
-		if (this->dd_radius != 0.0)
-		{
-			for (i = istart; i < istop; ++i)
-			{
-				Field_Zeeman(nos, spins, gradient, i);
-				Field_Exchange(nos, spins, gradient, i);
-				Field_Anisotropic(nos, spins, gradient, i);
-				Field_BQC(nos, spins, gradient, i);
-				Field_FourSC(nos, spins, gradient, i);
-				Field_DM(nos, spins, gradient, i);
-				Field_DipoleDipole(nos, spins, gradient, i);
-			}//endfor i
-		}// endif dd_radius!=0.0
-		else if (this->kijkl != 0.0 && this->dij != 0.0)
-		{
-			for (i = istart; i < istop; ++i)
-			{
-				Field_Zeeman(nos, spins, gradient, i);
-				Field_Exchange(nos, spins, gradient, i);
-				Field_Anisotropic(nos, spins, gradient, i);
-				Field_BQC(nos, spins, gradient, i);
-				Field_FourSC(nos, spins, gradient, i);
-				Field_DM(nos, spins, gradient, i);
-			}//endfor i
-		}//endif kijkl != 0 & dij !=0
-		else if (this->kijkl == 0.0 && this->dij == 0.0)
-		{
-			for (i = istart; i < istop; ++i)
-			{
-				Field_Zeeman(nos, spins, gradient, i);
-				Field_Exchange(nos, spins, gradient, i);
-				Field_Anisotropic(nos, spins, gradient, i);
-				Field_BQC(nos, spins, gradient, i);
-			}//endfor i
-		}//endif kijkl == 0 & dij ==0
-		else if (this->kijkl == 0.0 && this->dij != 0.0)
-		{
-			for (i = istart; i < istop; ++i)
-			{
-				Field_Zeeman(nos, spins, gradient, i);
-				Field_Exchange(nos, spins, gradient, i);
-				Field_Anisotropic(nos, spins, gradient, i);
-				Field_BQC(nos, spins, gradient, i);
-				Field_DM(nos, spins, gradient, i);
-			}//endfor i
-		}//endif kijkl == 0 & dij !=0
-		else if (this->kijkl != 0.0 && this->dij == 0.0)
-		{
-			for (i = istart; i < istop; ++i)
-			{
-				Field_Zeeman(nos, spins, gradient, i);
-				Field_Exchange(nos, spins, gradient, i);
-				Field_Anisotropic(nos, spins, gradient, i);
-				Field_BQC(nos, spins, gradient, i);
-				Field_FourSC(nos, spins, gradient, i);
-			}//endfor i
-		}//endif kijkl != 0 & dij ==0
-		// Turn the effective field into a gradient
-		Vectormath::scale(gradient, -1);
+
+		// External field
+		Gradient_Zeeman(gradient);
+
+		// Anisotropy
+		Gradient_Anisotropy(spins, gradient);
+
+		// neighbours
+		// Exchange
+		this->Gradient_Exchange(spins, gradient);
+		// DMI
+		this->Gradient_DMI(spins, gradient);
+		// DD
+		this->Gradient_DD(spins, gradient);
 	}
 
-	void Hamiltonian_Heisenberg_Neighbours::Field_Zeeman(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
 	{
-		eff_field[ispin] += this->external_field_magnitude*this->external_field_normal;
+		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
+		{
+			gradient[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i];
+		}
 	}
 
-	//Exchange Interaction
-	void Hamiltonian_Heisenberg_Neighbours::Field_Exchange(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
-		for (int shell = 0; shell < this->n_neigh_shells; ++shell)
+		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
 		{
-			for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+			gradient[anisotropy_index[i]] -= 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
+		}
+	}
+
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
+	{
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int i_pair = 0; i_pair < exchange_neighbours.size(); ++i_pair)
 			{
-				int jspin = this->neigh[ispin][shell][jneigh];
-				eff_field[ispin] += this->jij[shell] * spins[jspin];
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[i_pair].translations) )
+				{
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[i_pair].translations);
+					gradient[ispin] -= exchange_magnitude[i_pair] * spins[jspin];
+				}
 			}
 		}
-	}//end Exchange
+	}
 
-	 //Anisotropy
-	void Hamiltonian_Heisenberg_Neighbours::Field_Anisotropic(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
-		eff_field[ispin] += 2 * this->anisotropy_magnitude*this->anisotropy_normal * this->anisotropy_normal.dot(spins[ispin]);
-	}//end Anisotropic
-
-	 // Biquadratic Coupling
-	void Hamiltonian_Heisenberg_Neighbours::Field_BQC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
-	{
-		int shell = 0;
-		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			int jspin = this->neigh[ispin][shell][jneigh];
-			eff_field[ispin] += 2 * this->bij * spins[jspin] * spins[ispin].dot(spins[jspin]);
-		}
-	}//end BQC
-
-	 // Four Spin Interaction
-	void Hamiltonian_Heisenberg_Neighbours::Field_FourSC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
-	{
-		for (int t = 0; t < this->n_4spin[ispin]; ++t)
-		{
-			int jspin = this->neigh_4spin[0][ispin][t];
-			int kspin = this->neigh_4spin[0][ispin][t];
-			int lspin = this->neigh_4spin[0][ispin][t];
-			eff_field[ispin] += this->kijkl
-				* spins[jspin] * spins[kspin].dot(spins[lspin])
-				+ spins[lspin] * spins[jspin].dot(spins[kspin])
-				- spins[kspin] * spins[jspin].dot(spins[lspin]);
-		}
-	}//end FourSC effective field
-
-	 // Dzyaloshinskii-Moriya Interaction 
-	void Hamiltonian_Heisenberg_Neighbours::Field_DM(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
-	{
-		int shell = 0;
-		for (int jneigh = 0; jneigh < this->n_spins_in_shell[ispin][shell]; ++jneigh)
-		{
-			int jspin = this->neigh[ispin][shell][jneigh];
-			eff_field[ispin] += this->dij * this->dm_normal[ispin][jneigh].cross(spins[jspin]);
-		}
-	}//end DM effective Field
-
-	void Hamiltonian_Heisenberg_Neighbours::Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin)
-	{
-		scalar mult = 1.0 / 4.0 / M_PI * this->mu_s * this->mu_s; // multiply with mu_s^2
-		for (int jneigh = 0; jneigh < (int)this->dd_neigh[ispin].size(); ++jneigh)
-		{
-			if (dd_distance[ispin][jneigh] > 0.0)
+			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int i_pair = 0; i_pair < dmi_neighbours.size(); ++i_pair)
 			{
-				int jspin = this->dd_neigh[ispin][jneigh];
-				scalar skalar_contrib = mult / std::pow(dd_distance[ispin][jneigh], 3.0);
-				eff_field[ispin] += skalar_contrib * (3 * dd_normal[ispin][jneigh]*spins[jspin].dot(dd_normal[ispin][jneigh]) - spins[jspin]);
+				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[i_pair].translations) )
+				{
+					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[i_pair].translations);
+					gradient[ispin] -= dmi_magnitude[i_pair] * spins[jspin].cross(dmi_normal[i_pair]);
+				}
+			}
+		}
+	}
+
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_DD(const vectorfield & spins, vectorfield & gradient)
+	{
+		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		
+		for (unsigned int i_pair = 0; i_pair < ddi_neighbours.size(); ++i_pair)
+		{
+			if (ddi_magnitude[i_pair] > 0.0)
+			{
+				scalar skalar_contrib = mult / std::pow(ddi_magnitude[i_pair], 3.0);
+				// gradient[indices[i_pair][0]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][1]].dot(DD_normal[i_pair]) - spins[indices[i_pair][1]]);
+				// gradient[indices[i_pair][1]] -= skalar_contrib * (3 * DD_normal[i_pair] * spins[indices[i_pair][0]].dot(DD_normal[i_pair]) - spins[indices[i_pair][0]]);
 			}
 		}
 	}//end Field_DipoleDipole
 
+
 	void Hamiltonian_Heisenberg_Neighbours::Hessian(const vectorfield & spins, MatrixX & hessian)
 	{
-		//int nos = spins.size() / 3;
+		int nos = spins.size();
 
-		//// Single Spin elements
-		//for (int alpha = 0; alpha < 3; ++alpha)
-		//{
-		//	scalar K = 2.0*this->anisotropy_magnitude*this->anisotropy_normal[alpha];
-		//	for (int i = 0; i < nos; ++i)
-		//	{
-		//		hessian[i + alpha*nos + 3 * nos*(i + alpha*nos)] = K;
-		//	}
-		//}
+		// Set to zero
+		// for (auto& h : hessian) h = 0;
+		hessian.setZero();
+
+		// Single Spin elements
+		for (int alpha = 0; alpha < 3; ++alpha)
+		{
+			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
+			{
+				int idx = anisotropy_index[i];
+				// scalar x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
+				hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
+			}
+		}
+
+		// std::cerr << "calculated hessian" << std::endl;
+
+		//  // Spin Pair elements
+		//  for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
+		//  {
+		//  	//		Check if boundary conditions contain this periodicity
+		//  	if ((i_periodicity == 0)
+		//  		|| (i_periodicity == 1 && this->boundary_conditions[0])
+		//  		|| (i_periodicity == 2 && this->boundary_conditions[1])
+		//  		|| (i_periodicity == 3 && this->boundary_conditions[2])
+		//  		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
+		//  		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
+		//  		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
+		//  		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
+		//  	{
+		//  		//		Loop over neighbours of this periodicity
+		//  		// Exchange
+		//  		for (unsigned int i_pair = 0; i_pair < this->exchange_neighbours.size(); ++i_pair)
+		//  		{
+		//  			for (int alpha = 0; alpha < 3; ++alpha)
+		//  			{
+		//  				int idx_i = 3*exchange_neighbours[i_pair][0] + alpha;
+		//  				int idx_j = 3*exchange_neighbours[i_pair][1] + alpha;
+		//  				hessian(idx_i,idx_j) += -exchange_magnitude[i_pair];
+		//  				hessian(idx_j,idx_i) += -exchange_magnitude[i_pair];
+		//  			}
+		//  		}
+		//  		// DMI
+		//  		for (unsigned int i_pair = 0; i_pair < this->dmi_neighbours[i_periodicity].size(); ++i_pair)
+		//  		{
+		//  			for (int alpha = 0; alpha < 3; ++alpha)
+		//  			{
+		//  				for (int beta = 0; beta < 3; ++beta)
+		//  				{
+		//  					int idx_i = 3*dmi_neighbours[i_periodicity][i_pair][0] + alpha;
+		//  					int idx_j = 3*dmi_neighbours[i_periodicity][i_pair][1] + beta;
+		//  					if ( (alpha == 0 && beta == 1) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  						hessian(idx_j,idx_i) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  					}
+		//  					else if ( (alpha == 1 && beta == 0) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  						hessian(idx_j,idx_i) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  					}
+		//  					else if ( (alpha == 0 && beta == 2) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  						hessian(idx_j,idx_i) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  					}
+		//  					else if ( (alpha == 2 && beta == 0) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  						hessian(idx_j,idx_i) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  					}
+		//  					else if ( (alpha == 1 && beta == 2) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  						hessian(idx_j,idx_i) +=
+		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  					}
+		//  					else if ( (alpha == 2 && beta == 1) )
+		//  					{
+		//  						hessian(idx_i,idx_j) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  						hessian(idx_j,idx_i) +=
+		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  					}
+		//  				}
+		//  			}
+		//  		}
+		//  //		// Dipole-Dipole
+		//  //		for (unsigned int i_pair = 0; i_pair < this->ddi_neighbours[i_periodicity].size(); ++i_pair)
+		//  //		{
+		//  //			// indices
+		//  //			int idx_1 = ddi_neighbours[i_periodicity][i_pair][0];
+		//  //			int idx_2 = ddi_neighbours[i_periodicity][i_pair][1];
+		//  //			// prefactor
+		//  //			scalar prefactor = 0.0536814951168
+		//  //				* this->mu_s[idx_1] * this->mu_s[idx_2]
+		//  //				/ std::pow(ddi_magnitude[i_periodicity][i_pair], 3);
+		//  //			// components
+		//  //			for (int alpha = 0; alpha < 3; ++alpha)
+		//  //			{
+		//  //				for (int beta = 0; beta < 3; ++beta)
+		//  //				{
+		//  //					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+		//  //					if (alpha == beta)
+		//  //						hessian[idx_h] += prefactor;
+		//  //					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
+		//  //				}
+		//  //			}
+		//  //		}
+		//  	}// end if periodicity
+		//  }// end for periodicity
 	}
 
 	// Hamiltonian name as string
 	static const std::string name = "Heisenberg (Neighbours)";
 	const std::string& Hamiltonian_Heisenberg_Neighbours::Name() { return name; }
 }
+
+#endif

@@ -3,6 +3,7 @@
 #define HAMILTONIAN_HEISENBERG_NEIGHBOURS_H
 
 #include <vector>
+#include <memory>
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
@@ -11,109 +12,94 @@
 
 namespace Engine
 {
-	// Hamiltonian contains all exchange- and interaction-information about the spin system
+	/*
+		The Heisenberg Hamiltonian using Neighbours contains all information on the interactions between spins.
+		The information is presented in index lists and parameter lists in order to easily calculate the energy of the system via summation.
+		Calculations are made on a per-cell basis running over all neighbours.
+	*/
 	class Hamiltonian_Heisenberg_Neighbours : public Hamiltonian
 	{
 	public:
 		// Constructor
-		Hamiltonian_Heisenberg_Neighbours(std::vector<bool> boundary_conditions, scalar external_field_magnitude, Vector3 external_field_normal, scalar mu_s,
-			scalar anisotropy_magnitude, Vector3 anisotropy_normal,
-			int n_neigh_shells, std::vector<scalar> jij, scalar dij, int dm_chirality, scalar bij, scalar kijkl, scalar dd_radius, Data::Geometry geometry);
-		
+		Hamiltonian_Heisenberg_Neighbours(
+			scalarfield mu_s,
+			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
+			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
+			scalarfield exchange_magnitude,
+			scalarfield dmi_magnitude, int dm_chirality,
+			scalar ddi_radius,
+			std::shared_ptr<Data::Geometry> geometry,
+			intfield boundary_conditions
+		);
+
 		void Update_Energy_Contributions() override;
-		
+
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
 		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
 		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
+		void Update_N_Neighbour_Shells(int n_shells_exchange, int n_shells_dmi);
+
 		// Hamiltonian name as string
 		const std::string& Name() override;
 
-		// -------------------- Single Spin Interactions ------------------
+		// ------------ General Variables ------------
+		//std::vector<scalar> & field;
+		
+		// ------------ Single Spin Interactions ------------
+		// Spin moment
+		scalarfield mu_s;									// [nos]
 		// External Magnetic Field
-		scalar external_field_magnitude;
-		Vector3 external_field_normal;
-		scalar mu_s;
+		intfield external_field_index;
+		scalarfield external_field_magnitude;	// [nos]
+		vectorfield external_field_normal;		// [nos] (x, y, z)
 		// Anisotropy
-		scalar anisotropy_magnitude;
-		Vector3 anisotropy_normal;
+		intfield anisotropy_index;
+		scalarfield anisotropy_magnitude;		// [nos]
+		vectorfield anisotropy_normal;			// [nos] (x, y, z)
 
-		// -------------------- Two Spin Interactions ------------------
-		// number of pairwise interaction shells
-		int n_neigh_shells;
-		// number of spins in shell ns_in_shell[
-		std::vector<std::vector<int>> n_spins_in_shell;
-		// Neighbours of each spin neigh[nos][n_shell][max_n_in_shell[n_shell]]
-		std::vector<std::vector<std::vector<int>>> neigh;
-
-		// Exchange Interaction
-		std::vector<scalar> jij;
+		// ------------ Pair Interactions ------------
+		// Exchange interaction
+		neighbourfield exchange_neighbours;		// [periodicity][nop][2] (i,j)
+		scalarfield exchange_magnitude;	// [periodicity][nop]    J_ij
 		// DMI
-		scalar dij;
-		// DM normal vectors [nos][max_n_in_shell[n_shell]]
-		std::vector<vectorfield> dm_normal;
-		// Biquadratic Exchange
-		scalar bij;
-		// Dipole Dipole radius
-		scalar dd_radius;
-		// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
-		std::vector<std::vector<int>> dd_neigh;
-		// Dipole Dipole neighbour positions of each spin neigh_dd[nos][max_n]
-		std::vector<std::vector<Vector3>> dd_neigh_pos;
-		// Dipole Dipole normal vectors [nos][max_n]
-		std::vector<vectorfield> dd_normal;
-		// Dipole Dipole distance [nos][max_n]
-		std::vector<std::vector<scalar>> dd_distance;
-
-		// -------------------- Four Spin Interactions ------------------
-		// Four Spin
-		scalar kijkl;
-		// Maximum number of 4-Spin interactions per spin
-		int max_n_4spin;
-		// actual number of 4-Spin interactions for each spin number_t4_spin[nos]
-		std::vector<int> n_4spin;
-		// 4 spin interaction neighbours: neigh_4spin[dim][nos][number_t4_spin[nos]]
-		std::vector<std::vector<std::vector<int>>> neigh_4spin;
-
-		// segments[nos][4]
-		std::vector<std::vector<int>> segments;
-		// Position of the Segments: segments_pos[nos][4]
-		std::vector<std::vector<Vector3>> segments_pos;
+		neighbourfield dmi_neighbours;			// [periodicity][nop][2] (i,j)
+		scalarfield dmi_magnitude;			// [periodicity][nop]    D_ij
+		vectorfield dmi_normal;			// [periodicity][nop][3] (Dx,Dy,Dz)
+		// Dipole Dipole interaction
+		scalar ddi_radius;
+		neighbourfield ddi_neighbours;			// [periodicity][nop][2] (i,j)
+		scalarfield ddi_magnitude;			// [periodicity][nop]    r_ij (distance)
+		vectorfield ddi_normal;			// [periodicity][nop][4] (nx,ny,nz)
 
 	private:
-		// -------------------- Effective Field Functions ------------------
-		// Calculates the Zeeman contribution to the effective field of spin ispin within system s
-		void Field_Zeeman(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
-		// Calculates the Exchange contribution to the effective field of spin ispin within system s
-		void Field_Exchange(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
-		// Calculates the Anisotropic contribution to the effective field of spin ispin within system s
-		void Field_Anisotropic(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
-		// Calculates the Biquadratic Coupling contribution to the effective field of spin ispin within system s
-		void Field_BQC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
-		// Calculates the 4-spin Coupling contribution to the effective field of spin ispin within system s
-		void Field_FourSC(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
-		// Calculates the Dzyaloshinskii-Moriya Interaction contribution to the effective field of spin ispin within system s
-		void Field_DM(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
+		std::shared_ptr<Data::Geometry> geometry;
+		
+		// ------------ Effective Field Functions ------------
+		// Calculate the Zeeman effective field of a single Spin
+		void Gradient_Zeeman(vectorfield & gradient);
+		// Calculate the Anisotropy effective field of a single Spin
+		void Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient);
+		// Calculate the exchange interaction effective field of a Spin Pair
+		void Gradient_Exchange(const vectorfield & spins, vectorfield & gradient);
+		// Calculate the DMI effective field of a Spin Pair
+		void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Field_DipoleDipole(int nos, const vectorfield & spins, vectorfield & eff_field, const int ispin);
+		void Gradient_DD(const vectorfield & spins, vectorfield & gradient);
 
-		// -------------------- Energy Functions ------------------
-		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_bqc, idx_fsc, idx_dd;
-		// calculates the Zeeman Energy of spin ispin within system s
+		// ------------ Energy Functions ------------
+		// neighbours for Energy vector
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_dd;
+		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Exchange Energy of spin ispin within system s
+		// Calculate the Anisotropy energy of a Spin System
+		void E_Anisotropy(const vectorfield & spins, scalarfield & Energy);
+		// Calculate the exchange interaction energy of a Spin System
 		void E_Exchange(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Anisotropic Energy of spin ispin within system s
-		void E_Anisotropic(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Biquadratic Coupling Energy of spin ispin within system s
-		void E_BQC(const vectorfield & spins, scalarfield & Energy);
-		// calculates the 4-spin Coupling Energy of spin ispin within system s
-		void E_FourSC(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Dzyaloshinskii-Moriya Interaction Energy of spin ispin within system s
-		void E_DM(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Dipole-Dipole Energy of spin ispin within system s
-		void E_DipoleDipole(const vectorfield & spins, scalarfield & Energy);
+		// Calculate the DMI energy of a Spin System
+		void E_DMI(const vectorfield & spins, scalarfield & Energy);
+		// calculates the Dipole-Dipole Energy
+		void E_DD(const vectorfield & spins, scalarfield & Energy);
 	};
 }
 #endif

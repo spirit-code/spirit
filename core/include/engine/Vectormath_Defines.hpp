@@ -1,6 +1,9 @@
+#pragma once
+
 #include <Eigen/Core>
 
 #include <vector>
+#include <array>
 
 #include "Spirit_Defines.h"
 
@@ -26,10 +29,56 @@ typedef Eigen::Matrix<int, 4, 1> indexQuadruplet;
     typedef std::vector<Vector3,         managed_allocator<Vector3>>         vectorfield;
     typedef std::vector<indexPair,       managed_allocator<indexPair>>       indexPairs;
     typedef std::vector<indexQuadruplet, managed_allocator<indexQuadruplet>> indexQuadruplets;
+    struct Pair
+    {
+        int i, j, __;
+        int translations[3];
+    };
+    struct Triplet
+    {
+        int i, j, k;
+        std::array<int,3> d_j, d_k;
+    };
+    struct Quadruplet
+    {
+        int i, j, k, l;
+        std::array<int,3> d_j, d_k, d_l;
+    };
+    typedef std::vector<Pair,       managed_allocator<Pair>>       pairfield;
+    typedef std::vector<Triplet,    managed_allocator<Triplet>>    tripletfield;
+    typedef std::vector<Quadruplet, managed_allocator<Quadruplet>> quadrupletfield;
 #else
     typedef std::vector<int>             intfield;
     typedef std::vector<scalar>          scalarfield;
     typedef std::vector<Vector3>         vectorfield;
     typedef std::vector<indexPair>       indexPairs;
     typedef std::vector<indexQuadruplet> indexQuadruplets;
+    struct Pair
+    {
+        int i, j;
+        std::array<int,3> translations;
+    };
+    struct Triplet
+    {
+        int i, j, k;
+        std::array<int,3> d_j, d_k;
+    };
+    struct Quadruplet
+    {
+        int i, j, k, l;
+        std::array<int,3> d_j, d_k, d_l;
+    };
+    struct Neighbour
+    {
+        // Basis indices of atom and neighbour
+        int iatom, ineigh;
+        // Shell index
+        int idx_shell;
+        // Translations of the neighbour cell
+        std::array<int,3> translations;
+    };
+    typedef std::vector<Pair>       pairfield;
+    typedef std::vector<Triplet>    tripletfield;
+    typedef std::vector<Quadruplet> quadrupletfield;
+    typedef std::vector<Neighbour>  neighbourfield;
 #endif

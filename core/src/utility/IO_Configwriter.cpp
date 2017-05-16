@@ -182,19 +182,20 @@ namespace Utility
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Heisenberg_Neighbours * ham_iso = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Constants::mu_B/ham_iso->mu_s) + "\n";
-			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0]) + " " + std::to_string(ham_iso->external_field_normal[1]) + " " + std::to_string(ham_iso->external_field_normal[2]) + "\n";
-			config += "mu_s                     " + std::to_string(ham_iso->mu_s) + "\n";
-			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude) + "\n";
-			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normal[0]) + " " + std::to_string(ham_iso->anisotropy_normal[1]) + " " + std::to_string(ham_iso->anisotropy_normal[2]) + "\n";
-			config += "n_neigh_shells  			" + std::to_string(ham_iso->n_neigh_shells) + "\n";
-			config += "jij                      " + std::to_string(ham_iso->jij[0]);
-			for (int i=1; i<ham_iso->n_neigh_shells; ++i) config += " " + std::to_string(ham_iso->jij[i]);
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude[0]/Constants::mu_B/ham_iso->mu_s[0]) + "\n";
+			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0][0]) + " " + std::to_string(ham_iso->external_field_normal[0][1]) + " " + std::to_string(ham_iso->external_field_normal[0][2]) + "\n";
+			config += "mu_s                     " + std::to_string(ham_iso->mu_s[0]) + "\n";
+			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude[0]) + "\n";
+			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normal[0][0]) + " " + std::to_string(ham_iso->anisotropy_normal[0][1]) + " " + std::to_string(ham_iso->anisotropy_normal[0][2]) + "\n";
+			config += "n_neigh_shells  			" + std::to_string(ham_iso->exchange_magnitude.size()) + "\n";
+			config += "jij                      " + std::to_string(ham_iso->exchange_magnitude[0]);
+			for (int i=1; i<ham_iso->exchange_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitude[i]);
 			config += "\n";
-			config += "dij                      " + std::to_string(ham_iso->dij) + "\n";
-			config += "bij                      " + std::to_string(ham_iso->bij) + "\n";
-			config += "kijkl                    " + std::to_string(ham_iso->kijkl) + "\n";
-			config += "dd_radius                " + std::to_string(ham_iso->dd_radius) + "\n";
+			config += "n_neigh_shells_dmi 		" + std::to_string(ham_iso->dmi_magnitude.size()) + "\n";
+			config += "dij                      " + std::to_string(ham_iso->dmi_magnitude[0]) + "\n";
+			for (int i=1; i<ham_iso->dmi_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitude[i]);
+			config += "\n";
+			config += "dd_radius                " + std::to_string(ham_iso->ddi_radius) + "\n";
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_Heisenberg_Neighbours_to_Config
 
