@@ -35,9 +35,6 @@ namespace Data
 	 // Copy Constructor
 	Spin_System::Spin_System(Spin_System const & other)
 	{
-		// other.Unlock();
-		other.Lock();
-
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
 
@@ -65,15 +62,11 @@ namespace Data
 		this->mc_parameters = std::shared_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(*other.mc_parameters));
 
 		this->iteration_allowed = false;
-
-		other.Unlock();
 	}
 
-	// Assignment operator
+	// Copy Assignment operator
 	Spin_System& Spin_System::operator=(Spin_System const & other)
 	{
-		// other.Unlock();
-		other.Lock();
 		if (this != &other)
 		{
 			this->nos = other.nos;
@@ -104,7 +97,6 @@ namespace Data
 
 			this->iteration_allowed = false;
 		}
-		other.Unlock();
 
 		return *this;
 	}

@@ -101,7 +101,9 @@ void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)
     from_indices(state, idx_image, idx_chain, image, chain);
     
     // Copy the image to clipboard
+	image->Lock();
     state->clipboard_image = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*image));
+	image->Unlock();
     
     Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Copied image to clipboard.", idx_image, idx_chain);
@@ -118,7 +120,9 @@ void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
     if (state->clipboard_image.get())
     {
         // Copy the clipboard image
+	    state->clipboard_image->Lock();
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+	    state->clipboard_image->Unlock();
         
         chain->Lock();
 
@@ -160,7 +164,9 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
         }
 
         // Copy the clipboard image
+	    state->clipboard_image->Lock();
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+	    state->clipboard_image->Unlock();
         
         chain->Lock();
 		copy->Lock();
@@ -219,7 +225,9 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         }
 
         // Copy the clipboard image
+	    state->clipboard_image->Lock();
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+	    state->clipboard_image->Unlock();
         
         chain->Lock();
 		copy->Lock();
@@ -285,7 +293,9 @@ void Chain_Push_Back(State * state, int idx_chain_i)
         }
 
         // Copy the clipboard image
+	    state->clipboard_image->Lock();
         auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+	    state->clipboard_image->Unlock();
         
         chain->Lock();
 		copy->Lock();

@@ -94,7 +94,7 @@ namespace Utility
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
-		void Append_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName);
+		void Write_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append=false);
 		// Saves Spin_Chain_Configuration to file
 		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const int iteration, const std::string fileName);
 

@@ -299,7 +299,7 @@ namespace Utility
 		}
 
 
-		void Append_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName)
+		void Write_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append)
 		{
 			int iatom;
 			const int buffer_length = 80;
@@ -316,7 +316,11 @@ namespace Utility
 				output_to_file.append(buffer_string_conversion);
 			}
 			output_to_file.append("\n");
-			Append_String_to_File(output_to_file, fileName);
+			
+			if (append)
+				Append_String_to_File(output_to_file, fileName);
+			else
+				Dump_to_File(output_to_file, fileName);
 		}
 
 		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
