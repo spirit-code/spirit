@@ -30,8 +30,8 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	std::string H_name = Hamiltonian_Get_Name(state.get());
 	if (H_name == "Heisenberg (Neighbours)")
 	{
-		this->hamiltonianIsotropicWidget = new HamiltonianIsotropicWidget(state);
-		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianIsotropicWidget);
+		this->hamiltonianHeisenbergNeighboursWidget = new HamiltonianHeisenbergNeighboursWidget(state);
+		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianHeisenbergNeighboursWidget);
 	}
 	else if (H_name == "Heisenberg (Pairs)")
 	{
@@ -59,7 +59,7 @@ void SettingsWidget::updateData()
 	this->parametersWidget->updateData();
 	// Hamiltonian
 	std::string H_name = Hamiltonian_Get_Name(state.get());
-	if (H_name == "Heisenberg (Neighbours)") this->hamiltonianIsotropicWidget->updateData();
+	if (H_name == "Heisenberg (Neighbours)") this->hamiltonianHeisenbergNeighboursWidget->updateData();
 	else if (H_name == "Heisenberg (Pairs)") this->hamiltonianHeisenbergPairsWidget->updateData();
 	else if (H_name == "Gaussian") this->hamiltonianGaussianWidget->updateData();
 	// Visualisation

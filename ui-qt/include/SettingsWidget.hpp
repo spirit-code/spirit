@@ -8,7 +8,7 @@
 
 #include "ConfigurationsWidget.hpp"
 #include "ParametersWidget.hpp"
-#include "HamiltonianIsotropicWidget.hpp"
+#include "HamiltonianHeisenbergNeighboursWidget.hpp"
 #include "HamiltonianHeisenbergPairsWidget.hpp"
 #include "HamiltonianGaussianWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
@@ -40,7 +40,7 @@ private:
 	SpinWidget *_spinWidget;
 	ConfigurationsWidget * configurationsWidget;
 	ParametersWidget * parametersWidget;
-	HamiltonianIsotropicWidget * hamiltonianIsotropicWidget;
+	HamiltonianHeisenbergNeighboursWidget * hamiltonianHeisenbergNeighboursWidget;
 	HamiltonianHeisenbergPairsWidget * hamiltonianHeisenbergPairsWidget;
 	HamiltonianGaussianWidget * hamiltonianGaussianWidget;
 	VisualisationSettingsWidget * visualisationSettingsWidget;

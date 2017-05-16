@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIANISOTROPICWIDGET_H
-#define HAMILTONIANISOTROPICWIDGET_H
+#ifndef HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
+#define HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
 
 #include <QWidget>
 
@@ -11,7 +11,7 @@
 #include "IsosurfaceWidget.hpp"
 //#include "SettingsWidget.hpp"
 
-#include "ui_HamiltonianIsotropicWidget.h"
+#include "ui_HamiltonianHeisenbergNeighboursWidget.h"
 
 struct State;
 
@@ -21,12 +21,12 @@ struct State;
 */
 std::string string_q2std(QString qs);
 
-class HamiltonianIsotropicWidget : public QWidget, private Ui::HamiltonianIsotropicWidget
+class HamiltonianHeisenbergNeighboursWidget : public QWidget, private Ui::HamiltonianHeisenbergNeighboursWidget
 {
     Q_OBJECT
 
 public:
-	HamiltonianIsotropicWidget(std::shared_ptr<State> state);
+	HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state);
 	void updateData();
 
 private slots:

@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "HamiltonianIsotropicWidget.hpp"
+#include "HamiltonianHeisenbergNeighboursWidget.hpp"
 
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
@@ -19,7 +19,7 @@ void normalize(T v[3])
 	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
 }
 
-HamiltonianIsotropicWidget::HamiltonianIsotropicWidget(std::shared_ptr<State> state)
+HamiltonianHeisenbergNeighboursWidget::HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
 
@@ -45,13 +45,13 @@ HamiltonianIsotropicWidget::HamiltonianIsotropicWidget(std::shared_ptr<State> st
 	this->Setup_Hamiltonian_Heisenberg_Neighbours_Slots();
 }
 
-void HamiltonianIsotropicWidget::updateData()
+void HamiltonianHeisenbergNeighboursWidget::updateData()
 {
 	Load_Hamiltonian_Heisenberg_Neighbours_Contents();
 }
 
 
-void HamiltonianIsotropicWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents()
+void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents()
 {
 	float d, vd[3], mu_s, jij[5];
 	int n_neigh_shells;
@@ -135,7 +135,7 @@ void HamiltonianIsotropicWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents
 
 
 
-void HamiltonianIsotropicWidget::set_hamiltonian_iso()
+void HamiltonianHeisenbergNeighboursWidget::set_hamiltonian_iso()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -264,7 +264,7 @@ void HamiltonianIsotropicWidget::set_hamiltonian_iso()
 // --------------------------------- Setup -------------------------------------------
 // -----------------------------------------------------------------------------------
 
-void HamiltonianIsotropicWidget::Setup_Input_Validators()
+void HamiltonianHeisenbergNeighboursWidget::Setup_Input_Validators()
 {
 	//		mu_s
 	this->lineEdit_muSpin->setValidator(this->number_validator);
@@ -294,7 +294,7 @@ void HamiltonianIsotropicWidget::Setup_Input_Validators()
 
 
 
-void HamiltonianIsotropicWidget::Setup_Hamiltonian_Heisenberg_Neighbours_Slots()
+void HamiltonianHeisenbergNeighboursWidget::Setup_Hamiltonian_Heisenberg_Neighbours_Slots()
 {
 	// Boundary conditions
 	connect(this->checkBox_iso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_iso()));

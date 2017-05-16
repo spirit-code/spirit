@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>HamiltonianIsotropicWidget</class>
- <widget class="QWidget" name="HamiltonianIsotropicWidget">
+ <class>HamiltonianHeisenbergNeighboursWidget</class>
+ <widget class="QWidget" name="HamiltonianHeisenbergNeighboursWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
