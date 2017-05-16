@@ -144,7 +144,7 @@ namespace Engine
 			// The nShells + 10 is a value that is big enough by experience to 
 			// produce enough needed shells, but is small enough to run sufficiently fast
 			int tMax = nShells + 10;
-			int imax = tMax, jmax = tMax, kmax = tMax;
+			int imax = std::min(tMax, geometry.n_cells[0]-1), jmax = std::min(tMax, geometry.n_cells[1]-1), kmax = std::min(tMax, geometry.n_cells[2]-1);
 			int i,j,k;
 			scalar dx, delta, radius;
 			Vector3 x0={0,0,0}, x1={0,0,0};
@@ -237,7 +237,7 @@ namespace Engine
 				int kmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[2] * geometry.n_cells[2]) + 1);
 
 				int i,j,k;
-				scalar dx, delta, radius;
+				scalar dx, radius;
 				Vector3 x0={0,0,0}, x1={0,0,0};
 
 				// Abort condidions for all 3 vectors

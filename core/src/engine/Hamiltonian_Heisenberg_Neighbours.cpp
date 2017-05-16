@@ -24,9 +24,9 @@ namespace Engine
 		int da = translations_i[0]+translations_j[0];
 		int db = translations_i[1]+translations_j[1];
 		int dc = translations_i[2]+translations_j[2];
-		return  ( ( boundary_conditions[0] || (0 <= da && da < n_cells[0]) ) &&
-				  ( boundary_conditions[1] || (0 <= db && db < n_cells[1]) ) &&
-				  ( boundary_conditions[2] || (0 <= dc && dc < n_cells[2]) ) );
+		return ( ( boundary_conditions[0] || (0 <= da && da < n_cells[0]) ) &&
+				 ( boundary_conditions[1] || (0 <= db && db < n_cells[1]) ) &&
+				 ( boundary_conditions[2] || (0 <= dc && dc < n_cells[2]) ) );
 	}
 
 	inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int,3> & translations_i, const std::array<int,3> & translations)
@@ -34,11 +34,11 @@ namespace Engine
 		int Na = n_cells[0];
 		int Nb = n_cells[1];
 		int Nc = n_cells[2];
-		int N  = n_spins_basic_domain;
-		
-		int da = translations_i[0]+translations[0];
-		int db = translations_i[1]+translations[1];
-		int dc = translations_i[2]+translations[2];
+		int N = n_spins_basic_domain;
+
+		int da = translations_i[0] + translations[0];
+		int db = translations_i[1] + translations[1];
+		int dc = translations_i[2] + translations[2];
 
 		if (translations[0] < 0)
 			da += N*Na;
@@ -46,9 +46,9 @@ namespace Engine
 			db += N*Na*Nb;
 		if (translations[2] < 0)
 			dc += N*Na*Nb*Nc;
-			
+
 		int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
-		
+
 		return idx;
 	}
 
@@ -58,7 +58,7 @@ namespace Engine
 		int Na = n_cells[0];
 		int Nb = n_cells[1];
 		int Nc = n_cells[2];
-		int N  = n_spins_basic_domain;
+		int N = n_spins_basic_domain;
 		ret[2] = idx/(Na*Nb);
 		ret[1] = (idx-ret[2]*Na*Nb)/Na;
 		ret[0] = idx-ret[2]*Na*Nb-ret[1]*Na;
@@ -66,14 +66,14 @@ namespace Engine
 	}
 
 	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
-			scalarfield mu_s,
-			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
-			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
-			scalarfield exchange_magnitude,
-			scalarfield dmi_magnitude, int dm_chirality,
-			scalar ddi_radius,
-			std::shared_ptr<Data::Geometry> geometry,
-			intfield boundary_conditions
+		scalarfield mu_s,
+		intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
+		intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
+		scalarfield exchange_magnitude,
+		scalarfield dmi_magnitude, int dm_chirality,
+		scalar ddi_radius,
+		std::shared_ptr<Data::Geometry> geometry,
+		intfield boundary_conditions
 	) :
 		Hamiltonian(boundary_conditions),
 		geometry(geometry),
@@ -94,6 +94,10 @@ namespace Engine
 		Neighbours::Neighbours_from_Shells(*geometry, exchange_magnitude.size(), exchange_neighbours);
 		// Generate DMI neighbours and normals
 		Neighbours::Neighbours_from_Shells(*geometry, dmi_magnitude.size(), dmi_neighbours);
+		for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
+		{
+			dmi_normal.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, dmi_neighbours[ineigh].translations }, dm_chirality));
+		}
 		// Generate DDI neighbours, magnitudes and normals
 		// Create_Dipole_Neighbours();
 
@@ -157,6 +161,11 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
+		if (contributions.size() != this->energy_contributions_per_spin.size())
+		{
+			contributions = this->energy_contributions_per_spin;
+		}
+
 		int nos = spins.size();
 		for (auto& pair : energy_contributions_per_spin)
 		{
@@ -168,21 +177,16 @@ namespace Engine
 		
 
 		// External field
-		if (this->idx_zeeman >=0 ) E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
-
+		if (this->idx_zeeman >=0 )     E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
 		// Anisotropy
 		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, energy_contributions_per_spin[idx_anisotropy].second);
 
-		// neighbours
 		// Exchange
 		if (this->idx_exchange >=0 )   E_Exchange(spins,energy_contributions_per_spin[idx_exchange].second);
 		// DMI
 		if (this->idx_dmi >=0 )        E_DMI(spins, energy_contributions_per_spin[idx_dmi].second);
 		// DD
 		if (this->idx_dd >=0 )         E_DD(spins, energy_contributions_per_spin[idx_dd].second);
-
-		// Return
-		//return this->E;
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -211,7 +215,8 @@ namespace Engine
 				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
 					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
-					Energy[ispin] -= 0.5 * exchange_magnitude[exchange_neighbours[ineigh].idx_shell] * spins[ispin].dot(spins[jspin]);
+					int ishell = exchange_neighbours[ineigh].idx_shell;
+					Energy[ispin] -= 0.5 * exchange_magnitude[ishell] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
@@ -227,7 +232,8 @@ namespace Engine
 				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
 					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
-					Energy[ispin] -= 0.5 * dmi_magnitude[dmi_neighbours[ineigh].idx_shell] * dmi_normal[dmi_neighbours[ineigh].idx_shell].dot(spins[ispin].cross(spins[jspin]));
+					int ishell = dmi_neighbours[ineigh].idx_shell;
+					Energy[ispin] -= 0.5 * dmi_magnitude[ishell] * dmi_normal[ishell].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
@@ -265,7 +271,6 @@ namespace Engine
 		// Anisotropy
 		Gradient_Anisotropy(spins, gradient);
 
-		// neighbours
 		// Exchange
 		this->Gradient_Exchange(spins, gradient);
 		// DMI
@@ -300,7 +305,8 @@ namespace Engine
 				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
 					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
-					gradient[ispin] -= exchange_magnitude[exchange_neighbours[ineigh].idx_shell] * spins[jspin];
+					int ishell = exchange_neighbours[ineigh].idx_shell;
+					gradient[ispin] -= exchange_magnitude[ishell] * spins[jspin];
 				}
 			}
 		}
@@ -316,7 +322,8 @@ namespace Engine
 				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
 					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
-					gradient[ispin] -= dmi_magnitude[dmi_neighbours[ineigh].idx_shell] * spins[jspin].cross(dmi_normal[dmi_neighbours[ineigh].idx_shell]);
+					int ishell = dmi_neighbours[ineigh].idx_shell;
+					gradient[ispin] -= dmi_magnitude[ishell] * spins[jspin].cross(dmi_normal[ineigh]);
 				}
 			}
 		}

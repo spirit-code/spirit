@@ -349,7 +349,7 @@
        <item row="1" column="0">
         <widget class="QCheckBox" name="checkBox_iso_periodical_b">
          <property name="text">
-          <string>(Periodical b)</string>
+          <string>Periodical b</string>
          </property>
         </widget>
        </item>
@@ -485,7 +485,7 @@
        <item row="0" column="0">
         <widget class="QCheckBox" name="checkBox_iso_periodical_a">
          <property name="text">
-          <string>(Periodical a)</string>
+          <string>Periodical a</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -555,7 +555,7 @@
        <item row="2" column="0">
         <widget class="QCheckBox" name="checkBox_iso_periodical_c">
          <property name="text">
-          <string>(Periodical c)</string>
+          <string>Periodical c</string>
          </property>
         </widget>
        </item>

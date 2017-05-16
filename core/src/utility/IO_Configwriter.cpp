@@ -189,11 +189,11 @@ namespace Utility
 			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normal[0][0]) + " " + std::to_string(ham_iso->anisotropy_normal[0][1]) + " " + std::to_string(ham_iso->anisotropy_normal[0][2]) + "\n";
 			config += "n_neigh_shells  			" + std::to_string(ham_iso->exchange_magnitude.size()) + "\n";
 			config += "jij                      " + std::to_string(ham_iso->exchange_magnitude[0]);
-			for (int i=1; i<ham_iso->exchange_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitude[i]);
+			for (unsigned int i=1; i<ham_iso->exchange_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitude[i]);
 			config += "\n";
 			config += "n_neigh_shells_dmi 		" + std::to_string(ham_iso->dmi_magnitude.size()) + "\n";
 			config += "dij                      " + std::to_string(ham_iso->dmi_magnitude[0]) + "\n";
-			for (int i=1; i<ham_iso->dmi_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitude[i]);
+			for (unsigned int i=1; i<ham_iso->dmi_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitude[i]);
 			config += "\n";
 			config += "dd_radius                " + std::to_string(ham_iso->ddi_radius) + "\n";
 			Append_String_to_File(config, configFile);

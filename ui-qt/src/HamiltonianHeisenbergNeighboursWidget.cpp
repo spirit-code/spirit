@@ -53,7 +53,7 @@ void HamiltonianHeisenbergNeighboursWidget::updateData()
 
 void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbours_Contents()
 {
-	float d, dij[5], vd[3], mu_s, jij[5];
+	float d, dij[100], vd[3], mu_s, jij[100];
 	int n_neigh_shells_exchange, n_neigh_shells_dmi;
 
 	// Boundary conditions
@@ -106,8 +106,8 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Hamiltonian_Heisenberg_Neighbou
 
 	// DMI
 	Hamiltonian_Get_DMI(state.get(), &n_neigh_shells_dmi, dij);
-	this->lineEdit_dmi->setText(QString::number(d));
-	if (d > 0.0) this->checkBox_dmi->setChecked(true);
+	this->lineEdit_dmi->setText(QString::number(dij[0]));
+	if (dij[0] > 0.0) this->checkBox_dmi->setChecked(true);
 
 	// Anisotropy
 	Hamiltonian_Get_Anisotropy(state.get(), &d, vd);
