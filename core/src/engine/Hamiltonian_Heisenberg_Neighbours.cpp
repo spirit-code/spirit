@@ -11,60 +11,11 @@
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
-using std::vector;
-using std::function;
-
 using namespace Data;
 using namespace Utility;
 
 namespace Engine
 {
-	inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int,3> & translations_i, const std::array<int,3> & translations_j)
-	{
-		int da = translations_i[0]+translations_j[0];
-		int db = translations_i[1]+translations_j[1];
-		int dc = translations_i[2]+translations_j[2];
-		return ( ( boundary_conditions[0] || (0 <= da && da < n_cells[0]) ) &&
-				 ( boundary_conditions[1] || (0 <= db && db < n_cells[1]) ) &&
-				 ( boundary_conditions[2] || (0 <= dc && dc < n_cells[2]) ) );
-	}
-
-	inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int,3> & translations_i, const std::array<int,3> & translations)
-	{
-		int Na = n_cells[0];
-		int Nb = n_cells[1];
-		int Nc = n_cells[2];
-		int N = n_spins_basic_domain;
-
-		int da = translations_i[0] + translations[0];
-		int db = translations_i[1] + translations[1];
-		int dc = translations_i[2] + translations[2];
-
-		if (translations[0] < 0)
-			da += N*Na;
-		if (translations[1] < 0)
-			db += N*Na*Nb;
-		if (translations[2] < 0)
-			dc += N*Na*Nb*Nc;
-
-		int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
-
-		return idx;
-	}
-
-	inline std::array<int,3> translations_from_idx(const intfield & n_cells, const int n_spins_basic_domain, int idx)
-	{
-		std::array<int,3> ret;
-		int Na = n_cells[0];
-		int Nb = n_cells[1];
-		int Nc = n_cells[2];
-		int N = n_spins_basic_domain;
-		ret[2] = idx/(Na*Nb);
-		ret[1] = (idx-ret[2]*Na*Nb)/Na;
-		ret[0] = idx-ret[2]*Na*Nb-ret[1]*Na;
-		return ret;
-	}
-
 	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
 		scalarfield mu_s,
 		intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
@@ -91,9 +42,9 @@ namespace Engine
 		}
 
 		// Generate Exchange neighbours
-		Neighbours::Neighbours_from_Shells(*geometry, exchange_magnitude.size(), exchange_neighbours);
+		exchange_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitude.size());
 		// Generate DMI neighbours and normals
-		Neighbours::Neighbours_from_Shells(*geometry, dmi_magnitude.size(), dmi_neighbours);
+		dmi_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitude.size());
 		for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 		{
 			dmi_normal.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, dmi_neighbours[ineigh].translations }, dm_chirality));
@@ -209,12 +160,12 @@ namespace Engine
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
 			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
+				if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
 					Energy[ispin] -= 0.5 * exchange_magnitude[ishell] * spins[ispin].dot(spins[jspin]);
 				}
@@ -226,12 +177,12 @@ namespace Engine
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
 			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
+				if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
 					Energy[ispin] -= 0.5 * dmi_magnitude[ishell] * dmi_normal[ishell].dot(spins[ispin].cross(spins[jspin]));
 				}
@@ -299,12 +250,12 @@ namespace Engine
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
 			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
+				if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
 					gradient[ispin] -= exchange_magnitude[ishell] * spins[jspin];
 				}
@@ -316,12 +267,12 @@ namespace Engine
 	{
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
 			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				if ( boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
+				if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_neighbours[ineigh].translations) )
 				{
-					int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
 					gradient[ispin] -= dmi_magnitude[ishell] * spins[jspin].cross(dmi_normal[ineigh]);
 				}

@@ -762,7 +762,7 @@ void SpinWidget::setSlabRanges()
 	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
 	center += this->slab_displacements;
 
-	float delta = 0.51;
+	float delta = 0.51f;
 
 	switch(this->idx_cycle)
 	{
