@@ -667,7 +667,7 @@ namespace Utility
 			else if (hamiltonian_type == "heisenberg_pairs")
 			{
 				// TODO: to std::move or not to std::move, that is the question...
-				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, *geometry));
+				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
 			}// endif anisotropic
 			else if (hamiltonian_type == "gaussian")
 			{
@@ -875,47 +875,45 @@ namespace Utility
 
 
 		
-		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Boundary conditions (a, b, c)
 			std::vector<int> boundary_conditions_i = { 0, 0, 0 };
 			intfield boundary_conditions = { false, false, false };
 			// Spin moment
-			scalarfield mu_s = scalarfield(geometry.nos, 2);	// [nos]
+			scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
 			scalar B = 0;
 			Vector3 B_normal = { 0.0, 0.0, 1.0 };
 			bool external_field_from_file = false;
-			intfield    external_field_index(geometry.nos);				// [nos]
-			scalarfield external_field_magnitude(geometry.nos, 0);	// [nos]
-			vectorfield external_field_normal(geometry.nos, B_normal);	// [3][nos]
+			intfield    external_field_index(geometry->nos);				// [nos]
+			scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
+			vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
 			scalar K = 0;
 			Vector3 K_normal = { 0.0, 0.0, 1.0 };
 			bool anisotropy_from_file = false;
-			intfield    anisotropy_index(geometry.nos);				// [nos]
-			scalarfield anisotropy_magnitude(geometry.nos, 0.0);	// [nos]
-			vectorfield anisotropy_normal(geometry.nos, K_normal);	// [nos][3]
+			intfield    anisotropy_index(geometry->nos);				// [nos]
+			scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
+			vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
 
 			// ------------ Pair Interactions ------------
 			int n_pairs = 0;
 			std::string interaction_pairs_file = "";
 			bool interaction_pairs_from_file = false;
-			std::vector<indexPairs> Exchange_indices(8); std::vector<scalarfield> Exchange_magnitude(8);
-			std::vector<indexPairs> DMI_indices(8); std::vector<scalarfield> DMI_magnitude(8); std::vector<vectorfield> DMI_normal(8);
-			std::vector<indexPairs> DD_indices(8); std::vector<scalarfield> DD_magnitude(8); std::vector<vectorfield> DD_normal(8);
-
-			scalar dd_radius = 0.0;
+			pairfield exchange_pairs(0); scalarfield exchange_magnitudes(0);
+			pairfield dmi_pairs(0); scalarfield dmi_magnitudes(0); vectorfield dmi_normals(0);
+			scalar ddi_radius = 0.0;
 
 			// ------------ Quadruplet Interactions ------------
 			int n_quadruplets = 0;
 			std::string quadruplets_file = "";
 			bool quadruplets_from_file = false;
-			std::vector<indexQuadruplets> quadruplet_indices(8); std::vector<scalarfield> quadruplet_magnitude(8);
+			quadrupletfield quadruplets(0); scalarfield quadruplet_magnitudes(0);
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: building");
@@ -934,15 +932,15 @@ namespace Utility
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 
 					// Spin moment
-					mu_s = scalarfield(geometry.nos, 2.0);
+					mu_s = scalarfield(geometry->nos, 2.0);
 					if (myfile.Find("mu_s"))
 					{
-						for (iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+						for (iatom = 0; iatom < geometry->n_spins_basic_domain; ++iatom)
 						{
 							myfile.iss >> mu_s[iatom];
-							for (int ispin = 0; ispin < geometry.nos / geometry.n_spins_basic_domain; ++ispin)
+							for (int ispin = 0; ispin < geometry->nos / geometry->n_spins_basic_domain; ++ispin)
 							{
-								mu_s[ispin*geometry.n_spins_basic_domain + iatom] = mu_s[iatom];
+								mu_s[ispin*geometry->n_spins_basic_domain + iatom] = mu_s[iatom];
 							}
 						}
 					}
@@ -953,7 +951,7 @@ namespace Utility
 					if (external_field_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						External_Field_from_File(external_field_file, geometry, n_pairs,
+						External_Field_from_File(external_field_file, *geometry, n_pairs,
 							external_field_index, external_field_magnitude, external_field_normal);
 						
 						external_field_from_file = true;
@@ -970,7 +968,7 @@ namespace Utility
 						if (B != 0)
 						{
 							// Fill the arrays
-							for (int i = 0; i < geometry.nos; ++i)
+							for (int i = 0; i < geometry->nos; ++i)
 							{
 								external_field_index[i] = i;
 								external_field_magnitude[i] = B;
@@ -990,7 +988,7 @@ namespace Utility
 					if (anisotropy_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
+						Anisotropy_from_File(anisotropy_file, *geometry, n_pairs,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 
 						anisotropy_from_file = true;
@@ -1007,7 +1005,7 @@ namespace Utility
 						if (K != 0)
 						{
 							// Fill the arrays
-							for (int i = 0; i < geometry.nos; ++i)
+							for (int i = 0; i < geometry->nos; ++i)
 							{
 								anisotropy_index[i] = i;
 								anisotropy_magnitude[i] = K;
@@ -1027,9 +1025,9 @@ namespace Utility
 					if (interaction_pairs_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
-							Exchange_indices, Exchange_magnitude,
-							DMI_indices, DMI_magnitude, DMI_normal);
+						Pairs_from_File(interaction_pairs_file, *geometry, n_pairs,
+							exchange_pairs, exchange_magnitudes,
+							dmi_pairs, dmi_magnitudes, dmi_normals);
 					}
 					//else
 					//{
@@ -1040,23 +1038,7 @@ namespace Utility
 					
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
-					myfile.Read_Single(dd_radius, "dd_radius");
-					// if (dd_radius >0 ) Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Dipole-Dipole energy is not correctly implemented, but you chose a radius > 0! -- r=" + std::to_string(dd_radius));
-					// Dipole Dipole neighbours of each spin neigh_dd[nos][max_n]
-					// std::vector<std::vector<int>> dd_neigh;
-					// // Dipole Dipole neighbour positions of each spin neigh_dd[dim][nos][max_n]
-					// std::vector<std::vector<std::vector<scalar>>> dd_neigh_pos;
-					// // Dipole Dipole normal vectors [dim][nos][max_n]
-					// std::vector<std::vector<std::vector<scalar>>> dd_normal;
-					// // Dipole Dipole distance [nos][max_n]
-					// std::vector<std::vector<scalar>> dd_distance;
-					// // Create the DD neighbours
-					// Engine::Neighbours::Create_Dipole_Neighbours(geometry, std::vector<bool>{ true, true, true }, dd_radius, dd_neigh, dd_neigh_pos, dd_normal, dd_distance);
-					// // Get the DD pairs from the neighbours
-					// Engine::Neighbours::Create_DD_Pairs_from_Neighbours(geometry, dd_neigh, dd_neigh_pos, dd_distance, dd_normal, DD_indices, DD_magnitude, DD_normal);
-					
-					
-					Engine::Neighbours::Create_Dipole_Pairs(geometry, dd_radius, DD_indices, DD_magnitude, DD_normal);
+					myfile.Read_Single(ddi_radius, "dd_radius");
 
 
 					// Interaction Quadruplets
@@ -1064,8 +1046,8 @@ namespace Utility
 					if (quadruplets_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Quadruplets_from_File(quadruplets_file, geometry, n_quadruplets,
-							quadruplet_indices, quadruplet_magnitude);
+						Quadruplets_from_File(quadruplets_file, *geometry, n_quadruplets,
+							quadruplets, quadruplet_magnitudes);
 					}
 
 				}// end try
@@ -1092,15 +1074,16 @@ namespace Utility
 			if (anisotropy_from_file)
 				Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(ddi_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
 				mu_s,
 				external_field_index, external_field_magnitude, external_field_normal,
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-				Exchange_indices, Exchange_magnitude,
-				DMI_indices, DMI_magnitude, DMI_normal,
-				DD_indices, DD_magnitude, DD_normal,
-				quadruplet_indices, quadruplet_magnitude,
+				exchange_pairs, exchange_magnitudes,
+				dmi_pairs, dmi_magnitudes, dmi_normals,
+				ddi_radius,
+				quadruplets, quadruplet_magnitudes,
+				geometry,
 				boundary_conditions
 			));
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: built");

@@ -18,10 +18,10 @@ namespace Engine
 {
 	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
 		scalarfield mu_s,
-		intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
-		intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
-		scalarfield exchange_magnitude,
-		scalarfield dmi_magnitude, int dm_chirality,
+		intfield external_field_indices, scalarfield external_field_magnitudes, vectorfield external_field_normals,
+		intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+		scalarfield exchange_magnitudes,
+		scalarfield dmi_magnitudes, int dm_chirality,
 		scalar ddi_radius,
 		std::shared_ptr<Data::Geometry> geometry,
 		intfield boundary_conditions
@@ -29,22 +29,22 @@ namespace Engine
 		Hamiltonian(boundary_conditions),
 		geometry(geometry),
 		mu_s(mu_s),
-		external_field_index(external_field_index), external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
-		anisotropy_index(anisotropy_index), anisotropy_magnitude(anisotropy_magnitude), anisotropy_normal(anisotropy_normal),
-		exchange_magnitude(exchange_magnitude),
-		dmi_magnitude(dmi_magnitude),
+		external_field_indices(external_field_indices), external_field_magnitudes(external_field_magnitudes), external_field_normals(external_field_normals),
+		anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+		exchange_magnitudes(exchange_magnitudes),
+		dmi_magnitudes(dmi_magnitudes),
 		ddi_radius(ddi_radius)
 	{
 		// Renormalize the external field from Tesla to meV
-		for (unsigned int i = 0; i < external_field_magnitude.size(); ++i)
+		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
-			this->external_field_magnitude[i] = this->external_field_magnitude[i] * Constants::mu_B * mu_s[i];
+			this->external_field_magnitudes[i] = this->external_field_magnitudes[i] * Constants::mu_B * mu_s[i];
 		}
 
 		// Generate Exchange neighbours
-		exchange_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitude.size());
+		exchange_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size());
 		// Generate DMI neighbours and normals
-		dmi_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitude.size());
+		dmi_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size());
 		for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 		{
 			dmi_normal.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, dmi_neighbours[ineigh].translations }, dm_chirality));
@@ -57,14 +57,14 @@ namespace Engine
 	
 	void Hamiltonian_Heisenberg_Neighbours::Update_N_Neighbour_Shells(int n_shells_exchange, int n_shells_dmi)
 	{
-		if (this->exchange_magnitude.size() != n_shells_exchange)
+		if (this->exchange_magnitudes.size() != n_shells_exchange)
 		{
-			this->exchange_magnitude = scalarfield(n_shells_exchange);
+			this->exchange_magnitudes = scalarfield(n_shells_exchange);
 			// Re-calculate exchange neighbour list
 		}
-		if (this->dmi_magnitude.size() != n_shells_dmi)
+		if (this->dmi_magnitudes.size() != n_shells_dmi)
 		{
-			this->dmi_magnitude = scalarfield(n_shells_dmi);
+			this->dmi_magnitudes = scalarfield(n_shells_dmi);
 			// Re-calculate dmi neighbour list
 		}
 	}
@@ -74,14 +74,14 @@ namespace Engine
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
 		// External field
-		if (this->external_field_index.size() > 0)
+		if (this->external_field_indices.size() > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
 			this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_zeeman = -1;
 		// Anisotropy
-		if (this->anisotropy_index.size() > 0)
+		if (this->anisotropy_indices.size() > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
 			this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
@@ -142,17 +142,17 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
+		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			Energy[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i].dot(spins[external_field_index[i]]);
+			Energy[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[external_field_indices[i]]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
+		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			Energy[anisotropy_index[i]] -= this->anisotropy_magnitude[i] * std::pow(anisotropy_normal[i].dot(spins[anisotropy_index[i]]), 2.0);
+			Energy[anisotropy_indices[i]] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[anisotropy_indices[i]]), 2.0);
 		}
 	}
 
@@ -167,7 +167,7 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * exchange_magnitude[ishell] * spins[ispin].dot(spins[jspin]);
+					Energy[ispin] -= 0.5 * exchange_magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
@@ -184,7 +184,7 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * dmi_magnitude[ishell] * dmi_normal[ishell].dot(spins[ispin].cross(spins[jspin]));
+					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normal[ishell].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
@@ -232,17 +232,17 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
 	{
-		for (unsigned int i = 0; i < this->external_field_index.size(); ++i)
+		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			gradient[external_field_index[i]] -= this->external_field_magnitude[i] * this->external_field_normal[i];
+			gradient[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
-		for (unsigned int i = 0; i < this->anisotropy_index.size(); ++i)
+		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			gradient[anisotropy_index[i]] -= 2.0 * this->anisotropy_magnitude[i] * this->anisotropy_normal[i] * anisotropy_normal[i].dot(spins[anisotropy_index[i]]);
+			gradient[anisotropy_indices[i]] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[anisotropy_indices[i]]);
 		}
 	}
 
@@ -257,7 +257,7 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
-					gradient[ispin] -= exchange_magnitude[ishell] * spins[jspin];
+					gradient[ispin] -= exchange_magnitudes[ishell] * spins[jspin];
 				}
 			}
 		}
@@ -274,7 +274,7 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					gradient[ispin] -= dmi_magnitude[ishell] * spins[jspin].cross(dmi_normal[ineigh]);
+					gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normal[ineigh]);
 				}
 			}
 		}
@@ -308,11 +308,11 @@ namespace Engine
 		// Single Spin elements
 		for (int alpha = 0; alpha < 3; ++alpha)
 		{
-			for (unsigned int i = 0; i < anisotropy_index.size(); ++i)
+			for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
 			{
-				int idx = anisotropy_index[i];
-				// scalar x = -2.0*this->anisotropy_magnitude[i] * std::pow(this->anisotropy_normal[i][alpha], 2);
-				hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitude[i]*std::pow(this->anisotropy_normal[i][alpha],2);
+				int idx = anisotropy_indices[i];
+				// scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
+				hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitudes[i]*std::pow(this->anisotropy_normals[i][alpha],2);
 			}
 		}
 
@@ -339,8 +339,8 @@ namespace Engine
 		//  			{
 		//  				int idx_i = 3*exchange_neighbours[i_pair][0] + alpha;
 		//  				int idx_j = 3*exchange_neighbours[i_pair][1] + alpha;
-		//  				hessian(idx_i,idx_j) += -exchange_magnitude[i_pair];
-		//  				hessian(idx_j,idx_i) += -exchange_magnitude[i_pair];
+		//  				hessian(idx_i,idx_j) += -exchange_magnitudes[i_pair];
+		//  				hessian(idx_j,idx_i) += -exchange_magnitudes[i_pair];
 		//  			}
 		//  		}
 		//  		// DMI
@@ -355,44 +355,44 @@ namespace Engine
 		//  					if ( (alpha == 0 && beta == 1) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
 		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
 		//  					}
 		//  					else if ( (alpha == 1 && beta == 0) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
 		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
 		//  					}
 		//  					else if ( (alpha == 0 && beta == 2) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
 		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
 		//  					}
 		//  					else if ( (alpha == 2 && beta == 0) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
 		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
 		//  					}
 		//  					else if ( (alpha == 1 && beta == 2) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
 		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
 		//  					}
 		//  					else if ( (alpha == 2 && beta == 1) )
 		//  					{
 		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
 		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitude[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
+		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
 		//  					}
 		//  				}
 		//  			}

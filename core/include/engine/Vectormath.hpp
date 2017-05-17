@@ -35,6 +35,20 @@ namespace Engine
 				(boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
 		}
 
+		inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations)
+		{
+			int Na = n_cells[0];
+			int Nb = n_cells[1];
+			int Nc = n_cells[2];
+			int N = n_spins_basic_domain;
+
+			int da = translations[0];
+			int db = translations[1];
+			int dc = translations[2];
+
+			return da*N + db*N*Na + dc*N*Na*Nb;
+		}
+
 		inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations)
 		{
 			int Na = n_cells[0];

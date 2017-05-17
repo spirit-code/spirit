@@ -14,7 +14,7 @@ namespace Engine
 {
 	/*
 		The Heisenberg Hamiltonian using Neighbours contains all information on the interactions between spins.
-		The information is presented in index lists and parameter lists in order to easily calculate the energy of the system via summation.
+		The information is presented in index lists and parameter lists in order to easily e.g. calculate the energy of the system via summation.
 		Calculations are made on a per-cell basis running over all neighbours.
 	*/
 	class Hamiltonian_Heisenberg_Neighbours : public Hamiltonian
@@ -23,10 +23,10 @@ namespace Engine
 		// Constructor
 		Hamiltonian_Heisenberg_Neighbours(
 			scalarfield mu_s,
-			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
-			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
-			scalarfield exchange_magnitude,
-			scalarfield dmi_magnitude, int dm_chirality,
+			intfield external_field_indices, scalarfield external_field_magnitudes, vectorfield external_field_normals,
+			intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+			scalarfield exchange_magnitudes,
+			scalarfield dmi_magnitudes, int dm_chirality,
 			scalar ddi_radius,
 			std::shared_ptr<Data::Geometry> geometry,
 			intfield boundary_conditions
@@ -50,21 +50,21 @@ namespace Engine
 		// Spin moment
 		scalarfield mu_s;									// [nos]
 		// External Magnetic Field
-		intfield external_field_index;
-		scalarfield external_field_magnitude;	// [nos]
-		vectorfield external_field_normal;		// [nos] (x, y, z)
+		intfield external_field_indices;
+		scalarfield external_field_magnitudes;	// [nos]
+		vectorfield external_field_normals;		// [nos] (x, y, z)
 		// Anisotropy
-		intfield anisotropy_index;
-		scalarfield anisotropy_magnitude;		// [nos]
-		vectorfield anisotropy_normal;			// [nos] (x, y, z)
+		intfield anisotropy_indices;
+		scalarfield anisotropy_magnitudes;		// [nos]
+		vectorfield anisotropy_normals;			// [nos] (x, y, z)
 
 		// ------------ Pair Interactions ------------
 		// Exchange interaction
 		neighbourfield exchange_neighbours;		// [periodicity][nop][2] (i,j)
-		scalarfield exchange_magnitude;	// [periodicity][nop]    J_ij
+		scalarfield exchange_magnitudes;	// [periodicity][nop]    J_ij
 		// DMI
 		neighbourfield dmi_neighbours;			// [periodicity][nop][2] (i,j)
-		scalarfield dmi_magnitude;			// [periodicity][nop]    D_ij
+		scalarfield dmi_magnitudes;			// [periodicity][nop]    D_ij
 		vectorfield dmi_normal;			// [periodicity][nop][3] (Dx,Dy,Dz)
 		// Dipole Dipole interaction
 		scalar ddi_radius;

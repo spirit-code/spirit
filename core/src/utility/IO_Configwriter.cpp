@@ -182,18 +182,18 @@ namespace Utility
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Heisenberg_Neighbours * ham_iso = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude[0]/Constants::mu_B/ham_iso->mu_s[0]) + "\n";
-			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0][0]) + " " + std::to_string(ham_iso->external_field_normal[0][1]) + " " + std::to_string(ham_iso->external_field_normal[0][2]) + "\n";
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitudes[0]/Constants::mu_B/ham_iso->mu_s[0]) + "\n";
+			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normals[0][0]) + " " + std::to_string(ham_iso->external_field_normals[0][1]) + " " + std::to_string(ham_iso->external_field_normals[0][2]) + "\n";
 			config += "mu_s                     " + std::to_string(ham_iso->mu_s[0]) + "\n";
-			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude[0]) + "\n";
-			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normal[0][0]) + " " + std::to_string(ham_iso->anisotropy_normal[0][1]) + " " + std::to_string(ham_iso->anisotropy_normal[0][2]) + "\n";
-			config += "n_neigh_shells  			" + std::to_string(ham_iso->exchange_magnitude.size()) + "\n";
-			config += "jij                      " + std::to_string(ham_iso->exchange_magnitude[0]);
-			for (unsigned int i=1; i<ham_iso->exchange_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitude[i]);
+			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitudes[0]) + "\n";
+			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normals[0][0]) + " " + std::to_string(ham_iso->anisotropy_normals[0][1]) + " " + std::to_string(ham_iso->anisotropy_normals[0][2]) + "\n";
+			config += "n_neigh_shells  			" + std::to_string(ham_iso->exchange_magnitudes.size()) + "\n";
+			config += "jij                      " + std::to_string(ham_iso->exchange_magnitudes[0]);
+			for (unsigned int i=1; i<ham_iso->exchange_magnitudes.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitudes[i]);
 			config += "\n";
-			config += "n_neigh_shells_dmi 		" + std::to_string(ham_iso->dmi_magnitude.size()) + "\n";
-			config += "dij                      " + std::to_string(ham_iso->dmi_magnitude[0]) + "\n";
-			for (unsigned int i=1; i<ham_iso->dmi_magnitude.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitude[i]);
+			config += "n_neigh_shells_dmi 		" + std::to_string(ham_iso->dmi_magnitudes.size()) + "\n";
+			config += "dij                      " + std::to_string(ham_iso->dmi_magnitudes[0]) + "\n";
+			for (unsigned int i=1; i<ham_iso->dmi_magnitudes.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitudes[i]);
 			config += "\n";
 			config += "dd_radius                " + std::to_string(ham_iso->ddi_radius) + "\n";
 			Append_String_to_File(config, configFile);
@@ -216,19 +216,19 @@ namespace Utility
 			// External Field
 			config += "###    External Field:\n";
 			config += "#  i    H     Hx   Hy   Hz\n";
-			for (unsigned int i=0; i<ham_aniso->external_field_index.size()/n_cells_tot; ++i)
+			for (unsigned int i=0; i<ham_aniso->external_field_indices.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]/Constants::mu_B) + " "
-							+ std::to_string(ham_aniso->external_field_normal[i][0]) + " " + std::to_string(ham_aniso->external_field_normal[i][1]) + " " + std::to_string(ham_aniso->external_field_normal[i][2]) + "\n";
+				config += "# " + std::to_string(ham_aniso->external_field_indices[i]) + " " + std::to_string(ham_aniso->external_field_magnitudes[i]/Constants::mu_B) + " "
+							+ std::to_string(ham_aniso->external_field_normals[i][0]) + " " + std::to_string(ham_aniso->external_field_normals[i][1]) + " " + std::to_string(ham_aniso->external_field_normals[i][2]) + "\n";
 			}
 
 			// Anisotropy
 			config += "###    Anisotropy:\n";
 			config += "#  i    K     Kx   Ky   Kz\n";
-			for (unsigned int i=0; i<ham_aniso->anisotropy_index.size()/n_cells_tot; ++i)
+			for (unsigned int i=0; i<ham_aniso->anisotropy_indices.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->anisotropy_index[i]) + " " + std::to_string(ham_aniso->anisotropy_magnitude[i]) + " "
-							+ std::to_string(ham_aniso->anisotropy_normal[i][0]) + " " + std::to_string(ham_aniso->anisotropy_normal[i][1]) + " " + std::to_string(ham_aniso->anisotropy_normal[i][2]) + "\n";
+				config += "# " + std::to_string(ham_aniso->anisotropy_indices[i]) + " " + std::to_string(ham_aniso->anisotropy_magnitudes[i]) + " "
+							+ std::to_string(ham_aniso->anisotropy_normals[i][0]) + " " + std::to_string(ham_aniso->anisotropy_normals[i][1]) + " " + std::to_string(ham_aniso->anisotropy_normals[i][2]) + "\n";
 			}
 
 			// TODO: how to only log the pairs and quadruplets that were given as input?

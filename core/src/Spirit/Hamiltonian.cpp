@@ -87,9 +87,9 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         vectorfield new_normals(nos, new_normal);
         
         // Into the Hamiltonian
-        ham->external_field_index = new_indices;
-        ham->external_field_magnitude = new_magnitudes;
-        ham->external_field_normal = new_normals;
+        ham->external_field_indices = new_indices;
+        ham->external_field_magnitudes = new_magnitudes;
+        ham->external_field_normals = new_normals;
 
         // Update Energies
         ham->Update_Energy_Contributions();
@@ -113,9 +113,9 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
         vectorfield new_normals(nos, new_normal);
         
         // Into the Hamiltonian
-        ham->external_field_index = new_indices;
-        ham->external_field_magnitude = new_magnitudes;
-        ham->external_field_normal = new_normals;
+        ham->external_field_indices = new_indices;
+        ham->external_field_magnitudes = new_magnitudes;
+        ham->external_field_normals = new_normals;
 
         // Update Energies
         ham->Update_Energy_Contributions();
@@ -155,9 +155,9 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 		vectorfield new_normals(nos, new_normal);
 
 		// Into the Hamiltonian
-		ham->anisotropy_index = new_indices;
-		ham->anisotropy_magnitude = new_magnitudes;
-		ham->anisotropy_normal = new_normals;
+		ham->anisotropy_indices = new_indices;
+		ham->anisotropy_magnitudes = new_magnitudes;
+		ham->anisotropy_normals = new_normals;
 
 		// Update Energies
 		ham->Update_Energy_Contributions();
@@ -181,9 +181,9 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 		vectorfield new_normals(nos, new_normal);
 
 		// Into the Hamiltonian
-		ham->anisotropy_index = new_indices;
-		ham->anisotropy_magnitude = new_magnitudes;
-		ham->anisotropy_normal = new_normals;
+		ham->anisotropy_indices = new_indices;
+		ham->anisotropy_magnitudes = new_magnitudes;
+		ham->anisotropy_normals = new_normals;
 
 		// Update Energies
 		ham->Update_Energy_Contributions();
@@ -209,7 +209,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 
         for (int i=0; i<n_shells; ++i)
         {
-            ham->exchange_magnitude[i] = jij[i];
+            ham->exchange_magnitudes[i] = jij[i];
         }
 
         ham->Update_Energy_Contributions();
@@ -218,13 +218,10 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     {
 		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
-		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		{
-			for (unsigned int i = 0; i<ham->Exchange_indices.size(); ++i)
-			{
-				ham->Exchange_magnitude[i_periodicity][i] = jij[0];
-			}
-		}
+        for (unsigned int i = 0; i<ham->exchange_pairs.size(); ++i)
+        {
+            ham->exchange_magnitudes[i] = jij[0];
+        }
 		
 		ham->Update_Energy_Contributions();
     }
@@ -246,7 +243,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 
         for (int i=0; i<n_shells; ++i)
         {
-            ham->dmi_magnitude[i] = dij[i];
+            ham->dmi_magnitudes[i] = dij[i];
         }
 
         ham->Update_Energy_Contributions();
@@ -255,13 +252,10 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     {
 		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
-		for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		{
-			for (unsigned int i = 0; i<ham->DMI_indices.size(); ++i)
-			{
-				ham->DMI_magnitude[i_periodicity][i] = dij[0];
-			}
-		}
+        for (unsigned int i = 0; i<ham->dmi_pairs.size(); ++i)
+        {
+            ham->dmi_magnitudes[i] = dij[0];
+        }
 
 		ham->Update_Energy_Contributions();
     }
@@ -323,15 +317,15 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        if (ham->external_field_index.size() > 0)
+        if (ham->external_field_indices.size() > 0)
         {
             // Magnitude
-            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Constants::mu_B);
+            *magnitude = (float)(ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B);
             
             // Normal
-            normal[0] = (float)ham->external_field_normal[0][0];
-            normal[1] = (float)ham->external_field_normal[0][1];
-            normal[2] = (float)ham->external_field_normal[0][2];
+            normal[0] = (float)ham->external_field_normals[0][0];
+            normal[1] = (float)ham->external_field_normals[0][1];
+            normal[2] = (float)ham->external_field_normals[0][2];
         }
 		else
 		{
@@ -345,15 +339,15 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
-        if (ham->external_field_index.size() > 0)
+        if (ham->external_field_indices.size() > 0)
         {
             // Magnitude
-            *magnitude = (float)(ham->external_field_magnitude[0] / ham->mu_s[0] / Constants::mu_B);
+            *magnitude = (float)(ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B);
 
             // Normal
-            normal[0] = (float)ham->external_field_normal[0][0];
-            normal[1] = (float)ham->external_field_normal[0][1];
-            normal[2] = (float)ham->external_field_normal[0][2];
+            normal[0] = (float)ham->external_field_normals[0][0];
+            normal[1] = (float)ham->external_field_normals[0][1];
+            normal[2] = (float)ham->external_field_normals[0][2];
         }
 		else
 		{
@@ -375,15 +369,15 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        if (ham->anisotropy_index.size() > 0)
+        if (ham->anisotropy_indices.size() > 0)
         {
             // Magnitude
-            *magnitude = (float)ham->anisotropy_magnitude[0];
+            *magnitude = (float)ham->anisotropy_magnitudes[0];
             
             // Normal
-            normal[0] = (float)ham->anisotropy_normal[0][0];
-            normal[1] = (float)ham->anisotropy_normal[0][1];
-            normal[2] = (float)ham->anisotropy_normal[0][2];
+            normal[0] = (float)ham->anisotropy_normals[0][0];
+            normal[1] = (float)ham->anisotropy_normals[0][1];
+            normal[2] = (float)ham->anisotropy_normals[0][2];
         }
 		else
 		{
@@ -397,15 +391,15 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         
-        if (ham->anisotropy_index.size() > 0)
+        if (ham->anisotropy_indices.size() > 0)
         {
             // Magnitude
-            *magnitude = (float)ham->anisotropy_magnitude[0];
+            *magnitude = (float)ham->anisotropy_magnitudes[0];
 
             // Normal
-            normal[0] = (float)ham->anisotropy_normal[0][0];
-            normal[1] = (float)ham->anisotropy_normal[0][1];
-            normal[2] = (float)ham->anisotropy_normal[0][2];
+            normal[0] = (float)ham->anisotropy_normals[0][0];
+            normal[1] = (float)ham->anisotropy_normals[0][1];
+            normal[2] = (float)ham->anisotropy_normals[0][2];
         }
 		else
 		{
@@ -427,12 +421,12 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        *n_shells = ham->exchange_magnitude.size();
+        *n_shells = ham->exchange_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
         for (int i=0; i<*n_shells; ++i)
         {
-            jij[i] = (float)ham->exchange_magnitude[i];
+            jij[i] = (float)ham->exchange_magnitudes[i];
         }
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
@@ -451,11 +445,11 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        *n_shells = ham->dmi_magnitude.size();
+        *n_shells = ham->dmi_magnitudes.size();
 
         for (int i=0; i<*n_shells; ++i)
         {
-            dij[i] = (float)ham->dmi_magnitude[i];
+            dij[i] = (float)ham->dmi_magnitudes[i];
         }
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")

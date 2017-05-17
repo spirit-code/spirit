@@ -215,7 +215,7 @@ namespace Engine
 				int kmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[2] * geometry.n_cells[2]) + 1);
 
 				int i,j,k;
-				scalar dx, radius;
+				scalar dx;
 				Vector3 x0={0,0,0}, x1={0,0,0};
 
 				// Abort condidions for all 3 vectors
@@ -280,7 +280,7 @@ namespace Engine
 				int kmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[2] * geometry.n_cells[2]) + 1);
 
 				int i, j, k;
-				scalar dx, radius;
+				scalar dx;
 				Vector3 x0 = { 0,0,0 }, x1 = { 0,0,0 };
 
 				// Abort condidions for all 3 vectors

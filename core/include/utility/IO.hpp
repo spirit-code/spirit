@@ -58,7 +58,7 @@ namespace Utility
 		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile);
 		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
 		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
-		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, Data::Geometry geometry);
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
 		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
 
 		// ======================== Configwriter ========================
@@ -87,10 +87,10 @@ namespace Utility
 		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal);
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
-			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal);
+			pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
+			pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals);
 		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
-			std::vector<indexQuadruplets> & quadruplet_indices, std::vector<scalarfield> & quadruplet_magnitude);
+			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
