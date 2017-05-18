@@ -43,17 +43,17 @@ HamiltonianHeisenbergPairsWidget::HamiltonianHeisenbergPairsWidget(std::shared_p
 	this->updateData();
 
 	// Connect signals and slots
-	this->Setup_Hamiltonian_Heisenberg_Pairs_Slots();
+	this->Setup_Slots();
 }
 
 void HamiltonianHeisenbergPairsWidget::updateData()
 {
-	Load_Hamiltonian_Heisenberg_Pairs_Contents();
+	Load_Contents();
 }
 
 
 
-void HamiltonianHeisenbergPairsWidget::Load_Hamiltonian_Heisenberg_Pairs_Contents()
+void HamiltonianHeisenbergPairsWidget::Load_Contents()
 {
 	float d, vd[3], mu_s;
 
@@ -83,6 +83,13 @@ void HamiltonianHeisenbergPairsWidget::Load_Hamiltonian_Heisenberg_Pairs_Content
 	this->lineEdit_aniy_aniso->setText(QString::number(vd[1]));
 	this->lineEdit_aniz_aniso->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_ani_aniso->setChecked(true);
+
+	// DDI
+	Hamiltonian_Get_DDI(state.get(), &d);
+	this->doubleSpinBox_ddi->setValue(d);
+
+	// Pairs
+	// read from Hamiltonian and convert to string
 }
 
 
@@ -93,7 +100,7 @@ void HamiltonianHeisenbergPairsWidget::Load_Hamiltonian_Heisenberg_Pairs_Content
 // -----------------------------------------------------------------------------------
 
 
-void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_bc()
+void HamiltonianHeisenbergPairsWidget::set_boundary_conditions()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -130,7 +137,7 @@ void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_bc()
 	this->spinWidget->updateBoundingBoxIndicators();
 }
 
-void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_mu_s()
+void HamiltonianHeisenbergPairsWidget::set_mu_s()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -163,7 +170,7 @@ void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_mu_s()
 	}
 }
 
-void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_field()
+void HamiltonianHeisenbergPairsWidget::set_external_field()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -219,7 +226,7 @@ void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_field()
 	}
 }
 
-void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_ani()
+void HamiltonianHeisenbergPairsWidget::set_anisotropy()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -275,6 +282,110 @@ void HamiltonianHeisenbergPairsWidget::set_hamiltonian_aniso_ani()
 	}
 }
 
+void HamiltonianHeisenbergPairsWidget::set_nshells_exchange()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells exchange");
+	// The desired number of shells
+	int n_shells = this->spinBox_nshells_exchange->value();
+	// The current number of shells
+	int n_shells_current = this->exchange_shells.size();
+	// If reduction remove widgets and set exchange
+	if (n_shells < n_shells_current)
+	{
+		for (int n = n_shells_current; n > n_shells; --n)
+		{
+			this->exchange_shells.back()->close();
+			this->exchange_shells.pop_back();
+		}
+	}
+	// If increase add widgets, connect to slots and do nothing
+	else
+	{
+		for (int n = n_shells_current; n < n_shells; ++n)
+		{
+			auto x = new QDoubleSpinBox();
+			x->setRange(-1000, 1000);
+			this->exchange_shells.push_back(x);
+			this->gridLayout_exchange->addWidget(x);
+			connect(x, SIGNAL(editingFinished()), this, SLOT(set_exchange()));
+		}
+	}
+}
+
+void HamiltonianHeisenbergPairsWidget::set_exchange()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set exchange");
+
+	if (this->checkBox_exchange->isChecked())
+	{
+		int n_shells = this->exchange_shells.size();
+		std::vector<float> Jij(n_shells);
+		for (int i = 0; i < n_shells; ++i) Jij[i] = this->exchange_shells[i]->value();
+		Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data());
+	}
+	else
+		Hamiltonian_Set_Exchange(state.get(), 0, nullptr);
+}
+
+void HamiltonianHeisenbergPairsWidget::set_nshells_dmi()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells dmi");
+	// The desired number of shells
+	int n_shells = this->spinBox_nshells_dmi->value();
+	// The current number of shells
+	int n_shells_current = this->dmi_shells.size();
+	// If reduction remove widgets and set dmi
+	if (n_shells < n_shells_current)
+	{
+		for (int n = n_shells_current; n > n_shells; --n)
+		{
+			this->dmi_shells.back()->close();
+			this->dmi_shells.pop_back();
+		}
+	}
+	// If increase add widgets, connect to slots and do nothing
+	else
+	{
+		for (int n = n_shells_current; n < n_shells; ++n)
+		{
+			auto x = new QDoubleSpinBox();
+			x->setRange(-1000, 1000);
+			this->dmi_shells.push_back(x);
+			this->gridLayout_dmi->addWidget(x);
+			connect(x, SIGNAL(editingFinished()), this, SLOT(set_dmi()));
+		}
+	}
+}
+
+void HamiltonianHeisenbergPairsWidget::set_dmi()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set dmi");
+	if (this->checkBox_dmi->isChecked())
+	{
+		int n_shells = this->dmi_shells.size();
+		std::vector<float> Dij(n_shells);
+		for (int i = 0; i < n_shells; ++i) Dij[i] = this->dmi_shells[i]->value();
+		Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data());
+	}
+	else
+		Hamiltonian_Set_DMI(state.get(), 0, nullptr);
+}
+
+void HamiltonianHeisenbergPairsWidget::set_ddi()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set ddi");
+	Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value());
+}
+
+void HamiltonianHeisenbergPairsWidget::set_pairs_from_file()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set pairs (file)");
+}
+
+void HamiltonianHeisenbergPairsWidget::set_pairs_from_text()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set pairs (text)");
+}
 
 
 // -----------------------------------------------------------------------------------
@@ -300,24 +411,36 @@ void HamiltonianHeisenbergPairsWidget::Setup_Input_Validators()
 
 
 
-void HamiltonianHeisenbergPairsWidget::Setup_Hamiltonian_Heisenberg_Pairs_Slots()
+void HamiltonianHeisenbergPairsWidget::Setup_Slots()
 {
 	// Boundary Conditions
-	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
-	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
-	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_bc()));
+	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
 	// mu_s
-	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_mu_s()));
+	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_mu_s()));
 	// External Field
-	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_field()));
-	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
-	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
-	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
-	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_field()));
+	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
 	// Anisotropy
-	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_hamiltonian_aniso_ani()));
-	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
-	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
-	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
-	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_hamiltonian_aniso_ani()));
+	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	// Exchange
+	connect(this->checkBox_exchange, SIGNAL(stateChanged(int)), this, SLOT(set_exchange()));
+	connect(this->spinBox_nshells_exchange, SIGNAL(editingFinished()), this, SLOT(set_nshells_exchange()));
+	// DMI
+	connect(this->checkBox_dmi, SIGNAL(stateChanged(int)), this, SLOT(set_dmi()));
+	connect(this->spinBox_nshells_dmi, SIGNAL(editingFinished()), this, SLOT(set_nshells_dmi()));
+	// DDI
+	connect(this->checkBox_ddi, SIGNAL(stateChanged(int)), this, SLOT(set_ddi()));
+	connect(this->doubleSpinBox_ddi, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
+	// Pairs
+	connect(this->pushButton_pairs_apply, SIGNAL(clicked()), this, SLOT(set_pairs_from_text()));
+	connect(this->pushButton_pairs_fromfile, SIGNAL(clicked()), this, SLOT(set_pairs_from_file()));
 }

@@ -4,6 +4,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Neighbours.hpp>
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
@@ -216,13 +217,22 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
+		// Get the necessary pairs list
+		auto neighbours = Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells);
+		pairfield pairs(0);
+		scalarfield magnitudes(0);
+		for (auto& neigh : neighbours)
+		{
+			pairs.push_back({ neigh.iatom, neigh.ineigh, neigh.translations });
+			magnitudes.push_back({ 0.5*jij[neigh.idx_shell] });
+		}
 
-        for (unsigned int i = 0; i<ham->exchange_pairs.size(); ++i)
-        {
-            ham->exchange_magnitudes[i] = jij[0];
-        }
-		
+		// Set Hamiltonian's arrays
+		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
+		ham->exchange_pairs = pairs;
+		ham->exchange_magnitudes = magnitudes;
+
+		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
     }
 
@@ -250,17 +260,34 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
+		// Get the necessary pairs list
+		auto neighbours = Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells);
+		pairfield pairs(0);
+		scalarfield magnitudes(0);
+		vectorfield normals(0);
+		for (auto& neigh : neighbours)
+		{
+			pairs.push_back({ neigh.iatom, neigh.ineigh, neigh.translations });
+			magnitudes.push_back({ 0.5*dij[neigh.idx_shell] });
+			normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair(*image->geometry, pairs.back(), 1) });
+		}
+
+		// Set Hamiltonian's arrays
 		auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
+		ham->dmi_pairs = pairs;
+		ham->dmi_magnitudes = magnitudes;
+		ham->dmi_normals = normals;
 
-        for (unsigned int i = 0; i<ham->dmi_pairs.size(); ++i)
-        {
-            ham->dmi_magnitudes[i] = dij[0];
-        }
-
+		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
     }
 
 	image->Unlock();
+}
+
+void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chain)
+{
+
 }
 
 /*------------------------------------------------------------------------------------------------------ */
@@ -456,4 +483,9 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
     {
         // TODO
     }
+}
+
+void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_chain)
+{
+
 }
