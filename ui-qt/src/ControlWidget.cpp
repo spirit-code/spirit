@@ -58,7 +58,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 void ControlWidget::updateData()
 {
 	// Check for running simulations - update Play/Pause Button
-	if (Simulation_Running_Any(state.get()))
+	if (Simulation_Running_Anywhere_Collection(state.get()))
 		this->pushButton_PlayPause->setText("Pause");
 	else
 		this->pushButton_PlayPause->setText("Play");
@@ -67,6 +67,13 @@ void ControlWidget::updateData()
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
 	// Update NOI counter
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+
+	// Update thread arrays
+	if (Chain_Get_NOI(state.get()) > (int)threads_llg.size())
+	{
+		for (int i=threads_llg.size(); i < Chain_Get_NOI(state.get()); ++i)
+			this->threads_llg.push_back(std::thread());
+	}
 }
 
 void ControlWidget::updateOthers()
@@ -123,9 +130,9 @@ void ControlWidget::play_pause()
 	auto c_method = s_method.c_str();
 	auto c_optimizer = s_optimizer.c_str();
 
-	if ( Simulation_Running_LLG(this->state.get())  ||
-		 Simulation_Running_GNEB(this->state.get()) ||
-		 Simulation_Running_MMF(this->state.get()) )
+	if ( Simulation_Running_Image(this->state.get()) ||
+		 Simulation_Running_Chain(this->state.get()) ||
+		 Simulation_Running_Collection(this->state.get()) )
 	{
 		// Running, so we stop it
 		Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
@@ -194,9 +201,9 @@ void ControlWidget::stop_current()
 {
 	Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
 	
-	if ( Simulation_Running_LLG(this->state.get())  ||
-		 Simulation_Running_GNEB(this->state.get()) ||
-		 Simulation_Running_MMF(this->state.get())  )
+	if ( Simulation_Running_Image(this->state.get()) ||
+		 Simulation_Running_Chain(this->state.get()) ||
+		 Simulation_Running_Collection(this->state.get()) )
 	{
 		// Running, so we stop it
 		Simulation_PlayPause(this->state.get(), "", "");
@@ -264,6 +271,7 @@ void ControlWidget::cut_image()
 		if (Chain_Delete_Image(state.get(), idx)) 
 		{
 			// Make the llg_threads vector smaller
+			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
 			this->threads_llg.erase(threads_llg.begin() + idx);
 		}
 	}

@@ -84,12 +84,8 @@ bool Chain_Jump_To_Image(State * state, int idx_image_i, int idx_chain_i)
             "Jumped to image " + std::to_string(chain->idx_active_image+1) + " of " + std::to_string(chain->noi), idx_image, idx_chain);
         return true;
     }
-    else
-    {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API,
-            "Tried to jump to image " + std::to_string(idx_image+1) + " of " + std::to_string(chain->noi));
-        return false;
-    }
+
+    return false;
 }
 
 void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)
@@ -148,7 +144,7 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    bool running = Simulation_Running_GNEB(state, idx_chain);
+    bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -171,7 +167,7 @@ void Chain_Insert_Image_Before(State * state, int idx_image_i, int idx_chain_i)
 		chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
 		// Add to state
-		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
+		state->simulation_information_image[idx_chain].insert(state->simulation_information_image[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
 
         // Increment active image so that we don't switch between images
         ++chain->idx_active_image;
@@ -207,7 +203,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
-    bool running = Simulation_Running_GNEB(state, idx_chain);
+    bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -239,7 +235,7 @@ void Chain_Insert_Image_After(State * state, int idx_image_i, int idx_chain_i)
         // }
 
 		// Add to state
-		state->simulation_information_llg[idx_chain].insert(state->simulation_information_llg[idx_chain].begin() + idx_image + 1, std::shared_ptr<Simulation_Information>());
+		state->simulation_information_image[idx_chain].insert(state->simulation_information_image[idx_chain].begin() + idx_image + 1, std::shared_ptr<Simulation_Information>());
 
         chain->Unlock();
 
@@ -273,7 +269,7 @@ void Chain_Push_Back(State * state, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
-    bool running = Simulation_Running_GNEB(state, idx_chain);
+    bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -296,7 +292,7 @@ void Chain_Push_Back(State * state, int idx_chain_i)
         chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
             
 		// Add to state
-		state->simulation_information_llg[idx_chain].push_back(std::shared_ptr<Simulation_Information>());
+		state->simulation_information_image[idx_chain].push_back(std::shared_ptr<Simulation_Information>());
 
         chain->Unlock();
 
@@ -329,7 +325,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    bool running = Simulation_Running_GNEB(state, idx_chain);
+    bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -350,7 +346,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         chain->image_type.erase(chain->image_type.begin() + idx_image);
 
 		// Remove from state
-		state->simulation_information_llg[idx_chain].erase(state->simulation_information_llg[idx_chain].begin() + idx_image);
+		state->simulation_information_image[idx_chain].erase(state->simulation_information_image[idx_chain].begin() + idx_image);
 
         chain->Unlock();
 
@@ -386,7 +382,7 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
     // Fetch correct indices and pointers
     from_indices(state, idx_image, idx_chain, image, chain);
     
-    bool running = Simulation_Running_GNEB(state, idx_chain);
+    bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
     
@@ -407,7 +403,7 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
         chain->image_type.pop_back();
             
         // Add to state
-        state->simulation_information_llg[idx_chain].pop_back();
+        state->simulation_information_image[idx_chain].pop_back();
 
         chain->Unlock();
 
@@ -523,10 +519,10 @@ void Chain_Update_Data(State * state, int idx_chain_i)
         //Engine::Energy::Update(*chain->images[i]);
         //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
 
-	    image->Lock();
+	    chain->images[i]->Lock();
         chain->images[i]->UpdateEnergy();
         if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
-	    image->Unlock();
+	    chain->images[i]->Unlock();
     }
 }
 

@@ -44,9 +44,9 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     }
     else if (method_type == "GNEB")
     {
-        if (Simulation_Running_LLG_Chain(state, idx_chain))
+        if (Simulation_Running_Anywhere_Chain(state, idx_chain))
         {
-            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
 			return;
         }
         else
@@ -61,9 +61,9 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     {
         Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not yet implemented!");
         return;
-        if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
+        if (Simulation_Running_Anywhere_Collection(state))
         {
-            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the collection! Please stop them before starting a MMF calculation.");
 			return;
         }
         else
@@ -119,34 +119,42 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     // Translate to string
     std::string method_type(c_method_type);
     std::string optimizer_type(c_optimizer_type);
+    // if (method_type == "MC")
+    //     optimizer_type = "Direct";
 
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
-
-    
+    from_indices(state, idx_image, idx_chain, image, chain);    
 
     // Determine wether to stop or start a simulation
     if (image->iteration_allowed)
     {
         // Currently iterating image, so we stop
+        image->Lock();
     	image->iteration_allowed = false;
+        image->Unlock();
     }
     else if (chain->iteration_allowed)
     {
         // Currently iterating chain, so we stop
+        chain->Lock();
     	chain->iteration_allowed = false;
+        chain->Unlock();
     }
     else if (state->collection->iteration_allowed)
     {
         // Currently iterating collection, so we stop
+        // collection->Lock();
         state->collection->iteration_allowed = false;
+        // collection->Unlock();
     }
     else
     {
         // ------ Nothing is iterating, so we start a simulation ------
+
+        // Lock the chain in order to prevent unexpected things
+        chain->Lock();
 
         // Determine the method and chain(s) or image(s) involved
         std::shared_ptr<Engine::Method> method;
@@ -161,18 +169,21 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (method_type == "MC")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Monte Carlo is not implemented!");
+            chain->Unlock();
             return;
         }
         else if (method_type == "GNEB")
         {
-            if (Simulation_Running_LLG_Chain(state, idx_chain))
+            if (Simulation_Running_Anywhere_Chain(state, idx_chain))
             {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the specified chain! Please stop them before starting a GNEB calculation.");
+                chain->Unlock();
 				return;
             }
             else if (Chain_Get_NOI(state, idx_chain) < 3)
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are less than 3 images in the specified chain! Please insert more before starting a GNEB calculation.");
+                chain->Unlock();
 				return;
             }
             else
@@ -186,10 +197,12 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (method_type == "MMF")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not implemented!");
+            chain->Unlock();
             return;
-            if (Simulation_Running_LLG_Anywhere(state) || Simulation_Running_GNEB_Anywhere(state))
+            if (Simulation_Running_Anywhere_Collection(state))
             {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still LLG or GNEB simulations running on the collection! Please stop them before starting a MMF calculation.");
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the collection! Please stop them before starting a MMF calculation.");
+                chain->Unlock();
 				return;
             }
             else
@@ -203,6 +216,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		else
 		{
 			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Method selected: " + method_type);
+            chain->Unlock();
 			return;
 		}
 
@@ -222,6 +236,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (optimizer_type == "NCG")
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "NCG is not implemented!");
+            chain->Unlock();
             return;
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_NCG(method));
         }
@@ -232,6 +247,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		else
 		{
 			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Optimizer selected: "+optimizer_type);
+            chain->Unlock();
 			return;
 		}
 
@@ -241,7 +257,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         // Add to correct list
 		if (method_type == "LLG")
 		{
-			state->simulation_information_llg[idx_chain][idx_image] = info;
+			state->simulation_information_image[idx_chain][idx_image] = info;
 		}
 		else if (method_type == "MC")
 		{
@@ -249,12 +265,15 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 		}
 		else if (method_type == "GNEB")
 		{
-			state->simulation_information_gneb[idx_chain] = info;
+			state->simulation_information_chain[idx_chain] = info;
 		}
 		else if (method_type == "MMF")
 		{
-			state->simulation_information_mmf = info;
+			state->simulation_information_collection = info;
 		}
+
+        // Unlock chain in order to be able to iterate
+        chain->Unlock();
 
         // Start the simulation
         optim->Iterate();
@@ -264,22 +283,32 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 void Simulation_Stop_All(State *state)
 {
     // MMF
+    // collection->Lock();
     state->collection->iteration_allowed = false;
+    // collection->Unlock();
 
     // GNEB
+    state->active_chain->Lock();
     state->active_chain->iteration_allowed = false;
+    state->active_chain->Unlock();
     for (int i=0; i<state->noc; ++i)
     {
+        state->collection->chains[i]->Lock();
         state->collection->chains[i]->iteration_allowed = false;
+        state->collection->chains[i]->Unlock();
     }
 
     // LLG
+    state->active_image->Lock();
     state->active_image->iteration_allowed = false;
+    state->active_image->Unlock();
     for (int ichain=0; ichain<state->noc; ++ichain)
     {
         for (int img = 0; img < state->collection->chains[ichain]->noi; ++img)
         {
+            state->collection->chains[ichain]->images[img]->Lock();
             state->collection->chains[ichain]->images[img]->iteration_allowed = false;
+            state->collection->chains[ichain]->images[img]->Unlock();
         }
     }
 }
@@ -291,20 +320,20 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+    if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
-		if (state->simulation_information_llg[idx_chain][idx_image])
-			return (float)state->simulation_information_llg[idx_chain][idx_image]->method->force_maxAbsComponent;
+		if (state->simulation_information_image[idx_chain][idx_image])
+			return (float)state->simulation_information_image[idx_chain][idx_image]->method->force_maxAbsComponent;
 	}
-	else if (Simulation_Running_GNEB(state, idx_chain))
+	else if (Simulation_Running_Chain(state, idx_chain))
     {
-		if (state->simulation_information_gneb[idx_chain])
-			return (float)state->simulation_information_gneb[idx_chain]->method->force_maxAbsComponent;
+		if (state->simulation_information_chain[idx_chain])
+			return (float)state->simulation_information_chain[idx_chain]->method->force_maxAbsComponent;
     }
-	else if (Simulation_Running_MMF(state))
+	else if (Simulation_Running_Collection(state))
     {
-		if (state->simulation_information_mmf)
-			return (float)state->simulation_information_mmf->method->force_maxAbsComponent;
+		if (state->simulation_information_collection)
+			return (float)state->simulation_information_collection->method->force_maxAbsComponent;
     }
 
 	return 0;
@@ -318,20 +347,20 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+    if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
-		if (state->simulation_information_llg[idx_chain][idx_image])
-			return (float)state->simulation_information_llg[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
+		if (state->simulation_information_image[idx_chain][idx_image])
+			return (float)state->simulation_information_image[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
 	}
-	else if (Simulation_Running_GNEB(state, idx_chain))
+	else if (Simulation_Running_Chain(state, idx_chain))
     {
-		if (state->simulation_information_gneb[idx_chain])
-			return (float)state->simulation_information_gneb[idx_chain]->optimizer->getIterationsPerSecond();
+		if (state->simulation_information_chain[idx_chain])
+			return (float)state->simulation_information_chain[idx_chain]->optimizer->getIterationsPerSecond();
     }
-	else if (Simulation_Running_MMF(state))
+	else if (Simulation_Running_Collection(state))
     {
-		if (state->simulation_information_mmf)
-			return (float)state->simulation_information_mmf->optimizer->getIterationsPerSecond();
+		if (state->simulation_information_collection)
+			return (float)state->simulation_information_collection->optimizer->getIterationsPerSecond();
     }
 
 	return 0;
@@ -345,20 +374,20 @@ const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+    if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
-		if (state->simulation_information_llg[idx_chain][idx_image])
-			return state->simulation_information_llg[idx_chain][idx_image]->optimizer->Name().c_str();
+		if (state->simulation_information_image[idx_chain][idx_image])
+			return state->simulation_information_image[idx_chain][idx_image]->optimizer->Name().c_str();
 	}
-	else if (Simulation_Running_GNEB(state, idx_chain))
+	else if (Simulation_Running_Chain(state, idx_chain))
     {
-		if (state->simulation_information_gneb[idx_chain])
-			return state->simulation_information_gneb[idx_chain]->optimizer->Name().c_str();
+		if (state->simulation_information_chain[idx_chain])
+			return state->simulation_information_chain[idx_chain]->optimizer->Name().c_str();
     }
-	else if (Simulation_Running_MMF(state))
+	else if (Simulation_Running_Collection(state))
     {
-		if (state->simulation_information_mmf)
-			return state->simulation_information_mmf->optimizer->Name().c_str();
+		if (state->simulation_information_collection)
+			return state->simulation_information_collection->optimizer->Name().c_str();
     }
 
 	return "";
@@ -371,92 +400,74 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-    if (Simulation_Running_LLG(state, idx_image, idx_chain))
+    if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
-		if (state->simulation_information_llg[idx_chain][idx_image])
-			return state->simulation_information_llg[idx_chain][idx_image]->method->Name().c_str();
+		if (state->simulation_information_image[idx_chain][idx_image])
+			return state->simulation_information_image[idx_chain][idx_image]->method->Name().c_str();
 	}
-	else if (Simulation_Running_GNEB(state, idx_chain))
+	else if (Simulation_Running_Chain(state, idx_chain))
     {
-		if (state->simulation_information_gneb[idx_chain])
-			return state->simulation_information_gneb[idx_chain]->method->Name().c_str();
+		if (state->simulation_information_chain[idx_chain])
+			return state->simulation_information_chain[idx_chain]->method->Name().c_str();
     }
-	else if (Simulation_Running_MMF(state))
+	else if (Simulation_Running_Collection(state))
     {
-		if (state->simulation_information_mmf)
-			return state->simulation_information_mmf->method->Name().c_str();
+		if (state->simulation_information_collection)
+			return state->simulation_information_collection->method->Name().c_str();
     }
 
 	return "";
 }
 
-bool Simulation_Running_Any_Anywhere(State *state)
-{
-    if (Simulation_Running_LLG_Anywhere(state) ||
-        Simulation_Running_GNEB_Anywhere(state) ||
-        Simulation_Running_MMF(state)) return true;
-    else return false;
-}
-bool Simulation_Running_LLG_Anywhere(State *state)
-{
-    bool running = false;
-    for (int ichain=0; ichain<state->collection->noc; ++ichain)
-    {
-        if (Simulation_Running_LLG_Chain(state, ichain)) running = true;
-    }
-    return running;
-}
-bool Simulation_Running_GNEB_Anywhere(State *state)
-{
-    bool running = false;
-    for (int i=0; i<state->collection->noc; ++i)
-    {
-        if (Simulation_Running_GNEB(state, i)) running = true;
-    }
-    return running;
-}
 
-bool Simulation_Running_LLG_Chain(State *state, int idx_chain)
-{
-    bool running = false;
-    for (int img=0; img<state->collection->chains[idx_chain]->noi; ++img)
-    {
-        if (Simulation_Running_LLG(state, img, idx_chain)) running = true;
-    }
-    return running;
-}
 
-bool Simulation_Running_Any(State *state, int idx_image, int idx_chain)
-{
-    if (Simulation_Running_LLG(state, idx_image, idx_chain) ||
-        Simulation_Running_GNEB(state, idx_chain) ||
-        Simulation_Running_MMF(state))
-        return true;
-    else return false;
-}
-bool Simulation_Running_LLG(State *state, int idx_image, int idx_chain)
+bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
 {
     // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
     if (image->iteration_allowed) return true;
     else return false;
 }
-bool Simulation_Running_GNEB(State *state, int idx_chain)
+
+bool Simulation_Running_Chain(State *state, int idx_chain)
 {
-    int idx_image = -1;
+    int idx_image=-1;
     // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
 
     if (state->collection->chains[idx_chain]->iteration_allowed) return true;
     else return false;
 }
-bool Simulation_Running_MMF(State *state)
+
+bool Simulation_Running_Collection(State *state)
 {
     if (state->collection->iteration_allowed) return true;
     else return false;
+}
+
+
+bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
+{
+    int idx_image=-1;
+    // Fetch correct indices and pointers for image and chain
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+    if (Simulation_Running_Chain(state, idx_chain)) return true;
+    for (int i=0; i<chain->noi; ++i)
+        if (Simulation_Running_Image(state, i, idx_chain)) return true;
+    return false;
+}
+
+bool Simulation_Running_Anywhere_Collection(State *state)
+{
+    for (int ichain=0; ichain<state->collection->noc; ++ichain)
+        if (Simulation_Running_Anywhere_Chain(state, ichain)) return true;
+    return false;
 }

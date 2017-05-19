@@ -83,8 +83,10 @@ namespace Engine
 		this->method->Save_Current(this->starttime, iteration, true, false);
 
         //---- Iteration loop
-		for (iteration = 0; iteration < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent(); ++iteration)
+		for (iteration = 0; iteration < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent() && !this->method->Walltime_Expired(t_current - t_start); ++iteration)
 		{
+			t_current = system_clock::now();
+
 			// Lock Systems
 			this->method->Lock();
 
@@ -105,7 +107,6 @@ namespace Engine
 				++step;
 
 				t_last = t_current;
-				t_current = system_clock::now();
 
                 maxforce_stream.str(std::string());
                 maxforce_stream.clear();
@@ -114,11 +115,11 @@ namespace Engine
 
 				Log.SendBlock(Log_Level::All, sender,
 					{
-						"----- " + this->method->Name() + " Calculation (" + this->Name() + " Optimizer): " + Timing::DateTimePassed(t_start, t_current),
+						"----- " + this->method->Name() + " Calculation (" + this->Name() + " Optimizer): " + Timing::DateTimePassed(t_current - t_start),
 						"    Step                         " + std::to_string(step) + " / " + std::to_string(n_log),
 						"    Iteration                    " + std::to_string(iteration) + " / " + std::to_string(n_iterations),
-						"    Time since last step:        " + Timing::DateTimePassed(t_last, t_current),
-						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_last, t_current)),
+						"    Time since last step:        " + Timing::DateTimePassed(t_current - t_last),
+						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_current - t_last)),
 						"    Force convergence parameter: " + force_param,
 						"    Maximum force component:     " + maxforce
 					}, this->method->idx_image, this->method->idx_chain);
@@ -145,18 +146,20 @@ namespace Engine
         std::string reason = "";
         if (this->StopFilePresent())
 			reason = "A STOP file has been found";
-        else if (this->method->Force_Converged())
-            reason = "The force converged";
+		else if (this->method->Force_Converged())
+			reason = "The force converged";
+		else if (this->method->Walltime_Expired(t_end - t_start))
+			reason = "The maximum walltime has been reached";
 
         //---- Log messages
 		std::vector<std::string> block;
 		block.push_back("------------ Terminated " + this->method->Name() + " Calculation ------------");
 		if (reason.length() > 0)
 			block.push_back("----- Reason:   " + reason);
-		block.push_back("----- Duration:       " + Timing::DateTimePassed(t_start, t_end));
+		block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - t_start));
 		block.push_back("    Step              " + std::to_string(step) + " / " + std::to_string(n_log));
 		block.push_back("    Iteration         " + std::to_string(iteration) + " / " + std::to_string(n_iterations));
-        block.push_back("    Iterations / sec: " + std::to_string(iteration / Timing::SecondsPassed(t_start, t_end)));
+        block.push_back("    Iterations / sec: " + std::to_string(iteration / Timing::SecondsPassed(t_end - t_start)));
 		block.push_back("    Force convergence parameter: " + force_param);
 		block.push_back("    Maximum force component:     " + maxforce);
 		block.push_back("    Optimizer: " + this->FullName());
@@ -183,7 +186,7 @@ namespace Engine
         scalar l_ips = 0.0;
         for (unsigned int i = 0; i < t_iterations.size() - 1; ++i)
         {
-            l_ips += Timing::SecondsPassed(t_iterations[i], t_iterations[i+1]);
+            l_ips += Timing::SecondsPassed(t_iterations[i+1] - t_iterations[i]);
         }
         this->ips = 1.0 / (l_ips / (t_iterations.size() - 1));
         return this->ips;

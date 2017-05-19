@@ -8,8 +8,8 @@ _spirit = spiritlib.LoadSpiritLibrary()
 class State:
     """Wrapper Class for a Spirit State"""
 
-    def __init__(self, configfile):
-        self.p_state = setup(configfile)
+    def __init__(self, configfile="", quiet=False):
+        self.p_state = setup(configfile, quiet)
 
     def __enter__(self):
         return self.p_state
@@ -20,10 +20,10 @@ class State:
 
 ### Setup State
 _State_Setup = _spirit.State_Setup
-_State_Setup.argtypes = [ctypes.c_char_p]
+_State_Setup.argtypes = [ctypes.c_char_p, ctypes.c_bool]
 _State_Setup.restype = ctypes.c_void_p
-def setup(configfile):
-    return _State_Setup(ctypes.c_char_p(configfile.encode('utf-8')))
+def setup(configfile="", quiet=False):
+    return _State_Setup(ctypes.c_char_p(configfile.encode('utf-8')), ctypes.c_bool(quiet))
 
 ### Delete State
 _State_Delete = _spirit.State_Delete

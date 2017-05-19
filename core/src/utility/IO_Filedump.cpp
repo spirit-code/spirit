@@ -319,14 +319,14 @@ namespace Utility
 			Append_String_to_File(output_to_file, fileName);
 		}
 
-		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain>& c, const std::string fileName)
+		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
 		{
 			int iimage, iatom, nos;
 			const int buffer_length = 80;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
 			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images and NOS = %8i", c->noi, c->images[0]->nos);
+			snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images with NOS = %8i after iteration %8i", c->noi, c->images[0]->nos, iteration);
 			output_to_file.append(buffer_string_conversion);
 			//------------------------ End Init ----------------------------------------
 			for (iimage = 0; iimage < c->noi; ++iimage) {

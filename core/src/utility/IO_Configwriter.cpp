@@ -17,13 +17,16 @@ namespace Utility
 	{
 		void Folders_to_Config(const std::string configFile,
 				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
 				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
 				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf)
 		{
 			std::string config = "";
 			config += "################# Output Folders #################\n";
+			config += "output_tag_time    " + std::to_string(Log.tag_time) + "\n";
 			config += "log_output_folder  " + Log.output_folder + "\n";
 			config += "llg_output_folder  " + parameters_llg->output_folder + "\n";
+			config += "mc_output_folder   " + parameters_mc->output_folder + "\n";
 			config += "gneb_output_folder " + parameters_gneb->output_folder + "\n";
 			config += "mmf_output_folder  " + parameters_mmf->output_folder + "\n";
 			config += "############### End Output Folders ###############";
@@ -73,11 +76,11 @@ namespace Utility
 			config += "llg_output_any            " + std::to_string(parameters->output_any) + "\n";
 			config += "llg_output_initial        " + std::to_string(parameters->output_initial) + "\n";
 			config += "llg_output_final          " + std::to_string(parameters->output_final) + "\n";
-			config += "llg_output_energy_single           " + std::to_string(parameters->output_energy_single) + "\n";
+			config += "llg_output_energy_step             " + std::to_string(parameters->output_energy_step) + "\n";
 			config += "llg_output_energy_archive          " + std::to_string(parameters->output_energy_archive) + "\n";
 			config += "llg_output_energy_spin_resolved    " + std::to_string(parameters->output_energy_spin_resolved) + "\n";
 			config += "llg_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
-			config += "llg_output_configuration_single    " + std::to_string(parameters->output_configuration_single) + "\n";
+			config += "llg_output_configuration_step      " + std::to_string(parameters->output_configuration_step) + "\n";
 			config += "llg_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
 			config += "llg_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
@@ -93,6 +96,28 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_LLG_to_Config
 
+		void Parameters_Method_MC_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MC> parameters)
+		{
+			std::string config = "";
+			config += "################# MC Parameters ##################\n";
+			config += "mc_output_any            " + std::to_string(parameters->output_any) + "\n";
+			config += "mc_output_initial        " + std::to_string(parameters->output_initial) + "\n";
+			config += "mc_output_final          " + std::to_string(parameters->output_final) + "\n";
+			config += "mc_output_energy_step             " + std::to_string(parameters->output_energy_step) + "\n";
+			config += "mc_output_energy_archive          " + std::to_string(parameters->output_energy_archive) + "\n";
+			config += "mc_output_energy_spin_resolved    " + std::to_string(parameters->output_energy_spin_resolved) + "\n";
+			config += "mc_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
+			config += "mc_output_configuration_step      " + std::to_string(parameters->output_configuration_step) + "\n";
+			config += "mc_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
+			config += "mc_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
+			config += "mc_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
+			config += "mc_seed                       " + std::to_string(parameters->seed) + "\n";
+			config += "mc_temperature                " + std::to_string(parameters->temperature) + "\n";
+			config += "mc_acceptance_ratio           " + std::to_string(parameters->acceptance_ratio) + "\n";
+			config += "############### End MC Parameters ################";
+			Append_String_to_File(config, configFile);
+		}// end Parameters_Method_LLG_to_Config
+
 		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters)
 		{
 			std::string config = "";
@@ -100,7 +125,10 @@ namespace Utility
 			config += "gneb_output_any           " + std::to_string(parameters->output_any) + "\n";
 			config += "gneb_output_initial       " + std::to_string(parameters->output_initial) + "\n";
 			config += "gneb_output_final         " + std::to_string(parameters->output_final) + "\n";
-			config += "gneb_output_energy        " + std::to_string(parameters->output_energy) + "\n";
+			config += "gneb_output_energies_step " + std::to_string(parameters->output_energies_step) + "\n";
+			config += "gneb_output_energies_interpolated     " + std::to_string(parameters->output_energies_interpolated) + "\n";
+			config += "gneb_output_energies_divide_by_nspins " + std::to_string(parameters->output_energies_divide_by_nspins) + "\n";
+			config += "gneb_output_chain_step    " + std::to_string(parameters->output_chain_step) + "\n";
 			config += "gneb_force_convergence         " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "gneb_n_iterations              " + std::to_string(parameters->n_iterations) + "\n";
 			config += "gneb_n_iterations_log          " + std::to_string(parameters->n_iterations_log) + "\n";
@@ -118,7 +146,11 @@ namespace Utility
 			config += "mmf_output_any            " + std::to_string(parameters->output_any) + "\n";
 			config += "mmf_output_initial        " + std::to_string(parameters->output_initial) + "\n";
 			config += "mmf_output_final          " + std::to_string(parameters->output_final) + "\n";
-			config += "mmf_output_energy         " + std::to_string(parameters->output_energy) + "\n";
+			config += "mmf_output_energy_step             " + std::to_string(parameters->output_energy_step) + "\n";
+			config += "mmf_output_energy_archive          " + std::to_string(parameters->output_energy_archive) + "\n";
+			config += "mmf_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
+			config += "mmf_output_configuration_step      " + std::to_string(parameters->output_configuration_step) + "\n";
+			config += "mmf_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
 			config += "mmf_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "mmf_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "mmf_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";

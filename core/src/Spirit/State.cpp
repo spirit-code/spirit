@@ -9,11 +9,12 @@
 
 using namespace Utility;
 
-State * State_Setup(const char * config_file)
+State * State_Setup(const char * config_file, bool quiet)
 {
     // Create the State
     State *state = new State();
     state->datetime_creation = system_clock::now();
+    state->datetime_creation_string = Utility::Timing::TimePointToString(state->datetime_creation);
 
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -21,6 +22,10 @@ State * State_Setup(const char * config_file)
     Log(Log_Level::All, Log_Sender::All,  "==========     Version:  " + std::string(VERSION));
     Log(Log_Level::Info, Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log(Log_Level::All, Log_Sender::All,  "Config file: " + std::string(config_file));
+    if (quiet)
+        Log(Log_Level::All, Log_Sender::All,  "Going to run in QUIET mode (only Error messages, no output files)");
+
     
     try
     {
@@ -77,14 +82,14 @@ State * State_Setup(const char * config_file)
     state->nos = state->active_image->nos;
 
     // Methods
-    state->simulation_information_llg = std::vector<std::vector<std::shared_ptr<Simulation_Information>>>(state->noc, std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
-    state->simulation_information_gneb = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
-    state->simulation_information_mmf = std::shared_ptr<Simulation_Information>();
+    state->simulation_information_image = std::vector<std::vector<std::shared_ptr<Simulation_Information>>>(state->noc, std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
+    state->simulation_information_chain = std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
+    state->simulation_information_collection = std::shared_ptr<Simulation_Information>();
 
     // Save the config
     if (Log.save_input)
     {
-        std::string file = "input_" + Utility::Timing::TimePointToString(state->datetime_creation) + ".txt";
+        std::string file = "input_" + state->datetime_creation_string + ".txt";
         State_To_Config(state, file.c_str(), config_file);
     }
 
@@ -92,6 +97,11 @@ State * State_Setup(const char * config_file)
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
     Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
     Log(Log_Level::All, Log_Sender::All, "============     NOS="+std::to_string(state->nos)+" NOI="+std::to_string(state->noi)+" NOC="+std::to_string(state->noc));
+	auto now = system_clock::now();
+	auto diff = Timing::DateTimePassed(now - state->datetime_creation);
+	Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
+	Log(Log_Level::All, Log_Sender::All, "    Number of  Errors:  " + std::to_string(Log_Get_N_Errors(state)));
+	Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + std::to_string(Log_Get_N_Warnings(state)));
     Log(Log_Level::All, Log_Sender::All, "=====================================================");
     Log.Append_to_File();
     
@@ -104,7 +114,7 @@ void State_Delete(State * state)
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
     auto now = system_clock::now();
-    auto diff = Timing::DateTimePassed(state->datetime_creation, now);
+    auto diff = Timing::DateTimePassed(now - state->datetime_creation);
     Log(Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
     Log(Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + std::to_string(Log_Get_N_Errors(state)) );
     Log(Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + std::to_string(Log_Get_N_Warnings(state)) );
@@ -145,7 +155,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     std::string header = "###\n### Original configuration file was called\n###   " + std::string(original_config_file) + "\n###\n\n";
     IO::Append_String_to_File(header, cfg);
     // Folders
-    IO::Folders_to_Config(cfg, state->active_image->llg_parameters, state->active_chain->gneb_parameters, state->collection->parameters);
+    IO::Folders_to_Config(cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, state->active_chain->gneb_parameters, state->collection->parameters);
     // Log Parameters
     IO::Append_String_to_File("\n\n\n", cfg);
     IO::Log_Levels_to_Config(cfg);
@@ -168,13 +178,13 @@ void State_To_Config(State * state, const char * config_file, const char * origi
 
 const char * State_DateTime(State * state)
 {
-	return Utility::Timing::TimePointToString(state->datetime_creation).c_str();
+	return state->datetime_creation_string.c_str();
 }
 
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
 {
     // Chain
-    if (idx_chain < 0 || idx_chain == state->idx_active_chain)
+    if (idx_chain < 0 || idx_chain == state->idx_active_chain || idx_chain >= state->collection->noc )
     {
         chain = state->active_chain;
         idx_chain = state->idx_active_chain;
@@ -186,7 +196,7 @@ void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_p
     }
     
     // Image
-    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image) )
+    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image || idx_image >= chain->noi ) )
     {
         image = state->active_image;
         idx_image = state->idx_active_image;

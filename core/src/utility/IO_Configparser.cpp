@@ -21,7 +21,7 @@ namespace Utility
 			// Verbosity and Reject Level are read as integers
 			int i_print_level = 5, i_accept_level = 5;
 			std::string output_folder = ".";
-			bool save_output = true, save_input = false;
+			bool tag_time = true, save_output = true, save_input = false;
 
 			//------------------------------- Parser --------------------------------
 			if (configFile != "")
@@ -31,25 +31,23 @@ namespace Utility
 					Log(Log_Level::Info, Log_Sender::IO, "Building Log");
 					IO::Filter_File_Handle myfile(configFile);
 
+					// Time tag
+					myfile.Read_Single(tag_time, "output_tag_time");
+
 					// Accept Level
-					if (myfile.Find("log_accept")) myfile.iss >> i_accept_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_accept' not found. Using default: " + std::to_string(i_accept_level));
+					myfile.Read_Single(i_accept_level, "log_accept");
 
 					// Print level
-					if (myfile.Find("log_print")) myfile.iss >> i_print_level;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_print' not found. Using default: " + std::to_string(i_print_level));
+					myfile.Read_Single(i_print_level, "log_print");
 
 					// Output folder
-					if (myfile.Find("log_output_folder")) myfile.iss >> output_folder;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_folder' not found. Using default: '" + output_folder + "'");
+					myfile.Read_Single(output_folder, "log_output_folder");
 					
 					// Save Output (Log Messages)
-					if (myfile.Find("log_output_save")) myfile.iss >> save_output;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_output_save' not found. Using default: " + std::to_string(save_output));
+					myfile.Read_Single(save_output, "log_output_save");
 					
 					// Save Input (parameters from config file and defaults)
-					if (myfile.Find("log_input_save")) myfile.iss >> save_input;
-					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'log_input_save' not found. Using default: " + std::to_string(save_input));
+					myfile.Read_Single(save_input, "log_input_save");
 
 				}// end try
 				catch (Exception ex) {
@@ -60,15 +58,21 @@ namespace Utility
 				}// end catch
 			}
 			// Log the parameters
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level  = " + std::to_string(i_accept_level));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level   = " + std::to_string(i_print_level));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder = " + output_folder);
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save   = " + std::to_string(save_output));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save    = " + std::to_string(save_input));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Tag time on output = " + std::to_string(tag_time));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level   = " + std::to_string(i_accept_level));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level    = " + std::to_string(i_print_level));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder  = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save    = " + std::to_string(save_output));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save     = " + std::to_string(save_input));
 			// Update the Log
+			Log.tag_time      = tag_time;
 			Log.accept_level  = Log_Level(i_accept_level);
 			Log.print_level   = Log_Level(i_print_level);
 			Log.output_folder = output_folder;
+			if (tag_time)
+				Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+			else
+				Log.fileName = "Log.txt";
 			Log.save_output   = save_output;
 			Log.save_input    = save_input;
 		}// End Log_Levels_from_Config
@@ -82,10 +86,12 @@ namespace Utility
 			auto geometry = Geometry_from_Config(configFile);
 			// LLG Parameters
 			auto llg_params = Parameters_Method_LLG_from_Config(configFile);
+			// MC Parameters
+			auto mc_params = Parameters_Method_MC_from_Config(configFile);
 			// Hamiltonian
 			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, *geometry));
 			// Spin System
-			auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), false));
+			auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
 			// ----------------------------------------------------------------------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
@@ -294,16 +300,19 @@ namespace Utility
 			// Output folder for results
 			std::string output_folder = "output_llg";
 			// Save output when logging
-			bool output_any = true, output_initial = true, output_final = true;
-			bool output_energy_divide_by_nspins=true, output_energy_spin_resolved=true, output_energy_single=true, output_energy_archive=true;
-			bool output_configuration_single = false, output_configuration_archive = false;
+			bool output_tag_time = true, output_any = true, output_initial = true, output_final = true;
+			bool output_energy_divide_by_nspins=true, output_energy_spin_resolved=true, output_energy_step=true, output_energy_archive=true;
+			bool output_configuration_step = false, output_configuration_archive = false;
+			// Maximum walltime in seconds
+			long int max_walltime = 0;
+			std::string str_max_walltime;
 			// PRNG Seed
-			std::srand(std::time(0));
+			std::srand((unsigned int)std::time(0));
 			int seed = std::rand();
 			// number of iterations carried out when pressing "play" or calling "iterate"
-			int n_iterations = (int)2E+6;
+			long int n_iterations = (int)2E+6;
 			// Number of iterations after which the system is logged to file
-			int n_iterations_log = 100;
+			long int n_iterations_log = 100;
 			// Temperature in K
 			scalar temperature = 0.0;
 			// Damping constant
@@ -326,16 +335,18 @@ namespace Utility
 				try {
 					IO::Filter_File_Handle myfile(configFile);
 
+					myfile.Read_Single(output_tag_time,"output_tag_time");
 					myfile.Read_Single(output_folder,  "llg_output_folder");
 					myfile.Read_Single(output_any,     "llg_output_any");
 					myfile.Read_Single(output_initial, "llg_output_initial");
 					myfile.Read_Single(output_final,   "llg_output_final");
 					myfile.Read_Single(output_energy_spin_resolved,    "llg_output_energy_spin_resolved");
-					myfile.Read_Single(output_energy_single,           "llg_output_energy_single");
+					myfile.Read_Single(output_energy_step,             "llg_output_energy_step");
 					myfile.Read_Single(output_energy_archive,          "llg_output_energy_archive");
 					myfile.Read_Single(output_energy_divide_by_nspins, "llg_output_energy_divide_by_nspins");
-					myfile.Read_Single(output_configuration_single,  "llg_output_configuration_single");
+					myfile.Read_Single(output_configuration_step,    "llg_output_configuration_step");
 					myfile.Read_Single(output_configuration_archive, "llg_output_configuration_archive");
+					myfile.Read_Single(str_max_walltime, "llg_max_walltime");
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
 					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
@@ -364,6 +375,7 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
 			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
@@ -377,17 +389,103 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_single           = " + std::to_string(output_energy_single));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_spin_resolved    = " + std::to_string(output_energy_spin_resolved));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_single    = " + std::to_string(output_configuration_single));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
-			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, {output_any, output_initial, output_final, output_energy_single, output_energy_archive, output_energy_spin_resolved,
-				output_energy_divide_by_nspins, output_configuration_single, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
+			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
+
+		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile)
+		{
+			//-------------- Insert default values here -----------------------------
+			// Output folder for results
+			std::string output_folder = "output_mc";
+			// Save output when logging
+			bool output_tag_time = true, output_any = true, output_initial = true, output_final = true;
+			bool output_energy_divide_by_nspins = true, output_energy_spin_resolved = true, output_energy_step = true, output_energy_archive = true;
+			bool output_configuration_step = false, output_configuration_archive = false;
+			// Maximum walltime in seconds
+			long int max_walltime = 0;
+			std::string str_max_walltime;
+			// PRNG Seed
+			std::srand((int)std::time(0));
+			int seed = std::rand();
+			// number of iterations carried out when pressing "play" or calling "iterate"
+			int n_iterations = (int)2E+6;
+			// Number of iterations after which the system is logged to file
+			int n_iterations_log = 100;
+			// Temperature in K
+			scalar temperature = 0.0;
+			// Acceptance ratio
+			scalar acceptance_ratio = 0.5;
+
+			//------------------------------- Parser --------------------------------
+			Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: building");
+
+			if (configFile != "")
+			{
+				try {
+					IO::Filter_File_Handle myfile(configFile);
+
+					myfile.Read_Single(output_tag_time, "output_tag_time");
+					myfile.Read_Single(output_folder, "mc_output_folder");
+					myfile.Read_Single(output_any, "mc_output_any");
+					myfile.Read_Single(output_initial, "mc_output_initial");
+					myfile.Read_Single(output_final, "mc_output_final");
+					myfile.Read_Single(output_energy_spin_resolved, "mc_output_energy_spin_resolved");
+					myfile.Read_Single(output_energy_step, "mc_output_energy_step");
+					myfile.Read_Single(output_energy_archive, "mc_output_energy_archive");
+					myfile.Read_Single(output_energy_divide_by_nspins, "mc_output_energy_divide_by_nspins");
+					myfile.Read_Single(output_configuration_step, "mc_output_configuration_step");
+					myfile.Read_Single(output_configuration_archive, "mc_output_configuration_archive");
+					myfile.Read_Single(str_max_walltime, "mc_max_walltime");
+					myfile.Read_Single(seed, "mc_seed");
+					myfile.Read_Single(n_iterations, "mc_n_iterations");
+					myfile.Read_Single(n_iterations_log, "mc_n_iterations_log");
+					myfile.Read_Single(temperature, "mc_temperature");
+					myfile.Read_Single(acceptance_ratio, "mc_acceptance_ratio");
+				}// end try
+				catch (Exception ex) {
+					if (ex == Exception::File_not_Found)
+					{
+						Log(Log_Level::Error, Log_Sender::IO, "Parameters MC: Unable to open Config File " + configFile + " Leaving values at default.");
+					}
+					else throw ex;
+				}// end catch
+			}
+			else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
+
+			// Return
+			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MC:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        acceptance_ratio  = " + std::to_string(acceptance_ratio));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_spin_resolved    = " + std::to_string(output_energy_spin_resolved));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
+			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+			auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, seed, temperature, acceptance_ratio));
+			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
+			return mc_params;
+		}
 
 		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile)
 		{
@@ -395,7 +493,10 @@ namespace Utility
 			// Output folder for results
 			std::string output_folder = "output_gneb";
 			// Save output when logging
-			bool output_any = true, output_initial = false, output_final = true, output_energy = true;
+			bool output_tag_time = true, output_any = true, output_initial = false, output_final = true, output_energies_step = false, output_energies_interpolated = true, output_energies_divide_by_nspins = true, output_chain_step = false;
+			// Maximum walltime in seconds
+			long int max_walltime = 0;
+			std::string str_max_walltime;
 			// Spring constant
 			scalar spring_constant = 1.0;
 			// Force convergence parameter
@@ -412,12 +513,17 @@ namespace Utility
 			{
 				try {
 					IO::Filter_File_Handle myfile(configFile);
-					
+
+					myfile.Read_Single(output_tag_time, "output_tag_time");
 					myfile.Read_Single(output_folder, "gneb_output_folder");
 					myfile.Read_Single(output_any, "gneb_output_any");
 					myfile.Read_Single(output_initial, "gneb_output_initial");
 					myfile.Read_Single(output_final, "gneb_output_final");
-					myfile.Read_Single(output_energy, "gneb_output_energy");
+					myfile.Read_Single(output_energies_step, "gneb_output_energies_step");
+					myfile.Read_Single(output_energies_interpolated, "gneb_output_energies_interpolated");
+					myfile.Read_Single(output_energies_divide_by_nspins, "gneb_output_energies_divide_by_nspins");
+					myfile.Read_Single(output_chain_step, "gneb_output_chain_step");
+					myfile.Read_Single(str_max_walltime, "gneb_max_walltime");
 					myfile.Read_Single(spring_constant, "gneb_spring_constant");
 					myfile.Read_Single(force_convergence, "gneb_force_convergence");
 					myfile.Read_Single(n_iterations, "gneb_n_iterations");
@@ -436,17 +542,20 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant    = " + std::to_string(spring_constant));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence  = " + std::to_string(force_convergence));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations = " + std::to_string(n_E_interpolations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations       = " + std::to_string(n_iterations));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log   = " + std::to_string(n_iterations_log));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder      = " + output_folder);
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_any         = " + std::to_string(output_any));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial     = " + std::to_string(output_initial));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_final       = " + std::to_string(output_final));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy      = " + std::to_string(output_energy));
-			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, {output_any, output_initial, output_final, output_energy}, force_convergence, n_iterations, n_iterations_log, spring_constant, n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant      = " + std::to_string(spring_constant));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence    = " + std::to_string(force_convergence));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations   = " + std::to_string(n_E_interpolations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations         = " + std::to_string(n_iterations));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log     = " + std::to_string(n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder        = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_any           = " + std::to_string(output_any));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial       = " + std::to_string(output_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_final         = " + std::to_string(output_final));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energies_step = " + std::to_string(output_energies_step));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_chain_step    = " + std::to_string(output_chain_step));
+			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step }, force_convergence, n_iterations, n_iterations_log, max_walltime, spring_constant, n_E_interpolations));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_Method_LLG_from_Config
@@ -457,7 +566,10 @@ namespace Utility
 			// Output folder for results
 			std::string output_folder = "output_mmf";
 			// Save output when logging
-			bool output_any = true, output_initial = false, output_final = true, output_energy = true;
+			bool output_tag_time = true, output_any = true, output_initial = false, output_final = true, output_energy_step = false, output_energy_archive = true, output_energy_divide_by_nspins = true, output_configuration_step = false, output_configuration_archive = true;
+			// Maximum walltime in seconds
+			long int max_walltime = 0;
+			std::string str_max_walltime;
 			// Force convergence parameter
 			scalar force_convergence = 10e-9;
 			// Number of iterations carried out when pressing "play" or calling "iterate"
@@ -471,12 +583,18 @@ namespace Utility
 			{
 				try {
 					IO::Filter_File_Handle myfile(configFile);
-					
+
+					myfile.Read_Single(output_tag_time, "output_tag_time");
 					myfile.Read_Single(output_folder, "mmf_output_folder");
 					myfile.Read_Single(output_any, "mmf_output_any");
 					myfile.Read_Single(output_initial, "mmf_output_initial");
 					myfile.Read_Single(output_final, "mmf_output_final");
-					myfile.Read_Single(output_energy, "mmf_output_energy");
+					myfile.Read_Single(output_energy_step, "mmf_output_energy_step");
+					myfile.Read_Single(output_energy_archive, "mmf_output_energy_archive");
+					myfile.Read_Single(output_energy_divide_by_nspins, "mmf_output_energy_divide_by_nspins");
+					myfile.Read_Single(output_configuration_step, "mmf_output_configuration_step");
+					myfile.Read_Single(output_configuration_archive, "mmf_output_configuration_archive");
+					myfile.Read_Single(str_max_walltime, "mmf_max_walltime");
 					myfile.Read_Single(force_convergence, "mmf_force_convergence");
 					myfile.Read_Single(n_iterations, "mmf_n_iterations");
 					myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
@@ -493,6 +611,7 @@ namespace Utility
 
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence = " + std::to_string(force_convergence));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
@@ -500,8 +619,13 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy     = " + std::to_string(output_energy));
-			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, {output_any, output_initial, output_final, output_energy}, force_convergence, n_iterations, n_iterations_log));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
+			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive }, force_convergence, n_iterations, n_iterations_log, max_walltime));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}

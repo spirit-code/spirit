@@ -43,14 +43,15 @@ struct State
 
 	// The Methods
 	//    max. noi*noc LLG methods [noc][noi]
-	std::vector<std::vector<std::shared_ptr<Simulation_Information>>> simulation_information_llg;
+	std::vector<std::vector<std::shared_ptr<Simulation_Information>>> simulation_information_image;
 	//    max. noc GNEB methods [noc]
-	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_gneb;
+	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_chain;
 	//    max. 1 MMF method
-	std::shared_ptr<Simulation_Information> simulation_information_mmf;
+	std::shared_ptr<Simulation_Information> simulation_information_collection;
 
 	// Timepoint of creation
 	system_clock::time_point datetime_creation;
+	std::string datetime_creation_string;
 };
 
 
