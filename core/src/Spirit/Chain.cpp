@@ -84,12 +84,8 @@ bool Chain_Jump_To_Image(State * state, int idx_image_i, int idx_chain_i)
             "Jumped to image " + std::to_string(chain->idx_active_image+1) + " of " + std::to_string(chain->noi), idx_image, idx_chain);
         return true;
     }
-    else
-    {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API,
-            "Tried to jump to image " + std::to_string(idx_image+1) + " of " + std::to_string(chain->noi));
-        return false;
-    }
+
+    return false;
 }
 
 void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)

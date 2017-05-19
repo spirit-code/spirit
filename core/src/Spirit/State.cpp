@@ -184,7 +184,7 @@ const char * State_DateTime(State * state)
 void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain)
 {
     // Chain
-    if (idx_chain < 0 || idx_chain == state->idx_active_chain)
+    if (idx_chain < 0 || idx_chain == state->idx_active_chain || idx_chain >= state->collection->noc )
     {
         chain = state->active_chain;
         idx_chain = state->idx_active_chain;
@@ -196,7 +196,7 @@ void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_p
     }
     
     // Image
-    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image) )
+    if ( idx_chain == state->idx_active_chain && (idx_image < 0 || idx_image == state->idx_active_image || idx_image >= chain->noi ) )
     {
         image = state->active_image;
         idx_image = state->idx_active_image;
