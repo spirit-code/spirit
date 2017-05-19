@@ -58,7 +58,9 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 void ControlWidget::updateData()
 {
 	// Check for running simulations - update Play/Pause Button
-	if (Simulation_Running_Anywhere_Collection(state.get()))
+	if ( Simulation_Running_Collection(state.get()) ||
+		 Simulation_Running_Chain(state.get())      ||
+		 Simulation_Running_Image(state.get())      )
 		this->pushButton_PlayPause->setText("Pause");
 	else
 		this->pushButton_PlayPause->setText("Play");
