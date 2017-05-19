@@ -186,16 +186,129 @@ namespace Utility
 			}
 		}
 
-		/*std::vector<std::vector<scalar>> External_Field_from_File(int nos, const std::string externalFieldFile)
-		{
 
-		}*/
+		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal)
+		{
+			Log(Log_Level::Info, Log_Sender::IO, "Reading external field from file " + externalFieldFile);
+			try
+			{
+				n_indices = 0;
+				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
+				// column indices of pair indices and interactions
+				int col_i = -1, col_B = -1, col_Bx = -1, col_By = -1, col_Bz = -1, col_Ba = -1, col_Bb = -1, col_Bc = -1;
+				bool B_magnitude = false, B_xyz = false, B_abc = false;
+				Vector3 B_temp = { 0, 0, 0 };
+				// Get column indices
+				IO::Filter_File_Handle file(externalFieldFile);
+				file.GetLine(); // first line contains the columns
+				for (unsigned int i = 0; i < columns.size(); ++i)
+				{
+					file.iss >> columns[i];
+					if (!columns[i].compare(0, 1, "i"))	col_i = i;
+					else if (!columns[i].compare(0, 2, "B")) { col_B = i;	B_magnitude = true; }
+					else if (!columns[i].compare(0, 2, "Bx"))	col_Bx = i;
+					else if (!columns[i].compare(0, 2, "By"))	col_By = i;
+					else if (!columns[i].compare(0, 2, "Bz"))	col_Bz = i;
+					else if (!columns[i].compare(0, 2, "Ba"))	col_Ba = i;
+					else if (!columns[i].compare(0, 2, "Bb"))	col_Bb = i;
+					else if (!columns[i].compare(0, 2, "Bc"))	col_Bc = i;
+
+					if (col_Bx >= 0 && col_By >= 0 && col_Bz >= 0) B_xyz = true;
+					if (col_Ba >= 0 && col_Bb >= 0 && col_Bc >= 0) B_abc = true;
+				}
+
+				if (!B_xyz && !B_abc) Log(Log_Level::Warning, Log_Sender::IO, "No external field data could be found in header of file " + externalFieldFile);
+
+				// Catch horizontal separation Line
+				// file.GetLine();
+				// Get number of lines
+				while (file.GetLine()) { ++n_indices; }
+
+				// Indices
+				int spin_i = 0;
+				scalar spin_B = 0, spin_B1 = 0, spin_B2 = 0, spin_B3 = 0;
+				// Arrays
+				external_field_index = intfield(0);
+				external_field_magnitude = scalarfield(0);
+				external_field_normal = vectorfield(0);
+
+				// Get actual Data
+				file.ResetStream();
+				int i_pair = 0;
+				std::string sdump;
+				file.GetLine();	// skip first line
+								//dataHandle.GetLine();	// skip second line
+				while (file.GetLine())
+				{
+					// Read a line from the File
+					for (unsigned int i = 0; i < columns.size(); ++i)
+					{
+						if (i == col_i)
+							file.iss >> spin_i;
+						else if (i == col_B)
+							file.iss >> spin_B;
+						else if (i == col_Bx && B_xyz)
+							file.iss >> spin_B1;
+						else if (i == col_By && B_xyz)
+							file.iss >> spin_B2;
+						else if (i == col_Bz && B_xyz)
+							file.iss >> spin_B3;
+						else if (i == col_Ba && B_abc)
+							file.iss >> spin_B1;
+						else if (i == col_Bb && B_abc)
+							file.iss >> spin_B2;
+						else if (i == col_Bc && B_abc)
+							file.iss >> spin_B3;
+						else
+							file.iss >> sdump;
+					}
+					B_temp = { spin_B1, spin_B2, spin_B3 };
+					// B_temp.normalize();
+					// spin_B1 = B_temp[0]; spin_B2 = B_temp[1]; spin_B3 = B_temp[2];
+					// Anisotropy vector orientation
+					if (B_abc)
+					{
+						spin_B1 = B_temp.dot(geometry.basis[0]);
+						spin_B2 = B_temp.dot(geometry.basis[1]);
+						spin_B3 = B_temp.dot(geometry.basis[2]);
+						B_temp = { spin_B1, spin_B2, spin_B3 };
+					}
+					// Anisotropy vector normalisation
+					if (B_magnitude)
+					{
+						scalar dnorm = B_temp.norm();
+						if (dnorm != 0)
+							B_temp.normalize();
+					}
+					else
+					{
+						spin_B = B_temp.norm();
+						if (spin_B != 0)
+							B_temp.normalize();
+					}
+
+					if (spin_B != 0)
+					{
+						external_field_index.push_back(spin_i);
+						external_field_magnitude.push_back(spin_B);
+						external_field_normal.push_back(B_temp);
+					}
+
+				}// end while getline
+			}// end try
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+
+		}
 
 
 		/*
 		Read from Anisotropy file
 		*/
-		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
+		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal)
 		{
@@ -272,35 +385,28 @@ namespace Utility
 							file.iss >> sdump;
 					}
 					K_temp = { spin_K1, spin_K2, spin_K3 };
-					K_temp.normalize();
-					spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
+					// K_temp.normalize();
+					// spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
 						spin_K1 = K_temp.dot(geometry.basis[0]);
 						spin_K2 = K_temp.dot(geometry.basis[1]);
 						spin_K3 = K_temp.dot(geometry.basis[2]);
+						K_temp = { spin_K1, spin_K2, spin_K3 };
 					}
 					// Anisotropy vector normalisation
 					if (K_magnitude)
 					{
-						scalar dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
+						scalar dnorm = K_temp.norm();
 						if (dnorm != 0)
-						{
-							spin_K1 = spin_K1 / dnorm;
-							spin_K2 = spin_K2 / dnorm;
-							spin_K3 = spin_K3 / dnorm;
-						}
+							K_temp.normalize();
 					}
 					else
 					{
-						spin_K = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
+						spin_K = K_temp.norm();
 						if (spin_K != 0)
-						{
-							spin_K1 = spin_K1 / spin_K;
-							spin_K2 = spin_K2 / spin_K;
-							spin_K3 = spin_K3 / spin_K;
-						}
+							K_temp.normalize();
 					}
 
 					// TODO: propagation of basis anisotropy across lattice
@@ -309,7 +415,7 @@ namespace Utility
 					{
 						anisotropy_index.push_back(spin_i);
 						anisotropy_magnitude.push_back(spin_K);
-						anisotropy_normal.push_back(Vector3{spin_K1, spin_K2, spin_K3});
+						anisotropy_normal.push_back(K_temp);
 					}
 
 				}// end while getline

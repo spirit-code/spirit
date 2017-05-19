@@ -800,6 +800,7 @@ namespace Utility
 			std::string external_field_file = "";
 			scalar B = 0;
 			Vector3 B_normal = { 0.0, 0.0, 1.0 };
+			bool external_field_from_file = false;
 			intfield    external_field_index(geometry.nos);				// [nos]
 			scalarfield external_field_magnitude(geometry.nos, 0);	// [nos]
 			vectorfield external_field_normal(geometry.nos, B_normal);	// [3][nos]
@@ -835,7 +836,8 @@ namespace Utility
 			int iatom = 0;
 			if (configFile != "")
 			{
-				try {
+				try
+				{
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Boundary conditions
@@ -863,14 +865,15 @@ namespace Utility
 					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
 					if (external_field_file.length() > 0)
 					{
-						Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_anisotropic: Read external field file has not been implemented yet. Using 0 field for now.");
 						// The file name should be valid so we try to read it
-						// Not yet implemented!
-
+						External_Field_from_File(external_field_file, geometry, n_pairs,
+							external_field_index, external_field_magnitude, external_field_normal);
+						
+						external_field_from_file = true;
 						B = external_field_magnitude[0];
 						B_normal = external_field_normal[0];
 					}
-					else 
+					else
 					{
 						// Read parameters from config if available
 						myfile.Read_Single(B, "external_field_magnitude");
@@ -902,6 +905,8 @@ namespace Utility
 						// The file name should be valid so we try to read it
 						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
+
+						anisotropy_from_file = true;
 						K = anisotropy_magnitude[0];
 						K_normal = anisotropy_normal[0];
 					}
@@ -977,7 +982,8 @@ namespace Utility
 					}
 
 				}// end try
-				catch (Exception ex) {
+				catch (Exception ex)
+				{
 					if (ex == Exception::File_not_Found)
 					{
 						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_anisotropic: Unable to open Config File " + configFile + " Leaving values at default.");
@@ -990,10 +996,14 @@ namespace Utility
 			// Return
 			Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Anisotropic:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
+			if (external_field_from_file)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+			if (anisotropy_from_file)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Anisotropic>(new Engine::Hamiltonian_Anisotropic(

@@ -367,7 +367,7 @@ namespace Engine
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
 
 				// Spin Configuration
-				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+				Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
 			};
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -449,7 +449,9 @@ namespace Engine
 			// for (int ichain=0; ichain<collection->noc; ++ichain)
 			// {
 			//     // Copy the image
+			//	   this->systems[ichain]->Lock()
 			//     auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
+			//	   this->systems[ichain]->Unlock()
 				
 			//     // Insert into chain
 			//     auto chain = collection->chains[ichain];
@@ -483,7 +485,7 @@ namespace Engine
 			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
 			//		else
 			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
-			//		Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+			//		Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, true);
 			//		
 			//		if (this->collection->parameters->output_energy)
 			//		{

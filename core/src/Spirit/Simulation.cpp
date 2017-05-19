@@ -60,7 +60,7 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     else if (method_type == "MMF")
     {
         Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not yet implemented!");
-        return;
+		return;
         if (Simulation_Running_Anywhere_Collection(state))
         {
             Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the collection! Please stop them before starting a MMF calculation.");
@@ -196,9 +196,9 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         }
         else if (method_type == "MMF")
         {
-            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not implemented!");
-            chain->Unlock();
-            return;
+			Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "MMF is not implemented!");
+			chain->Unlock();
+			return;
             if (Simulation_Running_Anywhere_Collection(state))
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "There are still one or more simulations running on the collection! Please stop them before starting a MMF calculation.");
@@ -467,6 +467,7 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
 
 bool Simulation_Running_Anywhere_Collection(State *state)
 {
+	if (Simulation_Running_Collection(state)) return true;
     for (int ichain=0; ichain<state->collection->noc; ++ichain)
         if (Simulation_Running_Anywhere_Chain(state, ichain)) return true;
     return false;

@@ -6,10 +6,10 @@ SPIRIT
 &nbsp;
 
 
-| Service | System | Compiler | Branch | Status |
-| ------- | ------ | -------- | ------ | -----: |
-|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master<br />develop | [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />[![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
-|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 |master<br />develop | [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />[![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
+| Service | System | Compiler | Status |
+| :------ | :----: | :------: | -----: |
+|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />develop: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
+|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
 
 
 &nbsp;
@@ -91,10 +91,11 @@ control of parameters.
 * Modular backends including **GPU parallelisation**
 
 ### *Documentation*
-More details may be found in the [Reference section](docs/Readme.md) including
+More details may be found in the [Reference section](docs/README.md) including
 * [Framework build instructions](docs/BUILD.md)
 * [Core build instructions](core/docs/BUILD.md)
 * [Core API Reference](core/docs/API.md)
+* [Python API Reference](core/docs/API_Python.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
 hosted by the Research Centre Jülich.
@@ -124,6 +125,8 @@ It provides functionality to
 - Change parameters of the Method and Optimizer
 - Configure the Visualization (arrows, isosurfaces, lighting, ...)
 
+See the [UI-QT Reference](docs/UI-Qt.md) for the key bindings of the various features.
+
 *Unfortunately, distribution of binaries for the Desktop UI is not possible due
 to the restrictive license on QT-Charts.*
 
@@ -143,7 +146,7 @@ or simply use
 
 	pip install spirit
 
-With this package you have access to powerful [Python APIs](core/docs/API.md) to run and control
+With this package you have access to powerful [Python APIs](core/docs/API_Python.md) to run and control
 dynamics simulations or optimizations.
 This is especially useful for work on clusters, where you can now script your
 workflow, never having to re-compile when testing, debugging or adding features.
