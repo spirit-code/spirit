@@ -66,6 +66,9 @@ matrix:
 #   - sudo apt-get update -qq
 #   - sudo apt-get install -y libopencv-dev
 
+before_install:
+    - sudo pip install numpy
+
 install:
   # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
