@@ -32,4 +32,4 @@ build:
 
 test_script:
   - cd Build
-  - ctest -V -j2 -C %CONFIGURATION%
+  - ctest --output-on-failure -C %CONFIGURATION%
