@@ -287,7 +287,53 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 
 void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chain)
 {
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
+	image->Lock();
+
+    if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
+    {
+        auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
+
+        ham->ddi_radius = radius;
+		auto neighbours = Engine::Neighbours::Get_Neighbours_in_Radius(*image->geometry, radius);
+		scalarfield magnitudes(neighbours.size());
+		vectorfield normals(neighbours.size());
+		scalar magnitude;
+		Vector3 normal;
+		for (int i=0; i<neighbours.size(); ++i)
+		{
+		    Engine::Neighbours::DDI_from_Pair(*image->geometry, {neighbours[i].iatom, neighbours[i].ineigh, neighbours[i].translations}, magnitude, normal);
+			magnitudes.push_back(magnitude);
+			normals.push_back(normal);
+		}
+        ham->ddi_neighbours = neighbours;
+        ham->ddi_magnitudes = magnitudes;
+        ham->ddi_normals = normals;
+        
+    }
+    else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
+    {
+        auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
+
+        ham->ddi_radius = radius;
+		auto pairs = Engine::Neighbours::Get_Pairs_in_Radius(*image->geometry, radius);
+		scalarfield magnitudes(pairs.size());
+		vectorfield normals(pairs.size());
+        scalar magnitude;
+        Vector3 normal;
+		for (auto& pair : pairs)
+		{
+		    Engine::Neighbours::DDI_from_Pair(*image->geometry, pair, magnitude, normal);
+			magnitudes.push_back(magnitude);
+			normals.push_back(normal);
+		}
+        // ham->ddi_pairs
+    }
+
+    image->Unlock();
 }
 
 /*------------------------------------------------------------------------------------------------------ */
@@ -487,5 +533,20 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
 
 void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_chain)
 {
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
 
+    if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
+    {
+        auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
+
+        *radius = ham->ddi_radius;
+    }
+    else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
+    {
+        auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
+
+        *radius = ham->ddi_radius;
+    }
 }

@@ -10,9 +10,7 @@ DLLEXPORT void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image=-1, 
 DLLEXPORT void Hamiltonian_Set_Field(State *state, float magnitude, const float* normal, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float* normal, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Hamiltonian_Set_Exchange_Pairs(State *state, int n_pairs, const float * idx[2], const float * translations[3], const float * Jij, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Hamiltonian_Set_DMI_Pairs(State *state, int n_pairs, const float * idx[2], const float * translations[3], const float * Dij[3], int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Set_DDI(State *state, float radius, int idx_image=-1, int idx_chain=-1);
 
 // Get the Hamiltonian's parameters
@@ -25,8 +23,6 @@ DLLEXPORT void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * ji
 DLLEXPORT int  Hamiltonian_Get_Exchange_N_Pairs(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Get_Exchange_Pairs(State *state, float * idx[2], float * translations[3], float * Jij, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Hamiltonian_Get_DMI_Pairs(State *state, float * idx[2], float * translations[3], float * Dij[3], int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image=-1, int idx_chain=-1);
 
 #include "DLL_Undefine_Export.h"

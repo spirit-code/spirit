@@ -65,12 +65,12 @@ namespace Engine
 		// DMI
 		neighbourfield dmi_neighbours;			// [periodicity][nop][2] (i,j)
 		scalarfield dmi_magnitudes;			// [periodicity][nop]    D_ij
-		vectorfield dmi_normal;			// [periodicity][nop][3] (Dx,Dy,Dz)
+		vectorfield dmi_normals;			// [periodicity][nop][3] (Dx,Dy,Dz)
 		// Dipole Dipole interaction
 		scalar ddi_radius;
 		neighbourfield ddi_neighbours;			// [periodicity][nop][2] (i,j)
-		scalarfield ddi_magnitude;			// [periodicity][nop]    r_ij (distance)
-		vectorfield ddi_normal;			// [periodicity][nop][4] (nx,ny,nz)
+		scalarfield ddi_magnitudes;			// [periodicity][nop]    r_ij (distance)
+		vectorfield ddi_normals;			// [periodicity][nop][4] (nx,ny,nz)
 
 	private:
 		std::shared_ptr<Data::Geometry> geometry;
@@ -85,11 +85,11 @@ namespace Engine
 		// Calculate the DMI effective field of a Spin Pair
 		void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-		void Gradient_DD(const vectorfield & spins, vectorfield & gradient);
+		void Gradient_DDI(const vectorfield & spins, vectorfield & gradient);
 
 		// ------------ Energy Functions ------------
 		// neighbours for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_dd;
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi;
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
@@ -99,7 +99,7 @@ namespace Engine
 		// Calculate the DMI energy of a Spin System
 		void E_DMI(const vectorfield & spins, scalarfield & Energy);
 		// calculates the Dipole-Dipole Energy
-		void E_DD(const vectorfield & spins, scalarfield & Energy);
+		void E_DDI(const vectorfield & spins, scalarfield & Energy);
 	};
 }
 #endif

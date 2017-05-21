@@ -190,29 +190,26 @@ namespace Engine
 		{
 			auto pairs = pairfield(0);
 
-			auto diagonal = geometry.bounds_max - geometry.bounds_min;
-			scalar maxradius = std::min(diagonal[0], std::min(diagonal[1], diagonal[2]));
-			// scalar ratio = radius/diagonal.norm();
-
-			// Check for too large DDI radius
-			if (radius > maxradius)
-			{
-				radius = maxradius;
-				Log(Log_Level::Warning, Log_Sender::All, "Get_Pairs_in_Radius: radius is larger than your system! Setting to minimum of system bounds: " + std::to_string(radius));
-			}
-
 			if (radius > 1e-6)
 			{
 				Vector3 a = geometry.translation_vectors[0];
 				Vector3 b = geometry.translation_vectors[1];
 				Vector3 c = geometry.translation_vectors[2];
 
-				Vector3 ratio{radius/diagonal[0], radius/diagonal[1], radius/diagonal[2]};
+				Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
+				Vector3 ratio = {
+					bounds_diff[0]/std::max(1, geometry.n_cells[0]),
+					bounds_diff[1]/std::max(1, geometry.n_cells[1]),
+					bounds_diff[2]/std::max(1, geometry.n_cells[2]) };
 
 				// This should give enough translations to contain all DDI pairs
-				int imax = std::min(geometry.n_cells[0], (int)(1.5 * ratio[0] * geometry.n_cells[0]) + 1);
-				int jmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[1] * geometry.n_cells[1]) + 1);
-				int kmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[2] * geometry.n_cells[2]) + 1);
+				int imax = 0, jmax = 0, kmax = 0;
+				if ( bounds_diff[0] > 0 )
+					imax = std::min(geometry.n_cells[0], (int)(1.1 * radius * geometry.n_cells[0] / bounds_diff[0]));
+				if ( bounds_diff[1] > 0 )
+					jmax = std::min(geometry.n_cells[1], (int)(1.1 * radius * geometry.n_cells[1] / bounds_diff[1]));
+				if ( bounds_diff[2] > 0 )
+					kmax = std::min(geometry.n_cells[2], (int)(1.1 * radius * geometry.n_cells[2] / bounds_diff[2]));
 
 				int i,j,k;
 				scalar dx;
@@ -255,30 +252,27 @@ namespace Engine
 		{
 			auto neighbours = neighbourfield(0);
 
-			auto diagonal = geometry.bounds_max - geometry.bounds_min;
-			scalar maxradius = std::min(diagonal[0], std::min(diagonal[1], diagonal[2]));
-			// scalar ratio = radius/diagonal.norm();
-
-			// Check for too large DDI radius
-			if (radius > maxradius)
-			{
-				radius = maxradius;
-				Log(Log_Level::Warning, Log_Sender::All, "Get_Pairs_in_Radius: radius is larger than your system! Setting to minimum of system bounds: " + std::to_string(radius));
-			}
-
 			if (radius > 1e-6)
 			{
 				Vector3 a = geometry.translation_vectors[0];
 				Vector3 b = geometry.translation_vectors[1];
 				Vector3 c = geometry.translation_vectors[2];
 
-				Vector3 ratio{ radius / diagonal[0], radius / diagonal[1], radius / diagonal[2] };
-
+				Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
+				Vector3 ratio = {
+					bounds_diff[0]/std::max(1, geometry.n_cells[0]),
+					bounds_diff[1]/std::max(1, geometry.n_cells[1]),
+					bounds_diff[2]/std::max(1, geometry.n_cells[2]) };
+					
 				// This should give enough translations to contain all DDI pairs
-				int imax = std::min(geometry.n_cells[0], (int)(1.5 * ratio[0] * geometry.n_cells[0]) + 1);
-				int jmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[1] * geometry.n_cells[1]) + 1);
-				int kmax = std::min(geometry.n_cells[1], (int)(1.5 * ratio[2] * geometry.n_cells[2]) + 1);
-
+				int imax = 0, jmax = 0, kmax = 0;
+				if ( bounds_diff[0] > 0 )
+					imax = std::min(geometry.n_cells[0], (int)(1.1 * radius * geometry.n_cells[0] / bounds_diff[0]));
+				if ( bounds_diff[1] > 0 )
+					jmax = std::min(geometry.n_cells[1], (int)(1.1 * radius * geometry.n_cells[1] / bounds_diff[1]));
+				if ( bounds_diff[2] > 0 )
+					kmax = std::min(geometry.n_cells[2], (int)(1.1 * radius * geometry.n_cells[2] / bounds_diff[2]));
+					
 				int i, j, k;
 				scalar dx;
 				Vector3 x0 = { 0,0,0 }, x1 = { 0,0,0 };

@@ -43,14 +43,24 @@ namespace Engine
 
 		// Generate Exchange neighbours
 		exchange_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size());
+
 		// Generate DMI neighbours and normals
 		dmi_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size());
 		for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 		{
-			dmi_normal.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, dmi_neighbours[ineigh].translations }, dm_chirality));
+			dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, dmi_neighbours[ineigh].translations }, dm_chirality));
 		}
+
 		// Generate DDI neighbours, magnitudes and normals
-		// Create_Dipole_Neighbours();
+		this->ddi_neighbours = Engine::Neighbours::Get_Neighbours_in_Radius(*this->geometry, ddi_radius);
+		scalar magnitude;
+		Vector3 normal;
+		for (int i=0; i<ddi_neighbours.size(); ++i)
+		{
+		    Engine::Neighbours::DDI_from_Pair(*this->geometry, {ddi_neighbours[i].iatom, ddi_neighbours[i].ineigh, ddi_neighbours[i].translations}, magnitude, normal);
+			this->ddi_magnitudes.push_back(magnitude);
+			this->ddi_normals.push_back(normal);
+		}
 
 		this->Update_Energy_Contributions();
 	}
@@ -105,9 +115,9 @@ namespace Engine
 		if (this->ddi_neighbours.size() > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0) });
-			this->idx_dd = this->energy_contributions_per_spin.size()-1;
+			this->idx_ddi = this->energy_contributions_per_spin.size()-1;
 		}
-		else this->idx_dd = -1;
+		else this->idx_ddi = -1;
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
@@ -137,7 +147,7 @@ namespace Engine
 		// DMI
 		if (this->idx_dmi >=0 )        E_DMI(spins, energy_contributions_per_spin[idx_dmi].second);
 		// DD
-		if (this->idx_dd >=0 )         E_DD(spins, energy_contributions_per_spin[idx_dd].second);
+		if (this->idx_ddi >=0 )         E_DDI(spins, energy_contributions_per_spin[idx_ddi].second);
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -184,28 +194,36 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normal[ishell].dot(spins[ispin].cross(spins[jspin]));
+					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ishell].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
 	}
 
-	void Hamiltonian_Heisenberg_Neighbours::E_DD(const vectorfield & spins, scalarfield & Energy)
+	void Hamiltonian_Heisenberg_Neighbours::E_DDI(const vectorfield & spins, scalarfield & Energy)
 	{
 		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
-		for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			if (ddi_magnitude[ineigh] > 0.0)
+			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
 			{
-				// Energy[neighbours[ineigh][0]] -= mult / std::pow(ddi_magnitude[ineigh], 3.0) *
-				// 	(3 * spins[neighbours[ineigh][1]].dot(DD_normal[ineigh]) * spins[neighbours[ineigh][0]].dot(DD_normal[ineigh]) - spins[neighbours[ineigh][0]].dot(spins[neighbours[ineigh][1]]));
-				// Energy[neighbours[ineigh][1]] -= mult / std::pow(ddi_magnitude[ineigh], 3.0) *
-				// 	(3 * spins[neighbours[ineigh][1]].dot(DD_normal[ineigh]) * spins[neighbours[ineigh][0]].dot(DD_normal[ineigh]) - spins[neighbours[ineigh][0]].dot(spins[neighbours[ineigh][1]]));
-			}
+				if (ddi_magnitudes[ineigh] > 0.0)
+				{
+					auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+					if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_neighbours[ineigh].translations) )
+					{
+						int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
 
+						Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
+							(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
+						Energy[jspin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
+							(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
+					}
+				}
+			}
 		}
 	}// end DipoleDipole
 
@@ -227,7 +245,7 @@ namespace Engine
 		// DMI
 		this->Gradient_DMI(spins, gradient);
 		// DD
-		this->Gradient_DD(spins, gradient);
+		this->Gradient_DDI(spins, gradient);
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
@@ -274,24 +292,37 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normal[ineigh]);
+					gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normals[ineigh]);
 				}
 			}
 		}
 	}
 
-	void Hamiltonian_Heisenberg_Neighbours::Gradient_DD(const vectorfield & spins, vectorfield & gradient)
+	void Hamiltonian_Heisenberg_Neighbours::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
 	{
 		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
-		for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			if (ddi_magnitude[ineigh] > 0.0)
+			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
 			{
-				scalar skalar_contrib = mult / std::pow(ddi_magnitude[ineigh], 3.0);
-				// gradient[indices[ineigh][0]] -= skalar_contrib * (3 * DD_normal[ineigh] * spins[indices[ineigh][1]].dot(DD_normal[ineigh]) - spins[indices[ineigh][1]]);
-				// gradient[indices[ineigh][1]] -= skalar_contrib * (3 * DD_normal[ineigh] * spins[indices[ineigh][0]].dot(DD_normal[ineigh]) - spins[indices[ineigh][0]]);
+				if (ddi_magnitudes[ineigh] > 0.0)
+				{
+					// std::cerr << ineigh << std::endl;
+					auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+					if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_neighbours[ineigh].translations) )
+					{
+						int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
+
+						if (ddi_magnitudes[ineigh] > 0.0)
+						{
+							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[ineigh], 3.0);
+							gradient[ispin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[jspin].dot(ddi_normals[ineigh]) - spins[jspin]);
+							gradient[jspin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin]);
+						}
+					}
+				}
 			}
 		}
 	}//end Field_DipoleDipole
