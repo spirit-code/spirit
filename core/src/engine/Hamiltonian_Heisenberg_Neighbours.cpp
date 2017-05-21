@@ -55,7 +55,7 @@ namespace Engine
 		this->ddi_neighbours = Engine::Neighbours::Get_Neighbours_in_Radius(*this->geometry, ddi_radius);
 		scalar magnitude;
 		Vector3 normal;
-		for (int i=0; i<ddi_neighbours.size(); ++i)
+		for (unsigned int i=0; i<ddi_neighbours.size(); ++i)
 		{
 		    Engine::Neighbours::DDI_from_Pair(*this->geometry, {ddi_neighbours[i].iatom, ddi_neighbours[i].ineigh, ddi_neighbours[i].translations}, magnitude, normal);
 			this->ddi_magnitudes.push_back(magnitude);
@@ -146,8 +146,8 @@ namespace Engine
 		if (this->idx_exchange >=0 )   E_Exchange(spins,energy_contributions_per_spin[idx_exchange].second);
 		// DMI
 		if (this->idx_dmi >=0 )        E_DMI(spins, energy_contributions_per_spin[idx_dmi].second);
-		// DD
-		if (this->idx_ddi >=0 )         E_DDI(spins, energy_contributions_per_spin[idx_ddi].second);
+		// DDI
+		if (this->idx_ddi >=0 )        E_DDI(spins, energy_contributions_per_spin[idx_ddi].second);
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -194,7 +194,7 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ishell].dot(spins[ispin].cross(spins[jspin]));
+					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}

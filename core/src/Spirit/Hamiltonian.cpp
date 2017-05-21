@@ -208,10 +208,12 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
+		ham->exchange_magnitudes = scalarfield(n_shells);
         for (int i=0; i<n_shells; ++i)
         {
             ham->exchange_magnitudes[i] = jij[i];
         }
+		ham->exchange_neighbours = Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells);
 
         ham->Update_Energy_Contributions();
     }
@@ -251,10 +253,17 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
+		ham->dmi_magnitudes = scalarfield(n_shells);
         for (int i=0; i<n_shells; ++i)
         {
             ham->dmi_magnitudes[i] = dij[i];
         }
+		ham->dmi_neighbours = Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells);
+		ham->dmi_normals = vectorfield(0);
+		for (unsigned int ineigh = 0; ineigh < ham->dmi_neighbours.size(); ++ineigh)
+		{
+			ham->dmi_normals.push_back(Engine::Neighbours::DMI_Normal_from_Pair(*image->geometry, { ham->dmi_neighbours[ineigh].iatom, ham->dmi_neighbours[ineigh].ineigh, ham->dmi_neighbours[ineigh].translations }, 1));
+		}
 
         ham->Update_Energy_Contributions();
     }
@@ -299,8 +308,8 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 
         ham->ddi_radius = radius;
 		auto neighbours = Engine::Neighbours::Get_Neighbours_in_Radius(*image->geometry, radius);
-		scalarfield magnitudes(neighbours.size());
-		vectorfield normals(neighbours.size());
+		scalarfield magnitudes(0);
+		vectorfield normals(0);
 		scalar magnitude;
 		Vector3 normal;
 		for (int i=0; i<neighbours.size(); ++i)
@@ -312,16 +321,17 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
         ham->ddi_neighbours = neighbours;
         ham->ddi_magnitudes = magnitudes;
         ham->ddi_normals = normals;
-        
+
+		// Update the list of different contributions
+		ham->Update_Energy_Contributions();
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
+        auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
-        ham->ddi_radius = radius;
 		auto pairs = Engine::Neighbours::Get_Pairs_in_Radius(*image->geometry, radius);
-		scalarfield magnitudes(pairs.size());
-		vectorfield normals(pairs.size());
+		scalarfield magnitudes(0);
+		vectorfield normals(0);
         scalar magnitude;
         Vector3 normal;
 		for (auto& pair : pairs)
@@ -330,7 +340,12 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 			magnitudes.push_back(magnitude);
 			normals.push_back(normal);
 		}
-        // ham->ddi_pairs
+		ham->ddi_pairs = pairs;
+		ham->ddi_magnitudes = magnitudes;
+		ham->ddi_normals = normals;
+
+		// Update the list of different contributions
+		ham->Update_Energy_Contributions();
     }
 
     image->Unlock();

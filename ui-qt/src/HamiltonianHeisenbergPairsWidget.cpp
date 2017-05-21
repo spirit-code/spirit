@@ -284,7 +284,6 @@ void HamiltonianHeisenbergPairsWidget::set_anisotropy()
 
 void HamiltonianHeisenbergPairsWidget::set_nshells_exchange()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells exchange");
 	// The desired number of shells
 	int n_shells = this->spinBox_nshells_exchange->value();
 	// The current number of shells
@@ -314,8 +313,6 @@ void HamiltonianHeisenbergPairsWidget::set_nshells_exchange()
 
 void HamiltonianHeisenbergPairsWidget::set_exchange()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set exchange");
-
 	if (this->checkBox_exchange->isChecked())
 	{
 		int n_shells = this->exchange_shells.size();
@@ -329,7 +326,6 @@ void HamiltonianHeisenbergPairsWidget::set_exchange()
 
 void HamiltonianHeisenbergPairsWidget::set_nshells_dmi()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells dmi");
 	// The desired number of shells
 	int n_shells = this->spinBox_nshells_dmi->value();
 	// The current number of shells
@@ -359,7 +355,6 @@ void HamiltonianHeisenbergPairsWidget::set_nshells_dmi()
 
 void HamiltonianHeisenbergPairsWidget::set_dmi()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set dmi");
 	if (this->checkBox_dmi->isChecked())
 	{
 		int n_shells = this->dmi_shells.size();
@@ -373,18 +368,46 @@ void HamiltonianHeisenbergPairsWidget::set_dmi()
 
 void HamiltonianHeisenbergPairsWidget::set_ddi()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set ddi");
-	Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value());
+	// Closure to set the parameters of a specific spin system
+	auto apply = [this](int idx_image, int idx_chain) -> void
+	{
+		if (this->checkBox_ddi->isChecked())
+			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value());
+		else
+			Hamiltonian_Set_DDI(state.get(), 0);
+	};
+
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+	{
+		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+	{
+		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
+		{
+			apply(i, Chain_Get_Index(state.get()));
+		}
+	}
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+	{
+		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		{
+			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
+			{
+				apply(img, ichain);
+			}
+		}
+	}
 }
 
 void HamiltonianHeisenbergPairsWidget::set_pairs_from_file()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set pairs (file)");
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Not yet implemented: set pairs from file");
 }
 
 void HamiltonianHeisenbergPairsWidget::set_pairs_from_text()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set pairs (text)");
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Not yet implemented: set pairs from text");
 }
 
 

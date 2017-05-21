@@ -302,12 +302,11 @@ void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
 
 void HamiltonianHeisenbergNeighboursWidget::set_nshells_exchange()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells exchange");
 	// The desired number of shells
 	int n_shells = this->spinBox_exchange_nshells->value();
 	// The current number of shells
 	int n_shells_current = this->exchange_shells.size();
-	// If reduction remove widgets and set exchange
+	// If reduction: remove widgets and set exchange
 	if (n_shells < n_shells_current)
 	{
 		for (int n = n_shells_current; n > n_shells; --n)
@@ -315,8 +314,9 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_exchange()
 			this->exchange_shells.back()->close();
 			this->exchange_shells.pop_back();
 		}
+		this->set_exchange();
 	}
-	// If increase add widgets, connect to slots and do nothing
+	// If increase: add widgets, connect to slots and do nothing
 	else
 	{
 		for (int n = n_shells_current; n < n_shells; ++n)
@@ -338,20 +338,15 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 		float d, vd[3], jij[5], dij[5];
 		int i;
 
-		// // Exchange
-		// i = 0;
-		// if (lineEdit_exchange1->isEnabled()) { jij[0] = lineEdit_exchange1->text().toFloat(); ++i; }
-		// if (lineEdit_exchange2->isEnabled()) { jij[1] = lineEdit_exchange2->text().toFloat(); ++i; }
-		// if (lineEdit_exchange3->isEnabled()) { jij[2] = lineEdit_exchange3->text().toFloat(); ++i; }
-		// if (lineEdit_exchange4->isEnabled()) { jij[3] = lineEdit_exchange4->text().toFloat(); ++i; }
-		// if (lineEdit_exchange5->isEnabled()) { jij[4] = lineEdit_exchange5->text().toFloat(); ++i; }
-		// if (!checkBox_exchange->isChecked())
-		// {
-		// 	for (int shell = 0; shell < i; ++shell) {
-		// 		jij[shell] = 0.0;
-		// 	}
-		// }
-		// Hamiltonian_Set_Exchange(state.get(), i, jij, idx_image, idx_chain);
+		if (this->checkBox_exchange->isChecked())
+		{
+			int n_shells = this->exchange_shells.size();
+			std::vector<float> Jij(n_shells);
+			for (int i = 0; i < n_shells; ++i) Jij[i] = this->exchange_shells[i]->value();
+			Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data());
+		}
+		else
+			Hamiltonian_Set_Exchange(state.get(), 0, nullptr);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -379,7 +374,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 
 void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
 {
-	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "set nshells dmi");
 	// The desired number of shells
 	int n_shells = this->spinBox_dmi_nshells->value();
 	// The current number of shells
@@ -392,6 +386,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
 			this->dmi_shells.back()->close();
 			this->dmi_shells.pop_back();
 		}
+		this->set_dmi();
 	}
 	// If increase add widgets, connect to slots and do nothing
 	else
@@ -413,13 +408,15 @@ void HamiltonianHeisenbergNeighboursWidget::set_dmi()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		// float d, vd[3], jij[5], dij[5];
-		// int i;
-
-		// // DMI
-		// if (this->checkBox_dmi->isChecked()) dij[0] = this->lineEdit_dmi->text().toFloat();
-		// else dij[0] = 0.0;
-		// Hamiltonian_Set_DMI(state.get(), 1, dij, idx_image, idx_chain);
+		if (this->checkBox_dmi->isChecked())
+		{
+			int n_shells = this->dmi_shells.size();
+			std::vector<float> Dij(n_shells);
+			for (int i = 0; i < n_shells; ++i) Dij[i] = this->dmi_shells[i]->value();
+			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data());
+		}
+		else
+			Hamiltonian_Set_DMI(state.get(), 0, nullptr);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -450,7 +447,10 @@ void HamiltonianHeisenbergNeighboursWidget::set_ddi()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi_radius->value());
+		if (this->checkBox_ddi->isChecked())
+			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi_radius->value());
+		else
+			Hamiltonian_Set_DDI(state.get(), 0);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
