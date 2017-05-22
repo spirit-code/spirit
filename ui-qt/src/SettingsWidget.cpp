@@ -28,15 +28,15 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 
 	// Hamiltonian
 	std::string H_name = Hamiltonian_Get_Name(state.get());
-	if (H_name == "Isotropic Heisenberg")
+	if (H_name == "Heisenberg (Neighbours)")
 	{
-		this->hamiltonianIsotropicWidget = new HamiltonianIsotropicWidget(state);
-		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianIsotropicWidget);
+		this->hamiltonianHeisenbergNeighboursWidget = new HamiltonianHeisenbergNeighboursWidget(state, spinWidget);
+		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianHeisenbergNeighboursWidget);
 	}
-	else if (H_name == "Anisotropic Heisenberg")
+	else if (H_name == "Heisenberg (Pairs)")
 	{
-		this->hamiltonianAnisotropicWidget = new HamiltonianAnisotropicWidget(state, spinWidget);
-		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianAnisotropicWidget);
+		this->hamiltonianHeisenbergPairsWidget = new HamiltonianHeisenbergPairsWidget(state, spinWidget);
+		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianHeisenbergPairsWidget);
 	}
 	else if (H_name == "Gaussian")
 	{
@@ -59,8 +59,8 @@ void SettingsWidget::updateData()
 	this->parametersWidget->updateData();
 	// Hamiltonian
 	std::string H_name = Hamiltonian_Get_Name(state.get());
-	if (H_name == "Isotropic Heisenberg") this->hamiltonianIsotropicWidget->updateData();
-	else if (H_name == "Anisotropic Heisenberg") this->hamiltonianAnisotropicWidget->updateData();
+	if (H_name == "Heisenberg (Neighbours)") this->hamiltonianHeisenbergNeighboursWidget->updateData();
+	else if (H_name == "Heisenberg (Pairs)") this->hamiltonianHeisenbergPairsWidget->updateData();
 	else if (H_name == "Gaussian") this->hamiltonianGaussianWidget->updateData();
 	// Visualisation
 	this->visualisationSettingsWidget->updateData();

@@ -163,46 +163,47 @@ namespace Utility
 			std::string config = "";
 			config += "################### Hamiltonian ##################\n";
 			std::string name;
-			if (hamiltonian->Name() == "Anisotropic Heisenberg") name = "anisotropic";
-			else if (hamiltonian->Name() == "Isotropic Heisenberg") name = "isotropic";
+			if (hamiltonian->Name() == "Heisenberg (Pairs)") name = "anisotropic";
+			else if (hamiltonian->Name() == "Heisenberg (Neighbours)") name = "isotropic";
 			else if (hamiltonian->Name() == "Gaussian") name = "gaussian";
 			config += "hamiltonian              " + name + "\n";
 			config += "boundary_conditions      " + std::to_string((int)hamiltonian->boundary_conditions[0]) + " " + std::to_string((int)hamiltonian->boundary_conditions[1]) + " " + std::to_string((int)hamiltonian->boundary_conditions[2]) + "\n";
 			Append_String_to_File(config, configFile);
 
-			if (hamiltonian->Name() == "Anisotropic Heisenberg") Hamiltonian_Anisotropic_to_Config(configFile, hamiltonian, geometry);
-			else if (hamiltonian->Name() == "Isotropic Heisenberg") Hamiltonian_Isotropic_to_Config(configFile, hamiltonian);
+			if (hamiltonian->Name() == "Heisenberg (Pairs)") Hamiltonian_Heisenberg_Pairs_to_Config(configFile, hamiltonian, geometry);
+			else if (hamiltonian->Name() == "Heisenberg (Neighbours)") Hamiltonian_Heisenberg_Neighbours_to_Config(configFile, hamiltonian);
 			else if (hamiltonian->Name() == "Gaussian") Hamiltonian_Gaussian_to_Config(configFile, hamiltonian);
 
 			config = "################# End Hamiltonian ################";
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_to_Config
 
-		void Hamiltonian_Isotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
+		void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
 		{
 			std::string config = "";
-			Engine::Hamiltonian_Isotropic * ham_iso = (Engine::Hamiltonian_Isotropic *)hamiltonian.get();
-			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitude/Constants::mu_B/ham_iso->mu_s) + "\n";
-			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normal[0]) + " " + std::to_string(ham_iso->external_field_normal[1]) + " " + std::to_string(ham_iso->external_field_normal[2]) + "\n";
-			config += "mu_s                     " + std::to_string(ham_iso->mu_s) + "\n";
-			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitude) + "\n";
-			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normal[0]) + " " + std::to_string(ham_iso->anisotropy_normal[1]) + " " + std::to_string(ham_iso->anisotropy_normal[2]) + "\n";
-			config += "n_neigh_shells  			" + std::to_string(ham_iso->n_neigh_shells) + "\n";
-			config += "jij                      " + std::to_string(ham_iso->jij[0]);
-			for (int i=1; i<ham_iso->n_neigh_shells; ++i) config += " " + std::to_string(ham_iso->jij[i]);
+			Engine::Hamiltonian_Heisenberg_Neighbours * ham_iso = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
+			config += "external_field_magnitude " + std::to_string(ham_iso->external_field_magnitudes[0]/Constants::mu_B/ham_iso->mu_s[0]) + "\n";
+			config += "external_field_normal    " + std::to_string(ham_iso->external_field_normals[0][0]) + " " + std::to_string(ham_iso->external_field_normals[0][1]) + " " + std::to_string(ham_iso->external_field_normals[0][2]) + "\n";
+			config += "mu_s                     " + std::to_string(ham_iso->mu_s[0]) + "\n";
+			config += "anisotropy_magnitude     " + std::to_string(ham_iso->anisotropy_magnitudes[0]) + "\n";
+			config += "anisotropy_normal        " + std::to_string(ham_iso->anisotropy_normals[0][0]) + " " + std::to_string(ham_iso->anisotropy_normals[0][1]) + " " + std::to_string(ham_iso->anisotropy_normals[0][2]) + "\n";
+			config += "n_neigh_shells  			" + std::to_string(ham_iso->exchange_magnitudes.size()) + "\n";
+			config += "jij                      " + std::to_string(ham_iso->exchange_magnitudes[0]);
+			for (unsigned int i=1; i<ham_iso->exchange_magnitudes.size(); ++i) config += " " + std::to_string(ham_iso->exchange_magnitudes[i]);
 			config += "\n";
-			config += "dij                      " + std::to_string(ham_iso->dij) + "\n";
-			config += "bij                      " + std::to_string(ham_iso->bij) + "\n";
-			config += "kijkl                    " + std::to_string(ham_iso->kijkl) + "\n";
-			config += "dd_radius                " + std::to_string(ham_iso->dd_radius) + "\n";
+			config += "n_neigh_shells_dmi 		" + std::to_string(ham_iso->dmi_magnitudes.size()) + "\n";
+			config += "dij                      " + std::to_string(ham_iso->dmi_magnitudes[0]) + "\n";
+			for (unsigned int i=1; i<ham_iso->dmi_magnitudes.size(); ++i) config += " " + std::to_string(ham_iso->dmi_magnitudes[i]);
+			config += "\n";
+			config += "dd_radius                " + std::to_string(ham_iso->ddi_radius) + "\n";
 			Append_String_to_File(config, configFile);
-		}// end Hamiltonian_Isotropic_to_Config
+		}// end Hamiltonian_Heisenberg_Neighbours_to_Config
 
-		void Hamiltonian_Anisotropic_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
+		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
 		{
 			int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
 			std::string config = "";
-			Engine::Hamiltonian_Anisotropic* ham_aniso = (Engine::Hamiltonian_Anisotropic *)hamiltonian.get();
+			Engine::Hamiltonian_Heisenberg_Pairs* ham_aniso = (Engine::Hamiltonian_Heisenberg_Pairs *)hamiltonian.get();
 			config += "###\n### Note the pairs and quadruplets are not yet logged here!\n###\n";
 			config += "### The following can be used as input if you remove the '#'s\n";
 			
@@ -215,19 +216,19 @@ namespace Utility
 			// External Field
 			config += "###    External Field:\n";
 			config += "#  i    H     Hx   Hy   Hz\n";
-			for (unsigned int i=0; i<ham_aniso->external_field_index.size()/n_cells_tot; ++i)
+			for (unsigned int i=0; i<ham_aniso->external_field_indices.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->external_field_index[i]) + " " + std::to_string(ham_aniso->external_field_magnitude[i]/Constants::mu_B) + " "
-							+ std::to_string(ham_aniso->external_field_normal[i][0]) + " " + std::to_string(ham_aniso->external_field_normal[i][1]) + " " + std::to_string(ham_aniso->external_field_normal[i][2]) + "\n";
+				config += "# " + std::to_string(ham_aniso->external_field_indices[i]) + " " + std::to_string(ham_aniso->external_field_magnitudes[i]/Constants::mu_B) + " "
+							+ std::to_string(ham_aniso->external_field_normals[i][0]) + " " + std::to_string(ham_aniso->external_field_normals[i][1]) + " " + std::to_string(ham_aniso->external_field_normals[i][2]) + "\n";
 			}
 
 			// Anisotropy
 			config += "###    Anisotropy:\n";
 			config += "#  i    K     Kx   Ky   Kz\n";
-			for (unsigned int i=0; i<ham_aniso->anisotropy_index.size()/n_cells_tot; ++i)
+			for (unsigned int i=0; i<ham_aniso->anisotropy_indices.size()/n_cells_tot; ++i)
 			{
-				config += "# " + std::to_string(ham_aniso->anisotropy_index[i]) + " " + std::to_string(ham_aniso->anisotropy_magnitude[i]) + " "
-							+ std::to_string(ham_aniso->anisotropy_normal[i][0]) + " " + std::to_string(ham_aniso->anisotropy_normal[i][1]) + " " + std::to_string(ham_aniso->anisotropy_normal[i][2]) + "\n";
+				config += "# " + std::to_string(ham_aniso->anisotropy_indices[i]) + " " + std::to_string(ham_aniso->anisotropy_magnitudes[i]) + " "
+							+ std::to_string(ham_aniso->anisotropy_normals[i][0]) + " " + std::to_string(ham_aniso->anisotropy_normals[i][1]) + " " + std::to_string(ham_aniso->anisotropy_normals[i][2]) + "\n";
 			}
 
 			// TODO: how to only log the pairs and quadruplets that were given as input?
@@ -243,7 +244,7 @@ namespace Utility
 			// }
 
 			Append_String_to_File(config, configFile);
-		}// end Hamiltonian_Anisotropic_to_Config
+		}// end Hamiltonian_Heisenberg_Pairs_to_Config
 		
 		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
 		{

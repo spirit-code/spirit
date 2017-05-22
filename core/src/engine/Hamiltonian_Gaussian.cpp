@@ -8,7 +8,7 @@ namespace Engine
 	Hamiltonian_Gaussian::Hamiltonian_Gaussian(
 		std::vector<scalar> amplitude, std::vector<scalar> width, std::vector<Vector3> center
 	) :
-		Hamiltonian(std::vector<bool>{false, false, false}), amplitude(amplitude), width(width), center(center)
+		Hamiltonian(intfield{false, false, false}), amplitude(amplitude), width(width), center(center)
 	{
 		this->n_gaussians = amplitude.size();
 		this->Update_Energy_Contributions();

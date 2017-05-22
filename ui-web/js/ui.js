@@ -397,18 +397,23 @@ $(document).ready(function() {
   $('#input-exchangemagnitudes2').on('change', updateHamiltonianExchange);
 
   function updateHamiltonianDMI() {
-    var dij = Number($('#input-dmi-magnitude').val());
-    var valid = true;
-    if (Number.isNaN(dij)) {
-      valid = false;
-      $('#input-dmi-magnitude').parent().addClass('has-error');
+    if ($('#input-dmi')[0].checked) {
+      var dij = Number($('#input-dmi-magnitude').val());
+      var valid = true;
+      if (Number.isNaN(dij)) {
+        valid = false;
+        $('#input-dmi-magnitude').parent().addClass('has-error');
+      } else {
+        $('#input-dmi-magnitude').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianDMI([dij]);
+      }
     } else {
-      $('#input-dmi-magnitude').parent().removeClass('has-error');
-    }
-    if (valid) {
-      window.currentSimulation.updateHamiltonianDMI(dij);
+      window.currentSimulation.updateHamiltonianDMI([0]);
     }
   }
+  $('#input-dmi').on('change', updateHamiltonianDMI);
   $('#input-dmi-magnitude').on('change', updateHamiltonianDMI);
 
   function updateHamiltonianAnisotropy() {

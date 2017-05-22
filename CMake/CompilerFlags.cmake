@@ -20,22 +20,26 @@ set( INTERFACE_EXPORT_FUNCTIONS
 		'_Geometry_Get_Bounds' '_Geometry_Get_Center'
 		'_Geometry_Get_Basis_Vectors' '_Geometry_Get_N_Cells' '_Geometry_Get_Translation_Vectors' '_Geometry_Get_Dimensionality'
 		# Hamiltonian
-		'_Hamiltonian_Set_Boundary_Conditions' '_Hamiltonian_Set_mu_s' '_Hamiltonian_Set_Field' '_Hamiltonian_Set_Exchange' '_Hamiltonian_Set_DMI' '_Hamiltonian_Set_Anisotropy' '_Hamiltonian_Set_STT' '_Hamiltonian_Set_Temperature'
-		'_Hamiltonian_Get_Boundary_Conditions' '_Hamiltonian_Get_mu_s' '_Hamiltonian_Get_Field' '_Hamiltonian_Get_Exchange' '_Hamiltonian_Get_DMI' '_Hamiltonian_Get_Anisotropy' '_Hamiltonian_Get_STT' '_Hamiltonian_Get_Temperature'
-		# Parameters
-		'_Parameters_Set_LLG_Time_Step' '_Parameters_Set_LLG_Damping' '_Parameters_Set_GNEB_Spring_Constant' '_Parameters_Set_GNEB_Climbing_Falling'
-		'_Parameters_Get_LLG_Time_Step' '_Parameters_Get_LLG_Damping' '_Parameters_Get_GNEB_Spring_Constant' '_Parameters_Get_GNEB_Climbing_Falling' '_Parameters_Get_GNEB_N_Energy_Interpolations'
+		'_Hamiltonian_Set_Boundary_Conditions' '_Hamiltonian_Set_mu_s' '_Hamiltonian_Set_Field' '_Hamiltonian_Set_Exchange' '_Hamiltonian_Set_DMI' '_Hamiltonian_Set_Anisotropy'
+		'_Hamiltonian_Get_Boundary_Conditions' '_Hamiltonian_Get_mu_s' '_Hamiltonian_Get_Field' '_Hamiltonian_Get_Exchange' '_Hamiltonian_Get_DMI' '_Hamiltonian_Get_Anisotropy'
+		# Parameters LLG
+		'_Parameters_Set_LLG_Time_Step' '_Parameters_Set_LLG_Damping'
+		'_Parameters_Set_LLG_STT' '_Parameters_Set_LLG_Temperature'
+		'_Parameters_Get_LLG_Time_Step' '_Parameters_Get_LLG_Damping'
+		'_Parameters_Get_LLG_STT' '_Parameters_Get_LLG_Temperature'
+		# Parameters GNEB
+		'_Parameters_Set_GNEB_Spring_Constant' '_Parameters_Set_GNEB_Climbing_Falling'
+		'_Parameters_Get_GNEB_Spring_Constant' '_Parameters_Get_GNEB_Climbing_Falling' '_Parameters_Get_GNEB_N_Energy_Interpolations'
 		# Configurations
-		'_Configuration_DomainWall' '_Configuration_Homogeneous' '_Configuration_PlusZ' '_Configuration_MinusZ'
+		'_Configuration_Domain' '_Configuration_PlusZ' '_Configuration_MinusZ'
 		'_Configuration_Random' '_Configuration_Add_Noise_Temperature' '_Configuration_Skyrmion' '_Configuration_SpinSpiral'
 		# Transitions
 		'_Transition_Homogeneous' '_Transition_Add_Noise_Temperature'
 		# Simulation
 		'_JS_LLG_Iteration'
 		'_Simulation_SingleShot' '_Simulation_PlayPause' '_Simulation_Stop_All'
-		'_Simulation_Running_Any_Anywhere' '_Simulation_Running_LLG_Anywhere' '_Simulation_Running_GNEB_Anywhere'
-		'_Simulation_Running_LLG_Chain'
-		'_Simulation_Running_Any' '_Simulation_Running_LLG' '_Simulation_Running_GNEB' '_Simulation_Running_MMF'
+		'_Simulation_Running_Image' '_Simulation_Running_Chain' '_Simulation_Running_Collection'
+		'_Simulation_Running_Anywhere_Chain' '_Simulation_Running_Anywhere_Collection'
 		# Log
 		'_Log_Send' '_Log_Get_N_Entries' '_Log_Append' '_Log_Dump'
 		)
@@ -60,7 +64,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
 ######## Apple Clang #################################################
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	if ( BUILD_UI_WEB)
+	if ( SPIRIT_BUILD_FOR_JS)
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
 		### Compiler Flags

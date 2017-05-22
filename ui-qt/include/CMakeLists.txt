@@ -4,8 +4,8 @@ set(HEADER_UI_QT_ROOT
     ${CMAKE_CURRENT_SOURCE_DIR}/SpinWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianIsotropicWidget.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianAnisotropicWidget.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergNeighboursWidget.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergPairsWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ConfigurationsWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.hpp
