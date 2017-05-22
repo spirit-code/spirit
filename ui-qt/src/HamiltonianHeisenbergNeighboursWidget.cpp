@@ -75,7 +75,8 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Contents()
 	this->lineEdit_extHy->setText(QString::number(vd[1]));
 	this->lineEdit_extHz->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_extH->setChecked(true);
-
+	else this->checkBox_extH->setChecked(false);
+	
 	// Anisotropy
 	Hamiltonian_Get_Anisotropy(state.get(), &d, vd);
 	this->lineEdit_aniso->setText(QString::number(d));
@@ -83,10 +84,12 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Contents()
 	this->lineEdit_anisoy->setText(QString::number(vd[1]));
 	this->lineEdit_anisoz->setText(QString::number(vd[2]));
 	if (d > 0.0) this->checkBox_aniso->setChecked(true);
+	else this->checkBox_aniso->setChecked(false);
 
 	// Exchange interaction
 	Hamiltonian_Get_Exchange(state.get(), &n_neigh_shells_exchange, jij);
 	if (n_neigh_shells_exchange > 0) this->checkBox_exchange->setChecked(true);
+	else this->checkBox_exchange->setChecked(false);
 	this->spinBox_exchange_nshells->setValue(n_neigh_shells_exchange);
 	this->set_nshells_exchange();
 	for (int i = 0; i < n_neigh_shells_exchange; ++i) this->exchange_shells[i]->setValue(jij[i]);
@@ -102,6 +105,7 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Contents()
 	float ddi_radius;
 	Hamiltonian_Get_DDI(state.get(), &ddi_radius);
 	if (ddi_radius > 0) this->checkBox_ddi->setChecked(true);
+	else this->checkBox_ddi->setChecked(false);
 	this->doubleSpinBox_ddi_radius->setValue(ddi_radius);
 }
 

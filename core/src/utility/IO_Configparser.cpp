@@ -700,6 +700,18 @@ namespace Utility
 			intfield    external_field_index(geometry->nos);				// [nos]
 			scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
 			vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
+			// Fill in defaults
+			B_normal.normalize();
+			if (B != 0)
+			{
+				// Fill the arrays
+				for (int i = 0; i < geometry->nos; ++i)
+				{
+					external_field_index[i] = i;
+					external_field_magnitude[i] = B;
+					external_field_normal[i] = B_normal;
+				}
+			}
 			
 			// Anisotropy
 			std::string anisotropy_file = "";
@@ -709,6 +721,18 @@ namespace Utility
 			intfield    anisotropy_index(geometry->nos);				// [nos]
 			scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
 			vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
+			// Fill in defaults
+			K_normal.normalize();
+			if (K != 0)
+			{
+				// Fill the arrays
+				for (int i = 0; i < geometry->nos; ++i)
+				{
+					anisotropy_index[i] = i;
+					anisotropy_magnitude[i] = K;
+					anisotropy_normal[i] = K_normal;
+				}
+			}
 
 			// Number of shells in which we calculate neighbours
 			// Jij
