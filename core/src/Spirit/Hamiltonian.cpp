@@ -351,7 +351,7 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 		vectorfield normals(0);
 		scalar magnitude;
 		Vector3 normal;
-		for (int i=0; i<neighbours.size(); ++i)
+		for (unsigned int i=0; i<neighbours.size(); ++i)
 		{
 		    Engine::Neighbours::DDI_from_Pair(*image->geometry, {neighbours[i].iatom, neighbours[i].ineigh, neighbours[i].translations}, magnitude, normal);
 			magnitudes.push_back(magnitude);
@@ -602,12 +602,12 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        *radius = ham->ddi_radius;
+        *radius = (float)ham->ddi_radius;
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-        *radius = ham->ddi_radius;
+        *radius = (float)ham->ddi_radius;
     }
 }
