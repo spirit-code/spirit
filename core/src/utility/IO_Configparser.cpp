@@ -227,7 +227,7 @@ namespace Utility
 						myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
 					}// finish Reading Shape in terms of basis
 					else {
-						Log(Log_Level::Error, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+						Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
 					}
 					// Read Basis
 						
@@ -241,7 +241,7 @@ namespace Utility
 						Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
 					}
 					else {
-						Log(Log_Level::Error, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
+						Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
 					}// end Basis
 				}// end try
 				catch (Exception ex)
@@ -634,7 +634,7 @@ namespace Utility
 		{
 			//-------------- Insert default values here -----------------------------
 			// The type of hamiltonian we will use
-			std::string hamiltonian_type = "isotropic";
+			std::string hamiltonian_type = "heisenberg_neighbours";
 
 			//------------------------------- Parser --------------------------------
 			Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: building");
@@ -694,7 +694,7 @@ namespace Utility
 			scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
 			// External Magnetic Field
 			std::string external_field_file = "";
-			scalar B = 0;
+			scalar B = 24;
 			Vector3 B_normal = { 0.0, 0.0, 1.0 };
 			bool external_field_from_file = false;
 			intfield    external_field_index(geometry->nos);				// [nos]
@@ -711,12 +711,12 @@ namespace Utility
 			vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
 
 			// Number of shells in which we calculate neighbours
-			int n_neigh_shells_exchange = 2;
 			// Jij
-			std::vector<scalar> jij = { 10.0, 1.0 };
+			std::vector<scalar> jij = { 10.0 };
+			int n_neigh_shells_exchange = jij.size();
 			// DM constant
-			int n_neigh_shells_dmi = 1;
 			std::vector<scalar> dij = { 6.0 };
+			int n_neigh_shells_dmi = dij.size();
 			int dm_chirality = 1;
 			// Dipole-Dipole interaction radius
 			scalar dd_radius = 0.0;
@@ -812,22 +812,24 @@ namespace Utility
 					}
 
 					myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
-					jij = std::vector<scalar>(n_neigh_shells_exchange);
+					if (jij.size() != n_neigh_shells_exchange)
+						jij = std::vector<scalar>(n_neigh_shells_exchange);
 					if (myfile.Find("jij"))
 					{
 						for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
 							myfile.iss >> jij[iatom];
 					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0, 1.0 }");
+					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
 					
 					myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
-					dij = std::vector<scalar>(n_neigh_shells_dmi);
+					if (dij.size() != n_neigh_shells_dmi)
+						dij = std::vector<scalar>(n_neigh_shells_dmi);
 					if (myfile.Find("dij"))
 					{
 						for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
 							myfile.iss >> dij[iatom];
 					}
-					else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
+					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
 					myfile.Read_Single(dm_chirality, "dm_chirality");
 					
 					myfile.Read_Single(dd_radius, "dd_radius");

@@ -119,7 +119,7 @@ Module.ready(function() {
 
     Module.Configuration_PlusZ = Module.cwrap('Configuration_PlusZ', null, ['number', 'number', 'number']);
     Simulation.prototype.setAllSpinsPlusZ = function() {
-        Module.Configuration_PlusZ(this._state, -1, -1);
+        Module.Configuration_PlusZ(this._state);
         this.update();
     };
     Module.Configuration_MinusZ = Module.cwrap('Configuration_MinusZ', null, ['number', 'number', 'number']);
@@ -127,9 +127,15 @@ Module.ready(function() {
         Module.Configuration_MinusZ(this._state, -1, -1);
         this.update();
     };
-    Module.Configuration_Random = Module.cwrap('Configuration_Random', null, ['number', 'number', 'number']);
+    Module.Configuration_Random = Module.cwrap('Configuration_Random', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.setAllSpinsRandom = function() {
-        Module.Configuration_Random(this._state, -1, -1);
+        var pos = new Float32Array([0,0,0]);
+        var pos_ptr = Module._malloc(pos.length * pos.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(pos, pos_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_Random(this._state, pos_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         this.update();
     };
     Module.Configuration_Skyrmion = Module.cwrap('Configuration_Skyrmion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
@@ -154,7 +160,7 @@ Module.ready(function() {
         Module._free(axis_ptr);
         this.update();
     };
-    Module.Configuration_DomainWall = Module.cwrap('Configuration_DomainWall', null, ['number', 'number', 'number', 'number', 'number', 'number']);
+    Module.Configuration_DomainWall = Module.cwrap('Configuration_Domain', null, ['number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.createDomainWall = function(position, direction, greater) {
         position = new Float32Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
@@ -213,18 +219,18 @@ Module.ready(function() {
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_STT = Module.cwrap('Hamiltonian_Set_STT', null, ['number', 'number', 'number', 'number', 'number']);
+    Module.Parameters_Set_LLG_STT = Module.cwrap('Parameters_Set_LLG_STT', null, ['number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianSpinTorque = function(magnitude, normal_x, normal_y, normal_z) {
         var normal = new Float32Array([normal_x, normal_y, normal_z]);
         var normal_ptr = Module._malloc(normal.length * normal.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(normal, normal_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Hamiltonian_Set_STT(this._state, magnitude, normal_ptr, -1, -1);
+        Module.Parameters_Set_LLG_STT(this._state, magnitude, normal_ptr, -1, -1);
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_Temperature = Module.cwrap('Hamiltonian_Set_Temperature', null, ['number', 'number', 'number', 'number']);
+    Module.Parameters_Set_LLG_Temperature = Module.cwrap('Parameters_Set_LLG_Temperature', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianTemperature = function(temperature) {
-        Module.Hamiltonian_Set_Temperature(this._state, temperature, -1, -1);
+        Module.Parameters_Set_LLG_Temperature(this._state, temperature, -1, -1);
         this.update();
     };
     Module.Parameters_Set_LLG_Time_Step = Module.cwrap('Parameters_Set_LLG_Time_Step', null, ['number', 'number', 'number', 'number']);

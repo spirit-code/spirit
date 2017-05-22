@@ -226,7 +226,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 		for (auto& neigh : neighbours)
 		{
 			pairs.push_back({ neigh.iatom, neigh.ineigh, neigh.translations });
-			magnitudes.push_back({ 0.5*jij[neigh.idx_shell] });
+			magnitudes.push_back({ (scalar)0.5*jij[neigh.idx_shell] });
 		}
 
 		// Set Hamiltonian's arrays
@@ -277,7 +277,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 		for (auto& neigh : neighbours)
 		{
 			pairs.push_back({ neigh.iatom, neigh.ineigh, neigh.translations });
-			magnitudes.push_back({ 0.5*dij[neigh.idx_shell] });
+			magnitudes.push_back({ (scalar)0.5*dij[neigh.idx_shell] });
 			normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair(*image->geometry, pairs.back(), 1) });
 		}
 
