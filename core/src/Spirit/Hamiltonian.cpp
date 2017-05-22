@@ -234,8 +234,9 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 
         ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set exchange to " + std::to_string(n_shells) + " shells, Jij[0] = " + std::to_string(jij[0]), idx_image, idx_chain);
+		std::string message = "Set exchange to " + std::to_string(n_shells) + " shells";
+		if (n_shells > 0) message += " Jij[0] = " + std::to_string(jij[0]);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -257,8 +258,9 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set exchange to " + std::to_string(n_shells) + " shells, Jij[0] = " + std::to_string(jij[0]), idx_image, idx_chain);
+		std::string message = "Set exchange to " + std::to_string(n_shells) + " shells";
+		if (n_shells > 0) message += " Jij[0] = " + std::to_string(jij[0]);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain);
     }
     else
         Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
@@ -294,8 +296,9 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 
         ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set dmi to " + std::to_string(n_shells) + " shells, Dij[0] = " + std::to_string(dij[0]), idx_image, idx_chain);
+		std::string message = "Set dmi to " + std::to_string(n_shells) + " shells";
+		if (n_shells > 0) message += " Dij[0] = " + std::to_string(dij[0]);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -320,12 +323,12 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set dmi to " + std::to_string(n_shells) + " shells, Dij[0] = " + std::to_string(dij[0]), idx_image, idx_chain);
+		std::string message = "Set dmi to " + std::to_string(n_shells) + " shells";
+		if (n_shells > 0) message += " Dij[0] = " + std::to_string(dij[0]);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain);
     }
     else
-        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
-            "DMI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "DMI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
 
 	image->Unlock();
 }
@@ -361,8 +364,7 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -386,12 +388,10 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
     }
     else
-        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
-            "DDI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "DDI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
 
 
     image->Unlock();

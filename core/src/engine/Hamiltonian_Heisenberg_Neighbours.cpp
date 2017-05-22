@@ -135,7 +135,6 @@ namespace Engine
 			// Otherwise set to zero
 			else for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
 		}
-		
 
 		// External field
 		if (this->idx_zeeman >=0 )     E_Zeeman(spins, energy_contributions_per_spin[idx_zeeman].second);
@@ -349,109 +348,104 @@ namespace Engine
 
 		// std::cerr << "calculated hessian" << std::endl;
 
-		//  // Spin Pair elements
-		//  for (int i_periodicity = 0; i_periodicity < 8; ++i_periodicity)
-		//  {
-		//  	//		Check if boundary conditions contain this periodicity
-		//  	if ((i_periodicity == 0)
-		//  		|| (i_periodicity == 1 && this->boundary_conditions[0])
-		//  		|| (i_periodicity == 2 && this->boundary_conditions[1])
-		//  		|| (i_periodicity == 3 && this->boundary_conditions[2])
-		//  		|| (i_periodicity == 4 && this->boundary_conditions[0] && this->boundary_conditions[1])
-		//  		|| (i_periodicity == 5 && this->boundary_conditions[0] && this->boundary_conditions[2])
-		//  		|| (i_periodicity == 6 && this->boundary_conditions[1] && this->boundary_conditions[2])
-		//  		|| (i_periodicity == 7 && this->boundary_conditions[0] && this->boundary_conditions[1] && this->boundary_conditions[2]))
-		//  	{
-		//  		//		Loop over neighbours of this periodicity
-		//  		// Exchange
-		//  		for (unsigned int i_pair = 0; i_pair < this->exchange_neighbours.size(); ++i_pair)
-		//  		{
-		//  			for (int alpha = 0; alpha < 3; ++alpha)
-		//  			{
-		//  				int idx_i = 3*exchange_neighbours[i_pair][0] + alpha;
-		//  				int idx_j = 3*exchange_neighbours[i_pair][1] + alpha;
-		//  				hessian(idx_i,idx_j) += -exchange_magnitudes[i_pair];
-		//  				hessian(idx_j,idx_i) += -exchange_magnitudes[i_pair];
-		//  			}
-		//  		}
-		//  		// DMI
-		//  		for (unsigned int i_pair = 0; i_pair < this->dmi_neighbours[i_periodicity].size(); ++i_pair)
-		//  		{
-		//  			for (int alpha = 0; alpha < 3; ++alpha)
-		//  			{
-		//  				for (int beta = 0; beta < 3; ++beta)
-		//  				{
-		//  					int idx_i = 3*dmi_neighbours[i_periodicity][i_pair][0] + alpha;
-		//  					int idx_j = 3*dmi_neighbours[i_periodicity][i_pair][1] + beta;
-		//  					if ( (alpha == 0 && beta == 1) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
-		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
-		//  					}
-		//  					else if ( (alpha == 1 && beta == 0) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
-		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][2];
-		//  					}
-		//  					else if ( (alpha == 0 && beta == 2) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
-		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
-		//  					}
-		//  					else if ( (alpha == 2 && beta == 0) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
-		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][1];
-		//  					}
-		//  					else if ( (alpha == 1 && beta == 2) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
-		//  						hessian(idx_j,idx_i) +=
-		//  							-dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
-		//  					}
-		//  					else if ( (alpha == 2 && beta == 1) )
-		//  					{
-		//  						hessian(idx_i,idx_j) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
-		//  						hessian(idx_j,idx_i) +=
-		//  							dmi_magnitudes[i_periodicity][i_pair] * dmi_normal[i_periodicity][i_pair][0];
-		//  					}
-		//  				}
-		//  			}
-		//  		}
-		//  //		// Dipole-Dipole
-		//  //		for (unsigned int i_pair = 0; i_pair < this->ddi_neighbours[i_periodicity].size(); ++i_pair)
-		//  //		{
-		//  //			// indices
-		//  //			int idx_1 = ddi_neighbours[i_periodicity][i_pair][0];
-		//  //			int idx_2 = ddi_neighbours[i_periodicity][i_pair][1];
-		//  //			// prefactor
-		//  //			scalar prefactor = 0.0536814951168
-		//  //				* this->mu_s[idx_1] * this->mu_s[idx_2]
-		//  //				/ std::pow(ddi_magnitude[i_periodicity][i_pair], 3);
-		//  //			// components
-		//  //			for (int alpha = 0; alpha < 3; ++alpha)
-		//  //			{
-		//  //				for (int beta = 0; beta < 3; ++beta)
-		//  //				{
-		//  //					int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
-		//  //					if (alpha == beta)
-		//  //						hessian[idx_h] += prefactor;
-		//  //					hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
-		//  //				}
-		//  //			}
-		//  //		}
-		//  	}// end if periodicity
-		//  }// end for periodicity
+		// Spin Pair elements
+		// Exchange
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int ineigh = 0; ineigh < this->exchange_neighbours.size(); ++ineigh)
+			{
+				for (int alpha = 0; alpha < 3; ++alpha)
+				{
+					//int idx_i = 3 * exchange_neighbours[i_pair][0] + alpha;
+					//int idx_j = 3 * exchange_neighbours[i_pair][1] + alpha;
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					int ishell = exchange_neighbours[ineigh].idx_shell;
+					hessian(ispin, jspin) += -exchange_magnitudes[ineigh];
+					hessian(jspin, ispin) += -exchange_magnitudes[ineigh];
+				}
+			}
+		}
+		// DMI
+		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
+		{
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			for (unsigned int ineigh = 0; ineigh < this->dmi_neighbours.size(); ++ineigh)
+			{
+				for (int alpha = 0; alpha < 3; ++alpha)
+				{
+					for (int beta = 0; beta < 3; ++beta)
+					{
+						int idx_i = 3 * dmi_neighbours[ineigh].iatom + alpha;
+						int idx_j = 3 * dmi_neighbours[ineigh].ineigh + beta;
+						if ((alpha == 0 && beta == 1))
+						{
+							hessian(idx_i, idx_j) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][2];
+							hessian(idx_j, idx_i) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][2];
+						}
+						else if ((alpha == 1 && beta == 0))
+						{
+							hessian(idx_i, idx_j) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][2];
+							hessian(idx_j, idx_i) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][2];
+						}
+						else if ((alpha == 0 && beta == 2))
+						{
+							hessian(idx_i, idx_j) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][1];
+							hessian(idx_j, idx_i) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][1];
+						}
+						else if ((alpha == 2 && beta == 0))
+						{
+							hessian(idx_i, idx_j) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][1];
+							hessian(idx_j, idx_i) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][1];
+						}
+						else if ((alpha == 1 && beta == 2))
+						{
+							hessian(idx_i, idx_j) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][0];
+							hessian(idx_j, idx_i) +=
+								-dmi_magnitudes[ineigh] * dmi_normals[ineigh][0];
+						}
+						else if ((alpha == 2 && beta == 1))
+						{
+							hessian(idx_i, idx_j) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][0];
+							hessian(idx_j, idx_i) +=
+								dmi_magnitudes[ineigh] * dmi_normals[ineigh][0];
+						}
+					}
+				}
+			}
+		}
+		//// Dipole-Dipole
+		//for (unsigned int i_pair = 0; i_pair < this->ddi_neighbours[i_periodicity].size(); ++i_pair)
+		//{
+		//	// indices
+		//	int idx_1 = ddi_neighbours[i_periodicity][i_pair][0];
+		//	int idx_2 = ddi_neighbours[i_periodicity][i_pair][1];
+		//	// prefactor
+		//	scalar prefactor = 0.0536814951168
+		//		* this->mu_s[idx_1] * this->mu_s[idx_2]
+		//		/ std::pow(ddi_magnitude[i_periodicity][i_pair], 3);
+		//	// components
+		//	for (int alpha = 0; alpha < 3; ++alpha)
+		//	{
+		//		for (int beta = 0; beta < 3; ++beta)
+		//		{
+		//			int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+		//			if (alpha == beta)
+		//				hessian[idx_h] += prefactor;
+		//			hessian[idx_h] += -3.0*prefactor*DD_normal[i_periodicity][i_pair][alpha] * DD_normal[i_periodicity][i_pair][beta];
+		//		}
+		//	}
+		//}
 	}
 
 	// Hamiltonian name as string
