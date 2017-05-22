@@ -22,7 +22,7 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-	image->Lock();
+    image->Lock();
 
     image->hamiltonian->boundary_conditions[0] = periodical[0];
     image->hamiltonian->boundary_conditions[1] = periodical[1];
@@ -46,15 +46,19 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
         for (auto& m : ham->mu_s) m = mu_s;
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set mu_s to " + std::to_string(mu_s), idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
         for (auto& m : ham->mu_s) m = mu_s;
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set mu_s to " + std::to_string(mu_s), idx_image, idx_chain);
     }
-
-	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-        "Set mu_s to " + std::to_string(mu_s), idx_image, idx_chain);
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "mu_s cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
 
 	image->Unlock();
 }
@@ -94,6 +98,9 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
 
         // Update Energies
         ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set external field to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -120,11 +127,15 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
 
         // Update Energies
         ham->Update_Energy_Contributions();
-    }
-    
-	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-        "Set external field to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
 
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set external field to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+
+    }
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "External field cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
+    
 	// Unlock mutex
 	image->Unlock();
 }
@@ -162,6 +173,9 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 
 		// Update Energies
 		ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set anisotropy to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -188,10 +202,13 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 
 		// Update Energies
 		ham->Update_Energy_Contributions();
-    }
 
-	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-        "Set anisotropy to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set anisotropy to " + std::to_string(magnitude) + ", direction (" + std::to_string(normal[0]) + "," + std::to_string(normal[1]) + "," + std::to_string(normal[2]) + ")", idx_image, idx_chain);
+    }
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "Anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
 
 	image->Unlock();
 }
@@ -216,6 +233,9 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 		ham->exchange_neighbours = Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells);
 
         ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set exchange to " + std::to_string(n_shells) + " shells, Jij[0] = " + std::to_string(jij[0]), idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -236,7 +256,14 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set exchange to " + std::to_string(n_shells) + " shells, Jij[0] = " + std::to_string(jij[0]), idx_image, idx_chain);
     }
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "Exchange cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
+
 
 	image->Unlock();
 }
@@ -266,6 +293,9 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 		}
 
         ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set dmi to " + std::to_string(n_shells) + " shells, Dij[0] = " + std::to_string(dij[0]), idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -289,7 +319,13 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set dmi to " + std::to_string(n_shells) + " shells, Dij[0] = " + std::to_string(dij[0]), idx_image, idx_chain);
     }
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "DMI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
 
 	image->Unlock();
 }
@@ -324,6 +360,9 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
     }
     else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
     {
@@ -346,7 +385,14 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 
 		// Update the list of different contributions
 		ham->Update_Energy_Contributions();
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set ddi radius to " + std::to_string(radius), idx_image, idx_chain);
     }
+    else
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "DDI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain);
+
 
     image->Unlock();
 }
