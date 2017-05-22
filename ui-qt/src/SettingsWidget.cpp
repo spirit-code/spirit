@@ -30,7 +30,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	std::string H_name = Hamiltonian_Get_Name(state.get());
 	if (H_name == "Heisenberg (Neighbours)")
 	{
-		this->hamiltonianHeisenbergNeighboursWidget = new HamiltonianHeisenbergNeighboursWidget(state);
+		this->hamiltonianHeisenbergNeighboursWidget = new HamiltonianHeisenbergNeighboursWidget(state, spinWidget);
 		this->tab_Settings_Hamiltonian->layout()->addWidget(this->hamiltonianHeisenbergNeighboursWidget);
 	}
 	else if (H_name == "Heisenberg (Pairs)")

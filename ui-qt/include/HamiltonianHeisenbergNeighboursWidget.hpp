@@ -26,7 +26,7 @@ class HamiltonianHeisenbergNeighboursWidget : public QWidget, private Ui::Hamilt
     Q_OBJECT
 
 public:
-	HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state);
+	HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
 	void updateData();
 
 private slots:
@@ -46,6 +46,7 @@ private:
 	void Setup_Slots();
 
 	std::shared_ptr<State> state;
+	SpinWidget * spinWidget;
 	
 	// Spinboxes for interaction shells
 	std::vector<QDoubleSpinBox *> exchange_shells;

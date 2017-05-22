@@ -19,9 +19,10 @@ void normalize(T v[3])
 	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
 }
 
-HamiltonianHeisenbergNeighboursWidget::HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state)
+HamiltonianHeisenbergNeighboursWidget::HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
 {
 	this->state = state;
+	this->spinWidget = spinWidget;
 
 	// Setup User Interface
     this->setupUi(this);
@@ -147,6 +148,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_boundary_conditions()
 			}
 		}
 	}
+	this->spinWidget->updateBoundingBoxIndicators();
 }
 
 void HamiltonianHeisenbergNeighboursWidget::set_mu_s()
