@@ -136,6 +136,8 @@ Module.ready(function() {
         var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         Module.Configuration_Random(this._state, pos_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
+        Module._free(pos_ptr);
+        Module._free(border_ptr);
         this.update();
     };
     Module.Configuration_Skyrmion = Module.cwrap('Configuration_Skyrmion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
@@ -173,21 +175,21 @@ Module.ready(function() {
         Module._free(direction_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_Boundary_Conditions = Module.cwrap('Hamiltonian_Set_Boundary_Conditions', null, ['number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_Boundary_Conditions = Module.cwrap('Hamiltonian_Set_Boundary_Conditions', null, ['number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianBoundaryConditions = function(periodical_a, periodical_b, periodical_c) {
         var periodical = new Int8Array([periodical_a, periodical_b, periodical_c]);
         var periodical_ptr = Module._malloc(periodical.length * periodical.BYTES_PER_ELEMENT);
-        Module.HEAPF32.set(periodical, periodical_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.HEAP8.set(periodical, periodical_ptr/Module.HEAP8.BYTES_PER_ELEMENT);
         Module.Hamiltonian_Set_Boundary_Conditions(this._state, periodical_ptr, -1, -1);
         Module._free(periodical_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_mu_s = Module.cwrap('Hamiltonian_Set_mu_s', null, ['number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_mu_s = Module.cwrap('Hamiltonian_Set_mu_s', null, ['number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianMuSpin = function(mu_spin) {
         Module.Hamiltonian_Set_mu_s(this._state, mu_spin, -1, -1);
         this.update();
     };
-    Module.Hamiltonian_Set_Field = Module.cwrap('Hamiltonian_Set_Field', null, ['number', 'number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_Field = Module.cwrap('Hamiltonian_Set_Field', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianExternalField = function(magnitude, normal_x, normal_y, normal_z) {
         var normal = new Float32Array([normal_x, normal_y, normal_z]);
         var normal_ptr = Module._malloc(normal.length * normal.BYTES_PER_ELEMENT);
@@ -196,7 +198,7 @@ Module.ready(function() {
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_Exchange = Module.cwrap('Hamiltonian_Set_Exchange', null, ['number', 'number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_Exchange = Module.cwrap('Hamiltonian_Set_Exchange', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianExchange = function(values) {
         values = new Float32Array(values);
         var values_ptr = Module._malloc(values.length * values.BYTES_PER_ELEMENT);
@@ -206,8 +208,11 @@ Module.ready(function() {
         this.update();
     };
     Module.Hamiltonian_Set_DMI = Module.cwrap('Hamiltonian_Set_DMI', null, ['number', 'number', 'number', 'number']);
-    Simulation.prototype.updateHamiltonianDMI = function(dij) {
-        Module.Hamiltonian_Set_DMI(this._state, dij, -1, -1);
+    Simulation.prototype.updateHamiltonianDMI = function(values) {
+        values = new Float32Array(values);
+        var values_ptr = Module._malloc(values.length * values.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(values, values_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Hamiltonian_Set_DMI(this._state, values.length, values_ptr, -1, -1);
         this.update();
     };
     Module.Hamiltonian_Set_Anisotropy = Module.cwrap('Hamiltonian_Set_Anisotropy', null, ['number', 'number', 'number', 'number', 'number']);
