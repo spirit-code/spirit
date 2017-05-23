@@ -234,10 +234,6 @@ namespace Utility
 				config += "# " + std::to_string(ham->anisotropy_indices[i]) + " " + std::to_string(ham->anisotropy_magnitudes[i]) + " "
 							+ std::to_string(ham->anisotropy_normals[i][0]) + " " + std::to_string(ham->anisotropy_normals[i][1]) + " " + std::to_string(ham->anisotropy_normals[i][2]) + "\n";
 			}
-
-			config += "\n";
-			config += "###\n### Note the pairs and quadruplets are not yet logged here!\n###\n";
-			config += "\n";
 			
 			// Exchange
 			config += "###    Exchange:\n";
@@ -258,6 +254,18 @@ namespace Utility
 							+ std::to_string(ham->dmi_pairs[i].translations[0]) + " " + std::to_string(ham->dmi_pairs[i].translations[1]) + " " + std::to_string(ham->dmi_pairs[i].translations[2])+ "   "
 							+ std::to_string(ham->dmi_magnitudes[i]) + " "
 							+ std::to_string(ham->dmi_normals[i][0]) + " " + std::to_string(ham->dmi_normals[i][1]) + " " + std::to_string(ham->dmi_normals[i][2]) + "\n";
+			}
+
+			// Quadruplets
+			config += "###    Quadruplets:\n";
+			config += "# i   j   k   l     da_j  db_j  dc_j     k da_k db_k dc_k     l da_l db_l dc_l     Q\n";
+			for (unsigned int i=0; i<ham->quadruplets.size(); ++i)
+			{
+				config += "# " + std::to_string(ham->quadruplets[i].i) + "   " + std::to_string(ham->quadruplets[i].j) + "   " + std::to_string(ham->quadruplets[i].k) + "   " + std::to_string(ham->quadruplets[i].l) + "    "
+							+ std::to_string(ham->quadruplets[i].d_j[0]) + "   " + std::to_string(ham->quadruplets[i].d_j[1]) + "   " + std::to_string(ham->quadruplets[i].d_j[2])+ "    "
+							+ std::to_string(ham->quadruplets[i].d_k[0]) + "   " + std::to_string(ham->quadruplets[i].d_k[1]) + "   " + std::to_string(ham->quadruplets[i].d_k[2])+ "    "
+							+ std::to_string(ham->quadruplets[i].d_l[0]) + "   " + std::to_string(ham->quadruplets[i].d_l[1]) + "   " + std::to_string(ham->quadruplets[i].d_l[2])+ "    "
+							+ std::to_string(ham->quadruplet_magnitudes[i]) + "\n";
 			}
 
 			Append_String_to_File(config, configFile);
