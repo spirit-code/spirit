@@ -15,6 +15,8 @@ State * State_Setup(const char * config_file, bool quiet)
     State *state = new State();
     state->datetime_creation = system_clock::now();
     state->datetime_creation_string = Utility::Timing::TimePointToString(state->datetime_creation);
+    state->config_file = config_file;
+    state->quiet = quiet;
 
     // Log
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
@@ -22,20 +24,20 @@ State * State_Setup(const char * config_file, bool quiet)
     Log(Log_Level::All, Log_Sender::All,  "==========     Version:  " + std::string(VERSION));
     Log(Log_Level::Info, Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "Config file: " + std::string(config_file));
-    if (quiet)
+    Log(Log_Level::All, Log_Sender::All,  "Config file: " + state->config_file);
+    if (state->quiet)
         Log(Log_Level::All, Log_Sender::All,  "Going to run in QUIET mode (only Error messages, no output files)");
 
     
     try
     {
         //---------------------- Read Log Levels ----------------------------------------
-        IO::Log_from_Config(config_file);
+        IO::Log_from_Config(state->config_file, state->quiet);
         //-------------------------------------------------------------------------------
 
         //---------------------- initialize spin_system ---------------------------------
         // Create a system according to Config
-        state->active_image = IO::Spin_System_from_Config(config_file);
+        state->active_image = IO::Spin_System_from_Config(state->config_file);
         //-------------------------------------------------------------------------------
 
         //---------------------- set image configuration --------------------------------
@@ -44,7 +46,7 @@ State * State_Setup(const char * config_file, bool quiet)
 
         //----------------------- initialize spin system chain --------------------------
         // Get parameters
-        auto params_gneb = std::shared_ptr<Data::Parameters_Method_GNEB>(IO::Parameters_Method_GNEB_from_Config(config_file));
+        auto params_gneb = std::shared_ptr<Data::Parameters_Method_GNEB>(IO::Parameters_Method_GNEB_from_Config(state->config_file));
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
@@ -53,7 +55,7 @@ State * State_Setup(const char * config_file, bool quiet)
 
         //----------------------- initialize spin system chain collection ---------------
         // Get parameters
-        auto params_mmf = std::shared_ptr<Data::Parameters_Method_MMF>(IO::Parameters_Method_MMF_from_Config(config_file));
+        auto params_mmf = std::shared_ptr<Data::Parameters_Method_MMF>(IO::Parameters_Method_MMF_from_Config(state->config_file));
         // Create the collection
         auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
         cv.push_back(state->active_chain);
@@ -87,10 +89,13 @@ State * State_Setup(const char * config_file, bool quiet)
     state->simulation_information_collection = std::shared_ptr<Simulation_Information>();
 
     // Save the config
-    if (Log.save_input)
+    if (Log.save_input_initial)
     {
-        std::string file = "input_" + state->datetime_creation_string + ".txt";
-        State_To_Config(state, file.c_str(), config_file);
+        std::string file = "input";
+        if (Log.tag_time)
+            file += "_" + state->datetime_creation_string;
+        file += "_initial.cfg";
+        State_To_Config(state, file.c_str(), state->config_file.c_str());
     }
 
     // Log
@@ -113,12 +118,27 @@ void State_Delete(State * state)
 {
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
+    
+    // Save the config
+    if (Log.save_input_final)
+    {
+        std::string file = "input";
+        if (Log.tag_time)
+            file += "_" + state->datetime_creation_string;
+        file += "_final.cfg";
+        State_To_Config(state, file.c_str(), state->config_file.c_str());
+    }
+    
+    // Timing
     auto now = system_clock::now();
     auto diff = Timing::DateTimePassed(now - state->datetime_creation);
     Log(Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
     Log(Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + std::to_string(Log_Get_N_Errors(state)) );
     Log(Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + std::to_string(Log_Get_N_Warnings(state)) );
-	delete(state);
+	
+    // Delete
+    delete(state);
+
     Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log.Append_to_File();

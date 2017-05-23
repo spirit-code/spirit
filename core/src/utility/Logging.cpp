@@ -70,11 +70,12 @@ namespace Utility
 			fileName  = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
 		else
 			fileName = "Log.txt";
-		save_output   = false;
-		save_input    = true;
-		n_entries     = 0;
-		n_errors      = 0;
-		n_warnings    = 0;
+		save_output        = false;
+		save_input_initial = true;
+		save_input_final   = true;
+		n_entries  = 0;
+		n_errors   = 0;
+		n_warnings = 0;
 	}
 
 	void LoggingHandler::Send(Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)

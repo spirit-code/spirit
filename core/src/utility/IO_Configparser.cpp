@@ -16,12 +16,24 @@ namespace Utility
 {
 	namespace IO
 	{
-		void Log_from_Config(const std::string configFile)
+		void Log_from_Config(const std::string configFile, bool force_quiet)
 		{
 			// Verbosity and Reject Level are read as integers
 			int i_print_level = 5, i_accept_level = 5;
 			std::string output_folder = ".";
-			bool tag_time = true, save_output = true, save_input = false;
+			bool tag_time = true, save_output = true, save_input_initial = false, save_input_final = false;
+
+			// "Quiet" settings
+			if (force_quiet)
+			{
+				// Don't save the Log to file
+				Log.save_output = false;
+				// Don't save input configs
+				Log.save_input_initial = false;
+				Log.save_input_final = false;
+				// Don't print messages, except Error & Severe
+				Log.accept_level = Utility::Log_Level::Error;
+			}
 
 			//------------------------------- Parser --------------------------------
 			if (configFile != "")
@@ -43,11 +55,16 @@ namespace Utility
 					// Output folder
 					myfile.Read_Single(output_folder, "log_output_folder");
 					
-					// Save Output (Log Messages)
+					// Save Output (Log Messages) to file
 					myfile.Read_Single(save_output, "log_output_save");
 					
 					// Save Input (parameters from config file and defaults)
-					myfile.Read_Single(save_input, "log_input_save");
+					//    on State Setup
+					myfile.Read_Single(save_input_initial, "log_input_save_initial");
+					
+					// Save Input (parameters from config file and defaults)
+					//    on State Delete
+					myfile.Read_Single(save_input_final, "log_input_save_final");
 
 				}// end try
 				catch (Exception ex) {
@@ -57,24 +74,34 @@ namespace Utility
 					else throw ex;
 				}// end catch
 			}
+
 			// Log the parameters
-			Log(Log_Level::Parameter, Log_Sender::IO, "Tag time on output = " + std::to_string(tag_time));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level   = " + std::to_string(i_accept_level));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level    = " + std::to_string(i_print_level));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder  = " + output_folder);
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save    = " + std::to_string(save_output));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save     = " + std::to_string(save_input));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Tag time on output     = " + std::to_string(tag_time));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level       = " + std::to_string(i_accept_level));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level        = " + std::to_string(i_print_level));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder      = " + output_folder);
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save        = " + std::to_string(save_output));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save initial = " + std::to_string(save_input_initial));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save final   = " + std::to_string(save_input_final));
+			
 			// Update the Log
+			if (!force_quiet)
+			{
+				Log.accept_level  = Log_Level(i_accept_level);
+				Log.print_level   = Log_Level(i_print_level);
+
+				Log.save_output        = save_output;
+				Log.save_input_initial = save_input_initial;
+				Log.save_input_final   = save_input_final;
+			}
+
 			Log.tag_time      = tag_time;
-			Log.accept_level  = Log_Level(i_accept_level);
-			Log.print_level   = Log_Level(i_print_level);
 			Log.output_folder = output_folder;
 			if (tag_time)
 				Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
 			else
 				Log.fileName = "Log.txt";
-			Log.save_output   = save_output;
-			Log.save_input    = save_input;
+
 		}// End Log_Levels_from_Config
 
 
