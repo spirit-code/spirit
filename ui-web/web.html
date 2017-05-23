@@ -66,21 +66,21 @@
                       <input type="checkbox" id="input-skyrmion-updown"> up/down
                     </label>
                   </div>
-                  <div class="checkbox col-sm-6" id="input-skyrmion-rl">
+                  <!--<div class="checkbox col-sm-6" id="input-skyrmion-rl">
                     <label>
                       <input type="checkbox"> R/L
                     </label>
-                  </div>
+                  </div>-->
                   <div class="checkbox col-sm-6">
                     <label>
                       <input type="checkbox" id="input-skyrmion-achiral"> achiral
                     </label>
                   </div>
-                  <div class="checkbox col-sm-6">
+                  <!--<div class="checkbox col-sm-6">
                     <label>
                       <input type="checkbox" id="input-skyrmion-exp"> experimental
                     </label>
-                  </div>
+                  </div>-->
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-skyrmion-create">Create Skyrmion</button>
               </form>
@@ -93,44 +93,48 @@
                   <div class="col-sm-3"><input type="text" id="input-spinspiral-axisy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-axisz" class="form-control" value="1" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="input-spinspiral-angle" class="col-sm-3 control-label">Angle: </label><div class="col-sm-9"><input type="text" id="input-spinspiral-angle" class="form-control" value="90" /></div>
+                  <label for="input-spinspiral-angle" class="col-sm-3 control-label">Angle: </label><div class="col-sm-9"><input type="text" id="input-spinspiral-angle" class="form-control" value="30" /></div>
                 </div>
                 <div class="form-group">
                   <label for="select-spinspiral-wrt" class="col-sm-3 control-label">w.r.t: </label><div class="col-sm-9"><select id="select-spinspiral-wrt"><option value="Real Lattice">Real Lattice</option><option value="Reciprocal Lattice">Reciprocal Real Lattice</option><option value="Real Space">Real Space</option></select></div>
                 </div>
                 <div class="form-group">
-                  <label for="input-spinspiral-qx" class="col-sm-3 control-label">q: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-qx" class="form-control" value="0" /></div>
+                  <label for="input-spinspiral-qx" class="col-sm-3 control-label">q: </label><div class="col-sm-3"><input type="text" id="input-spinspiral-qx" class="form-control" value="0.1" /></div>
                   <div class="col-sm-3"><input type="text" id="input-spinspiral-qy" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-spinspiral-qz" class="form-control" value="0" /></div>
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-spinspiral-create">Create Spin Spiral</button>
               </form>
             </div>
-            <h5>Domain Wall</h5>
+            <h5>Domain</h5>
             <div class="well well-sm">
               <form class="form-horizontal">
                 <div class="form-group">
-                  <label for="input-domainwall-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-domainwall-directionx" class="form-control" value="0" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-domainwall-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-directionz" class="form-control" value="1" /></div>
+                  <label for="input-domain-positionx" class="col-sm-3 control-label">Position: </label><div class="col-sm-3"><input type="text" id="input-domain-positionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-domain-positiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domain-positionz" class="form-control" value="0" /></div>
                 </div>
                 <div class="form-group">
-                  <label for="input-domainwall-borderx" class="col-sm-3 control-label">Border: </label><div class="col-sm-3"><input type="text" id="input-domainwall-borderx" class="form-control" value="0" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-domainwall-bordery" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domainwall-borderz" class="form-control" value="0" /></div>
+                  <label for="input-domain-directionx" class="col-sm-3 control-label">Direction: </label><div class="col-sm-3"><input type="text" id="input-domain-directionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-domain-directiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-domain-directionz" class="form-control" value="1" /></div>
                 </div>
                 <div class="form-group">
+                  <label for="input-domain-borderx" class="col-sm-3 control-label">Border: </label><div class="col-sm-3"><input type="text" id="input-domain-borderx" class="form-control" value="-1" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-domain-bordery" class="form-control" value="-1" /></div><div class="col-sm-3"><input type="text" id="input-domain-borderz" class="form-control" value="-1" /></div>
+                </div>
+                <!--<div class="form-group">
                   <div class="radio col-sm-6">
                     <label><input type="radio" name="input-domain-wall-lessergreater">Lesser</label>
                   </div>
                   <div class="radio col-sm-6">
-                    <label><input type="radio" name="input-domain-wall-lessergreater" checked id="input-domainwall-greater">Greater</label>
+                    <label><input type="radio" name="input-domain-wall-lessergreater" checked id="input-domain-greater">Greater</label>
                   </div>
-                </div>
-                <button type="button" class="btn btn-block btn-default" id="button-domainwall-create">Create Domain Wall</button>
+                </div>-->
+                <button type="button" class="btn btn-block btn-default" id="button-domain-create">Create Domain Wall</button>
               </form>
             </div>
           </div>
         </div>
       </div>
-      <div class="panel panel-default">
+      <!--<div class="panel panel-default">
         <div class="panel-heading" role="tab" id="heading-transitions">
           <h4 class="panel-title">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-transitions" aria-expanded="true" aria-controls="collapse-transitions">
@@ -154,7 +158,7 @@
 
           </div>
         </div>
-      </div>
+      </div>-->
       <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="heading-hamiltonian">
           <h4 class="panel-title">
@@ -167,14 +171,14 @@
           <div class="panel-body">
 
 
-            <form class="form-inline">
+            <!--<form class="form-inline">
               <div class="form-group">
                 <label for="select-hamiltonian-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-hamiltonian-applyto"><option>Current Image</option></select></div>
               </div>
-            </form>
+            </form>-->
 
-            <h5>Current image interaction parameters</h5>
-            <div class="well well-sm">
+            <!--<h5>Current image interaction parameters</h5>
+            <div class="well well-sm">-->
               <form class="form-horizontal">
                 <div class="form-group">
                   <div class="checkbox col-sm-12">
@@ -245,15 +249,49 @@
                   <label for="input-anisotropy-directionx" class="col-sm-6 control-label">Direction: </label><div class="col-sm-2"><input type="text" id="input-anisotropy-directionx" class="form-control" value="0" /></div>
                   <div class="col-sm-2"><input type="text" id="input-anisotropy-directiony" class="form-control" value="0" /></div><div class="col-sm-2"><input type="text" id="input-anisotropy-directionz" class="form-control" value="1" /></div>
                 </div>
+              </form>
+            <!--</div>-->
+
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-parameters">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-parameters" aria-expanded="true" aria-controls="collapse-parameters">
+              LLG Parameters
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-parameters" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-parameters">
+          <div class="panel-body">
+
+
+            <!--<form class="form-inline">
+              <div class="form-group">
+                <label for="select-parameters-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-parameters-applyto"><option>Current Image</option></select></div>
+              </div>
+            </form>-->
+
+
+            <!--<h5>LLG Parameters</h5>-->
+            <!--<div class="well well-sm">-->
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-llg-damping" class="col-sm-6 control-label">Damping: </label><div class="col-sm-6"><input type="text" id="input-llg-damping" class="form-control" value="0.3" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><div class="input-group"><input type="text" id="input-llg-timestep" class="form-control" value="0.01" /><span class="input-group-addon">ps</span></div></div>
+                </div>
                 <div class="form-group">
                   <div class="col-sm-5">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" checked="checked" id="input-spintorque">Spin Torque
+                        <input type="checkbox" id="input-spintorque">Spin Torque
                       </label>
                     </div>
                   </div>
-                  <label for="input-spintorque-magnitude" class="col-sm-3 control-label">Magnitude</label><div class="col-sm-4"><div class="input-group"><input type="text" id="input-spintorque-magnitude" class="form-control" value="0" /><span class="input-group-addon">arb.</span></div></div>
+                  <label for="input-spintorque-magnitude" class="col-sm-3 control-label">Magnitude</label><div class="col-sm-4"><div class="input-group"><input type="text" id="input-spintorque-magnitude" class="form-control" value="1" /><span class="input-group-addon">arb.</span></div></div>
                 </div>
                 <div class="form-group">
                   <label for="input-spintorque-directionx" class="col-sm-6 control-label">Polarization: </label><div class="col-sm-2"><input type="text" id="input-spintorque-directionx" class="form-control" value="1" /></div>
@@ -267,45 +305,11 @@
                   </label>
                 </div>
                 </div>
-                  <div class="col-sm-4"><div class="input-group"><input type="text" id="input-temperature-value" class="form-control" value="0" /><span class="input-group-addon">K</span></div></div>
+                  <div class="col-sm-4"><div class="input-group"><input type="text" id="input-temperature-value" class="form-control" value="1" /><span class="input-group-addon">K</span></div></div>
                 </div>
               </form>
-            </div>
-
-          </div>
-        </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading" role="tab" id="heading-parameters">
-          <h4 class="panel-title">
-            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-parameters" aria-expanded="true" aria-controls="collapse-parameters">
-              Parameters
-            </a>
-          </h4>
-        </div>
-        <div id="collapse-parameters" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-parameters">
-          <div class="panel-body">
-
-
-            <form class="form-inline">
-              <div class="form-group">
-                <label for="select-parameters-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-parameters-applyto"><option>Current Image</option></select></div>
-              </div>
-            </form>
-
-
-            <h5>LLG Parameters</h5>
-            <div class="well well-sm">
-              <form class="form-horizontal">
-                <div class="form-group">
-                  <label for="input-llg-damping" class="col-sm-6 control-label">Damping: </label><div class="col-sm-6"><input type="text" id="input-llg-damping" class="form-control" value="0.3" /></div>
-                </div>
-                <div class="form-group">
-                  <label for="input-llg-timestep" class="col-sm-6 control-label">Time Step: </label><div class="col-sm-6"><div class="input-group"><input type="text" id="input-llg-timestep" class="form-control" value="0.01" /><span class="input-group-addon">ps</span></div></div>
-                </div>
-              </form>
-            </div>
-            <h5>GNEB Parameters</h5>
+            <!--</div>-->
+            <!--<h5>GNEB Parameters</h5>
             <div class="well well-sm">
               <form class="form-horizontal">
                 <div class="form-group">
@@ -330,7 +334,7 @@
                   </label>
                 </div>
               </form>
-            </div>
+            </div>-->
 
           </div>
         </div>
@@ -475,16 +479,19 @@
         </div>
         <div id="collapse-about" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-about">
           <div class="panel-body">
-            <h5>Modular Numerical Optimizations Spin Code</h5>
-            <p>Spirit is <strong>platform-independent</strong> code with optional visualization, written in C++11. The build process is platform-independent as well, using CMake.</p>
+            <h5>Spin Simulation Framework</h5>
+            <p>Spirit is <strong>platform-independent, open-source</strong> code with optional visualization, written in C++11.
+            The source code is available on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> under the terms of the <a href="https://github.com/spirit-code/spirit/blob/master/LICENSE.txt" title="Spirit License">MIT license</a>.</p>
             <p>While this web-based demo version is limited to Spin Dynamics simulations, the Spirit code has been developed as a flexible solution to various use-cases, including:</p>
 <ul>
     <li><strong>Spin Dynamics simulations</strong> obeying the <a href="https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation" title="Landau-Lifschitz-Gilbert equation - Wikipedia">Landau-Lifschitz-Gilbert equation</a></li>
     <li>Direct <strong>Energy minimisation</strong> of a spin system</li>
     <li><strong>Minimum Energy Path calculations</strong> for transitions between different spin configurations, using the GNEB method</li>
-    <li>Energy Landscape <strong>Saddlepoint searches</strong> using the MMF method</li>
 </ul>
-<p>More details may be found in the <a href="https://iffwiki.fz-juelich.de/index.php/Spirit" title="Spirit - iffwiki">Wiki</a>.</p> The source code is available on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> under the terms of the <a href="https://github.com/spirit-code/spirit/blob/master/LICENSE.txt" title="Spirit License">MIT license</a>.</p><p>Main authors of the Spirit code are Gideon Müller and Daniel Schürhoff (<a href="http://www.fz-juelich.de/pgi/pgi-1/EN/Home/home_node.html" title="PGI-1">Quantum Theory of Materials</a> department of the <a href="http://www.fz-juelich.de/pgi/EN/Home/home_node.html" title="PGI">Peter Grünberg Institute </a>).</p><p>The Web Interface is being developed by Florian Rhiem (<a href="https://pgi-jcns.fz-juelich.de/portal/pages/about.html" title="PGI-JCNS">Scientific IT-Systems, PGI/JCNS Technical Services and Administration</a>).</p><p>For a full list of contributors and affiliations, see <a href="https://github.com/spirit-code/spirit/blob/master/CONTRIBUTORS.md" title="Contributors">here</a>.</p>
+<p>More details may be found on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> or in the <a href="https://iffwiki.fz-juelich.de/index.php/Spirit" title="Spirit - iffwiki">Wiki</a>.</p>
+<p>Main author of the Spirit code is Gideon Müller (<a href="http://www.fz-juelich.de/pgi/pgi-1/EN/Home/home_node.html" title="PGI-1">Quantum Theory of Materials</a> department of the <a href="http://www.fz-juelich.de/pgi/EN/Home/home_node.html" title="PGI">Peter Grünberg Institute </a>).</p>
+<p>The Web Interface is being developed by Florian Rhiem (<a href="https://pgi-jcns.fz-juelich.de/portal/pages/about.html" title="PGI-JCNS">Scientific IT-Systems, PGI/JCNS Technical Services and Administration</a>).</p>
+<p>For a full list of contributors and affiliations, see <a href="https://github.com/spirit-code/spirit/blob/master/docs/CONTRIBUTORS.md" title="Contributors">here</a>.</p>
           </div>
         </div>
       </div>

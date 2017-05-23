@@ -117,14 +117,26 @@ Module.ready(function() {
         });
     };
 
-    Module.Configuration_PlusZ = Module.cwrap('Configuration_PlusZ', null, ['number', 'number', 'number']);
+    Module.Configuration_PlusZ = Module.cwrap('Configuration_PlusZ', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.setAllSpinsPlusZ = function() {
-        Module.Configuration_PlusZ(this._state);
+        var pos = new Float32Array([0,0,0]);
+        var pos_ptr = Module._malloc(pos.length * pos.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(pos, pos_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_PlusZ(this._state, pos_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         this.update();
     };
-    Module.Configuration_MinusZ = Module.cwrap('Configuration_MinusZ', null, ['number', 'number', 'number']);
+    Module.Configuration_MinusZ = Module.cwrap('Configuration_MinusZ', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.setAllSpinsMinusZ = function() {
-        Module.Configuration_MinusZ(this._state, -1, -1);
+        var pos = new Float32Array([0,0,0]);
+        var pos_ptr = Module._malloc(pos.length * pos.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(pos, pos_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_MinusZ(this._state, pos_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         this.update();
     };
     Module.Configuration_Random = Module.cwrap('Configuration_Random', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
@@ -141,15 +153,18 @@ Module.ready(function() {
         this.update();
     };
     Module.Configuration_Skyrmion = Module.cwrap('Configuration_Skyrmion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
-    Simulation.prototype.createSkyrmion = function(order, phase, radius, position, updown, rl, achiral, exp) {
+    Simulation.prototype.createSkyrmion = function(order, phase, radius, position, updown, rl, achiral) {
         position = new Float32Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(position, position_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Configuration_Skyrmion(this._state, position_ptr, radius, order, phase, updown, achiral, rl, exp, -1, -1);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_Skyrmion(this._state, radius, order, phase, updown, achiral, rl, position_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         Module._free(position_ptr);
         this.update();
     };
-    Module.Configuration_SpinSpiral = Module.cwrap('Configuration_SpinSpiral', null, ['number', 'string', 'number', 'number', 'number', 'number', 'number']);
+    Module.Configuration_SpinSpiral = Module.cwrap('Configuration_SpinSpiral', null, ['number', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.createSpinSpiral = function(direction_type, q, axis, theta) {
         q = new Float32Array(q);
         var q_ptr = Module._malloc(q.length * q.BYTES_PER_ELEMENT);
@@ -157,20 +172,29 @@ Module.ready(function() {
         axis = new Float32Array(axis);
         var axis_ptr = Module._malloc(axis.length * axis.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(axis, axis_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Configuration_SpinSpiral(this._state, direction_type, q_ptr, axis_ptr, theta, -1, -1);
+        var pos = new Float32Array([0,0,0]);
+        var pos_ptr = Module._malloc(pos.length * pos.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(pos, pos_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_SpinSpiral(this._state, direction_type, q_ptr, axis_ptr, theta, pos_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         Module._free(q_ptr);
         Module._free(axis_ptr);
         this.update();
     };
-    Module.Configuration_DomainWall = Module.cwrap('Configuration_Domain', null, ['number', 'number', 'number', 'number', 'number', 'number']);
-    Simulation.prototype.createDomainWall = function(position, direction, greater) {
+    Module.Configuration_Domain = Module.cwrap('Configuration_Domain', null, ['number', 'number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.createDomain = function(direction, position, border) {
         position = new Float32Array(position);
         var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(position, position_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         direction = new Float32Array(direction);
         var direction_ptr = Module._malloc(direction.length * direction.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(direction, direction_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Configuration_DomainWall(this._state, position_ptr, direction_ptr, greater, -1, -1);
+        border = new Float32Array(border);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_Domain(this._state, direction_ptr, position_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         Module._free(position_ptr);
         Module._free(direction_ptr);
         this.update();
