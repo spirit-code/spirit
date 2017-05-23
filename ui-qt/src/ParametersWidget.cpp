@@ -324,6 +324,12 @@ void ParametersWidget::set_parameters_gneb()
 	}
 }
 
+void ParametersWidget::set_gneb_auto_image_type()
+{
+	Parameters_Set_GNEB_Image_Type_Automatically(state.get());
+	this->Load_Parameters_Contents();
+}
+
 void ParametersWidget::set_parameters_mmf()
 {
 	// Closure to set the parameters of a specific spin system
@@ -387,7 +393,8 @@ void ParametersWidget::Setup_Parameters_Slots()
 	//		GNEB
 	// Spring Constant
 	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
-	// Normal/Climbing/Falling image radioButtons
+	// Image type
+	connect(this->pushButton_auto_image_type, SIGNAL(clicked()), this, SLOT(set_gneb_auto_image_type()));
 	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
 	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
 	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));

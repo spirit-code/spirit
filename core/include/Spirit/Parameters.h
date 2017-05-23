@@ -39,6 +39,9 @@ DLLEXPORT void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, 
 // Simulation Parameters
 DLLEXPORT void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image=-1, int idx_chain=-1);
+// Automatically set the image type for a chain.
+//    Maxima are set to climbing, minima to falling, others are not changed.
+DLLEXPORT void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain=-1);
 
 
 //      Get LLG

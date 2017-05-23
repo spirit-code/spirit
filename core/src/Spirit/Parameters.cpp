@@ -356,6 +356,26 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
         "Set GNEB image type =" + std::to_string(image_type), idx_image, idx_chain);
 }
 
+void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
+{
+    int idx_image=-1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+	for (int img = 1; img < chain->noi - 1; ++img)
+	{
+		scalar E0 = chain->images[img-1]->E;
+		scalar E1 = chain->images[img]->E;
+		scalar E2 = chain->images[img+1]->E;
+
+		// Maximum
+		if (E0 < E1 && E1 > E2) Parameters_Set_GNEB_Climbing_Falling(state, 1, img);
+		// Minimum
+		if (E0 > E1 && E1 < E2) Parameters_Set_GNEB_Climbing_Falling(state, 2, img);
+	}
+}
+
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get LLG ----------------------------------------------------------- */
