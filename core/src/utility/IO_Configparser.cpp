@@ -224,7 +224,7 @@ namespace Utility
 			// Translation vectors [dim][nov]
 			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
 			// Number of translations nT for each basis direction
-			std::vector<int> n_cells = { 100, 100, 1 };
+			intfield n_cells = { 100, 100, 1 };
 			// Number of Spins
 			int nos;
 			vectorfield spin_pos;
@@ -763,10 +763,10 @@ namespace Utility
 
 			// Number of shells in which we calculate neighbours
 			// Jij
-			std::vector<scalar> jij = { 10.0 };
+			scalarfield jij = { 10.0 };
 			int n_neigh_shells_exchange = jij.size();
 			// DM constant
-			std::vector<scalar> dij = { 6.0 };
+			scalarfield dij = { 6.0 };
 			int n_neigh_shells_dmi = dij.size();
 			int dm_chirality = 1;
 			// Dipole-Dipole interaction radius
@@ -864,7 +864,7 @@ namespace Utility
 
 					myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
 					if (jij.size() != n_neigh_shells_exchange)
-						jij = std::vector<scalar>(n_neigh_shells_exchange);
+						jij = scalarfield(n_neigh_shells_exchange);
 					if (myfile.Find("jij"))
 					{
 						for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
@@ -874,7 +874,7 @@ namespace Utility
 					
 					myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
 					if (dij.size() != n_neigh_shells_dmi)
-						dij = std::vector<scalar>(n_neigh_shells_dmi);
+						dij = scalarfield(n_neigh_shells_dmi);
 					if (myfile.Find("dij"))
 					{
 						for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)

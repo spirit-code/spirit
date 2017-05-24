@@ -216,7 +216,7 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells)
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
 		{
 			// Check for erronous input placing two spins on the same location
 			int max_a = std::min(10, n_cells[0]);

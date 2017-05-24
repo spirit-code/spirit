@@ -25,26 +25,36 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     typedef std::vector<Vector3,         managed_allocator<Vector3>>         vectorfield;
     struct Pair
     {
-        int i, j, __;
+        int i, j;
         int translations[3];
     };
     struct Triplet
     {
         int i, j, k;
-        std::array<int,3> d_j, d_k;
+        int d_j[3], d_k[3];
     };
     struct Quadruplet
     {
         int i, j, k, l;
-        std::array<int,3> d_j, d_k, d_l;
+        int d_j[3], d_k[3], d_l[3];
+    };
+    struct Neighbour
+    {
+        // Basis indices of atom and neighbour
+        int iatom, ineigh;
+        // Shell index
+        int idx_shell;
+        // Translations of the neighbour cell
+        int translations[3];
     };
     typedef std::vector<Pair,       managed_allocator<Pair>>       pairfield;
     typedef std::vector<Triplet,    managed_allocator<Triplet>>    tripletfield;
     typedef std::vector<Quadruplet, managed_allocator<Quadruplet>> quadrupletfield;
+    typedef std::vector<Neighbour,  managed_allocator<Neighbour>>  neighbourfield;
 #else
-    typedef std::vector<int>             intfield;
-    typedef std::vector<scalar>          scalarfield;
-    typedef std::vector<Vector3>         vectorfield;
+    typedef std::vector<int>     intfield;
+    typedef std::vector<scalar>  scalarfield;
+    typedef std::vector<Vector3> vectorfield;
     struct Pair
     {
         int i, j;

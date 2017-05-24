@@ -94,9 +94,9 @@ namespace Engine
 		if (this->ddi_pairs.size() > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"DD", scalarfield(0) });
-			this->idx_dd = this->energy_contributions_per_spin.size()-1;
+			this->idx_ddi = this->energy_contributions_per_spin.size()-1;
 		}
-		else this->idx_dd = -1;
+		else this->idx_ddi = -1;
 		// Quadruplets
 		if (this->quadruplets.size() > 0)
 		{
@@ -114,26 +114,26 @@ namespace Engine
 		}
 		
 		int nos = spins.size();
-		for (auto& pair : contributions)
+		for (auto& contrib : contributions)
 		{
 			// Allocate if not already allocated
-			if (pair.second.size() != nos) pair.second = scalarfield(nos, 0);
+			if (contrib.second.size() != nos) contrib.second = scalarfield(nos, 0);
 			// Otherwise set to zero
-			else Vectormath::fill(pair.second, 0);
+			else Vectormath::fill(contrib.second, 0);
 		}
 
 		// External field
-		if (this->idx_zeeman >=0 ) E_Zeeman(spins, contributions[idx_zeeman].second);
+		if (this->idx_zeeman >=0 )     E_Zeeman(spins, contributions[idx_zeeman].second);
 
 		// Anisotropy
 		if (this->idx_anisotropy >=0 ) E_Anisotropy(spins, contributions[idx_anisotropy].second);
 
 		// Exchange
-		if (this->idx_exchange >=0 ) E_Exchange(spins, contributions[idx_exchange].second);
+		if (this->idx_exchange >=0 )   E_Exchange(spins, contributions[idx_exchange].second);
 		// DMI
-		if (this->idx_dmi >=0 ) E_DMI(spins,contributions[idx_dmi].second);
+		if (this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
 		// DD
-		if (this->idx_dd >=0 ) E_DDI(spins, contributions[idx_dd].second);
+		if (this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
 		// Quadruplets
 		if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
 	}

@@ -25,6 +25,7 @@ namespace Engine
 
 		/////////////////////////////////////////////////////////////////
 		//////// Translating across the lattice
+		#ifndef USE_CUDA
 		inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations_j)
 		{
 			int da = translations_i[0] + translations_j[0];
@@ -49,7 +50,7 @@ namespace Engine
 			return da*N + db*N*Na + dc*N*Na*Nb;
 		}
 
-		inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations)
+		inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
 		{
 			int Na = n_cells[0];
 			int Nb = n_cells[1];
@@ -79,17 +80,18 @@ namespace Engine
 			int Nb = n_cells[1];
 			int Nc = n_cells[2];
 			int N = n_spins_basic_domain;
-			ret[2] = idx / (Na*Nb);
-			ret[1] = (idx - ret[2] * Na*Nb) / Na;
-			ret[0] = idx - ret[2] * Na*Nb - ret[1] * Na;
+			ret[2] = idx / (N*Na*Nb);
+			ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
+			ret[0] = idx - ret[2] * N*Na*Nb - ret[1] * N*Na;
 			return ret;
 		}
+		#endif
 
 		/////////////////////////////////////////////////////////////////
 		//////// Vectorfield Math - special stuff
 
 		// Build an array of spin positions
-		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells);
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
 		// Calculate the mean of a vectorfield
 		std::array<scalar, 3> Magnetization(const vectorfield & vf);
 		// Calculate the topological charge inside a vectorfield

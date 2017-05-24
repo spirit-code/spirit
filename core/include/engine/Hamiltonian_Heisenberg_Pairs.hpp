@@ -66,7 +66,7 @@ namespace Engine
 		scalarfield dmi_magnitudes;			// [periodicity][nop]    D_ij
 		vectorfield dmi_normals;			// [periodicity][nop][3] (Dx,Dy,Dz)
 		// Dipole Dipole interaction
-		pairfield ddi_pairs;			// [periodicity][nop][2] (i,j)
+		pairfield   ddi_pairs;			// [periodicity][nop][2] (i,j)
 		scalarfield ddi_magnitudes;			// [periodicity][nop]    r_ij (distance)
 		vectorfield ddi_normals;			// [periodicity][nop][4] (nx,ny,nz)
 
@@ -93,7 +93,7 @@ namespace Engine
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_dd, idx_quadruplet;
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
