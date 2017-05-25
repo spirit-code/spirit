@@ -1,12 +1,73 @@
-Spirit UI Key Bindings
+Spirit Desktop UI
 ======================
+
+The cross-platform QT desktop user interface provides a productive tool for Spin simulations,
+providing powerful real-time visualisations and access to simulation parameters,
+as well as other very useful features.
+
+See the [framework build instructions](BUILD.md) for information on how to build
+the user interface on your machine.
+
+Physics features
+----------------
+
+Insert Configurations:
+- White noise
+- (Anti-) Skyrmions
+- Domains
+- Spin Spirals
+
+You may manipulate the Hamiltonian as well as simulation parameters and your
+output file configuration:
+
+You may start and stop simulation and directly interact with a running simulation.
+- LLG Simulation: Dynamics and Minimization
+- GNEB: create transitions and calculate minimum energy paths
+
+By copying and inserting spin systems and manipulating them you may create
+arbitrary transitions between different spin states to use them in GNEB calculations.
+Furthermore you can choose different images to be climbing or falling images during
+your calculation.
+
+
+Real-time visualisation
+-----------------------
+This feature is most powerful for 3D systems but shows great use for the analysis
+of dynamical processes and understanding what is happening in your system during
+a simulation instead of post-processing your data.
+
+- Arrows, Surface (2D/3D), Isosurface
+- Spins or Eff. Field
+- Every n'th arrow
+- Spin Sphere
+- Directional & Position filters
+- Colormaps
+
+You can also create quite complicate visualisations by combining these different features
+in order to visualise complex states in 3D systems:
+
+![Visualisation of a complicated state](http://i.imgur.com/IznxguU.png "Complicated visualisation combinating isosurface, arrows and filters")
+
+Note that a data plot is available to visualise your chain of spin systems. It can also
+show interpolated energies if you run a GNEB calculation.
+
+![GNEB Transition Plot](http://i.imgur.com/TQpOcuh.png "Minimum energy path")
+
+
+Additional features
+-------------------
+- Drag mode: drag, copy, insert, change radius
+- Screenshot
+- Read configuration or chain
+- Save configuration or chain
+
+
+Key bindings
+------------
 
 <i>Note that some of the keybindings may only work correctly on US keyboard layout.</i>
 
-The The <b>Key Bindings</b> are as follows:
-
-UI Controls 
-------------
+### UI Controls 
 
 | Effect                                                            | Keystroke                                            |
 | ----------------------------------------------------------------- | :--------------------------------------------------: |
@@ -21,8 +82,7 @@ UI Controls
 | Toggle OpenGL Visualization                                       | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>        |
 | Try to return focus to main UI                                    | <kbd>Esc</kbd>                                       |
 
-Camera Controls
----------------
+### Camera Controls
 
 | Effect                                  | Keystroke                                                                                                   |
 | --------------------------------------- | :---------------------------------------------------------------------------------------------------------: |
@@ -31,8 +91,7 @@ Camera Controls
 | Zoom in on focus point                  | <kbd>Scroll mouse</kbd> ( <kbd>Shift</kbd> to go slow)                                                      |
 | Set the camera in X, Y or Z direction   | <kbd>X</kbd> <kbd>Y</kbd> <kbd>Z</kbd> ( <kbd>shift</kbd> to invert)                                        |
 
-Control Simulations
--------------------
+### Control Simulations
 
 | Effect                                 | Keystroke                           |
 | -------------------------------------- | :---------------------------------: |
@@ -40,8 +99,7 @@ Control Simulations
 | Cycle Method                           | <kbd>Ctrl</kbd>+<kbd>M</kbd>        |
 | Cycle Optimizer                        | <kbd>Ctrl</kbd>+<kbd>O</kbd>        |
 
-Manipulate the current images
------------------------------
+### Manipulate the current images
 
 | Effect                                 | Keystroke                           |
 | -------------------------------------- | :---------------------------------: |
@@ -49,8 +107,7 @@ Manipulate the current images
 | Add tempered noise                     | <kbd>Ctrl</kbd>+<kbd>N</kbd>        |
 | Insert last used configuration         | <kbd>Enter</kbd>                    |
 
-Visualisation
--------------
+### Visualisation
 
 | Effect                                           | Keystroke                                   |
 | ------------------------------------------------ | :-----------------------------------------: |
@@ -61,8 +118,7 @@ Visualisation
 | Cycle Visualisation Mode                         | <kbd>/</kbd>                                |
 | Move Slab                                        | <kbd>,</kbd> / <kbd>.</kbd> ( <kbd>Shift</kbd> to go faster) |
 
-Manipulate the chain of images
-------------------------------
+### Manipulate the chain of images
 
 | Effect                                           | Keystroke                                   |
 | ------------------------------------------------ | :-----------------------------------------: |
@@ -72,5 +128,3 @@ Manipulate the chain of images
 | Paste image at current index                     | <kbd>Ctrl</kbd>+<kbd>V</kbd>                |
 | Insert left/right of current index               | <kbd>Ctrl</kbd>+<kbd>&larr;</kbd> / <kbd>&rarr;</kbd> | 
 | Delete image                                     | <kbd>Del</kbd>                              |
-
-
