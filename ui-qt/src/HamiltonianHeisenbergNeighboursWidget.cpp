@@ -349,10 +349,10 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 			int n_shells = this->exchange_shells.size();
 			std::vector<float> Jij(n_shells);
 			for (int i = 0; i < n_shells; ++i) Jij[i] = this->exchange_shells[i]->value();
-			Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data());
+			Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data(), idx_image, idx_chain);
 		}
 		else
-			Hamiltonian_Set_Exchange(state.get(), 0, nullptr);
+			Hamiltonian_Set_Exchange(state.get(), 0, nullptr, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -406,7 +406,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
 			connect(x, SIGNAL(editingFinished()), this, SLOT(set_dmi()));
 		}
 	}
-	
 }
 
 void HamiltonianHeisenbergNeighboursWidget::set_dmi()
@@ -419,10 +418,10 @@ void HamiltonianHeisenbergNeighboursWidget::set_dmi()
 			int n_shells = this->dmi_shells.size();
 			std::vector<float> Dij(n_shells);
 			for (int i = 0; i < n_shells; ++i) Dij[i] = this->dmi_shells[i]->value();
-			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data());
+			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data(), idx_image, idx_chain);
 		}
 		else
-			Hamiltonian_Set_DMI(state.get(), 0, nullptr);
+			Hamiltonian_Set_DMI(state.get(), 0, nullptr, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
@@ -454,9 +453,9 @@ void HamiltonianHeisenbergNeighboursWidget::set_ddi()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		if (this->checkBox_ddi->isChecked())
-			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi_radius->value());
+			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi_radius->value(), idx_image, idx_chain);
 		else
-			Hamiltonian_Set_DDI(state.get(), 0);
+			Hamiltonian_Set_DDI(state.get(), 0, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
