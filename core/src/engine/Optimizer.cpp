@@ -106,7 +106,7 @@ namespace Engine
 			{
 				++step;
 
-				t_last = t_current;
+                t_current = system_clock::now();
 
                 maxforce_stream.str(std::string());
                 maxforce_stream.clear();
@@ -126,7 +126,7 @@ namespace Engine
 
 				this->method->Save_Current(this->starttime, iteration, false, false);
 
-				//output_strings[step - 1] = IO::Spins_to_String(c->images[0].get());
+				t_last = t_current;
 			}
 
 			// Unlock Systems
