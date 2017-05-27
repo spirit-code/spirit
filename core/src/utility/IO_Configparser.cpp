@@ -19,20 +19,23 @@ namespace Utility
 		void Log_from_Config(const std::string configFile, bool force_quiet)
 		{
 			// Verbosity and Reject Level are read as integers
-			int i_print_level = 5, i_accept_level = 5;
+			int i_level_file = 5, i_level_console = 5;
 			std::string output_folder = ".";
-			bool tag_time = true, save_output = true, save_input_initial = false, save_input_final = false;
+			bool tag_time = true, messages_to_file = true, messages_to_console = true, save_input_initial = false, save_input_final = false;
 
 			// "Quiet" settings
 			if (force_quiet)
 			{
 				// Don't save the Log to file
-				Log.save_output = false;
+				Log.messages_to_file = false;
+				// Don't print the Log to console
+				Log.messages_to_console = false;
 				// Don't save input configs
 				Log.save_input_initial = false;
 				Log.save_input_final = false;
 				// Don't print messages, except Error & Severe
-				Log.accept_level = Utility::Log_Level::Error;
+				Log.level_file = Utility::Log_Level::Error;
+				Log.level_console = Utility::Log_Level::Error;
 			}
 
 			//------------------------------- Parser --------------------------------
@@ -46,22 +49,22 @@ namespace Utility
 					// Time tag
 					myfile.Read_Single(tag_time, "output_tag_time");
 
-					// Accept Level
-					myfile.Read_Single(i_accept_level, "log_accept");
-
-					// Print level
-					myfile.Read_Single(i_print_level, "log_print");
-
 					// Output folder
 					myfile.Read_Single(output_folder, "log_output_folder");
 					
 					// Save Output (Log Messages) to file
-					myfile.Read_Single(save_output, "log_output_save");
-					
+					myfile.Read_Single(messages_to_file, "log_to_file");
+					// File Accept Level
+					myfile.Read_Single(i_level_file, "log_file_level");
+
+					// Print Output (Log Messages) to console
+					myfile.Read_Single(messages_to_console, "log_to_console");
+					// File Accept Level
+					myfile.Read_Single(i_level_console, "log_console_level");
+
 					// Save Input (parameters from config file and defaults)
 					//    on State Setup
 					myfile.Read_Single(save_input_initial, "log_input_save_initial");
-					
 					// Save Input (parameters from config file and defaults)
 					//    on State Delete
 					myfile.Read_Single(save_input_final, "log_input_save_final");
@@ -77,22 +80,24 @@ namespace Utility
 
 			// Log the parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Tag time on output     = " + std::to_string(tag_time));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log accept level       = " + std::to_string(i_accept_level));
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log print level        = " + std::to_string(i_print_level));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder      = " + output_folder);
-			Log(Log_Level::Parameter, Log_Sender::IO, "Log output save        = " + std::to_string(save_output));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log to file            = " + std::to_string(messages_to_file));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log file accept level  = " + std::to_string(i_level_file));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log to console         = " + std::to_string(messages_to_console));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Log print accept level = " + std::to_string(i_level_console));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save initial = " + std::to_string(save_input_initial));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Log input save final   = " + std::to_string(save_input_final));
 			
 			// Update the Log
 			if (!force_quiet)
 			{
-				Log.accept_level  = Log_Level(i_accept_level);
-				Log.print_level   = Log_Level(i_print_level);
+				Log.level_file    = Log_Level(i_level_file);
+				Log.level_console = Log_Level(i_level_console);
 
-				Log.save_output        = save_output;
-				Log.save_input_initial = save_input_initial;
-				Log.save_input_final   = save_input_final;
+				Log.messages_to_file    = messages_to_file;
+				Log.messages_to_console = messages_to_console;
+				Log.save_input_initial  = save_input_initial;
+				Log.save_input_final    = save_input_final;
 			}
 
 			Log.tag_time      = tag_time;

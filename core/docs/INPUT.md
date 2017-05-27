@@ -16,17 +16,23 @@ output_tag_time         1
 log_input_save_initial  0
 ### Save input parameters on deletion of State
 log_input_save_final    0
-log_output_folder       output/log
+
+### Print log messages to the console
+log_to_console    1
+### Print messages up to (including) log_console_level
+log_console_level 5
+
 ### Save the log as a file
-log_output_save         1
-### Print messages up to (including) log_print
-log_print               5
-### Accept messages up to (including) log_accept
-log_accept              5
+log_to_file    1
+### Save messages up to (including) log_file_level
+log_file_level 5
 ```
 
-Only log messages up to `log_accept` will be considered.
-In order to define which log messages are printed to stderr, use `log_print`.
+Except for `SEVERE` and `ERROR`, only log messages up to
+`log_console_level` will be printed and only messages up to
+`log_file_level` will be saved.
+If `log_to_file`, however is set to zero, no file is written
+at all.
 
 | Log Levels | Integer | Description            |
 | ---------- | ------- | ---------------------- |

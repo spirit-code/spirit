@@ -38,9 +38,10 @@ namespace Utility
 		{
 			std::string config = "";
 			config += "############### Logging Parameters ###############\n";
-			config += "log_print              " + std::to_string((int)Log.print_level) + "\n";
-			config += "log_accept             " + std::to_string((int)Log.accept_level) + "\n";
-			config += "log_output_save        " + std::to_string((int)Log.save_output) + "\n";
+			config += "log_to_file            " + std::to_string((int)Log.messages_to_file) + "\n";
+			config += "log_file_level         " + std::to_string((int)Log.level_file) + "\n";
+			config += "log_to_console         " + std::to_string((int)Log.messages_to_console) + "\n";
+			config += "log_console_level      " + std::to_string((int)Log.level_console) + "\n";
 			config += "log_input_save_initial " + std::to_string((int)Log.save_input_initial) + "\n";
 			config += "log_input_save_final   " + std::to_string((int)Log.save_input_final) + "\n";
 			config += "############# End Logging Parameters #############";
