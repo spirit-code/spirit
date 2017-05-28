@@ -601,7 +601,7 @@ void VisualisationSettingsWidget::update_isosurfaces()
 	QObject* obj = sender();
 
 
-	for (int i = 0; i < this->isosurfaceWidgets.size(); ++i)
+	for (unsigned int i = 0; i < this->isosurfaceWidgets.size(); ++i)
 	{
 		if (this->isosurfaceWidgets[i] == obj)
 			this->isosurfaceWidgets.erase(this->isosurfaceWidgets.begin() + i);

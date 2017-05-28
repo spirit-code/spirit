@@ -119,7 +119,7 @@ namespace Utility
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
-				int i = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+				int i = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -130,13 +130,13 @@ namespace Utility
 						{
 							if (i < nos && iimage>0)	// Check if less than NOS spins were read for the image before
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage)));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage));
 							}
 							++iimage;
 							i = 0;
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain)");
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi));
 							}
 							else
 							{
@@ -147,7 +147,7 @@ namespace Utility
 						{
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage+1));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
 								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
 								// Add to chain
@@ -160,8 +160,8 @@ namespace Utility
 
 							if (i >= nos)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS missmatch in image ").append(std::to_string(iimage)));
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(file) > NOS(image)"));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS missmatch in image " + std::to_string(iimage));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(file) = " + std::to_string(nos) + " > NOS(image) = " + std::to_string(i));
 								//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 								//myfile.close();
 								//return;
@@ -179,8 +179,8 @@ namespace Utility
 					}// endif (# not found)
 					 // discard line if # is found
 				}// endif new line (while)
-				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage - 1)));
-				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) > NOI(file)");
+				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage - 1));
+				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) = " + std::to_string(noi) + " > NOI(file) = " + std::to_string(iimage));
 				myfile.close();
 				Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 			}
