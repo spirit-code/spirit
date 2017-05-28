@@ -299,7 +299,9 @@ namespace Utility
 			}// end try
 			catch (Exception ex)
 			{
-				throw ex;
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "External_Field_from_File: Unable to open file " + externalFieldFile);
+				else throw ex;
 			}
 
 		}
@@ -422,7 +424,9 @@ namespace Utility
 			}// end try
 			catch (Exception ex)
 			{
-				throw ex;
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Anisotropy_from_File: Unable to open file " + anisotropyFile);
+				else throw ex;
 			}
 		}
 

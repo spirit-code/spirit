@@ -120,9 +120,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_boundary_conditions()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5], dij[5];
-		int i;
-
 		// Boundary conditions
 		bool boundary_conditions[3];
 		boundary_conditions[0] = this->checkBox_iso_periodical_a->isChecked();
@@ -160,9 +157,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_mu_s()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5], dij[5];
-		int i;
-
 		// mu_s
 		float mu_s = lineEdit_muSpin->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
@@ -196,8 +190,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_external_field()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5], dij[5];
-		int i;
+		float d, vd[3];
 
 		// External magnetic field
 		//		magnitude
@@ -254,8 +247,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5], dij[5];
-		int i;
+		float d, vd[3];
 
 		// Anisotropy
 		//		magnitude
@@ -341,9 +333,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3], jij[5], dij[5];
-		int i;
-
 		if (this->checkBox_exchange->isChecked())
 		{
 			int n_shells = this->exchange_shells.size();

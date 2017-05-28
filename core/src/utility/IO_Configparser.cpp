@@ -783,14 +783,26 @@ namespace Utility
 			int iatom = 0;
 			if (configFile != "")
 			{
-				try {
+				try
+				{
 					IO::Filter_File_Handle myfile(configFile);
 
 					myfile.Read_3Vector(boundary_conditions_i, "boundary_conditions");
 					boundary_conditions[0] = (boundary_conditions_i[0] != 0);
 					boundary_conditions[1] = (boundary_conditions_i[1] != 0);
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
-					
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
+
 					// External Field
 					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
 					if (external_field_file.length() > 0)
@@ -828,6 +840,17 @@ namespace Utility
 							external_field_normal = vectorfield(0);
 						}
 					}
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// Anisotropy
 					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
@@ -866,6 +889,17 @@ namespace Utility
 							anisotropy_normal = vectorfield(0);
 						}
 					}
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
 					if (jij.size() != n_neigh_shells_exchange)
@@ -876,7 +910,18 @@ namespace Utility
 							myfile.iss >> jij[iatom];
 					}
 					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
-					
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
+
 					myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
 					if (dij.size() != n_neigh_shells_dmi)
 						dij = scalarfield(n_neigh_shells_dmi);
@@ -887,16 +932,27 @@ namespace Utility
 					}
 					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
 					myfile.Read_Single(dm_chirality, "dm_chirality");
-					
+
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
+
 					myfile.Read_Single(dd_radius, "dd_radius");
 				}// end try
-				catch (Exception ex) {
+				catch (Exception ex)
+				{
 					if (ex == Exception::File_not_Found)
-					{
 						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-					}
 					else throw ex;
-				}// end catch
+				}
 			}
 			else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
 
@@ -988,6 +1044,17 @@ namespace Utility
 					boundary_conditions[0] = (boundary_conditions_i[0] != 0);
 					boundary_conditions[1] = (boundary_conditions_i[1] != 0);
 					boundary_conditions[2] = (boundary_conditions_i[2] != 0);
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// Spin moment
 					mu_s = scalarfield(geometry->nos, 2.0);
@@ -1003,6 +1070,17 @@ namespace Utility
 						}
 					}
 					else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// External Field
 					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
@@ -1040,6 +1118,17 @@ namespace Utility
 							external_field_normal = vectorfield(0);
 						}
 					}
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// Anisotropy
 					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
@@ -1077,6 +1166,17 @@ namespace Utility
 							anisotropy_normal = vectorfield(0);
 						}
 					}
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// Interaction Pairs
 					if (myfile.Find("interaction_pairs_file")) myfile.iss >> interaction_pairs_file;
@@ -1093,11 +1193,32 @@ namespace Utility
 					//	throw Exception::System_not_Initialized;
 					//	// Not implemented!
 					//}
-					
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
+
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
+
 					//		Dipole-Dipole Pairs
 					// Dipole Dipole radius
 					myfile.Read_Single(ddi_radius, "dd_radius");
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+						Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
+					else throw ex;
+				}
 
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
 
 					// Interaction Quadruplets
 					if (myfile.Find("interaction_quadruplets_file")) myfile.iss >> quadruplets_file;
@@ -1166,7 +1287,8 @@ namespace Utility
 			
 			if (configFile != "")
 			{
-				try {
+				try
+				{
 					IO::Filter_File_Handle myfile(configFile);
 
 					// N
