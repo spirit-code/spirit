@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from distutils.util import get_platform
-from setuptools import setup
+from setuptools import setup, Command
 from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 
@@ -74,6 +74,17 @@ class bdist_wheel(bdist_wheel_):
         self.plat_name = platform_name
 
 
+class CleanCommand(Command):
+    """Custom clean command to tidy up the project root."""
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
+
+
 if __name__ == "__main__":
     long_description = read('README.md')
     setup(
@@ -94,5 +105,5 @@ if __name__ == "__main__":
         package_data={
             'spirit': ['libSpirit.dylib', 'libSpirit.so', 'libSpirit.dll'],
         },
-        cmdclass={'bdist_wheel': bdist_wheel},
+        cmdclass={'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
     )
