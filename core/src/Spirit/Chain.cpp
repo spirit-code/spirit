@@ -121,8 +121,10 @@ void Chain_Replace_Image(State * state, int idx_image_i, int idx_chain_i)
 	    state->clipboard_image->Unlock();
         
         chain->Lock();
+		copy->Lock();
 
         // Replace in chain
+		chain->images[idx_image]->Unlock();
         chain->images[idx_image] = copy;
         
         // Update state
@@ -352,6 +354,7 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         chain->noi--;
         state->noi = state->active_chain->noi;
         
+		chain->images[idx_image]->Unlock();
         chain->images.erase(chain->images.begin() + idx_image);
         chain->image_type.erase(chain->image_type.begin() + idx_image);
 
@@ -409,6 +412,7 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
         chain->noi--;
         state->noi = state->active_chain->noi;
 
+		chain->images.back()->Unlock();
         chain->images.pop_back();
         chain->image_type.pop_back();
             
