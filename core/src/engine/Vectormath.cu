@@ -185,9 +185,12 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            static scalarfield out_min(blocks);
-            static scalarfield out_max(blocks);
-            static scalarfield temp(1);
+            static scalarfield out_min(blocks, 0);
+            Vectormath::fill(out_min, 0);
+            static scalarfield out_max(blocks, 0);
+            Vectormath::fill(out_max, 0);
+            static scalarfield temp(1, 0);
+            Vectormath::fill(temp, 0);
 
             cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
             cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
@@ -381,6 +384,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static scalarfield ret(1, 0);
+            Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -393,6 +397,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static scalarfield ret(1, 0);
+            Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -465,6 +470,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static vectorfield ret(1, {0,0,0});
+            Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -477,6 +483,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static vectorfield ret(1, {0,0,0});
+            Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -498,7 +505,8 @@ namespace Engine
         scalar dot(const vectorfield & vf1, const vectorfield & vf2)
         {
             int n = vf1.size();
-            static scalarfield sf(n);
+            static scalarfield sf(n, 0);
+            Vectormath::fill(sf, 0);
             scalar ret;
 
             // Dot product
