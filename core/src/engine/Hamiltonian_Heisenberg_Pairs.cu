@@ -145,7 +145,7 @@ namespace Engine
 		return idx;
 	}
 
-	__inline__ __device__ int cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Pair pair)
+	__inline__ __device__ int pair_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Pair pair)
 	{
 		// TODO: use pair.i and pair.j to get multi-spin basis correctly
 
@@ -154,13 +154,13 @@ namespace Engine
 		int Nb = n_cells[1];
 		int Nc = n_cells[2];
 
-		// Translations of spin i
+		// Translations (cell index) of spin i
 		// int ni[3];
-		int nic = ispin/(Na*Nb);
-		int nib = (ispin-nic*Na*Nb)/Na;
-		int nia = ispin-nic*Na*Nb-nib*Na;
+		int nic = ispin/(N*Na*Nb);
+		int nib = (ispin-nic*N*Na*Nb)/(N*Na);
+		int nia = ispin-nic*N*Na*Nb-nib*N*Na;
 
-		// Translations of spin j (possibly outside of non-periodical domain)
+		// Translations (cell index) of spin j (possibly outside of non-periodical domain)
 		// int nj[3]
 		int nja = nia+pair.translations[0];
 		int njb = nib+pair.translations[1];
@@ -182,24 +182,36 @@ namespace Engine
 			return -1;
 		}
 
-		if ( ( boundary_conditions[0] || (0 <= nja && nja < Na) ) &&
-		     ( boundary_conditions[1] || (0 <= njb && njb < Nb) ) &&
-		     ( boundary_conditions[2] || (0 <= njc && njc < Nc) ) )
+		if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
 		{
+			// Boundary conditions fulfilled
+			// Find the translations of spin j within the non-periodical domain
 			if (njb < 0)
 				njb += Nb;
-			if (njc < 0)
-				njc += Nc;
+			// Calculate the correct index
 			if (njb>=Nb)
 				njb-=Nb;
+		}
+		else
+		{
+			// Boundary conditions not fulfilled
+			return -1;
+		}
+
+		if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
+		{
+			// Boundary conditions fulfilled
+			// Find the translations of spin j within the non-periodical domain
+			if (njc < 0)
+				njc += Nc;
+			// Calculate the correct index
 			if (njc>=Nc)
 				njc-=Nc;
 		}
-
-		if ( ( boundary_conditions[0] || (0 <= nja && nja < Na) ) &&
-		     ( boundary_conditions[1] || (0 <= njb && njb < Nb) ) &&
-		     ( boundary_conditions[2] || (0 <= njc && njc < Nc) ) )
+		else
 		{
+			// Boundary conditions not fulfilled
+			return -1;
 		}
 
 		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
@@ -270,43 +282,63 @@ namespace Engine
 	}
 
 
-	__global__ void CU_E_Exchange(const Vector3 * spins, const Pair * pairs, const scalar * J_ij, scalar * Energy, size_t size)
+	__global__ void CU_E_Exchange(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+			int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * Energy, size_t size)
 	{
-		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
-			iPair < size;
-			iPair +=  blockDim.x * gridDim.x)
+		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+		int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
+
+		for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+			ispin < size;
+			ispin +=  blockDim.x * gridDim.x)
 		{
-			int ispin = pairs[iPair].i;
-			int jspin = pairs[iPair].j;
-			scalar sc = - 0.5 * J_ij[iPair] * spins[ispin].dot(spins[jspin]);
-			atomicAdd(&Energy[ispin], sc);
-			atomicAdd(&Energy[jspin], sc);
+			for(auto ipair = 0; ipair < n_pairs; ++ipair)
+			{
+				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				if (jspin >= 0)
+				{
+					scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+					atomicAdd(&Energy[ispin], sc);
+					atomicAdd(&Energy[jspin], sc);
+				}
+			}
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
-		int size = this->exchange_pairs.size();
-		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
+		int size = spins.size();
+		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
 	}
 
 
-	__global__ void CU_E_DMI(const Vector3 * spins, const Pair * pairs, const scalar * dmi_magnitudes, const Vector3 * dmi_normals, scalar * Energy, size_t size)
+	__global__ void CU_E_DMI(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+			int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, scalar * Energy, size_t size)
 	{
-		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
-			iPair < size;
-			iPair +=  blockDim.x * gridDim.x)
+		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+		int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
+		
+		for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+			ispin < size;
+			ispin +=  blockDim.x * gridDim.x)
 		{
-			int ispin = pairs[iPair].i;
-			int jspin = pairs[iPair].j;
-			scalar sc = - 0.5 *  dmi_magnitudes[iPair] * dmi_normals[iPair].dot(spins[ispin].cross(spins[jspin]));
-			atomicAdd(&Energy[ispin], sc);
-			atomicAdd(&Energy[jspin], sc);
+			for(auto ipair = 0; ipair < n_pairs; ++ipair)
+			{
+				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				if (jspin >= 0)
+				{
+					scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+					atomicAdd(&Energy[ispin], sc);
+					atomicAdd(&Energy[jspin], sc);
+				}
+			}
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
-		int size = this->dmi_pairs.size();
-		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
+		int size = spins.size();
+		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+				this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
 	}
 
 
@@ -440,49 +472,69 @@ namespace Engine
 	}
 
 
-	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const Pair * pairs, const scalar * J_ij, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+			int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size)
 	{
-		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
-			iPair < size;
-			iPair +=  blockDim.x * gridDim.x)
+		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+		int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
+
+		for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+			ispin < size;
+			ispin +=  blockDim.x * gridDim.x)
 		{
-			int ispin = pairs[iPair].i;
-			int jspin = pairs[iPair].j;
-			for (int dim=0; dim<3 ; dim++)
+			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				atomicAdd(&gradient[ispin][dim], -J_ij[iPair]*spins[jspin][dim]);
-				atomicAdd(&gradient[jspin][dim], -J_ij[iPair]*spins[ispin][dim]);
+				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				if (jspin >= 0)
+				{
+					for (int dim=0; dim<3 ; dim++)
+					{
+						atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
+						atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
+					}
+				}
 			}
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
-		int size = this->exchange_pairs.size();
-		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
+		int size = spins.size();
+		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
 	}
 
 
-	__global__ void CU_Gradient_DMI(const Vector3 * spins, const Pair * pairs, const scalar * dmi_magnitudes, const Vector3 * dmi_normals, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_DMI(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+			int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, Vector3 * gradient, size_t size)
 	{
-		for(auto iPair = blockIdx.x * blockDim.x + threadIdx.x;
-			iPair < size;
-			iPair +=  blockDim.x * gridDim.x)
+		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+		int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
+		
+		for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+			ispin < size;
+			ispin +=  blockDim.x * gridDim.x)
 		{
-			int ispin = pairs[iPair].i;
-			int jspin = pairs[iPair].j;
-			Vector3 jcross = dmi_magnitudes[iPair]*spins[jspin].cross(dmi_normals[iPair]);
-			Vector3 icross = dmi_magnitudes[iPair]*spins[ispin].cross(dmi_normals[iPair]);
-			for (int dim=0; dim<3 ; dim++)
+			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				atomicAdd(&gradient[ispin][dim], -jcross[dim]);
-				atomicAdd(&gradient[jspin][dim],  icross[dim]);
+				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				if (jspin >= 0)
+				{
+					Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
+					Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
+					for (int dim=0; dim<3 ; dim++)
+					{
+						atomicAdd(&gradient[ispin][dim], -jcross[dim]);
+						atomicAdd(&gradient[jspin][dim],  icross[dim]);
+					}
+				}
 			}
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
-		int size = this->dmi_pairs.size();
-		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
+		int size = spins.size();
+		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+				this->dmi_pairs.size(),  this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
 	}
 
 
