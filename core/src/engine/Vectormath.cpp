@@ -174,10 +174,10 @@ namespace Engine
 
 		scalar mean(const scalarfield & sf)
 		{
-			scalar ret = 0;
-			for (unsigned int i = 0; i<sf.size(); ++i)
+			scalar ret = sf[0];
+			for (unsigned int i = 1; i<sf.size(); ++i)
 			{
-				ret = (i - 1) / i * ret + sf[i] / i;
+				ret += (sf[i] - ret) / i;
 			}
 			return ret;
 		}
@@ -248,9 +248,9 @@ namespace Engine
 		Vector3 mean(const vectorfield & vf)
 		{
 			Vector3 ret = { 0,0,0 };
-			for (unsigned int i = 0; i<vf.size(); ++i)
+			for (unsigned int i = 1; i<vf.size(); ++i)
 			{
-				ret = (i-1)/i * ret + vf[i]/i;
+				ret += (vf[i] - ret) / i;
 			}
 			return ret;
 		}
