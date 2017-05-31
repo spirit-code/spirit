@@ -122,7 +122,7 @@ namespace Engine
         {
             for (int offset = warpSize/2; offset > 0; offset /= 2)
             {
-                val  = min(val,  __shfl_down(val, offset));
+                val  = min(val, __shfl_down(val, offset));
             }
             return val;
         }
@@ -141,6 +141,7 @@ namespace Engine
         {
             static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
             static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
+
             int lane = threadIdx.x % warpSize;
             int wid = threadIdx.x / warpSize;
 
@@ -164,18 +165,26 @@ namespace Engine
 
         __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
         {
-            scalar min, max;
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
+            scalar tmp, tmp_min{0}, tmp_max{0};
+            scalar _min{0}, _max{0};
+            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
+                i < N; 
+                i += blockDim.x * gridDim.x)
             {
-                scalar val = in[idx];
-                blockReduceMinMax(val, &min, &max);
+                _min = min(_min, in[i]);
+                _max = max(_max, in[i]);
+            }
+            
+            tmp_min = _min;
+            tmp_max = _max;
 
-                if (threadIdx.x==0)
-                {
-                    out_min[blockIdx.x] = min;
-                    out_max[blockIdx.x] = max;
-                }
+            blockReduceMinMax(tmp_min, &_min, &tmp);
+            blockReduceMinMax(tmp_max, &tmp, &_max);
+
+            if (threadIdx.x==0)
+            {
+                out_min[blockIdx.x] = _min;
+                out_max[blockIdx.x] = _max;
             }
         }
 
@@ -438,14 +447,12 @@ namespace Engine
         scalar  max_abs_component(const vectorfield & vf)
 		{
 			// We want the Maximum of Absolute Values of all force components on all images
-			scalar absmax = 0;
 			// Find minimum and maximum values
 			std::pair<scalar,scalar> minmax = minmax_component(vf);
-			// Mamimum of absolute values
-			absmax = std::max(absmax, std::abs(minmax.first));
-			absmax = std::max(absmax, std::abs(minmax.second));
-			// Return
-			return absmax;
+            scalar absmin = std::abs(minmax.first);
+            scalar absmax = std::abs(minmax.second);
+			// Maximum of absolute values
+			return std::max(absmin, absmax);
 		}
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -729,7 +736,7 @@ namespace Engine
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
             int n = out.size();
-            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
+            cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -745,7 +752,7 @@ namespace Engine
         void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
             int n = out.size();
-            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
     }
