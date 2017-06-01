@@ -17,7 +17,7 @@ configuration:
 environment:
     matrix:
         - PYTHON: "C:\\Python36-x64"
-          
+        
 # Cmake will autodetect the compiler, but we set the arch
 before_build:
   - set PATH=%PYTHON%;%PATH%
@@ -29,6 +29,9 @@ build:
   project: Build\spirit.sln # path to Visual Studio solution or project
   parallel: true                 # enable MSBuild parallel builds
   verbosity: normal              # MSBuild verbosity level {quiet|minimal|normal|detailed}
+
+install:
+  - "%PYTHON%/Scripts/pip.exe install numpy"
 
 test_script:
   - cd Build

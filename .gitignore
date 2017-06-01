@@ -4,6 +4,7 @@ output/*
 output_llg/*
 output_gneb/*
 output_mmf/*
+Testing/*
 
 ### Subdirectories ###
 */build/*

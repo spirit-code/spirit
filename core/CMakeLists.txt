@@ -379,6 +379,7 @@ if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
     ### Tests
     add_python_test( test_python_state           state.py )
     add_python_test( test_python_configuration   configuration.py )
+    add_python_test( test_python_chain           chain.py )
 endif( )
 #############################################
 

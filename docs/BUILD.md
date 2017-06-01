@@ -164,3 +164,9 @@ remotely modern graphics card.
 | UI_CXX_USE_QT        | Build qt user interface instead of console version |
 | USER_PATH_QT         | The path to your CMake installation |
 | OSX_BUNDLE_APP       | On OSX, create .app bundle (not yet fully functional) |
+
+
+
+---
+
+[Home](Readme.md)

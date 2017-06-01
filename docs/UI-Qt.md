@@ -128,3 +128,9 @@ Key bindings
 | Paste image at current index                     | <kbd>Ctrl</kbd>+<kbd>V</kbd>                |
 | Insert left/right of current index               | <kbd>Ctrl</kbd>+<kbd>&larr;</kbd> / <kbd>&rarr;</kbd> | 
 | Delete image                                     | <kbd>Del</kbd>                              |
+
+
+
+---
+
+[Home](Readme.md)
