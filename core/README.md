@@ -15,3 +15,4 @@ Other bindings should be easy to create.
 * [Build instructions](docs/BUILD.md)
 * [API Reference](docs/API.md)
 * [Python API Reference](docs/API_Python.md)
+* [Input File Reference](docs/INPUT.md)

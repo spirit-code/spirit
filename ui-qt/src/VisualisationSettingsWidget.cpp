@@ -587,9 +587,27 @@ void VisualisationSettingsWidget::set_visualization_system_isosurface()
 
 void VisualisationSettingsWidget::add_isosurface()
 {
-	this->isosurfaceWidgets.push_back(new IsosurfaceWidget(state, spinWidget));
+	IsosurfaceWidget * iso = new IsosurfaceWidget(state, spinWidget);
+	connect(iso, SIGNAL(closedSignal()), this, SLOT(update_isosurfaces()));
+	iso->setDrawShadows(this->m_isosurfaceshadows);
+	this->isosurfaceWidgets.push_back(iso);
 	this->verticalLayout_isosurface->addWidget(isosurfaceWidgets.back());
 	//this->set_visualization_system();
+}
+
+void VisualisationSettingsWidget::update_isosurfaces()
+{
+	// std::cerr << "........................" << std::endl;
+	QObject* obj = sender();
+
+
+	for (unsigned int i = 0; i < this->isosurfaceWidgets.size(); ++i)
+	{
+		if (this->isosurfaceWidgets[i] == obj)
+			this->isosurfaceWidgets.erase(this->isosurfaceWidgets.begin() + i);
+		else
+			int x = 0;
+	}
 }
 
 

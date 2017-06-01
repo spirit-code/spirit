@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	Hamiltonian::Hamiltonian(std::vector<bool> boundary_conditions) :
+	Hamiltonian::Hamiltonian(intfield boundary_conditions) :
         boundary_conditions(boundary_conditions)
     {
         prng = std::mt19937(94199188);

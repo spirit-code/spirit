@@ -217,14 +217,37 @@ void ConfigurationsWidget::create_SpinSpiral()
 	float border_sph = get_border_spherical();
 	bool inverted = get_inverted();
 	// Create configuration
-	float direction[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
+	float angle = lineEdit_SS_angle->text().toFloat();
 	float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(), lineEdit_SS_axis_z->text().toFloat() };
-	float period = lineEdit_SS_period->text().toFloat();
+	float qmag = this->doubleSpinBox_spiral_q->value();
+	float qvec[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(), lineEdit_SS_dir_z->text().toFloat() };
+
+	// Normalize qvec
+	float absq = std::sqrt(qvec[0]*qvec[0] + qvec[1]*qvec[1] + qvec[2]*qvec[2]);
+	if (absq > 0)
+	{
+		for (int dim = 0; dim < 3; ++dim) qvec[dim] /= absq;
+	}
+	else
+	{
+		qvec[0] = 0;
+		qvec[1] = 0;
+		qvec[2] = 1;
+		lineEdit_SS_dir_x->setText(QString::number(qvec[0]));
+		lineEdit_SS_dir_y->setText(QString::number(qvec[1]));
+		lineEdit_SS_dir_z->setText(QString::number(qvec[2]));
+	}
+
+	std::cerr << qmag << " ---------------------------------------- " << absq << std::endl;
+
+	// Scale
+	for (int dim = 0; dim < 3; ++dim) qvec[dim] *= qmag;
+
 	const char * direction_type;
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
-	Configuration_SpinSpiral(this->state.get(), direction_type, direction, axis, period, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	Configuration_SpinSpiral(this->state.get(), direction_type, qvec, axis, angle, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
 
 	// Optionally add noise
 	this->configurationAddNoise();
@@ -407,7 +430,7 @@ void ConfigurationsWidget::Setup_Input_Validators()
 	this->lineEdit_SS_axis_x->setValidator(this->number_validator);
 	this->lineEdit_SS_axis_y->setValidator(this->number_validator);
 	this->lineEdit_SS_axis_z->setValidator(this->number_validator);
-	this->lineEdit_SS_period->setValidator(this->number_validator);
+	this->lineEdit_SS_angle->setValidator(this->number_validator);
 	//		Domain
 	this->lineEdit_domain_dir_x->setValidator(this->number_validator);
 	this->lineEdit_domain_dir_y->setValidator(this->number_validator);
@@ -453,14 +476,15 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_skyrmion_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 	connect(this->lineEdit_skyrmion_radius, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 
-	// SpinSpiral LineEdits
+	// SpinSpiral
+	connect(this->doubleSpinBox_spiral_q, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_dir_x, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_dir_y, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_dir_z, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_axis_x, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_axis_y, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_axis_z, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
-	connect(this->lineEdit_SS_period, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
+	connect(this->lineEdit_SS_angle, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 }
 
 void ConfigurationsWidget::Setup_Transitions_Slots()

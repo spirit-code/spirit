@@ -52,6 +52,12 @@ struct State
 	// Timepoint of creation
 	system_clock::time_point datetime_creation;
 	std::string datetime_creation_string;
+
+	// Config file at creation
+	std::string config_file;
+
+	// Option to run quietly
+	bool quiet;
 };
 
 

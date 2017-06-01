@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIANANISOTROPICWIDGET_H
-#define HAMILTONIANANISOTROPICWIDGET_H
+#ifndef HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
+#define HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
 
 #include <QWidget>
 
@@ -11,7 +11,7 @@
 #include "IsosurfaceWidget.hpp"
 //#include "SettingsWidget.hpp"
 
-#include "ui_HamiltonianAnisotropicWidget.h"
+#include "ui_HamiltonianHeisenbergNeighboursWidget.h"
 
 struct State;
 
@@ -21,32 +21,36 @@ struct State;
 */
 std::string string_q2std(QString qs);
 
-class HamiltonianAnisotropicWidget : public QWidget, private Ui::HamiltonianAnisotropicWidget
+class HamiltonianHeisenbergNeighboursWidget : public QWidget, private Ui::HamiltonianHeisenbergNeighboursWidget
 {
     Q_OBJECT
 
 public:
-	HamiltonianAnisotropicWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
+	HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
 	void updateData();
 
 private slots:
-	void set_hamiltonian_aniso_bc();
-	void set_hamiltonian_aniso_mu_s();
-	void set_hamiltonian_aniso_field();
-	void set_hamiltonian_aniso_ani();
-
+	void set_boundary_conditions();
+	void set_mu_s();
+	void set_external_field();
+	void set_anisotropy();
+	void set_nshells_exchange();
+	void set_exchange();
+	void set_nshells_dmi();
+	void set_dmi();
+	void set_ddi();
 
 private:
-	void Load_Hamiltonian_Anisotropic_Contents();
+	void Load_Contents();
 	void Setup_Input_Validators();
-	void Setup_Hamiltonian_Anisotropic_Slots();
+	void Setup_Slots();
 
 	std::shared_ptr<State> state;
 	SpinWidget * spinWidget;
-	//SettingsWidget * settingsWidget;
-
-	// Last used configuration
-	std::string last_configuration;
+	
+	// Spinboxes for interaction shells
+	std::vector<QDoubleSpinBox *> exchange_shells;
+	std::vector<QDoubleSpinBox *> dmi_shells;
 
 	// Validator for Input into lineEdits
 	QRegularExpressionValidator * number_validator;

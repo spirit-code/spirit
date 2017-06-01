@@ -14,7 +14,7 @@
 namespace Data
 {
 	Geometry::Geometry(std::vector<Vector3> basis_i, const std::vector<Vector3> translation_vectors_i,
-		const std::vector<int> n_cells_i, const std::vector<Vector3> basis_atoms_i, const scalar lattice_constant_i,
+		const intfield n_cells_i, const std::vector<Vector3> basis_atoms_i, const scalar lattice_constant_i,
 		const vectorfield spin_pos_i) :
 		basis(basis_i), translation_vectors(translation_vectors_i), n_cells(n_cells_i),
 		n_spins_basic_domain(basis_atoms_i.size()), basis_atoms(basis_atoms_i), lattice_constant(lattice_constant_i),

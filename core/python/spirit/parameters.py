@@ -42,6 +42,13 @@ _Set_GNEB_Climbing_Falling.restype     = None
 def Set_GNEB_Climbing_Falling(p_state, image_type, idx_image=-1, idx_chain=-1):
     _Set_GNEB_Climbing_Falling(p_state, image_type, idx_image, idx_chain)
 
+### Set GNEB climbing and falling images
+_Set_GNEB_Image_Type_Automatically             = _spirit.Parameters_Set_GNEB_Image_Type_Automatically
+_Set_GNEB_Image_Type_Automatically.argtypes    = [ctypes.c_void_p, ctypes.c_int]
+_Set_GNEB_Image_Type_Automatically.restype     = None
+def Set_GNEB_Image_Type_Automatically(p_state, idx_chain=-1):
+    _Set_GNEB_Image_Type_Automatically(p_state, idx_chain)
+
 ### Set GNEB N Iterations
 _Set_GNEB_N_Iterations             = _spirit.Parameters_Set_GNEB_N_Iterations
 _Set_GNEB_N_Iterations.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]

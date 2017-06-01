@@ -24,13 +24,13 @@ namespace Utility
 		// Message Level
 		if (braces_separators) result.append("  [");
 		else result.append("   ");
-		if      (entry.level == Log_Level::All)    	result.append("  ALL  ");
-		else if (entry.level == Log_Level::Severe) 	result.append("SEVERE ");
-		else if (entry.level == Log_Level::Error)	result.append(" ERROR ");
-		else if (entry.level == Log_Level::Warning)	result.append("WARNING");
+		if      (entry.level == Log_Level::All)    	  result.append("  ALL  ");
+		else if (entry.level == Log_Level::Severe)    result.append("SEVERE ");
+		else if (entry.level == Log_Level::Error)	  result.append(" ERROR ");
+		else if (entry.level == Log_Level::Warning)	  result.append("WARNING");
 		else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
-		else if (entry.level == Log_Level::Info)    	result.append(" INFO  ");
-		else if (entry.level == Log_Level::Debug)   	result.append(" DEBUG ");
+		else if (entry.level == Log_Level::Info)      result.append(" INFO  ");
+		else if (entry.level == Log_Level::Debug)     result.append(" DEBUG ");
 		// Sender
 		if (braces_separators) result.append("] [");
 		else result.append("  ");
@@ -63,18 +63,20 @@ namespace Utility
 	LoggingHandler::LoggingHandler()
 	{
 		// Set the default Log parameters
-		print_level   = Log_Level::Parameter;
-		accept_level  = Log_Level::Debug;
 		output_folder = ".";
 		if (tag_time)
 			fileName  = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
 		else
 			fileName = "Log.txt";
-		save_output   = false;
-		save_input    = true;
-		n_entries     = 0;
-		n_errors      = 0;
-		n_warnings    = 0;
+		messages_to_file    = false;
+		level_file          = Log_Level::Debug;
+		messages_to_console = true;
+		level_console       = Log_Level::Parameter;
+		save_input_initial  = true;
+		save_input_final    = true;
+		n_entries  = 0;
+		n_errors   = 0;
+		n_warnings = 0;
 	}
 
 	void LoggingHandler::Send(Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
@@ -96,7 +98,7 @@ namespace Utility
 			n_warnings++;
 
 		// If level <= verbosity, we print to console
-		if (level <= print_level && level <= accept_level)
+		if (messages_to_console && level <= level_console || level == Log_Level::Error || level == Log_Level::Severe)
 			std::cout << LogEntryToString(log_entries.back()) << std::endl;
 	}
 
@@ -114,8 +116,8 @@ namespace Utility
 			// Increment message count
 			n_entries++;
 
-			// If level <= verbosity, we print to console
-			if (level <= print_level && level <= accept_level)
+			// If level <= verbosity, we may print to console
+			if (messages_to_console && level <= level_console || level == Log_Level::Error || level == Log_Level::Severe)
 				std::cout << LogEntryToString(log_entries.back()) << std::endl;
 		}
 	}
@@ -152,7 +154,7 @@ namespace Utility
 
 	void LoggingHandler::Append_to_File()
 	{
-		if (this->save_output)
+		if (this->messages_to_file)
 		{
 			// Log this event
 			Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
@@ -163,8 +165,12 @@ namespace Utility
 			no_dumped = n_entries;
 			for (int i=begin_append; i<n_entries; ++i)
 			{
-				logstring.append(LogEntryToString(log_entries[i]));
-				logstring.append("\n");
+				auto level = log_entries[i].level;
+				if (level <= level_file || level == Log_Level::Error || level == Log_Level::Severe)
+				{
+					logstring.append(LogEntryToString(log_entries[i]));
+					logstring.append("\n");
+				}
 			}
 
 			// Append to file
@@ -179,7 +185,7 @@ namespace Utility
 	// Write the entire Log to file
 	void LoggingHandler::Dump_to_File()
 	{
-		if (this->save_output)
+		if (this->messages_to_file)
 		{
 			// Log this event
 			Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
@@ -188,8 +194,12 @@ namespace Utility
 			std::string logstring = "";
 			for (int i=0; i<n_entries; ++i)
 			{
-				logstring.append(LogEntryToString(log_entries[i]));
-				logstring.append("\n");
+				auto level = log_entries[i].level;
+				if (level <= level_file || level == Log_Level::Error || level == Log_Level::Severe)
+				{
+					logstring.append(LogEntryToString(log_entries[i]));
+					logstring.append("\n");
+				}
 			}
 
 			// Write the string to file

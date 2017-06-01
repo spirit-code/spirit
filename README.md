@@ -96,6 +96,7 @@ More details may be found in the [Reference section](docs/README.md) including
 * [Core build instructions](core/docs/BUILD.md)
 * [Core API Reference](core/docs/API.md)
 * [Python API Reference](core/docs/API_Python.md)
+* [Input File Reference](core/docs/INPUT.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
 hosted by the Research Centre Jülich.

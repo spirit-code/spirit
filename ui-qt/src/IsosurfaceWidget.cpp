@@ -181,6 +181,8 @@ void IsosurfaceWidget::closeEvent(QCloseEvent *event)
 {
 	// Remove this isosurface from the SpinWidget
 	this->spinWidget->removeIsosurface(m_renderer);
+	// Notify others that this widget was closed
+	emit closedSignal();
 	// Close
 	event->accept();
 }

@@ -17,7 +17,7 @@ namespace Engine
 	class Hamiltonian
 	{
 	public:
-		Hamiltonian(std::vector<bool> boundary_conditions);
+		Hamiltonian(intfield boundary_conditions);
 
 		/*
 			Update the Energy array.
@@ -55,7 +55,7 @@ namespace Engine
 		virtual const std::string& Name();
 
 		// Boundary conditions
-		std::vector<bool> boundary_conditions; // [3] (a, b, c)
+		intfield boundary_conditions; // [3] (a, b, c)
 	
 	protected:
 		// Energy contributions per spin

@@ -46,6 +46,7 @@ private slots:
 	void set_visualization_system_overall_position();
 	void set_visualization_system_isosurface();
 	void add_isosurface();
+	void update_isosurfaces();
 	void set_visualization_sphere();
 	void set_visualization_sphere_pointsize();
 	void set_visualization_colormap();
