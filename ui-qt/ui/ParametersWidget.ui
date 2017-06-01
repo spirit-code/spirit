@@ -146,7 +146,7 @@
             <x>0</x>
             <y>0</y>
             <width>462</width>
-            <height>671</height>
+            <height>635</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -636,8 +636,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>306</width>
-            <height>299</height>
+            <width>462</width>
+            <height>635</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -897,7 +897,7 @@
             <x>0</x>
             <y>0</y>
             <width>462</width>
-            <height>671</height>
+            <height>635</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1245,8 +1245,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>98</width>
-            <height>28</height>
+            <width>462</width>
+            <height>635</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1261,6 +1261,62 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_Parameters_ApplyTo</tabstop>
+  <tabstop>checkBox_llg_temperature</tabstop>
+  <tabstop>doubleSpinBox_llg_temperature</tabstop>
+  <tabstop>checkBox_llg_stt</tabstop>
+  <tabstop>doubleSpinBox_llg_stt_magnitude</tabstop>
+  <tabstop>doubleSpinBox_llg_stt_polarisation_x</tabstop>
+  <tabstop>doubleSpinBox_llg_stt_polarisation_y</tabstop>
+  <tabstop>doubleSpinBox_llg_stt_polarisation_z</tabstop>
+  <tabstop>lineEdit_Damping</tabstop>
+  <tabstop>lineEdit_dt</tabstop>
+  <tabstop>lineEdit_llg_output_folder</tabstop>
+  <tabstop>lineEdit_llg_n_iterations</tabstop>
+  <tabstop>lineEdit_llg_log_steps</tabstop>
+  <tabstop>checkBox_llg_output_any</tabstop>
+  <tabstop>checkBox_llg_output_initial</tabstop>
+  <tabstop>checkBox_llg_output_final</tabstop>
+  <tabstop>checkBox_llg_output_energy_step</tabstop>
+  <tabstop>checkBox_llg_output_energy_archive</tabstop>
+  <tabstop>checkBox_llg_output_energy_spin_resolved</tabstop>
+  <tabstop>checkBox_llg_output_energy_divide</tabstop>
+  <tabstop>checkBox_llg_output_configuration_step</tabstop>
+  <tabstop>checkBox_llg_output_configuration_archive</tabstop>
+  <tabstop>checkBox_mc_temperature</tabstop>
+  <tabstop>doubleSpinBox_mc_temperature</tabstop>
+  <tabstop>checkBox_mc_acceptance</tabstop>
+  <tabstop>doubleSpinBox_mc_acceptance</tabstop>
+  <tabstop>spinBox_mc_n_iterations</tabstop>
+  <tabstop>spinBox_mc_log_steps</tabstop>
+  <tabstop>checkBox_mc_output_any</tabstop>
+  <tabstop>checkBox_mc_output_initial</tabstop>
+  <tabstop>checkBox_mc_output_final</tabstop>
+  <tabstop>checkBox_mc_output_energy_step</tabstop>
+  <tabstop>checkBox_mc_output_energy_archive</tabstop>
+  <tabstop>checkBox_mc_output_energy_spin_resolved</tabstop>
+  <tabstop>checkBox_mc_output_energy_divide</tabstop>
+  <tabstop>checkBox_mc_output_configuration_step</tabstop>
+  <tabstop>checkBox_mc_output_configuration_archive</tabstop>
+  <tabstop>lineEdit_gneb_springconstant</tabstop>
+  <tabstop>pushButton_auto_image_type</tabstop>
+  <tabstop>radioButton_Normal</tabstop>
+  <tabstop>radioButton_ClimbingImage</tabstop>
+  <tabstop>radioButton_FallingImage</tabstop>
+  <tabstop>radioButton_Stationary</tabstop>
+  <tabstop>lineEdit_gneb_output_folder</tabstop>
+  <tabstop>lineEdit_gneb_n_iterations</tabstop>
+  <tabstop>lineEdit_gneb_log_steps</tabstop>
+  <tabstop>checkBox_gneb_output_any</tabstop>
+  <tabstop>checkBox_gneb_output_initial</tabstop>
+  <tabstop>checkBox_gneb_output_final</tabstop>
+  <tabstop>checkBox_gneb_output_energies_step</tabstop>
+  <tabstop>checkBox_gneb_output_energies_interpolated</tabstop>
+  <tabstop>checkBox_gneb_output_energies_divide</tabstop>
+  <tabstop>checkBox_gneb_output_chain_step</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

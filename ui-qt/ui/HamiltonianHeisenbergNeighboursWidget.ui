@@ -662,6 +662,34 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>comboBox_Hamiltonian_Iso_ApplyTo</tabstop>
+  <tabstop>checkBox_iso_periodical_a</tabstop>
+  <tabstop>checkBox_iso_periodical_b</tabstop>
+  <tabstop>checkBox_iso_periodical_c</tabstop>
+  <tabstop>checkBox_extH</tabstop>
+  <tabstop>lineEdit_extH</tabstop>
+  <tabstop>lineEdit_muSpin</tabstop>
+  <tabstop>lineEdit_extHx</tabstop>
+  <tabstop>lineEdit_extHy</tabstop>
+  <tabstop>lineEdit_extHz</tabstop>
+  <tabstop>checkBox_aniso</tabstop>
+  <tabstop>lineEdit_aniso</tabstop>
+  <tabstop>lineEdit_anisox</tabstop>
+  <tabstop>lineEdit_anisoy</tabstop>
+  <tabstop>lineEdit_anisoz</tabstop>
+  <tabstop>checkBox_exchange</tabstop>
+  <tabstop>spinBox_exchange_nshells</tabstop>
+  <tabstop>checkBox_dmi</tabstop>
+  <tabstop>spinBox_dmi_nshells</tabstop>
+  <tabstop>checkBox_bqe</tabstop>
+  <tabstop>lineEdit_bqe</tabstop>
+  <tabstop>checkBox_fourspin</tabstop>
+  <tabstop>lineEdit_fourspin</tabstop>
+  <tabstop>checkBox_ddi</tabstop>
+  <tabstop>doubleSpinBox_ddi_radius</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

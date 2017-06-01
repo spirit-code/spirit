@@ -224,11 +224,7 @@ void ConfigurationsWidget::create_SpinSpiral()
 
 	// Normalize qvec
 	float absq = std::sqrt(qvec[0]*qvec[0] + qvec[1]*qvec[1] + qvec[2]*qvec[2]);
-	if (absq > 0)
-	{
-		for (int dim = 0; dim < 3; ++dim) qvec[dim] /= absq;
-	}
-	else
+	if (absq == 0)
 	{
 		qvec[0] = 0;
 		qvec[1] = 0;
@@ -237,8 +233,6 @@ void ConfigurationsWidget::create_SpinSpiral()
 		lineEdit_SS_dir_y->setText(QString::number(qvec[1]));
 		lineEdit_SS_dir_z->setText(QString::number(qvec[2]));
 	}
-
-	std::cerr << qmag << " ---------------------------------------- " << absq << std::endl;
 
 	// Scale
 	for (int dim = 0; dim < 3; ++dim) qvec[dim] *= qmag;

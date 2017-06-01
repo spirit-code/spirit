@@ -73,7 +73,7 @@
             <x>0</x>
             <y>0</y>
             <width>403</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -434,7 +434,7 @@
             <x>0</x>
             <y>0</y>
             <width>403</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -831,7 +831,7 @@
             <x>0</x>
             <y>0</y>
             <width>403</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -1058,6 +1058,9 @@
                     <width>60</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
                   </property>
                   <property name="decimals">
                    <number>3</number>
@@ -1318,7 +1321,7 @@
             <x>0</x>
             <y>0</y>
             <width>403</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -1551,6 +1554,59 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>pushButton_AddNoise</tabstop>
+  <tabstop>pushButton_plusZ</tabstop>
+  <tabstop>pushButton_minusZ</tabstop>
+  <tabstop>checkBox_Configuration_Noise</tabstop>
+  <tabstop>lineEdit_Configuration_Noise</tabstop>
+  <tabstop>lineEdit_pos_x</tabstop>
+  <tabstop>lineEdit_pos_y</tabstop>
+  <tabstop>lineEdit_pos_z</tabstop>
+  <tabstop>checkBox_border_rectangular_x</tabstop>
+  <tabstop>lineEdit_border_x</tabstop>
+  <tabstop>checkBox_border_rectangular_y</tabstop>
+  <tabstop>lineEdit_border_y</tabstop>
+  <tabstop>checkBox_border_rectangular_z</tabstop>
+  <tabstop>lineEdit_border_z</tabstop>
+  <tabstop>checkBox_border_cylindrical</tabstop>
+  <tabstop>lineEdit_border_cylindrical</tabstop>
+  <tabstop>checkBox_border_spherical</tabstop>
+  <tabstop>lineEdit_border_spherical</tabstop>
+  <tabstop>checkBox_inverted</tabstop>
+  <tabstop>pushButton_skyrmion</tabstop>
+  <tabstop>lineEdit_skyrmion_radius</tabstop>
+  <tabstop>lineEdit_skyrmion_order</tabstop>
+  <tabstop>lineEdit_skyrmion_phase</tabstop>
+  <tabstop>checkBox_skyrmion_UpDown</tabstop>
+  <tabstop>checkBox_skyrmion_RL</tabstop>
+  <tabstop>checkBox_skyrmion_achiral</tabstop>
+  <tabstop>checkBox_skyrmion_experimental</tabstop>
+  <tabstop>pushButton_hopfion</tabstop>
+  <tabstop>lineEdit_hopfion_radius</tabstop>
+  <tabstop>lineEdit_hopfion_order</tabstop>
+  <tabstop>pushButton_domain</tabstop>
+  <tabstop>lineEdit_domain_dir_x</tabstop>
+  <tabstop>lineEdit_domain_dir_y</tabstop>
+  <tabstop>lineEdit_domain_dir_z</tabstop>
+  <tabstop>pushButton_SS</tabstop>
+  <tabstop>lineEdit_SS_angle</tabstop>
+  <tabstop>lineEdit_SS_axis_x</tabstop>
+  <tabstop>lineEdit_SS_axis_y</tabstop>
+  <tabstop>lineEdit_SS_axis_z</tabstop>
+  <tabstop>doubleSpinBox_spiral_q</tabstop>
+  <tabstop>lineEdit_SS_dir_x</tabstop>
+  <tabstop>lineEdit_SS_dir_y</tabstop>
+  <tabstop>lineEdit_SS_dir_z</tabstop>
+  <tabstop>comboBox_SS</tabstop>
+  <tabstop>pushButton_Transition_Homogeneous</tabstop>
+  <tabstop>checkBox_Transition_Noise</tabstop>
+  <tabstop>lineEdit_Transition_Noise</tabstop>
+  <tabstop>lineEdit_Transition_Homogeneous_First</tabstop>
+  <tabstop>lineEdit_Transition_Homogeneous_Last</tabstop>
+  <tabstop>pushButton_Random</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -354,7 +354,7 @@ namespace Utility
 				b2 = a3.cross(a1) / (a2.dot(a3.cross(a1)));
 				b3 = a1.cross(a2) / (a3.dot(a1.cross(a2)));
 				// The q-vector is specified in units of the reciprocal lattice
-				Vector3 projBQ = { q.dot(b1), q.dot(b2), q.dot(b3) };
+				Vector3 projBQ = q[0]*b1 + q[1]*b2 + q[2]*b3;
 				q = projBQ;
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{

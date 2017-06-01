@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>382</width>
-        <height>1142</height>
+        <width>376</width>
+        <height>1136</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_29">
@@ -754,6 +754,36 @@ i  j  k  l   da_j  db_j  dc_j   da_k  db_k  dc_k   da_l  db_l  dc_l   Q</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>scrollArea_5</tabstop>
+  <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
+  <tabstop>checkBox_aniso_periodical_a</tabstop>
+  <tabstop>checkBox_aniso_periodical_b</tabstop>
+  <tabstop>checkBox_aniso_periodical_c</tabstop>
+  <tabstop>checkBox_extH_aniso</tabstop>
+  <tabstop>lineEdit_extH_aniso</tabstop>
+  <tabstop>lineEdit_muSpin_aniso</tabstop>
+  <tabstop>lineEdit_extHx_aniso</tabstop>
+  <tabstop>lineEdit_extHy_aniso</tabstop>
+  <tabstop>lineEdit_extHz_aniso</tabstop>
+  <tabstop>checkBox_ani_aniso</tabstop>
+  <tabstop>lineEdit_ani_aniso</tabstop>
+  <tabstop>lineEdit_anix_aniso</tabstop>
+  <tabstop>lineEdit_aniy_aniso</tabstop>
+  <tabstop>lineEdit_aniz_aniso</tabstop>
+  <tabstop>checkBox_exchange</tabstop>
+  <tabstop>spinBox_nshells_exchange</tabstop>
+  <tabstop>checkBox_dmi</tabstop>
+  <tabstop>spinBox_nshells_dmi</tabstop>
+  <tabstop>checkBox_ddi</tabstop>
+  <tabstop>doubleSpinBox_ddi</tabstop>
+  <tabstop>pushButton_pairs_apply</tabstop>
+  <tabstop>pushButton_pairs_fromfile</tabstop>
+  <tabstop>plainTextEdit_pairs</tabstop>
+  <tabstop>pushButton_quadruplets_apply</tabstop>
+  <tabstop>pushButton_quadruplets_fromfile</tabstop>
+  <tabstop>plainTextEdit_quadruplets</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

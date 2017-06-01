@@ -536,8 +536,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>444</width>
-            <height>960</height>
+            <width>468</width>
+            <height>984</height>
            </rect>
           </property>
           <attribute name="label">
@@ -602,6 +602,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="page_3">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>468</width>
+            <height>984</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Filters</string>
           </attribute>
@@ -907,6 +915,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="page_5">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>468</width>
+            <height>984</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Surface</string>
           </attribute>
@@ -1081,6 +1097,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="page_9">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>468</width>
+            <height>984</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Details</string>
           </attribute>
@@ -1827,6 +1851,71 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>scrollArea_4</tabstop>
+  <tabstop>spinBox_n_cell_steps</tabstop>
+  <tabstop>radioButton_perspectiveProjection</tabstop>
+  <tabstop>radioButton_orthographicProjection</tabstop>
+  <tabstop>checkBox_show_isosurface</tabstop>
+  <tabstop>checkBox_show_surface</tabstop>
+  <tabstop>checkBox_show_arrows</tabstop>
+  <tabstop>checkBox_showBoundingBox</tabstop>
+  <tabstop>comboBox_VisualisationSource</tabstop>
+  <tabstop>checkBox_showMiniView</tabstop>
+  <tabstop>comboBox_miniViewPosition</tabstop>
+  <tabstop>checkBox_showCoordinateSystem</tabstop>
+  <tabstop>comboBox_coordinateSystemPosition</tabstop>
+  <tabstop>radioButton_vismode_sphere</tabstop>
+  <tabstop>radioButton_vismode_system</tabstop>
+  <tabstop>pushButton_addIsosurface</tabstop>
+  <tabstop>checkBox_isosurfaceshadows</tabstop>
+  <tabstop>horizontalSlider_overall_dir_xmin</tabstop>
+  <tabstop>horizontalSlider_overall_dir_xmax</tabstop>
+  <tabstop>horizontalSlider_overall_dir_ymin</tabstop>
+  <tabstop>horizontalSlider_overall_dir_ymax</tabstop>
+  <tabstop>horizontalSlider_overall_dir_zmin</tabstop>
+  <tabstop>horizontalSlider_overall_dir_zmax</tabstop>
+  <tabstop>horizontalSlider_overall_pos_ymin</tabstop>
+  <tabstop>horizontalSlider_overall_pos_ymax</tabstop>
+  <tabstop>horizontalSlider_overall_pos_zmin</tabstop>
+  <tabstop>horizontalSlider_overall_pos_zmax</tabstop>
+  <tabstop>horizontalSlider_overall_pos_xmin</tabstop>
+  <tabstop>horizontalSlider_overall_pos_xmax</tabstop>
+  <tabstop>horizontalSlider_surface_zmin</tabstop>
+  <tabstop>horizontalSlider_surface_zmax</tabstop>
+  <tabstop>horizontalSlider_surface_xmin</tabstop>
+  <tabstop>horizontalSlider_surface_xmax</tabstop>
+  <tabstop>horizontalSlider_surface_ymin</tabstop>
+  <tabstop>horizontalSlider_surface_ymax</tabstop>
+  <tabstop>horizontalSlider_camera_fov</tabstop>
+  <tabstop>radioButton_camera_rotate_bounded</tabstop>
+  <tabstop>pushButton_read_camera</tabstop>
+  <tabstop>pushButton_set_camera</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>pushButton_2</tabstop>
+  <tabstop>radioButton_camera_rotate_free</tabstop>
+  <tabstop>lineEdit_camera_pos_x</tabstop>
+  <tabstop>lineEdit_camera_pos_y</tabstop>
+  <tabstop>lineEdit_camera_pos_z</tabstop>
+  <tabstop>lineEdit_camera_focus_x</tabstop>
+  <tabstop>lineEdit_camera_focus_y</tabstop>
+  <tabstop>lineEdit_camera_focus_z</tabstop>
+  <tabstop>lineEdit_camera_upvector_x</tabstop>
+  <tabstop>lineEdit_camera_upvector_y</tabstop>
+  <tabstop>lineEdit_camera_upvector_z</tabstop>
+  <tabstop>lineEdit_camera_fov</tabstop>
+  <tabstop>lineEdit_colormap_rotate_phi</tabstop>
+  <tabstop>horizontalSlider_colormap_rotate_phi</tabstop>
+  <tabstop>checkBox_colormap_invert_xy</tabstop>
+  <tabstop>comboBox_colormap</tabstop>
+  <tabstop>checkBox_colormap_invert_z</tabstop>
+  <tabstop>comboBox_backgroundColor</tabstop>
+  <tabstop>horizontalSlider_spherePointSize</tabstop>
+  <tabstop>horizontalSlider_light_theta</tabstop>
+  <tabstop>horizontalSlider_light_phi</tabstop>
+  <tabstop>horizontalSlider_arrowsize</tabstop>
+  <tabstop>lineEdit_arrows_lod</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
  <buttongroups>
