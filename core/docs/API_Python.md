@@ -4,7 +4,7 @@ SPIRIT Python API
 State
 -----
 
-To create a new state with one chain containing a single image, initialized by a configuration file, and run the most simple example of a **spin dynamics simulation**:
+To create a new state with one chain containing a single image, initialized by an [input file](INPUT.md), and run the most simple example of a **spin dynamics simulation**:
 ```python
 from spirit import state
 from spirit import simulation
@@ -24,14 +24,14 @@ simulation.PlayPause(p_state, "LLG", "SIB") # Start a LLG simulation using the S
 state.delete(p_state)                       # State cleanup
 ```
 
+You can pass a [config file](INPUT.md) specifying your initial system parameters.
+If you do not pass a config file, the implemented defaults are used.
+**Note that you currently cannot change the geometry of the systems in your state once they are initialized.**
+
 | State manipulation                                                                  | Return     |
 | ----------------------------------------------------------------------------------- | ---------- |
 | `setup( configfile="", quiet=False )`                                               | `None`     |
 | `delete( p_state )`                                                                 | `None`     |
-
-You can pass a config file specifying your initial system parameters.
-If you do not pass a config file, the implemented defaults are used.
-**Note that you currently cannot change the geometry of the systems in your state once they are initialized.**
 
 
 Chain

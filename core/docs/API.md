@@ -21,6 +21,25 @@ The API exposes functions for:
 State Managment
 ---------------
 
+To create a new state with one chain containing a single image,
+initialized by an [input file](INPUT.md), and run the most simple example
+of a **spin dynamics simulation**:
+```C
+#import "Spirit/State.h"
+#import "Spirit/Simulation.h"
+
+const char * cfgfile = "input/input.cfg";    // Input file
+State * p_state = State_Setup(cfgfile);      // State setup
+Simulation_PlayPause(p_state, "LLG", "SIB"); // Start a LLG simulation using the SIB solver
+State_Delete(p_state)                        // State cleanup
+```
+
+A new state can be created with `State_Setup()`, where you can pass
+a [config file](INPUT.md) specifying your initial system parameters.
+If you do not pass a config file, the implemented defaults are used.
+**Note that you currently cannot change the geometry of the systems
+in your state once they are initialized.**
+
 The State struct is passed around in an application to make the simulation's state available.
 
 | State manipulation function                                                                                 | Return    | Effect |
@@ -31,18 +50,6 @@ The State struct is passed around in an application to make the simulation's sta
 | `State_To_Config( State *, const char * config_file, const char * original_config_file)`                    | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
 | `State_DateTime( State * )`                                                                                 | `const char *` | Get datetime tag of the creation of the state |
 
-A new state can be created with `State_Setup()`, where you can pass
-a config file specifying your initial system parameters
-
-```C
-#import "Spirit/State.h"
-
-State * p_state = State_Setup("");
-```
-
-If you do not pass a config file, the implemented defaults are used. *Note that you currently
-cannot change the geometry of the systems in your state once they are
-initialized.*
 
 System
 ------
