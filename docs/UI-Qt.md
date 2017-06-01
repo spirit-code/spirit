@@ -74,3 +74,7 @@ Manipulate the chain of images
 | Delete image                                     | <kbd>Del</kbd>                              |
 
 
+
+---
+
+[Home](Readme.md)

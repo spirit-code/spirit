@@ -4,37 +4,24 @@ SPIRIT Python API
 State
 -----
 
-The `State` is the object that holds every information needed for the simulation of the spin system. Currently a `State` can contain only one `Chain` which contains all the images of the simulation. One can easily understand the structure by looking at the next diagram:
-
-```
-+-----------------------------+
-| State                       |
-| +-------------------------+ |
-| | Chain                   | |
-| | +--------------------+  | |
-| | | 0th System ≡ Image |  | |
-| | +--------------------+  | |
-| | +--------------------+  | |
-| | | 1st System ≡ Image |  | |
-| | +--------------------+  | |
-| |   .                     | |
-| |   .                     | |
-| |   .                     | |
-| | +--------------------+  | |
-| | | Nth System ≡ Image |  | |
-| | +--------------------+  | |
-| +-------------------------+ |
-+-----------------------------+
-```
-
-To create a new state with one chain, initialized by a configuration file, and get the index of the active image, one can simply: 
+To create a new state with one chain containing a single image, initialized by a configuration file, and run the most simple example of a **spin dynamics simulation**:
 ```python
 from spirit import state
-from spirit import system
+from spirit import simulation
 
-cfgfile = "input/input.cfg"           # Input File
-p_state = state.setup(cfgfile)        # State setup
-index = system.Get_Index( p_state )   # the index of the only image must be 0
+cfgfile = "input/input.cfg"                     # Input File
+with state.State(cfgfile) as p_state:           # State setup
+    simulation.PlayPause(p_state, "LLG", "SIB") # Start a LLG simulation using the SIB solver
+```
+or call setup and delete manually:
+```python
+from spirit import state
+from spirit import simulation
+
+cfgfile = "input/input.cfg"                 # Input File
+p_state = state.setup(cfgfile)              # State setup
+simulation.PlayPause(p_state, "LLG", "SIB") # Start a LLG simulation using the SIB solver
+state.delete(p_state)                       # State cleanup
 ```
 
 | State manipulation                                                                  | Return     |
@@ -42,9 +29,10 @@ index = system.Get_Index( p_state )   # the index of the only image must be 0
 | `setup( configfile="", quiet=False )`                                               | `None`     |
 | `delete( p_state )`                                                                 | `None`     |
 
-where you can pass a config file specifying your initial system parameters.
+You can pass a config file specifying your initial system parameters.
 If you do not pass a config file, the implemented defaults are used.
-*Note that you currently cannot change the geometry of the systems in your state once they are initialized.*
+**Note that you currently cannot change the geometry of the systems in your state once they are initialized.**
+
 
 Chain
 -----
@@ -86,6 +74,7 @@ number_of_images = chain.Get_NOI( p_state )
 | `Update_Data( p_state, idx_chain=-1 )`      | `None`         | Update the chain's data (interpolated energies etc.)       |
 | `Setup_Data( p_state, idx_chain=-1 )`       | `None`         | Setup the chain's data arrays (when is this necessary?)    |
 
+
 System
 ------
 
@@ -99,6 +88,7 @@ System
 | `Update_Data( p_state, idx_image=-1, idx_chain=-1 )`                  | `None`   | Update the data of that state                                                        |
 | `Print_Energy_Array( p_state, idx_image=-1, idx_chain=-1 )`           | `None`   | Print the energy array of that state                                                 |
 
+
 Constants
 ---------
 
@@ -106,6 +96,7 @@ Constants
 | --------------------------------------------------------------------------- | -------------- | -------------------------------------------------- |
 | `mu_B( )`                                                                   | `Float`        | The Bohr Magneton [meV / T]                        |
 | `k_B( )`                                                                    | `Float`        | The Boltzmann constant [meV / K]                   |
+
 
 Geometry
 --------
@@ -120,6 +111,7 @@ Geometry
 | `Get_Dimensionality( p_state, idx_image=-1, idx_chain=-1 )`                     | `Int`                 | Get Translation Vectors                            |
 | `Get_Spin_Positions( p_state, idx_image=-1, idx_chain=-1 )`                     | `Array`               | Get Pointer to Spin Positions                      |
 
+
 Hamiltonian
 -----------
 
@@ -130,6 +122,7 @@ Hamiltonian
 | `Set_STT( p_state, magnitude, direction, idx_image=-1, idx_chain=-1 )`          | `None`                | Set spin transfer torque                           |
 | `Set_Temperature( p_state, temperature, idx_image=-1, idx_chain=-1 )`           | `None`                | Set temperature                                    |
 
+
 Log
 ---
 
@@ -137,6 +130,7 @@ Log
 | ------------------------------------------------------------------------ | --------- | --------------------------- |
 | `Send( p_state, level, sender, message, idx_image=-1, idx_chain=-1 )`    | `None`    | Send a Log message          |
 | `Append( p_state )`                                                      | `None`    | Append Log to file          |
+
 
 Parameters
 ----------
@@ -170,6 +164,7 @@ Parameters
 | `Get_GNEB_N_Iterations( p_state, idx_chain=-1 )`                                        | `Int`         |
 | `Get_GNEB_N_Energy_Interpolations( p_state, idx_chain=-1 )`                             | `Int`         |
 
+
 Simulation
 ----------
 
@@ -188,9 +183,6 @@ Simulation
 | `Running_Any_Anywhere( p_state )`                                                                                         | `Boolean`  |
 
 
-
-
-
 Transition
 ----------
 
@@ -199,3 +191,7 @@ Transition
 | `Homogeneous( p_state, idx_1, idx_2, idx_chain=-1 )`                         | `None`   | Generate homogeneous transition between two images of a chain                      |
 | `Add_Noise_Temperature( p_state, temperature, idx_1, idx_2, idx_chain=-1)`   | `None`   | Add some temperature-scaled noise to a transition between two images of a chain    |
 
+
+---
+
+[Home](Readme.md)

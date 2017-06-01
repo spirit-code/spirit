@@ -45,3 +45,9 @@ You may use e.g. the following TeX code:
 
 Here we will list select papers for which the Spirit framework was
 used, which may be of interest to you.
+
+
+
+---
+
+[Home](Readme.md)
