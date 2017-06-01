@@ -157,7 +157,7 @@ class remove_TestChain(TestChain):
     
     def test_delete_outoflimits(self):
         
-        # BUG: delete image out of bound should reduce the number of images NOI
+        # BUG: delete image out of bound should NOT reduce the number of images NOI
         
         chain.Insert_Image_Before( self.p_state )               # active is 1st
         chain.Insert_Image_Before( self.p_state )               # active is 2nd
@@ -197,7 +197,7 @@ class data_TestChain(TestChain):
         self.assertEqual( Ei, Ef )                              # should be equal
     
     def test_setup(self):
-        chain.Update_Data( self.p_state )
+        chain.Setup_Data( self.p_state )
 
 #########
 
