@@ -694,7 +694,10 @@ namespace Utility
 					// Add the indices and parameter to the corresponding list
 					if (q_Q != 0)
 					{
-						quadruplets.push_back({ q_i, q_j, q_k, q_l, { q_da_j, q_da_k, q_da_l } });
+						quadruplets.push_back({ q_i, q_j, q_k, q_l,
+							{ q_da_j, q_db_j, q_db_j },
+							{ q_da_k, q_db_k, q_db_k },
+							{ q_da_l, q_db_l, q_db_l } });
 						quadruplet_magnitudes.push_back(q_Q);
 					}
 
