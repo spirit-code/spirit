@@ -969,9 +969,11 @@ namespace Utility
 				Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_exchange   = " + std::to_string(n_neigh_shells_exchange));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
+			if (n_neigh_shells_exchange > 0)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_dmi        = " + std::to_string(n_neigh_shells_dmi));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij[0]             = " + std::to_string(dij[0]));
+			if (n_neigh_shells_dmi > 0)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij[0]             = " + std::to_string(dij[0]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        DM chirality        = " + std::to_string(dm_chirality));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
 			auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
