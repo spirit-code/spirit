@@ -153,6 +153,13 @@ namespace Engine
 				sf[i] = s;
 			}
 		}
+		void fill(scalarfield & sf, scalar s, const intfield & mask)
+		{
+			for (unsigned int i=0; i<sf.size(); ++i)
+			{
+				sf[i] = mask[i]*s;
+			}
+		}
 
 		void scale(scalarfield & sf, scalar s)
 		{
@@ -187,6 +194,13 @@ namespace Engine
 			for (unsigned int i=0; i<vf.size(); ++i)
 			{
 				vf[i] = v;
+			}
+		}
+		void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
+		{
+			for (unsigned int i=0; i<vf.size(); ++i)
+			{
+				vf[i] = mask[i]*v;
 			}
 		}
 
@@ -306,7 +320,7 @@ namespace Engine
 				out[idx] += c*a[idx];
 			}
 		}
-		
+
 		// out[i] = c*a
 		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
 		{
@@ -315,12 +329,28 @@ namespace Engine
 				out[idx] = c*a;
 			}
 		}
+		// out[i] = c*a
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = mask[idx]*c*a;
+			}
+		}
+
 		// out[i] = c*a[i]
 		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
 			{
 				out[idx] = c*a[idx];
+			}
+		}// out[i] = c*a[i]
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+		{
+			for(unsigned int idx = 0; idx < out.size(); ++idx)
+			{
+				out[idx] = mask[idx] * c*a[idx];
 			}
 		}
 

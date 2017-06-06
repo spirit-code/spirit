@@ -16,7 +16,7 @@ namespace Data
 	public:
 		// Constructor
 		Parameters_Method_GNEB(std::string output_folder, std::array<bool,8> output, scalar force_convergence, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, scalar spring_constant, int n_E_interpolations);
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, scalar spring_constant, int n_E_interpolations);
 
 		bool output_energies_step;
 		bool output_energies_divide_by_nspins;

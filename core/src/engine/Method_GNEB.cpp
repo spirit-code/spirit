@@ -121,6 +121,8 @@ namespace Engine
 			{
 				Vectormath::fill(F_total[img], { 0,0,0 });
 			}
+			// Apply pinning mask
+			Vectormath::set_c_a(1, F_total[img], F_total[img], parameters->pinning->mask_unpinned);
 
 			// Copy out
 			forces[img] = F_total[img];
