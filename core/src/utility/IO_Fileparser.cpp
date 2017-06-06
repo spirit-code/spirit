@@ -561,12 +561,12 @@ namespace Utility
 					// Add the indices and parameters to the corresponding lists
 					if (pair_Jij != 0)
 					{
-						exchange_pairs.push_back({ pair_i, pair_i, { pair_da, pair_db, pair_dc } });
+						exchange_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
 						exchange_magnitudes.push_back(pair_Jij);
 					}
 					if (pair_Dij != 0)
 					{
-						dmi_pairs.push_back({ pair_i, pair_i, { pair_da, pair_db, pair_dc } });
+						dmi_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
 						dmi_magnitudes.push_back(pair_Dij);
 						dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
 					}
