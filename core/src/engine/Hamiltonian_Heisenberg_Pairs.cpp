@@ -164,13 +164,11 @@ namespace Engine
 				{
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
-						int idx_i = exchange_pairs[i_pair].i;
-						int idx_j = exchange_pairs[i_pair].j;
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_pairs[i_pair].translations))
 						{
-							int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
+							int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = exchange_pairs[i_pair].j+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 							Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
 							Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
 						}
@@ -190,13 +188,11 @@ namespace Engine
 				{
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
-						int idx_i = dmi_pairs[i_pair].i;
-						int idx_j = dmi_pairs[i_pair].j;
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_pairs[i_pair].translations))
 						{
-							int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
+							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
 							Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
 						}
@@ -223,14 +219,12 @@ namespace Engine
 						for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 						{
 							std::array<int, 3 > translations = { da, db, dc };
-							// int idx_i = ddi_pairs[i_pair].i;
-							// int idx_j = ddi_pairs[i_pair].j;
-							int idx_i = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int idx_j = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
-							Energy[idx_i] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-								(3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) - spins[idx_i].dot(spins[idx_j]));
-							Energy[idx_j] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-								(3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) - spins[idx_i].dot(spins[idx_j]));
+							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
+							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
 						}
 					}
 				}
@@ -250,14 +244,10 @@ namespace Engine
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						// int i = quadruplets[iquad].i;
-						// int j = quadruplets[iquad].j;
-						// int k = quadruplets[iquad].k;
-						// int l = quadruplets[iquad].l;
-						int i = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int j = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-						int k = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-						int l = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						int i = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+						int j = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
+						int k = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
+						int l = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						Energy[i] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
 						Energy[j] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
 						Energy[k] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
@@ -318,13 +308,11 @@ namespace Engine
 				{
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
-						// int idx_i = exchange_pairs[i_pair].i;
-						// int idx_j = exchange_pairs[i_pair].j;
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_pairs[i_pair].translations))
 						{
-							int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
+							int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
 							gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
 						}
@@ -344,13 +332,11 @@ namespace Engine
 				{
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
-						// int idx_i = dmi_pairs[i_pair].i;
-						// int idx_j = dmi_pairs[i_pair].j;
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_pairs[i_pair].translations))
 						{
-							int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
+							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
 							gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
 						}
@@ -376,13 +362,11 @@ namespace Engine
 						for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 						{
 							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
-							// int idx_i = ddi_pairs[i_pair].i;
-							// int idx_j = ddi_pairs[i_pair].j;
 							std::array<int, 3 > translations = { da, db, dc };
 							if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_pairs[i_pair].translations))
 							{
-								int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-								int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+								int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+								int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
 								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
 								gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
 							}
@@ -409,10 +393,10 @@ namespace Engine
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int ispin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-						int kspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-						int lspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+						int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
+						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
+						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
 						gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
 						gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
@@ -458,12 +442,10 @@ namespace Engine
 						std::array<int, 3 > translations = { da, db, dc };
 						for (int alpha = 0; alpha < 3; ++alpha)
 						{
-							// int idx_i = 3 * exchange_pairs[i_pair].i + alpha;
-							// int idx_j = 3 * exchange_pairs[i_pair].j + alpha;
-							int idx_i = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations) + alpha;
-							int idx_j = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations) + alpha;
-							hessian(idx_i, idx_j) += -exchange_magnitudes[i_pair];
-							hessian(idx_j, idx_i) += -exchange_magnitudes[i_pair];
+							int ispin = 3 * (exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations)) + alpha;
+							int jspin = 3 * (exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations)) + alpha;
+							hessian(ispin, jspin) += -exchange_magnitudes[i_pair];
+							hessian(jspin, ispin) += -exchange_magnitudes[i_pair];
 						}
 					}
 				}
@@ -484,50 +466,48 @@ namespace Engine
 						{
 							for (int beta = 0; beta < 3; ++beta)
 							{
-								// int idx_i = 3 * dmi_pairs[i_pair].i + alpha;
-								// int idx_j = 3 * dmi_pairs[i_pair].j + beta;
-								int idx_i = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations) + alpha;
-								int idx_j = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations) + alpha;
+								int ispin = 3 * (dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations)) + alpha;
+								int jspin = 3 * (dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations)) + alpha;
 								if ((alpha == 0 && beta == 1))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
 								}
 								else if ((alpha == 1 && beta == 0))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
 								}
 								else if ((alpha == 0 && beta == 2))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
 								}
 								else if ((alpha == 2 && beta == 0))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
 								}
 								else if ((alpha == 1 && beta == 2))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										-dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
 								}
 								else if ((alpha == 2 && beta == 1))
 								{
-									hessian(idx_i, idx_j) +=
+									hessian(ispin, jspin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-									hessian(idx_j, idx_i) +=
+									hessian(jspin, ispin) +=
 										dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
 								}
 							}
