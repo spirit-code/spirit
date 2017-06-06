@@ -4,6 +4,7 @@ output/*
 output_llg/*
 output_gneb/*
 output_mmf/*
+Testing/*
 
 ### Subdirectories ###
 */build/*
@@ -17,6 +18,7 @@ output_mmf/*
 !output/.gitkeep
 
 ### Output Logs ###
+Log.txt
 Log_*
 */Log_*
 input_*
@@ -25,6 +27,8 @@ input_*
 
 ### Executables and Libraries ###
 /spirit
+spirit.js
+spirit.js.mem
 
 ### Generated Files
 core/python/LICENSE.txt

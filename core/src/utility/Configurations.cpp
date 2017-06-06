@@ -268,6 +268,10 @@ namespace Utility
 			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
 			Vector3 e1, e2;
 			
+			Vector3 a1 = s.geometry->translation_vectors[0];
+			Vector3 a2 = s.geometry->translation_vectors[1];
+			Vector3 a3 = s.geometry->translation_vectors[2];
+			
 			// -------------------- Preparation --------------------
 			axis.normalize();
 			
@@ -342,9 +346,38 @@ namespace Utility
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
 			auto& spin_pos = s.geometry->spin_pos;
-			if (direction_type == "Real Lattice")
+			if (direction_type == "Reciprocal Lattice")
 			{
-				// NOTE this is not yet the correct function!!
+				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
+				Vector3 b1, b2, b3;
+				b1 = a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				// The q-vector is specified in units of the reciprocal lattice
+				Vector3 projBQ = q[0]*b1 + q[1]*b2 + q[2]*b3;
+				q = projBQ;
+				for (int iatom = 0; iatom < s.nos; ++iatom)
+				{
+					if (filter(spins[iatom], spin_pos[iatom]))
+					{
+						// Phase is scalar product of spin position and q
+						phase = s.geometry->spin_pos[iatom].dot(q);
+						//phase = phase / 180.0 * M_PI;// / period;
+						// The opening angle determines how far from the axis the spins rotate around it.
+						//		The rotation is done by alternating between v1 and v2 periodically
+						scalar norms = 0.0;
+						spins[iatom] = axis * std::cos(theta)
+							+ v1 * std::cos(phase) * std::sin(theta)
+							+ v2 * std::sin(phase) * std::sin(theta);
+						spins[iatom].normalize();
+					}
+				}// endfor iatom
+			}
+			else if (direction_type == "Real Lattice")
+			{
+				// The q-vector is specified in units of the real lattice
+				Vector3 projBQ = { q.dot(a1), q.dot(a2), q.dot(a3) };
+				q = projBQ;
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
 					if (filter(spins[iatom], spin_pos[iatom]))
@@ -362,15 +395,25 @@ namespace Utility
 					}
 				}// endfor iatom
 			}
-			else if (direction_type == "Reciprocal Lattice")
-			{
-				Log(Log_Level::Error, Log_Sender::All, "The reciprocal lattice spin spiral is not yet implemented!");
-				// Not yet implemented!
-				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
-			}
 			else if (direction_type == "Real Space")
 			{
-				Log(Log_Level::Error, Log_Sender::All, "The real space spin spiral is not yet implemented!");
+				// The q-vector is specified in units of (x, y, z)
+				for (int iatom = 0; iatom < s.nos; ++iatom)
+				{
+					if (filter(spins[iatom], spin_pos[iatom]))
+					{
+						// Phase is scalar product of spin position and q
+						phase = s.geometry->spin_pos[iatom].dot(q);
+						//phase = phase / 180.0 * M_PI;// / period;
+						// The opening angle determines how far from the axis the spins rotate around it.
+						//		The rotation is done by alternating between v1 and v2 periodically
+						scalar norms = 0.0;
+						spins[iatom] = axis * std::cos(theta)
+							+ v1 * std::cos(phase) * std::sin(theta)
+							+ v2 * std::sin(phase) * std::sin(theta);
+						spins[iatom].normalize();
+					}
+				}// endfor iatom
 			}
 			else
 			{

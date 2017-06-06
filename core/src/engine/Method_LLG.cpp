@@ -139,8 +139,18 @@ namespace Engine
 			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 			auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
 
-			std::string preSpinsFile  = this->parameters->output_folder + "/" + starttime + "_" + "Spins_" + s_img;
-			std::string preEnergyFile = this->parameters->output_folder + "/" + starttime + "_" + "Energy_" + s_img;
+			std::string preSpinsFile;
+			std::string preEnergyFile;
+			if (this->systems[0]->llg_parameters->output_tag_time)
+			{
+				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Spins";
+				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Energy";
+			}
+			else
+			{
+				preSpinsFile = this->parameters->output_folder + "/Image-" + s_img + "_Spins";
+				preEnergyFile = this->parameters->output_folder + "/_Image-" + s_img + "_Energy";
+			}
 
 			// Function to write or append image and energy files
 			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -149,7 +159,7 @@ namespace Engine
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
 
 				// Spin Configuration
-				Utility::IO::Append_Spin_Configuration(this->systems[0], iteration, spinsFile);
+				Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
 			};
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -158,7 +168,7 @@ namespace Engine
 
 				// File name
 				std::string energyFile = preEnergyFile + suffix + ".txt";
-				std::string energyFilePerSpin = preEnergyFile + suffix + "_perSpin.txt";
+				std::string energyFilePerSpin = preEnergyFile + "-perSpin" + suffix + ".txt";
 
 				// Energy
 				if (append)
@@ -183,22 +193,22 @@ namespace Engine
 			// Initial image before simulation
 			if (initial && this->parameters->output_initial)
 			{
-				writeOutputConfiguration("_" + s_iter + "_initial", false);
-				writeOutputEnergy("_" + s_iter + "_initial", false);
+				writeOutputConfiguration("-initial", false);
+				writeOutputEnergy("-initial", false);
 			}
 			// Final image after simulation
 			else if (final && this->parameters->output_final)
 			{
-				writeOutputConfiguration("_" + s_iter + "_final", false);
-				writeOutputEnergy("_" + s_iter + "_final", false);
+				writeOutputConfiguration("-final", false);
+				writeOutputEnergy("-final", false);
 			}
 			
 			// Single file output
-			if (this->systems[0]->llg_parameters->output_configuration_single)
+			if (this->systems[0]->llg_parameters->output_configuration_step)
 			{
 				writeOutputConfiguration("_" + s_iter, false);
 			}
-			if (this->systems[0]->llg_parameters->output_energy_single)
+			if (this->systems[0]->llg_parameters->output_energy_step)
 			{
 				writeOutputEnergy("_" + s_iter, false);
 			}
@@ -206,11 +216,11 @@ namespace Engine
 			// Archive file output (appending)
 			if (this->systems[0]->llg_parameters->output_configuration_archive)
 			{
-				writeOutputConfiguration("_archive", true);
+				writeOutputConfiguration("-archive", true);
 			}
 			if (this->systems[0]->llg_parameters->output_energy_archive)
 			{
-				writeOutputEnergy("_archive", true);
+				writeOutputEnergy("-archive", true);
 			}
 
 			// Save Log

@@ -8,7 +8,6 @@ struct State;
 #include <vector>
 
 // Single Optimization iteration with a Method
-//		To be used with caution! It does not inquire if an iteration is allowed!
 DLLEXPORT void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
 	int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1);
 
@@ -46,17 +45,17 @@ DLLEXPORT const char * Simulation_Get_Optimizer_Name(State *state, int idx_image
 DLLEXPORT const char * Simulation_Get_Method_Name(State *state, int idx_image = -1, int idx_chain = -1);
 
 
-// Check for running simulations
-DLLEXPORT bool Simulation_Running_Any_Anywhere(State *state);
-DLLEXPORT bool Simulation_Running_LLG_Anywhere(State *state);
-DLLEXPORT bool Simulation_Running_GNEB_Anywhere(State *state);
+// Check if a simulation is running on specific image of specific chain
+DLLEXPORT bool Simulation_Running_Image(State *state, int idx_image=-1, int idx_chain=-1);
+// Check if a simulation is running across a specific chain
+DLLEXPORT bool Simulation_Running_Chain(State *state, int idx_chain=-1);
+// Check if a simulation is running across the collection
+DLLEXPORT bool Simulation_Running_Collection(State *state);
 
-DLLEXPORT bool Simulation_Running_LLG_Chain(State *state, int idx_chain=-1);
-
-DLLEXPORT bool Simulation_Running_Any(State *state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT bool Simulation_Running_LLG(State *state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT bool Simulation_Running_GNEB(State *state, int idx_chain=-1);
-DLLEXPORT bool Simulation_Running_MMF(State *state);
+// Check if a simulation is running on any or all images of a chain
+DLLEXPORT bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain=-1);
+// Check if a simulation is running on any or all images or chains of a collection
+DLLEXPORT bool Simulation_Running_Anywhere_Collection(State *state);
 
 #include "DLL_Undefine_Export.h"
 #endif

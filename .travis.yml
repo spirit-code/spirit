@@ -1,0 +1,113 @@
+sudo: required
+# dist: "trusty"
+dist: precise
+language: cpp
+
+addons:
+  apt:
+    packages:
+      - g++-6
+    sources: &sources
+      - ubuntu-toolchain-r-test
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.6.2
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.7.1
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.0
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.9.0
+
+matrix:
+  include:
+    # GCC 6
+    - os: linux
+      env: COMPILER=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=g++-6 -DUI_CXX_USE_QT=OFF -DUSE_CUDA=OFF"
+      compiler: gcc
+    - os: osx
+      osx_image: xcode8
+      env: USE_CUDA="false" CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DUSE_CUDA=OFF"
+
+    # - compiler: gcc
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - g++-4.9
+    #   env: COMPILER=g++-4.9
+    # - compiler: gcc
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - g++-5
+    #   env: COMPILER=g++-5
+    # - compiler: clang
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #         - llvm-toolchain-precise-3.6
+    #       packages:
+    #         - clang-3.6
+    #   env: COMPILER=clang++-3.6
+    # - compiler: clang
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #         - llvm-toolchain-precise-3.7
+    #       packages:
+    #         - clang-3.7
+    #   env: COMPILER=clang++-3.7
+
+# before_install:
+#   - sudo apt-get update -qq
+#   - sudo apt-get install -y libopencv-dev
+
+before_install:
+    - sudo pip install numpy
+
+install:
+  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+  # Setup default versions and override compiler if needed
+  - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.9.0; fi
+  - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
+  # Install a recent CMake (unless already installed on OS X)
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
+    fi
+#   # Install CUDA
+#   - |
+#     if [[ "${USE_CUDA}" == "true" ]]; then
+#       echo "Installing CUDA"
+#       wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/cuda-repo-ubuntu1204_7.0-28_amd64.deb
+#       sudo dpkg -i cuda-repo-ubuntu1204_7.0-28_amd64.deb
+#     fi
+#   - |
+#     if [[ "${USE_CUDA}" == "true" ]]; then
+#       cd ${TRAVIS_BUILD_DIR}
+#       sudo apt-get update
+#       sudo apt-get install cuda-drivers cuda-core-7-0 cuda-cudart-dev-7-0
+#       CMAKE_OPTIONS+=" -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda"
+#     fi
+
+before_script:
+  - cd ${TRAVIS_BUILD_DIR}
+  - |
+    mkdir -p build
+    cd build
+    cmake ${CMAKE_OPTIONS} ..
+    cd ..
+
+script:
+  - ./make.sh -j8
+  - ./ctest.sh

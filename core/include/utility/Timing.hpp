@@ -10,6 +10,7 @@
 // Use the System Clock (Wall Time) to handle Timing
 using std::chrono::system_clock;
 using std::chrono::time_point;
+using std::chrono::duration;
 
 namespace Utility
 {
@@ -22,16 +23,19 @@ namespace Utility
 		std::string CurrentDateTime();
         
         // Returns the DateTime difference between two DateTimes
-        std::string DateTimePassed(system_clock::time_point t1, system_clock::time_point t2);
+		std::string DateTimePassed(duration<scalar> dt);
         
         // Returns the difference between two DateTimes in seconds
-        scalar MillisecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
+        scalar MillisecondsPassed(duration<scalar> dt);
         // Returns the difference between two DateTimes in seconds
-		scalar SecondsPassed(system_clock::time_point t1, system_clock::time_point t2);
+		scalar SecondsPassed(duration<scalar> dt);
         // Returns the difference between two DateTimes in minutes
-        scalar MinutesPassed(system_clock::time_point t1, system_clock::time_point t2);
+        scalar MinutesPassed(duration<scalar> dt);
         // Returns the difference between two DateTimes in hours
-        scalar HoursPassed(system_clock::time_point t1, system_clock::time_point t2);
+        scalar HoursPassed(duration<scalar> dt);
+        
+        // Returns the duration when passed a string "hh:mm:ss"
+		duration<scalar> DurationFromString(std::string dt);
     }
 }
 #endif

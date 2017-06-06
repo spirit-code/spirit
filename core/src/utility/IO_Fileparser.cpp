@@ -119,7 +119,7 @@ namespace Utility
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
-				int i = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+				int i = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -130,13 +130,13 @@ namespace Utility
 						{
 							if (i < nos && iimage>0)	// Check if less than NOS spins were read for the image before
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage)));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage));
 							}
 							++iimage;
 							i = 0;
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain)");
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi));
 							}
 							else
 							{
@@ -147,8 +147,8 @@ namespace Utility
 						{
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) > NOI(chain). Appending image " + std::to_string(iimage+1));
-
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
+								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
 								// Add to chain
 								c->noi++;
@@ -160,8 +160,8 @@ namespace Utility
 
 							if (i >= nos)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS missmatch in image ").append(std::to_string(iimage)));
-								Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(file) > NOS(image)"));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS missmatch in image " + std::to_string(iimage));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(file) = " + std::to_string(nos) + " > NOS(image) = " + std::to_string(i));
 								//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 								//myfile.close();
 								//return;
@@ -179,23 +179,138 @@ namespace Utility
 					}// endif (# not found)
 					 // discard line if # is found
 				}// endif new line (while)
-				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, std::string("NOS(image) > NOS(file) in image ").append(std::to_string(iimage - 1)));
-				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) > NOI(file)");
+				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage - 1));
+				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) = " + std::to_string(noi) + " > NOI(file) = " + std::to_string(iimage));
 				myfile.close();
 				Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 			}
 		}
 
-		/*std::vector<std::vector<scalar>> External_Field_from_File(int nos, const std::string externalFieldFile)
-		{
 
-		}*/
+		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal)
+		{
+			Log(Log_Level::Info, Log_Sender::IO, "Reading external field from file " + externalFieldFile);
+			try
+			{
+				n_indices = 0;
+				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
+				// column indices of pair indices and interactions
+				int col_i = -1, col_B = -1, col_Bx = -1, col_By = -1, col_Bz = -1, col_Ba = -1, col_Bb = -1, col_Bc = -1;
+				bool B_magnitude = false, B_xyz = false, B_abc = false;
+				Vector3 B_temp = { 0, 0, 0 };
+				// Get column indices
+				IO::Filter_File_Handle file(externalFieldFile);
+				file.GetLine(); // first line contains the columns
+				for (unsigned int i = 0; i < columns.size(); ++i)
+				{
+					file.iss >> columns[i];
+					if (!columns[i].compare(0, 1, "i"))	col_i = i;
+					else if (!columns[i].compare(0, 2, "B")) { col_B = i;	B_magnitude = true; }
+					else if (!columns[i].compare(0, 2, "Bx"))	col_Bx = i;
+					else if (!columns[i].compare(0, 2, "By"))	col_By = i;
+					else if (!columns[i].compare(0, 2, "Bz"))	col_Bz = i;
+					else if (!columns[i].compare(0, 2, "Ba"))	col_Ba = i;
+					else if (!columns[i].compare(0, 2, "Bb"))	col_Bb = i;
+					else if (!columns[i].compare(0, 2, "Bc"))	col_Bc = i;
+
+					if (col_Bx >= 0 && col_By >= 0 && col_Bz >= 0) B_xyz = true;
+					if (col_Ba >= 0 && col_Bb >= 0 && col_Bc >= 0) B_abc = true;
+				}
+
+				if (!B_xyz && !B_abc) Log(Log_Level::Warning, Log_Sender::IO, "No external field data could be found in header of file " + externalFieldFile);
+
+				// Catch horizontal separation Line
+				// file.GetLine();
+				// Get number of lines
+				while (file.GetLine()) { ++n_indices; }
+
+				// Indices
+				int spin_i = 0;
+				scalar spin_B = 0, spin_B1 = 0, spin_B2 = 0, spin_B3 = 0;
+				// Arrays
+				external_field_index = intfield(0);
+				external_field_magnitude = scalarfield(0);
+				external_field_normal = vectorfield(0);
+
+				// Get actual Data
+				file.ResetStream();
+				int i_pair = 0;
+				std::string sdump;
+				file.GetLine();	// skip first line
+								//dataHandle.GetLine();	// skip second line
+				while (file.GetLine())
+				{
+					// Read a line from the File
+					for (unsigned int i = 0; i < columns.size(); ++i)
+					{
+						if (i == col_i)
+							file.iss >> spin_i;
+						else if (i == col_B)
+							file.iss >> spin_B;
+						else if (i == col_Bx && B_xyz)
+							file.iss >> spin_B1;
+						else if (i == col_By && B_xyz)
+							file.iss >> spin_B2;
+						else if (i == col_Bz && B_xyz)
+							file.iss >> spin_B3;
+						else if (i == col_Ba && B_abc)
+							file.iss >> spin_B1;
+						else if (i == col_Bb && B_abc)
+							file.iss >> spin_B2;
+						else if (i == col_Bc && B_abc)
+							file.iss >> spin_B3;
+						else
+							file.iss >> sdump;
+					}
+					B_temp = { spin_B1, spin_B2, spin_B3 };
+					// B_temp.normalize();
+					// spin_B1 = B_temp[0]; spin_B2 = B_temp[1]; spin_B3 = B_temp[2];
+					// Anisotropy vector orientation
+					if (B_abc)
+					{
+						spin_B1 = B_temp.dot(geometry.basis[0]);
+						spin_B2 = B_temp.dot(geometry.basis[1]);
+						spin_B3 = B_temp.dot(geometry.basis[2]);
+						B_temp = { spin_B1, spin_B2, spin_B3 };
+					}
+					// Anisotropy vector normalisation
+					if (B_magnitude)
+					{
+						scalar dnorm = B_temp.norm();
+						if (dnorm != 0)
+							B_temp.normalize();
+					}
+					else
+					{
+						spin_B = B_temp.norm();
+						if (spin_B != 0)
+							B_temp.normalize();
+					}
+
+					if (spin_B != 0)
+					{
+						external_field_index.push_back(spin_i);
+						external_field_magnitude.push_back(spin_B);
+						external_field_normal.push_back(B_temp);
+					}
+
+				}// end while getline
+			}// end try
+			catch (Exception ex)
+			{
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "External_Field_from_File: Unable to open file " + externalFieldFile);
+				else throw ex;
+			}
+
+		}
 
 
 		/*
 		Read from Anisotropy file
 		*/
-		void Anisotropy_from_File(const std::string anisotropyFile, Data::Geometry geometry, int & n_indices,
+		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal)
 		{
@@ -272,35 +387,28 @@ namespace Utility
 							file.iss >> sdump;
 					}
 					K_temp = { spin_K1, spin_K2, spin_K3 };
-					K_temp.normalize();
-					spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
+					// K_temp.normalize();
+					// spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
 						spin_K1 = K_temp.dot(geometry.basis[0]);
 						spin_K2 = K_temp.dot(geometry.basis[1]);
 						spin_K3 = K_temp.dot(geometry.basis[2]);
+						K_temp = { spin_K1, spin_K2, spin_K3 };
 					}
 					// Anisotropy vector normalisation
 					if (K_magnitude)
 					{
-						scalar dnorm = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
+						scalar dnorm = K_temp.norm();
 						if (dnorm != 0)
-						{
-							spin_K1 = spin_K1 / dnorm;
-							spin_K2 = spin_K2 / dnorm;
-							spin_K3 = spin_K3 / dnorm;
-						}
+							K_temp.normalize();
 					}
 					else
 					{
-						spin_K = std::sqrt(std::pow(spin_K1, 2) + std::pow(spin_K2, 2) + std::pow(spin_K3, 2));
+						spin_K = K_temp.norm();
 						if (spin_K != 0)
-						{
-							spin_K1 = spin_K1 / spin_K;
-							spin_K2 = spin_K2 / spin_K;
-							spin_K3 = spin_K3 / spin_K;
-						}
+							K_temp.normalize();
 					}
 
 					// TODO: propagation of basis anisotropy across lattice
@@ -309,14 +417,16 @@ namespace Utility
 					{
 						anisotropy_index.push_back(spin_i);
 						anisotropy_magnitude.push_back(spin_K);
-						anisotropy_normal.push_back(Vector3{spin_K1, spin_K2, spin_K3});
+						anisotropy_normal.push_back(K_temp);
 					}
 
 				}// end while getline
 			}// end try
 			catch (Exception ex)
 			{
-				throw ex;
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Anisotropy_from_File: Unable to open file " + anisotropyFile);
+				else throw ex;
 			}
 		}
 
@@ -324,8 +434,8 @@ namespace Utility
 		Read from Pairs file by Markus & Bernd
 		*/
 		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
-			std::vector<indexPairs> & Exchange_indices, std::vector<scalarfield> & Exchange_magnitude,
-			std::vector<indexPairs> & DMI_indices, std::vector<scalarfield> & DMI_magnitude, std::vector<vectorfield> & DMI_normal)
+			pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
+			pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
 			try {
@@ -448,95 +558,18 @@ namespace Utility
 					}
 					
 
-					// Create all Pairs of this Kind through translation
-					int idx_i = 0, idx_j = 0;
-					int Na = geometry.n_cells[0];
-					int Nb = geometry.n_cells[1];
-					int Nc = geometry.n_cells[2];
-					int N = geometry.n_spins_basic_domain;
-					int periods_a = 0, periods_b = 0, periods_c = 0;
-					for (int na = 0; na < Na; ++na)
+					// Add the indices and parameters to the corresponding lists
+					if (pair_Jij != 0)
 					{
-						for (int nb = 0; nb < Nb; ++nb)
-						{
-							for (int nc = 0; nc < Nc; ++nc)
-							{
-								idx_i = pair_i + N*na + N*Na*nb + N*Na*Nb*nc;
-								// na + pair_da is absolute position of cell in x direction
-								// if (na + pair_da) > Na (number of atoms in x)
-								// go to the other side with % Na
-								// if (na + pair_da) negative (or multiply (of Na) negative)
-								// add Na and modulo again afterwards
-								// analogous for y and z direction with nb, nc
-								periods_a = (na + pair_da) / Na;
-								periods_b = (nb + pair_db) / Nb;
-								periods_c = (nc + pair_dc) / Nc;
-
-								// Catch cases of negative periodicity
-								if (na + pair_da < 0) periods_a = -1;
-								if (nb + pair_db < 0) periods_b = -1;
-								if (nc + pair_dc < 0) periods_c = -1;
-
-								idx_j = pair_j	+ N*( (((na + pair_da) % Na) + Na) % Na )
-												+ N*Na*( (((nb + pair_db) % Nb) + Nb) % Nb )
-												+ N*Na*Nb*( (((nc + pair_dc) % Nc) + Nc) % Nc );
-								// Determine the periodicity
-								//		none
-								if (periods_a == 0 && periods_b == 0 && periods_c == 0)
-								{
-									pair_periodicity = 0;
-								}
-								//		a
-								else if (periods_a != 0 && periods_b == 0 && periods_c == 0)
-								{
-									pair_periodicity = 1;
-								}
-								//		b
-								else if (periods_a == 0 && periods_b != 0 && periods_c == 0)
-								{
-									pair_periodicity = 2;
-								}
-								//		c
-								else if (periods_a == 0 && periods_b == 0 && periods_c != 0)
-								{
-									pair_periodicity = 3;
-								}
-								//		ab
-								else if (periods_a != 0 && periods_b != 0 && periods_c == 0)
-								{
-									pair_periodicity = 4;
-								}
-								//		ac
-								else if (periods_a != 0 && periods_b == 0 && periods_c != 0)
-								{
-									pair_periodicity = 5;
-								}
-								//		bc
-								else if (periods_a == 0 && periods_b != 0 && periods_c != 0)
-								{
-									pair_periodicity = 6;
-								}
-								//		abc
-								else if (periods_a != 0 && periods_b != 0 && periods_c != 0)
-								{
-									pair_periodicity = 7;
-								}
-
-								// Add the indices and parameters to the corresponding lists
-								if (pair_Jij != 0)
-								{
-									Exchange_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
-									Exchange_magnitude[pair_periodicity].push_back(pair_Jij);
-								}
-								if (pair_Dij != 0)
-								{
-									DMI_indices[pair_periodicity].push_back(indexPair{ idx_i, idx_j });
-									DMI_magnitude[pair_periodicity].push_back(pair_Dij);
-									DMI_normal[pair_periodicity].push_back(Vector3{pair_D1, pair_D2, pair_D3});
-								}
-							}
-						}
-					}// end for translations
+						exchange_pairs.push_back({ pair_i, pair_i, { pair_da, pair_db, pair_dc } });
+						exchange_magnitudes.push_back(pair_Jij);
+					}
+					if (pair_Dij != 0)
+					{
+						dmi_pairs.push_back({ pair_i, pair_i, { pair_da, pair_db, pair_dc } });
+						dmi_magnitudes.push_back(pair_Dij);
+						dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
+					}
 
 					++i_pair;
 				}// end while GetLine
@@ -557,7 +590,7 @@ namespace Utility
 		Read from Quadruplet file
 		*/
 		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
-			std::vector<indexQuadruplets> & quadruplet_indices, std::vector<scalarfield> & quadruplet_magnitude)
+			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin quadruplets from file " + quadrupletsFile);
 			try {
@@ -658,118 +691,15 @@ namespace Utility
 					}// end for columns
 					
 
-					auto periodicity = [] (int periods_a, int periods_b, int periods_c) -> int
+					// Add the indices and parameter to the corresponding list
+					if (q_Q != 0)
 					{
-						// Determine the periodicity
-						//		none
-						if (periods_a == 0 && periods_b == 0 && periods_c == 0)
-						{
-							return 0;
-						}
-						//		a
-						else if (periods_a != 0 && periods_b == 0 && periods_c == 0)
-						{
-							return 1;
-						}
-						//		b
-						else if (periods_a == 0 && periods_b != 0 && periods_c == 0)
-						{
-							return 2;
-						}
-						//		c
-						else if (periods_a == 0 && periods_b == 0 && periods_c != 0)
-						{
-							return 3;
-						}
-						//		ab
-						else if (periods_a != 0 && periods_b != 0 && periods_c == 0)
-						{
-							return 4;
-						}
-						//		ac
-						else if (periods_a != 0 && periods_b == 0 && periods_c != 0)
-						{
-							return 5;
-						}
-						//		bc
-						else if (periods_a == 0 && periods_b != 0 && periods_c != 0)
-						{
-							return 6;
-						}
-						//		abc
-						else if (periods_a != 0 && periods_b != 0 && periods_c != 0)
-						{
-							return 7;
-						}
-						else return 0;
-					};
-
-					// Create all Pairs of this Kind through translation
-					int idx_i = 0, idx_j = 0, idx_k = 0, idx_l = 0;
-					int Na = geometry.n_cells[0];
-					int Nb = geometry.n_cells[1];
-					int Nc = geometry.n_cells[2];
-					int N = geometry.n_spins_basic_domain;
-					int periods_a_j = 0, periods_b_j = 0, periods_c_j = 0;
-					int periods_a_k = 0, periods_b_k = 0, periods_c_k = 0;
-					int periods_a_l = 0, periods_b_l = 0, periods_c_l = 0;
-					for (int na = 0; na < Na; ++na)
-					{
-						for (int nb = 0; nb < Nb; ++nb)
-						{
-							for (int nc = 0; nc < Nc; ++nc)
-							{
-								idx_i = q_i + N*na + N*Na*nb + N*Na*Nb*nc;
-								// na + pair_da is absolute position of cell in x direction
-								// if (na + pair_da) > Na (number of atoms in x)
-								// go to the other side with % Na
-								// if (na + pair_da) negative (or multiply (of Na) negative)
-								// add Na and modulo again afterwards
-								// analogous for y and z direction with nb, nc
-
-								// j
-								periods_a_j = (na + q_da_j) / Na;
-								periods_b_j = (nb + q_db_j) / Nb;
-								periods_c_j = (nc + q_dc_j) / Nc;
-								idx_j = q_j	+ N*( (((na + q_da_j) % Na) + Na) % Na )
-											+ N*Na*( (((nb + q_db_j) % Nb) + Nb) % Nb )
-											+ N*Na*Nb*( (((nc + q_dc_j) % Nc) + Nc) % Nc );
-
-								// k
-								periods_a_k = (na + q_da_k) / Na;
-								periods_b_k = (nb + q_db_k) / Nb;
-								periods_c_k = (nc + q_dc_k) / Nc;
-								idx_k = q_k	+ N*( (((na + q_da_k) % Na) + Na) % Na )
-											+ N*Na*( (((nb + q_db_k) % Nb) + Nb) % Nb )
-											+ N*Na*Nb*( (((nc + q_dc_k) % Nc) + Nc) % Nc );
-								
-								// l
-								periods_a_l = (na + q_da_l) / Na;
-								periods_b_l = (nb + q_db_l) / Nb;
-								periods_c_l = (nc + q_dc_l) / Nc;
-								idx_l = q_l	+ N*( (((na + q_da_l) % Na) + Na) % Na )
-											+ N*Na*( (((nb + q_db_l) % Nb) + Nb) % Nb )
-											+ N*Na*Nb*( (((nc + q_dc_l) % Nc) + Nc) % Nc );
-
-								// Periodicity
-								// periodicity_j = periodicity(periods_a_j, periods_b_j, periods_c_j)
-								// periodicity_k = periodicity(periods_a_k, periods_b_k, periods_c_k)
-								// periodicity_l = periodicity(periods_a_l, periods_b_l, periods_c_l)
-								max_periods_a = std::max({periods_a_j, periods_a_k, periods_a_l});
-								max_periods_b = std::max({periods_b_j, periods_b_k, periods_b_l});
-								max_periods_c = std::max({periods_c_j, periods_c_k, periods_c_l});
-								quadruplet_periodicity = periodicity(max_periods_a, max_periods_b, max_periods_c);
-								
-
-								// Add the indices and parameter to the corresponding list
-								if (q_Q != 0)
-								{
-									quadruplet_indices[quadruplet_periodicity].push_back(indexQuadruplet{ idx_i, idx_j, idx_k, idx_l });
-									quadruplet_magnitude[quadruplet_periodicity].push_back(q_Q);
-								}
-							}
-						}
-					}// end for translations
+						quadruplets.push_back({ q_i, q_j, q_k, q_l,
+							{ q_da_j, q_db_j, q_db_j },
+							{ q_da_k, q_db_k, q_db_k },
+							{ q_da_l, q_db_l, q_db_l } });
+						quadruplet_magnitudes.push_back(q_Q);
+					}
 
 					++i_quadruplet;
 				}// end while GetLine

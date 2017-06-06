@@ -192,29 +192,79 @@ namespace Engine
         this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
 
 		// File save
-		if (this->parameters->output_any && ( (initial && this->parameters->output_initial) || (final && this->parameters->output_final) ) )
+		if (this->parameters->output_any)
 		{
-			// Get the file suffix
-			std::string suffix = "";
-			if (final) suffix = "_final";
-			else suffix = "";
-
 			// always formatting to 6 digits may be problematic!
 			auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
-			// Save current Image Chain
-			auto imagesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_Images_" + s_iter + suffix + ".txt";
-			Utility::IO::Save_SpinChain_Configuration(this->chain, imagesFile);
-
-			if (this->chain->gneb_parameters->output_energy)
+			std::string preChainFile;
+			std::string preEnergiesFile;
+			if (this->systems[0]->llg_parameters->output_tag_time)
 			{
-				// Save current Energies with reaction coordinates
-				auto energiesFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile);
+				preChainFile = this->parameters->output_folder + "/" + starttime + "_Chain";
+				preEnergiesFile = this->parameters->output_folder + "/" + starttime + "_Chain_Energies";
+			}
+			else
+			{
+				preChainFile = this->parameters->output_folder + "/Chain";
+				preEnergiesFile = this->parameters->output_folder + "/Chain_Energies";
+			}
 
-				// Save interpolated Energies
-				auto energiesInterpFile = this->chain->gneb_parameters->output_folder + "/" + starttime + "_E_interp_Images_" + s_iter + suffix + ".txt";
-				Utility::IO::Write_Chain_Energies_Interpolated(*this->chain, energiesInterpFile);
+			// Function to write or append image and energy files
+			auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
+			{
+				// File name
+				std::string chainFile = preChainFile + suffix + ".txt";
+
+				// Chain
+				Utility::IO::Save_SpinChain_Configuration(this->chain, iteration, chainFile);
+			};
+
+			auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
+			{
+				bool normalize = this->chain->gneb_parameters->output_energies_divide_by_nspins;
+
+				// File name
+				std::string energiesFile = preEnergiesFile + suffix + ".txt";
+				std::string energiesFileInterpolated = preEnergiesFile + "-interpolated" + suffix + ".txt";
+				// std::string energiesFilePerSpin = preEnergiesFile + "PerSpin" + suffix + ".txt";
+
+				// Energies
+				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile, normalize);
+
+				// Interpolated Energies
+				if (this->chain->gneb_parameters->output_energies_interpolated)
+				{
+					Utility::IO::Write_Chain_Energies_Interpolated(*this->chain, energiesFileInterpolated, normalize);
+				}
+				/*if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
+				{
+					Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
+				}*/
+			};
+
+
+			// Initial chain before simulation
+			if (initial && this->parameters->output_initial)
+			{
+				writeOutputChain("-initial");
+				writeOutputEnergies("-initial");
+			}
+			// Final chain after simulation
+			else if (final && this->parameters->output_final)
+			{
+				writeOutputChain("-final");
+				writeOutputEnergies("-final");
+			}
+
+			// Single file output
+			if (this->chain->gneb_parameters->output_chain_step)
+			{
+				writeOutputChain("_" + s_iter);
+			}
+			if (this->chain->gneb_parameters->output_energies_step)
+			{
+				writeOutputEnergies("_" + s_iter);
 			}
 
 			// Save Log

@@ -9,7 +9,7 @@ struct State;
 	State_Setup
 	  Create the State and fill it with initial data
 */
-DLLEXPORT State * State_Setup(const char * config_file = "");
+DLLEXPORT State * State_Setup(const char * config_file = "", bool quiet = false);
 
 /*
 	State_Delete

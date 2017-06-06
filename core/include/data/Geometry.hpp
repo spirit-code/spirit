@@ -24,7 +24,7 @@ namespace Data
 	public:
 		// Constructor
 		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
-			const std::vector<int> n_cells, const std::vector<Vector3> basis_atoms, const scalar lattice_constant,
+			const intfield n_cells, const std::vector<Vector3> basis_atoms, const scalar lattice_constant,
 			const vectorfield spin_pos);
 		// Destructor
 		//~Geometry();
@@ -38,7 +38,7 @@ namespace Data
 		// Translation Vectors [dim][transl_vec]
 		const std::vector<Vector3> translation_vectors;
 		// Number of Translations {nta, ntb, ntc}
-		const std::vector<int> n_cells;
+		const intfield n_cells;
 		// Number of spins per basic domain
 		const int n_spins_basic_domain;
 		// Array of basis atom positions [3][n_basis_atoms]

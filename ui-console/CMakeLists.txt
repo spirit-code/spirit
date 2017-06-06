@@ -7,8 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 
 ######### Project Name ######################
-project(SpiritConsole)
-SET(EXECUTABLE_NAME spirit)
+project(Spirit_UI_Console)
 #############################################
 
 
@@ -37,7 +36,9 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ######### Declare File groups ###############
 ### Header Gropus
-set(HEADER_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/include/Handle_Signal.hpp ${CMAKE_CURRENT_SOURCE_DIR}/include/Threading.hpp)
+set(HEADER_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/include/Handle_Signal.hpp
+						   ${CMAKE_CURRENT_SOURCE_DIR}/include/Threading.hpp
+						   ${CMAKE_CURRENT_SOURCE_DIR}/include/InputParser.hpp)
 ### Source Groups
 set(SOURCE_UI_CONSOLE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Handle_Signal.cpp)
 #############################################
@@ -58,12 +59,14 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 
 
 ######### Tell CMake to create the executable
-add_executable(${EXECUTABLE_NAME} ${HEADER_UI_CONSOLE_ROOT} ${SOURCE_UI_CONSOLE_ROOT})
+add_executable(${PROJECT_NAME} ${HEADER_UI_CONSOLE_ROOT} ${SOURCE_UI_CONSOLE_ROOT})
+### Set executable name
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "spirit")
 #############################################
 
 
 ######### Link the libraries into the executable
-target_link_libraries(${EXECUTABLE_NAME} ${SPIRIT_LIBRARIES_STATIC})
+target_link_libraries(${PROJECT_NAME} ${SPIRIT_LIBRARIES_STATIC})
 #############################################
 
 
@@ -74,7 +77,7 @@ if (WIN32)
 	MESSAGE( STATUS ">> Windows Platform:           " ${USERFILE_PLATFORM} )
 	MESSAGE( STATUS ">> Windows Working Dir:        " ${USERFILE_WORKING_DIRECTORY} )
 	### Output a .user file for VS to use, setting the VS Working Directory
-	configure_file(${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${EXECUTABLE_NAME}.vcxproj.user @ONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY)
 endif()
 #############################################
 

@@ -27,6 +27,14 @@ namespace Engine
         return converged;
     }
 
+	bool Method::Walltime_Expired(duration<scalar> dt_seconds)
+	{
+		if (this->parameters->max_walltime_sec <= 0)
+			return false;
+		else
+			return dt_seconds.count() > this->parameters->max_walltime_sec;
+	}
+
     bool Method::ContinueIterating()
     {
         return this->Iterations_Allowed() && !this->Force_Converged();
@@ -77,12 +85,12 @@ namespace Engine
 
 	void Method::Lock()
 	{
-		for (auto system : this->systems) system->Lock();
+		for (auto& system : this->systems) system->Lock();
 	}
 
 	void Method::Unlock()
 	{
-		for (auto system : this->systems) system->Unlock();
+		for (auto& system : this->systems) system->Unlock();
 	}
 
     std::string Method::Name()

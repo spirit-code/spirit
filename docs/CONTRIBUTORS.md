@@ -44,6 +44,14 @@ Code design improvements (including CMake).
 -----------------
 
 
+### Stefanos Mavros
+* RWTH Aachen 
+
+Work on unit testing and documentation.<br />
+
+-----------------
+
+
 ### Ingo Heimbach
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 
@@ -76,3 +84,9 @@ You may also take a look at the [contributors graph][1].
 
 
 [1]: https://github.com/spirit-code/spirit/graphs/contributors
+
+
+
+---
+
+[Home](Readme.md)

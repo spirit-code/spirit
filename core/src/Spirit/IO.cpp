@@ -36,8 +36,10 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 	}
 
 	float defaultPos[3] = {0,0,0}; 
-	float defaultRect[3] = {-1,-1,-1}; 
+	float defaultRect[3] = {-1,-1,-1};
+	state->collection->chains[idx_chain]->images[idx_image]->Lock();
 	state->collection->chains[idx_chain]->images[idx_image] = system;
+	state->collection->chains[idx_chain]->images[idx_image]->Unlock();
 	Configuration_Random(state, defaultPos, defaultRect, -1, -1, false, false, idx_image, idx_chain);
 	return 1;
 }
@@ -54,7 +56,9 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
 	from_indices(state, idx_image, idx_chain, image, chain);
 
     // Read the data
+	image->Lock();
 	Utility::IO::Read_Spin_Configuration(image, std::string(file), Utility::IO::VectorFileFormat(format));
+	image->Unlock();
 }
 
 void IO_Image_Write(State * state, const char * file, int format, int idx_image, int idx_chain)
@@ -64,7 +68,9 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Append_Spin_Configuration(image, 0, std::string(file));
+	image->Lock();
+	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), false);
+	image->Unlock();
 }
 
 void IO_Image_Append(State * state, const char * file, int iteration, int format, int idx_image, int idx_chain)
@@ -74,7 +80,9 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Write the data
-	Utility::IO::Append_Spin_Configuration(image, 0, std::string(file));
+	image->Lock();
+	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), true);
+	image->Unlock();
 }
 
 
@@ -89,7 +97,16 @@ void IO_Chain_Read(State * state, const char * file, int idx_image, int idx_chai
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Read the data
+	chain->Lock();
 	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
+	chain->Unlock();
+
+	// Update llg simulation information array size
+	if ((int)state->simulation_information_image[idx_chain].size() < chain->noi)
+	{
+		for (int i=state->simulation_information_image[idx_chain].size(); i < chain->noi; ++i)
+			state->simulation_information_image[idx_chain].push_back(std::shared_ptr<Simulation_Information>(new Simulation_Information()));
+	}
 
 	// Update state
 	State_Update(state);
@@ -108,7 +125,9 @@ void IO_Chain_Write(State * state, const char * file, int idx_image, int idx_cha
 	from_indices(state, idx_image, idx_chain, image, chain);
 
 	// Read the data
-	Utility::IO::Save_SpinChain_Configuration(chain, std::string(file));
+	chain->Lock();
+	Utility::IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
+	chain->Unlock();
 }
 
 

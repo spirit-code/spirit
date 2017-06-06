@@ -299,7 +299,7 @@ namespace Utility
 		}
 
 
-		void Append_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName)
+		void Write_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append)
 		{
 			int iatom;
 			const int buffer_length = 80;
@@ -316,17 +316,21 @@ namespace Utility
 				output_to_file.append(buffer_string_conversion);
 			}
 			output_to_file.append("\n");
-			Append_String_to_File(output_to_file, fileName);
+			
+			if (append)
+				Append_String_to_File(output_to_file, fileName);
+			else
+				Dump_to_File(output_to_file, fileName);
 		}
 
-		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain>& c, const std::string fileName)
+		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
 		{
 			int iimage, iatom, nos;
 			const int buffer_length = 80;
 			std::string output_to_file = "";
 			output_to_file.reserve(int(1E+08));
 			char buffer_string_conversion[buffer_length + 2];
-			snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images and NOS = %8i", c->noi, c->images[0]->nos);
+			snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images with NOS = %8i after iteration %8i", c->noi, c->images[0]->nos, iteration);
 			output_to_file.append(buffer_string_conversion);
 			//------------------------ End Init ----------------------------------------
 			for (iimage = 0; iimage < c->noi; ++iimage) {

@@ -1,0 +1,38 @@
+version: "{build}"
+
+os:
+  - Visual Studio 2017
+  - Visual Studio 2015
+
+# x64 is a CMake-compatible solution platform name.
+# This allows us to pass %PLATFORM% to CMake -A.
+platform:
+  - x64
+
+# Build Configurations, i.e. Debug, Release, etc.
+configuration:
+  - Debug
+  - Release
+
+environment:
+    matrix:
+        - PYTHON: "C:\\Python36-x64"
+        
+# Cmake will autodetect the compiler, but we set the arch
+before_build:
+  - set PATH=%PYTHON%;%PATH%
+  - set CXXFLAGS=%additional_flags%
+  - cmake -H. -BBuild -A%PLATFORM% -DUI_CXX_USE_QT=OFF
+
+# Build with MSBuild
+build:
+  project: Build\spirit.sln # path to Visual Studio solution or project
+  parallel: true                 # enable MSBuild parallel builds
+  verbosity: normal              # MSBuild verbosity level {quiet|minimal|normal|detailed}
+
+install:
+  - "%PYTHON%/Scripts/pip.exe install numpy"
+
+test_script:
+  - cd Build
+  - ctest --output-on-failure -C %CONFIGURATION%

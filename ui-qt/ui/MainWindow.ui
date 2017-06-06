@@ -186,7 +186,7 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Setti&amp;ngs</string>
+    <string>Settings</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>

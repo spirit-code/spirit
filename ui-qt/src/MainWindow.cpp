@@ -610,39 +610,38 @@ void MainWindow::createStatusBar()
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>(0);
-	if (Simulation_Running_Any_Anywhere(state.get()))
+	if (Simulation_Running_Anywhere_Collection(state.get()))
 	{
-		if (Simulation_Running_LLG_Anywhere(state.get()))
-		{
-			for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
-			{
-				if (Simulation_Running_LLG(state.get(), i))
-				{
-					this->m_Labels_IPS.push_back(new QLabel);
-					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
-					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
-				}
-			}
-		}
-		else if (Simulation_Running_GNEB_Anywhere(state.get()))
-		{
-			for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
-			{
-				if (Simulation_Running_GNEB(state.get(), i))
-				{
-					this->m_Labels_IPS.push_back(new QLabel);
-					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
-					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
-				}
-			}
-		}
-		else if (Simulation_Running_MMF(state.get()))
+		if (Simulation_Running_Collection(state.get()))
 		{
 			this->m_Labels_IPS.push_back(new QLabel);
 			this->m_Labels_IPS.back()->setText("IPS: -  ");
 			Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 		}
-
+		else
+		{
+			for (int ichain = 0; ichain < Collection_Get_NOC(state.get()); ++ichain)
+			{
+				if (Simulation_Running_Chain(state.get(), ichain))
+				{
+					this->m_Labels_IPS.push_back(new QLabel);
+					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+				}
+				else
+				{
+					for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
+					{
+						if (Simulation_Running_Image(state.get(), img, ichain))
+						{
+							this->m_Labels_IPS.push_back(new QLabel);
+							this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+							Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
+						}
+					}
+				}
+			}
+		}
 		//		Spacer
 		this->m_Spacer_5 = new QLabel("  |    ");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_5);
@@ -757,39 +756,7 @@ void MainWindow::updateStatusBar()
 	QString qstr_ips;
 	std::vector<QString> v_str(0);
 
-	if (Simulation_Running_LLG_Anywhere(state.get()))
-	{
-		for (int i = 0; i < Chain_Get_NOI(state.get()); ++i)
-		{
-			if (Simulation_Running_LLG(state.get(), i))
-			{
-				ips = Simulation_Get_IterationsPerSecond(state.get(), i);
-				if (ips < 1) precision = 4;
-				else if (ips > 99) precision = 0;
-				else precision = 2;
-				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
-				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
-			}
-		}
-	}
-	else if (Simulation_Running_GNEB_Anywhere(state.get()))
-	{
-		for (int i = 0; i < Collection_Get_NOC(state.get()); ++i)
-		{
-			if (Simulation_Running_GNEB(state.get(), i))
-			{
-				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, i);
-				if (ips < 1) precision = 4;
-				else if (ips > 99) precision = 0;
-				else precision = 2;
-				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
-				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(i + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
-			}
-		}
-	}
-	else if (Simulation_Running_MMF(state.get()))
+	if (Simulation_Running_Collection(state.get()))
 	{
 		ips = Simulation_Get_IterationsPerSecond(state.get());
 		if (ips < 1) precision = 4;
@@ -798,6 +765,38 @@ void MainWindow::updateStatusBar()
 		if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 		else qstr_ips = QString::fromLatin1("> 100k");
 		v_str.push_back(QString::fromLatin1("IPS: ") + qstr_ips + QString::fromLatin1("  "));
+	}
+	else
+	{
+		for (int ichain = 0; ichain < Collection_Get_NOC(state.get()); ++ichain)
+		{
+			if (Simulation_Running_Chain(state.get(), ichain))
+			{
+				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, ichain);
+				if (ips < 1) precision = 4;
+				else if (ips > 99) precision = 0;
+				else precision = 2;
+				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
+				else qstr_ips = QString::fromLatin1("> 100k");
+				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+			}
+			else
+			{
+				for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
+				{
+					if (Simulation_Running_Image(state.get(), img, ichain))
+					{
+						ips = Simulation_Get_IterationsPerSecond(state.get(), img, ichain);
+						if (ips < 1) precision = 4;
+						else if (ips > 99) precision = 0;
+						else precision = 2;
+						if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
+						else qstr_ips = QString::fromLatin1("> 100k");
+						v_str.push_back(QString::fromLatin1("IPS [") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+					}
+				}
+			}
+		}
 	}
 
 	if (v_str.size() != m_Labels_IPS.size()) createStatusBar();
