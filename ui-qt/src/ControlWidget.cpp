@@ -264,13 +264,10 @@ void ControlWidget::cut_image()
 	{
 		this->stop_current();
 
-		// Cut a Spin System
 		Chain_Image_to_Clipboard(state.get());
 
 		int idx = System_Get_Index(state.get());
-		if (idx > 0) Chain_prev_Image(this->state.get());
-
-		if (Chain_Delete_Image(state.get(), idx)) 
+		if (Chain_Delete_Image(state.get(), idx))
 		{
 			// Make the llg_threads vector smaller
 			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
@@ -324,11 +321,10 @@ void ControlWidget::delete_image()
 		this->stop_current();
 
 		int idx = System_Get_Index(state.get());
-		if (idx > 0) Chain_prev_Image(this->state.get());
-		//else this->nextImagePressed();
-		if (Chain_Delete_Image(state.get(), idx)) 
+		if (Chain_Delete_Image(state.get()))
 		{
 			// Make the llg_threads vector smaller
+			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
 			this->threads_llg.erase(threads_llg.begin() + idx);
 		}
 

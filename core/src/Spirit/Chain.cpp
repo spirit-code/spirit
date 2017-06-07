@@ -352,6 +352,9 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
         chain->Lock();
 
         chain->noi--;
+        if (idx_image == chain->noi)
+            Chain_prev_Image(state, idx_chain);
+
         state->noi = state->active_chain->noi;
         
 		chain->images[idx_image]->Unlock();
@@ -410,6 +413,9 @@ bool Chain_Pop_Back(State * state, int idx_chain_i)
 
         // Add to chain
         chain->noi--;
+        if (idx_image == chain->noi)
+            Chain_prev_Image(state, idx_chain);
+            
         state->noi = state->active_chain->noi;
 
 		chain->images.back()->Unlock();
