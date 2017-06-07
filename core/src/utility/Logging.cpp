@@ -11,51 +11,112 @@
 
 namespace Utility
 {
+	std::string SenderToString(Log_Sender sender, bool braces_separators=true)
+	{
+		std::string result = "";
+
+		// Braces
+		if (braces_separators) result.append("[");
+		else result.append(" ");
+		// Sender
+		if     (sender == Log_Sender::All)  result.append("ALL ");
+		else if(sender == Log_Sender::IO)   result.append("IO  ");
+		else if(sender == Log_Sender::API)  result.append("API ");
+		else if(sender == Log_Sender::GNEB) result.append("GNEB");
+		else if(sender == Log_Sender::LLG)  result.append("LLG ");
+		else if(sender == Log_Sender::MC)   result.append("MC  ");
+		else if(sender == Log_Sender::MMF)  result.append("MMF ");
+		else if(sender == Log_Sender::UI)   result.append("UI  ");
+		// Braces
+		if (braces_separators) result.append("]");
+		else result.append(" ");
+
+		return result;
+	}
+
+	std::string LevelToString(Log_Level level, bool braces_separators=true)
+	{
+		std::string result = "";
+
+		// Braces
+		if (braces_separators) result.append("[");
+		else result.append(" ");
+		// Level
+		if      (level == Log_Level::All)    	  result.append("  ALL  ");
+		else if (level == Log_Level::Severe)    result.append("SEVERE ");
+		else if (level == Log_Level::Error)	  result.append(" ERROR ");
+		else if (level == Log_Level::Warning)	  result.append("WARNING");
+		else if (level == Log_Level::Parameter) result.append(" PARAM ");
+		else if (level == Log_Level::Info)      result.append(" INFO  ");
+		else if (level == Log_Level::Debug)     result.append(" DEBUG ");
+		// Braces
+		if (braces_separators) result.append("]");
+		else result.append(" ");
+
+		return result;
+	}
+
+	std::string IndexToString(int idx, bool braces_separators=true)
+	{
+		std::string result="";
+
+		// Braces
+		if (braces_separators) result.append("[");
+		else result.append(" ");
+		// Index
+		auto s_idx = IO::int_to_formatted_string(idx+1, 2);
+		if (idx >= 0) result.append(s_idx);
+		else result.append("--");
+		// Braces
+		if (braces_separators) result.append("]");
+		else result.append(" ");
+
+		return result;
+	}
+
 	std::string LogEntryToString(LogEntry entry, bool braces_separators)
 	{
-		// Format indices
-		auto s_chain = IO::int_to_formatted_string(entry.idx_chain+1, 2);
-		auto s_image = IO::int_to_formatted_string(entry.idx_image+1, 2);
-
-		// Time
-		std::string t = Timing::TimePointToString_Pretty(entry.time);
 		std::string result = "";
-		result.append(t);
+		// Time
+		result += Timing::TimePointToString_Pretty(entry.time);
 		// Message Level
-		if (braces_separators) result.append("  [");
-		else result.append("   ");
-		if      (entry.level == Log_Level::All)    	  result.append("  ALL  ");
-		else if (entry.level == Log_Level::Severe)    result.append("SEVERE ");
-		else if (entry.level == Log_Level::Error)	  result.append(" ERROR ");
-		else if (entry.level == Log_Level::Warning)	  result.append("WARNING");
-		else if (entry.level == Log_Level::Parameter) result.append(" PARAM ");
-		else if (entry.level == Log_Level::Info)      result.append(" INFO  ");
-		else if (entry.level == Log_Level::Debug)     result.append(" DEBUG ");
+		result += "  " + LevelToString(entry.level, braces_separators);
 		// Sender
-		if (braces_separators) result.append("] [");
-		else result.append("  ");
-		if     (entry.sender == Log_Sender::All)  result.append("ALL ");
-		else if(entry.sender == Log_Sender::IO)   result.append("IO  ");
-		else if(entry.sender == Log_Sender::API)  result.append("API ");
-		else if(entry.sender == Log_Sender::GNEB) result.append("GNEB");
-		else if(entry.sender == Log_Sender::LLG)  result.append("LLG ");
-		else if(entry.sender == Log_Sender::MC)   result.append("MC  ");
-		else if(entry.sender == Log_Sender::MMF)  result.append("MMF ");
-		else if(entry.sender == Log_Sender::UI)   result.append("UI  ");
+		result += " " + SenderToString(entry.sender, braces_separators);
 		// Chain Index
-		if (braces_separators) result.append("] [");
-		else result.append("  ");
-		if (entry.idx_chain >= 0) result.append(s_chain);
-		else result.append("--");
+		result += " " + IndexToString(entry.idx_chain, braces_separators);
 		// Image Index
-		if (braces_separators) result.append("] [");
-		else result.append("  ");
-		if (entry.idx_image >= 0) result.append(s_image);
-		else result.append("--");
-		if (braces_separators) result.append("]  ");
-		else result.append("   ");
+		result += " " + IndexToString(entry.idx_image, braces_separators);
 		// Message string
-		result.append(entry.message);
+		result += "  " + entry.message;
+		// Return
+		return result;
+	}
+
+	std::string LogBlockToString(std::vector<LogEntry> entries, bool braces_separators)
+	{
+		std::string result = "";
+		auto& entry = entries[0];
+		// Time
+		result += Timing::TimePointToString_Pretty(entry.time);
+		// Message Level
+		result += "  " + LevelToString(entry.level, braces_separators);
+		// Sender
+		result += " " + SenderToString(entry.sender, braces_separators);
+		// Chain Index
+		result += " " + IndexToString(entry.idx_chain, braces_separators);
+		// Image Index
+		result += " " + IndexToString(entry.idx_image, braces_separators);
+		// Message string
+		result += "  " + entry.message;
+
+		// Rest of the block
+		for (int i=1; i<entries.size(); ++i)
+		{
+			result += "\n" + Log.tags_space + entries[i].message;
+		}
+		result += "\n";
+
 		// Return
 		return result;
 	}
@@ -97,8 +158,8 @@ namespace Utility
 		if (level == Log_Level::Warning)
 			n_warnings++;
 
-		// If level <= verbosity, we print to console
-		if (messages_to_console && level <= level_console || level == Log_Level::Error || level == Log_Level::Severe)
+		// If level <= verbosity, we print to console, but Error and Severe are always printed
+		if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
 			std::cout << LogEntryToString(log_entries.back()) << std::endl;
 	}
 
@@ -107,19 +168,24 @@ namespace Utility
 		// Lock mutex because of reallocation (push_back)
 		std::lock_guard<std::mutex> guard(mutex);
 
+		std::vector<LogEntry> entries;
 		for (auto& message : messages)
 		{
 			// All messages are saved in the Log
 			LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
 			log_entries.push_back(entry);
+			entries.push_back(entry);
 
 			// Increment message count
 			n_entries++;
 
-			// If level <= verbosity, we may print to console
-			if (messages_to_console && level <= level_console || level == Log_Level::Error || level == Log_Level::Severe)
+			// If level <= verbosity, we may print to console, but Error and Severe are always printed
+			if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
 				std::cout << LogEntryToString(log_entries.back()) << std::endl;
 		}
+		// If level <= verbosity, we may print to console, but Error and Severe are always printed
+		// if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
+		// 	std::cout << LogBlockToString(entries);
 	}
 
 	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)

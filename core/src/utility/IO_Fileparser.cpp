@@ -119,35 +119,18 @@ namespace Utility
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
-				int i = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
+				int ispin = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
 					if (found == std::string::npos)		// Read the line if # is not found (# marks a comment)
 					{
 						found = line.find("Image No");
-						if (found != std::string::npos)	// Set counters if 'Image No' was found
-						{
-							if (i < nos && iimage>0)	// Check if less than NOS spins were read for the image before
-							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage));
-							}
-							++iimage;
-							i = 0;
-							if (iimage >= noi)
-							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi));
-							}
-							else
-							{
-								nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-							}
-						}//endif "Image No"
-						else	// The line should contain a spin
+						if (found == std::string::npos)	// The line should contain a spin
 						{
 							if (iimage >= noi)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
 								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
 								// Add to chain
@@ -158,10 +141,10 @@ namespace Utility
 							}
 							nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
 
-							if (i >= nos)
+							if (ispin >= nos)
 							{
-								Log(Log_Level::Warning, Log_Sender::IO, "NOS missmatch in image " + std::to_string(iimage));
-								Log(Log_Level::Warning, Log_Sender::IO, "NOS(file) = " + std::to_string(nos) + " > NOS(image) = " + std::to_string(i));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS missmatch in image " + std::to_string(iimage+1));
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(file) = " + std::to_string(nos) + " > NOS(image) = " + std::to_string(ispin+1));
 								//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 								//myfile.close();
 								//return;
@@ -172,15 +155,32 @@ namespace Utility
 								iss.str(line);
 								auto& spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> spins[i][0] >> spins[i][1] >> spins[i][2];
+								iss >> spins[ispin][0] >> spins[ispin][1] >> spins[ispin][2];
 							}
-							++i;
+							++ispin;
 						}//end else
+						else	// Set counters if 'Image No' was found
+						{
+							if (ispin < nos && iimage>0)	// Check if less than NOS spins were read for the image before
+							{
+								Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(ispin+1) + " in image " + std::to_string(iimage+1));
+							}
+							++iimage;
+							ispin = 0;
+							if (iimage >= noi)
+							{
+								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi));
+							}
+							else
+							{
+								nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
+							}
+						}//endif "Image No"
 					}// endif (# not found)
 					 // discard line if # is found
 				}// endif new line (while)
-				if (i < nos) Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(i) + " in image " + std::to_string(iimage - 1));
-				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) = " + std::to_string(noi) + " > NOI(file) = " + std::to_string(iimage));
+				if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(ispin+1) + " in image " + std::to_string(iimage+1));
+				if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) = " + std::to_string(noi) + " > NOI(file) = " + std::to_string(iimage+1));
 				myfile.close();
 				Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 			}
@@ -411,13 +411,15 @@ namespace Utility
 							K_temp.normalize();
 					}
 
-					// TODO: propagation of basis anisotropy across lattice
-
 					if (spin_K != 0)
 					{
-						anisotropy_index.push_back(spin_i);
-						anisotropy_magnitude.push_back(spin_K);
-						anisotropy_normal.push_back(K_temp);
+						// Propagate the anisotropy vectors (specified for one unit cell) across the lattice
+						for (int icell=0; icell<geometry.nos/geometry.n_spins_basic_domain; ++icell)
+						{
+							anisotropy_index.push_back(icell+spin_i);
+							anisotropy_magnitude.push_back(spin_K);
+							anisotropy_normal.push_back(K_temp);
+						}
 					}
 
 				}// end while getline

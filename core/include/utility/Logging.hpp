@@ -67,6 +67,7 @@ namespace Utility
 
 	// Convert the contents of a Log Entry to a string
 	std::string LogEntryToString(LogEntry entry, bool braces_separators = true);
+	std::string LogBlockToString(std::vector<LogEntry> entries, bool braces_separators = true);
 
 	/*
 		The Logging Handler keeps all Log Entries and provides methods to dump or append
@@ -112,6 +113,8 @@ namespace Utility
 		int n_errors;
 		// Number of warnings in the Log
 		int n_warnings;
+		// Length of the tags before each message in spaces
+		const std::string tags_space = "                                                 ";
 
 		// Retrieve the singleton instance
 		static LoggingHandler& getInstance()
