@@ -89,9 +89,10 @@ set(SOURCE_UI_WEB_ROOT)
 
 add_executable( spirit_js main_js.cxx
 				${HEADER_UI_WEB_ROOT}
-				${SOURCE_UI_WEB_ROOT})
+				${SOURCE_UI_WEB_ROOT}
+				${SPIRIT_OBJS} )
 
-target_link_libraries( spirit_js ${SPIRIT_LIBRARIES_STATIC} )
+# target_link_libraries( spirit_js ${SPIRIT_LIBRARIES_STATIC} )
 
 set_target_properties( spirit_js PROPERTIES OUTPUT_NAME "spirit" )
 ### We want it to be placed under ui-web/ s.t. it is directly part of the python core module/package

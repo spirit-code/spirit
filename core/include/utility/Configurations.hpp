@@ -41,6 +41,8 @@ namespace Utility
 		void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar speed, scalar order, bool upDown, bool achiral, bool rl, bool experimental, filterfunction filter=defaultfilter);
 		// Spin Spiral
 		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter=defaultfilter);
+		// 2q Spin Spiral
+		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta, filterfunction filter);
 	};//end namespace Configurations
 }//end namespace Utility
 

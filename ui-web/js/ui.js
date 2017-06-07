@@ -112,9 +112,9 @@ $(document).ready(function() {
     var positiony = Number($('#input-skyrmion-positiony').val());
     var positionz = Number($('#input-skyrmion-positionz').val());
     var updown = $('#input-skyrmion-updown')[0].checked;
-    var rl = $('#input-skyrmion-rl')[0].checked;
+    var rl = false;//$('#input-skyrmion-rl')[0].checked;
     var achiral = $('#input-skyrmion-achiral')[0].checked;
-    var exp = $('#input-skyrmion-exp')[0].checked;
+    // var exp = $('#input-skyrmion-exp')[0].checked;
     var valid = true;
     if (Number.isNaN(order)) {
       valid = false;
@@ -154,7 +154,7 @@ $(document).ready(function() {
     }
     if (valid) {
       var position = [positionx, positiony, positionz];
-      window.currentSimulation.createSkyrmion(order, phase, radius, position, updown, rl, achiral, exp);
+      window.currentSimulation.createSkyrmion(order, phase, radius, position, updown, rl, achiral);
     }
   });
 
@@ -170,45 +170,45 @@ $(document).ready(function() {
     var valid = true;
     if (Number.isNaN(qx)) {
       valid = false;
-      $('#input-domainwall-qx').parent().addClass('has-error');
+      $('#input-spinspiral-qx').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-qx').parent().removeClass('has-error');
+      $('#input-spinspiral-qx').parent().removeClass('has-error');
     }
     if (Number.isNaN(qy)) {
       valid = false;
-      $('#input-domainwall-qy').parent().addClass('has-error');
+      $('#input-spinspiral-qy').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-qy').parent().removeClass('has-error');
+      $('#input-spinspiral-qy').parent().removeClass('has-error');
     }
     if (Number.isNaN(qz)) {
       valid = false;
-      $('#input-domainwall-qz').parent().addClass('has-error');
+      $('#input-spinspiral-qz').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-qz').parent().removeClass('has-error');
+      $('#input-spinspiral-qz').parent().removeClass('has-error');
     }
     if (Number.isNaN(axisx)) {
       valid = false;
-      $('#input-domainwall-axisx').parent().addClass('has-error');
+      $('#input-spinspiral-axisx').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-axisx').parent().removeClass('has-error');
+      $('#input-spinspiral-axisx').parent().removeClass('has-error');
     }
     if (Number.isNaN(axisy)) {
       valid = false;
-      $('#input-domainwall-axisy').parent().addClass('has-error');
+      $('#input-spinspiral-axisy').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-axisy').parent().removeClass('has-error');
+      $('#input-spinspiral-axisy').parent().removeClass('has-error');
     }
     if (Number.isNaN(axisz)) {
       valid = false;
-      $('#input-domainwall-axisz').parent().addClass('has-error');
+      $('#input-spinspiral-axisz').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-axisz').parent().removeClass('has-error');
+      $('#input-spinspiral-axisz').parent().removeClass('has-error');
     }
     if (Number.isNaN(angle)) {
       valid = false;
-      $('#input-domainwall-angle').parent().addClass('has-error');
+      $('#input-spinspiral-angle').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-angle').parent().removeClass('has-error');
+      $('#input-spinspiral-angle').parent().removeClass('has-error');
     }
     if (valid) {
       var q = [qx, qy, qz];
@@ -217,55 +217,77 @@ $(document).ready(function() {
     }
   });
 
-  $('#button-domainwall-create').on('click', function(e) {
-    var borderx = Number($('#input-domainwall-borderx').val());
-    var bordery = Number($('#input-domainwall-bordery').val());
-    var borderz = Number($('#input-domainwall-borderz').val());
-    var directionx = Number($('#input-domainwall-directionx').val());
-    var directiony = Number($('#input-domainwall-directiony').val());
-    var directionz = Number($('#input-domainwall-directionz').val());
-    var greater = $('#input-domainwall-greater')[0].checked;
+  $('#button-domain-create').on('click', function(e) {
+    var positionx = Number($('#input-domain-positionx').val());
+    var positiony = Number($('#input-domain-positiony').val());
+    var positionz = Number($('#input-domain-positionz').val());
+    var borderx = Number($('#input-domain-borderx').val());
+    var bordery = Number($('#input-domain-bordery').val());
+    var borderz = Number($('#input-domain-borderz').val());
+    var directionx = Number($('#input-domain-directionx').val());
+    var directiony = Number($('#input-domain-directiony').val());
+    var directionz = Number($('#input-domain-directionz').val());
+    // var greater = $('#input-domain-greater')[0].checked;
     var valid = true;
+    if (Number.isNaN(positionx)) {
+      valid = false;
+      $('#input-domain-positionx').parent().addClass('has-error');
+    } else {
+      $('#input-domain-positionx').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(positiony)) {
+      valid = false;
+      $('#input-domain-positiony').parent().addClass('has-error');
+    } else {
+      $('#input-domain-positiony').parent().removeClass('has-error');
+    }
+    if (Number.isNaN(positionz)) {
+      valid = false;
+      $('#input-domain-positionz').parent().addClass('has-error');
+    } else {
+      $('#input-domain-positionz').parent().removeClass('has-error');
+    }
     if (Number.isNaN(borderx)) {
       valid = false;
-      $('#input-domainwall-borderx').parent().addClass('has-error');
+      $('#input-domain-borderx').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-borderx').parent().removeClass('has-error');
+      $('#input-domain-borderx').parent().removeClass('has-error');
     }
     if (Number.isNaN(bordery)) {
       valid = false;
-      $('#input-domainwall-bordery').parent().addClass('has-error');
+      $('#input-domain-bordery').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-bordery').parent().removeClass('has-error');
+      $('#input-domain-bordery').parent().removeClass('has-error');
     }
     if (Number.isNaN(borderz)) {
       valid = false;
-      $('#input-domainwall-borderz').parent().addClass('has-error');
+      $('#input-domain-borderz').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-borderz').parent().removeClass('has-error');
+      $('#input-domain-borderz').parent().removeClass('has-error');
     }
     if (Number.isNaN(directionx)) {
       valid = false;
-      $('#input-domainwall-directionx').parent().addClass('has-error');
+      $('#input-domain-directionx').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-directionx').parent().removeClass('has-error');
+      $('#input-domain-directionx').parent().removeClass('has-error');
     }
     if (Number.isNaN(directiony)) {
       valid = false;
-      $('#input-domainwall-directiony').parent().addClass('has-error');
+      $('#input-domain-directiony').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-directiony').parent().removeClass('has-error');
+      $('#input-domain-directiony').parent().removeClass('has-error');
     }
     if (Number.isNaN(directionz)) {
       valid = false;
-      $('#input-domainwall-directionz').parent().addClass('has-error');
+      $('#input-domain-directionz').parent().addClass('has-error');
     } else {
-      $('#input-domainwall-directionz').parent().removeClass('has-error');
+      $('#input-domain-directionz').parent().removeClass('has-error');
     }
     if (valid) {
+      var position = [positionx, positiony, positionz];
       var border = [borderx, bordery, borderz];
       var direction = [directionx, directiony, directionz];
-      window.currentSimulation.createDomainWall(border, direction, greater);
+      window.currentSimulation.createDomain(direction, position, border);
     }
   });
 
@@ -397,18 +419,23 @@ $(document).ready(function() {
   $('#input-exchangemagnitudes2').on('change', updateHamiltonianExchange);
 
   function updateHamiltonianDMI() {
-    var dij = Number($('#input-dmi-magnitude').val());
-    var valid = true;
-    if (Number.isNaN(dij)) {
-      valid = false;
-      $('#input-dmi-magnitude').parent().addClass('has-error');
+    if ($('#input-dmi')[0].checked) {
+      var dij = Number($('#input-dmi-magnitude').val());
+      var valid = true;
+      if (Number.isNaN(dij)) {
+        valid = false;
+        $('#input-dmi-magnitude').parent().addClass('has-error');
+      } else {
+        $('#input-dmi-magnitude').parent().removeClass('has-error');
+      }
+      if (valid) {
+        window.currentSimulation.updateHamiltonianDMI([dij]);
+      }
     } else {
-      $('#input-dmi-magnitude').parent().removeClass('has-error');
-    }
-    if (valid) {
-      window.currentSimulation.updateHamiltonianDMI(dij);
+      window.currentSimulation.updateHamiltonianDMI([0]);
     }
   }
+  $('#input-dmi').on('change', updateHamiltonianDMI);
   $('#input-dmi-magnitude').on('change', updateHamiltonianDMI);
 
   function updateHamiltonianAnisotropy() {
@@ -549,29 +576,29 @@ $(document).ready(function() {
   }
   $('#input-llg-timestep').on('change', updateLLGTimeStep);
 
-  function updateGNEBSpringConstant() {
-    var spring_constant = Number($('#input-gneb-springconst').val());
-    var valid = true;
-    if (Number.isNaN(spring_constant)) {
-      valid = false;
-      $('#input-gneb-springconst').parent().addClass('has-error');
-    } else {
-      $('#input-gneb-springconst').parent().removeClass('has-error');
-    }
-    if (valid) {
-      window.currentSimulation.updateGNEBSpringConstant(spring_constant);
-    }
-  }
-  $('#input-gneb-springconst').on('change', updateGNEBSpringConstant);
+  // function updateGNEBSpringConstant() {
+  //   var spring_constant = Number($('#input-gneb-springconst').val());
+  //   var valid = true;
+  //   if (Number.isNaN(spring_constant)) {
+  //     valid = false;
+  //     $('#input-gneb-springconst').parent().addClass('has-error');
+  //   } else {
+  //     $('#input-gneb-springconst').parent().removeClass('has-error');
+  //   }
+  //   if (valid) {
+  //     window.currentSimulation.updateGNEBSpringConstant(spring_constant);
+  //   }
+  // }
+  // $('#input-gneb-springconst').on('change', updateGNEBSpringConstant);
 
-  function updateGNEBClimbingFalling() {
-    var climbing = $('#input-gneb-radio-climbing')[0].checked;
-    var falling = $('#input-gneb-radio-falling')[0].checked;
-    window.currentSimulation.updateGNEBClimbingFalling(climbing, falling);
-  }
-  $('#input-gneb-radio-normal').on('change', updateGNEBClimbingFalling);
-  $('#input-gneb-radio-climbing').on('change', updateGNEBClimbingFalling);
-  $('#input-gneb-radio-falling').on('change', updateGNEBClimbingFalling);
+  // function updateGNEBClimbingFalling() {
+  //   var climbing = $('#input-gneb-radio-climbing')[0].checked;
+  //   var falling = $('#input-gneb-radio-falling')[0].checked;
+  //   window.currentSimulation.updateGNEBClimbingFalling(climbing, falling);
+  // }
+  // $('#input-gneb-radio-normal').on('change', updateGNEBClimbingFalling);
+  // $('#input-gneb-radio-climbing').on('change', updateGNEBClimbingFalling);
+  // $('#input-gneb-radio-falling').on('change', updateGNEBClimbingFalling);
 
   function updateUseTouch() {
     var useTouch = $('#input-use-touch')[0].checked;
@@ -610,8 +637,8 @@ $(document).ready(function() {
     updateHamiltonianTemperature();
     updateLLGDamping();
     updateLLGTimeStep();
-    updateGNEBSpringConstant();
-    updateGNEBClimbingFalling();
+    // updateGNEBSpringConstant();
+    // updateGNEBClimbingFalling();
     $('#div-load').hide();
     $( window ).resize(function() {
       if (!isSimulating) {

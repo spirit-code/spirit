@@ -3,8 +3,14 @@ set(SOURCE_UI_QT_ROOT
     ${CMAKE_CURRENT_SOURCE_DIR}/SpinWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergNeighboursWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergPairsWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ConfigurationsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/VisualisationSettingsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotWidget.cpp

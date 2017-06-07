@@ -163,14 +163,23 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
 	auto filter = get_filter(pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
 	// Apply configuration
-	image->Lock();
-	Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
-	image->Unlock();
+	if (state->clipboard_spins.get())
+	{
+		image->Lock();
+		Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
+		image->Unlock();
 
-	auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
-	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-		"Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
-	return true;
+		auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+		Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+			"Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
+		return true;
+	}
+	else
+	{
+		Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+			"Tried to insert configuration, but clipboard was empty.", idx_image, idx_chain);
+		return false;
+	}
 }
 
 
@@ -323,7 +332,7 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
 	Vector3 vpos = image->geometry->center + _pos;
 
 	// Set cutoff radius
-	if (r_cut_spherical < 0) r_cut_spherical = r*M_PI;
+	if (r_cut_spherical < 0) r_cut_spherical = r*(float)M_PI;
 
 	// Create position filter
 	auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -400,4 +409,36 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
 		+ ", theta=" + std::to_string(theta);
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
 		"Set spin spiral configuration. " + parameterstring + ". " +  filterstring, idx_image, idx_chain);
+}
+
+void Configuration_SpinSpiral_2q(State *state, const char * direction_type, float q1[3], float q2[3], float axis[3], float theta, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
+{
+	std::shared_ptr<Data::Spin_System> image;
+	std::shared_ptr<Data::Spin_System_Chain> chain;
+	from_indices(state, idx_image, idx_chain, image, chain);
+
+	// Get relative position
+	Vector3 _pos{ position[0], position[1], position[2] };
+	Vector3 vpos = image->geometry->center + _pos;
+
+	// Create position filter
+	auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+
+    // Apply configuration
+    std::string dir_type(direction_type);
+	Vector3 vq1{ q1[0], q1[1], q1[2] };
+	Vector3 vq2{ q2[0], q2[1], q2[2] };
+	Vector3 vaxis{ axis[0], axis[1], axis[2] };
+	image->Lock();
+	Utility::Configurations::SpinSpiral(*image, dir_type, vq1, vq2, vaxis, theta, filter);
+	image->Unlock();
+
+	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+	std::string parameterstring = "W.r.t. " + std::string(direction_type)
+		+ ", q1=(" + std::to_string(q1[0]) + "," + std::to_string(q1[1]) + "," + std::to_string(q1[2]) + ")"
+		+ ", q2=(" + std::to_string(q2[0]) + "," + std::to_string(q2[1]) + "," + std::to_string(q2[2]) + ")"
+		+ ", axis=(" + std::to_string(axis[0]) + "," + std::to_string(axis[1]) + "," + std::to_string(axis[2]) + ")"
+		+ ", theta=" + std::to_string(theta);
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+		"Set spin spiral 2q configuration. " + parameterstring + ". " +  filterstring, idx_image, idx_chain);
 }

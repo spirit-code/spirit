@@ -40,6 +40,7 @@ You can find them under *### Build Flags ###* in the **Root [CMakeLists.txt](../
 Otherwise, the developers' defaults will be used.
 
 Some **Paths** you can set under *### User Paths ###* (just uncomment the corresponding line) are:
+
 | CMake Variable                         | Use |
 | :------------------------------------: | :-: |
 | USER_COMPILER_C<br />USER_COMPILER_CXX | Name of the compiler you wish to use    |
@@ -122,6 +123,7 @@ or how to include it in your own project, see [core/docs/BUILD.md](../core/docs/
 * Unit Tests
 
 The **Root [CMakeLists.txt](../CMakeLists.txt)** has a few options you can set:
+
 |  CMake Options          | Use |
 | :---------------------: | :-: |
 | SPIRIT_USE_CUDA         | Use CUDA to speed up numerically intensive parts of the core |
@@ -162,3 +164,9 @@ remotely modern graphics card.
 | UI_CXX_USE_QT        | Build qt user interface instead of console version |
 | USER_PATH_QT         | The path to your CMake installation |
 | OSX_BUNDLE_APP       | On OSX, create .app bundle (not yet fully functional) |
+
+
+
+---
+
+[Home](Readme.md)

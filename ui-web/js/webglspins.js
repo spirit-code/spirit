@@ -294,17 +294,47 @@ WebGLSpins.prototype._rotationHelper = function(deltaX, deltaY) {
 
     var l = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     if (l > 0) {
-        var axis = [
-            deltaX / l * this._options.upVector[0] + deltaY / l * rightVector[0],
-            deltaX / l * this._options.upVector[1] + deltaY / l * rightVector[1],
-            deltaX / l * this._options.upVector[2] + deltaY / l * rightVector[2]];
-        var rotationMatrix = WebGLSpins._rotationMatrix(axis, -0.1 * l);
-        forwardVector = WebGLSpins._matrixMultiply(rotationMatrix, forwardVector);
-        this._options.upVector = WebGLSpins._matrixMultiply(rotationMatrix, this._options.upVector);
-        this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
-        this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
-        this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
+        if (false)
+        {
+            var axis = [
+                deltaX / l * this._options.upVector[0] + deltaY / l * rightVector[0],
+                deltaX / l * this._options.upVector[1] + deltaY / l * rightVector[1],
+                deltaX / l * this._options.upVector[2] + deltaY / l * rightVector[2]];
+            var rotationMatrix = WebGLSpins._rotationMatrix(axis, -0.1 * l);
+            forwardVector = WebGLSpins._matrixMultiply(rotationMatrix, forwardVector);
+            this._options.upVector = WebGLSpins._matrixMultiply(rotationMatrix, this._options.upVector);
+            this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
+            this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
+            this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
+        }
+        else
+        {
+            var zaxis = [0,0,1];
+            rightVector = [
+                rightVector[0] - zaxis[0]*WebGLSpins._dot(zaxis, rightVector),
+                rightVector[1] - zaxis[1]*WebGLSpins._dot(zaxis, rightVector),
+                rightVector[2] - zaxis[2]*WebGLSpins._dot(zaxis, rightVector)];
+            this._options.upVector = [
+                this._options.upVector[0] - rightVector[0]*WebGLSpins._dot(rightVector, this._options.upVector),
+                this._options.upVector[1] - rightVector[1]*WebGLSpins._dot(rightVector, this._options.upVector),
+                this._options.upVector[2] - rightVector[2]*WebGLSpins._dot(rightVector, this._options.upVector)];
+            forwardVector = [
+                forwardVector[0] - rightVector[0]*WebGLSpins._dot(rightVector, forwardVector),
+                forwardVector[1] - rightVector[1]*WebGLSpins._dot(rightVector, forwardVector),
+                forwardVector[2] - rightVector[2]*WebGLSpins._dot(rightVector, forwardVector)];
+            var axis = [
+                deltaX / l * zaxis[0] + deltaY / l * rightVector[0],
+                deltaX / l * zaxis[1] + deltaY / l * rightVector[1],
+                deltaX / l * zaxis[2] + deltaY / l * rightVector[2]];
+            var rotationMatrix = WebGLSpins._rotationMatrix(axis, -0.1 * l);
+            forwardVector = WebGLSpins._matrixMultiply(rotationMatrix, forwardVector);
+            this._options.upVector = WebGLSpins._matrixMultiply(rotationMatrix, this._options.upVector);
+            this._options.cameraLocation[0] = this._options.centerLocation[0] - cameraDistance * forwardVector[0];
+            this._options.cameraLocation[1] = this._options.centerLocation[1] - cameraDistance * forwardVector[1];
+            this._options.cameraLocation[2] = this._options.centerLocation[2] - cameraDistance * forwardVector[2];
+        }
     }
+    
     this.draw();
 };
 
@@ -450,6 +480,10 @@ WebGLSpins._length = function(a) {
 WebGLSpins._normalize = function(a) {
     var length = WebGLSpins._length(a);
     return [a[0]/length, a[1]/length, a[2]/length];
+};
+
+WebGLSpins._dot = function(a, b) {
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
 };
 
 WebGLSpins._cross = function(a, b) {

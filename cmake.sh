@@ -23,4 +23,3 @@ then
 else
     cmake ..
 fi
-cd ..

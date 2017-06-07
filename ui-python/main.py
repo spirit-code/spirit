@@ -147,7 +147,9 @@ cfgfile = "input/input.cfg"
 # cfgfile = "input/gideon-master-thesis-anisotropic.cfg"
 # cfgfile = "input/daniel-master-thesis-isotropic.cfg"
 
-with state.State(cfgfile) as p_state:
+quiet = False
+
+with state.State(cfgfile, quiet) as p_state:
     ### Setup initial configurations
     configurations(p_state)
     ### Run simulations

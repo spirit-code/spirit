@@ -21,9 +21,14 @@ public:
 private:
 	std::shared_ptr<State> state;
 	QtCharts::QChart * chart;
-	QtCharts::QScatterSeries * series_E;
+	QtCharts::QScatterSeries * series_E_normal;
+	QtCharts::QScatterSeries * series_E_climbing;
+	QtCharts::QScatterSeries * series_E_falling;
+	QtCharts::QScatterSeries * series_E_stationary;
 	QtCharts::QScatterSeries * series_E_current;
 	QtCharts::QLineSeries * series_E_interp;
+
+	QImage triangleUpRed, triangleUpBlue, triangleDownRed, triangleDownBlue;
 
 	bool plot_interpolated;
 

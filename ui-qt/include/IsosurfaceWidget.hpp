@@ -35,6 +35,9 @@ public:
 	bool drawShadows();
 	void setDrawShadows(bool show);
 
+signals:
+	void closedSignal();
+
 private slots:
 	void slot_setIsovalue_slider();
 	void slot_setIsovalue_lineedit();

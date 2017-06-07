@@ -67,6 +67,7 @@ namespace Utility
 
 	// Convert the contents of a Log Entry to a string
 	std::string LogEntryToString(LogEntry entry, bool braces_separators = true);
+	std::string LogBlockToString(std::vector<LogEntry> entries, bool braces_separators = true);
 
 	/*
 		The Logging Handler keeps all Log Entries and provides methods to dump or append
@@ -88,16 +89,22 @@ namespace Utility
 		void Append_to_File();
 		void Dump_to_File();
 
-		// All messages up to (including) this level are printed to console
-		Log_Level print_level;
-		// All log entries at or above reject level are immediately rejected and not saved
-		Log_Level accept_level;
+		// Wether to tag the time in front of the Log file name
+		bool tag_time;
 		// Output folder where to save the Log file
 		std::string output_folder;
-		// Save Log messages
-		bool save_output;
-		// Save input (config / defaults) - note this is done by Setup_State
-		bool save_input;
+		// Save Log messages to file
+		bool messages_to_file;
+		// All messages up to (including) this level are saved to file
+		Log_Level level_file;
+		// Print Log messages to console
+		bool messages_to_console;
+		// All messages up to (including) this level are printed to console
+		Log_Level level_console;
+		// Save initial input (config / defaults) - note this is done by State_Setup
+		bool save_input_initial;
+		// Save input at shutdown (config / defaults) - note this is done by State_Delete
+		bool save_input_final;
 		// Name of the Log file
 		std::string fileName;
 		// Number of Log entries
@@ -106,6 +113,8 @@ namespace Utility
 		int n_errors;
 		// Number of warnings in the Log
 		int n_warnings;
+		// Length of the tags before each message in spaces
+		const std::string tags_space = "                                                 ";
 
 		// Retrieve the singleton instance
 		static LoggingHandler& getInstance()

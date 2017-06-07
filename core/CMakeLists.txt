@@ -71,7 +71,7 @@ set(META_AUTHOR_DOMAIN        "https://spirit-code.github.io")
 set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
 set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "5")
+set(META_VERSION_MINOR        "6")
 set(META_VERSION_PATCH        "0")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
@@ -180,8 +180,11 @@ set( SPIRIT_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include/engine
 	 ${PROJECT_SOURCE_DIR}/include/Spirit
 	 ${PROJECT_SOURCE_DIR}/include/utility 
-	 ${PROJECT_SOURCE_DIR}/src/utility )
-include_directories( ${SPIRIT_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${SPECTRA_INCLUDE_DIRS} ${qhull_INCLUDE_DIRS})
+	 ${PROJECT_SOURCE_DIR}/src/utility
+	 ${EIGEN_INCLUDE_DIRS}
+	 ${SPECTRA_INCLUDE_DIRS}
+	 ${qhull_INCLUDE_DIRS} )
+include_directories( ${SPIRIT_INCLUDE_DIRS} )
 #############################################
 
 
@@ -376,11 +379,13 @@ if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
     ### Tests
     add_python_test( test_python_state           state.py )
     add_python_test( test_python_configuration   configuration.py )
+    add_python_test( test_python_chain           chain.py )
 endif( )
 #############################################
 
 
 ######### Export
+set(SPIRIT_OBJS             $<TARGET_OBJECTS:${META_PROJECT_NAME}> PARENT_SCOPE)
 set(SPIRIT_LIBRARIES        ${META_PROJECT_NAME}        PARENT_SCOPE)
 set(SPIRIT_LIBRARIES_STATIC ${META_PROJECT_NAME}_static	PARENT_SCOPE)
 set(SPIRIT_INCLUDE_DIRS     ${SPIRIT_INCLUDE_DIRS}      PARENT_SCOPE)

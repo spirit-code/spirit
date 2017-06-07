@@ -1,5 +1,7 @@
 // #include <fstream>
 #include <sstream>
+#include <algorithm> 
+
 #include "SpinWidget.hpp"
 
 #include <QTimer>
@@ -86,7 +88,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	//		Initial drag mode settings
 	drag_radius = 80;
-	this->mouse_decoration = new MouseDecoratorWidget();
+	this->mouse_decoration = new MouseDecoratorWidget(drag_radius);
+	this->mouse_decoration->setMinimumSize(2 * drag_radius, 2 * drag_radius);
 	this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
 	this->mouse_decoration->setParent(this);
 	this->m_interactionmode = InteractionMode::REGULAR;
@@ -440,7 +443,10 @@ void SpinWidget::paintGL()
 		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
 	}
 
-	if (Simulation_Running_Any(state.get()) || this->m_dragging)
+	if ( Simulation_Running_Image(this->state.get())      ||
+		 Simulation_Running_Chain(this->state.get())      ||
+		 Simulation_Running_Collection(this->state.get()) ||
+		 this->m_dragging)
 	{
 		this->updateData();
 	}
@@ -461,29 +467,32 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 
 	m_previous_mouse_position = event->pos();
 
-	QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
-	QSize  widgetSize = this->size();
-	glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
-	glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
-	last_drag_coords = system_coords_from_mouse(mouse_pos, size);
-
 	if (m_interactionmode == InteractionMode::DRAG)
 	{
-		m_timer_drag->stop();
-		// Copy spin configuration
-		Configuration_To_Clipboard(state.get());
-		// Set up Update Timers
-		connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
-		float ips = Simulation_Get_IterationsPerSecond(state.get());
-		if (ips > 1000)
+		if (event->button() == Qt::LeftButton)
 		{
-			m_timer_drag->start(1);
+			QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+			QSize  widgetSize = this->size();
+			glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+			glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+			last_drag_coords = system_coords_from_mouse(mouse_pos, size);
+
+			m_timer_drag->stop();
+			// Copy spin configuration
+			Configuration_To_Clipboard(state.get());
+			// Set up Update Timers
+			connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+			float ips = Simulation_Get_IterationsPerSecond(state.get());
+			if (ips > 1000)
+			{
+				m_timer_drag->start(1);
+			}
+			else if (ips > 0)
+			{
+				m_timer_drag->start((int)(1000/ips));
+			}
+			m_dragging = true;
 		}
-		else if (ips > 0)
-		{
-			m_timer_drag->start((int)(1000/ips));
-		}
-		m_dragging = true;
 	}
 }
 
@@ -492,8 +501,19 @@ void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
 	if (this->m_suspended)
 		return;
 
-	m_timer_drag->stop();
-	m_dragging = false;
+	if (m_interactionmode == InteractionMode::DRAG)
+	{
+		if (event->button() == Qt::LeftButton)
+		{
+			m_timer_drag->stop();
+			m_dragging = false;
+		}
+		else if (event->button() == Qt::RightButton)
+		{
+			dragpaste();
+			this->updateData();
+		}
+	}
 }
 
 void SpinWidget::mouseMoveEvent(QMouseEvent *event)
@@ -548,9 +568,20 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 		scale = 0.1f;
 	}
 
-	float wheel_delta = event->angleDelta().y();
-	m_view.mouseScroll(wheel_delta * 0.1 * scale);
-	((QWidget *)this)->update();
+	if (event->modifiers() & Qt::ControlModifier)
+	{
+		float wheel_delta = scale*event->angleDelta().y()/10.0f;
+		drag_radius = std::max(1.0f, std::min(500.0f, drag_radius + wheel_delta));
+		this->mouse_decoration->setRadius(drag_radius);
+		this->mouse_decoration->setMinimumSize(2 * drag_radius, 2 * drag_radius);
+		this->mouse_decoration->setMaximumSize(2 * drag_radius, 2 * drag_radius);
+	}
+	else
+	{
+		float wheel_delta = event->angleDelta().y();
+		m_view.mouseScroll(wheel_delta * 0.1 * scale);
+		((QWidget *)this)->update();
+	}
 }
 
 const VFRendering::Options& SpinWidget::options() const
@@ -731,7 +762,7 @@ void SpinWidget::setSlabRanges()
 	glm::vec3 center(f_center[0], f_center[1], f_center[2]);
 	center += this->slab_displacements;
 
-	float delta = 0.51;
+	float delta = 0.51f;
 
 	switch(this->idx_cycle)
 	{

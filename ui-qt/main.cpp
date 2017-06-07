@@ -1,4 +1,5 @@
 #include "MainWindow.hpp"
+#include "InputParser.hpp"
 
 #include "Spirit/State.h"
 #include "Spirit/Chain.h"
@@ -9,27 +10,40 @@
 // Main
 int main(int argc, char ** argv)
 {
+	// Put arguments into the parser
+	InputParser input(argc, argv);
+    
 	//--- Register SigInt
 	// signal(SIGINT, Signal::Handle_SigInt);
 	
+	//--- Option for output-less State
+	bool quiet = input.cmdOptionExists("-quiet");
+
 	//---------------------- file names ---------------------------------------------
-	//--- Config Files
-	 const char * cfgfile = "input/input.cfg";
-	// const char * cfgfile = "input/anisotropic/markus.cfg";
-	// const char * cfgfile = "input/anisotropic/markus-paper.cfg";
-	// const char * cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
-	// const char * cfgfile = "input/anisotropic/gideon-master-thesis-anisotropic.cfg";
-	// const char * cfgfile = "input/isotropic/gideon-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/isotropic/daniel-master-thesis-isotropic.cfg";
-	// const char * cfgfile = "input/gaussian/example-1.cfg";
-	// const char * cfgfile = "input/gaussian/gideon-paper.cfg";
+	const char * cfgfile;
+	//--- Default config file
+	cfgfile = "input/input.cfg";
+	// cfgfile = "input/anisotropic/markus.cfg";
+	// cfgfile = "input/anisotropic/markus-paper.cfg";
+	// cfgfile = "input/anisotropic/kagome-spin-ice.cfg";
+	// cfgfile = "input/anisotropic/gideon-master-thesis-anisotropic.cfg";
+	// cfgfile = "input/isotropic/gideon-master-thesis-isotropic.cfg";
+	// cfgfile = "input/isotropic/daniel-master-thesis-isotropic.cfg";
+	// cfgfile = "input/gaussian/example-1.cfg";
+	// cfgfile = "input/gaussian/gideon-paper.cfg";
+	//--- Command line passed config file
+    const std::string &filename = input.getCmdOption("-f");
+    if (!filename.empty())
+	{
+        cfgfile = filename.c_str();
+    }
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
 	// std::string chainfile = "input/chain.txt";
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile), State_Delete);
+	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile, quiet), State_Delete);
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times

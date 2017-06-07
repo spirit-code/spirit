@@ -122,7 +122,7 @@ namespace Engine
         {
             for (int offset = warpSize/2; offset > 0; offset /= 2)
             {
-                val  = min(val,  __shfl_down(val, offset));
+                val  = min(val, __shfl_down(val, offset));
             }
             return val;
         }
@@ -141,6 +141,7 @@ namespace Engine
         {
             static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
             static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
+
             int lane = threadIdx.x % warpSize;
             int wid = threadIdx.x / warpSize;
 
@@ -164,18 +165,26 @@ namespace Engine
 
         __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
         {
-            scalar min, max;
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
+            scalar tmp, tmp_min{0}, tmp_max{0};
+            scalar _min{0}, _max{0};
+            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
+                i < N; 
+                i += blockDim.x * gridDim.x)
             {
-                scalar val = in[idx];
-                blockReduceMinMax(val, &min, &max);
+                _min = min(_min, in[i]);
+                _max = max(_max, in[i]);
+            }
+            
+            tmp_min = _min;
+            tmp_max = _max;
 
-                if (threadIdx.x==0)
-                {
-                    out_min[blockIdx.x] = min;
-                    out_max[blockIdx.x] = max;
-                }
+            blockReduceMinMax(tmp_min, &_min, &tmp);
+            blockReduceMinMax(tmp_max, &tmp, &_max);
+
+            if (threadIdx.x==0)
+            {
+                out_min[blockIdx.x] = _min;
+                out_max[blockIdx.x] = _max;
             }
         }
 
@@ -185,9 +194,12 @@ namespace Engine
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
-            static scalarfield out_min(blocks);
-            static scalarfield out_max(blocks);
-            static scalarfield temp(1);
+            static scalarfield out_min(blocks, 0);
+            Vectormath::fill(out_min, 0);
+            static scalarfield out_max(blocks, 0);
+            Vectormath::fill(out_max, 0);
+            static scalarfield temp(1, 0);
+            Vectormath::fill(temp, 0);
 
             cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
             cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
@@ -216,24 +228,27 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const std::vector<int> & n_cells)
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
 		{
 			// Check for erronous input placing two spins on the same location
+			int max_a = std::min(10, n_cells[0]);
+			int max_b = std::min(10, n_cells[1]);
+			int max_c = std::min(10, n_cells[2]);
 			Vector3 sp;
 			for (unsigned int i = 0; i < basis_atoms.size(); ++i)
 			{
 				for (unsigned int j = 0; j < basis_atoms.size(); ++j)
 				{
-					for (int k1 = -2; k1 <= 2; ++k1)
+					for (int ka = -max_a; ka <= max_a; ++ka)
 					{
-						for (int k2 = -2; k2 <= 2; ++k2)
+						for (int kb = -max_b; kb <= max_b; ++kb)
 						{
-							for (int k3 = -2; k3 <= 2; ++k3)
+							for (int kc = -max_c; kc <= max_c; ++kc)
 							{
 								// Norm is zero if translated basis atom is at position of another basis atom
 								sp = basis_atoms[i] - (basis_atoms[j]
-									+ k1*translation_vectors[0] + k2*translation_vectors[1] + k3*translation_vectors[2]);
-								if ((i != j || k1 != 0 || k2 != 0 || k3 != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
+									+ ka*translation_vectors[0] + kb*translation_vectors[1] + kc*translation_vectors[2]);
+								if ((i != j || ka != 0 || kb != 0 || kc != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
 								{
 									Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
 									Log.Append_to_File();
@@ -246,7 +261,7 @@ namespace Engine
 			}
 
 			// Build up the spins array
-			int i, j, k, s, pos;
+			int i, j, k, s, ispin;
 			int nos_basic = basis_atoms.size();
 			//int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
 			Vector3 build_array;
@@ -254,12 +269,12 @@ namespace Engine
 				for (j = 0; j < n_cells[1]; ++j) {
 					for (i = 0; i < n_cells[0]; ++i) {
 						for (s = 0; s < nos_basic; ++s) {
-							pos = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
+							ispin = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
 							build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
 							// paste initial spin orientations across the lattice translations
-							//spins[dim*nos + pos] = spins[dim*nos + s];
+							//spins[dim*nos + ispin] = spins[dim*nos + s];
 							// calculate the spin positions
-							spin_pos[pos] = basis_atoms[s] + build_array;
+							spin_pos[ispin] = basis_atoms[s] + build_array;
 						}// endfor s
 					}// endfor k
 				}// endfor j
@@ -378,6 +393,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static scalarfield ret(1, 0);
+            Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -390,6 +406,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static scalarfield ret(1, 0);
+            Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -430,14 +447,12 @@ namespace Engine
         scalar  max_abs_component(const vectorfield & vf)
 		{
 			// We want the Maximum of Absolute Values of all force components on all images
-			scalar absmax = 0;
 			// Find minimum and maximum values
 			std::pair<scalar,scalar> minmax = minmax_component(vf);
-			// Mamimum of absolute values
-			absmax = std::max(absmax, std::abs(minmax.first));
-			absmax = std::max(absmax, std::abs(minmax.second));
-			// Return
-			return absmax;
+            scalar absmin = std::abs(minmax.first);
+            scalar absmax = std::abs(minmax.second);
+			// Maximum of absolute values
+			return std::max(absmin, absmax);
 		}
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -462,6 +477,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static vectorfield ret(1, {0,0,0});
+            Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             return ret[0];
@@ -474,6 +490,7 @@ namespace Engine
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static vectorfield ret(1, {0,0,0});
+            Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
             cudaDeviceSynchronize();
             ret[0] = ret[0]/N;
@@ -495,7 +512,8 @@ namespace Engine
         scalar dot(const vectorfield & vf1, const vectorfield & vf2)
         {
             int n = vf1.size();
-            static scalarfield sf(n);
+            static scalarfield sf(n, 0);
+            Vectormath::fill(sf, 0);
             scalar ret;
 
             // Dot product
@@ -718,7 +736,7 @@ namespace Engine
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
             int n = out.size();
-            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
+            cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -734,7 +752,7 @@ namespace Engine
         void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
             int n = out.size();
-            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
     }
