@@ -52,51 +52,52 @@ namespace Utility
 		void Log_from_Config(const std::string configFile, bool force_quiet=false);
 		std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile);
 		std::shared_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
-		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile);
-		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile);
-		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile);
-		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile);
-		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
-		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
-		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
-		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry);
+		std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
+		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
+		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
+		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
+		std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+		std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
 
 		// ======================== Configwriter ========================
 		void Folders_to_Config(const std::string configFile,
-				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
-				std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
-				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
-				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf);
+				const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				const std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
+				const std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
+				const std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf);
 		void Log_Levels_to_Config(const std::string configFile);
-		void Geometry_to_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry);
-		void Parameters_Method_LLG_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_LLG> parameters);
-		void Parameters_Method_MC_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MC> parameters);
-		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
-		void Parameters_Method_MMF_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MMF> parameters);
-		void Hamiltonian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
-		void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
-		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry);
-		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian);
+		void Geometry_to_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+		void Parameters_Method_LLG_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_LLG> parameters);
+		void Parameters_Method_MC_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MC> parameters);
+		void Parameters_Method_GNEB_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
+		void Parameters_Method_MMF_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MMF> parameters);
+		void Hamiltonian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian);
+		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry);
+		void Hamiltonian_Gaussian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian);
 
 		// ========================= Fileparser =========================
 		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format = VectorFileFormat::CSV_POS_SPIN);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
-		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+		void External_Field_from_File(const std::string externalFieldFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal);
-		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
+		void Anisotropy_from_File(const std::string anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal);
-		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
+		void Pairs_from_File(const std::string pairsFile, const std::shared_ptr<Data::Geometry> geometry, int & nop,
 			pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
 			pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals);
-		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
+		void Quadruplets_from_File(const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry> geometry, int & noq,
 			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
-		void Write_Spin_Configuration(std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append=false);
+		void Write_Spin_Configuration(const std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append=false);
 		// Saves Spin_Chain_Configuration to file
-		void Save_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> & c, const int iteration, const std::string fileName);
+		void Save_SpinChain_Configuration(const std::shared_ptr<Data::Spin_System_Chain> & c, const int iteration, const std::string fileName);
 
 		// =========================== Saving Energies ===========================
 		void Write_Energy_Header(const Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns={"iteration", "E_tot"}, bool contributions=true, bool normalize_nos=true);

@@ -16,10 +16,10 @@ namespace Utility
 	namespace IO
 	{
 		void Folders_to_Config(const std::string configFile,
-				std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
-				std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
-				std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
-				std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf)
+				const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+				const std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
+				const std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
+				const std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf)
 		{
 			std::string config = "";
 			config += "################# Output Folders #################\n";
@@ -49,7 +49,7 @@ namespace Utility
 		}// End Log_Levels_to_Config
 
 
-		void Geometry_to_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
+		void Geometry_to_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
 		{
 			std::string config = "";
 			config += "#################### Geometry ####################\n";
@@ -71,7 +71,7 @@ namespace Utility
 		}// end Geometry_to_Config
 
 
-		void Parameters_Method_LLG_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_LLG> parameters)
+		void Parameters_Method_LLG_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_LLG> parameters)
 		{
 			std::string config = "";
 			config += "################# LLG Parameters #################\n";
@@ -98,7 +98,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_LLG_to_Config
 
-		void Parameters_Method_MC_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MC> parameters)
+		void Parameters_Method_MC_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MC> parameters)
 		{
 			std::string config = "";
 			config += "################# MC Parameters ##################\n";
@@ -120,7 +120,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_LLG_to_Config
 
-		void Parameters_Method_GNEB_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_GNEB> parameters)
+		void Parameters_Method_GNEB_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters)
 		{
 			std::string config = "";
 			config += "################# GNEB Parameters ################\n";
@@ -141,7 +141,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_LLG_from_Config
 
-		void Parameters_Method_MMF_to_Config(const std::string configFile, std::shared_ptr<Data::Parameters_Method_MMF> parameters)
+		void Parameters_Method_MMF_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MMF> parameters)
 		{
 			std::string config = "";
 			config += "################# MMF Parameters #################\n";
@@ -160,7 +160,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_MMF_to_Config
 
-		void Hamiltonian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
+		void Hamiltonian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry)
 		{
 			std::string config = "";
 			config += "################### Hamiltonian ##################\n";
@@ -180,7 +180,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_to_Config
 
-		void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
+		void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian)
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Heisenberg_Neighbours * ham = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
@@ -203,7 +203,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_Heisenberg_Neighbours_to_Config
 
-		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Data::Geometry> geometry)
+		void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry)
 		{
 			int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
 			std::string config = "";
@@ -272,7 +272,7 @@ namespace Utility
 			Append_String_to_File(config, configFile);
 		}// end Hamiltonian_Heisenberg_Pairs_to_Config
 		
-		void Hamiltonian_Gaussian_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian)
+		void Hamiltonian_Gaussian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian)
 		{
 			std::string config = "";
 			Engine::Hamiltonian_Gaussian * ham_gaussian = (Engine::Hamiltonian_Gaussian *)hamiltonian.get();

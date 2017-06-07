@@ -79,7 +79,7 @@ namespace Engine
 
 			// Move the spins
 			Vectormath::add_c_a(dt, l_velocity, spins_temp[i]);
-			Vectormath::add_c_a(0.5/m*dt*dt, l_velocity, spins_temp[i]);
+			Vectormath::add_c_a(0.5/m*dt*dt, l_force, spins_temp[i]);
 			Vectormath::normalize_vectors(spins_temp[i]);
 
 			// Copy out

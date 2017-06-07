@@ -116,10 +116,12 @@ namespace Utility
 			// ----------------------------------------------------------------------------------------------
 			// Geometry
 			auto geometry = Geometry_from_Config(configFile);
+			// Pinning configuration
+			auto pinning = Pinning_from_Config(configFile, geometry);
 			// LLG Parameters
-			auto llg_params = Parameters_Method_LLG_from_Config(configFile);
+			auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
 			// MC Parameters
-			auto mc_params = Parameters_Method_MC_from_Config(configFile);
+			auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
 			// Hamiltonian
 			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
 			// Spin System
@@ -326,7 +328,106 @@ namespace Utility
 			return geometry;
 		}// end Geometry from Config
 
-		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile)
+		std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
+		{
+			//-------------- Insert default values here -----------------------------
+			int na = 0, na_left = 0, na_right = 0;
+			int nb = 0, nb_left = 0, nb_right = 0;
+			int nc = 0, nc_left = 0, nc_right = 0;
+			vectorfield pinned_cell(geometry->n_spins_basic_domain, Vector3{ 0,0,1 });
+
+			// Utility 1D array to build vectors and use Vectormath
+			Vector3 build_array = { 0, 0, 0 };
+
+			Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
+			//------------------------------- Parser --------------------------------
+			if (configFile != "")
+			{
+				try
+				{
+					IO::Filter_File_Handle myfile(configFile);
+
+					// N_a
+					myfile.Read_Single(na_left, "pin_na_left", false);
+					myfile.Read_Single(na_right, "pin_na_right", false);
+					myfile.Read_Single(na, "pin_na ", false);
+					if (na > 0 && (na_left == 0 || na_right == 0))
+					{
+						na_left = na;
+						na_right = na;
+					}
+
+					// N_b
+					myfile.Read_Single(nb_left, "pin_nb_left", false);
+					myfile.Read_Single(nb_right, "pin_nb_right", false);
+					myfile.Read_Single(nb, "pin_nb ", false);
+					if (nb > 0 && (nb_left == 0 || nb_right == 0))
+					{
+						nb_left = nb;
+						nb_right = nb;
+					}
+
+					// N_c
+					myfile.Read_Single(nc_left, "pin_nc_left", false);
+					myfile.Read_Single(nc_right, "pin_nc_right", false);
+					myfile.Read_Single(nc, "pin_nc ", false);
+					if (nc > 0 && (nc_left == 0 || nc_right == 0))
+					{
+						nc_left = nc;
+						nc_right = nc;
+					}
+
+					// How should the cells be pinned
+					if (na_left > 0 || na_right > 0 ||
+						nb_left > 0 || nb_right > 0 ||
+						nc_left > 0 || nc_right > 0)
+					{
+						if (myfile.Find("pinning_cell"))
+						{
+							for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+							{
+								myfile.GetLine();
+								myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+							}
+						}
+						else
+						{
+							na_left = 0; na_right = 0;
+							nb_left = 0; nb_right = 0;
+							nc_left = 0; nc_right = 0;
+							Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
+						}
+					}
+				}// end try
+				catch (Exception ex)
+				{
+					if (ex == Exception::File_not_Found)
+					{
+						Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
+					}
+					else throw ex;
+				}// end catch
+			}// end if file=""
+			else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
+
+
+			// Return Pinning
+			Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
+			for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
+			auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+				na_left, na_right,
+				nb_left, nb_right,
+				nc_left, nc_right,
+				pinned_cell) );
+			Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
+			return pinning;
+		}
+
+		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -429,12 +530,12 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
 
-		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -514,12 +615,12 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 			auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, seed, temperature, acceptance_ratio));
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return mc_params;
 		}
 
-		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -587,12 +688,13 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_energies_step = " + std::to_string(output_energies_step));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_chain_step    = " + std::to_string(output_chain_step));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step }, force_convergence, n_iterations, n_iterations_log, max_walltime, spring_constant, n_E_interpolations));
+			auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step },
+				force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
 			return gneb_params;
 		}// end Parameters_Method_LLG_from_Config
 
-		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile)
+		std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Output folder for results
@@ -657,7 +759,8 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive }, force_convergence, n_iterations, n_iterations_log, max_walltime));
+			auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
+				force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
 			return mmf_params;
 		}
@@ -703,7 +806,7 @@ namespace Utility
 			}// endif anisotropic
 			else if (hamiltonian_type == "gaussian")
 			{
-				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, *geometry));
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
 			}
 			else
 			{
@@ -809,7 +912,7 @@ namespace Utility
 					{
 						int n;
 						// The file name should be valid so we try to read it
-						External_Field_from_File(external_field_file, *geometry, n,
+						External_Field_from_File(external_field_file, geometry, n,
 							external_field_index, external_field_magnitude, external_field_normal);
 						
 						external_field_from_file = true;
@@ -858,7 +961,7 @@ namespace Utility
 					{
 						int n;
 						// The file name should be valid so we try to read it
-						Anisotropy_from_File(anisotropy_file, *geometry, n,
+						Anisotropy_from_File(anisotropy_file, geometry, n,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 
 						anisotropy_from_file = true;
@@ -904,12 +1007,15 @@ namespace Utility
 					myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
 					if (jij.size() != n_neigh_shells_exchange)
 						jij = scalarfield(n_neigh_shells_exchange);
-					if (myfile.Find("jij"))
+					if (n_neigh_shells_exchange > 0)
 					{
-						for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
-							myfile.iss >> jij[iatom];
+						if (myfile.Find("jij"))
+						{
+							for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
+								myfile.iss >> jij[iatom];
+						}
+						else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
 					}
-					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
 				}// end try
 				catch (Exception ex)
 				{
@@ -925,12 +1031,15 @@ namespace Utility
 					myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
 					if (dij.size() != n_neigh_shells_dmi)
 						dij = scalarfield(n_neigh_shells_dmi);
-					if (myfile.Find("dij"))
+					if (n_neigh_shells_dmi > 0)
 					{
-						for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
-							myfile.iss >> dij[iatom];
+						if (myfile.Find("dij"))
+						{
+							for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
+								myfile.iss >> dij[iatom];
+						}
+						else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
 					}
-					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
 					myfile.Read_Single(dm_chirality, "dm_chirality");
 
 				}// end try
@@ -1089,7 +1198,7 @@ namespace Utility
 					if (external_field_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						External_Field_from_File(external_field_file, *geometry, n_pairs,
+						External_Field_from_File(external_field_file, geometry, n_pairs,
 							external_field_index, external_field_magnitude, external_field_normal);
 						
 						external_field_from_file = true;
@@ -1137,7 +1246,7 @@ namespace Utility
 					if (anisotropy_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Anisotropy_from_File(anisotropy_file, *geometry, n_pairs,
+						Anisotropy_from_File(anisotropy_file, geometry, n_pairs,
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 
 						anisotropy_from_file = true;
@@ -1185,7 +1294,7 @@ namespace Utility
 					if (interaction_pairs_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Pairs_from_File(interaction_pairs_file, *geometry, n_pairs,
+						Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
 							exchange_pairs, exchange_magnitudes,
 							dmi_pairs, dmi_magnitudes, dmi_normals);
 					}
@@ -1227,7 +1336,7 @@ namespace Utility
 					if (quadruplets_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
-						Quadruplets_from_File(quadruplets_file, *geometry, n_quadruplets,
+						Quadruplets_from_File(quadruplets_file, geometry, n_quadruplets,
 							quadruplets, quadruplet_magnitudes);
 					}
 
@@ -1272,7 +1381,7 @@ namespace Utility
 		}// end Hamiltonian_Heisenberg_Pairs_From_Config
 		
 		
-		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, Data::Geometry geometry)
+		std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
 		{
 			//-------------- Insert default values here -----------------------------
 			// Number of Gaussians

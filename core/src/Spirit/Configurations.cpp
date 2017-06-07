@@ -129,6 +129,7 @@ void Configuration_From_Clipboard(State *state, const float position[3], const f
 	// Apply configuration
 	image->Lock();
 	Utility::Configurations::Insert(*image, *state->clipboard_spins, 0, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -167,6 +168,7 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
 	{
 		image->Lock();
 		Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
+		image->llg_parameters->pinning->Apply(*image->spins);
 		image->Unlock();
 
 		auto filterstring = filter_to_string(position_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -200,6 +202,7 @@ void Configuration_Domain(State *state, const float direction[3], const float po
 	Vector3 vdir{ direction[0], direction[1], direction[2] };
 	image->Lock();
 	Utility::Configurations::Domain(*image, vdir, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -244,6 +247,7 @@ void Configuration_PlusZ(State *state, const float position[3], const float r_cu
 	Vector3 vdir{ 0,0,1 };
 	image->Lock();
 	Utility::Configurations::Domain(*image, vdir, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -268,6 +272,7 @@ void Configuration_MinusZ(State *state, const float position[3], const float r_c
 	Vector3 vdir{ 0,0,-1 };
 	image->Lock();
 	Utility::Configurations::Domain(*image, vdir, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -291,6 +296,7 @@ void Configuration_Random(State *state, const float position[3], const float r_c
 	// Apply configuration
 	image->Lock();
     Utility::Configurations::Random(*image, filter, external);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -314,6 +320,7 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, const 
 	// Apply configuration
 	image->Lock();
     Utility::Configurations::Add_Noise_Temperature(*image, temperature, 0, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -340,6 +347,7 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
 	// Apply configuration
 	image->Lock();
 	Utility::Configurations::Hopfion(*image, vpos, r, order, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -368,6 +376,7 @@ void Configuration_Skyrmion(State *state, float r, float order, float phase, boo
     // Apply configuration
 	image->Lock();
     Utility::Configurations::Skyrmion(*image, vpos, r, order, phase, upDown, achiral, rl, false, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -400,6 +409,7 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
 	Vector3 vaxis{ axis[0], axis[1], axis[2] };
 	image->Lock();
 	Utility::Configurations::SpinSpiral(*image, dir_type, vq, vaxis, theta, filter);
+	image->llg_parameters->pinning->Apply(*image->spins);
 	image->Unlock();
 
 	auto filterstring = filter_to_string(position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);

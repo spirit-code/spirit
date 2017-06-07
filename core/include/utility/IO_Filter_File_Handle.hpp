@@ -40,19 +40,23 @@ namespace Utility
 			bool Find_in_Line(const std::string & s);
 			// Removes a set of chars from a string
 			void Remove_Chars_From_String(std::string &str, char* charsToRemove);
-			// Reads a single variable into var, with logging in case of failure.
-			template <typename T> void Read_Single(T & var, const std::string name) {
+
+			// Reads a single variable into var, with optional logging in case of failure.
+			template <typename T> void Read_Single(T & var, const std::string name, bool log_notfound = true)
+			{
 				if (Find(name)) iss >> var;
-				else Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
+				else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
 			};
-			// Reads a vector into var, with logging in case of failure.
-			void Read_Vector3(Vector3 & var, const std::string name) {
+
+			// Reads a vector into var, with optional logging in case of failure.
+			void Read_Vector3(Vector3 & var, const std::string name, bool log_notfound = true) {
 				if (Find(name)) iss >> var[0] >> var[1] >> var[2];
-				else Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+				else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
 			};
-			template <typename T> void Read_3Vector(T & var, const std::string name) {
+			template <typename T> void Read_3Vector(T & var, const std::string name, bool log_notfound = true)
+			{
 				if (Find(name)) iss >> var[0] >> var[1] >> var[2];
-				else Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+				else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
 			};
 			template<class T> typename std::enable_if<std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::to_string(t); }
 			template<class T> typename std::enable_if<!std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::string(t); }

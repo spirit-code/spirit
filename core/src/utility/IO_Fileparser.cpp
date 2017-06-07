@@ -187,7 +187,7 @@ namespace Utility
 		}
 
 
-		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+		void External_Field_from_File(const std::string externalFieldFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading external field from file " + externalFieldFile);
@@ -269,9 +269,9 @@ namespace Utility
 					// Anisotropy vector orientation
 					if (B_abc)
 					{
-						spin_B1 = B_temp.dot(geometry.basis[0]);
-						spin_B2 = B_temp.dot(geometry.basis[1]);
-						spin_B3 = B_temp.dot(geometry.basis[2]);
+						spin_B1 = B_temp.dot(geometry->basis[0]);
+						spin_B2 = B_temp.dot(geometry->basis[1]);
+						spin_B3 = B_temp.dot(geometry->basis[2]);
 						B_temp = { spin_B1, spin_B2, spin_B3 };
 					}
 					// Anisotropy vector normalisation
@@ -310,7 +310,7 @@ namespace Utility
 		/*
 		Read from Anisotropy file
 		*/
-		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
+		void Anisotropy_from_File(const std::string anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal)
 		{
@@ -392,9 +392,9 @@ namespace Utility
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
-						spin_K1 = K_temp.dot(geometry.basis[0]);
-						spin_K2 = K_temp.dot(geometry.basis[1]);
-						spin_K3 = K_temp.dot(geometry.basis[2]);
+						spin_K1 = K_temp.dot(geometry->basis[0]);
+						spin_K2 = K_temp.dot(geometry->basis[1]);
+						spin_K3 = K_temp.dot(geometry->basis[2]);
 						K_temp = { spin_K1, spin_K2, spin_K3 };
 					}
 					// Anisotropy vector normalisation
@@ -435,7 +435,7 @@ namespace Utility
 		/*
 		Read from Pairs file by Markus & Bernd
 		*/
-		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
+		void Pairs_from_File(const std::string pairsFile, const std::shared_ptr<Data::Geometry> geometry, int & nop,
 			pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
 			pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
 		{
@@ -533,9 +533,9 @@ namespace Utility
 					if (DMI_abc)
 					{
 						pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-						pair_D1 = pair_D_temp.dot(geometry.basis[0]);
-						pair_D2 = pair_D_temp.dot(geometry.basis[1]);
-						pair_D3 = pair_D_temp.dot(geometry.basis[2]);
+						pair_D1 = pair_D_temp.dot(geometry->basis[0]);
+						pair_D2 = pair_D_temp.dot(geometry->basis[1]);
+						pair_D3 = pair_D_temp.dot(geometry->basis[2]);
 					}
 					// DMI vector normalisation
 					if (Dij)
@@ -591,7 +591,7 @@ namespace Utility
 		/*
 		Read from Quadruplet file
 		*/
-		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
+		void Quadruplets_from_File(const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry>, int & noq,
 			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin quadruplets from file " + quadrupletsFile);
