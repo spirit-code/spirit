@@ -27,9 +27,9 @@ namespace Data
 					for (int nc = 0; nc < Nc; ++nc)
 					{
 						ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
-						if ((na < na_left || na > Na - na_right) ||
-							(nb < nb_left || nb > Nb - nb_right) ||
-							(nc < nc_left || nc > Nc - nc_right))
+						if ((na < na_left || na >= Na - na_right) ||
+							(nb < nb_left || nb >= Nb - nb_right) ||
+							(nc < nc_left || nc >= Nc - nc_right))
 						{
 							// this->mask_pinned[ispin] = 1;
 							this->mask_unpinned[ispin] = 0;

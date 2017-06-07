@@ -350,8 +350,8 @@ namespace Utility
 					// N_a
 					myfile.Read_Single(na_left, "pin_na_left", false);
 					myfile.Read_Single(na_right, "pin_na_right", false);
-					myfile.Read_Single(na, "pin_na", false);
-					if (na_left == 0 || na_right == 0)
+					myfile.Read_Single(na, "pin_na ", false);
+					if (na > 0 && (na_left == 0 || na_right == 0))
 					{
 						na_left = na;
 						na_right = na;
@@ -360,8 +360,8 @@ namespace Utility
 					// N_b
 					myfile.Read_Single(nb_left, "pin_nb_left", false);
 					myfile.Read_Single(nb_right, "pin_nb_right", false);
-					myfile.Read_Single(nb, "pin_nb", false);
-					if (nb_left == 0 || nb_right == 0)
+					myfile.Read_Single(nb, "pin_nb ", false);
+					if (nb > 0 && (nb_left == 0 || nb_right == 0))
 					{
 						nb_left = nb;
 						nb_right = nb;
@@ -370,8 +370,8 @@ namespace Utility
 					// N_c
 					myfile.Read_Single(nc_left, "pin_nc_left", false);
 					myfile.Read_Single(nc_right, "pin_nc_right", false);
-					myfile.Read_Single(nc, "pin_nc", false);
-					if (nc_left == 0 || nc_right == 0)
+					myfile.Read_Single(nc, "pin_nc ", false);
+					if (nc > 0 && (nc_left == 0 || nc_right == 0))
 					{
 						nc_left = nc;
 						nc_right = nc;
