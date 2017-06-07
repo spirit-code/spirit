@@ -896,29 +896,95 @@
               </item>
               <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_13">
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_SS_angle">
+                <item row="2" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_spiral_q">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                  <property name="decimals">
+                   <number>3</number>
+                  </property>
+                  <property name="minimum">
+                   <double>-1000.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.050000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1">
+                 <widget class="QComboBox" name="comboBox_SS">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
-                    <height>22</height>
+                    <height>20</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>40</width>
+                    <width>110</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>Reciprocal Lattice</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Real Lattice</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Real Space</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_16">
+                  <property name="maximumSize">
+                   <size>
+                    <width>35</width>
                     <height>16777215</height>
                    </size>
                   </property>
                   <property name="text">
-                   <string>90</string>
+                   <string>angle</string>
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_4">
+                <item row="6" column="0">
+                 <widget class="QLabel" name="label_18">
+                  <property name="maximumSize">
+                   <size>
+                    <width>35</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
-                   <string>q</string>
+                   <string>w.r.t.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QCheckBox" name="checkBox_SS_q2">
+                  <property name="text">
+                   <string>q2</string>
                   </property>
                  </widget>
                 </item>
@@ -990,6 +1056,34 @@
                   </item>
                  </layout>
                 </item>
+                <item row="4" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_spiral_q2">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                  <property name="decimals">
+                   <number>3</number>
+                  </property>
+                  <property name="minimum">
+                   <double>-1000.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.050000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
                 <item row="3" column="1">
                  <layout class="QGridLayout" name="gridLayout_26">
                   <item row="1" column="1">
@@ -1051,90 +1145,95 @@
                   </item>
                  </layout>
                 </item>
-                <item row="2" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_spiral_q">
-                  <property name="maximumSize">
-                   <size>
-                    <width>60</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="locale">
-                   <locale language="C" country="AnyCountry"/>
-                  </property>
-                  <property name="decimals">
-                   <number>3</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-1000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.050000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.100000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_16">
-                  <property name="maximumSize">
-                   <size>
-                    <width>35</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_4">
                   <property name="text">
-                   <string>angle</string>
+                   <string>q</string>
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_18">
-                  <property name="maximumSize">
-                   <size>
-                    <width>35</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>w.r.t.</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QComboBox" name="comboBox_SS">
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_SS_angle">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
-                    <height>20</height>
+                    <height>22</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>110</width>
+                    <width>40</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <item>
-                   <property name="text">
-                    <string>Reciprocal Lattice</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Real Lattice</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Real Space</string>
-                   </property>
-                  </item>
+                  <property name="text">
+                   <string>90</string>
+                  </property>
                  </widget>
+                </item>
+                <item row="5" column="1">
+                 <layout class="QGridLayout" name="gridLayout_12">
+                  <item row="0" column="3">
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_SS_q2_dir_z">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="locale">
+                     <locale language="C" country="AnyCountry"/>
+                    </property>
+                    <property name="minimum">
+                     <double>-100.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>100.000000000000000</double>
+                    </property>
+                    <property name="value">
+                     <double>1.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_SS_q2_dir_y">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="locale">
+                     <locale language="C" country="AnyCountry"/>
+                    </property>
+                    <property name="minimum">
+                     <double>-100.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>100.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_SS_q2_dir_x">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="locale">
+                     <locale language="C" country="AnyCountry"/>
+                    </property>
+                    <property name="minimum">
+                     <double>-100.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>100.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>
@@ -1599,13 +1698,18 @@
   <tabstop>lineEdit_SS_dir_x</tabstop>
   <tabstop>lineEdit_SS_dir_y</tabstop>
   <tabstop>lineEdit_SS_dir_z</tabstop>
+  <tabstop>checkBox_SS_q2</tabstop>
+  <tabstop>doubleSpinBox_spiral_q2</tabstop>
+  <tabstop>doubleSpinBox_SS_q2_dir_x</tabstop>
+  <tabstop>doubleSpinBox_SS_q2_dir_y</tabstop>
+  <tabstop>doubleSpinBox_SS_q2_dir_z</tabstop>
   <tabstop>comboBox_SS</tabstop>
-  <tabstop>pushButton_Transition_Homogeneous</tabstop>
   <tabstop>checkBox_Transition_Noise</tabstop>
   <tabstop>lineEdit_Transition_Noise</tabstop>
   <tabstop>lineEdit_Transition_Homogeneous_First</tabstop>
   <tabstop>lineEdit_Transition_Homogeneous_Last</tabstop>
   <tabstop>pushButton_Random</tabstop>
+  <tabstop>pushButton_Transition_Homogeneous</tabstop>
  </tabstops>
  <resources/>
  <connections/>

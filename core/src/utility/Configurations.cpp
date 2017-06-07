@@ -313,7 +313,6 @@ namespace Utility
 
 			// Some normalisations
 			theta = theta / 180.0 * M_PI;
-			q *= 2.0 * M_PI;
 			scalar qnorm = q.norm();
 			scalar axnorm = axis.norm();
 			axis.normalize();
@@ -350,180 +349,181 @@ namespace Utility
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 				Vector3 b1, b2, b3;
-				b1 = a2.cross(a3) / (a1.dot(a2.cross(a3)));
-				b2 = a3.cross(a1) / (a2.dot(a3.cross(a1)));
-				b3 = a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 				// The q-vector is specified in units of the reciprocal lattice
 				Vector3 projBQ = q[0]*b1 + q[1]*b2 + q[2]*b3;
 				q = projBQ;
-				for (int iatom = 0; iatom < s.nos; ++iatom)
-				{
-					if (filter(spins[iatom], spin_pos[iatom]))
-					{
-						// Phase is scalar product of spin position and q
-						phase = s.geometry->spin_pos[iatom].dot(q);
-						//phase = phase / 180.0 * M_PI;// / period;
-						// The opening angle determines how far from the axis the spins rotate around it.
-						//		The rotation is done by alternating between v1 and v2 periodically
-						scalar norms = 0.0;
-						spins[iatom] = axis * std::cos(theta)
-							+ v1 * std::cos(phase) * std::sin(theta)
-							+ v2 * std::sin(phase) * std::sin(theta);
-						spins[iatom].normalize();
-					}
-				}// endfor iatom
 			}
 			else if (direction_type == "Real Lattice")
 			{
 				// The q-vector is specified in units of the real lattice
 				Vector3 projBQ = { q.dot(a1), q.dot(a2), q.dot(a3) };
 				q = projBQ;
-				for (int iatom = 0; iatom < s.nos; ++iatom)
-				{
-					if (filter(spins[iatom], spin_pos[iatom]))
-					{
-						// Phase is scalar product of spin position and q
-						phase = s.geometry->spin_pos[iatom].dot(q);
-						//phase = phase / 180.0 * M_PI;// / period;
-						// The opening angle determines how far from the axis the spins rotate around it.
-						//		The rotation is done by alternating between v1 and v2 periodically
-						scalar norms = 0.0;
-						spins[iatom] = axis * std::cos(theta)
-										+ v1 * std::cos(phase) * std::sin(theta)
-										+ v2 * std::sin(phase) * std::sin(theta);
-						spins[iatom].normalize();
-					}
-				}// endfor iatom
 			}
 			else if (direction_type == "Real Space")
 			{
 				// The q-vector is specified in units of (x, y, z)
-				for (int iatom = 0; iatom < s.nos; ++iatom)
-				{
-					if (filter(spins[iatom], spin_pos[iatom]))
-					{
-						// Phase is scalar product of spin position and q
-						phase = s.geometry->spin_pos[iatom].dot(q);
-						//phase = phase / 180.0 * M_PI;// / period;
-						// The opening angle determines how far from the axis the spins rotate around it.
-						//		The rotation is done by alternating between v1 and v2 periodically
-						scalar norms = 0.0;
-						spins[iatom] = axis * std::cos(theta)
-							+ v1 * std::cos(phase) * std::sin(theta)
-							+ v2 * std::sin(phase) * std::sin(theta);
-						spins[iatom].normalize();
-					}
-				}// endfor iatom
 			}
 			else
 			{
 				Log(Log_Level::Warning, Log_Sender::All, "Got passed invalid type for SS: " + direction_type);
 			}
+			for (int iatom = 0; iatom < s.nos; ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					// Phase is scalar product of spin position and q
+					phase = s.geometry->spin_pos[iatom].dot(q);
+					//phase = phase / 180.0 * M_PI;// / period;
+					// The opening angle determines how far from the axis the spins rotate around it.
+					//		The rotation is done by alternating between v1 and v2 periodically
+					scalar norms = 0.0;
+					spins[iatom] = axis * std::cos(theta)
+						+ v1 * std::cos(phase) * std::sin(theta)
+						+ v2 * std::sin(phase) * std::sin(theta);
+					spins[iatom].normalize();
+				}
+			}// endfor iatom
 		}
 
-		//void SpinSpiral(Data::Spin_System & s, std::string direction_type, scalar q[3], scalar axis[3], scalar theta)
-		//{
-		//	scalar gamma, rho, r1[3], r2[3], r3[3];
+		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta, filterfunction filter)
+		{
+			scalar phase;
+			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
+			Vector3 e1, e2;
+			Vector3 qm, qk;
+			
+			Vector3 a1 = s.geometry->translation_vectors[0];
+			Vector3 a2 = s.geometry->translation_vectors[1];
+			Vector3 a3 = s.geometry->translation_vectors[2];
+			
+			// -------------------- Preparation --------------------
+			axis.normalize();
+			
+			/*
+			if axis_z=0 its in the xy-plane
+				axis, vz, (axis x vz)
+			else its either above or below the xy-plane.
+			if its above the xy-plane, it points in z-direction
+				axis, vx, -vy
+			if its below the xy-plane, it points in -z-direction
+				axis, vx, vy
+			*/
+			
+			// Choose orthogonalisation basis for Grahm-Schmidt
+			//		We will need two vectors with which the axis always forms the
+			//		same orientation (händigkeit des vektor-dreibeins)
+			// If axis_z=0 its in the xy-plane
+			//		the vectors should be: axis, vz, (axis x vz)
+			if (axis[2] == 0)
+			{
+				e2 = axis.cross(vz);
+				e1 = vz;
+			}
+			// Else its either above or below the xy-plane.
+			//		if its above the xy-plane, it points in z-direction
+			//		the vectors should be: axis, vx, -vy
+			else if (axis[2] > 0)
+			{
+				e1 = vx;
+				e2 = -vy;
+			}
+			//		if its below the xy-plane, it points in -z-direction
+			//		the vectors should be: axis, vx, vy
+			else if (axis[2] < 0)
+			{
+				e1 = vx;
+				e2 = vy;
+			}
 
-		//	scalar cross[3];
-		//	scalar sabs;
+			// Some normalisations
+			theta = theta / 180.0 * M_PI;
+			scalar q1norm = q1.norm();
+			scalar q2norm = q2.norm();
+			scalar axnorm = axis.norm();
+			axis.normalize();
 
-		//	if (direction_type == "Real Lattice")
-		//	{
-		//		// Renormalise input
-		//		theta = theta / 180.0 * M_PI;
-		//		for (int dim = 0; dim < 3; ++dim)
-		//		{
-		//			q[dim] = q[dim] * 2.0 * M_PI;
-		//		}
-		//		// NOTE this is not yet the correct function!!
-		//		for (int iatom = 0; iatom < s.nos; ++iatom)
-		//		{
-		//			gamma = 0;
-		//			for (int dim = 0; dim < 3; ++dim)
-		//			{
-		//				gamma += q[dim] * s.geometry.spin_pos[dim][iatom];
-		//			}
-		//			rho = std::sqrt(std::pow(axis[0], 2) + std::pow(axis[1], 2));
+			// Grahm-Schmidt orthogonalization: two vectors orthogonal to an axis
+			Vector3 v1, v2;
+			//u1 = axis
+			//u2 = v1 = vx - vx*axis/|axis|^2 * axis
+			//u3 = v2 = vy - vy*axis/|axis|^2 * axis - vy*v1/|v1|^2 * v1
+			scalar proj1 = 0, proj2 = 0, proj3 = 0, proj1a=0, proj2a=0, proj3a=0, proj1b=0, proj2b=0, proj3b=0;
+			// Projections
+			proj1a = e1.dot(axis);
+			proj2a = e2.dot(axis);
+			proj1b = axis.dot(axis);
+			proj2b = axis.dot(axis);
+			proj1 += proj1a / proj1b;
+			proj2 += proj2a / proj2b;
 
-		//			r1[0] = axis[0] * axis[2] / rho;
-		//			r1[1] = -axis[1] / rho;
-		//			r1[2] = axis[0];
+			// First vector
+			v1 = e1 - proj1 * axis;
 
-		//			r2[0] = axis[1] * axis[2] / rho;
-		//			r2[1] = axis[0] / rho;
-		//			r2[2] = axis[1];
+			// One more projection
+			proj3a = e2.dot(v1);
+			proj3b = v1.dot(v1);
+			proj3 = proj3a / proj3b;
 
-		//			r3[0] = -rho;
-		//			r3[1] = 0;
-		//			r3[2] = axis[2];
+			// Second vector
+			v2 = e2 - proj2 * axis - proj3*v1;
 
-		//			cross[0] = std::sin(theta)*std::cos(gamma);
-		//			cross[1] = std::sin(theta)*std::sin(gamma);
-		//			cross[2] = std::cos(theta);
+			// -------------------- Spin Spiral creation --------------------
+			auto& spins = *s.spins;
+			auto& spin_pos = s.geometry->spin_pos;
+			if (direction_type == "Reciprocal Lattice")
+			{
+				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
+				Vector3 b1, b2, b3;
+				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 
-		//			for (int dim = 0; dim < 3; ++dim)
-		//			{
-		//				s.spins[dim * s.nos + iatom] = 0;
-		//			}
-		//			for (int dim = 0; dim < 3; ++dim)
-		//			{
-		//				//s.spins[dim * s.nos + iatom] = cross[dim];
-
-		//				s.spins[0 * s.nos + iatom] += r1[dim] * cross[dim];
-		//				s.spins[1 * s.nos + iatom] += r2[dim] * cross[dim];
-		//				s.spins[2 * s.nos + iatom] += r3[dim] * cross[dim];
-		//			}
-
-		//			/*sabs = std::sqrt(std::pow(s.spins[0 * s.nos + iatom], 2) + std::pow(s.spins[1 * s.nos + iatom], 2) + std::pow(s.spins[2 * s.nos + iatom], 2));
-		//			for (int dim = 0; dim < 3; ++dim)
-		//			{
-		//			s.spins[dim * s.nos + iatom] = s.spins[dim * s.nos + iatom] / sabs;
-		//			}
-		//			int x = 0;*/
-		//		}// endfor iatom
-		//	}
-		//	else if (direction_type == "Reciprocal Lattice")
-		//	{
-		//		// Not yet implemented!
-		//		// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
-		//	}
-		//	else if (direction_type == "Real Space")
-		//	{
-		//		//for (int iatom = 0; iatom < s.nos; ++iatom)
-		//		//{
-		//		//	distance = s.geometry.spin_pos[0][iatom] * direction[0]
-		//		//		+ s.geometry.spin_pos[1][iatom] * direction[1]
-		//		//		+ s.geometry.spin_pos[2][iatom] * direction[2];
-		//		//	distance = distance / period;
-		//		//	if (distance >= 0.0)
-		//		//	{
-		//		//		Vectormath::Cross_Product(axis, z, cross);
-		//		//		for (int dim = 0; dim < 3; ++dim)
-		//		//		{
-		//		//			s.spins[dim * s.nos + iatom] = z[dim] * std::cos(M_PI*distance) + cross[dim] * std::sin(M_PI*distance);
-		//		//		}
-		//		//	}// end 0 <= distance
-		//		//}// endfor iatom
-		//	}
-		//	else
-		//	{
-		//		std::cout << "Got passed invalid type for SS: " << direction_type << std::endl;
-		//	}
-		//}
+				// The q-vectors are specified in units of the reciprocal lattice
+				Vector3 projBQ = q1[0]*b1 + q1[1]*b2 + q1[2]*b3;
+				q1 = projBQ;
+				projBQ = q2[0]*b1 + q2[1]*b2 + q2[2]*b3;
+				q2 = projBQ;
+				qm = (q1+q2)*0.5;
+				qk = (q1-q2)*0.5;
+				
+			}
+			else if (direction_type == "Real Lattice")
+			{
+				// The q-vector is specified in units of the real lattice
+				Vector3 projBQ = { q1.dot(a1), q1.dot(a2), q1.dot(a3) };
+				q1 = projBQ;
+				projBQ = { q2.dot(a1), q2.dot(a2), q2.dot(a3) };
+				q2 = projBQ;
+			}
+			else if (direction_type == "Real Space")
+			{
+				// The q-vector is specified in units of (x, y, z)
+			}
+			else
+			{
+				Log(Log_Level::Warning, Log_Sender::All, "Got passed invalid type for SS: " + direction_type);
+			}
+			
+			for (int iatom = 0; iatom < s.nos; ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					// Phase is scalar product of spin position and q
+					auto& r = s.geometry->spin_pos[iatom];
+					//phase = phase / 180.0 * M_PI;// / period;
+					// The opening angle determines how far from the axis the spins rotate around it.
+					//		The rotation is done by alternating between v1 and v2 periodically
+					scalar norms = 0.0;
+					spins[iatom] =	axis * std::sin(r.dot(qm))
+						+ v1 * std::cos(r.dot(qm)) * std::sin(r.dot(qk))
+						+ v2 * std::cos(r.dot(qm)) * std::cos(r.dot(qk));
+					spins[iatom].normalize();
+				}
+			}// endfor iatom
+		}
 
 	}//end namespace Spin_Setters
 }//end namespace Utility
-
-
-
-
- /*
- // Set homogeneous spins to +z-direction
- for (iatom = 0; iatom < s->nos; ++iatom){
- s->spins[2][iatom] = - 1.0;
- //if ((fmod(iatom, 31) == 14 || fmod(iatom, 31) == 15 || fmod(iatom, 31) == 16) && iatom > 400 && iatom < 700) {
- //s->spins[2][iatom] = 1.0;
- //}
- }
- */

@@ -40,6 +40,8 @@ DLLEXPORT void Configuration_Skyrmion(State *state, float r, float order, float 
 
 // Spin Spiral
 DLLEXPORT void Configuration_SpinSpiral(State *state, const char * direction_type, float q[3], float axis[3], float theta, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1);
+// 2q Spin Spiral
+DLLEXPORT void Configuration_SpinSpiral_2q(State *state, const char * direction_type, float q1[3], float q2[3], float axis[3], float theta, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1);
 
 // TODO: file read
 //DLLEXPORT void Configuration_from_File(State * state, const char * filename, int idx_image=-1, int idx_chain=-1);

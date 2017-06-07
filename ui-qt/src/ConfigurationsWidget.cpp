@@ -241,7 +241,31 @@ void ConfigurationsWidget::create_SpinSpiral()
 	if (comboBox_SS->currentText() == "Real Lattice") direction_type = "Real Lattice";
 	else if (comboBox_SS->currentText() == "Reciprocal Lattice") direction_type = "Reciprocal Lattice";
 	else if (comboBox_SS->currentText() == "Real Space") direction_type = "Real Space";
-	Configuration_SpinSpiral(this->state.get(), direction_type, qvec, axis, angle, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+
+	// Create Spin Spiral
+	if (this->checkBox_SS_q2->isChecked())
+	{
+		float qvec2[3] = { (float)doubleSpinBox_SS_q2_dir_x->value(), (float)doubleSpinBox_SS_q2_dir_y->value(), (float)doubleSpinBox_SS_q2_dir_z->value() };
+		float qmag2 = this->doubleSpinBox_spiral_q2->value();
+
+		// Normalize qvec2
+		float absq2 = std::sqrt(qvec2[0]*qvec2[0] + qvec2[1]*qvec2[1] + qvec2[2]*qvec2[2]);
+		if (absq == 0)
+		{
+			qvec2[0] = 0;
+			qvec2[1] = 0;
+			qvec2[2] = 1;
+			doubleSpinBox_SS_q2_dir_x->setValue(qvec2[0]);
+			doubleSpinBox_SS_q2_dir_y->setValue(qvec2[1]);
+			doubleSpinBox_SS_q2_dir_z->setValue(qvec2[2]);
+		}
+		// Scale
+		for (int dim = 0; dim < 3; ++dim) qvec2[dim] *= qmag2;
+		Configuration_SpinSpiral_2q(this->state.get(), direction_type, qvec, qvec2, axis, angle, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	}
+	else
+		Configuration_SpinSpiral(this->state.get(), direction_type, qvec, axis, angle, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
 
 	// Optionally add noise
 	this->configurationAddNoise();
@@ -479,6 +503,12 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_SS_axis_y, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_axis_z, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
 	connect(this->lineEdit_SS_angle, SIGNAL(returnPressed()), this, SLOT(create_SpinSpiral()));
+	// q2
+	connect(this->checkBox_SS_q2, SIGNAL(stateChanged(int)), this, SLOT(create_SpinSpiral()));
+	connect(this->doubleSpinBox_spiral_q2, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
+	connect(this->doubleSpinBox_SS_q2_dir_x, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
+	connect(this->doubleSpinBox_SS_q2_dir_y, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
+	connect(this->doubleSpinBox_SS_q2_dir_z, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
 }
 
 void ConfigurationsWidget::Setup_Transitions_Slots()
