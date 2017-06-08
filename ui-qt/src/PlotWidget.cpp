@@ -132,6 +132,19 @@ void PlotWidget::updateData()
 
 void PlotWidget::plotEnergies()
 {
+	int noi = Chain_Get_NOI(state.get());
+
+	// Get Rx and energy arrays
+	Rx = std::vector<float>(noi, 0);
+	energies = std::vector<float>(noi, 0);
+	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
+	for (int i = 0; i < noi; ++i)
+	{
+		if (i > 0 && Rx_tot > 0)
+			Rx[i] = System_Get_Rx(state.get(), i) / Rx_tot;
+		energies[i] = System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i);
+	}
+
 	// TODO: this seems incredibly inefficient, how can we do better??
 
 	int n_previous_normal = series_E_normal->count();
@@ -145,21 +158,16 @@ void PlotWidget::plotEnergies()
 	series_E_falling->clear();
 	series_E_stationary->clear();
 	// Add data to series
-	int noi = Chain_Get_NOI(state.get());
-	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
 	for (int i = 0; i < noi; ++i)
 	{
-		float x = 0;
-		if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
-
 		if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 0)
-			*series_E_normal << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_normal << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 1)
-			*series_E_climbing << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_climbing << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 2)
-			*series_E_falling << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_falling << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 3)
-			*series_E_stationary << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_stationary << QPointF(Rx[i], energies[i]);
 		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
 	}
 	// Re-add Series to chart
@@ -206,7 +214,7 @@ void PlotWidget::plotEnergies()
 	// Current image - red dot
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
-	*series_E_current << series_E_normal->points()[i];
+	*series_E_current << QPointF(Rx[i], energies[i]);
 	if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
 	{
 		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);

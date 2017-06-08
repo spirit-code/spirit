@@ -20,6 +20,8 @@ public:
 
 private:
 	std::shared_ptr<State> state;
+	std::vector<float> Rx, energies;
+
 	QtCharts::QChart * chart;
 	QtCharts::QScatterSeries * series_E_normal;
 	QtCharts::QScatterSeries * series_E_climbing;
