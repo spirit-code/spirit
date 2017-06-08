@@ -46,6 +46,7 @@ private slots:
 	void create_SpinSpiral();
 	// Transitions
 	void homogeneousTransitionPressed();
+	void homogeneousTransitionFirstLastPressed();
 
 
 private:
