@@ -414,7 +414,7 @@ namespace Utility
 					if (spin_K != 0)
 					{
 						// Propagate the anisotropy vectors (specified for one unit cell) across the lattice
-						for (int icell=0; icell<geometry.nos/geometry.n_spins_basic_domain; ++icell)
+						for (int icell=0; icell<geometry->nos/geometry->n_spins_basic_domain; ++icell)
 						{
 							anisotropy_index.push_back(icell+spin_i);
 							anisotropy_magnitude.push_back(spin_K);
