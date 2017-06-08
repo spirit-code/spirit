@@ -125,43 +125,73 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 
 void PlotWidget::updateData()
 {
-    if( Chain_Get_NOI(state.get()) > 1 && this->plot_interpolated ) this->plotEnergiesInterpolated();
     this->plotEnergies();
 	this->chart->update();
 }
 
 void PlotWidget::plotEnergies()
 {
-	// TODO: this seems incredibly inefficient, how can we do better??
+	// TODO: this function seems incredibly inefficient, how can we do better??
 
+	int noi = Chain_Get_NOI(state.get());
+	int nos = System_Get_NOS(state.get());
+	int size_interp = noi + (noi - 1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+
+	// Allocate arrays
+	Rx = std::vector<float>(noi, 0);
+	energies = std::vector<float>(noi, 0);
+	Rx_interp = std::vector<float>(size_interp, 0);
+	energies_interp = std::vector<float>(size_interp, 0);
+
+	// Get Data
+	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
+	Chain_Get_Rx(state.get(), Rx.data());
+	Chain_Get_Energy(state.get(), energies.data());
+	Chain_Get_Rx_Interpolated(state.get(), Rx_interp.data());
+	if (this->plot_interpolated)
+		Chain_Get_Energy_Interpolated(state.get(), energies_interp.data());
+
+	// Previous series sizes
 	int n_previous_normal = series_E_normal->count();
 	int n_previous_climbing = series_E_climbing->count();
 	int n_previous_falling = series_E_falling->count();
 	int n_previous_stationary = series_E_stationary->count();
+	int n_previous_interp = series_E_interp->count();
 
 	// Clear series
 	series_E_normal->clear();
 	series_E_climbing->clear();
 	series_E_falling->clear();
 	series_E_stationary->clear();
+	if (this->plot_interpolated)
+		series_E_interp->clear();
+
 	// Add data to series
-	int noi = Chain_Get_NOI(state.get());
-	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
 	for (int i = 0; i < noi; ++i)
 	{
-		float x = 0;
-		if (i > 0 && Rx_tot > 0) x = System_Get_Rx(state.get(), i) / Rx_tot;
+		if (i > 0 && Rx_tot > 0) Rx[i] = Rx[i] / Rx_tot;
+		energies[i] = energies[i] / nos;
 
 		if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 0)
-			*series_E_normal << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_normal << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 1)
-			*series_E_climbing << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_climbing << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 2)
-			*series_E_falling << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
+			*series_E_falling << QPointF(Rx[i], energies[i]);
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 3)
-			*series_E_stationary << QPointF(x, System_Get_Energy(state.get(), i) / System_Get_NOS(state.get(), i));
-		// std::cerr << System_Get_Energy(state.get(), i)/System_Get_NOS(state.get(), i) << std::endl;
+			*series_E_stationary << QPointF(Rx[i], energies[i]);
 	}
+	if (this->plot_interpolated)
+	{
+		for (int i = 0; i < size_interp; ++i)
+		{
+			if (i > 0 && Rx_tot > 0) Rx_interp[i] = Rx_interp[i] / Rx_tot;
+			energies_interp[i] = energies_interp[i] / nos;
+
+			*series_E_interp << QPointF(Rx_interp[i], energies_interp[i]);
+		}
+	}
+
 	// Re-add Series to chart
 	if (series_E_normal->count() > 0 && n_previous_normal == 0)
 		chart->addSeries(series_E_normal);
@@ -203,10 +233,23 @@ void PlotWidget::plotEnergies()
 		chart->addSeries(series_E_stationary);
 	}
 
+	if (this->plot_interpolated)
+	{
+		if (series_E_interp->count() > 0 && n_previous_interp == 0)
+			chart->addSeries(series_E_interp);
+		else if (series_E_interp->count() == 0 && n_previous_interp > 0)
+			chart->removeSeries(series_E_interp);
+		else if (series_E_interp->count() > 0)
+		{
+			chart->removeSeries(series_E_interp);
+			chart->addSeries(series_E_interp);
+		}
+	}
+
 	// Current image - red dot
 	series_E_current->clear();
 	int i = System_Get_Index(state.get());
-	*series_E_current << series_E_normal->points()[i];
+	*series_E_current << QPointF(Rx[i], energies[i]);
 	if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
 	{
 		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
@@ -237,49 +280,6 @@ void PlotWidget::plotEnergies()
 	chart->addSeries(series_E_current);
 	// this->repaint();
 
-	// Renew axes
-	this->chart->createDefaultAxes();
-	this->chart->axisX()->setTitleText("Rx");
-	this->chart->axisY()->setTitleText("E");
-}
-
-void PlotWidget::plotEnergiesInterpolated()
-{
-	if (Chain_Get_NOI(state.get()) <= 1) return;
-	
-	int n_previous_interp = series_E_interp->count();
-
-	// TODO: this seems incredibly inefficient, how can we do better??
-	// Clear series
-	series_E_interp->clear();
-
-	// Add data to series
-	int noi = Chain_Get_NOI(state.get());
-	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
-	int nos = System_Get_NOS(state.get());
-	int size_interp = noi + (noi-1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
-	float *Rx = new float[size_interp];
-	float *E = new float[size_interp];
-	Chain_Get_Rx_Interpolated(state.get(), Rx);
-	Chain_Get_Energy_Interpolated(state.get(), E);
-	for (int i = 0; i < size_interp; ++i)
-	{
-		float x = 0;
-		if (i > 0 && Rx_tot > 0) x = Rx[i] / Rx_tot;
-		*series_E_interp << QPointF(x, E[i] / nos);
-	}
-
-	// Re-add Series to chart
-	if (series_E_interp->count() > 0 && n_previous_interp == 0)
-		chart->addSeries(series_E_interp);
-	else if (series_E_interp->count() == 0 && n_previous_interp > 0)
-		chart->removeSeries(series_E_interp);
-	else if (series_E_interp->count() > 0)
-	{	
-		chart->removeSeries(series_E_interp);
-		chart->addSeries(series_E_interp);
-	}
-	
 	// Renew axes
 	this->chart->createDefaultAxes();
 	this->chart->axisX()->setTitleText("Rx");

@@ -111,7 +111,7 @@ namespace Utility
 		result += "  " + entry.message;
 
 		// Rest of the block
-		for (int i=1; i<entries.size(); ++i)
+		for (unsigned int i=1; i<entries.size(); ++i)
 		{
 			result += "\n" + Log.tags_space + entries[i].message;
 		}

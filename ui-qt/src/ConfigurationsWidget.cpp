@@ -365,6 +365,28 @@ void ConfigurationsWidget::homogeneousTransitionPressed()
 	this->spinWidget->updateData();
 }
 
+void ConfigurationsWidget::homogeneousTransitionFirstLastPressed()
+{
+	int noi = Chain_Get_NOI(this->state.get());
+
+	int idx_1 = 0;
+	int idx_2 = noi - 1;
+
+	// Do the transition
+	Transition_Homogeneous(this->state.get(), idx_1, idx_2);
+
+	// Add Noise
+	if (this->checkBox_Transition_Noise->isChecked())
+	{
+		float temperature = lineEdit_Transition_Noise->text().toFloat();
+		Transition_Add_Noise_Temperature(this->state.get(), temperature, idx_1, idx_2);
+	}
+
+	// Update
+	Chain_Update_Data(this->state.get());
+	this->spinWidget->updateData();
+}
+
 
 // -----------------------------------------------------------------------------------
 // -------------- Helpers for fetching Configurations Settings -----------------------
@@ -515,4 +537,5 @@ void ConfigurationsWidget::Setup_Transitions_Slots()
 {
 	// Homogeneous Transition
 	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
+	connect(this->pushButton_Transition_Homogeneous_First_Last, SIGNAL(clicked()), this, SLOT(homogeneousTransitionFirstLastPressed()));
 }

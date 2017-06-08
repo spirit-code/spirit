@@ -67,6 +67,7 @@ namespace Engine
 		{
 			this->Calculate_Force_Lanczos(configurations, forces);
 		}*/
+		Vectormath::set_c_a(1, forces[0], forces[0], parameters->pinning->mask_unpinned);
     }
 
 	MatrixX projector(vectorfield & image)

@@ -20,6 +20,9 @@ public:
 
 private:
 	std::shared_ptr<State> state;
+	std::vector<float> Rx, energies;
+	std::vector<float> Rx_interp, energies_interp;
+
 	QtCharts::QChart * chart;
 	QtCharts::QScatterSeries * series_E_normal;
 	QtCharts::QScatterSeries * series_E_climbing;
@@ -33,7 +36,6 @@ private:
 	bool plot_interpolated;
 
 	void plotEnergies();
-	void plotEnergiesInterpolated();
 };
 
 #endif

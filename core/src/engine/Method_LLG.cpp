@@ -26,7 +26,7 @@ namespace Engine
 
 		// Forces
 		this->Gradient = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
-		
+
 		// History
         this->history = std::map<std::string, std::vector<scalar>>{
 			{"max_torque_component", {this->force_maxAbsComponent}},
@@ -46,6 +46,7 @@ namespace Engine
 		{
 			// Minus the gradient is the total Force here
 			systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
+			Vectormath::set_c_a(1, Gradient[img], Gradient[img], parameters->pinning->mask_unpinned);
 			// Vectormath::scale(Gradient[img], -1);
 			// Copy out
 			Vectormath::set_c_a(-1, Gradient[img], forces[img]);

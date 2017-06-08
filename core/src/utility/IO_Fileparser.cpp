@@ -119,7 +119,7 @@ namespace Utility
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
-				int ispin = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
+				int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -128,11 +128,14 @@ namespace Utility
 						found = line.find("Image No");
 						if (found == std::string::npos)	// The line should contain a spin
 						{
+							if (iimage < 0) iimage = 0;
+
 							if (iimage >= noi)
 							{
 								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
 								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+								new_system->Lock();
 								// Add to chain
 								c->noi++;
 								c->images.push_back(new_system);
@@ -187,20 +190,37 @@ namespace Utility
 		}
 
 
-		void External_Field_from_File(const std::string externalFieldFile, const Data::Geometry & geometry, int & n_indices,
+		void External_Field_from_File(const std::string externalFieldFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading external field from file " + externalFieldFile);
 			try
 			{
-				n_indices = 0;
 				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
 				// column indices of pair indices and interactions
 				int col_i = -1, col_B = -1, col_Bx = -1, col_By = -1, col_Bz = -1, col_Ba = -1, col_Bb = -1, col_Bc = -1;
 				bool B_magnitude = false, B_xyz = false, B_abc = false;
 				Vector3 B_temp = { 0, 0, 0 };
-				// Get column indices
+				int n_field;
+
 				IO::Filter_File_Handle file(externalFieldFile);
+
+				if (file.Find("n_external_field"))
+				{
+					// Read n interaction pairs
+					file.iss >> n_field;
+					Log(Log_Level::Debug, Log_Sender::IO, "External field file " + externalFieldFile + " should have " + std::to_string(n_field) + " vectors");
+				}
+				else
+				{
+					// Read the whole file
+					n_field = (int)1e8;
+					// First line should contain the columns
+					file.ResetStream();
+					Log(Log_Level::Info, Log_Sender::IO, "Trying to parse external field columns from top of file " + externalFieldFile);
+				}
+
+				// Get column indices
 				file.GetLine(); // first line contains the columns
 				for (unsigned int i = 0; i < columns.size(); ++i)
 				{
@@ -220,11 +240,6 @@ namespace Utility
 
 				if (!B_xyz && !B_abc) Log(Log_Level::Warning, Log_Sender::IO, "No external field data could be found in header of file " + externalFieldFile);
 
-				// Catch horizontal separation Line
-				// file.GetLine();
-				// Get number of lines
-				while (file.GetLine()) { ++n_indices; }
-
 				// Indices
 				int spin_i = 0;
 				scalar spin_B = 0, spin_B1 = 0, spin_B2 = 0, spin_B3 = 0;
@@ -234,12 +249,9 @@ namespace Utility
 				external_field_normal = vectorfield(0);
 
 				// Get actual Data
-				file.ResetStream();
-				int i_pair = 0;
+				int i_field = 0;
 				std::string sdump;
-				file.GetLine();	// skip first line
-								//dataHandle.GetLine();	// skip second line
-				while (file.GetLine())
+				while (file.GetLine() && i_field < n_field)
 				{
 					// Read a line from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
@@ -269,9 +281,9 @@ namespace Utility
 					// Anisotropy vector orientation
 					if (B_abc)
 					{
-						spin_B1 = B_temp.dot(geometry.basis[0]);
-						spin_B2 = B_temp.dot(geometry.basis[1]);
-						spin_B3 = B_temp.dot(geometry.basis[2]);
+						spin_B1 = B_temp.dot(geometry->basis[0]);
+						spin_B2 = B_temp.dot(geometry->basis[1]);
+						spin_B3 = B_temp.dot(geometry->basis[2]);
 						B_temp = { spin_B1, spin_B2, spin_B3 };
 					}
 					// Anisotropy vector normalisation
@@ -294,8 +306,9 @@ namespace Utility
 						external_field_magnitude.push_back(spin_B);
 						external_field_normal.push_back(B_temp);
 					}
-
+					++i_field;
 				}// end while getline
+				n_indices = i_field;
 			}// end try
 			catch (Exception ex)
 			{
@@ -310,20 +323,38 @@ namespace Utility
 		/*
 		Read from Anisotropy file
 		*/
-		void Anisotropy_from_File(const std::string anisotropyFile, const Data::Geometry & geometry, int & n_indices,
+		void Anisotropy_from_File(const std::string anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
 			vectorfield & anisotropy_normal)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
-			try {
-				n_indices = 0;
+			try
+			{
 				std::vector<std::string> columns(5);	// at least: 1 (index) + 3 (K)
 				// column indices of pair indices and interactions
 				int col_i = -1, col_K = -1, col_Kx = -1, col_Ky = -1, col_Kz = -1, col_Ka = -1, col_Kb = -1, col_Kc = -1;
 				bool K_magnitude = false, K_xyz = false, K_abc = false;
 				Vector3 K_temp = { 0, 0, 0 };
-				// Get column indices
+				int n_anisotropy;
+
 				IO::Filter_File_Handle file(anisotropyFile);
+
+				if (file.Find("n_anisotropy"))
+				{
+					// Read n interaction pairs
+					file.iss >> n_anisotropy;
+					Log(Log_Level::Debug, Log_Sender::IO, "Anisotropy file " + anisotropyFile + " should have " + std::to_string(n_anisotropy) + " vectors");
+				}
+				else
+				{
+					// Read the whole file
+					n_anisotropy = (int)1e8;
+					// First line should contain the columns
+					file.ResetStream();
+					Log(Log_Level::Info, Log_Sender::IO, "Trying to parse anisotropy columns from top of file " + anisotropyFile);
+				}
+
+				// Get column indices
 				file.GetLine(); // first line contains the columns
 				for (unsigned int i = 0; i < columns.size(); ++i)
 				{
@@ -343,11 +374,6 @@ namespace Utility
 
 				if (!K_xyz && !K_abc) Log(Log_Level::Warning, Log_Sender::IO, "No anisotropy data could be found in header of file " + anisotropyFile);
 
-				// Catch horizontal separation Line
-				// file.GetLine();
-				// Get number of lines
-				while (file.GetLine()) { ++n_indices; }
-
 				// Indices
 				int spin_i = 0;
 				scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0;
@@ -357,12 +383,9 @@ namespace Utility
 				anisotropy_normal = vectorfield(0);
 
 				// Get actual Data
-				file.ResetStream();
-				int i_pair = 0;
+				int i_anisotropy = 0;
 				std::string sdump;
-				file.GetLine();	// skip first line
-								//dataHandle.GetLine();	// skip second line
-				while (file.GetLine())
+				while (file.GetLine() && i_anisotropy < n_anisotropy)
 				{
 					// Read a line from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
@@ -392,9 +415,9 @@ namespace Utility
 					// Anisotropy vector orientation
 					if (K_abc)
 					{
-						spin_K1 = K_temp.dot(geometry.basis[0]);
-						spin_K2 = K_temp.dot(geometry.basis[1]);
-						spin_K3 = K_temp.dot(geometry.basis[2]);
+						spin_K1 = K_temp.dot(geometry->basis[0]);
+						spin_K2 = K_temp.dot(geometry->basis[1]);
+						spin_K3 = K_temp.dot(geometry->basis[2]);
 						K_temp = { spin_K1, spin_K2, spin_K3 };
 					}
 					// Anisotropy vector normalisation
@@ -414,15 +437,16 @@ namespace Utility
 					if (spin_K != 0)
 					{
 						// Propagate the anisotropy vectors (specified for one unit cell) across the lattice
-						for (int icell=0; icell<geometry.nos/geometry.n_spins_basic_domain; ++icell)
+						for (int icell=0; icell<geometry->nos/geometry->n_spins_basic_domain; ++icell)
 						{
 							anisotropy_index.push_back(icell+spin_i);
 							anisotropy_magnitude.push_back(spin_K);
 							anisotropy_normal.push_back(K_temp);
 						}
 					}
-
+					++i_anisotropy;
 				}// end while getline
+				n_indices = i_anisotropy;
 			}// end try
 			catch (Exception ex)
 			{
@@ -435,15 +459,16 @@ namespace Utility
 		/*
 		Read from Pairs file by Markus & Bernd
 		*/
-		void Pairs_from_File(const std::string pairsFile, Data::Geometry geometry, int & nop,
+		void Pairs_from_File(const std::string pairsFile, const std::shared_ptr<Data::Geometry> geometry, int & nop,
 			pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
 			pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
-			try {
-				nop = 0;
+			try
+			{
 				std::vector<std::string> columns(20);	// at least: 2 (indices) + 3 (J) + 3 (DMI)
 				// column indices of pair indices and interactions
+				int n_pairs = 0;
 				int col_i = -1, col_j = -1, col_da = -1, col_db = -1, col_dc = -1,
 					col_J = -1, col_DMIx = -1, col_DMIy = -1, col_DMIz = -1,
 					col_Dij = -1, col_DMIa = -1, col_DMIb = -1, col_DMIc = -1;
@@ -452,7 +477,23 @@ namespace Utility
 				Vector3 pair_D_temp = { 0, 0, 0 };
 				// Get column indices
 				IO::Filter_File_Handle file(pairsFile);
-				file.GetLine(); // first line contains the columns
+
+				if (file.Find("n_interaction_pairs"))
+				{
+					// Read n interaction pairs
+					file.iss >> n_pairs;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + pairsFile + " should have " + std::to_string(n_pairs) + " pairs");
+				}
+				else
+				{
+					// Read the whole file
+					n_pairs = (int)1e8;
+					// First line should contain the columns
+					file.ResetStream();
+					Log(Log_Level::Info, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairsFile);
+				}
+
+				file.GetLine(); 
 				for (unsigned int i = 0; i < columns.size(); ++i)
 				{
 					file.iss >> columns[i];
@@ -462,7 +503,7 @@ namespace Utility
 					else if (!columns[i].compare(0, 2, "db"))	col_db = i;
 					else if (!columns[i].compare(0, 2, "dc"))	col_dc = i;
 					else if (!columns[i].compare(0, 2, "J"))	{ col_J = i;	J = true; }
-					else if (!columns[i].compare(0, 2, "Dij"))	{ col_Dij = i;	Dij = true; }
+					else if (!columns[i].compare(0, 3, "Dij"))	{ col_Dij = i;	Dij = true; }
 					else if (!columns[i].compare(0, 2, "Dx"))	col_DMIx = i;
 					else if (!columns[i].compare(0, 2, "Dy"))	col_DMIy = i;
 					else if (!columns[i].compare(0, 2, "Dz"))	col_DMIz = i;
@@ -477,24 +518,14 @@ namespace Utility
 				// Check if interactions have been found in header
 				if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in header of pairs file " + pairsFile);
 
-				// Catch horizontal separation Line
-				file.GetLine();
-				// Get number of pairs
-				while (file.GetLine()) { ++nop; }
-
-				// Create Pairs Vector
-				//pairs = std::vector<Data::Spin_Pair>(nop);
-
 				// Pair Indices
 				int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
 				scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
+
 				// Get actual Pairs Data
-				file.ResetStream();
 				int i_pair = 0;
 				std::string sdump;
-				file.GetLine();	// skip first line
-				//dataHandle.GetLine();	// skip second line
-				while (file.GetLine())
+				while (file.GetLine() && i_pair < n_pairs)
 				{
 					// Read a Pair from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
@@ -533,9 +564,9 @@ namespace Utility
 					if (DMI_abc)
 					{
 						pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-						pair_D1 = pair_D_temp.dot(geometry.basis[0]);
-						pair_D2 = pair_D_temp.dot(geometry.basis[1]);
-						pair_D3 = pair_D_temp.dot(geometry.basis[2]);
+						pair_D1 = pair_D_temp.dot(geometry->basis[0]);
+						pair_D2 = pair_D_temp.dot(geometry->basis[1]);
+						pair_D3 = pair_D_temp.dot(geometry->basis[2]);
 					}
 					// DMI vector normalisation
 					if (Dij)
@@ -558,7 +589,6 @@ namespace Utility
 							pair_D3 = pair_D3 / pair_Dij;
 						}
 					}
-					
 
 					// Add the indices and parameters to the corresponding lists
 					if (pair_Jij != 0)
@@ -576,6 +606,7 @@ namespace Utility
 					++i_pair;
 				}// end while GetLine
 				Log(Log_Level::Info, Log_Sender::IO, "Done reading " + std::to_string(i_pair) + " spin pairs from file " + pairsFile);
+				nop = i_pair;
 			}// end try
 			catch (Exception ex)
 			{
@@ -591,12 +622,12 @@ namespace Utility
 		/*
 		Read from Quadruplet file
 		*/
-		void Quadruplets_from_File(const std::string quadrupletsFile, Data::Geometry geometry, int & noq,
+		void Quadruplets_from_File(const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry>, int & noq,
 			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes)
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading spin quadruplets from file " + quadrupletsFile);
-			try {
-				noq = 0;
+			try
+			{
 				std::vector<std::string> columns(20);	// at least: 4 (indices) + 3*3 (positions) + 1 (magnitude)
 				// column indices of pair indices and interactions
 				int col_i = -1;
@@ -607,9 +638,27 @@ namespace Utility
 				bool Q = false;
 				int max_periods_a = 0, max_periods_b = 0, max_periods_c = 0;
 				int quadruplet_periodicity = 0;
+				int n_quadruplets = 0;
+
 				// Get column indices
 				IO::Filter_File_Handle file(quadrupletsFile);
-				file.GetLine(); // first line contains the columns
+
+				if (file.Find("n_interaction_quadruplets"))
+				{
+					// Read n interaction quadruplets
+					file.iss >> n_quadruplets;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + quadrupletsFile + " should have " + std::to_string(n_quadruplets) + " quadruplets");
+				}
+				else
+				{
+					// Read the whole file
+					n_quadruplets = (int)1e8;
+					// First line should contain the columns
+					file.ResetStream();
+					Log(Log_Level::Info, Log_Sender::IO, "Trying to parse quadruplet columns from top of file " + quadrupletsFile);
+				}
+
+				file.GetLine();
 				for (unsigned int i = 0; i < columns.size(); ++i)
 				{
 					file.iss >> columns[i];
@@ -632,26 +681,19 @@ namespace Utility
 				// Check if interactions have been found in header
 				if (!Q) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in header of quadruplets file " + quadrupletsFile);
 
-				// Catch horizontal separation Line
-				file.GetLine();
-				// Get number of pairs
-				while (file.GetLine()) { ++noq; }
-
 				// Quadruplet Indices
 				int q_i = 0;
 				int q_j = 0, q_da_j = 0, q_db_j = 0, q_dc_j = 0;
 				int q_k = 0, q_da_k = 0, q_db_k = 0, q_dc_k = 0;
 				int q_l = 0, q_da_l = 0, q_db_l = 0, q_dc_l = 0;
 				scalar q_Q;
-				// Get actual Pairs Data
-				file.ResetStream();
+
+				// Get actual Quadruplets Data
 				int i_quadruplet = 0;
 				std::string sdump;
-				file.GetLine();	// skip first line
-				//dataHandle.GetLine();	// skip second line
-				while (file.GetLine())
+				while (file.GetLine() && i_quadruplet < n_quadruplets)
 				{
-					// Read a Pair from the File
+					// Read a Quadruplet from the File
 					for (unsigned int i = 0; i < columns.size(); ++i)
 					{
 						// i
@@ -706,6 +748,7 @@ namespace Utility
 					++i_quadruplet;
 				}// end while GetLine
 				Log(Log_Level::Info, Log_Sender::IO, "Done reading " + std::to_string(i_quadruplet) + " spin quadruplets from file " + quadrupletsFile);
+				noq = i_quadruplet;
 			}// end try
 			catch (Exception ex)
 			{

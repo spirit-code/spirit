@@ -3,6 +3,7 @@
 #define DATA_PARAMETERS_METHOD_H
 
 #include "Spirit_Defines.h"
+#include <data/Pinning.hpp>
 
 #include <string>
 #include <array>
@@ -14,7 +15,11 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, std::array<bool,4> output, scalar force_convergence, long int n_iterations, long int n_iterations_log, long int max_walltime_sec);
+		Parameters_Method(std::string output_folder, std::array<bool,4> output,
+			scalar force_convergence,
+			long int n_iterations, long int n_iterations_log,
+			long int max_walltime_sec,
+			std::shared_ptr<Pinning> pinning);
 
 		// Data output folder
 		std::string output_folder;
@@ -38,6 +43,8 @@ namespace Data
 		long int n_iterations;
 		// Number of iterations after which the Method should save data
 		long int n_iterations_log;
+
+		std::shared_ptr<Pinning> pinning;
 	};
 }
 #endif

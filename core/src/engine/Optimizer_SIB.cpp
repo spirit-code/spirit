@@ -82,6 +82,9 @@ namespace Engine
 			Vectormath::add_c_a    (-0.5 * sqrtdtg, xi, force);
 			Vectormath::add_c_cross(-0.5 * sqrtdtg * damping, spins, xi, force);
 		}
+
+		// Apply Pinning
+		Vectormath::set_c_a(1, force, force, llg_params.pinning->mask_unpinned);
 	}
 
 

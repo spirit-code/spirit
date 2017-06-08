@@ -109,6 +109,7 @@ namespace Engine
 		// sf is a scalarfield
 		// s is a scalar
 		void fill(scalarfield & sf, scalar s);
+		void fill(scalarfield & sf, scalar s, const intfield & mask);
 
 		// Scale a scalarfield by a given value
 		void scale(scalarfield & sf, scalar s);
@@ -123,6 +124,7 @@ namespace Engine
 		// vf is a vectorfield
 		// v is a vector
 		void fill(vectorfield & vf, const Vector3 & v);
+		void fill(vectorfield & vf, const Vector3 & v, const intfield & mask);
 
 		// Normalize the vectors of a vectorfield
 		void normalize_vectors(vectorfield & vf);
@@ -162,8 +164,10 @@ namespace Engine
 
 		// out[i] = c*a
 		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
+		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask);
 		// out[i] = c*a[i]
 		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
+		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask);
 
 		// out[i] += c * a*b[i]
 		void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
