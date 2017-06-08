@@ -119,7 +119,7 @@ namespace Utility
 				std::string line = "";
 				std::istringstream iss(line);
 				std::size_t found;
-				int ispin = 0, iimage = 0, nos = c->images[0]->nos, noi = c->noi;
+				int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -128,11 +128,14 @@ namespace Utility
 						found = line.find("Image No");
 						if (found == std::string::npos)	// The line should contain a spin
 						{
+							if (iimage < 0) iimage = 0;
+
 							if (iimage >= noi)
 							{
 								Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
 								// Copy Image
 								auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+								new_system->Lock();
 								// Add to chain
 								c->noi++;
 								c->images.push_back(new_system);
