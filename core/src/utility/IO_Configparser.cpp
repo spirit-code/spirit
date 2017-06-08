@@ -1194,7 +1194,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					// External Field
-					if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
+					if (myfile.Find("n_external_field"))
+						external_field_file = configFile;
+					else if (myfile.Find("external_field_file"))
+						myfile.iss >> external_field_file;
 					if (external_field_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
@@ -1202,8 +1205,16 @@ namespace Utility
 							external_field_index, external_field_magnitude, external_field_normal);
 						
 						external_field_from_file = true;
-						B = external_field_magnitude[0];
-						B_normal = external_field_normal[0];
+						if (external_field_index.size() != 0)
+						{
+							B = external_field_magnitude[0];
+							B_normal = external_field_normal[0];
+						}
+						else
+						{
+							B = 0;
+							B_normal = { 0,0,0 };
+						}
 					}
 					else
 					{
@@ -1242,7 +1253,10 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Anisotropy
-					if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
+					if (myfile.Find("n_anisotropy"))
+						anisotropy_file = configFile;
+					else if (myfile.Find("anisotropy_file"))
+						myfile.iss >> anisotropy_file;
 					if (anisotropy_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
@@ -1250,8 +1264,16 @@ namespace Utility
 							anisotropy_index, anisotropy_magnitude, anisotropy_normal);
 
 						anisotropy_from_file = true;
-						K = anisotropy_magnitude[0];
-						K_normal = anisotropy_normal[0];
+						if (anisotropy_index.size() != 0)
+						{
+							K = anisotropy_magnitude[0];
+							K_normal = anisotropy_normal[0];
+						}
+						else
+						{
+							K = 0;
+							K_normal = { 0,0,0 };
+						}
 					}
 					else
 					{
@@ -1290,7 +1312,11 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Interaction Pairs
-					if (myfile.Find("interaction_pairs_file")) myfile.iss >> interaction_pairs_file;
+					if (myfile.Find("n_interaction_pairs"))
+						interaction_pairs_file = configFile;
+					else if (myfile.Find("interaction_pairs_file"))
+						myfile.iss >> interaction_pairs_file;
+
 					if (interaction_pairs_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it
@@ -1332,7 +1358,11 @@ namespace Utility
 					IO::Filter_File_Handle myfile(configFile);
 
 					// Interaction Quadruplets
-					if (myfile.Find("interaction_quadruplets_file")) myfile.iss >> quadruplets_file;
+					if (myfile.Find("n_interaction_quadruplets"))
+						quadruplets_file = configFile;
+					else if (myfile.Find("interaction_quadruplets_file"))
+						myfile.iss >> quadruplets_file;
+
 					if (quadruplets_file.length() > 0)
 					{
 						// The file name should be valid so we try to read it

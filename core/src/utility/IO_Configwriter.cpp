@@ -91,7 +91,7 @@ namespace Utility
 			config += "llg_seed                       " + std::to_string(parameters->seed) + "\n";
 			config += "llg_temperature                " + std::to_string(parameters->temperature) + "\n";
 			config += "llg_damping                    " + std::to_string(parameters->damping) + "\n";
-			config += "llg_dt                         " + std::to_string(parameters->dt) + "\n";
+			config += "llg_dt                         " + std::to_string(parameters->dt/std::pow(10, -12) * Constants::mu_B/1.760859644/std::pow(10, 11)) + "\n";
 			config += "llg_stt_magnitude              " + std::to_string(parameters->stt_magnitude) + "\n";
 			config += "llg_stt_polarisation_normal    " + std::to_string(parameters->stt_polarisation_normal[0]) + " " + std::to_string(parameters->stt_polarisation_normal[1]) + " " + std::to_string(parameters->stt_polarisation_normal[2]) + "\n";
 			config += "############### End LLG Parameters ###############";
@@ -208,9 +208,6 @@ namespace Utility
 			int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
 			std::string config = "";
 			Engine::Hamiltonian_Heisenberg_Pairs* ham = (Engine::Hamiltonian_Heisenberg_Pairs *)hamiltonian.get();
-			config += "\n";
-			config += "### The following can be used as input if you remove the '#'s\n";
-			config += "\n";
 			
 			// Magnetic moment
 			config += "mu_s                     ";
@@ -220,49 +217,58 @@ namespace Utility
 
 			// External Field
 			config += "###    External Field:\n";
-			config += "#  i    H     Hx   Hy   Hz\n";
-			for (unsigned int i=0; i<ham->external_field_indices.size()/n_cells_tot; ++i)
+			scalar B = 0;
+			Vector3 B_normal{ 0,0,0 };
+			if (ham->external_field_indices.size() > 0)
 			{
-				config += "# " + std::to_string(ham->external_field_indices[i]) + " " + std::to_string(ham->external_field_magnitudes[i]/ham->mu_s[i]/Constants::mu_B) + " "
-							+ std::to_string(ham->external_field_normals[i][0]) + " " + std::to_string(ham->external_field_normals[i][1]) + " " + std::to_string(ham->external_field_normals[i][2]) + "\n";
+				B = ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B;
+				B_normal = ham->external_field_normals[0];
 			}
-
+			config += "external_field_magnitude " + std::to_string(B) + "\n";
+			config += "external_field_normal    "
+				+ std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]) + "\n";
+			
 			// Anisotropy
 			config += "###    Anisotropy:\n";
-			config += "#  i    K     Kx   Ky   Kz\n";
-			for (unsigned int i=0; i<ham->anisotropy_indices.size()/n_cells_tot; ++i)
+			scalar K = 0;
+			Vector3 K_normal{ 0,0,0 };
+			if (ham->anisotropy_indices.size() > 0)
 			{
-				config += "# " + std::to_string(ham->anisotropy_indices[i]) + " " + std::to_string(ham->anisotropy_magnitudes[i]) + " "
-							+ std::to_string(ham->anisotropy_normals[i][0]) + " " + std::to_string(ham->anisotropy_normals[i][1]) + " " + std::to_string(ham->anisotropy_normals[i][2]) + "\n";
+				K = ham->anisotropy_magnitudes[0];
+				K_normal = ham->anisotropy_normals[0];
 			}
+			config += "anisotropy_magnitude " + std::to_string(K) + "\n";
+			config += "anisotropy_normal    "
+				+ std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]) + "\n";
 			
+			config += "###    Interaction pairs:\n";
+			config += "n_interaction_pairs " + std::to_string(ham->exchange_pairs.size() + ham->dmi_pairs.size()) + "\n";
+			config += "  i   j     da   db   dc     J     Dij   Dx   Dy   Dz\n";
 			// Exchange
-			config += "###    Exchange:\n";
-			config += "#  i   j     da   db   dc     Jij\n";
 			for (unsigned int i=0; i<ham->exchange_pairs.size(); ++i)
 			{
-				config += "# " + std::to_string(ham->exchange_pairs[i].i) + " " + std::to_string(ham->exchange_pairs[i].j) + "   "
-							+ std::to_string(ham->exchange_pairs[i].translations[0]) + " " + std::to_string(ham->exchange_pairs[i].translations[1]) + " " + std::to_string(ham->exchange_pairs[i].translations[2])+ "   "
-							+ std::to_string(ham->exchange_magnitudes[i]) + "\n";
+				config += " " + std::to_string(ham->exchange_pairs[i].i) + " " + std::to_string(ham->exchange_pairs[i].j) + "   "
+							+ std::to_string(ham->exchange_pairs[i].translations[0]) + " " + std::to_string(ham->exchange_pairs[i].translations[1]) + " " + std::to_string(ham->exchange_pairs[i].translations[2]) + "   "
+							+ std::to_string(ham->exchange_magnitudes[i]) + "   "
+							+ std::to_string(0.0f) + " " + std::to_string(0.0f) + " " + std::to_string(0.0f) + " " + std::to_string(0.0f) + "\n";
 			}
-			
 			// DMI
-			config += "###    DMI:\n";
-			config += "#  i   j     da   db   dc     D   Dx   Dy   Dz\n";
-			for (unsigned int i=0; i<ham->dmi_pairs.size(); ++i)
+			for (unsigned int i = 0; i<ham->dmi_pairs.size(); ++i)
 			{
-				config += "# " + std::to_string(ham->dmi_pairs[i].i) + " " + std::to_string(ham->dmi_pairs[i].j) + "   "
-							+ std::to_string(ham->dmi_pairs[i].translations[0]) + " " + std::to_string(ham->dmi_pairs[i].translations[1]) + " " + std::to_string(ham->dmi_pairs[i].translations[2])+ "   "
-							+ std::to_string(ham->dmi_magnitudes[i]) + " "
-							+ std::to_string(ham->dmi_normals[i][0]) + " " + std::to_string(ham->dmi_normals[i][1]) + " " + std::to_string(ham->dmi_normals[i][2]) + "\n";
+				config += " " + std::to_string(ham->dmi_pairs[i].i) + " " + std::to_string(ham->dmi_pairs[i].j) + "   "
+					+ std::to_string(ham->dmi_pairs[i].translations[0]) + " " + std::to_string(ham->dmi_pairs[i].translations[1]) + " " + std::to_string(ham->dmi_pairs[i].translations[2]) + "   "
+					+ std::to_string(0.0f) + "   "
+					+ std::to_string(ham->dmi_magnitudes[i]) + " "
+					+ std::to_string(ham->dmi_normals[i][0]) + " " + std::to_string(ham->dmi_normals[i][1]) + " " + std::to_string(ham->dmi_normals[i][2]) + "\n";
 			}
 
 			// Quadruplets
 			config += "###    Quadruplets:\n";
-			config += "# i   j   k   l     da_j  db_j  dc_j     k da_k db_k dc_k     l da_l db_l dc_l     Q\n";
+			config += "n_interaction_quadruplets " + std::to_string(ham->quadruplets.size()) + "\n";
+			config += " i   j   k   l     da_j  db_j  dc_j     k da_k db_k dc_k     l da_l db_l dc_l     Q\n";
 			for (unsigned int i=0; i<ham->quadruplets.size(); ++i)
 			{
-				config += "# " + std::to_string(ham->quadruplets[i].i) + "   " + std::to_string(ham->quadruplets[i].j) + "   " + std::to_string(ham->quadruplets[i].k) + "   " + std::to_string(ham->quadruplets[i].l) + "    "
+				config += " " + std::to_string(ham->quadruplets[i].i) + "   " + std::to_string(ham->quadruplets[i].j) + "   " + std::to_string(ham->quadruplets[i].k) + "   " + std::to_string(ham->quadruplets[i].l) + "    "
 							+ std::to_string(ham->quadruplets[i].d_j[0]) + "   " + std::to_string(ham->quadruplets[i].d_j[1]) + "   " + std::to_string(ham->quadruplets[i].d_j[2])+ "    "
 							+ std::to_string(ham->quadruplets[i].d_k[0]) + "   " + std::to_string(ham->quadruplets[i].d_k[1]) + "   " + std::to_string(ham->quadruplets[i].d_k[2])+ "    "
 							+ std::to_string(ham->quadruplets[i].d_l[0]) + "   " + std::to_string(ham->quadruplets[i].d_l[1]) + "   " + std::to_string(ham->quadruplets[i].d_l[2])+ "    "
