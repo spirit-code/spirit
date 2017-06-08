@@ -1,6 +1,8 @@
 import spirit.spiritlib as spiritlib
 import ctypes
 
+from spirit.scalar import scalar
+
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 

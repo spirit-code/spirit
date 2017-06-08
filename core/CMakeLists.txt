@@ -377,9 +377,19 @@ if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
     enable_testing()
 
     ### Tests
-    add_python_test( test_python_state           state.py )
-    add_python_test( test_python_configuration   configuration.py )
     add_python_test( test_python_chain           chain.py )
+    add_python_test( test_python_configuration   configuration.py )
+    add_python_test( test_python_constants       constants.py )
+    add_python_test( test_python_geometry        geometry.py )
+    add_python_test( test_python_hamiltonian     hamiltonian.py )
+    add_python_test( test_python_io              io.py )
+    add_python_test( test_python_log             log.py )
+    add_python_test( test_python_parameters      parameters.py )
+    add_python_test( test_python_quantities      quantities.py )
+    add_python_test( test_python_simulation      simulation.py )
+    add_python_test( test_python_state           state.py )
+    add_python_test( test_python_system          system.py )
+    add_python_test( test_python_transition      transition.py )
 endif( )
 #############################################
 
