@@ -46,7 +46,9 @@ namespace Engine
 		{
 			// Minus the gradient is the total Force here
 			systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
-			Vectormath::set_c_a(1, Gradient[img], Gradient[img], parameters->pinning->mask_unpinned);
+			#ifdef SPIRIT_ENABLE_PINNING
+				Vectormath::set_c_a(1, Gradient[img], Gradient[img], parameters->pinning->mask_unpinned);
+			#endif // SPIRIT_ENABLE_PINNING
 			// Vectormath::scale(Gradient[img], -1);
 			// Copy out
 			Vectormath::set_c_a(-1, Gradient[img], forces[img]);

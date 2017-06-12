@@ -339,92 +339,114 @@ namespace Utility
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
 
-			Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
-			//------------------------------- Parser --------------------------------
-			if (configFile != "")
-			{
-				try
+			#ifdef SPIRIT_ENABLE_PINNING
+				Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
+				//------------------------------- Parser --------------------------------
+				if (configFile != "")
 				{
-					IO::Filter_File_Handle myfile(configFile);
-
-					// N_a
-					myfile.Read_Single(na_left, "pin_na_left", false);
-					myfile.Read_Single(na_right, "pin_na_right", false);
-					myfile.Read_Single(na, "pin_na ", false);
-					if (na > 0 && (na_left == 0 || na_right == 0))
+					try
 					{
-						na_left = na;
-						na_right = na;
-					}
+						IO::Filter_File_Handle myfile(configFile);
 
-					// N_b
-					myfile.Read_Single(nb_left, "pin_nb_left", false);
-					myfile.Read_Single(nb_right, "pin_nb_right", false);
-					myfile.Read_Single(nb, "pin_nb ", false);
-					if (nb > 0 && (nb_left == 0 || nb_right == 0))
-					{
-						nb_left = nb;
-						nb_right = nb;
-					}
-
-					// N_c
-					myfile.Read_Single(nc_left, "pin_nc_left", false);
-					myfile.Read_Single(nc_right, "pin_nc_right", false);
-					myfile.Read_Single(nc, "pin_nc ", false);
-					if (nc > 0 && (nc_left == 0 || nc_right == 0))
-					{
-						nc_left = nc;
-						nc_right = nc;
-					}
-
-					// How should the cells be pinned
-					if (na_left > 0 || na_right > 0 ||
-						nb_left > 0 || nb_right > 0 ||
-						nc_left > 0 || nc_right > 0)
-					{
-						if (myfile.Find("pinning_cell"))
+						// N_a
+						myfile.Read_Single(na_left, "pin_na_left", false);
+						myfile.Read_Single(na_right, "pin_na_right", false);
+						myfile.Read_Single(na, "pin_na ", false);
+						if (na > 0 && (na_left == 0 || na_right == 0))
 						{
-							for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+							na_left = na;
+							na_right = na;
+						}
+
+						// N_b
+						myfile.Read_Single(nb_left, "pin_nb_left", false);
+						myfile.Read_Single(nb_right, "pin_nb_right", false);
+						myfile.Read_Single(nb, "pin_nb ", false);
+						if (nb > 0 && (nb_left == 0 || nb_right == 0))
+						{
+							nb_left = nb;
+							nb_right = nb;
+						}
+
+						// N_c
+						myfile.Read_Single(nc_left, "pin_nc_left", false);
+						myfile.Read_Single(nc_right, "pin_nc_right", false);
+						myfile.Read_Single(nc, "pin_nc ", false);
+						if (nc > 0 && (nc_left == 0 || nc_right == 0))
+						{
+							nc_left = nc;
+							nc_right = nc;
+						}
+
+						// How should the cells be pinned
+						if (na_left > 0 || na_right > 0 ||
+							nb_left > 0 || nb_right > 0 ||
+							nc_left > 0 || nc_right > 0)
+						{
+							if (myfile.Find("pinning_cell"))
 							{
-								myfile.GetLine();
-								myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+								for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+								{
+									myfile.GetLine();
+									myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+								}
+							}
+							else
+							{
+								na_left = 0; na_right = 0;
+								nb_left = 0; nb_right = 0;
+								nc_left = 0; nc_right = 0;
+								Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
 							}
 						}
-						else
-						{
-							na_left = 0; na_right = 0;
-							nb_left = 0; nb_right = 0;
-							nc_left = 0; nc_right = 0;
-							Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
-						}
-					}
-				}// end try
-				catch (Exception ex)
-				{
-					if (ex == Exception::File_not_Found)
+					}// end try
+					catch (Exception ex)
 					{
-						Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
+						if (ex == Exception::File_not_Found)
+						{
+							Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
+						}
+						else throw ex;
+					}// end catch
+				}// end if file=""
+				else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
+
+
+				// Return Pinning
+				Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
+				for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+					Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
+				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+					na_left, na_right,
+					nb_left, nb_right,
+					nc_left, nc_right,
+					pinned_cell) );
+				Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
+				return pinning;
+			#else
+				Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
+				if (configFile != "")
+				{
+					try
+					{
+						IO::Filter_File_Handle myfile(configFile);
+						if (myfile.Find("pinning_cell"))
+							Log(Log_Level::Warning, Log_Sender::IO, "You specified a pinning cell even though pinning is disabled!");
 					}
-					else throw ex;
-				}// end catch
-			}// end if file=""
-			else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
+					catch (Exception ex)
+					{
 
+					}
+				}
 
-			// Return Pinning
-			Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
-			for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
-				Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
-			auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
-				na_left, na_right,
-				nb_left, nb_right,
-				nc_left, nc_right,
-				pinned_cell) );
-			Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
-			return pinning;
+				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning(geometry,
+					intfield(geometry->nos, 1),
+					vectorfield(0)));
+				return pinning;
+			#endif // SPIRIT_ENABLE_PINNING
 		}
 
 		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)

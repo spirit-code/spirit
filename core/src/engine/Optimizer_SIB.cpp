@@ -84,7 +84,9 @@ namespace Engine
 		}
 
 		// Apply Pinning
-		Vectormath::set_c_a(1, force, force, llg_params.pinning->mask_unpinned);
+		#ifdef SPIRIT_ENABLE_PINNING
+				Vectormath::set_c_a(1, force, force, llg_params.pinning->mask_unpinned);
+		#endif // SPIRIT_ENABLE_PINNING
 	}
 
 
