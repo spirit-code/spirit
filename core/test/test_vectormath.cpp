@@ -64,25 +64,44 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 	{
 		scalar mc = Engine::Vectormath::max_abs_component(vf1);
 		REQUIRE(mc == 1);
-
-		Vector3 vtest1 = vf1[0].normalized();
-		Vector3 vtest2 = vf2[0].normalized();
-		Engine::Vectormath::normalize_vectors(vf1);
-		Engine::Vectormath::normalize_vectors(vf2);
-		for (int i = 0; i < N; ++i)
-		{
-			REQUIRE(vf1[i] == vtest1);
-			REQUIRE(vf2[i] == vtest2);
-		}
-
-		scalar vmc1 = std::max(vtest1[0], std::max(vtest1[1], vtest1[2]));
-		scalar vmc2 = std::max(vtest2[0], std::max(vtest2[1], vtest2[2]));
-		scalar vfmc1 = Engine::Vectormath::max_abs_component(vf1);
-		scalar vfmc2 = Engine::Vectormath::max_abs_component(vf2);
-		REQUIRE(vfmc1 == vmc1);
-		REQUIRE(vfmc2 == vmc2);
-	}
-
+    
+    Vector3 vtest1 = vf1[0].normalized();
+    Vector3 vtest2 = vf2[0].normalized();
+    Engine::Vectormath::normalize_vectors(vf1);
+    Engine::Vectormath::normalize_vectors(vf2);
+    for (int i = 0; i < N; ++i)
+    {
+      REQUIRE(vf1[i] == vtest1);
+      REQUIRE(vf2[i] == vtest2);
+    }
+  }
+  
+  SECTION( "MIN and MAX components" )
+  {
+    vectorfield vftest( N, Vector3{ 1., 1., 1. } );
+    vftest[0][1] = 10000;
+    vftest[N/2][2] = -10000;
+    std::pair< scalar, scalar > mm = Engine::Vectormath::minmax_component( vftest );
+    REQUIRE( mm.first == -10000 );    // check min
+    REQUIRE( mm.second == 10000 );    // check max
+  }
+  
+  SECTION( "MAX Abs component" )
+  {
+    Vector3 vtest1 = vf1[0].normalized();
+    Vector3 vtest2 = vf2[0].normalized();
+    scalar vmc1 = std::max( vtest1[0], std::max( vtest1[1], vtest1[2] ) );
+    scalar vmc2 = std::max( vtest2[0], std::max( vtest2[1], vtest2[2] ) );
+    
+    Engine::Vectormath::normalize_vectors(vf1);
+    Engine::Vectormath::normalize_vectors(vf2);
+    scalar vfmc1 = Engine::Vectormath::max_abs_component( vf1 );
+    scalar vfmc2 = Engine::Vectormath::max_abs_component( vf2 );
+    
+    REQUIRE( vfmc1 == vmc1 );
+    REQUIRE( vfmc2 == vmc2 );
+  }
+  
 	SECTION("Dot and Cross Product")
 	{
 		// Dot Product

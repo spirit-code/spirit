@@ -32,6 +32,7 @@ namespace Engine
         //    This assumes normalized vectorfields
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2);
         // Project vf1's vectors into the tangent plane of vf2
+        // XXX: vf2 must have normalized vectors
         void project_tangential(vectorfield & vf1, const vectorfield & vf2);
 
 		// Greatcircle distance between two vectors
