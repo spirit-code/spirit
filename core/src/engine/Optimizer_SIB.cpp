@@ -1,3 +1,4 @@
+#include <Spirit_Defines.h>
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>

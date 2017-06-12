@@ -1,3 +1,4 @@
+#include <Spirit_Defines.h>
 #include <engine/Method_GNEB.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>

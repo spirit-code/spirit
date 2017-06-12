@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 
+#include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
@@ -38,6 +39,9 @@ namespace Engine
 		dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
 		quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
 	{
+		// Atom types
+		this->atom_types = intfield(geometry->nos, 0);
+
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
@@ -142,7 +146,11 @@ namespace Engine
 	{
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			Energy[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[external_field_indices[i]]);
+			int ispin = external_field_indices[i];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (this->atom_types[ispin] >= 0)
+			#endif
+			Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
 	}
 
@@ -150,7 +158,11 @@ namespace Engine
 	{
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			Energy[anisotropy_indices[i]] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[anisotropy_indices[i]]), 2.0);
+			int ispin = anisotropy_indices[i];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (this->atom_types[ispin] >= 0)
+			#endif
+			Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
 	}
 
@@ -169,8 +181,16 @@ namespace Engine
 						{
 							int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = exchange_pairs[i_pair].j+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
-							Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-							Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							{
+							#endif
+								Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+								Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							}
+							#endif
 						}
 					}
 				}
@@ -193,8 +213,16 @@ namespace Engine
 						{
 							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
+							
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							{
+							#endif
 							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
 							Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							}
+							#endif
 						}
 					}
 				}
@@ -221,10 +249,18 @@ namespace Engine
 							std::array<int, 3 > translations = { da, db, dc };
 							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+							
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							{
+							#endif
 							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
 								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
 							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
 								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							}
+							#endif
 						}
 					}
 				}
@@ -244,14 +280,22 @@ namespace Engine
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int i = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int j = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-						int k = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-						int l = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
-						Energy[i] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-						Energy[j] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-						Energy[k] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-						Energy[l] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
+						int ispin = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+						int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
+						int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
+						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0 && this->atom_types[kspin] >= 0 && this->atom_types[lspin] >= 0)
+						{
+						#endif
+						Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+						Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+						Energy[kspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+						Energy[lspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						}
+						#endif
 					}
 				}
 			}
@@ -286,7 +330,11 @@ namespace Engine
 	{
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			gradient[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
+			int ispin = external_field_indices[i];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (this->atom_types[ispin] >= 0)
+			#endif
+			gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
 	}
 
@@ -294,7 +342,11 @@ namespace Engine
 	{
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			gradient[anisotropy_indices[i]] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[anisotropy_indices[i]]);
+			int ispin = anisotropy_indices[i];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (this->atom_types[ispin] >= 0)
+			#endif
+			gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
 	}
 
@@ -313,8 +365,16 @@ namespace Engine
 						{
 							int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
+							
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							{
+							#endif
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
 							gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							}
+							#endif
 						}
 					}
 				}
@@ -337,8 +397,16 @@ namespace Engine
 						{
 							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
+							
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							{
+							#endif
 							gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
 							gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							}
+							#endif
 						}
 					}
 				}
@@ -367,8 +435,16 @@ namespace Engine
 							{
 								int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 								int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+								
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+								{
+								#endif
 								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
 								gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								}
+								#endif
 							}
 						}
 					}
@@ -397,10 +473,18 @@ namespace Engine
 						int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
 						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
 						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0 && this->atom_types[kspin] >= 0 && this->atom_types[lspin] >= 0)
+						{
+						#endif
 						gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
 						gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
 						gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
 						gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						}
+						#endif
 					}
 				}
 			}

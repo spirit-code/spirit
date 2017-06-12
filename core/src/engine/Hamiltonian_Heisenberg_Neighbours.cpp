@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 
+#include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>

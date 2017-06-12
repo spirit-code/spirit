@@ -1,3 +1,4 @@
+#include <Spirit_Defines.h>
 #include <engine/Method_LLG.hpp>
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>

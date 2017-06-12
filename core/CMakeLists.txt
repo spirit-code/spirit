@@ -16,6 +16,7 @@ option( SPIRIT_BUILD_FOR_PYTHON  "Build the shared library for Python."         
 option( SPIRIT_BUILD_FOR_CXX     "Build the static library for C++ applications"  ON  )
 ### Feature switches for Spirit
 option( SPIRIT_ENABLE_PINNING    "Enable pinning individual or rows of spins."    OFF )
+option( SPIRIT_ENABLE_DEFECTS    "Enable defects and disorder in the lattice."    OFF )
 ### Options for Spirit
 option( SPIRIT_BUILD_TEST        "Build unit tests for the Spirit library."                ON  )
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
@@ -151,6 +152,9 @@ endif()
 set(VERSION_STRING "${META_VERSION}")
 set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
 string(TOUPPER ${SPIRIT_SCALAR_TYPE} SPIRIT_SCALAR_TYPE_UPPERCASE)
+if ( SPIRIT_ENABLE_DEFECTS )
+	set ( SPIRIT_DEFINE_DEFECTS "#define SPIRIT_ENABLE_DEFECTS")
+endif()
 if ( SPIRIT_ENABLE_PINNING )
 	set ( SPIRIT_DEFINE_PINNING "#define SPIRIT_ENABLE_PINNING")
 endif()

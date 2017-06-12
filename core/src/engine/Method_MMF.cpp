@@ -1,3 +1,4 @@
+#include <Spirit_Defines.h>
 #include <engine/Method_MMF.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
