@@ -338,7 +338,8 @@ namespace Engine
 			{
 				out[idx] = c*a[idx];
 			}
-		}// out[i] = c*a[i]
+		}
+		// out[i] = c*a[i]
 		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
 		{
 			for(unsigned int idx = 0; idx < out.size(); ++idx)
