@@ -38,6 +38,9 @@ namespace Engine
 		dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
 		quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
 	{
+		// Atom types
+		this->atom_types = intfield(geometry->nos, 0);
+
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
@@ -250,39 +253,47 @@ namespace Engine
 	}
 
 	
-	__global__ void CU_E_Zeeman(const Vector3 * spins, const int * external_field_indices, const scalar * external_field_magnitude, const Vector3 * external_field_normal, scalar * Energy, size_t size)
+	__global__ void CU_E_Zeeman(const Vector3 * spins, const int * atom_types, const int * external_field_indices, const scalar * external_field_magnitude, const Vector3 * external_field_normal, scalar * Energy, size_t size)
 	{
 		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
-			atomicAdd(&Energy[external_field_indices[idx]], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[external_field_indices[idx]]));
+			int ispin = external_field_indices[idx];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (atom_types[ispin] >= 0)
+			#endif
+			atomicAdd(&Energy[ispin], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[ispin]));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = this->external_field_indices.size();
-		CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), Energy.data(), size);
+		CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), Energy.data(), size);
 	}
 
 
-	__global__ void CU_E_Anisotropy(const Vector3 * spins, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, scalar * Energy, size_t size)
+	__global__ void CU_E_Anisotropy(const Vector3 * spins, const int * atom_types, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, scalar * Energy, size_t size)
 	{
 		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
-			atomicAdd(&Energy[anisotropy_indices[idx]], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[anisotropy_indices[idx]]), 2.0));
+			int ispin = anisotropy_indices[idx];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (atom_types[ispin] >= 0)
+			#endif
+			atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = this->anisotropy_indices.size();
-		CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
+		CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
 	}
 
 
-	__global__ void CU_E_Exchange(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+	__global__ void CU_E_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
 			int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * Energy, size_t size)
 	{
 		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
@@ -297,9 +308,16 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					{
+					#endif
 					scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
 					atomicAdd(&Energy[ispin], sc);
 					atomicAdd(&Energy[jspin], sc);
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					}
+					#endif
 				}
 			}
 		}
@@ -307,12 +325,12 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
 	}
 
 
-	__global__ void CU_E_DMI(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+	__global__ void CU_E_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
 			int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, scalar * Energy, size_t size)
 	{
 		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
@@ -327,9 +345,16 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					{
+					#endif
 					scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
 					atomicAdd(&Energy[ispin], sc);
 					atomicAdd(&Energy[jspin], sc);
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					}
+					#endif
 				}
 			}
 		}
@@ -337,7 +362,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
 	}
 
@@ -431,48 +456,62 @@ namespace Engine
 	}
 
 
-	__global__ void CU_Gradient_Zeeman( const int * external_field_indices, const scalar * external_field_magnitude, const Vector3 * external_field_normal, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_Zeeman( const int * atom_types, const int * external_field_indices, const scalar * external_field_magnitude, const Vector3 * external_field_normal, Vector3 * gradient, size_t size)
 	{
 		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (atom_types[ispin] >= 0)
+			{
+			#endif
 			for (int dim=0; dim<3 ; dim++)
 			{
 				atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
 			}
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			}
+			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
 	{
 		int size = this->external_field_indices.size();
-		CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), gradient.data(), size );
+		CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), gradient.data(), size );
 	}
 
 
-	__global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * anisotropy_indices, const scalar * anisotropy_magnitudes, const Vector3 * anisotropy_normals, Vector3 * gradient, size_t size)
+	__global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * atom_types, const int * anisotropy_indices, const scalar * anisotropy_magnitudes, const Vector3 * anisotropy_normals, Vector3 * gradient, size_t size)
 	{
 		for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
 			idx < size;
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			if (atom_types[ispin] >= 0)
+			{
+			#endif
 			scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
 			for (int dim=0; dim<3 ; dim++)
 			{
 				atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
 			}
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			}
+			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = this->anisotropy_indices.size();
-		CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
+		CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
 	}
 
 
-	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+	__global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
 			int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size)
 	{
 		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
@@ -487,11 +526,18 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					{
+					#endif
 					for (int dim=0; dim<3 ; dim++)
 					{
 						atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
 						atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
 					}
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					}
+					#endif
 				}
 			}
 		}
@@ -499,12 +545,12 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
 	}
 
 
-	__global__ void CU_Gradient_DMI(const Vector3 * spins, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+	__global__ void CU_Gradient_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
 			int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, Vector3 * gradient, size_t size)
 	{
 		int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
@@ -519,6 +565,10 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					{
+					#endif
 					Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
 					Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
 					for (int dim=0; dim<3 ; dim++)
@@ -526,6 +576,9 @@ namespace Engine
 						atomicAdd(&gradient[ispin][dim], -jcross[dim]);
 						atomicAdd(&gradient[jspin][dim],  icross[dim]);
 					}
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					}
+					#endif
 				}
 			}
 		}
@@ -533,7 +586,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->dmi_pairs.size(),  this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
 	}
 
