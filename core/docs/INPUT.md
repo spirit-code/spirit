@@ -129,9 +129,11 @@ anisotropy_normal          0.0 0.0 1.0
 n_neigh_shells_exchange   2
 jij 			  10.0  1.0
 
+### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
+dm_chirality       2
 ### DM constant [meV]
-n_neigh_shells_dmi        1
-dij			  6.0
+n_neigh_shells_dmi 1
+dij			       6.0
 
 ### Dipole-Dipole radius
 dd_radius		  0.0
@@ -164,23 +166,33 @@ anisotropy_normal             0.0 0.0 1.0
 dd_radius                     0.0
 
 ### Pairs
+n_interaction_pairs 2
+i  j    da  db  dc    Dx  Dy  Dz     J
+0  0    1   0   0     6.0 0.0 0.0    10.0
+0  0    0   1   0     0.0 6.0 0.0    10.0
+
+### Quadruplets
+n_interaction_quadruplets 1
+i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
+0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
+```
+
+*Pairs*: Leaving out either exchange or DMI in the pairs is allowed and columns can
+be placed in arbitrary order.
+Note that instead of specifying the DM-vector as `Dx Dy Dz`, you may specify it as
+`Da Db Dc` if you prefer, you may also specify the magnitude separately as a column `Dij`.
+
+*Quadruplets*: Columns for these may also be placed in arbitrary order.
+
+*Separate files*: The pairs and quadruplets can be placed into separate files.
+If the pairs or quadruplets are at the top of the respective file, it is not necessary to specify `n_interaction_pairs` or `n_interaction_quadruplets` respectively.
+
+```Python
+### Pairs
 interaction_pairs_file        input/pairs.txt
 
 ### Quadruplets
 interaction_quadruplets_file  input/quadruplets.txt
-```
-
-The input file for pairs should contain the following columns (in arbitrary order),
-where leaving out either exchange or DMI is allowed:
-
-```
-i  j    da  db  dc    Dx  Dy  Dz    J
-```
-
-The input file for quadruplets needs to contain the following columns (in arbitrary order):
-
-```
-i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 ```
 
 **Gaussian Hamiltonian**:

@@ -325,11 +325,23 @@ namespace Engine
 
 			if (chirality == 1)
 			{
+				// Bloch chirality
 				return (jpos - ipos).normalized();
 			}
 			else if (chirality == -1)
 			{
+				// Inverse Bloch chirality
 				return (ipos - jpos).normalized();
+			}
+			else if (chirality == 2)
+			{
+				// Neel chirality (surface)
+				return (jpos - ipos).normalized().cross(Vector3{0,0,1});
+			}
+			else if (chirality == -2)
+			{
+				// Inverse Neel chirality (surface)
+				return Vector3{0,0,1}.cross((jpos - ipos).normalized());
 			}
 			else
 			{
