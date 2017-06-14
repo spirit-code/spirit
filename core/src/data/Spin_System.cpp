@@ -104,7 +104,9 @@ namespace Data
 	void Spin_System::UpdateEnergy()
 	{
 		this->E_array = this->hamiltonian->Energy_Contributions(*this->spins);
-		this->E = this->hamiltonian->Energy(*this->spins);
+		scalar sum = 0;
+		for (auto E : E_array) sum += E.second;
+		this->E = sum;
 	}
 
 	void Spin_System::UpdateEffectiveField()
