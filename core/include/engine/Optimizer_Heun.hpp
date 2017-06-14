@@ -31,7 +31,7 @@ namespace Engine
     private:
 		// Temporary Spins arrays
 		std::vector<vectorfield> spins_temp;
-		vectorfield temp1, temp2, temp3;
+		vectorfield temp1, temp2, spins_predictor;
 
 		// Virtual Heun Forces used in the Steps
 		std::vector<vectorfield> virtualforce;

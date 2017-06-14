@@ -86,7 +86,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
 	image->Lock();
     auto p = image->llg_parameters;
     // Translate from picoseconds to units of our SIB
-    p->dt = dt*std::pow(10,-12)/Constants::mu_B*1.760859644*std::pow(10,11);
+    p->dt = dt;
 	image->Unlock();
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -443,7 +443,7 @@ float Parameters_Get_LLG_Time_Step(State *state, int idx_image, int idx_chain)
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    return (float)(p->dt/std::pow(10, -12)*Constants::mu_B/1.760859644/std::pow(10, 11));
+    return (float)p->dt;
 
 }
 

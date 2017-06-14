@@ -55,20 +55,22 @@ namespace Engine
 	}
 
 
-	void Optimizer_SIB::VirtualForce(vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & gradient,  vectorfield & xi, vectorfield & force)
+	void Optimizer_SIB::VirtualForce(vectorfield & spins, Data::Parameters_Method_LLG & llg_params, vectorfield & effective_field,  vectorfield & xi, vectorfield & force)
 	{
 		//========================= Init local vars ================================
 		// time steps
 		scalar damping = llg_params.damping;
-		scalar sqrtdt = std::sqrt(llg_params.dt), dtg = llg_params.dt, sqrtdtg = sqrtdt;
+		// dt = time_step [ps] * 10^-12 * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+		scalar dtg = llg_params.dt * 1e-12 * Constants::gamma / Constants::mu_B / (1 + damping*damping);
+		scalar sqrtdtg = dtg / std::sqrt( llg_params.dt );
 		// STT
 		scalar a_j = llg_params.stt_magnitude;
 		Vector3 s_c_vec = llg_params.stt_polarisation_normal;
 		//------------------------ End Init ----------------------------------------
 
 		Vectormath::fill       (force, {0,0,0});
-		Vectormath::add_c_a    (-0.5 * dtg, gradient, force);
-		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, gradient, force);
+		Vectormath::add_c_a    (-0.5 * dtg, effective_field, force);
+		Vectormath::add_c_cross(-0.5 * dtg * damping, spins, effective_field, force);
 
 		// STT
 		if (a_j > 0)

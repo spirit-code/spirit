@@ -508,8 +508,6 @@ namespace Utility
 					myfile.Read_Single(temperature, "llg_temperature");
 					myfile.Read_Single(damping, "llg_damping");
 					myfile.Read_Single(dt, "llg_dt");
-					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Constants::mu_B*1.760859644*std::pow(10, 11);
 					myfile.Read_Single(renorm_sd, "llg_renorm");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
@@ -534,7 +532,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        time step         = " + std::to_string(dt));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        time step [ps]    = " + std::to_string(dt));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
