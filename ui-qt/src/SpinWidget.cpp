@@ -323,7 +323,9 @@ void SpinWidget::updateData()
 	// Positions and directions
 	//		get pointer
 	scalar *spins, *spin_pos;
+	int *atom_types;
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
+	atom_types = Geometry_Get_Atom_Types(state.get());
 	if (this->m_source == 0)
 		spins = System_Get_Spin_Directions(state.get());
 	else if (this->m_source == 1)
@@ -344,6 +346,7 @@ void SpinWidget::updateData()
 					// std::cerr << idx << " " << icell << std::endl;
 					positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
 					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
+					if (atom_types[idx] < 0) directions[icell] *= 0;
 					++icell;
 				}
 			}
