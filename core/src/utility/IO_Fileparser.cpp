@@ -754,6 +754,59 @@ namespace Utility
 			{
 				throw ex;
 			}
-		}
+		} // End Quadruplets_from_File
+
+
+		void Defects_from_File(const std::string defectsFile, int & n_defects,
+			intfield & defect_indices, intfield & defect_types)
+		{
+			n_defects = 0;
+
+			int nod = 0;
+			intfield indices(0), types(0);
+			try
+			{
+				Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
+				IO::Filter_File_Handle myfile(defectsFile);
+
+				if (myfile.Find("n_defects"))
+				{
+					// Read n interaction pairs
+					myfile.iss >> nod;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + defectsFile + " should have " + std::to_string(nod) + " defects");
+				}
+				else
+				{
+					// Read the whole file
+					nod = (int)1e8;
+					// First line should contain the columns
+					myfile.ResetStream();
+					Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
+				}
+
+				int i_defect = 0;
+				while (myfile.GetLine() && i_defect < nod)
+				{
+					int index, type;
+					myfile.iss >> index >> type;
+					indices.push_back(index);
+					types.push_back(type);
+					++i_defect;
+				}
+
+				defect_indices = indices;
+				defect_types = types;
+				n_defects = i_defect;
+
+				Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
+			}
+			catch (Exception ex)
+			{
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Could not read defects file " + defectsFile);
+				else
+					throw ex;
+			}
+		} // End Defects_from_File
 	}
 }

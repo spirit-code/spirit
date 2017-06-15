@@ -38,9 +38,6 @@ namespace Engine
 		dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
 		quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
 	{
-		// Atom types
-		this->atom_types = intfield(geometry->nos, 0);
-
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
@@ -269,7 +266,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = this->external_field_indices.size();
-		CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), Energy.data(), size);
+		CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), Energy.data(), size);
 	}
 
 
@@ -289,7 +286,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = this->anisotropy_indices.size();
-		CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
+		CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
 	}
 
 
@@ -325,7 +322,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
 	}
 
@@ -362,7 +359,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
 	}
 
@@ -479,7 +476,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
 	{
 		int size = this->external_field_indices.size();
-		CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), gradient.data(), size );
+		CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), this->external_field_indices.data(), this->external_field_magnitudes.data(), this->external_field_normals.data(), gradient.data(), size );
 	}
 
 
@@ -507,7 +504,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = this->anisotropy_indices.size();
-		CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
+		CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
 	}
 
 
@@ -545,7 +542,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
 	}
 
@@ -586,7 +583,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
 				this->dmi_pairs.size(),  this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
 	}
 

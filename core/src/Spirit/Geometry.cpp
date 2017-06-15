@@ -10,6 +10,15 @@ scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain
     return (scalar *)image->geometry->spin_pos[0].data();
 }
 
+int * Geometry_Get_Atom_Types(State * state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    return (int *)image->geometry->atom_types.data();
+}
+
 void Geometry_Get_Bounds(State *state, float min[3], float max[3], int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;

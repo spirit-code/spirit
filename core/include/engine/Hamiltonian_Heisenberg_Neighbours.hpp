@@ -42,11 +42,6 @@ namespace Engine
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
-
-		// ------------ General Variables ------------
-		//std::vector<scalar> & field;
-		// Atom types: type index 0..n or or defect (type < 0)
-		intfield atom_types;
 		
 		// ------------ Single Spin Interactions ------------
 		// Spin moment

@@ -6,8 +6,11 @@ struct State;
 
 #include "Spirit_Defines.h"
 
-// Get Positions of Spins
+// Get positions of spins
 DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);
+
+// Get atom types of lattice sites
+DLLEXPORT int * Geometry_Get_Atom_Types(State * state, int idx_image=-1, int idx_chain=-1);
 
 // Get Bounds as array (x,y,z)
 DLLEXPORT void Geometry_Get_Bounds(State *state, float min[3], float max[3], int idx_image=-1, int idx_chain=-1);

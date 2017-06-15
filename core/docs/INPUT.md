@@ -9,7 +9,7 @@ The following sections will list and explain the input file keywords.
 2. [Method Output](#MethodOutput)
 2. [Method Parameters](#MethodParameters)
 2. [Pinning](#Pinning)
-2. [Defects](#Defects)
+2. [Disorder and Defects](#Defects)
 
 
 General Settings and Log <a name="General"></a>
@@ -350,10 +350,39 @@ pinning_cell
 ```
 
 
-Defects <a name="Defects"></a>
+Disorder and Defects <a name="Defects"></a>
 --------------------------------------------------
 Note that for this feature you need to build with `SPIRIT_ENABLE_DEFECTS`
 set to `ON` in cmake.
+
+Disorder is not yet implemented.
+<!--Disorder is not yet implemented but you will specify the basis in the form
+```Python
+disorder 1
+0  0.5
+1  0.25
+2  0.25
+```-->
+
+To specify defects, be it vacancies or impurities, you may fix atom types for
+sites of the whole lattice by inserting a list into your input. For example:
+```Python
+### Atom types: type index 0..n or or vacancy (type < 0)
+### Specify the number of defects and then the defects
+### ispin itype
+n_defects 3
+0 -1
+1 -1
+2 -1
+```
+You may also place it into a separate file with the keyword `defects_from_file`,
+e.g.
+```Python
+### Read defects from a separate file
+defects_from_file input/defects.txt
+```
+The file should either contain only the defects or you need to specify `n_defects`
+inside the file.
 
 
 ---

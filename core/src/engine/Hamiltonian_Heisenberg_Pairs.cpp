@@ -39,9 +39,6 @@ namespace Engine
 		dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
 		quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
 	{
-		// Atom types
-		this->atom_types = intfield(geometry->nos, 0);
-
 		// Renormalize the external field from Tesla to whatever
 		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
@@ -148,7 +145,7 @@ namespace Engine
 		{
 			int ispin = external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
@@ -160,7 +157,7 @@ namespace Engine
 		{
 			int ispin = anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
@@ -183,7 +180,7 @@ namespace Engine
 							int jspin = exchange_pairs[i_pair].j+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 								Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
@@ -215,7 +212,7 @@ namespace Engine
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
@@ -251,7 +248,7 @@ namespace Engine
 							int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
 							
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
@@ -286,7 +283,7 @@ namespace Engine
 						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						
 						#ifdef SPIRIT_ENABLE_DEFECTS
-						if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0 && this->atom_types[kspin] >= 0 && this->atom_types[lspin] >= 0)
+						if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0 && this->geometry->atom_types[kspin] >= 0 && this->geometry->atom_types[lspin] >= 0)
 						{
 						#endif
 						Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
@@ -332,7 +329,7 @@ namespace Engine
 		{
 			int ispin = external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
@@ -344,7 +341,7 @@ namespace Engine
 		{
 			int ispin = anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
@@ -367,7 +364,7 @@ namespace Engine
 							int jspin = exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 							
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
@@ -399,7 +396,7 @@ namespace Engine
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 							gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
@@ -437,7 +434,7 @@ namespace Engine
 								int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
 								
 								#ifdef SPIRIT_ENABLE_DEFECTS
-								if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+								if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 								{
 								#endif
 								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
@@ -475,7 +472,7 @@ namespace Engine
 						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						
 						#ifdef SPIRIT_ENABLE_DEFECTS
-						if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0 && this->atom_types[kspin] >= 0 && this->atom_types[lspin] >= 0)
+						if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0 && this->geometry->atom_types[kspin] >= 0 && this->geometry->atom_types[lspin] >= 0)
 						{
 						#endif
 						gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));

@@ -235,6 +235,10 @@ namespace Utility
 			// Number of Spins
 			int nos;
 			vectorfield spin_pos;
+			// Atom types
+			intfield atom_types;
+			intfield defect_indices(0);
+			intfield defects(0);
 
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
@@ -263,8 +267,8 @@ namespace Utility
 					else {
 						Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
 					}
+
 					// Read Basis
-						
 					if (myfile.Find("basis_from_config"))
 					{
 						myfile.iss >> basis_file;
@@ -277,6 +281,25 @@ namespace Utility
 					else {
 						Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
 					}// end Basis
+
+					// Defects
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					int n_defects = 0;
+
+					std::string defectsFile = "";
+					if (myfile.Find("n_defects"))
+						defectsFile = configFile;
+					else if (myfile.Find("defects_from_file"))
+						myfile.iss >> defectsFile;
+
+					if (defectsFile.length() > 0)
+					{
+						// The file name should be valid so we try to read it
+						Defects_from_File(defectsFile, n_defects,
+							defect_indices, defects);
+					}
+					#endif
+						
 				}// end try
 				catch (Exception ex)
 				{
@@ -309,7 +332,17 @@ namespace Utility
 			// Spin Positions
 			spin_pos = vectorfield(nos);
 			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
-			
+
+			// Atom types (default: type 0, vacancy: < 0)
+			atom_types = intfield(nos, 0);
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			int n_defects = defect_indices.size();
+			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(n_defects) + " defects");
+			if (n_defects > 0)
+				Log(Log_Level::Parameter, Log_Sender::IO, "  defect[0]: ispin=" + std::to_string(defect_indices[0]) + ", type=" + std::to_string(defects[0]) );
+			for (int i = 0; i < n_defects; ++i)
+				atom_types[defect_indices[i]] = defects[i];
+			#endif
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[0][2]));
@@ -322,7 +355,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
+			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;

@@ -36,9 +36,6 @@ namespace Engine
 		dmi_magnitudes(dmi_magnitudes),
 		ddi_radius(ddi_radius)
 	{
-		// Atom types
-		this->atom_types = intfield(geometry->nos, 0);
-
 		// Renormalize the external field from Tesla to meV
 		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
 		{
@@ -159,7 +156,7 @@ namespace Engine
 		{
 			int ispin = this->external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
@@ -171,7 +168,7 @@ namespace Engine
 		{
 			int ispin = this->anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
@@ -190,7 +187,7 @@ namespace Engine
 					int ishell = exchange_neighbours[ineigh].idx_shell;
 
 					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+					if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 					{
 					#endif
 					Energy[ispin] -= 0.5 * exchange_magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
@@ -215,7 +212,7 @@ namespace Engine
 					int ishell = dmi_neighbours[ineigh].idx_shell;
 
 					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+					if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 					{
 					#endif
 					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
@@ -245,7 +242,7 @@ namespace Engine
 						int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
 						
 						#ifdef SPIRIT_ENABLE_DEFECTS
-						if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+						if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 						{
 						#endif
 						Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
@@ -288,7 +285,7 @@ namespace Engine
 		{
 			int ispin = external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
@@ -300,7 +297,7 @@ namespace Engine
 		{
 			int ispin = anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->atom_types[ispin] >= 0)
+			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
 			gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
@@ -319,7 +316,7 @@ namespace Engine
 					int ishell = exchange_neighbours[ineigh].idx_shell;
 
 					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+					if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 					{
 					#endif
 					gradient[ispin] -= exchange_magnitudes[ishell] * spins[jspin];
@@ -344,7 +341,7 @@ namespace Engine
 					int ishell = dmi_neighbours[ineigh].idx_shell;
 					
 					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+					if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 					{
 					#endif
 					gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normals[ineigh]);
@@ -376,7 +373,7 @@ namespace Engine
 						if (ddi_magnitudes[ineigh] > 0.0)
 						{
 							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->atom_types[ispin] >= 0 && this->atom_types[jspin] >= 0)
+							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
 							{
 							#endif
 							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[ineigh], 3.0);
