@@ -368,6 +368,10 @@ namespace Utility
 			int nb = 0, nb_left = 0, nb_right = 0;
 			int nc = 0, nc_left = 0, nc_right = 0;
 			vectorfield pinned_cell(geometry->n_spins_basic_domain, Vector3{ 0,0,1 });
+			// Additional pinned sites
+			intfield pinned_indices(0);
+			vectorfield pinned_spins(0);
+			int n_pinned = 0;
 
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
@@ -432,6 +436,20 @@ namespace Utility
 								Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
 							}
 						}
+
+						// Additional pinned sites
+						std::string pinnedFile = "";
+						if (myfile.Find("n_pinned"))
+							pinnedFile = configFile;
+						else if (myfile.Find("pinned_from_file"))
+							myfile.iss >> pinnedFile;
+
+						if (pinnedFile.length() > 0)
+						{
+							// The file name should be valid so we try to read it
+							Pinned_from_File(pinnedFile, n_pinned,
+								pinned_indices, pinned_spins);
+						}
 					}// end try
 					catch (Exception ex)
 					{
@@ -444,6 +462,20 @@ namespace Utility
 				}// end if file=""
 				else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
 
+				// Create Pinning
+				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+					na_left, na_right,
+					nb_left, nb_right,
+					nc_left, nc_right,
+					pinned_cell) );
+
+				// Apply additional pinned sites
+				for (int i = 0; i < n_pinned; ++i)
+				{
+					int idx = pinned_indices[i];
+					pinning->mask_unpinned[idx] = 0;
+					pinning->mask_pinned_cells[idx] = pinned_spins[i];
+				}
 
 				// Return Pinning
 				Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
@@ -452,14 +484,12 @@ namespace Utility
 				Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
 				for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
 					Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
-				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
-					na_left, na_right,
-					nb_left, nb_right,
-					nc_left, nc_right,
-					pinned_cell) );
+				Log(Log_Level::Parameter, Log_Sender::IO, "        N additional pinned sites: " + std::to_string(n_pinned));
+				for (int i = 0; i < n_pinned; ++i)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        pinned site[0]           = (" + std::to_string(pinned_spins[0][0]) + ", " + std::to_string(pinned_spins[0][1]) + ", " + std::to_string(pinned_spins[0][2]) + ")");
 				Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
 				return pinning;
-			#else
+			#else // SPIRIT_ENABLE_PINNING
 				Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
 				if (configFile != "")
 				{

@@ -349,6 +349,25 @@ pinning_cell
 1 0 0
 ```
 
+To specify individual pinned sites (overriding the above pinning settings),
+insert a list into your input. For example:
+```Python
+### Specify the number of pinned sites and then the directions
+### ispin S_x S_y S_z
+n_pinned 3
+0 1.0 0.0 0.0
+1 0.0 1.0 0.0
+2 0.0 0.0 1.0
+```
+You may also place it into a separate file with the keyword `pinned_from_file`,
+e.g.
+```Python
+### Read pinned sites from a separate file
+pinned_from_file input/pinned.txt
+```
+The file should either contain only the pinned sites or you need to specify `n_pinned`
+inside the file.
+
 
 Disorder and Defects <a name="Defects"></a>
 --------------------------------------------------

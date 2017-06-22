@@ -808,5 +808,59 @@ namespace Utility
 					throw ex;
 			}
 		} // End Defects_from_File
+
+		void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
+			intfield & pinned_indices, vectorfield & pinned_spins)
+		{
+			n_pinned = 0;
+
+			int nop = 0;
+			intfield indices(0);
+			vectorfield spins(0);
+			try
+			{
+				Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
+				IO::Filter_File_Handle myfile(pinnedFile);
+
+				if (myfile.Find("n_pinned"))
+				{
+					// Read n interaction pairs
+					myfile.iss >> nop;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + pinnedFile + " should have " + std::to_string(nop) + " pinned sites");
+				}
+				else
+				{
+					// Read the whole file
+					nop = (int)1e8;
+					// First line should contain the columns
+					myfile.ResetStream();
+					Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
+				}
+
+				int i_pinned = 0;
+				while (myfile.GetLine() && i_pinned < nop)
+				{
+					int index;
+					scalar sx, sy, sz;
+					myfile.iss >> index >> sx >> sy >> sz;
+					indices.push_back(index);
+					spins.push_back({sx, sy, sz});
+					++i_pinned;
+				}
+
+				pinned_indices = indices;
+				pinned_spins = spins;
+				n_pinned = i_pinned;
+
+				Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
+			}
+			catch (Exception ex)
+			{
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Could not read pinned sites file " + pinnedFile);
+				else
+					throw ex;
+			}
+		} // End Pinned_from_File
 	}
 }

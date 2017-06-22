@@ -94,6 +94,8 @@ namespace Utility
 			quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes);
 		void Defects_from_File(const std::string defectsFile, int & n_defects,
 			intfield & defect_indices, intfield & defect_types);
+		void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
+			intfield & pinned_indices, vectorfield & pinned_spins);
 
 		// =========================== Saving Configurations ===========================
 		// Append Spin_Configuration to file
