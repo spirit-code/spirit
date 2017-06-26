@@ -175,14 +175,12 @@ The available `method_type`s are:
 | Landau-Lifshitz-Gilbert       | `"LLG"`  |
 | Geodesic Nudged Elastic Band  | `"GNEB"` |
 | Monte-Carlo                   | `"MC"`   |
-| Minimum Mode Following        | `"MMF"`  |
 
 The available `optimizer_type`s are:
 
 | optimizer                     | Argument |
 | ----------------------------- | :------: |
 | Semi-Implicit Method          | `"SIB"`  |
-| Semi-Implicit Method Modified | `"SIB2"` |
 | Velocity Projection           | `"VP"`   |
 | Heun Method (Direct)          | `"Heun"` |
 | Nonlinear Conjugate Gradient  | `"NCG"`  |

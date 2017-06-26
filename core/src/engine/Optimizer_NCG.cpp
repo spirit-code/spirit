@@ -31,7 +31,7 @@ namespace Engine
   
   void Optimizer_NCG::Iteration()
   {
-    int convergence;                      // convergence state
+    int convergence = 0;                  // convergence state (init to false)
     double eps = std::pow( tol_NR, 2 );   // calculate NR convergence criterion
     
     // calculate delta_d
@@ -39,7 +39,7 @@ namespace Engine
       this->delta_d[img] = Engine::Vectormath::dot( this->d[img], this->d[img] );  
     
     // Perform a Newton-Raphson line search in order to determine the minimum along d  
-    do
+    for( int j=0; j<jmax && convergence; j++ )
     {
       convergence = 1;                  // set convergence to true
       
@@ -54,9 +54,8 @@ namespace Engine
       
       // check convergence
       for ( int img=0; img<this->noi; img++)
-        convergence *= ( this->delta_d[img]*this->alpha > eps ) ? 0 : 1; 
+        convergence *= ( this->delta_d[img]*this->alpha > eps ) ? 0 : 1;
     }
-    while (int j=0; j< jmax && convergence; j++ )
 
     
     // Update the direction d
