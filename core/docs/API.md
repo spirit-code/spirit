@@ -180,11 +180,11 @@ Get Chain's information
 
 Move between images (change `active_image` )
 
-| Chain moving                                                     | Return  |
-| ---------------------------------------------------------------- | ------- |
-| Chain_prev_Image( State *, int idx_chain )                       | `bool`  |
-| Chain_next_Image( State *, int idx_chain )                       | `bool`  |
-| Chain_Jump_To_Image( State *, int idx_image, int idx_chain=-1)   | `bool`  |
+| Chain moving                                                      | Return  |
+| ----------------------------------------------------------------- | ------- |
+| `Chain_prev_Image( State *, int idx_chain )`                      | `bool`  |
+| `Chain_next_Image( State *, int idx_chain )`                      | `bool`  |
+| `Chain_Jump_To_Image( State *, int idx_image, int idx_chain )`    | `bool`  |
 
 Insertion/deletion and replacement of images are done by
 

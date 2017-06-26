@@ -168,6 +168,26 @@ Parameters
 Simulation
 ----------
 
+The available `method_type`s are:
+
+| Method                        | Argument |
+| ----------------------------- | :------: |
+| Landau-Lifshitz-Gilbert       | `"LLG"`  |
+| Geodesic Nudged Elastic Band  | `"GNEB"` |
+| Monte-Carlo                   | `"MC"`   |
+| Minimum Mode Following        | `"MMF"`  |
+
+The available `optimizer_type`s are:
+
+| optimizer                     | Argument |
+| ----------------------------- | :------: |
+| Semi-Implicit Method          | `"SIB"`  |
+| Semi-Implicit Method Modified | `"SIB2"` |
+| Velocity Projection           | `"VP"`   |
+| Heun Method (Direct)          | `"Heun"` |
+| Nonlinear Conjugate Gradient  | `"NCG"`  |
+
+
 | Simulation state                                                                                                          | Return     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `SingleShot( p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`    | `None`     |
