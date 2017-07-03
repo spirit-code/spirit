@@ -310,7 +310,13 @@ namespace Utility
 			output_to_file.append(buffer_string_conversion);
 			//------------------------ End Init ----------------------------------------
 
-			for (iatom = 0; iatom < s->nos; ++iatom) {
+			for (iatom = 0; iatom < s->nos; ++iatom)
+			{
+				#ifdef SPIRIT_ENABLE_DEFECTS
+				if (s->geometry->atom_types[iatom] < 0)
+					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f", 0, 0, 0);
+				else
+				#endif
 				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
 					(*s->spins)[iatom][0], (*s->spins)[iatom][1], (*s->spins)[iatom][2]);
 				output_to_file.append(buffer_string_conversion);
@@ -333,12 +339,19 @@ namespace Utility
 			snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images with NOS = %8i after iteration %8i", c->noi, c->images[0]->nos, iteration);
 			output_to_file.append(buffer_string_conversion);
 			//------------------------ End Init ----------------------------------------
-			for (iimage = 0; iimage < c->noi; ++iimage) {
+			for (iimage = 0; iimage < c->noi; ++iimage)
+			{
 				snprintf(buffer_string_conversion, buffer_length, "\n Image No %3i", iimage);
 				output_to_file.append(buffer_string_conversion);
 				nos = c->images[iimage]->nos;
 				auto& spins = *c->images[iimage]->spins;
-				for (iatom = 0; iatom < nos; ++iatom) {
+				for (iatom = 0; iatom < nos; ++iatom)
+				{
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					if (c->images[iimage]->geometry->atom_types[iatom] < 0)
+						snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f", 0, 0, 0);
+					else
+					#endif
 					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
 						spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 					output_to_file.append(buffer_string_conversion);

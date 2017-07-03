@@ -75,9 +75,22 @@ namespace Utility
 						if (found == std::string::npos)
 						{
 							auto x = split_string_to_scalar(line, ",");
-							spins[i][0] = x[3];
-							spins[i][1] = x[4];
-							spins[i][2] = x[5];
+
+							if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
+							{
+								spins[i][0] = 0;
+								spins[i][1] = 0;
+								spins[i][2] = 1;
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								s->geometry->atom_types[i] = -1;
+								#endif
+							}
+							else
+							{
+								spins[i][0] = x[3];
+								spins[i][1] = x[4];
+								spins[i][2] = x[5];
+							}
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -86,6 +99,7 @@ namespace Utility
 				else
 				{
 					auto& spins = *s->spins;
+					Vector3 spin;
 					while (getline(myfile, line))
 					{
 						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
@@ -97,7 +111,15 @@ namespace Utility
 							iss.clear();
 							iss.str(line);
 							//iss >> x >> y >> z;
-							iss >> spins[i][0] >> spins[i][1] >> spins[i][2];
+							iss >> spin[0] >> spin[1] >> spin[2];
+							if (spin.norm() < 1e-5)
+							{
+								spin = {0, 0, 1};
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								s->geometry->atom_types[i] = -1;
+								#endif
+							}
+							spins[i] = spin;
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -120,6 +142,7 @@ namespace Utility
 				std::istringstream iss(line);
 				std::size_t found;
 				int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+				Vector3 spin;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -158,7 +181,15 @@ namespace Utility
 								iss.str(line);
 								auto& spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> spins[ispin][0] >> spins[ispin][1] >> spins[ispin][2];
+								iss >> spin[0] >> spin[1] >> spin[2];
+								if (spin.norm() < 1e-5)
+								{
+									spin = {0, 0, 1};
+									#ifdef SPIRIT_ENABLE_DEFECTS
+									c->images[iimage]->geometry->atom_types[ispin] = -1;
+									#endif
+								}
+								spins[ispin] = spin;
 							}
 							++ispin;
 						}//end else
