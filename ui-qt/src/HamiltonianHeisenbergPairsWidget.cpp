@@ -3,6 +3,7 @@
 #include "HamiltonianHeisenbergPairsWidget.hpp"
 
 #include <Spirit/System.h>
+#include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
@@ -55,7 +56,9 @@ void HamiltonianHeisenbergPairsWidget::updateData()
 
 void HamiltonianHeisenbergPairsWidget::Load_Contents()
 {
-	float d, vd[3], mu_s;
+	float d, vd[3];
+	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(state.get());
+	std::vector<float> mu_s(n_basis_atoms);
 
 	// Boundary conditions
 	bool boundary_conditions[3];
@@ -65,8 +68,8 @@ void HamiltonianHeisenbergPairsWidget::Load_Contents()
 	this->checkBox_aniso_periodical_c->setChecked(boundary_conditions[2]);
 
 	// mu_s
-	Hamiltonian_Get_mu_s(state.get(), &mu_s);
-	this->lineEdit_muSpin_aniso->setText(QString::number(mu_s));
+	Hamiltonian_Get_mu_s(state.get(), mu_s.data());
+	this->lineEdit_muSpin_aniso->setText(QString::number(mu_s[0]));
 
 	// External magnetic field
 	Hamiltonian_Get_Field(state.get(), &d, vd);
