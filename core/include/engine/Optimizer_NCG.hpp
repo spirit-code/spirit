@@ -30,19 +30,26 @@ namespace Engine
     // check if the Newton-Raphson has converged
     bool NR_converged();
     
-    // max iterations for Newton-Raphson loop
-    int jmax;
+    int jmax;     // max iterations for Newton-Raphson loop
+    int n;        // number of iteration after which the nCG will restart
     
-    // tolerances for optimizer and Newton-Raphson
-    scalar tol_nGB, tol_NR;
+    scalar tol_nCG, tol_NR;   // tolerances for optimizer and Newton-Raphson
+    scalar eps_nCG, eps_NR;   // Newton-Raphson and optimizer tolerance squared
+    
+    bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
     
     // step sizes
-    scalar alpha, beta;
+    std::vector<scalarfield> alpha, beta;
     
-    scalarfield delta_0, delta_new, delta_old, delta_d;
+    // XXX: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
+    // delta scalarfields
+    std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
     
-    // residual and new configuration state
-    std::vector<vectorfield> res, d, x;
+    // residual and new configuration states
+    std::vector<vectorfield> res, d;
+
+    // buffer variables for checking convergence for optimizer and Newton-Raphson
+    std::vector<scalarfield> r_dot_d, dda2;
     
   };
 }

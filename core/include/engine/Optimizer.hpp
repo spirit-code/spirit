@@ -53,6 +53,10 @@ namespace Engine
 		int n_iterations_log;
 		// Number of times to save
 		int n_log;
+    // Number of iterations that have been executed
+    int iteration;
+    // Number of steps (set of iterations between logs) that have been executed
+    int step;
 
 		// Pointers to Configurations
 		std::vector<std::shared_ptr<vectorfield>> configurations;

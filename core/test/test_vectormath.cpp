@@ -5,10 +5,10 @@
 
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
-    int N = 10000;
-	scalarfield sf(N, 1);
-    vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
-    vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
+  int N = 10000;
+  scalarfield sf(N, 1);
+  vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
+  vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
 	
 	SECTION("Fill")
 	{
@@ -36,7 +36,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 		}
 	}
 
-	SECTION("Sum and Mean")
+	SECTION("Sum, Mean and Divide")
 	{
 		// Sum
 		scalar sN = (scalar)N;
@@ -58,6 +58,17 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 		REQUIRE(stest2 == 1);
 		REQUIRE(vtest3 == vref3);
 		REQUIRE(vtest4 == vref4);
+    
+    // Divide
+    scalar stest3 = 3;
+    scalarfield numerator( N, 6 );
+    scalarfield denominator( N, 2 );
+    scalarfield result( N, 0 );
+    Engine::Vectormath::divide( numerator, denominator, result );
+    for (int i=0; i < N; i++)
+    {
+      REQUIRE( result[i] == stest3 );
+    }
 	}
 
 	SECTION("Normalization")
@@ -109,13 +120,21 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 		Engine::Vectormath::dot(vf1, vf2, dots);
 		REQUIRE( dots[0] == Approx(1) );
 		REQUIRE( Engine::Vectormath::dot(vf1, vf2) == Approx(N) );
-
+    
+    // Scalarfields dot Product
+    scalarfield sf1( N, 2 );
+    scalarfield sf2( N, -0.5 );
+    scalarfield result( N, 0 );
+    Engine::Vectormath::dot( sf1, sf2, result );
+    for (int i=0; i<N; i++)
+      REQUIRE( result[i] == -1 );
+    
 		// Cross Product
 		Vector3 vtest{ 0, -2, 2 };
 		vectorfield crosses(N);
 		Engine::Vectormath::cross(vf1, vf2, crosses);
 		REQUIRE( crosses[0] == vtest );
-	}
+  }
 
 	SECTION("c*a")
 	{
@@ -135,18 +154,33 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 			REQUIRE(vf1[i] == vtest3);
 		}
 		// out[i] = c*a
-		Engine::Vectormath::set_c_a(3, vtest1, vf1);
+		Engine::Vectormath::set_c_a(3, vtest1, vf1);    // vf1 is now { 3, 3, 3 }
 		for (int i = 0; i < N; ++i)
 		{
 			REQUIRE(vf1[i] == 3*vtest1);
 		}
 		// out[i] = c*a[i]
-		Engine::Vectormath::set_c_a(3, vf1, vf2);
+		Engine::Vectormath::set_c_a(3, vf1, vf2);   // vf2 is now { 9, 9, 9 }
 		for (int i = 0; i < N; ++i)
 		{
-			REQUIRE(vf2[i] == 3*vf1[i]);
+			REQUIRE(vf2[i] == 3*vf1[i]); 
 		}
-	}
+    // out[i] += c[i]*a[i]
+    Vector3 vtest4{ -6, -6, -6 };
+    scalarfield sf( N, -1 );
+    Engine::Vectormath::add_c_a( sf, vf2, vf1 );    // vf1 is now { -6, -6, -6 }
+    for (int i=0; i < N; i++)
+    {
+      REQUIRE( vf1[i] == vtest4 ); 
+    }
+    // out[i] = c[i]*a[i]
+    Vector3 vtest5{ 6, 6, 6 };
+    Engine::Vectormath::set_c_a( sf, vf1, vf2 );    // vf2 is now { 6, 6, 6 }
+    for (int i=0; i < N; i++)
+    {
+      REQUIRE( vf2[i] == vtest5 );
+    }
+  } 
 	
 	SECTION("c*v1.dot(v2)")
 	{

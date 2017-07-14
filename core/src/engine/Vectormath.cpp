@@ -262,7 +262,11 @@ namespace Engine
 			return ret;
 		}
 
-
+    void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
+    {
+      for (unsigned int i=0; i<out.size(); ++i)
+        out[i] = numerator[i] / denominator[i];
+    }
 
 		// computes the inner product of two vectorfields v1 and v2
 		scalar dot(const vectorfield & v1, const vectorfield & v2)
@@ -284,7 +288,17 @@ namespace Engine
 				out[i] = v1[i].dot(v2[i]);
 			}
 		}
-
+    
+    // computes the product of scalars in s1 and s2
+    // s1 and s2 are scalarfields
+    void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
+    {
+      for (unsigned int i=0; i<s1.size(); i++)
+      {
+        out[i] = s1[i] * s2[i];
+      }
+    }
+    
 		// computes the vector (cross) products of vectors in v1 and v2
 		// v1 and v2 are vector fields
 		void cross(const vectorfield & v1, const vectorfield & v2, vectorfield & out)
@@ -313,7 +327,15 @@ namespace Engine
 				out[idx] += c*a[idx];
 			}
 		}
-
+    // out[i] += c[i]*a[i]
+    void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+    {
+      for( unsigned int idx = 0; idx < out.size(); ++idx )
+      {
+        out[idx] += c[idx] * a[idx];
+      }
+    }
+    
 		// out[i] = c*a
 		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
 		{
@@ -347,7 +369,14 @@ namespace Engine
 				out[idx] = mask[idx] * c*a[idx];
 			}
 		}
-
+    // out[i] = c[i]*a[i]
+    void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+    {
+      for( unsigned int idx=0; idx < out.size(); ++idx)
+      {
+        out[idx] = c[idx] * a[idx];
+      }
+    }
 
 		// out[i] += c * a*b[i]
 		void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)

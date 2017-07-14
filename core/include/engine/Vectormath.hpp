@@ -143,9 +143,10 @@ namespace Engine
 
 		// Calculate the mean of a vectorfield
 		Vector3 mean(const vectorfield & vf);
-
-
-
+  
+    // divide two scalarfields
+    void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out );
+    
 		// TODO: move this function to manifold??
 		// computes the inner product of two vectorfields v1 and v2
 		scalar dot(const vectorfield & vf1, const vectorfield & vf2);
@@ -154,6 +155,11 @@ namespace Engine
 		// v1 and v2 are vectorfields
 		void dot(const vectorfield & vf1, const vectorfield & vf2, scalarfield & out);
 		
+    // TODO: find a more appropriate name
+    // computes the product of scalars in sf1 and sf2
+    // sf1 and sf2 are vectorfields
+    void dot(const scalarfield & sf1, const scalarfield & sf2, scalarfield & out);
+    
 		// computes the vector (cross) products of vectors in v1 and v2
 		// v1 and v2 are vector fields
 		void cross(const vectorfield & vf1, const vectorfield & vf2, vectorfield & out);
@@ -163,14 +169,19 @@ namespace Engine
 		// out[i] += c*a
 		void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
 		// out[i] += c*a[i]
-		void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+    // TODO: Add test for that functions
+    // out[i] += c[i]*a[i]
+    void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out );
 
 		// out[i] = c*a
 		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
 		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask);
 		// out[i] = c*a[i]
-		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out);
-		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask);
+		void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+		void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask);
+    // out[i] = c[i]*a[i]
+    void set_c_a( const scalarfield & sf, const vectorfield & vf, vectorfield & out );
 
 		// out[i] += c * a*b[i]
 		void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
@@ -191,7 +202,8 @@ namespace Engine
 		void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
 		// out[i] = c * a[i] x b[i]
 		void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
-	}
+    
+  }
 }
 
 #endif

@@ -21,12 +21,12 @@ TEST_CASE( "Optimizers testing", "[optimizers]" )
                                         };   // optimizers to be tested
   
   // expected values
-  float Energy = -5094.5556640625;
-  std::vector<float> Magnetization{ .0, .0, 0.644647 };
+  float Energy = -5094.5556640625f;
+  std::vector<float> Magnetization{ 0, 0, 0.644647f };
 
   int index;    // index of optimizer in optimizers list  
   scalar energy;    // enery output
-  std::vector<float> magnetization{ .0, .0, .0 };   // magnetization output
+  std::vector<float> magnetization{ 0, 0, 0 };   // magnetization output
   
   // simulation parameters
   const char * method = "LLG";
