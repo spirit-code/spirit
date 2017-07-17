@@ -361,6 +361,7 @@ if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
     add_framework_test( test_vmath test/test_vectormath.cpp )
     add_framework_test( test_mmath test/test_manifoldmath.cpp )
     add_framework_test( test_api   test/test_api.cpp )
+    add_framework_test( test_optim test/test_optimizers.cpp )
 endif()
 #############################################
 

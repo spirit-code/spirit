@@ -144,28 +144,24 @@ Parameters
 | `Parameters_Set_LLG_Time_Step( State *, float dt, int idx_image, int idx_chain )`                             | `void`   | -           |
 | `Parameters_Set_LLG_Damping( State *, float damping, int idx_image, int idx_chain )`                          | `void`   | -           |
 | `Parameters_Set_LLG_N_Iterations( State *, int n_iterations, int idx_image, int idx_chain )`                  | `void`   | -           |
-| `Parameters_Set_LLG_N_Iterations_Log( State *, int n_iterations, int idx_image, int idx_chain )`              | `void`   | -           |
 
 | GNEB Parameters Set                                                                                           | Return   | Effect      |
 | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
 | `Parameters_Set_GNEB_Spring_Constant( State *, float spring_constant, int idx_image, int idx_chain )`         | `void`   | -           |
 | `Parameters_Set_GNEB_Climbing_Falling( State *, int image_type, int idx_image, int idx_chain )`               | `void`   | -           |
 | `Parameters_Set_GNEB_N_Iterations( State *, int n_iterations, int idx_chain )`                                | `void`   | -           |
-| `Parameters_Set_GNEB_N_Iterations_Log( State *, int n_iterations_log, int idx_chain )`                        | `void`   | -           |
 
 | LLG Parameters Get                                                                                            | Return   | Effect      |
 | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
 | `Parameters_Get_LLG_Time_Step( State *, float * dt, int idx_image, int idx_chain)`                            | `void`   | -           |
 | `Parameters_Get_LLG_Damping( State *, float * damping, int idx_image, int idx_chain)`                         | `void`   | -           |
-| `Parameters_Get_LLG_N_Iterations( State *, int idx_image, int idx_chain)`                                     | `int`    | -           |
-| `Parameters_Get_LLG_N_Iterations_Log( State *, int idx_image, int idx_chain)`                                 | `int`    | -           |
+| `Parameters_Get_LLG_N_Iterations( State *, int idx_image, int idx_chain)`                                     | `void`   | -           |
 
 | GNEB Parameters Get                                                                                           | Return   | Effect      |
 | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
 | `Parameters_Get_GNEB_Spring_Constant( State *, float * spring_constant, int idx_image, int idx_chain )`       | `void`   | -           |
 | `Parameters_Get_GNEB_Climbing_Falling( State *, int * image_type, int idx_image, int idx_chain )`             | `void`   | -           |
 | `Parameters_Get_GNEB_N_Iterations( State *, int idx_chain )`                                                  | `int`    | -           |
-| `Parameters_Get_GNEB_N_Iterations_Log( State *, int idx_chain )`                                              | `int`    | -           |
 | `Parameters_Get_GNEB_N_Energy_Interpolations( State *, int idx_chain )`                                       | `int`    | -           |
 
 Chain
@@ -180,11 +176,11 @@ Get Chain's information
 
 Move between images (change `active_image` )
 
-| Chain moving                                                     | Return  |
-| ---------------------------------------------------------------- | ------- |
-| Chain_prev_Image( State *, int idx_chain )                       | `bool`  |
-| Chain_next_Image( State *, int idx_chain )                       | `bool`  |
-| Chain_Jump_To_Image( State *, int idx_image, int idx_chain=-1)   | `bool`  |
+| Chain moving                                                      | Return  |
+| ----------------------------------------------------------------- | ------- |
+| `Chain_prev_Image( State *, int idx_chain )`                      | `bool`  |
+| `Chain_next_Image( State *, int idx_chain )`                      | `bool`  |
+| `Chain_Jump_To_Image( State *, int idx_image, int idx_chain )`    | `bool`  |
 
 Insertion/deletion and replacement of images are done by
 

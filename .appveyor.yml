@@ -11,8 +11,8 @@ platform:
 
 # Build Configurations, i.e. Debug, Release, etc.
 configuration:
-  - Debug
   - Release
+  # - Debug
 
 environment:
     matrix:
