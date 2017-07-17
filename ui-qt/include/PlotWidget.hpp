@@ -10,13 +10,14 @@
 
 struct State;
 
-class PlotWidget : public QtCharts::QChartView	// We need a proper 2D plotting solution!!
+class PlotWidget : public QtCharts::QChartView
 {
 
 public:
 	PlotWidget(std::shared_ptr<State> state, bool plot_interpolated=false);
 	void updateData();
-	void set_interpolating(bool b);
+
+	bool plot_interpolated;
 
 private:
 	std::shared_ptr<State> state;
@@ -32,8 +33,6 @@ private:
 	QtCharts::QLineSeries * series_E_interp;
 
 	QImage triangleUpRed, triangleUpBlue, triangleDownRed, triangleDownBlue;
-
-	bool plot_interpolated;
 
 	void plotEnergies();
 };
