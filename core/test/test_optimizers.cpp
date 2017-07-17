@@ -10,7 +10,7 @@
 TEST_CASE( "Optimizers testing", "[optimizers]" )
 {
     // input file
-    auto inputfile = "core/test/input/optimizers/test.cfg";
+    auto inputfile = "core/test/input/optimizers.cfg";
 
     // optimizers to be tested
     std::vector<const char *>  optimizers { "VP", "Heun", "SIB" };
