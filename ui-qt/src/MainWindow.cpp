@@ -716,7 +716,13 @@ void MainWindow::createStatusBar()
 	//		NOS
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOS);
 	this->m_Label_NOS = new QLabel;
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + QString::number(System_Get_NOS(this->state.get())) + QString::fromLatin1("  "));
+	int nos = System_Get_NOS(this->state.get());
+	QString nosqstring;
+	if (nos < 1e5)
+		nosqstring = QString::number(nos);
+	else
+		nosqstring = QString::number((float)nos, 'E', 2);
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + nosqstring + QString::fromLatin1("  "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
@@ -741,7 +747,7 @@ void MainWindow::updateStatusBar()
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
 	float F = Simulation_Get_MaxTorqueComponent(state.get());
-	this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'f', 12));
+	this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
 	float E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
 	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
