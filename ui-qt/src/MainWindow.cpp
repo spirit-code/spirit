@@ -1114,12 +1114,18 @@ void MainWindow::load_Configuration()
 		// Set current image
 		if (!IO_System_From_Config(this->state.get(), file.c_str()))
 		{
-			QMessageBox::about(this, tr("About Spirit"),
+			QMessageBox::about(this, tr("Error"),
 				tr("The resulting Spin System would have different NOS\n"
 					"or isotropy status than one or more of the other\n"
 					"images in the chain!\n"
 					"\n"
 					"The system has thus not been reset!"));
+		}
+		else
+		{
+			this->updateStatusBar();
+			this->spinWidget->updateData();
+			this->settingsWidget->updateData();
 		}
 	}
 }

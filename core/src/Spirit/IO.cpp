@@ -24,9 +24,10 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 	std::shared_ptr<Data::Spin_System_Chain> chain;
 	from_indices(state, idx_image, idx_chain, image, chain);
 
-	// Create System
+	// Create System (and lock it)
 	std::shared_ptr<Data::Spin_System> system = Utility::IO::Spin_System_from_Config(std::string(file));
-
+	system->Lock();
+	
 	// Filter for unacceptable differences to other systems in the chain
 	for (int i = 0; i < chain->noi; ++i)
 	{
@@ -35,12 +36,17 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 		if (state->active_chain->images[i]->hamiltonian->Name() != system->hamiltonian->Name()) return 0;
 	}
 
+	// Set System
+	image->Lock();
+	*image = *system;
+	image->Unlock();
+
+	// Initial configuration
 	float defaultPos[3] = {0,0,0}; 
 	float defaultRect[3] = {-1,-1,-1};
-	state->collection->chains[idx_chain]->images[idx_image]->Lock();
-	state->collection->chains[idx_chain]->images[idx_image] = system;
-	state->collection->chains[idx_chain]->images[idx_image]->Unlock();
 	Configuration_Random(state, defaultPos, defaultRect, -1, -1, false, false, idx_image, idx_chain);
+	
+	// Return success
 	return 1;
 }
 
