@@ -96,6 +96,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+### Installation
+set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
 #############################################
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated Spirit_Defines.h
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -332,6 +334,7 @@ endif()
 
 ######### Test executable ###################
 set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
+set( TEST_EXECUTABLES )
 ### Test creation macro
 macro( add_framework_test testName testSrc )
     # Executable
@@ -348,7 +351,9 @@ macro( add_framework_test testName testSrc )
     # Add the test
     add_test( NAME        ${testName}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND           ${testName} --use-colour=yes )
+		COMMAND           ${testName} --use-colour=yes )
+	# Add to list
+	set( TEST_EXECUTABLES ${TEST_EXECUTABLES} ${testName} )
 endmacro( add_framework_test testName testSrc )
 ### Create tests if needed
 if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
@@ -367,6 +372,7 @@ endif()
 
 
 ######### Python Test #######################
+set( PYTHON_TEST_EXECUTABLES )
 macro(add_python_test test_name src)
 	# Add the test
 	add_test(
@@ -376,6 +382,8 @@ macro(add_python_test test_name src)
 	# Properties
 	set_tests_properties(${test_name}
 		PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
+	# Add to list
+	set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name})
 endmacro(add_python_test)
 ### Create tests if needed
 if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
@@ -400,6 +408,33 @@ if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
     add_python_test( test_python_state           state.py )
     add_python_test( test_python_system          system.py )
     add_python_test( test_python_transition      transition.py )
+endif( )
+#############################################
+
+
+######### Install
+install(DIRECTORY docs DESTINATION docs/Spirit/core)
+install(DIRECTORY include/Spirit DESTINATION include)
+
+
+if( SPIRIT_BUILD_FOR_CXX )
+	install(TARGETS ${META_PROJECT_NAME}_static DESTINATION lib)
+	if( SPIRIT_BUILD_TEST )
+		install(TARGETS ${TEST_EXECUTABLES} DESTINATION test)
+	endif( )
+endif( )
+
+
+if( SPIRIT_BUILD_FOR_PYTHON )
+	install(TARGETS ${META_PROJECT_NAME}_python DESTINATION bin)
+	# if( SPIRIT_BUILD_TEST )
+	# 	install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION test)
+	# endif( )
+endif( )
+
+
+if( SPIRIT_BUILD_TEST )
+	install(DIRECTORY test/input DESTINATION test)
 endif( )
 #############################################
 

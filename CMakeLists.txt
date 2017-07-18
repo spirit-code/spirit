@@ -26,7 +26,7 @@ option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                
 ### Decide CXX UI
 option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
 ### Bundle option
-option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
+option( BUNDLE_APP       "Bundle the executable with its dependencies into a .app."     OFF )
 ### Option for building on the IFF cluster
 option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
 #############################################
@@ -155,6 +155,17 @@ endif()
 if( SPIRIT_BUILD_FOR_JS )
 	add_subdirectory( ui-web )
 endif()
+#############################################
+
+
+################ Install ####################
+install(DIRECTORY docs        DESTINATION docs/Spirit)
+install(FILES   LICENSE.txt
+				README.md
+				VERSION.txt   DESTINATION docs/Spirit)
+if( SPIRIT_BUILD_FOR_CXX )
+	install(DIRECTORY input   DESTINATION bin)
+endif( )
 #############################################
 
 
