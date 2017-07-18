@@ -88,7 +88,7 @@ namespace Engine
 		scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2)
 		{
 			scalar dist = 0;
-            // TODO: #pragma omp parallel for
+            #pragma omp parallel for reduction(+:dist)
 			for (unsigned int i = 0; i < v1.size(); ++i)
 				dist += pow(dist_greatcircle(v1[i], v2[i]), 2);
 			return sqrt(dist);

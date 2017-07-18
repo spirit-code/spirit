@@ -14,7 +14,7 @@ namespace Engine
 {
     namespace Vectormath
     {
-
+        
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
         {
             v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
@@ -86,15 +86,8 @@ namespace Engine
 
         std::array<scalar,3> Magnetization(const vectorfield & vf)
         {
-            std::array<scalar, 3> M{0, 0, 0};
-            int nos = vf.size();
-            scalar scale = 1/(scalar)nos;
-            for (int i=0; i<nos; ++i)
-            {
-                M[0] += vf[i][0]*scale;
-                M[1] += vf[i][1]*scale;
-                M[2] += vf[i][2]*scale;
-            }
+            Vector3 vfmean = mean(vf);
+            std::array<scalar, 3> M{vfmean[0], vfmean[1], vfmean[2]};
             return M;
         }
 
@@ -107,18 +100,16 @@ namespace Engine
         // Utility function for the SIB Optimizer
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
         {
-            Vector3 e1, a2, A;
-            scalar detAi;
+            #pragma omp parallel for
             for (unsigned int i = 0; i < spins.size(); ++i)
             {
-                e1 = spins[i];
-                A = force[i];
+                const Vector3& A = force[i];
 
                 // 1/determinant(A)
-                detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+                scalar detAi = 1.0 / (1 + pow(A.norm(), 2.0));
 
                 // calculate equation without the predictor?
-                a2 = e1 + e1.cross(A);
+                Vector3 a2 = spins[i] + spins[i].cross(A);
 
                 out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
                 out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
@@ -127,6 +118,7 @@ namespace Engine
         }
         void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
         {
+            #pragma omp parallel for collapse(2)
             for (int i = 0; i < sys.nos; ++i)
             {
                 for (int dim = 0; dim < 3; ++dim)
@@ -162,20 +154,15 @@ namespace Engine
         scalar sum(const scalarfield & sf)
         {
             scalar ret = 0;
-            // TODO #pragma omp parallel for
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<sf.size(); ++i)
-			    // #pragma omp atomic
                 ret += sf[i];
             return ret;
         }
 
         scalar mean(const scalarfield & sf)
         {
-            scalar ret = sf[0];
-            // TODO #pragma omp parallel for
-            for (unsigned int i = 1; i<sf.size(); ++i)
-			    // #pragma omp atomic
-                ret += (sf[i] - ret) / i;
+            scalar ret = sum(sf)/sf.size();
             return ret;
         }
 
@@ -201,19 +188,19 @@ namespace Engine
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
         {
-            scalar min=1e6, max=-1e6;
+            scalar minval=1e6, maxval=-1e6;
             std::pair<scalar, scalar> minmax;
-            #pragma omp parallel for
+            #pragma omp parallel for reduction(min: minval) reduction(max : maxval)
             for (unsigned int i = 0; i < v1.size(); ++i)
             {
                 for (int dim = 0; dim < 3; ++dim)
                 {
-                    if (v1[i][dim] < min) min = v1[i][dim];
-                    if (v1[i][dim] > max) max = v1[i][dim];
+                    if (v1[i][dim] < minval) minval = v1[i][dim];
+                    if (v1[i][dim] > maxval) maxval = v1[i][dim];
                 }
             }
-            minmax.first = min;
-            minmax.second = max;
+            minmax.first = minval;
+            minmax.second = maxval;
             return minmax;
         }
         scalar  max_abs_component(const vectorfield & vf)
@@ -239,20 +226,15 @@ namespace Engine
         Vector3 sum(const vectorfield & vf)
         {
             Vector3 ret = { 0,0,0 };
-            // TODO #pragma omp parallel for
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<vf.size(); ++i)
-                // #pragma omp critical
                 ret += vf[i];
             return ret;
         }
 
         Vector3 mean(const vectorfield & vf)
         {
-            Vector3 ret = { 0,0,0 };
-            // TODO #pragma omp parallel for
-            for (unsigned int i = 1; i<vf.size(); ++i)
-                // #pragma omp critical
-                ret += (vf[i] - ret) / i;
+            Vector3 ret = sum(vf)/vf.size();
             return ret;
         }
 
@@ -266,12 +248,11 @@ namespace Engine
         // computes the inner product of two vectorfields v1 and v2
         scalar dot(const vectorfield & v1, const vectorfield & v2)
         {
-            scalar x = 0;
-            // TODO #pragma omp parallel for
+            scalar ret = 0;
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<v1.size(); ++i)
-			    // #pragma omp atomic
-                x += v1[i].dot(v2[i]);
-            return x;
+                ret += v1[i].dot(v2[i]);
+            return ret;
         }
 
         // computes the inner products of vectors in vf1 and vf2
