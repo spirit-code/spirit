@@ -427,6 +427,21 @@ namespace Engine
             return ret[0];
 		}
 
+        __global__ void cu_divide(const scalar * numerator, const scalar * denominator, scalar * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += numerator[idx] / denominator[idx];
+            }
+        }
+        void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
+        {
+            int n = numerator.size();
+            cu_divide<<<(n+1023)/1024, 1024>>>(numerator.data(), denominator.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
 
         __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
         {
@@ -553,14 +568,31 @@ namespace Engine
             return ret;
         }
 
-
-        // The wrapper for the calling of the actual kernel
         void dot(const vectorfield & vf1, const vectorfield & vf2, scalarfield & s)
         {
             int n = vf1.size();
 
             // Dot product
             cu_dot<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_scalardot(const scalar * s1, const scalar * s2, scalar * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = s1[idx] * s2[idx];
+            }
+        }
+        // computes the product of scalars in s1 and s2
+        // s1 and s2 are scalarfields
+        void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
+        {
+            int n = s1.size();
+
+            // Dot product
+            cu_scalardot<<<(n+1023)/1024, 1024>>>(s1.data(), s2.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -614,6 +646,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_add_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c[idx]*a[idx];
+            }
+        }
+        // out[i] += c[i]*a[i]
+        void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        {
+            int n = out.size();
+            cu_add_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -679,6 +727,22 @@ namespace Engine
             cu_set_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        __global__ void cu_set_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] = c[idx]*a[idx];
+            }
+        }
+        // out[i] = c[i]*a[i]
+        void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        {
+            int n = out.size();
+            cu_set_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
 
 
 

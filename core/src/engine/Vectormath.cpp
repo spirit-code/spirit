@@ -279,13 +279,13 @@ namespace Engine
             return x;
         }
 
-        // computes the inner products of vectors in v1 and v2
-        // v1 and v2 are vectorfields
-        void dot(const vectorfield & v1, const vectorfield & v2, scalarfield & out)
+        // computes the inner products of vectors in vf1 and vf2
+        // vf1 and vf2 are vectorfields
+        void dot(const vectorfield & vf1, const vectorfield & vf2, scalarfield & out)
         {
-            for (unsigned int i=0; i<v1.size(); ++i)
+            for (unsigned int i=0; i<vf1.size(); ++i)
             {
-                out[i] = v1[i].dot(v2[i]);
+                out[i] = vf1[i].dot(vf2[i]);
             }
         }
 
