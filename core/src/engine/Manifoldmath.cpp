@@ -22,10 +22,9 @@ namespace Engine
         void normalize(vectorfield & vf)
         {
             scalar x = 1.0/norm(vf);
+            #pragma omp parallel for
             for (unsigned int i = 0; i < vf.size(); ++i)
-            {
                 vf[i] *= x;
-            }
         }
 
         void project_parallel(vectorfield & vf1, const vectorfield & vf2)
@@ -33,30 +32,27 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             // TODO: replace the loop with Vectormath Kernel
+            #pragma omp parallel for
             for (unsigned int i = 0; i < vf1.size(); ++i)
-            {
                 vf1[i] -= vf3[i];
-            }
         }
 
         void project_orthogonal(vectorfield & vf1, const vectorfield & vf2)
         {
             scalar x = Vectormath::dot(vf1, vf2);
             // TODO: replace the loop with Vectormath Kernel
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf1.size(); ++i)
-            {
                 vf1[i] -= x*vf2[i];
-            }
         }
 
         void invert_parallel(vectorfield & vf1, const vectorfield & vf2)
         {
             scalar x = Vectormath::dot(vf1, vf2);
             // TODO: replace the loop with Vectormath Kernel
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf1.size(); ++i)
-            {
                 vf1[i] -= 2*x*vf2[i];
-            }
         }
         
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2)
@@ -64,18 +60,16 @@ namespace Engine
             vectorfield vf3 = vf1;
             project_orthogonal(vf3, vf2);
             // TODO: replace the loop with Vectormath Kernel
+            #pragma omp parallel for
             for (unsigned int i = 0; i < vf1.size(); ++i)
-            {
                 vf1[i] -= 2 * vf3[i];
-            }
         }
 
         void project_tangential(vectorfield & vf1, const vectorfield & vf2)
 		{
+            #pragma omp parallel for
 			for (unsigned int i = 0; i < vf1.size(); ++i)
-			{
 				vf1[i] -= vf1[i].dot(vf2[i]) * vf2[i];
-			}
 		}
 
 
@@ -94,10 +88,9 @@ namespace Engine
 		scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2)
 		{
 			scalar dist = 0;
+            // TODO: #pragma omp parallel for
 			for (unsigned int i = 0; i < v1.size(); ++i)
-			{
-				dist = dist + pow(dist_greatcircle(v1[i], v2[i]), 2);
-			}
+				dist += pow(dist_greatcircle(v1[i], v2[i]), 2);
 			return sqrt(dist);
 		}
 
@@ -109,6 +102,7 @@ namespace Engine
 			int noi = configurations.size();
 			int nos = (*configurations[0]).size();
 
+            #pragma omp parallel for
 			for (int idx_img = 0; idx_img < noi; ++idx_img)
 			{
 				auto& image = *configurations[idx_img];

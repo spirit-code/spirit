@@ -152,30 +152,35 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = this->external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
+			#pragma omp atomic
 			Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
 			int ispin = this->anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
+			#pragma omp atomic
 			Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -201,6 +206,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -230,6 +236,7 @@ namespace Engine
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
@@ -281,30 +288,35 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = external_field_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
+			#pragma omp critical
 			gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
 			int ispin = anisotropy_indices[i];
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (this->geometry->atom_types[ispin] >= 0)
 			#endif
+			#pragma omp critical
 			gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -330,6 +342,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -358,6 +371,7 @@ namespace Engine
 		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)

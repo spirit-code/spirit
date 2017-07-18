@@ -162,8 +162,9 @@ namespace Engine
         scalar sum(const scalarfield & sf)
         {
             scalar ret = 0;
-            #pragma omp parallel for
+            // TODO #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
+			    // #pragma omp atomic
                 ret += sf[i];
             return ret;
         }
@@ -171,8 +172,9 @@ namespace Engine
         scalar mean(const scalarfield & sf)
         {
             scalar ret = sf[0];
-            #pragma omp parallel for
+            // TODO #pragma omp parallel for
             for (unsigned int i = 1; i<sf.size(); ++i)
+			    // #pragma omp atomic
                 ret += (sf[i] - ret) / i;
             return ret;
         }
@@ -237,8 +239,9 @@ namespace Engine
         Vector3 sum(const vectorfield & vf)
         {
             Vector3 ret = { 0,0,0 };
-            #pragma omp parallel for
+            // TODO #pragma omp parallel for
             for (unsigned int i = 0; i<vf.size(); ++i)
+                // #pragma omp critical
                 ret += vf[i];
             return ret;
         }
@@ -246,8 +249,9 @@ namespace Engine
         Vector3 mean(const vectorfield & vf)
         {
             Vector3 ret = { 0,0,0 };
-            #pragma omp parallel for
+            // TODO #pragma omp parallel for
             for (unsigned int i = 1; i<vf.size(); ++i)
+                // #pragma omp critical
                 ret += (vf[i] - ret) / i;
             return ret;
         }
@@ -263,8 +267,9 @@ namespace Engine
         scalar dot(const vectorfield & v1, const vectorfield & v2)
         {
             scalar x = 0;
-            #pragma omp parallel for
+            // TODO #pragma omp parallel for
             for (unsigned int i = 0; i<v1.size(); ++i)
+			    // #pragma omp atomic
                 x += v1[i].dot(v2[i]);
             return x;
         }

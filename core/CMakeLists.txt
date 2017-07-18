@@ -185,6 +185,7 @@ if ( SPIRIT_USE_CUDA )
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks
     set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60 --expt-relaxed-constexpr" )
+	message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
 endif()
 #############################################
 
@@ -196,8 +197,12 @@ if ( SPIRIT_USE_OPENMP )
 		set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}" )
 		set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
 		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+		message( STATUS ">> OpenMP found." )
+		message( STATUS ">> OpenMP C Flags:          ${OpenMP_C_FLAGS}" )
+		message( STATUS ">> OpenMP CXX Flags:        ${OpenMP_CXX_FLAGS}" )
+		message( STATUS ">> OpenMP EXE Linker Flags: ${OpenMP_EXE_LINKER_FLAGS}" )
 	else( OPENMP_FOUND )
-		message( "WARNING: OpenMP could not be found." )
+		message( STATUS ">> WARNING: OpenMP could not be found." )
 	endif( OPENMP_FOUND )
 endif( )
 #############################################
