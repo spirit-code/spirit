@@ -20,6 +20,7 @@ option( SPIRIT_ENABLE_DEFECTS    "Enable defects and disorder in the lattice."  
 ### Options for Spirit
 option( SPIRIT_BUILD_TEST        "Build unit tests for the Spirit library."                ON  )
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
+option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the code."       OFF )
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
@@ -29,11 +30,19 @@ set( SPIRIT_SCALAR_TYPE double )
 ##### Some restrictions on the options ######
 if( SPIRIT_USE_CUDA )
 	### If cuda is used, we use float and
+	### and we cannot use OpenMP and
 	### we cannot build for JS or Julia
-	set( SPIRIT_SCALAR_TYPE        float )
+	set( SPIRIT_USE_OPENMP          OFF )
+	set( SPIRIT_SCALAR_TYPE         float )
 	set( SPIRIT_BUILD_FOR_JS        OFF )
 	set( SPIRIT_BUILD_FOR_JULIA     OFF )
 endif()
+#############################################
+if( SPIRIT_USE_OPENMP )
+	set( SPIRIT_USE_CUDA            OFF )
+	set( SPIRIT_BUILD_FOR_JS        OFF )
+	set( SPIRIT_BUILD_FOR_JULIA     OFF )
+endif( )
 #############################################
 if( SPIRIT_BUILD_FOR_JS )
 	### UI-Web needs float
@@ -47,11 +56,11 @@ if( SPIRIT_BUILD_FOR_JS )
 	### Emscripten cannot use cuda or threads
 	set( SPIRIT_USE_CUDA 		OFF )
 	set( SPIRIT_USE_THREADS 	OFF )
-endif()
+endif( )
 #############################################
 if( SPIRIT_BUILD_TEST )
     enable_testing()
-endif()
+endif( )
 #############################################
 
 
@@ -177,6 +186,20 @@ if ( SPIRIT_USE_CUDA )
 	# if it appears twice, for some reason the compilation breaks
     set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60 --expt-relaxed-constexpr" )
 endif()
+#############################################
+
+
+######### OpenMP decisions ##################
+if ( SPIRIT_USE_OPENMP )
+    include( FindOpenMP )
+	if( OPENMP_FOUND )
+		set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}" )
+		set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
+		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+	else( OPENMP_FOUND )
+		message( "WARNING: OpenMP could not be found." )
+	endif( OPENMP_FOUND )
+endif( )
 #############################################
 
 
