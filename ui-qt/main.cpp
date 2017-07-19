@@ -7,6 +7,10 @@
 #include "Spirit/Transitions.h"
 #include "Spirit/Log.h"
 
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
+
 // Main
 int main(int argc, char ** argv)
 {
@@ -81,6 +85,11 @@ int main(int argc, char ** argv)
 	//app.setOrganizationName("--");
 	//app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
+	#ifdef _OPENMP
+		int nt = omp_get_max_threads() - 1;
+		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Using OpenMP with n=" + std::to_string(nt) + " threads").c_str());
+	#endif
+	
 	// Format for all GL Surfaces
 	QSurfaceFormat format;
 	format.setSamples(16);

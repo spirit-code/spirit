@@ -1,6 +1,11 @@
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
+### We need at least C++11
+set (CMAKE_CXX_STANDARD 11)
+### Distinction between Clang and AppleClang
+cmake_policy(SET CMP0025 NEW)
 #############################################
+
 
 
 ######### Build Flags #######################
@@ -17,7 +22,7 @@ SET( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in th
 ### Options for Spirit
 SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
 SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
-SET( SPIRIT_USE_OPENMP        ON   CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
+SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
@@ -33,30 +38,38 @@ option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cl
 #############################################
 
 
+
 #############################################
-if( SPIRIT_BUILD_TEST )
-    enable_testing()
-endif()
+### Depending on compiler versions it may be necessary to specify
+### the compiler. Either pass them in via command-line or use
+### the CUDA_TOOLKIT_ROOT_DIR variable.
+if( SPIRIT_USE_CUDA )
+	### Set cuda toolkit path
+	# set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
+	# if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
+	# 	if ( APPLE OR UNIX )
+	# 		set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+	# 	elseif (WIN32)
+	# 		set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
+	# 		MESSAGE( STATUS ">> We are on Windows... CUDA Path may need to be set..." )
+	# 	endif()
+	# endif()
+	### Set compilers
+	if( APPLE OR UNIX )
+		if( ${CUDA_TOOLKIT_ROOT_DIR} )
+			if( NOT DEFINED CMAKE_C_COMPILER )
+				set( CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc )
+			endif( )
+			if( NOT DEFINED CMAKE_CXX_COMPILER )
+				set( CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++ )
+			endif( )
+		elseif( WIN32 )
+			# MESSAGE( STATUS ">> We are on Windows... CUDA untested" )
+		endif( )
+	endif( )
+endif( )
 #############################################
-if (SPIRIT_USE_CUDA)
-    MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
-    ### Set cuda toolkit path 
-    if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
-		if (APPLE OR UNIX)
-        	set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-		elseif (WIN32)
-			set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
-			MESSAGE( STATUS ">> We are on Windows... CUDA Path may need to be set..." )
-		endif()
-    endif()
-    if (APPLE OR UNIX)
-        set(CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc)
-        set(CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++)
-    elseif (WIN32)
-        # MESSAGE( STATUS ">> We are on Windows... CUDA untested" )
-    endif()
-endif()
-#############################################
+
 
 
 ######### General Paths #####################
@@ -96,6 +109,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "default install path" FORCE )
 endif()
+#############################################
+
+
+
+#############################################
+if( SPIRIT_BUILD_TEST )
+	enable_testing()
+endif()
+#############################################
+if ( SPIRIT_USE_OPENMP )
+	include( FindOpenMP )
+    if( OPENMP_FOUND )
+        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+    endif( )
+endif( )
 #############################################
 
 
