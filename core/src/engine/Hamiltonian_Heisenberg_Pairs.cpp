@@ -141,37 +141,38 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = external_field_indices[i];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->geometry->atom_types[ispin] >= 0)
-			#endif
-			Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp atomic
+				Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
 			int ispin = anisotropy_indices[i];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->geometry->atom_types[ispin] >= 0)
-			#endif
-			Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp atomic
+				Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
+		#pragma omp parallel for collapse(3)
+		for (int da = 0; da < geometry->n_cells[0]; ++da)
 		{
-			for (int da = 0; da < geometry->n_cells[0]; ++da)
+			for (int db = 0; db < geometry->n_cells[1]; ++db)
 			{
-				for (int db = 0; db < geometry->n_cells[1]; ++db)
+				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 				{
-					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_pairs[i_pair].translations))
@@ -179,16 +180,34 @@ namespace Engine
 							int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = exchange_pairs[i_pair].j+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 							{
-							#endif
 								Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+								#ifndef _OPENMP
 								Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-							#ifdef SPIRIT_ENABLE_DEFECTS
+								#endif
 							}
-							#endif
 						}
+
+						// To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
+						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
+						//		neighbours implementation (in terms of the number of pairs)
+						#ifdef _OPENMP
+						std::array<int, 3> translations_inverse = { -exchange_pairs[i_pair].translations[0], -exchange_pairs[i_pair].translations[1], -exchange_pairs[i_pair].translations[2] };
+						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, translations_inverse))
+						{
+							int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = exchange_pairs[i_pair].j+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, translations_inverse);
+
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+							{
+								Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+								#ifndef _OPENMP
+								Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+								#endif
+							}
+						}
+						#endif
 					}
 				}
 			}
@@ -197,13 +216,14 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
-		for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
+		#pragma omp parallel for collapse(3)
+		for (int da = 0; da < geometry->n_cells[0]; ++da)
 		{
-			for (int da = 0; da < geometry->n_cells[0]; ++da)
+			for (int db = 0; db < geometry->n_cells[1]; ++db)
 			{
-				for (int db = 0; db < geometry->n_cells[1]; ++db)
+				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 				{
-					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_pairs[i_pair].translations))
@@ -211,16 +231,34 @@ namespace Engine
 							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 							{
-							#endif
-							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-							Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-							#ifdef SPIRIT_ENABLE_DEFECTS
+								Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+								#ifndef _OPENMP
+								Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+								#endif
 							}
-							#endif
 						}
+
+						// To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
+						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
+						//		neighbours implementation (in terms of the number of pairs)
+						#ifdef _OPENMP
+						std::array<int, 3> translations_inverse = { -dmi_pairs[i_pair].translations[0], -dmi_pairs[i_pair].translations[1], -dmi_pairs[i_pair].translations[2] };
+						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, translations_inverse))
+						{
+							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, translations_inverse);
+							
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+							{
+								Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+								#ifndef _OPENMP
+								Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+								#endif
+							}
+						}
+						#endif
 					}
 				}
 			}
@@ -247,17 +285,13 @@ namespace Engine
 							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
 							
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 							{
-							#endif
-							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-							Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-								(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-							#ifdef SPIRIT_ENABLE_DEFECTS
+								Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+									(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
+								Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+									(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
 							}
-							#endif
 						}
 					}
 				}
@@ -282,17 +316,14 @@ namespace Engine
 						int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
 						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						
-						#ifdef SPIRIT_ENABLE_DEFECTS
-						if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0 && this->geometry->atom_types[kspin] >= 0 && this->geometry->atom_types[lspin] >= 0)
+						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
 						{
-						#endif
-						Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-						Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-						Energy[kspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-						Energy[lspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-						#ifdef SPIRIT_ENABLE_DEFECTS
+							Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+							Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+							Energy[kspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+							Energy[lspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
 						}
-						#endif
 					}
 				}
 			}
@@ -325,54 +356,73 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = external_field_indices[i];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->geometry->atom_types[ispin] >= 0)
-			#endif
-			gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp critical
+				gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
 			int ispin = anisotropy_indices[i];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (this->geometry->atom_types[ispin] >= 0)
-			#endif
-			gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp critical
+				gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
-		for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
+		#pragma omp parallel for collapse(3)
+		for (int da = 0; da < geometry->n_cells[0]; ++da)
 		{
-			for (int da = 0; da < geometry->n_cells[0]; ++da)
+			for (int db = 0; db < geometry->n_cells[1]; ++db)
 			{
-				for (int db = 0; db < geometry->n_cells[1]; ++db)
+				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 				{
-					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+					std::array<int, 3> translations = { da, db, dc };
+					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
 					{
-						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, exchange_pairs[i_pair].translations))
 						{
 							int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations);
 							
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 							{
-							#endif
-							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
-							gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
-							#ifdef SPIRIT_ENABLE_DEFECTS
+								gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
+								#ifndef _OPENMP
+								gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
+								#endif
 							}
-							#endif
 						}
+
+						// To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
+						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
+						//		neighbours implementation (in terms of the number of pairs)
+						#ifdef _OPENMP
+						std::array<int, 3> translations_inverse = { -exchange_pairs[i_pair].translations[0], -exchange_pairs[i_pair].translations[1], -exchange_pairs[i_pair].translations[2] };
+						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, translations_inverse))
+						{
+							int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, translations_inverse);
+							
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+							{
+								gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
+								#ifndef _OPENMP
+								gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
+								#endif
+							}
+						}
+						#endif
 					}
 				}
 			}
@@ -381,30 +431,49 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
-		for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
+		#pragma omp parallel for collapse(3)
+		for (int da = 0; da < geometry->n_cells[0]; ++da)
 		{
-			for (int da = 0; da < geometry->n_cells[0]; ++da)
+			for (int db = 0; db < geometry->n_cells[1]; ++db)
 			{
-				for (int db = 0; db < geometry->n_cells[1]; ++db)
+				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 				{
-					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+					std::array<int, 3 > translations = { da, db, dc };
+					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
 					{
-						std::array<int, 3 > translations = { da, db, dc };
 						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, dmi_pairs[i_pair].translations))
 						{
 							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations);
 							
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 							{
-							#endif
-							gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
-							gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
-							#ifdef SPIRIT_ENABLE_DEFECTS
+								gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
+								#ifndef _OPENMP
+								gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
+								#endif
 							}
-							#endif
 						}
+
+						// To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
+						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
+						//		neighbours implementation (in terms of the number of pairs)
+						#ifdef _OPENMP
+						std::array<int, 3> translations_inverse = { -dmi_pairs[i_pair].translations[0], -dmi_pairs[i_pair].translations[1], -dmi_pairs[i_pair].translations[2] };
+						if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, translations_inverse))
+						{
+							int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
+							int jspin = dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, translations_inverse);
+							
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+							{
+								gradient[ispin] += dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
+								#ifndef _OPENMP
+								gradient[jspin] -= dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
+								#endif
+							}
+						}
+						#endif
 					}
 				}
 			}
@@ -433,15 +502,11 @@ namespace Engine
 								int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 								int jspin = ddi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
 								
-								#ifdef SPIRIT_ENABLE_DEFECTS
-								if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0)
+								if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
 								{
-								#endif
-								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
-								gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
-								#ifdef SPIRIT_ENABLE_DEFECTS
+									gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
+									gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
 								}
-								#endif
 							}
 						}
 					}
@@ -471,17 +536,14 @@ namespace Engine
 						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
 						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
 						
-						#ifdef SPIRIT_ENABLE_DEFECTS
-						if (this->geometry->atom_types[ispin] >= 0 && this->geometry->atom_types[jspin] >= 0 && this->geometry->atom_types[kspin] >= 0 && this->geometry->atom_types[lspin] >= 0)
+						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
 						{
-						#endif
-						gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
-						gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
-						gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
-						gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
-						#ifdef SPIRIT_ENABLE_DEFECTS
+							gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
+							gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
+							gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
+							gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
 						}
-						#endif
 					}
 				}
 			}
