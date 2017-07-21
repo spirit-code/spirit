@@ -383,7 +383,7 @@ macro(add_python_test test_name src)
 	set_tests_properties(${test_name}
 		PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
 	# Add to list
-	set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name})
+	set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name} )
 endmacro(add_python_test)
 ### Create tests if needed
 if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
@@ -412,11 +412,14 @@ endif( )
 #############################################
 
 
-######### Install
-install(DIRECTORY docs DESTINATION docs/Spirit/core)
-install(DIRECTORY include/Spirit DESTINATION include)
+######### Install ###########################
+### Documentation
+install(DIRECTORY docs             DESTINATION docs/Spirit/core)
+### Include folder
+install(DIRECTORY include/Spirit   DESTINATION include
+		PATTERN   "CMakeLists.txt" EXCLUDE)
 
-
+### Static library and tests
 if( SPIRIT_BUILD_FOR_CXX )
 	install(TARGETS ${META_PROJECT_NAME}_static DESTINATION lib)
 	if( SPIRIT_BUILD_TEST )
@@ -424,7 +427,7 @@ if( SPIRIT_BUILD_FOR_CXX )
 	endif( )
 endif( )
 
-
+### Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
 	install(TARGETS ${META_PROJECT_NAME}_python DESTINATION bin)
 	# if( SPIRIT_BUILD_TEST )
@@ -432,14 +435,14 @@ if( SPIRIT_BUILD_FOR_PYTHON )
 	# endif( )
 endif( )
 
-
+### Input files for tests
 if( SPIRIT_BUILD_TEST )
 	install(DIRECTORY test/input DESTINATION test)
 endif( )
 #############################################
 
 
-######### Export
+######### Export ############################
 set(SPIRIT_OBJS             $<TARGET_OBJECTS:${META_PROJECT_NAME}> PARENT_SCOPE)
 set(SPIRIT_LIBRARIES        ${META_PROJECT_NAME}        PARENT_SCOPE)
 set(SPIRIT_LIBRARIES_STATIC ${META_PROJECT_NAME}_static	PARENT_SCOPE)

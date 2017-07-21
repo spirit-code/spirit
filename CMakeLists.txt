@@ -22,13 +22,13 @@ SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certa
 set( SPIRIT_SCALAR_TYPE double )
 #############################################
 ### CMake Verbosity
-option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
 ### Decide CXX UI
-option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."       ON  )
 ### Bundle option
-option( BUNDLE_APP       "Bundle the executable with its dependencies into a .app."     OFF )
+option( BUNDLE_APP       "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
 #############################################
 
 
@@ -93,7 +93,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ### Installation Prefix
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "default install path" FORCE )
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE)
 endif()
 #############################################
 
