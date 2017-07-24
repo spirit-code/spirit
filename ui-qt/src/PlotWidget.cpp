@@ -198,6 +198,34 @@ void PlotWidget::plotEnergies()
 		}
 	}
 
+	// Set marker type for current image
+	if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
+	{
+		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+		series_E_current->setMarkerSize(10);
+		series_E_current->setBrush(QColor("Red"));
+	}
+	else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 1)
+	{
+		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+		series_E_current->setMarkerSize(12);
+		series_E_current->setBrush(triangleUpRed.scaled(12,12));
+		series_E_current->setPen(QColor(Qt::transparent));
+	}
+	else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 2)
+	{
+		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+		series_E_current->setMarkerSize(12);
+		series_E_current->setBrush(triangleDownRed.scaled(12,12));
+		series_E_current->setPen(QColor(Qt::transparent));
+	}
+	else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 3)
+	{
+		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+		series_E_current->setMarkerSize(10);
+		series_E_current->setBrush(QColor("Red"));
+	}
+
 	// Clear series
 	series_E_normal->replace(empty);
 	series_E_climbing->replace(empty);
