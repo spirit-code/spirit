@@ -223,9 +223,12 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
 	horizontalSlider_surface_ymax->blockSignals(false);
 	horizontalSlider_surface_zmin->blockSignals(false);
 
-	// Colormap
-	int idx_cm = (int)spinWidget->colormap();
-	comboBox_colormap->setCurrentIndex(idx_cm);
+	// Colormaps
+	int idx_cmg = (int)spinWidget->colormap_general();
+	comboBox_colormap_general->setCurrentIndex(idx_cmg);
+	int idx_cma = (int)spinWidget->colormap_arrows();
+	if (idx_cma == idx_cmg) idx_cma = -1;
+	comboBox_colormap_arrows->setCurrentIndex(idx_cma + 1);
 	float cm_rotation = spinWidget->colormap_rotation();
 	auto cm_inverted = spinWidget->colormap_inverted();
 	horizontalSlider_colormap_rotate_phi->setRange(0, 360);
@@ -623,36 +626,44 @@ void VisualisationSettingsWidget::set_visualization_sphere_pointsize()
 
 void VisualisationSettingsWidget::set_visualization_colormap()
 {
-	SpinWidget::Colormap colormap = SpinWidget::Colormap::HSV;
-	if (comboBox_colormap->currentText() == "HSV, no z-component")
-	{
-		colormap = SpinWidget::Colormap::HSV_NO_Z;
-	}
-	if (comboBox_colormap->currentText() == "Z-Component: Blue-Red")
-	{
-		colormap = SpinWidget::Colormap::BLUE_RED;
-	}
-	if (comboBox_colormap->currentText() == "Z-Component: Blue-Green-Red")
-	{
-		colormap = SpinWidget::Colormap::BLUE_GREEN_RED;
-	}
-	if (comboBox_colormap->currentText() == "Z-Component: Blue-White-Red")
-	{
-		colormap = SpinWidget::Colormap::BLUE_WHITE_RED;
-	}
-	if (comboBox_colormap->currentText() == "White")
-	{
-		colormap = SpinWidget::Colormap::WHITE;
-	}
-	if (comboBox_colormap->currentText() == "Gray")
-	{
-		colormap = SpinWidget::Colormap::GRAY;
-	}
-	if (comboBox_colormap->currentText() == "Black")
-	{
-		colormap = SpinWidget::Colormap::BLACK;
-	}
-	spinWidget->setColormap(colormap);
+	SpinWidget::Colormap colormap_general = SpinWidget::Colormap::HSV;
+	if (comboBox_colormap_general->currentText() == "HSV, no z-component")
+		colormap_general = SpinWidget::Colormap::HSV_NO_Z;
+	if (comboBox_colormap_general->currentText() == "Z-Component: Blue-Red")
+		colormap_general = SpinWidget::Colormap::BLUE_RED;
+	if (comboBox_colormap_general->currentText() == "Z-Component: Blue-Green-Red")
+		colormap_general = SpinWidget::Colormap::BLUE_GREEN_RED;
+	if (comboBox_colormap_general->currentText() == "Z-Component: Blue-White-Red")
+		colormap_general = SpinWidget::Colormap::BLUE_WHITE_RED;
+	if (comboBox_colormap_general->currentText() == "White")
+		colormap_general = SpinWidget::Colormap::WHITE;
+	if (comboBox_colormap_general->currentText() == "Gray")
+		colormap_general = SpinWidget::Colormap::GRAY;
+	if (comboBox_colormap_general->currentText() == "Black")
+		colormap_general = SpinWidget::Colormap::BLACK;
+
+	spinWidget->setColormapGeneral(colormap_general);
+
+	SpinWidget::Colormap colormap_arrows = SpinWidget::Colormap::HSV;
+
+	if (comboBox_colormap_arrows->currentText() == "Same as General")
+		colormap_arrows = colormap_general;
+	if (comboBox_colormap_arrows->currentText() == "HSV, no z-component")
+		colormap_arrows = SpinWidget::Colormap::HSV_NO_Z;
+	if (comboBox_colormap_arrows->currentText() == "Z-Component: Blue-Red")
+		colormap_arrows = SpinWidget::Colormap::BLUE_RED;
+	if (comboBox_colormap_arrows->currentText() == "Z-Component: Blue-Green-Red")
+		colormap_arrows = SpinWidget::Colormap::BLUE_GREEN_RED;
+	if (comboBox_colormap_arrows->currentText() == "Z-Component: Blue-White-Red")
+		colormap_arrows = SpinWidget::Colormap::BLUE_WHITE_RED;
+	if (comboBox_colormap_arrows->currentText() == "White")
+		colormap_arrows = SpinWidget::Colormap::WHITE;
+	if (comboBox_colormap_arrows->currentText() == "Gray")
+		colormap_arrows = SpinWidget::Colormap::GRAY;
+	if (comboBox_colormap_arrows->currentText() == "Black")
+		colormap_arrows = SpinWidget::Colormap::BLACK;
+
+	spinWidget->setColormapArrows(colormap_arrows);
 }
 
 
@@ -839,7 +850,8 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
 	connect(horizontalSlider_spherePointSize, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_sphere_pointsize()));
 	// Colors
 	connect(comboBox_backgroundColor, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_background()));
-	connect(comboBox_colormap, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	connect(comboBox_colormap_general, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
+	connect(comboBox_colormap_arrows, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
 	connect(horizontalSlider_colormap_rotate_phi, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
 	connect(this->lineEdit_colormap_rotate_phi, SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
 	connect(this->checkBox_colormap_invert_z, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
