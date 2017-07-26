@@ -163,7 +163,7 @@ remotely modern graphics card.
 | SPIRIT_BUILD_FOR_CXX | Build the C++ interfaces (console or QT) instead of others |
 | UI_CXX_USE_QT        | Build qt user interface instead of console version |
 | USER_PATH_QT         | The path to your CMake installation |
-| OSX_BUNDLE_APP       | On OSX, create .app bundle (not yet fully functional) |
+| BUNDLE_APP           | On OSX, create .app bundle (not yet fully functional) |
 
 
 
