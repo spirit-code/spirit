@@ -3,6 +3,7 @@ html, body {
    width: 100%;
    margin: 0;
    padding: 0;
+  overflow: hidden;
 }
 body, body > div{
   display: flex;
@@ -126,6 +127,77 @@ body, body > div{
   padding-right:5px;
 }
 
+body > div {
+  flex-direction: row;
+  flex: 1;
+}
+#input-show-settings {
+  display:none;
+}
+label[for="input-show-settings"] {
+  position: fixed;
+  top:0;
+  right:0;
+  z-index: 10;
+  background-color: #dddddd;
+  border-left:1px solid #bbbbbb;
+  border-bottom:1px solid #bbbbbb;
+  border-bottom-left-radius: 1em;
+  padding: 1em;
+}
+
+#visualization-container {
+  display: block;
+  flex: 1;
+}
+#settings-container {
+  display: none;
+  flex: 0;
+}
+/*#input-show-settings:checked ~ #visualization-container {
+  display: block;
+  flex: 0.5;
+}
+#input-show-settings:checked ~ #settings-container {
+  display: block;
+  flex: 0.5;
+}*/
+
+#input-show-settings:checked ~ #visualization-container {
+  display: block;
+  flex: 1;
+}
+#input-show-settings:checked ~ #settings-container {
+  display: block;
+  flex: 0 0 350px;
+}
+@media
+(-webkit-min-device-pixel-ratio: 2) or
+(min-resolution: 192dpi) {
+  @media (max-width: 1520px) {
+    #input-show-settings:checked ~ #visualization-container {
+      display: none;
+      flex: 0;
+    }
+
+    #input-show-settings:checked ~ #settings-container {
+      display: block;
+      flex: 1;
+    }
+  }
+}
+@media (max-width: 760px) {
+  #input-show-settings:checked ~ #visualization-container {
+    display: none;
+    flex: 0;
+  }
+
+  #input-show-settings:checked ~ #settings-container {
+    display: block;
+    flex: 1;
+  }
+}
+/*
 @media (min-width: 768px) {
   body > div {
     flex-direction: row;
@@ -150,4 +222,4 @@ body, body > div{
 }
 span.input-group-addon {
   width:53px;
-}
+}*/
