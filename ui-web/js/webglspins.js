@@ -521,6 +521,9 @@ WebGLSpins._matrixMultiply = function(matrix, vector) {
 
 WebGLSpins._perspectiveProjectionMatrix = function(verticalFieldOfView, aspectRatio, zNear, zFar) {
     var f = 1.0/Math.tan(verticalFieldOfView*Math.PI/180/2);
+    if (aspectRatio < 1.0) {
+        f *= aspectRatio;
+    }
     return [
         [f/aspectRatio, 0, 0, 0],
         [0, f, 0, 0],
@@ -1157,7 +1160,7 @@ WebGLSpins._SphereRenderer.prototype.draw = function(width, height) {
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(0);
         gl.uniform1f(gl.getUniformLocation(this._program2, "uAspectRatio"), width / height);
-    gl.uniform1f(gl.getUniformLocation(this._program2, "uInnerSphereRadius"), this._options.innerSphereRadius);
+        gl.uniform1f(gl.getUniformLocation(this._program2, "uInnerSphereRadius"), this._options.innerSphereRadius);
         gl.disable(gl.CULL_FACE);
         gl.depthMask(false);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -1175,7 +1178,11 @@ WebGLSpins._SphereRenderer.prototype.draw = function(width, height) {
 
     gl.useProgram(this._program);
 
-    var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-width / height, width / height, -1, 1, 2, 0);
+    if (width >= height) {
+      var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-width / height, width / height, -1, 1, 2, 0);
+    } else {
+      var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-1, 1, -height / width, height / width, 2, 0);
+    }
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uProjectionMatrix"), false, WebGLSpins._toFloat32Array(projectionMatrix));
     var modelviewMatrix = WebGLSpins._lookAtMatrix(WebGLSpins._normalize(WebGLSpins._difference(this._options.cameraLocation, this._options.centerLocation)), [0, 0, 0], this._options.upVector);
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
@@ -1280,6 +1287,9 @@ WebGLSpins._SphereRenderer.prototype._updateShaderProgram = function() {
         void main(void) {
           vfPosition = ivPosition;
           gl_Position = vec4(vfPosition.xy*vec2(uInnerSphereRadius/uAspectRatio, uInnerSphereRadius), 0.0, 1.0);
+          if (uAspectRatio < 1.0) {
+            gl_Position.xy *= uAspectRatio;
+          }
         }
         `, `
         #version 100
