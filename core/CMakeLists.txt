@@ -429,9 +429,19 @@ endif( )
 
 ### Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
-	install(TARGETS ${META_PROJECT_NAME}_python DESTINATION bin)
+	install(TARGETS   ${META_PROJECT_NAME}_python DESTINATION bin)
+	install(DIRECTORY python/spirit               DESTINATION python)
 	# if( SPIRIT_BUILD_TEST )
-	# 	install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION test)
+	# 	install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test)
+	# endif( )
+endif( )
+
+### Shared library and julia tests
+if( SPIRIT_BUILD_FOR_JULIA )
+	install(TARGETS   ${META_PROJECT_NAME}_julia DESTINATION bin)
+	install(DIRECTORY julia/Spirit               DESTINATION julia)
+	# if( SPIRIT_BUILD_TEST )
+	# 	install(TARGETS ${JULIA_TEST_EXECUTABLES} DESTINATION julia/test)
 	# endif( )
 endif( )
 
