@@ -12,51 +12,20 @@ namespace Engine
         Optimizer(method)
   {
     this->virtualforce = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    
     this->spins_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for (int i=0; i<this->noi; i++)
       spins_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
-
-    this->temp1 = vectorfield( this->nos, {0, 0, 0} );
+  
+    this->spins_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    for (int i=0; i<this->noi; i++)
+      spins_predictor[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));  
+    
     this->temp2 = vectorfield( this->nos, {0, 0, 0} );
-    this->spins_predictor = vectorfield( this->nos, {0, 0, 0} );
+    this->temp1 = vectorfield( this->nos, {0, 0, 0} );
+
   }
   
-  // void Optimizer_Heun::Iteration()
-  // {
-  //   // Get the actual forces on the configurations
-  //   this->method->Calculate_Force( this->configurations, this->force );
-  //   
-  //   // Optimization for each image
-  //   for (int i = 0; i < this->noi; ++i)
-  //   {
-  //     this->s = method->systems[i];
-  //     auto& conf = *this->configurations[i];
-  //     
-  //     // Scaling to similar stability range as SIB
-  //     this->dt = this->s->llg_parameters->dt/100;
-  //     
-  //     // TODO: for dynamic solver we would need a damping factor alpha
-  //     
-  //     // First step - Predictor
-  //     Vectormath::set_c_cross( 1, conf, force[i], temp2 );    // temp2 = conf x force
-  //     Vectormath::set_c_cross( -dt, conf, temp2, temp1 );     // temp1 = -dt * conf x temp2
-  //     Vectormath::set_c_a( 1, conf, spins_predictor );        // spins_predictor = conf
-  //     Vectormath::add_c_a( 1, temp1, spins_predictor );       // spins_predictor += temp1
-  //     
-  //     // Second step - Corrector
-  //     Vectormath::set_c_cross( 1, spins_predictor, force[i], temp2 );   // temp2 += spins_predictor x force
-  //     Vectormath::add_c_cross( -dt, spins_predictor, temp2, temp1 );    // temp1 += -dt*spins_predictor x temp2
-  //     Vectormath::set_c_a( 0.5*dt, conf, spins_temp[i] );               // spins_temp = 0.5*dt*conf
-  //     Vectormath::add_c_a( 0.5*dt, temp1, spins_temp[i] );              // spins_temp += 0.5*dt*temp1
-  //     
-  //     // Normalize spins
-  //     Vectormath::normalize_vectors( spins_temp[i] );
-  //     
-  //     // Copy out
-  //     conf = spins_temp[i];
-  //   } 
-  // }
-
   void Optimizer_Heun::Iteration()
   {    
     
@@ -71,30 +40,30 @@ namespace Engine
       
       // First step - Predictor
       this->VirtualForce( *s->spins, *s->llg_parameters, force[i], virtualforce[i] );
-      Vectormath::set_c_cross( -1, conf, virtualforce[i], temp1 );  // temp1 = -( conf x A )
-      Vectormath::set_c_a( 1, conf, spins_predictor );              // spins_predictor = conf
-      Vectormath::add_c_a( 1, temp1, spins_predictor );            // spins_predictor = conf + dt*temp1
+      
+      Vectormath::set_c_cross( -1, conf, virtualforce[i], *spins_temp[i] );  // temp1 = -( conf x A )
+      Vectormath::set_c_a( 1, conf, *spins_predictor[i] );                   // spins_predictor = conf
+      Vectormath::add_c_a( 1, *spins_temp[i], *spins_predictor[i] );         // spins_predictor = conf + dt*temp1
       
       // Normalize spins
-      Vectormath::normalize_vectors( spins_predictor );
-      
-      *spins_temp[i] = spins_predictor;
+      Vectormath::normalize_vectors( *spins_predictor[i] );
     }
     
-    this->method->Calculate_Force( spins_temp, this->force );
+    // Calculate_Force for the Corrector
+    this->method->Calculate_Force( spins_predictor, this->force );
     
     for (int i=0; i < this->noi; i++)
     {
       this->s = method->systems[i];
       auto& conf = *this->configurations[i];
 
-      //Second step - Corrector
-      this->VirtualForce( spins_predictor, *s->llg_parameters, force[i], virtualforce[i] );
+      // Second step - Corrector
+      this->VirtualForce( *spins_predictor[i], *s->llg_parameters, force[i], virtualforce[i] );
       
-      Vectormath::set_c_a( 1, conf, *spins_temp[i] );         // spins_temp = conf
-      Vectormath::add_c_a( 0.5, temp1, *spins_temp[i] );   // spins_temp = conf + 0.5 * dt* temp1 
-      Vectormath::set_c_cross( -1, spins_predictor, virtualforce[i], temp1 );  // temp1' = - ( conf' x A' )
-      Vectormath::add_c_a( 0.5, temp1, *spins_temp[i] );   // spins_temp = conf + 0.5 * dt * temp1 + 0.5 * dt * temp1'        
+      Vectormath::scale( *spins_temp[i], 0.5 );                                     // spins_temp = 0.5 * spins_temp
+      Vectormath::add_c_a( 1, conf, *spins_temp[i] );                               // spins_temp = conf + 0.5 * spins_temp 
+      Vectormath::set_c_cross( -1, *spins_predictor[i], virtualforce[i], temp1 );   // temp1 = - ( conf' x A' )
+      Vectormath::add_c_a( 0.5, temp1, *spins_temp[i] );                            // spins_temp = conf + 0.5 * spins_temp + 0.5 * temp1        
 
       // Normalize spins
       Vectormath::normalize_vectors( *spins_temp[i] );
@@ -121,7 +90,7 @@ namespace Engine
     //------------------------ End Init ----------------------------------------
     
     Vectormath::fill( virtualforce, { 0, 0, 0 } );
-    //Vectormath::add_c_a( -0.5 * dtg, effective_field, virtualforce );
+    //Vectormath::add_c_a( dtg, effective_field, virtualforce );
     Vectormath::set_c_cross( dtg, spins, effective_field, virtualforce );
     
     // Apply Pinning

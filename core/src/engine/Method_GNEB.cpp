@@ -34,11 +34,11 @@ namespace Engine
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
 		// Tangents
-		this->tangents = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->tangents = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
 		// Forces
-		this->F_total    = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
-		this->F_gradient = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
-		this->F_spring   = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->F_total    = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_gradient = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_spring   = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
 
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
