@@ -24,7 +24,7 @@ namespace Engine
 			s = method->systems[img];
 
 			scalar alpha = s->llg_parameters->damping;
-			scalar h = s->llg_parameters->dt * 1e-12 * Constants::gamma / Constants::mu_B / (1 + alpha*alpha);
+			scalar h = s->llg_parameters->dt * Constants::gamma / Constants::mu_B / (1 + alpha*alpha);
 			scalar rh = h / std::sqrt(s->llg_parameters->dt);
 			scalar temperature = s->llg_parameters->temperature;
 
