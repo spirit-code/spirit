@@ -10,6 +10,21 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
     vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
 
+    SECTION("Rotate")
+    {
+        scalar pi = std::acos( -1 );
+        
+        Vector3 v1_out { 0, 0, 0 };
+        Vector3 v1_in  { 1, 0, 1 };
+        Vector3 v1_axis{ 0, 0, 1 };
+        Vector3 v1_exp { 0, 1, 1 };   // expected result
+        scalar angle = pi/2;
+        
+        Engine::Vectormath::rotate( v1_in, v1_axis, angle, v1_out );
+        for (unsigned int i=0; i<3; i++)
+          REQUIRE( v1_out[i] == Approx( v1_exp[i] ) );
+    }
+    
     SECTION("Fill")
     {
         scalar stest = 333;

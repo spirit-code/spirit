@@ -17,49 +17,61 @@ namespace Engine
 
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
         {
-            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
+            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) + 
+                    axis * axis.dot(v) * (1 - std::cos(angle));
+        } 
+        
+        // XXX: should we add test for that function since it's calling the already tested rotat()
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
+                     vectorfield & v_out )
+        {
+          for( unsigned int i=0; i<v_out.size(); i++)
+            rotate( v[i], axis[i], angle[i], v_out[i] );
         }
-
+        
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
         {
             Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
             return A.colPivHouseholderQr().solve(v);
         }
-
+        
         /////////////////////////////////////////////////////////////////
-
-
-        void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
+        
+        void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, 
+                         const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
         {
-            // Check for erronous input placing two spins on the same location
-            int max_a = std::min(10, n_cells[0]);
-            int max_b = std::min(10, n_cells[1]);
-            int max_c = std::min(10, n_cells[2]);
-            Vector3 sp;
-            for (unsigned int i = 0; i < basis_atoms.size(); ++i)
-            {
-                for (unsigned int j = 0; j < basis_atoms.size(); ++j)
-                {
-                    for (int ka = -max_a; ka <= max_a; ++ka)
-                    {
-                        for (int k2 = -max_b; k2 <= max_b; ++k2)
-                        {
-                            for (int k3 = -max_c; k3 <= max_c; ++k3)
-                            {
-                                // Norm is zero if translated basis atom is at position of another basis atom
-                                sp = basis_atoms[i] - (basis_atoms[j]
-                                    + ka*translation_vectors[0] + k2*translation_vectors[1] + k3*translation_vectors[2]);
-                                if ((i != j || ka != 0 || k2 != 0 || k3 != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
-                                {
-                                    Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-                                    Log.Append_to_File();
-                                    throw Utility::Exception::System_not_Initialized;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+          // Check for erronous input placing two spins on the same location
+          int max_a = std::min(10, n_cells[0]);
+          int max_b = std::min(10, n_cells[1]);
+          int max_c = std::min(10, n_cells[2]);
+          Vector3 sp;
+          for (unsigned int i = 0; i < basis_atoms.size(); ++i)
+          {
+              for (unsigned int j = 0; j < basis_atoms.size(); ++j)
+              {
+                  for (int ka = -max_a; ka <= max_a; ++ka)
+                  {
+                      for (int k2 = -max_b; k2 <= max_b; ++k2)
+                      {
+                          for (int k3 = -max_c; k3 <= max_c; ++k3)
+                          {
+                              // Norm is zero if translated basis atom is at position of another basis atom
+                              sp = basis_atoms[i] - (basis_atoms[j]
+                                  + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
+                                  k3 * translation_vectors[2]);
+                              if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                                   std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
+                                   std::abs(sp[2]) < 1e-9 )
+                              {
+                                  Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                  Log.Append_to_File();
+                                  throw Utility::Exception::System_not_Initialized;
+                              }
+                          }
+                      }
+                  }
+              }
+          }
 
             // Build up the spins array
             int i, j, k, s, ispin;
@@ -70,8 +82,10 @@ namespace Engine
                 for (j = 0; j < n_cells[1]; ++j) {
                     for (i = 0; i < n_cells[0]; ++i) {
                         for (s = 0; s < nos_basic; ++s) {
-                            ispin = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
-                            build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
+                            ispin = k * n_cells[1] * n_cells[0] * nos_basic + 
+                                    j * n_cells[0] * nos_basic + i * nos_basic + s;
+                            build_array = i * translation_vectors[0] + j * translation_vectors[1] + 
+                                          k * translation_vectors[2];
                             // paste initial spin orientations across the lattice translations
                             //spins[dim*nos + ispin] = spins[dim*nos + s];
                             // calculate the spin positions
@@ -203,6 +217,13 @@ namespace Engine
             {
                 vf[i].normalize();
             }
+        }
+        
+        void norm( const vectorfield & vf, scalarfield & norm )
+        {
+          dot( vf, vf, norm );
+          for (unsigned int i=0; i<vf.size(); ++i)
+            norm[i] = std::sqrt( norm[i] );
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
