@@ -35,12 +35,24 @@ namespace Engine
 		virtual void Hessian(const vectorfield & spins, MatrixX & hessian);
 
 		/*
+			Calculate the Hessian matrix of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient.
+		*/
+		virtual void Hessian_FD(const vectorfield & spins, MatrixX & hessian) final;
+		
+		/*
 			Calculate the energy gradient of a spin configuration.
 			This function uses finite differences and may thus be quite inefficient. You should
 			override it if you want to get proper performance.
 			This function is the fallback for derived classes where it has not been overridden.
 		*/
 		virtual void Gradient(const vectorfield & spins, vectorfield & gradient);
+
+		/*
+			Calculate the energy gradient of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient.
+		*/
+		virtual void Gradient_FD(const vectorfield & spins, vectorfield & gradient) final;
 
 		// Calculate the Energy contributions for the spins of a configuration
 		virtual void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions);
