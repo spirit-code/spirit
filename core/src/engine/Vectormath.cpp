@@ -14,7 +14,7 @@ namespace Engine
 {
     namespace Vectormath
     {
-
+        
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
         {
             v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
@@ -86,15 +86,8 @@ namespace Engine
 
         std::array<scalar,3> Magnetization(const vectorfield & vf)
         {
-            std::array<scalar, 3> M{0, 0, 0};
-            int nos = vf.size();
-            scalar scale = 1/(scalar)nos;
-            for (int i=0; i<nos; ++i)
-            {
-                M[0] += vf[i][0]*scale;
-                M[1] += vf[i][1]*scale;
-                M[2] += vf[i][2]*scale;
-            }
+            Vector3 vfmean = mean(vf);
+            std::array<scalar, 3> M{vfmean[0], vfmean[1], vfmean[2]};
             return M;
         }
 
@@ -107,18 +100,16 @@ namespace Engine
         // Utility function for the SIB Optimizer
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
         {
-            Vector3 e1, a2, A;
-            scalar detAi;
+            #pragma omp parallel for
             for (unsigned int i = 0; i < spins.size(); ++i)
             {
-                e1 = spins[i];
-                A = force[i];
+                const Vector3& A = force[i];
 
                 // 1/determinant(A)
-                detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+                scalar detAi = 1.0 / (1 + pow(A.norm(), 2.0));
 
                 // calculate equation without the predictor?
-                a2 = e1 + e1.cross(A);
+                Vector3 a2 = spins[i] + spins[i].cross(A);
 
                 out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
                 out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
@@ -127,6 +118,7 @@ namespace Engine
         }
         void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
         {
+            #pragma omp parallel for collapse(2)
             for (int i = 0; i < sys.nos; ++i)
             {
                 for (int dim = 0; dim < 3; ++dim)
@@ -141,84 +133,74 @@ namespace Engine
 
         void fill(scalarfield & sf, scalar s)
         {
+            #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
-            {
                 sf[i] = s;
-            }
         }
         void fill(scalarfield & sf, scalar s, const intfield & mask)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<sf.size(); ++i)
-            {
                 sf[i] = mask[i]*s;
-            }
         }
 
         void scale(scalarfield & sf, scalar s)
         {
+            #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
-            {
                 sf[i] *= s;
-            }
         }
 
         scalar sum(const scalarfield & sf)
         {
             scalar ret = 0;
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<sf.size(); ++i)
-            {
                 ret += sf[i];
-            }
             return ret;
         }
 
         scalar mean(const scalarfield & sf)
         {
-            scalar ret = sf[0];
-            for (unsigned int i = 1; i<sf.size(); ++i)
-            {
-                ret += (sf[i] - ret) / i;
-            }
+            scalar ret = sum(sf)/sf.size();
             return ret;
         }
 
         void fill(vectorfield & vf, const Vector3 & v)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf.size(); ++i)
-            {
                 vf[i] = v;
-            }
         }
         void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf.size(); ++i)
-            {
                 vf[i] = mask[i]*v;
-            }
         }
 
         void normalize_vectors(vectorfield & vf)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf.size(); ++i)
-            {
                 vf[i].normalize();
-            }
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
         {
-            scalar min=1e6, max=-1e6;
+            scalar minval=1e6, maxval=-1e6;
             std::pair<scalar, scalar> minmax;
+            #pragma omp parallel for reduction(min: minval) reduction(max : maxval)
             for (unsigned int i = 0; i < v1.size(); ++i)
             {
                 for (int dim = 0; dim < 3; ++dim)
                 {
-                    if (v1[i][dim] < min) min = v1[i][dim];
-                    if (v1[i][dim] > max) max = v1[i][dim];
+                    if (v1[i][dim] < minval) minval = v1[i][dim];
+                    if (v1[i][dim] > maxval) maxval = v1[i][dim];
                 }
             }
-            minmax.first = min;
-            minmax.second = max;
+            minmax.first = minval;
+            minmax.second = maxval;
             return minmax;
         }
         scalar  max_abs_component(const vectorfield & vf)
@@ -236,214 +218,189 @@ namespace Engine
 
         void scale(vectorfield & vf, const scalar & sc)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf.size(); ++i)
-            {
                 vf[i] *= sc;
-            }
         }
 
         Vector3 sum(const vectorfield & vf)
         {
             Vector3 ret = { 0,0,0 };
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<vf.size(); ++i)
-            {
                 ret += vf[i];
-            }
             return ret;
         }
 
         Vector3 mean(const vectorfield & vf)
         {
-            Vector3 ret = { 0,0,0 };
-            for (unsigned int i = 1; i<vf.size(); ++i)
-            {
-                ret += (vf[i] - ret) / i;
-            }
+            Vector3 ret = sum(vf)/vf.size();
             return ret;
         }
 
         void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<out.size(); ++i)
-            out[i] = numerator[i] / denominator[i];
+                out[i] = numerator[i] / denominator[i];
         }
 
         // computes the inner product of two vectorfields v1 and v2
         scalar dot(const vectorfield & v1, const vectorfield & v2)
         {
-            scalar x = 0;
+            scalar ret = 0;
+            #pragma omp parallel for reduction(+:ret)
             for (unsigned int i = 0; i<v1.size(); ++i)
-            {
-                x += v1[i].dot(v2[i]);
-            }
-            return x;
+                ret += v1[i].dot(v2[i]);
+            return ret;
         }
 
         // computes the inner products of vectors in vf1 and vf2
         // vf1 and vf2 are vectorfields
         void dot(const vectorfield & vf1, const vectorfield & vf2, scalarfield & out)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<vf1.size(); ++i)
-            {
                 out[i] = vf1[i].dot(vf2[i]);
-            }
         }
 
         // computes the product of scalars in s1 and s2
         // s1 and s2 are scalarfields
         void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<s1.size(); i++)
-            {
-            out[i] = s1[i] * s2[i];
-            }
+                out[i] = s1[i] * s2[i];
         }
 
         // computes the vector (cross) products of vectors in v1 and v2
         // v1 and v2 are vector fields
         void cross(const vectorfield & v1, const vectorfield & v2, vectorfield & out)
         {
+            #pragma omp parallel for
             for (unsigned int i=0; i<v1.size(); ++i)
-            {
                 out[i] = v1[i].cross(v2[i]);
-            }
         }
 
 
         // out[i] += c*a
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a;
-            }
         }
         // out[i] += c*a[i]
         void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a[idx];
-            }
         }
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
         {
+            #pragma omp parallel for
             for( unsigned int idx = 0; idx < out.size(); ++idx )
-            {
-            out[idx] += c[idx] * a[idx];
-            }
+                out[idx] += c[idx] * a[idx];
         }
 
         // out[i] = c*a
         void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a;
-            }
         }
         // out[i] = c*a
         void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = mask[idx]*c*a;
-            }
         }
 
         // out[i] = c*a[i]
         void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a[idx];
-            }
         }
         // out[i] = c*a[i]
         void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = mask[idx] * c*a[idx];
-            }
         }
         // out[i] = c[i]*a[i]
         void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
         {
+            #pragma omp parallel for
             for( unsigned int idx=0; idx < out.size(); ++idx)
-            {
-            out[idx] = c[idx] * a[idx];
-            }
+                out[idx] = c[idx] * a[idx];
         }
 
         // out[i] += c * a*b[i]
         void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a.dot(b[idx]);
-            }
         }
         // out[i] += c * a[i]*b[i]
         void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a[idx].dot(b[idx]);
-            }
         }
 
         // out[i] = c * a*b[i]
         void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a.dot(b[idx]);
-            }
         }
         // out[i] = c * a[i]*b[i]
         void set_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a[idx].dot(b[idx]);
-            }
         }
 
 
         // out[i] += c * a x b[i]
         void add_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a.cross(b[idx]);
-            }
         }
         // out[i] += c * a[i] x b[i]
         void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] += c*a[idx].cross(b[idx]);
-            }
         }
         
         // out[i] = c * a x b[i]
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a.cross(b[idx]);
-            }
         }
         // out[i] = c * a[i] x b[i]
         void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
         {
+            #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-            {
                 out[idx] = c*a[idx].cross(b[idx]);
-            }
         }
     }
 }

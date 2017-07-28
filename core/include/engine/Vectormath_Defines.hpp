@@ -83,4 +83,8 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     typedef std::vector<Triplet>    tripletfield;
     typedef std::vector<Quadruplet> quadrupletfield;
     typedef std::vector<Neighbour>  neighbourfield;
+
+    // Definition for OpenMP reduction operation using Vector3's
+    #pragma omp declare reduction (+: Vector3: omp_out=omp_out+omp_in)\
+        initializer(omp_priv=Vector3::Zero())
 #endif

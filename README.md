@@ -88,7 +88,7 @@ control of parameters.
 * Standalone core library with C API which can be used from almost any programming language
 * **Python package** making complex simulation workflows easy
 * Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
-* Modular backends including **GPU parallelisation**
+* Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
 
 ### *Documentation*
 More details may be found in the [Reference section](docs/README.md) including
