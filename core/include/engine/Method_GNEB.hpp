@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Spirit_Defines.h"
-#include <engine/Method.hpp>
+#include <engine/Method_Template.hpp>
 #include <data/Spin_System_Chain.hpp>
 
 namespace Engine
@@ -13,7 +13,8 @@ namespace Engine
 	/*
 		The geodesic nudged elastic band (GNEB) method
 	*/
-	class Method_GNEB : public Method
+	template <Solver solver>
+	class Method_GNEB : public Method_Template<solver>
 	{
 	public:
         // Constructor

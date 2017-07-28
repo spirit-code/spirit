@@ -3,7 +3,7 @@
 #define METHOD_MC_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method.hpp>
+#include <engine/Method_Template.hpp>
 #include <data/Spin_System.hpp>
 // #include <data/Parameters_Method_MC.hpp>
 
@@ -14,7 +14,8 @@ namespace Engine
 	/*
 		The Monte Carlo method
 	*/
-	class Method_MC : public Method
+	template <Solver solver>
+	class Method_MC : public Method_Template<solver>
 	{
 	public:
         // Constructor

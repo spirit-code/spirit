@@ -3,7 +3,7 @@
 #define METHOD_MMF_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method.hpp>
+#include <engine/Method_Template.hpp>
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/Spin_System_Chain_Collection.hpp>
 
@@ -12,7 +12,8 @@ namespace Engine
 	/*
 		The Minimum Mode Following (MMF) method
 	*/
-	class Method_MMF : public Method
+	template <Solver solver>
+	class Method_MMF : public Method_Template<solver>
 	{
 	public:
  		// Constructor

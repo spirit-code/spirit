@@ -3,7 +3,7 @@
 #define METHOD_LLG_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method.hpp>
+#include <engine/Method_Template.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Parameters_Method_LLG.hpp>
 
@@ -14,7 +14,8 @@ namespace Engine
 	/*
 		The Landau-Lifshitz-Gilbert (LLG) method
 	*/
-	class Method_LLG : public Method
+	template <Solver solver>
+	class Method_LLG : public Method_Template<solver>
 	{
 	public:
         // Constructor

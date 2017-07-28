@@ -14,19 +14,20 @@ using namespace Utility;
 
 namespace Engine
 {
-    Method_LLG::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-		Method(system->llg_parameters, idx_img, idx_chain)
+	template <Solver solver>
+    Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
+		Method_Template<solver>(system->llg_parameters, idx_img, idx_chain)
 	{
 		// Currently we only support a single image being iterated at once:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
 
 		// We assume it is not converged before the first iteration
-		this->force_converged = std::vector<bool>(systems.size(), false);
+		this->force_converged = std::vector<bool>(this->systems.size(), false);
 		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
-		this->Gradient = std::vector<vectorfield>(systems.size(), vectorfield(systems[0]->spins->size()));	// [noi][3nos]
+		this->Gradient = std::vector<vectorfield>(this->systems.size(), vectorfield(this->systems[0]->spins->size()));	// [noi][3nos]
 
 		// History
         this->history = std::map<std::string, std::vector<scalar>>{
@@ -36,17 +37,18 @@ namespace Engine
 	}
 
 
-	void Method_LLG::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+	template <Solver solver>
+	void Method_LLG<solver>::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
 	{
 		// int nos = configurations[0]->size() / 3;
 		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
 		//this->force_maxAbsComponent = 0;
 
 		// Loop over images to calculate the total force on each Image
-		for (unsigned int img = 0; img < systems.size(); ++img)
+		for (unsigned int img = 0; img < this->systems.size(); ++img)
 		{
 			// Minus the gradient is the total Force here
-			systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
+			this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
 			#ifdef SPIRIT_ENABLE_PINNING
 				Vectormath::set_c_a(1, Gradient[img], Gradient[img], parameters->pinning->mask_unpinned);
 			#endif // SPIRIT_ENABLE_PINNING
@@ -58,9 +60,10 @@ namespace Engine
 	}
 
 
-	bool Method_LLG::Force_Converged()
+	template <Solver solver>
+	bool Method_LLG<solver>::Force_Converged()
 	{
-		for (unsigned int img = 0; img < systems.size(); ++img)
+		for (unsigned int img = 0; img < this->systems.size(); ++img)
 		{
 			if (this->systems[img]->llg_parameters->temperature > 0 || this->systems[img]->llg_parameters->stt_magnitude > 0)
 				return false;
@@ -71,19 +74,21 @@ namespace Engine
 							[](bool b) { return b; });
 	}
 
-	void Method_LLG::Hook_Pre_Iteration()
+	template <Solver solver>
+	void Method_LLG<solver>::Hook_Pre_Iteration()
     {
 
 	}
 
-    void Method_LLG::Hook_Post_Iteration()
+	template <Solver solver>
+    void Method_LLG<solver>::Hook_Post_Iteration()
     {
 		// --- Convergence Parameter Update
 		// Loop over images to calculate the maximum force components
-		for (unsigned int img = 0; img < systems.size(); ++img)
+		for (unsigned int img = 0; img < this->systems.size(); ++img)
 		{
 			this->force_converged[img] = false;
-			auto fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), Gradient[img]);
+			auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), Gradient[img]);
 			if (fmax > 0) this->force_maxAbsComponent = fmax;
 			else this->force_maxAbsComponent = 0;
 			if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
@@ -92,12 +97,12 @@ namespace Engine
 		// --- Image Data Update
 		// Update the system's Energy
 		// ToDo: copy instead of recalculating
-		systems[0]->UpdateEnergy();
+		this->systems[0]->UpdateEnergy();
 
 		// ToDo: How to update eff_field without numerical overhead?
 		// systems[0]->effective_field = Gradient[0];
 		// Vectormath::scale(systems[0]->effective_field, -1);
-		Vectormath::set_c_a(-1, Gradient[0], systems[0]->effective_field);
+		Vectormath::set_c_a(-1, Gradient[0], this->systems[0]->effective_field);
 		// systems[0]->UpdateEffectiveField();
 
 		// TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
@@ -121,19 +126,21 @@ namespace Engine
         // }//endif renorm_sd
     }
 
-	void Method_LLG::Finalize()
+	template <Solver solver>
+	void Method_LLG<solver>::Finalize()
     {
 		this->systems[0]->iteration_allowed = false;
     }
 
 	
-	void Method_LLG::Save_Current(std::string starttime, int iteration, bool initial, bool final)
+	template <Solver solver>
+	void Method_LLG<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
 		// History save
         this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
-		systems[0]->UpdateEnergy();
-        this->history["E"].push_back(systems[0]->E);
-    	auto mag = Engine::Vectormath::Magnetization(*systems[0]->spins);
+		this->systems[0]->UpdateEnergy();
+        this->history["E"].push_back(this->systems[0]->E);
+    	auto mag = Engine::Vectormath::Magnetization(*this->systems[0]->spins);
         this->history["M_z"].push_back(mag[2]);
 
 		// File save
@@ -233,5 +240,6 @@ namespace Engine
 	}
 
 	// Optimizer name as string
-    std::string Method_LLG::Name() { return "LLG"; }
+	template <Solver solver>
+    std::string Method_LLG<solver>::Name() { return "LLG"; }
 }

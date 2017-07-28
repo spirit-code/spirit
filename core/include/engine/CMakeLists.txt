@@ -5,14 +5,13 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_SIB2.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Depondt.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_Heun.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_NCG.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Optimizer_VP.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Solver_NCG.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Solver_VP.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Method_Template.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.hpp
