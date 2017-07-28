@@ -82,7 +82,7 @@ namespace Engine
     // time steps
     scalar damping = llg_params.damping;
     // dt = time_step [ps] * 10^-12 * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-    scalar dtg = llg_params.dt * 1e-12 * Constants::gamma / Constants::mu_B / (1 + damping*damping);
+    scalar dtg = llg_params.dt * Constants::gamma / Constants::mu_B / (1 + damping*damping);
     //scalar sqrtdtg = dtg / std::sqrt( llg_params.dt );
     // STT
     scalar a_j = llg_params.stt_magnitude;

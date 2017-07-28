@@ -39,7 +39,7 @@ namespace Engine
     {
       this->s = method->systems[i];
       auto& conf = *this->configurations[i];
-      this->dtg = this->s->llg_parameters->dt * 1e-12 * Constants::gamma / Constants::mu_B / 
+      this->dtg = this->s->llg_parameters->dt * Constants::gamma / Constants::mu_B / 
                   ( 1 + pow( this->s->llg_parameters->damping, 2 )  );
       
       // Calculate Virtual force H
@@ -63,7 +63,7 @@ namespace Engine
     {
       this->s = method->systems[i];
       auto& conf = *this->configurations[i];
-      this->dtg = this->s->llg_parameters->dt * 1e-12 * Constants::gamma / Constants::mu_B / 
+      this->dtg = this->s->llg_parameters->dt * Constants::gamma / Constants::mu_B / 
                   ( 1 + pow( this->s->llg_parameters->damping, 2 )  );
       
       // Calculate Predicted Virtual force H'
