@@ -11,7 +11,7 @@
 
 
 bool Get_Method(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain, std::shared_ptr<Engine::Method> method)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain, std::shared_ptr<Engine::Method> & method)
 {
     // Translate to string
     std::string method_type(c_method_type);
@@ -48,6 +48,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         image->Lock();
     	image->iteration_allowed = false;
         image->Unlock();
+		return false;
     }
     else if (chain->iteration_allowed)
     {
@@ -55,6 +56,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         chain->Lock();
     	chain->iteration_allowed = false;
         chain->Unlock();
+		return false;
     }
     else if (state->collection->iteration_allowed)
     {
@@ -62,6 +64,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         // collection->Lock();
         state->collection->iteration_allowed = false;
         // collection->Unlock();
+		return false;
     }
     else
     {
@@ -198,8 +201,8 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
 {
     // Iterate
     std::shared_ptr<Engine::Method> method;
-    if (Get_Method(state, c_method_type, c_solver_type, n_iterations, n_iterations_log, idx_image, idx_chain, method))
-        method->Iterate();
+	if (Get_Method(state, c_method_type, c_solver_type, n_iterations, n_iterations_log, idx_image, idx_chain, method))
+		method->Iterate();
 }
 
 void Simulation_Stop_All(State *state)

@@ -43,15 +43,15 @@ namespace Engine
 		Method_Template(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
 			Method(parameters, idx_img, idx_chain)
 		{
-
+			std::cerr << "INIT METHOD TEMPLATE" << std::endl;
 		}
 
         // Solver_Initialise contains the initialisations of arrays etc. for a certain solver
-		void Solver_Init();
+		void Solver_Init() override;
         // Solver_Step represents one iteration of a certain Solver
-        void Solver_Step();
+        void Solver_Step() override;
 
-
+		
     // 	// Check if walltime ran out
     // 	virtual bool Walltime_Expired(duration<scalar> dt_seconds);
 
@@ -98,7 +98,10 @@ namespace Engine
     // 	// Information for Logging and Save_Current
     // 	int idx_image;
     // 	int idx_chain;
-        
+
+	// Solver name as string
+		virtual std::string SolverName() override;
+		virtual std::string SolverFullName() override;
     // protected:
     // 	// Calculate force_maxAbsComponent for a spin configuration
     // 	virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
@@ -180,6 +183,28 @@ namespace Engine
 		// |force|^2
 		std::vector<scalar> force_norm2;
     };
+
+	template <> inline
+	void Method_Template<Solver::None>::Solver_Init()
+	{
+	};
+
+	template <> inline
+	void Method_Template<Solver::None>::Solver_Step()
+	{
+	};
+
+	template <> inline
+	std::string Method_Template<Solver::None>::SolverName()
+	{
+		return "None";
+	};
+
+	template <> inline
+	std::string Method_Template<Solver::None>::SolverFullName()
+	{
+		return "None";
+	};
 
     #include <Solver_SIB.hpp>
     #include <Solver_VP.hpp>

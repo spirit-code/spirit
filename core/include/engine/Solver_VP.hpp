@@ -93,3 +93,15 @@ void Method_Template<Solver::VP>::Solver_Step ()
         Vectormath::set_c_a(1.0, *spins_temp[i], configuration);
     }
 };
+
+template <> inline
+std::string Method_Template<Solver::VP>::SolverName()
+{
+	return "VP";
+};
+
+template <> inline
+std::string Method_Template<Solver::VP>::SolverFullName()
+{
+	return "Velocity Projection";
+};

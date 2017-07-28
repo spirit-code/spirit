@@ -69,3 +69,15 @@ void Method_Template<Solver::Heun>::Solver_Step ()
         conf = *spins_temp[i];
     } 
 };
+
+template <> inline
+std::string Method_Template<Solver::Heun>::SolverName()
+{
+	return "Heun";
+};
+
+template <> inline
+std::string Method_Template<Solver::Heun>::SolverFullName()
+{
+	return "Heun";
+};

@@ -164,3 +164,15 @@ void Method_Template<Solver::NCG>::Solver_Step ()
             Engine::Vectormath::set_c_a( 1, { 0, 0, 0 }, this->d[img] );
     }
 };
+
+template <> inline
+std::string Method_Template<Solver::NCG>::SolverName()
+{
+	return "NCG";
+};
+
+template <> inline
+std::string Method_Template<Solver::NCG>::SolverFullName()
+{
+	return "Nonlinear conjugate gradients";
+};

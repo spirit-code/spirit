@@ -53,3 +53,15 @@ void Method_Template<Solver::SIB>::Solver_Step ()
         Vectormath::transform(*s->spins, virtualforce[i], *s->spins);
     }
 };
+
+template <> inline
+std::string Method_Template<Solver::SIB>::SolverName()
+{
+	return "SIB";
+};
+
+template <> inline
+std::string Method_Template<Solver::SIB>::SolverFullName()
+{
+	return "Semi-implicit B";
+};

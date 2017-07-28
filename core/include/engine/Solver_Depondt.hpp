@@ -80,3 +80,15 @@ void Method_Template<Solver::Depondt>::Solver_Step ()
         Vectormath::rotate( conf, virtualforce[i], angle, conf );  
     }
 };
+
+template <> inline
+std::string Method_Template<Solver::Depondt>::SolverName()
+{
+	return "Depondt";
+};
+
+template <> inline
+std::string Method_Template<Solver::Depondt>::SolverFullName()
+{
+	return "Depondt";
+};

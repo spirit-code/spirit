@@ -16,10 +16,26 @@ namespace Engine
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
         parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
+		std::cerr << "INIT METHOD" << std::endl;
+
         this->SenderName = Utility::Log_Sender::All;
         this->force_maxAbsComponent = parameters->force_convergence + 1.0;
         this->history = std::map<std::string, std::vector<scalar>>{
             {"max_torque_component", {this->force_maxAbsComponent}} };
+
+
+		// Setup Timings
+		for (int i = 0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
+		this->ips = 0;
+		this->starttime = Timing::CurrentDateTime();
+
+
+		// Printing precision for Scalars
+		#ifdef CORE_SCALAR_TYPE_FLOAT
+			this->print_precision = 8;
+		#else
+			this->print_precision = 12;
+		#endif
     }
 
     void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
@@ -109,6 +125,10 @@ namespace Engine
 
     void Method::Iterate()
     {
+		std::cerr << "STARTING ITERATE" << std::endl;
+
+		this->Solver_Init();
+
         //------------------------ Init local vars ---------------------------------
         this->starttime = Timing::CurrentDateTime();
         auto sender     = this->SenderName;
@@ -160,7 +180,7 @@ namespace Engine
             // Pre-Iteration hook
             this->Hook_Pre_Iteration();
             // Do one single Iteration
-            this->Iteration();
+            this->Solver_Step();
             // Post-Iteration hook
             this->Hook_Post_Iteration();
 
@@ -245,6 +265,18 @@ namespace Engine
         // Not Implemented!
         Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Iteration() of the Method base class!"), this->idx_image, this->idx_chain);
     }
+
+	void Method::Solver_Init()
+	{
+		// Not Implemented!
+		Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Init() of the Method base class!"), this->idx_image, this->idx_chain);
+	}
+
+	void Method::Solver_Step()
+	{
+		// Not Implemented!
+		Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Step() of the Method base class!"), this->idx_image, this->idx_chain);
+	}
 
 
 

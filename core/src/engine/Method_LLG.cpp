@@ -18,6 +18,7 @@ namespace Engine
     Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
 		Method_Template<solver>(system->llg_parameters, idx_img, idx_chain)
 	{
+		std::cerr << "INIT METHOD LLG" << std::endl;
 		// Currently we only support a single image being iterated at once:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
@@ -27,6 +28,7 @@ namespace Engine
 		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
 
 		// Forces
+		this->force = std::vector<vectorfield>(this->systems.size(), vectorfield(this->systems[0]->spins->size()));	// [noi][3nos]
 		this->Gradient = std::vector<vectorfield>(this->systems.size(), vectorfield(this->systems[0]->spins->size()));	// [noi][3nos]
 
 		// History
@@ -34,6 +36,27 @@ namespace Engine
 			{"max_torque_component", {this->force_maxAbsComponent}},
 			{"E", {this->force_maxAbsComponent}},
 			{"M_z", {this->force_maxAbsComponent}} };
+
+
+		this->noi = this->systems.size();
+		this->nos = this->systems[0]->nos;
+
+		this->n_iterations = this->parameters->n_iterations;
+		this->n_iterations_log = this->parameters->n_iterations_log;
+		this->n_log = this->n_iterations / this->n_iterations_log;
+
+		// Create shared pointers to the method's systems' configurations
+		this->configurations = std::vector<std::shared_ptr<vectorfield>>(noi);
+		for (int i = 0; i<noi; ++i) this->configurations[i] = this->systems[i]->spins;
+
+		// Allocate force array
+		//this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
+
+		// Initial force calculation s.t. it does not seem to be already converged
+		this->Calculate_Force(this->configurations, this->force);
+		// Post iteration hook to get forceMaxAbsComponent etc
+		this->Hook_Post_Iteration();
+
 	}
 
 

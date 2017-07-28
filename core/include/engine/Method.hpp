@@ -26,7 +26,12 @@ namespace Engine
         // Constructor to be used in derived classes
         Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
-        
+
+		// Solver_Initialise contains the initialisations of arrays etc. for a certain solver
+		virtual void Solver_Init();
+		// Solver_Step represents one iteration of a certain Solver
+		virtual void Solver_Step();
+
 		// One Iteration
 		virtual void Iteration();
 
@@ -42,14 +47,14 @@ namespace Engine
         // // Solver_Step represents one iteration of a certain Solver
         // void Solver_Step();
 
-        void VirtualForce( const vectorfield & spins, 
+        virtual void VirtualForce( const vectorfield & spins, 
                                     const Data::Parameters_Method_LLG & llg_params, 
                                     const vectorfield & effective_field,  
                                     const vectorfield & xi, 
-                                    vectorfield & force );
+                                    vectorfield & force ) final;
 
         // Check if walltime ran out
-        virtual bool Walltime_Expired(duration<scalar> dt_seconds);
+        virtual bool Walltime_Expired(duration<scalar> dt_seconds) final;
 
         // Calculate Forces onto Systems
         virtual void Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
