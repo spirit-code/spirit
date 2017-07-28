@@ -21,6 +21,7 @@ namespace Engine
 {
     enum class Solver
     {
+		None,
         SIB,
         Heun,
         Depondt,
@@ -39,10 +40,14 @@ namespace Engine
     {
     public:
     // 	// Constructor to be used in derived classes
-    // 	Method_Template(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
+		Method_Template(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
+			Method(parameters, idx_img, idx_chain)
+		{
+
+		}
 
         // Solver_Initialise contains the initialisations of arrays etc. for a certain solver
-        void Solver_Init();
+		void Solver_Init();
         // Solver_Step represents one iteration of a certain Solver
         void Solver_Step();
 

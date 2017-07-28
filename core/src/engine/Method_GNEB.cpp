@@ -301,4 +301,11 @@ namespace Engine
 	// Optimizer name as string
 	template <Solver solver>
     std::string Method_GNEB<solver>::Name() { return "GNEB"; }
+
+	// Template instantiations
+	template class Method_GNEB<Solver::SIB>;
+	template class Method_GNEB<Solver::Heun>;
+	template class Method_GNEB<Solver::Depondt>;
+	template class Method_GNEB<Solver::NCG>;
+	template class Method_GNEB<Solver::VP>;
 }

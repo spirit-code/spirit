@@ -74,4 +74,8 @@ namespace Engine
 	// Optimizer name as string
 	template <Solver solver>
     std::string Method_MC<solver>::Name() { return "MC"; }
+
+
+	// Template instantiations
+	template class Method_MC<Solver::None>;
 }

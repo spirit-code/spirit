@@ -1,4 +1,4 @@
-template <>
+template <> inline
 void Method_Template<Solver::NCG>::Solver_Init ()
 {
     std::cerr << "NCG INIT" << std::endl;
@@ -48,7 +48,7 @@ void Method_Template<Solver::NCG>::Solver_Init ()
 /*
     Template instantiation of the Simulation class for use with the SIB Solver
 */
-template <>
+template <> inline
 void Method_Template<Solver::NCG>::Solver_Step ()
 {
     std::cerr << "NCG STEP" << std::endl;

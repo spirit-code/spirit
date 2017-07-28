@@ -1,4 +1,4 @@
-template <>
+template <> inline
 void Method_Template<Solver::Depondt>::Solver_Init ()
 {
     std::cerr << "Depondt INIT" << std::endl;
@@ -23,7 +23,7 @@ void Method_Template<Solver::Depondt>::Solver_Init ()
 /*
     Template instantiation of the Simulation class for use with the SIB Solver
 */
-template <>
+template <> inline
 void Method_Template<Solver::Depondt>::Solver_Step ()
 {
     std::cerr << "Depondt STEP" << std::endl;

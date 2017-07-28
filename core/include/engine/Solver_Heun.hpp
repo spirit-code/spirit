@@ -1,4 +1,4 @@
-template <>
+template <> inline
 void Method_Template<Solver::Heun>::Solver_Init ()
 {
     std::cerr << "Heun INIT" << std::endl;
@@ -21,7 +21,7 @@ void Method_Template<Solver::Heun>::Solver_Init ()
 /*
     Template instantiation of the Simulation class for use with the SIB Solver
 */
-template <>
+template <> inline
 void Method_Template<Solver::Heun>::Solver_Step ()
 {
     std::cerr << "Heun STEP" << std::endl;

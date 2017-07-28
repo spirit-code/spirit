@@ -91,16 +91,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         }
         else if (method_type == "MC")
         {
-            if (solver == Engine::Solver::SIB)
-                method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::SIB>(image, idx_image, idx_chain));
-            else if (solver == Engine::Solver::Heun)
-                method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::Heun>(image, idx_image, idx_chain));
-            else if (solver == Engine::Solver::Depondt)
-                method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::Depondt>(image, idx_image, idx_chain));
-            else if (solver == Engine::Solver::NCG)
-                method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::NCG>(image, idx_image, idx_chain));
-            else if (solver == Engine::Solver::VP)
-                method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::VP>(image, idx_image, idx_chain));
+            method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::None>(image, idx_image, idx_chain));
         }
         else if (method_type == "GNEB")
         {

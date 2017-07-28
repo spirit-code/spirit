@@ -1,4 +1,4 @@
-template <>
+template <> inline
 void Method_Template<Solver::VP>::Solver_Init ()
 {
     std::cerr << "VP INIT" << std::endl;
@@ -18,7 +18,7 @@ void Method_Template<Solver::VP>::Solver_Init ()
 /*
     Template instantiation of the Simulation class for use with the SIB Solver
 */
-template <>
+template <> inline
 void Method_Template<Solver::VP>::Solver_Step ()
 {
     std::cerr << "VP STEP" << std::endl;

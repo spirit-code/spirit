@@ -563,4 +563,11 @@ namespace Engine
     // Optimizer name as string
 	template <Solver solver>
     std::string Method_MMF<solver>::Name() { return "MMF"; }
+
+	// Template instantiations
+	template class Method_MMF<Solver::SIB>;
+	template class Method_MMF<Solver::Heun>;
+	template class Method_MMF<Solver::Depondt>;
+	template class Method_MMF<Solver::NCG>;
+	template class Method_MMF<Solver::VP>;
 }
