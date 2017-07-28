@@ -17,9 +17,11 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Single Vector Math
 
-        // Rotate a vector around an axis by a certain degree
+        // Rotate a vector around an axis by a certain degree (Implemented with Rodrigue's formula)
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
-
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
+                     vectorfield & v_out );
+        
         // Decompose a vector into numbers of translations in a basis
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis);
 
@@ -109,6 +111,8 @@ namespace Engine
         // sf is a scalarfield
         // s is a scalar
         void fill(scalarfield & sf, scalar s);
+        
+        // TODO: Add the test
         void fill(scalarfield & sf, scalar s, const intfield & mask);
 
         // Scale a scalarfield by a given value
@@ -125,9 +129,12 @@ namespace Engine
         // v is a vector
         void fill(vectorfield & vf, const Vector3 & v);
         void fill(vectorfield & vf, const Vector3 & v, const intfield & mask);
-
+        
         // Normalize the vectors of a vectorfield
         void normalize_vectors(vectorfield & vf);
+        
+        // Get the norm of a vectorfield 
+        void norm( const vectorfield & vf, scalarfield & norm );
 
         // Pair of Minimum and Maximum of any component of any vector of a vectorfield
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1);
@@ -164,8 +171,6 @@ namespace Engine
         // v1 and v2 are vector fields
         void cross(const vectorfield & vf1, const vectorfield & vf2, vectorfield & out);
         
-
-
         // out[i] += c*a
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
         // out[i] += c*a[i]
