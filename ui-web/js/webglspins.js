@@ -521,6 +521,9 @@ WebGLSpins._matrixMultiply = function(matrix, vector) {
 
 WebGLSpins._perspectiveProjectionMatrix = function(verticalFieldOfView, aspectRatio, zNear, zFar) {
     var f = 1.0/Math.tan(verticalFieldOfView*Math.PI/180/2);
+    if (aspectRatio < 1.0) {
+        f *= aspectRatio;
+    }
     return [
         [f/aspectRatio, 0, 0, 0],
         [0, f, 0, 0],
@@ -665,7 +668,15 @@ WebGLSpins._ArrowRenderer.prototype.draw = function(width, height) {
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
     var lightPosition = WebGLSpins._matrixMultiply(modelviewMatrix, this._options.cameraLocation);
     gl.uniform3f(gl.getUniformLocation(this._program, "uLightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
-    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), this._options.zRange[0], this._options.zRange[1]);
+    var zMin = this._options.zRange[0];
+    var zMax = this._options.zRange[1];
+    if (zMin <= -1.0) {
+        zMin = -2.0;
+    }
+    if (zMax >= 1.0) {
+        zMax = 2.0;
+    }
+    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), zMin, zMax);
 
     gl.drawElementsInstanced(gl.TRIANGLES, this._numIndices, gl.UNSIGNED_SHORT, null, this._numInstances);
     this._boundingBoxRenderer.draw(width, height);
@@ -981,7 +992,15 @@ WebGLSpins._SurfaceRenderer.prototype.draw = function(width, height) {
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uProjectionMatrix"), false, WebGLSpins._toFloat32Array(projectionMatrix));
     var modelviewMatrix = WebGLSpins._lookAtMatrix(this._options.cameraLocation, this._options.centerLocation, this._options.upVector);
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
-    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), this._options.zRange[0], this._options.zRange[1]);
+    var zMin = this._options.zRange[0];
+    var zMax = this._options.zRange[1];
+    if (zMin <= -1.0) {
+        zMin = -2.0;
+    }
+    if (zMax >= 1.0) {
+        zMax = 2.0;
+    }
+    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), zMin, zMax);
 
     gl.disable(gl.CULL_FACE);
     gl.drawElements(gl.TRIANGLES, this._numIndices, gl.UNSIGNED_INT, null);
@@ -1157,7 +1176,7 @@ WebGLSpins._SphereRenderer.prototype.draw = function(width, height) {
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(0);
         gl.uniform1f(gl.getUniformLocation(this._program2, "uAspectRatio"), width / height);
-    gl.uniform1f(gl.getUniformLocation(this._program2, "uInnerSphereRadius"), this._options.innerSphereRadius);
+        gl.uniform1f(gl.getUniformLocation(this._program2, "uInnerSphereRadius"), this._options.innerSphereRadius);
         gl.disable(gl.CULL_FACE);
         gl.depthMask(false);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -1175,11 +1194,23 @@ WebGLSpins._SphereRenderer.prototype.draw = function(width, height) {
 
     gl.useProgram(this._program);
 
-    var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-width / height, width / height, -1, 1, 2, 0);
+    if (width >= height) {
+      var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-width / height, width / height, -1, 1, 2, 0);
+    } else {
+      var projectionMatrix = WebGLSpins._orthographicProjectionMatrix(-1, 1, -height / width, height / width, 2, 0);
+    }
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uProjectionMatrix"), false, WebGLSpins._toFloat32Array(projectionMatrix));
     var modelviewMatrix = WebGLSpins._lookAtMatrix(WebGLSpins._normalize(WebGLSpins._difference(this._options.cameraLocation, this._options.centerLocation)), [0, 0, 0], this._options.upVector);
     gl.uniformMatrix4fv(gl.getUniformLocation(this._program, "uModelviewMatrix"), false, WebGLSpins._toFloat32Array(modelviewMatrix));
-    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), this._options.zRange[0], this._options.zRange[1]);
+    var zMin = this._options.zRange[0];
+    var zMax = this._options.zRange[1];
+    if (zMin <= -1.0) {
+        zMin = -2.0;
+    }
+    if (zMax >= 1.0) {
+        zMax = 2.0;
+    }
+    gl.uniform2f(gl.getUniformLocation(this._program, "uZRange"), zMin, zMax);
     gl.uniform2f(gl.getUniformLocation(this._program, "uPointSizeRange"), Math.floor(this._options.pointSizeRange[0]), Math.floor(this._options.pointSizeRange[1]));
     gl.uniform1f(gl.getUniformLocation(this._program, "uAspectRatio"), width / height);
     gl.uniform1f(gl.getUniformLocation(this._program, "uInnerSphereRadius"), this._options.innerSphereRadius);
@@ -1280,6 +1311,9 @@ WebGLSpins._SphereRenderer.prototype._updateShaderProgram = function() {
         void main(void) {
           vfPosition = ivPosition;
           gl_Position = vec4(vfPosition.xy*vec2(uInnerSphereRadius/uAspectRatio, uInnerSphereRadius), 0.0, 1.0);
+          if (uAspectRatio < 1.0) {
+            gl_Position.xy *= uAspectRatio;
+          }
         }
         `, `
         #version 100

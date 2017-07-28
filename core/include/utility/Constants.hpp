@@ -4,16 +4,57 @@
 
 namespace Utility
 {
-	namespace Constants
+    // Constants by convention:
+    //      Energy scale: Millielctronvolts
+    //      Time scale: Picoseconds
+    //      Magnetic fields scale: Tesla
+    namespace Constants
     {
-		// The Bohr Magneton [meV / T]
+        // The Bohr Magneton [meV/T]
         double const mu_B = 0.057883817555;
 
-        // Gyromagnetic ratio of electron [rad/(s*T)]
-        double const gamma = 1.760859644*1e11;
-
-		// The Boltzmann constant [meV / K]
+        // The Boltzmann constant [meV/K]
         double const k_B  = 0.08617330350;
+
+        // Planck constant [meV*ps/rad]
+        double const hbar = 0.6582119514;
+
+        // Millirydberg [mRy/meV]
+        double const mRy = 1.0/13.605693009;
+
+        // Gyromagnetic ratio of electron [rad/(ps*T)]
+        double const gamma = 0.1760859644;
+
+        // Electron g-factor [unitless]
+        double const g_e = 2.00231930436182;
+
+        // Pi [rad]
+        double const Pi = 3.14159265358979323846;
+    }
+
+    // Constants_mRy by convention:
+    //      Energy scale: Millirydberg
+    //      Time scale: Picoseconds
+    //      Magnetic fields scale: Tesla
+    namespace Constants_mRy
+    {
+        // The Bohr Magneton [mRy/T]
+        double const mu_B = Constants::mu_B / Constants::mRy;
+
+        // The Boltzmann constant [mRy/K]
+        double const k_B  = Constants::k_B  / Constants::mRy;
+
+        // Planck constant [mRy*ps/rad]
+        double const hbar = Constants::hbar / Constants::mRy;
+
+        // Millielectronvolt [meV/mRy]
+        double const meV = 1.0 / Constants::mRy;
+
+        // Gyromagnetic ratio of electron [rad/(ps*T)]
+        double const gamma = 0.1760859644;
+
+        // Electron g-factor [unitless]
+        double const g_e = 2.00231930436182;
 
         // Pi [rad]
         double const Pi = 3.14159265358979323846;

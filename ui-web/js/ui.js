@@ -655,6 +655,11 @@ $(document).ready(function() {
         webglspins.draw();
       }
     });
+    $('#input-show-settings').on('change', function () {
+      if (!isSimulating) {
+        webglspins.draw();
+      }
+    });
     function update(sim) {
       sim.performIteration();
       if (isSimulating) {

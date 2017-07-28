@@ -18,6 +18,7 @@ It can be built as shared or static and API headers are located in
 |  CMake Options          | Use |
 | :---------------------: | :-: |
 | SPIRIT_USE_CUDA         | Use CUDA to speed up numerically intensive parts of the core |
+| SPIRIT_USE_OPENMP       | Use OpenMP to speed up numerically intensive parts of the core |
 | SPIRIT_SCALAR_TYPE      | Should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc. |
 | SPIRIT_BUILD_TEST       | Build unit tests for the core library |
 | SPIRIT_BUILD_FOR_CXX    | Build the static library for C++ applications |

@@ -151,11 +151,14 @@ public:
   void setSpherePointSizeRange(glm::vec2 sphere_point_size_range);
 
   // --- Colors
-  Colormap colormap() const;
-  void setColormap(Colormap colormap);
+  Colormap colormap_general() const;
+  Colormap colormap_arrows() const;
+  void setColormapGeneral(Colormap colormap);
+  void setColormapArrows(Colormap colormap);
   float colormap_rotation();
   std::array<bool, 2> colormap_inverted();
-  void setColormapRotationInverted(int phi=0, bool invert_z=false, bool invert_xy=false);
+  void setColormapRotationInverted(int phi, bool invert_z, bool invert_xy);
+  std::string getColormapRotationInverted(Colormap colormap, int phi=0, bool invert_z=false, bool invert_xy=false);
   Color backgroundColor() const;
   void setBackgroundColor(Color background_color);
   Color boundingBoxColor() const;
@@ -239,7 +242,8 @@ private:
   const VFRendering::Options& options() const;
   
   // Parameters
-  Colormap m_colormap;
+  Colormap m_colormap_general;
+  Colormap m_colormap_arrows;
   int m_colormap_rotation;
   bool m_colormap_invert_z;
   bool m_colormap_invert_xy;

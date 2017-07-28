@@ -2,7 +2,9 @@ MESSAGE( STATUS ">> ------------------------------------------------------------
 MESSAGE( STATUS ">> --------------------- Spirit --------------------------------------- <<" )
 
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+### We need at least C++11
+set(CMAKE_CXX_STANDARD 11)
 #############################################
 
 
@@ -20,6 +22,7 @@ option( SPIRIT_ENABLE_DEFECTS    "Enable defects and disorder in the lattice."  
 ### Options for Spirit
 option( SPIRIT_BUILD_TEST        "Build unit tests for the Spirit library."                ON  )
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
+option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the code."       OFF )
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
@@ -29,11 +32,19 @@ set( SPIRIT_SCALAR_TYPE double )
 ##### Some restrictions on the options ######
 if( SPIRIT_USE_CUDA )
 	### If cuda is used, we use float and
+	### and we cannot use OpenMP and
 	### we cannot build for JS or Julia
-	set( SPIRIT_SCALAR_TYPE        float )
+	set( SPIRIT_USE_OPENMP          OFF )
+	set( SPIRIT_SCALAR_TYPE         float )
 	set( SPIRIT_BUILD_FOR_JS        OFF )
 	set( SPIRIT_BUILD_FOR_JULIA     OFF )
 endif()
+#############################################
+if( SPIRIT_USE_OPENMP )
+	set( SPIRIT_USE_CUDA            OFF )
+	set( SPIRIT_BUILD_FOR_JS        OFF )
+	set( SPIRIT_BUILD_FOR_JULIA     OFF )
+endif( )
 #############################################
 if( SPIRIT_BUILD_FOR_JS )
 	### UI-Web needs float
@@ -47,11 +58,11 @@ if( SPIRIT_BUILD_FOR_JS )
 	### Emscripten cannot use cuda or threads
 	set( SPIRIT_USE_CUDA 		OFF )
 	set( SPIRIT_USE_THREADS 	OFF )
-endif()
+endif( )
 #############################################
 if( SPIRIT_BUILD_TEST )
     enable_testing()
-endif()
+endif( )
 #############################################
 
 
@@ -96,6 +107,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+### Installation
+set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
 #############################################
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated Spirit_Defines.h
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -170,13 +183,33 @@ configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Defines.h.in ${PROJECT_SOURCE_
 
 ######### CUDA decisions ####################
 if ( SPIRIT_USE_CUDA )
+	# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
     find_package( CUDA REQUIRED )
     add_definitions( -DUSE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks
     set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60 --expt-relaxed-constexpr" )
+	message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
 endif()
+#############################################
+
+
+######### OpenMP decisions ##################
+if ( SPIRIT_USE_OPENMP )
+    include( FindOpenMP )
+	if( OPENMP_FOUND )
+		set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}" )
+		set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
+		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+		message( STATUS ">> OpenMP found." )
+		message( STATUS ">> OpenMP C Flags:          ${OpenMP_C_FLAGS}" )
+		message( STATUS ">> OpenMP CXX Flags:        ${OpenMP_CXX_FLAGS}" )
+		message( STATUS ">> OpenMP EXE Linker Flags: ${OpenMP_EXE_LINKER_FLAGS}" )
+	else( OPENMP_FOUND )
+		message( STATUS ">> WARNING: OpenMP could not be found." )
+	endif( OPENMP_FOUND )
+endif( )
 #############################################
 
 
@@ -332,6 +365,7 @@ endif()
 
 ######### Test executable ###################
 set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
+set( TEST_EXECUTABLES )
 ### Test creation macro
 macro( add_framework_test testName testSrc )
     # Executable
@@ -348,7 +382,9 @@ macro( add_framework_test testName testSrc )
     # Add the test
     add_test( NAME        ${testName}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND           ${testName} --use-colour=yes )
+		COMMAND           ${testName} --use-colour=yes )
+	# Add to list
+	set( TEST_EXECUTABLES ${TEST_EXECUTABLES} ${testName} )
 endmacro( add_framework_test testName testSrc )
 ### Create tests if needed
 if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
@@ -367,6 +403,7 @@ endif()
 
 
 ######### Python Test #######################
+set( PYTHON_TEST_EXECUTABLES )
 macro(add_python_test test_name src)
 	# Add the test
 	add_test(
@@ -376,6 +413,8 @@ macro(add_python_test test_name src)
 	# Properties
 	set_tests_properties(${test_name}
 		PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
+	# Add to list
+	set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name} )
 endmacro(add_python_test)
 ### Create tests if needed
 if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
@@ -404,7 +443,47 @@ endif( )
 #############################################
 
 
-######### Export
+######### Install ###########################
+### Documentation
+install(DIRECTORY docs             DESTINATION docs/Spirit/core)
+### Include folder
+install(DIRECTORY include/Spirit   DESTINATION include
+		PATTERN   "CMakeLists.txt" EXCLUDE)
+
+### Static library and tests
+if( SPIRIT_BUILD_FOR_CXX )
+	install(TARGETS ${META_PROJECT_NAME}_static DESTINATION lib)
+	if( SPIRIT_BUILD_TEST )
+		install(TARGETS ${TEST_EXECUTABLES} DESTINATION test)
+	endif( )
+endif( )
+
+### Shared library and python tests
+if( SPIRIT_BUILD_FOR_PYTHON )
+	install(TARGETS   ${META_PROJECT_NAME}_python DESTINATION bin)
+	install(DIRECTORY python/spirit               DESTINATION python)
+	# if( SPIRIT_BUILD_TEST )
+	# 	install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test)
+	# endif( )
+endif( )
+
+### Shared library and julia tests
+if( SPIRIT_BUILD_FOR_JULIA )
+	install(TARGETS   ${META_PROJECT_NAME}_julia DESTINATION bin)
+	install(DIRECTORY julia/Spirit               DESTINATION julia)
+	# if( SPIRIT_BUILD_TEST )
+	# 	install(TARGETS ${JULIA_TEST_EXECUTABLES} DESTINATION julia/test)
+	# endif( )
+endif( )
+
+### Input files for tests
+if( SPIRIT_BUILD_TEST )
+	install(DIRECTORY test/input DESTINATION test)
+endif( )
+#############################################
+
+
+######### Export ############################
 set(SPIRIT_OBJS             $<TARGET_OBJECTS:${META_PROJECT_NAME}> PARENT_SCOPE)
 set(SPIRIT_LIBRARIES        ${META_PROJECT_NAME}        PARENT_SCOPE)
 set(SPIRIT_LIBRARIES_STATIC ${META_PROJECT_NAME}_static	PARENT_SCOPE)

@@ -42,7 +42,8 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	// Default VFRendering Settings
 
-    setColormap(Colormap::HSV);
+    setColormapGeneral(Colormap::HSV);
+	setColormapArrows(Colormap::HSV);
 	setColormapRotationInverted(0, false, false);
     
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
@@ -281,9 +282,12 @@ void SpinWidget::initializeGL()
 	// Setup the View
 	this->setVisualizationMode(this->visMode);
 
-	// Configure System (Setup the renderers
+	// Configure System (Setup the renderers)
 	this->setSystemCycle(SystemMode(this->idx_cycle));
 	this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
+
+	// Set renderers' colormaps
+	this->setColormapArrows(this->colormap_arrows());
 
 	this->m_gl_initialized = true;
 }
@@ -1331,16 +1335,40 @@ void SpinWidget::setupRenderers()
 
 //////////////////////////////////////////////////////////////////////////////////////
 ///// --- Colors ---
-SpinWidget::Colormap SpinWidget::colormap() const
+SpinWidget::Colormap SpinWidget::colormap_general() const
 {
-  return m_colormap;
+	return m_colormap_general;
 }
 
-void SpinWidget::setColormap(Colormap colormap)
+SpinWidget::Colormap SpinWidget::colormap_arrows() const
 {
-  m_colormap = colormap;
-  setColormapRotationInverted(colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
+	return m_colormap_arrows;
 }
+
+void SpinWidget::setColormapGeneral(Colormap colormap)
+{
+	m_colormap_general = colormap;
+	auto colormap_implementation = getColormapRotationInverted(m_colormap_general, colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
+
+	// Set overall colormap
+	makeCurrent();
+	m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
+
+	// Re-set arrows map (to not overwrite it)
+	this->setColormapArrows(this->colormap_arrows());
+}
+
+void SpinWidget::setColormapArrows(Colormap colormap)
+{
+	m_colormap_arrows = colormap;
+	auto colormap_implementation = getColormapRotationInverted(m_colormap_arrows, colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
+
+	// Set arrows colormap
+	makeCurrent();
+	if (this->m_renderer_arrows)
+		this->m_renderer_arrows->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
+}
+
 
 float SpinWidget::colormap_rotation()
 {
@@ -1357,6 +1385,13 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
 	this->m_colormap_rotation = phi;
 	this->m_colormap_invert_z = invert_z;
 	this->m_colormap_invert_xy = invert_xy;
+	
+	this->setColormapGeneral(this->colormap_general());
+	this->setColormapArrows(this->colormap_arrows());
+}
+
+std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, bool invert_z, bool invert_xy)
+{
 	int sign_z  = 1 - 2 * (int)invert_z;
 	int sign_xy = 1 - 2 * (int)invert_xy;
 
@@ -1373,7 +1408,7 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
 	char s_sign_xy[50];
 	sprintf (s_sign_xy, "%i", sign_xy);
 	std::string colormap_implementation;
-	switch (m_colormap)
+	switch (colormap)
 	{
 		case Colormap::WHITE:
 			colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
@@ -1494,11 +1529,8 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
 			}
 			)";
 			break;
-  }
-
-  // Set colormap
-  makeCurrent();
-  m_view.setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
+	}
+	return colormap_implementation;
 }
 
 SpinWidget::Color SpinWidget::backgroundColor() const
@@ -1837,7 +1869,8 @@ void SpinWidget::writeSettings()
 	// Colors
 	settings.beginGroup("Colors");
 	settings.setValue("Background Color", (int)backgroundColor());
-	settings.setValue("Colormap", (int)colormap());
+	settings.setValue("Colormap General", (int)colormap_general());
+	settings.setValue("Colormap Arrows", (int)colormap_arrows());
 	settings.setValue("Colormap_invert_z", m_colormap_invert_z);
 	settings.setValue("Colormap_invert_xy", m_colormap_invert_xy);
 	settings.setValue("Colormap_rotation",   m_colormap_rotation);
@@ -1940,8 +1973,10 @@ void SpinWidget::readSettings()
 		this->setBackgroundColor((Color)background_color);
 		if (background_color == 2) this->setBoundingBoxColor((Color)0);
 		else this->setBoundingBoxColor((Color)2);
-		int map = settings.value("Colormap").toInt();
-		this->setColormap((Colormap)map);
+		int map_arrows = settings.value("Colormap Arrows").toInt();
+		this->setColormapArrows((Colormap)map_arrows);
+		int map_genreal = settings.value("Colormap General").toInt();
+		this->setColormapGeneral((Colormap)map_genreal);
 		bool invert_z = settings.value("Colormap_invert_z").toInt();
 		bool invert_xy = settings.value("Colormap_invert_xy").toInt();
 		int phi   = settings.value("Colormap_rotation").toInt();

@@ -3,7 +3,7 @@ MESSAGE( STATUS ">> --------------------- Platforms.cmake ----------------------
 ######## Apple #######################################################
 if (APPLE)
 	SET ( PLATFORM_NAME "Apple" )
-	if ( OSX_BUNDLE_APP )
+	if ( BUNDLE_APP )
 		set( OS_BUNDLE MACOSX_BUNDLE )
 	endif ()
 ######################################################################
@@ -22,7 +22,7 @@ elseif (WIN32)
 endif()
 ######## Print platform info
 MESSAGE( STATUS ">> We are on the platform:        " ${PLATFORM_NAME} )
-if ( APPLE AND OSX_BUNDLE_APP )
+if ( APPLE AND BUNDLE_APP )
 	MESSAGE( STATUS ">> Going to create .app Bundle" )
 endif ()
 ######################################################################
