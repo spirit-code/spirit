@@ -22,7 +22,7 @@ TEST_CASE( "Optimizers testing", "[optimizers]" )
     auto method = "LLG";
     
     // Optimizers to be tested
-    std::vector<const char *>  optimizers { "VP", "Heun", "SIB" };
+    std::vector<const char *>  optimizers { "VP", "Heun", "SIB", "Depondt" };
     
     // Expected values
     float energy_expected = -5849.69140625f;
@@ -66,7 +66,7 @@ TEST_CASE( "Optimizers testing", "[optimizers]" )
     method = "GNEB";
 
     // Optimizers to be tested
-    optimizers = { "VP", "Heun" };
+    optimizers = { "VP", "Heun", "Depondt" };
 
     // Expected values
     float energy_sp_expected = -5811.5244140625f;

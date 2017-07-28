@@ -221,9 +221,8 @@ namespace Engine
         
         void norm( const vectorfield & vf, scalarfield & norm )
         {
-          dot( vf, vf, norm );
           for (unsigned int i=0; i<vf.size(); ++i)
-            norm[i] = std::sqrt( norm[i] );
+            norm[i] = vf[i].norm();
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)

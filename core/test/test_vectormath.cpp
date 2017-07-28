@@ -23,6 +23,17 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::rotate( v1_in, v1_axis, angle, v1_out );
         for (unsigned int i=0; i<3; i++)
           REQUIRE( v1_out[i] == Approx( v1_exp[i] ) );
+    
+        // zero rotation test
+        Vector3 v2_out { 0, 0, 0 };
+        Vector3 v2_in  { 1, 1, 1 };
+        Vector3 v2_axis{ 1, 0, 0 };
+        Vector3 v2_exp { 1, 1, 1 };
+        scalar angle2 = 0;
+        
+        Engine::Vectormath::rotate( v2_in, v2_axis, angle2, v2_out );
+        for (unsigned int i=0; i<3; i++)
+          REQUIRE( v2_out[i] == Approx( v2_exp[i] ) );        
     }
     
     SECTION("Fill")

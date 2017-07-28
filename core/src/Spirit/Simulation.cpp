@@ -4,6 +4,7 @@
 
 #include <data/State.hpp>
 #include <engine/Optimizer_Heun.hpp>
+#include <engine/Optimizer_Depondt.hpp>
 #include <engine/Optimizer_SIB.hpp>
 #include <engine/Optimizer_SIB2.hpp>
 #include <engine/Optimizer_NCG.hpp>
@@ -92,6 +93,10 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     else if (optimizer_type == "Heun")
     {
         optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
+    }
+    else if (optimizer_type == "Depondt")
+    {
+        optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Depondt(method));
     }
     else if (optimizer_type == "NCG")
     {
@@ -232,6 +237,10 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
         else if (optimizer_type == "Heun")
         {
             optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Heun(method));
+        }
+        else if (optimizer_type == "Depondt")
+        {
+            optim = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_Depondt(method));
         }
         else if (optimizer_type == "NCG")
         {
