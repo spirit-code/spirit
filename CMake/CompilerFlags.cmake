@@ -63,7 +63,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 ######################################################################
 
 ######## Apple Clang #################################################
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 	if ( SPIRIT_BUILD_FOR_JS)
 		### Message
 		MESSAGE( STATUS ">> Chose compiler:                Clang emcc" )
