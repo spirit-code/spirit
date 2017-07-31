@@ -1,8 +1,6 @@
 template <> inline
-void Method_Template<Solver::SIB>::Solver_Init ()
+void Method_Template<Solver::SIB>::Solver_Initialise ()
 {
-    std::cerr << "SIB INIT" << std::endl;
-
     this->xi = vectorfield(this->nos, {0,0,0});
     this->virtualforce = std::vector<vectorfield>(this->noi, vectorfield(this->nos));  // [noi][nos]
     
@@ -12,13 +10,13 @@ void Method_Template<Solver::SIB>::Solver_Init ()
 
 
 /*
-    Template instantiation of the Simulation class for use with the SIB Solver
+    Template instantiation of the Simulation class for use with the SIB Solver.
+    The semi-implicit method B is an efficient midpoint solver.
+    TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::SIB>::Solver_Step ()
+void Method_Template<Solver::SIB>::Solver_Iteration ()
 {
-    std::cerr << "SIB STEP" << std::endl;
-
     std::shared_ptr<Data::Spin_System> s;
 
     // Random Numbers

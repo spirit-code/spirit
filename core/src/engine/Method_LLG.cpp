@@ -18,7 +18,6 @@ namespace Engine
     Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
 		Method_Template<solver>(system->llg_parameters, idx_img, idx_chain)
 	{
-		std::cerr << "INIT METHOD LLG" << std::endl;
 		// Currently we only support a single image being iterated at once:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
@@ -46,8 +45,8 @@ namespace Engine
 		this->n_log = this->n_iterations / this->n_iterations_log;
 
 		// Create shared pointers to the method's systems' configurations
-		this->configurations = std::vector<std::shared_ptr<vectorfield>>(noi);
-		for (int i = 0; i<noi; ++i) this->configurations[i] = this->systems[i]->spins;
+		this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
+		for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
 
 		// Allocate force array
 		//this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]

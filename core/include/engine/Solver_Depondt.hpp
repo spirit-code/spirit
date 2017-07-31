@@ -1,8 +1,6 @@
 template <> inline
-void Method_Template<Solver::Depondt>::Solver_Init ()
+void Method_Template<Solver::Depondt>::Solver_Initialise ()
 {
-    std::cerr << "Depondt INIT" << std::endl;
-
     this->virtualforce = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     this->rotationaxis = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     this->virtualforce_predictor = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
@@ -21,13 +19,13 @@ void Method_Template<Solver::Depondt>::Solver_Init ()
 
 
 /*
-    Template instantiation of the Simulation class for use with the SIB Solver
+    Template instantiation of the Simulation class for use with the Depondt Solver.
+    The Depondt method is an improvement of Heun's method for spin systems. It applies
+    rotations instead of finite displacements and thus avoids re-normalizations.
 */
 template <> inline
-void Method_Template<Solver::Depondt>::Solver_Step ()
+void Method_Template<Solver::Depondt>::Solver_Iteration ()
 {
-    std::cerr << "Depondt STEP" << std::endl;
-
     // Get the actual forces on the configurations
     this->Calculate_Force( this->configurations, this->force );
     
@@ -48,7 +46,7 @@ void Method_Template<Solver::Depondt>::Solver_Step ()
         Vectormath::set_c_a( 1, virtualforce[i], rotationaxis[i] );  // rotationaxis = |virtualforce|
         Vectormath::normalize_vectors( rotationaxis[i] );            // normalize rotation axis 
         
-        Vectormath::scale( angle, dtg );    // angle = |virtualforce| * dt
+        Vectormath::scale( angle, -dtg );    // angle = |virtualforce| * dt
         
         // Get spin predictor n' = R(H) * n
         Vectormath::rotate( conf, rotationaxis[i], angle, *spins_predictor[i] );  
@@ -72,7 +70,7 @@ void Method_Template<Solver::Depondt>::Solver_Step ()
         
         // For Rotation matrix R' := R( H'_normed, angle' )
         Vectormath::norm( virtualforce[i], angle );   // angle' = |virtualforce lin combination|
-        Vectormath::scale( angle, dtg );              // angle' = |virtualforce lin combination| * dt
+        Vectormath::scale( angle, -dtg );              // angle' = |virtualforce lin combination| * dt
         
         Vectormath::normalize_vectors( virtualforce[i] );  // normalize virtual force
         

@@ -1,8 +1,6 @@
 template <> inline
-void Method_Template<Solver::Heun>::Solver_Init ()
+void Method_Template<Solver::Heun>::Solver_Initialise ()
 {
-    std::cerr << "Heun INIT" << std::endl;
-
     this->virtualforce = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     
     this->spins_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
@@ -19,13 +17,13 @@ void Method_Template<Solver::Heun>::Solver_Init ()
 
 
 /*
-    Template instantiation of the Simulation class for use with the SIB Solver
+    Template instantiation of the Simulation class for use with the Heun Solver.
+    The Heun method is a basic solver for the PDE at hand here. It is sufficiently
+    efficient and stable.
 */
 template <> inline
-void Method_Template<Solver::Heun>::Solver_Step ()
+void Method_Template<Solver::Heun>::Solver_Iteration ()
 {
-    std::cerr << "Heun STEP" << std::endl;
-
     // Get the actual forces on the configurations
     this->Calculate_Force( this->configurations, this->force );
     

@@ -1,8 +1,6 @@
 template <> inline
-void Method_Template<Solver::VP>::Solver_Init ()
+void Method_Template<Solver::VP>::Solver_Initialise ()
 {
-    std::cerr << "VP INIT" << std::endl;
-
     this->spins_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for (int i=0; i<this->noi; i++)
       spins_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
@@ -16,13 +14,14 @@ void Method_Template<Solver::VP>::Solver_Init ()
 
 
 /*
-    Template instantiation of the Simulation class for use with the SIB Solver
+    Template instantiation of the Simulation class for use with the VP Solver.
+    The velocity projection method is often efficient for direct minimization,
+    but deals poorly with quickly varying fields or stochastic noise.
+    TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::VP>::Solver_Step ()
+void Method_Template<Solver::VP>::Solver_Iteration ()
 {
-    std::cerr << "VP STEP" << std::endl;
-
     std::shared_ptr<Data::Spin_System> s;
     scalar projection_full  = 0;
     scalar force_norm2_full = 0;

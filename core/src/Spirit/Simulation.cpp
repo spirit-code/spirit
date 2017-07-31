@@ -192,8 +192,8 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
 {
     // One Iteration
     std::shared_ptr<Engine::Method> method;
-    if (Get_Method(state, c_method_type, c_solver_type, n_iterations, n_iterations_log, idx_image, idx_chain, method))
-        method->Iteration();
+    if (Get_Method(state, c_method_type, c_solver_type, 1, n_iterations_log, idx_image, idx_chain, method))
+        method->Iterate();
 }
 
 void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_solver_type,
@@ -248,17 +248,17 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
 		if (state->simulation_information_image[idx_chain][idx_image])
-			return (float)state->simulation_information_image[idx_chain][idx_image]->method->force_maxAbsComponent;
+			return (float)state->simulation_information_image[idx_chain][idx_image]->method->getForceMaxAbsComponent();
 	}
 	else if (Simulation_Running_Chain(state, idx_chain))
     {
 		if (state->simulation_information_chain[idx_chain])
-			return (float)state->simulation_information_chain[idx_chain]->method->force_maxAbsComponent;
+			return (float)state->simulation_information_chain[idx_chain]->method->getForceMaxAbsComponent();
     }
 	else if (Simulation_Running_Collection(state))
     {
 		if (state->simulation_information_collection)
-			return (float)state->simulation_information_collection->method->force_maxAbsComponent;
+			return (float)state->simulation_information_collection->method->getForceMaxAbsComponent();
     }
 
 	return 0;
@@ -275,17 +275,17 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
 		if (state->simulation_information_image[idx_chain][idx_image])
-			return 0;//(float)state->simulation_information_image[idx_chain][idx_image]->optimizer->getIterationsPerSecond();
+			return (float)state->simulation_information_image[idx_chain][idx_image]->method->getIterationsPerSecond();
 	}
 	else if (Simulation_Running_Chain(state, idx_chain))
     {
 		if (state->simulation_information_chain[idx_chain])
-			return 0;//(float)state->simulation_information_chain[idx_chain]->optimizer->getIterationsPerSecond();
+			return (float)state->simulation_information_chain[idx_chain]->method->getIterationsPerSecond();
     }
 	else if (Simulation_Running_Collection(state))
     {
 		if (state->simulation_information_collection)
-			return 0;//(float)state->simulation_information_collection->optimizer->getIterationsPerSecond();
+			return (float)state->simulation_information_collection->method->getIterationsPerSecond();
     }
 
 	return 0;

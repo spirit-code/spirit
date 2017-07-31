@@ -1,8 +1,6 @@
 template <> inline
-void Method_Template<Solver::NCG>::Solver_Init ()
+void Method_Template<Solver::NCG>::Solver_Initialise ()
 {
-    std::cerr << "NCG INIT" << std::endl;
-
     this->jmax    = 500;    // max iterations
     this->n       = 50;     // restart every n iterations XXX: what's the appropriate val?
     
@@ -46,13 +44,13 @@ void Method_Template<Solver::NCG>::Solver_Init ()
 
 
 /*
-    Template instantiation of the Simulation class for use with the SIB Solver
+    Template instantiation of the Simulation class for use with the NCG Solver
+    The method of nonlinear conjugate gradients is a proven and effective solver.
+    TODO: reference painless conjugate gradients
 */
 template <> inline
-void Method_Template<Solver::NCG>::Solver_Step ()
+void Method_Template<Solver::NCG>::Solver_Iteration ()
 {
-    std::cerr << "NCG STEP" << std::endl;
-
     this->continue_NR = true;   // by default continue Newton-Raphson
     this->restart_nCG = false;  // by default do not restart( XXX:reset?? ) the whole methode
     

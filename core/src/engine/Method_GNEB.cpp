@@ -148,11 +148,6 @@ namespace Engine
 		return this->chain->iteration_allowed;
 	}
 
-	template <Solver solver>
-	void Method_GNEB<solver>::Hook_Pre_Iteration()
-	{
-
-	}
 
 	template <Solver solver>
 	void Method_GNEB<solver>::Hook_Post_Iteration()

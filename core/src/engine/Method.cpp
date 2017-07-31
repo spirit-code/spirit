@@ -16,118 +16,30 @@ namespace Engine
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
         parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
-		std::cerr << "INIT METHOD" << std::endl;
-
         this->SenderName = Utility::Log_Sender::All;
         this->force_maxAbsComponent = parameters->force_convergence + 1.0;
         this->history = std::map<std::string, std::vector<scalar>>{
             {"max_torque_component", {this->force_maxAbsComponent}} };
 
 
-		// Setup Timings
-		for (int i = 0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
-		this->ips = 0;
-		this->starttime = Timing::CurrentDateTime();
+        // Setup Timings
+        for (int i = 0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
+        this->ips = 0;
+        this->starttime = Timing::CurrentDateTime();
 
 
-		// Printing precision for Scalars
-		#ifdef CORE_SCALAR_TYPE_FLOAT
-			this->print_precision = 8;
-		#else
-			this->print_precision = 12;
-		#endif
+        // Printing precision for Scalars
+        #ifdef CORE_SCALAR_TYPE_FLOAT
+            this->print_precision = 8;
+        #else
+            this->print_precision = 12;
+        #endif
     }
 
-    void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
-    {
-
-    }
-
-    bool Method::Force_Converged()
-    {
-        bool converged = false;
-        if ( this->force_maxAbsComponent < this->parameters->force_convergence ) converged = true;
-        return converged;
-    }
-
-    bool Method::Walltime_Expired(duration<scalar> dt_seconds)
-    {
-        if (this->parameters->max_walltime_sec <= 0)
-            return false;
-        else
-            return dt_seconds.count() > this->parameters->max_walltime_sec;
-    }
-
-    bool Method::ContinueIterating()
-    {
-        return this->Iterations_Allowed() && !this->Force_Converged();
-    }
-
-    bool Method::Iterations_Allowed()
-    {
-        return this->systems[0]->iteration_allowed;
-    }
-
-    void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
-    }
-
-    void Method::Hook_Pre_Iteration()
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
-    }
-
-    void Method::Hook_Post_Iteration()
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
-    }
-
-    void Method::Finalize()
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
-    }
-
-    // Return the maximum of absolute values of force components for an image
-    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force)
-    {
-        // Take out component in direction of v2
-        Manifoldmath::project_tangential(force, image);
-
-        // We want the Maximum of Absolute Values of all force components on all images
-        return Vectormath::max_abs_component(force);
-    }
-
-    void Method::Lock()
-    {
-        for (auto& system : this->systems) system->Lock();
-    }
-
-    void Method::Unlock()
-    {
-        for (auto& system : this->systems) system->Unlock();
-    }
-
-    std::string Method::Name()
-    {
-        // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
-        return "--";
-    }
 
     void Method::Iterate()
     {
-		std::cerr << "STARTING ITERATE" << std::endl;
-
-		this->Solver_Init();
+        this->Solver_Initialise();
 
         //------------------------ Init local vars ---------------------------------
         this->starttime = Timing::CurrentDateTime();
@@ -168,7 +80,7 @@ namespace Engine
         for (   this->iteration = 0; 
                 this->iteration < n_iterations && 
                 this->ContinueIterating() && 
-                !this->StopFilePresent() && 
+                !this->StopFile_Present() && 
                 !this->Walltime_Expired(t_current - t_start); 
                 ++this->iteration )
         {
@@ -180,7 +92,7 @@ namespace Engine
             // Pre-Iteration hook
             this->Hook_Pre_Iteration();
             // Do one single Iteration
-            this->Solver_Step();
+            this->Solver_Iteration();
             // Post-Iteration hook
             this->Hook_Post_Iteration();
 
@@ -231,7 +143,7 @@ namespace Engine
 
         //---- Termination Reason
         std::string reason = "";
-        if (this->StopFilePresent())
+        if (this->StopFile_Present())
             reason = "A STOP file has been found";
         else if (this->Force_Converged())
             reason = "The force converged";
@@ -260,25 +172,6 @@ namespace Engine
     }
 
 
-    void Method::Iteration()
-    {
-        // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Iteration() of the Method base class!"), this->idx_image, this->idx_chain);
-    }
-
-	void Method::Solver_Init()
-	{
-		// Not Implemented!
-		Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Init() of the Method base class!"), this->idx_image, this->idx_chain);
-	}
-
-	void Method::Solver_Step()
-	{
-		// Not Implemented!
-		Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Step() of the Method base class!"), this->idx_image, this->idx_chain);
-	}
-
-
 
     scalar Method::getIterationsPerSecond()
     {
@@ -291,26 +184,34 @@ namespace Engine
         return this->ips;
     }
 
-    bool Method::StopFilePresent()
+
+    scalar Method::getForceMaxAbsComponent()
     {
-        std::ifstream f("STOP");
-        return f.good();
+        return this->force_maxAbsComponent;
     }
 
-    // Solver name as string
-    std::string Method::SolverName()
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////// Protected functions
+
+    void Method::Solver_Initialise()
     {
         // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::SolverName() of the Method base class!"), this->idx_image, this->idx_chain);
-        return "--";
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Initialise() of the Method base class!"), this->idx_image, this->idx_chain);
     }
 
-    std::string Method::SolverFullName()
+    void Method::Solver_Iteration()
     {
         // Not Implemented!
-        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::SolverFullname() of the Method base class!"), this->idx_image, this->idx_chain);
-        return "--";
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Solver_Iteration() of the Method base class!"), this->idx_image, this->idx_chain);
     }
+
+
+    void Method::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+    {
+
+    }
+
 
     void Method::VirtualForce(  const vectorfield & spins, 
                                 const Data::Parameters_Method_LLG & llg_params, 
@@ -351,5 +252,118 @@ namespace Engine
         #ifdef SPIRIT_ENABLE_PINNING
             Vectormath::set_c_a(1, force, force, llg_params.pinning->mask_unpinned);
         #endif // SPIRIT_ENABLE_PINNING
+    }
+
+
+
+
+    bool Method::ContinueIterating()
+    {
+        return this->Iterations_Allowed() && !this->Force_Converged();
+    }
+
+    bool Method::Iterations_Allowed()
+    {
+        return this->systems[0]->iteration_allowed;
+    }
+
+    bool Method::Force_Converged()
+    {
+        bool converged = false;
+        if ( this->force_maxAbsComponent < this->parameters->force_convergence ) converged = true;
+        return converged;
+    }
+
+    bool Method::Walltime_Expired(duration<scalar> dt_seconds)
+    {
+        if (this->parameters->max_walltime_sec <= 0)
+            return false;
+        else
+            return dt_seconds.count() > this->parameters->max_walltime_sec;
+    }
+
+    bool Method::StopFile_Present()
+    {
+        std::ifstream f("STOP");
+        return f.good();
+    }
+
+
+
+
+
+    void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
+    {
+        // Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    void Method::Hook_Pre_Iteration()
+    {
+        // Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    void Method::Hook_Post_Iteration()
+    {
+        // Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    void Method::Finalize()
+    {
+        // Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
+        throw Utility::Exception::Not_Implemented;
+    }
+
+    // Return the maximum of absolute values of force components for an image
+    scalar  Method::Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force)
+    {
+        // Take out component in direction of v2
+        Manifoldmath::project_tangential(force, image);
+
+        // We want the Maximum of Absolute Values of all force components on all images
+        return Vectormath::max_abs_component(force);
+    }
+
+
+
+
+
+    void Method::Lock()
+    {
+        for (auto& system : this->systems) system->Lock();
+    }
+
+    void Method::Unlock()
+    {
+        for (auto& system : this->systems) system->Unlock();
+    }
+
+
+    std::string Method::Name()
+    {
+        // Not Implemented!
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
+        return "--";
+    }
+
+    // Solver name as string
+    std::string Method::SolverName()
+    {
+        // Not Implemented!
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::SolverName() of the Method base class!"), this->idx_image, this->idx_chain);
+        return "--";
+    }
+
+    std::string Method::SolverFullName()
+    {
+        // Not Implemented!
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::SolverFullname() of the Method base class!"), this->idx_image, this->idx_chain);
+        return "--";
     }
 }
