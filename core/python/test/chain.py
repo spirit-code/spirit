@@ -161,12 +161,17 @@ class remove_TestChain(TestChain):
         
         chain.Insert_Image_Before( self.p_state )               # active is 1st
         chain.Insert_Image_Before( self.p_state )               # active is 2nd
-        self.assertEqual( chain.Get_NOI( self.p_state ), 3 )    # total 1 image
-        chain.Delete_Image( self.p_state, idx_image=5 )         # delete 5th (not exist)
-        self.assertEqual( chain.Get_NOI( self.p_state ), 2 )    # total 1 image
+        self.assertEqual( system.Get_Index( self.p_state ), 2 ) # active is 2nd
+        self.assertEqual( chain.Get_NOI( self.p_state ), 3 )    # total 3 images
+        
+        # test the deletion of a non existing image with positive idx
+        chain.Delete_Image( self.p_state, idx_image=5 )         # delete -5th (not exist)
+        self.assertEqual( chain.Get_NOI( self.p_state ), 3 )    # total 3 images
+        
+        # test the deletion of a non existing image with negative idx
         chain.Delete_Image( self.p_state, idx_image=-5 )        # delete -5th (not exist)
-        self.assertEqual( chain.Get_NOI( self.p_state ), 1 )    # total 1 image
-        self.assertEqual( system.Get_Index( self.p_state ), 0 ) # active is 1st
+        self.assertEqual( chain.Get_NOI( self.p_state ), 2 )    # total 2 images
+        self.assertEqual( system.Get_Index( self.p_state ), 1 ) # active is 1st
 
 class getters_TestChain(TestChain):
     

@@ -335,7 +335,16 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     // Fetch correct indices and pointers
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    bool idx_valid = from_indices(state, idx_image, idx_chain, image, chain);
+
+    if ( !idx_valid )
+    {
+        // if image idx is greater than the existing don't do anything. Issue warning, exit function
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "Tried to delete non existing image. No action taken", 0, idx_chain );
+        return false;
+    }
 
     bool running = Simulation_Running_Chain(state, idx_chain);
     std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
@@ -357,16 +366,16 @@ bool Chain_Delete_Image(State * state, int idx_image_i, int idx_chain_i)
 
         state->noi = state->active_chain->noi;
         
-		chain->images[idx_image]->Unlock();
+        chain->images[idx_image]->Unlock();
         chain->images.erase(chain->images.begin() + idx_image);
         chain->image_type.erase(chain->image_type.begin() + idx_image);
 
-		// Remove from state
-		state->simulation_information_image[idx_chain].erase(state->simulation_information_image[idx_chain].begin() + idx_image);
-
+        // Remove from state
+        state->simulation_information_image[idx_chain].erase(state->simulation_information_image[idx_chain].begin() + idx_image);
+        
         chain->Unlock();
-
-		// Update State
+        
+        // Update State
         State_Update(state);
 
         // Update array lengths

@@ -62,4 +62,6 @@ struct State
 
 
 // TODO: move this away somewhere?
-void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain);
+bool from_indices( const State * state, int & idx_image, int & idx_chain, 
+                   std::shared_ptr<Data::Spin_System> & image, 
+                   std::shared_ptr<Data::Spin_System_Chain> & chain );
