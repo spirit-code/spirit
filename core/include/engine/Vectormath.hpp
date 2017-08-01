@@ -103,6 +103,9 @@ namespace Engine
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
         void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi);
 
+        // Calculate the spatial gradient of a vectorfield in a certain direction.
+        //      This requires to know the underlying geometry, as well as the boundary conditions.
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
 
         /////////////////////////////////////////////////////////////////
         //////// Vectormath-like operations

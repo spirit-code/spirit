@@ -138,7 +138,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
 	image->Unlock();
 }
 
-void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
+void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -146,6 +146,8 @@ void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal,
 
 	image->Lock();
 
+    // Gradient or monolayer
+    image->llg_parameters->stt_use_gradient = use_gradient;
     // Magnitude
     image->llg_parameters->stt_magnitude = magnitude;
     // Normal
@@ -504,12 +506,14 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     return (float)image->llg_parameters->temperature;
 }
 
-void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
+void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
+    // Gradient or monolayer
+    *use_gradient = image->llg_parameters->stt_use_gradient;
     // Magnitude
     *magnitude = (float)image->llg_parameters->stt_magnitude;
     // Normal

@@ -16,7 +16,7 @@ DLLEXPORT void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, i
 DLLEXPORT void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float * normal, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1);
 
 //      Set MC
@@ -59,7 +59,7 @@ DLLEXPORT float Parameters_Get_LLG_Convergence(State *state, int idx_image=-1, i
 DLLEXPORT float Parameters_Get_LLG_Time_Step(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_LLG_Damping(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_LLG_Temperature(State *state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
 
 //      Get MC
 // Output

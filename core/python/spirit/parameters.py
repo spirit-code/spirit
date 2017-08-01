@@ -22,11 +22,11 @@ def Set_LLG_Damping(p_state, damping, idx_image=-1, idx_chain=-1):
 
 ### Set spin transfer torque
 _Set_LLG_STT             = _spirit.Parameters_Set_LLG_STT
-_Set_LLG_STT.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Set_LLG_STT.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
 _Set_LLG_STT.restype     = None
-def Set_LLG_STT(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
+def Set_LLG_STT(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Set_LLG_STT(p_state, ctypes.c_float(magnitude), vec3(*direction), idx_image, idx_chain)
+    _Set_LLG_STT(p_state, ctypes.c_bool(use_gradient), ctypes.c_float(magnitude), vec3(*direction), idx_image, idx_chain)
 
 ### Set Temperature
 _Set_LLG_Temperature             = _spirit.Parameters_Set_LLG_Temperature
