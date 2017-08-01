@@ -148,7 +148,7 @@ namespace Engine
         {
             // std::cout << "start gradient" << std::endl;
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
-            std::vector <int> n_cells = geometry.n_cells;
+            auto& n_cells = geometry.n_cells;
 
             Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
             Vector3 b = geometry.translation_vectors[1];
