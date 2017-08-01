@@ -68,7 +68,8 @@ void ParametersWidget::Load_Parameters_Contents()
 	d = Parameters_Get_LLG_Time_Step(state.get());
 	this->lineEdit_dt->setText(QString::number(d));
 	// Spin polarized current
-	Parameters_Get_LLG_STT(state.get(), &d, vd);
+	Parameters_Get_LLG_STT(state.get(), &b1, &d, vd);
+	this->radioButton_stt_gradient->setChecked(b1);
 	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
 	this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
 	this->doubleSpinBox_llg_stt_polarisation_y->setValue(vd[1]);
@@ -169,6 +170,7 @@ void ParametersWidget::set_parameters_llg()
 
 
 		// Spin polarised current
+		b1 = this->radioButton_stt_gradient->isChecked();
 		if (this->checkBox_llg_stt->isChecked())
 			d = this->doubleSpinBox_llg_stt_magnitude->value();
 		else
@@ -191,7 +193,7 @@ void ParametersWidget::set_parameters_llg()
 			}
 			else { throw(ex); }
 		}
-		Parameters_Set_LLG_STT(state.get(), d, vd, idx_image, idx_chain);
+		Parameters_Set_LLG_STT(state.get(), b1, d, vd, idx_image, idx_chain);
 
 		// Temperature
 		if (this->checkBox_llg_temperature->isChecked())
@@ -381,6 +383,8 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	// STT
+	connect(this->radioButton_stt_gradient, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
+	connect(this->radioButton_stt_monolayer, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
 	connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
