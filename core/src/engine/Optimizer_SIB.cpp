@@ -69,36 +69,38 @@ namespace Engine
         // STT
         scalar a_j = llg_params.stt_magnitude;
         Vector3 s_c_vec = llg_params.stt_polarisation_normal;
-        bool gradON = false; // switch between STT methods
+
         scalar b_j = 1.0;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
         scalar beta = llg_params.beta;  // non-adiabatic parameter of correction term
-        Vector3 je = { 1,0,0 }; // direction of current
+        Vector3 je = { 1,0,0 }; // direction of current - TODO: rename s_c_vec and use it for this as well
         vectorfield s_c_grad;
         //------------------------ End Init ----------------------------------------
 
+        // Deterministic forces
         Vectormath::fill       (force, {0,0,0});
         Vectormath::add_c_a    (-0.5 * dtg, effective_field, force);
         Vectormath::add_c_cross(-0.5 * dtg * damping, spins, effective_field, force);
 
-        // STT
-        if (a_j > 0 && !gradON)
+        // STT forces
+        if (a_j > 0)
         {
-            Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
-            Vectormath::add_c_cross( 0.5 * dtg * a_j, s_c_vec, spins, force);
+            if ( llg_params.stt_use_gradient )
+            {
+                auto & geometry = *this->method->systems[0]->geometry;
+                auto & hamiltonian = *this->method->systems[0]->hamiltonian;
+                Vectormath::directional_gradient( spins, geometry, hamiltonian.boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
+                Vectormath::add_c_a    ( -0.5 * dtg * a_j * ( damping - beta ), s_c_grad, force); // TODO: a_j durch b_j ersetzen 
+                Vectormath::add_c_cross( -0.5 * dtg * a_j * ( 1 + beta * damping ), s_c_grad, spins, force); // TODO: a_j durch b_j ersetzen 
+                // Gradient in current richtung, daher => *(-1)
+            }
+            else
+            {
+                Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
+                Vectormath::add_c_cross( 0.5 * dtg * a_j, s_c_vec, spins, force);
+            }
         }
 
-        // STT gradient
-        auto & geometry = *this->method->systems[0]->geometry;
-        auto & hamiltonian = *this->method->systems[0]->hamiltonian;
-        if (a_j > 0 && gradON)
-        {
-            Vectormath::directional_gradient( spins, geometry, hamiltonian.boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
-            Vectormath::add_c_a    ( -0.5 * dtg * a_j * ( damping - beta ), s_c_grad, force); // TODO: a_j durch b_j ersetzen 
-            Vectormath::add_c_cross( -0.5 * dtg * a_j * ( 1 + beta * damping ), s_c_grad, spins, force); // TODO: a_j durch b_j ersetzen 
-            // Gradient in current richtung, daher => *(-1)
-        }
-
-        // Temperature
+        // Stochastic (temperature) forces
         if (llg_params.temperature > 0)
         {
             Vectormath::add_c_a    (-0.5 * sqrtdtg, xi, force);
