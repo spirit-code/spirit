@@ -17,7 +17,7 @@ namespace Data
 	public:
 		// Constructor
 		Parameters_Method_LLG(std::string output_folder, std::array<bool,10> output, scalar force_convergence, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int seed_i, scalar temperature_i, scalar damping_i, scalar time_step_i, bool renorm_sd_i,
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int seed_i, scalar temperature_i, scalar damping_i, scalar beta_i, scalar time_step_i, bool renorm_sd_i,
 			scalar stt_magnitude_i, Vector3 stt_polarisation_normal_i);
 
 		//PRNG Seed
@@ -28,12 +28,14 @@ namespace Data
 		std::uniform_real_distribution<scalar> distribution_minus_plus_one;
 		std::uniform_int_distribution<int> distribution_int;
 
+		// Time step per iteration
+		scalar dt;
 		// Temperature [K]
 		scalar temperature;
 		// Damping
 		scalar damping;
-		// Time step per iteration
-		scalar dt;
+		// Non-adiabatic parameter
+		scalar beta;
 		// whether to renormalize spins after every SD iteration
 		bool renorm_sd = 1;
 
