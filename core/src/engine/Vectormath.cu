@@ -211,12 +211,21 @@ namespace Engine
 
 
 		/////////////////////////////////////////////////////////////////
+        
 
-
-		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-		{
-			v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
-		}
+        void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
+        {
+            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) + 
+                    axis * axis.dot(v) * (1 - std::cos(angle));
+        } 
+        
+        // XXX: should we add test for that function since it's calling the already tested rotat()
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
+                     vectorfield & v_out )
+        {
+          for( unsigned int i=0; i<v_out.size(); i++)
+            rotate( v[i], axis[i], angle[i], v_out[i] );
+        }
 
 		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
 		{
@@ -486,6 +495,21 @@ namespace Engine
             cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        __global__ void cu_norm(const Vector3 * vf, scalar * norm, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                norm[idx] = vf[idx].norm();
+            }
+        }
+        void norm( const vectorfield & vf, scalarfield & norm )
+        {
+            int n = vf.size();
+            cu_norm<<<(n+1023)/1024, 1024>>>(vf.data(), norm.data(), n);
+            cudaDeviceSynchronize();
+        }
 
         scalar  max_abs_component(const vectorfield & vf)
 		{
