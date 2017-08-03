@@ -135,6 +135,8 @@ void IsosurfaceWidget::setupSlots()
 	connect(radioButton_isosurface_y, SIGNAL(toggled(bool)), this, SLOT(slot_setIsocomponent()));
 	connect(radioButton_isosurface_z, SIGNAL(toggled(bool)), this, SLOT(slot_setIsocomponent()));
 
+	connect(checkBox_invert_lighting, SIGNAL(stateChanged(int)), this, SLOT(slot_setTriangleNormal()));
+
 	connect(pushButton_remove, SIGNAL(clicked()), this, SLOT(close()));
 }
 
@@ -166,6 +168,18 @@ void IsosurfaceWidget::slot_setIsocomponent()
 	else if (this->radioButton_isosurface_z->isChecked())
 	{
 		this->setIsocomponent(2);
+	}
+}
+
+void IsosurfaceWidget::slot_setTriangleNormal()
+{
+	if (this->checkBox_invert_lighting->isChecked())
+	{
+		m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>(true);
+	}
+	else
+	{
+		m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>(false);
 	}
 }
 

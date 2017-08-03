@@ -6,6 +6,7 @@ static const std::string ISOSURFACE_VERT_GLSL = R"LITERAL(
 
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelviewMatrix;
+uniform float uFlipNormals;
 in vec3 ivPosition;
 in vec3 ivDirection;
 in vec3 ivNormal;
@@ -18,6 +19,7 @@ void main(void) {
     vfPosition = ivPosition;
     vfDirection = normalize(ivDirection);
     vfNormal = normalize((uModelviewMatrix * vec4(ivNormal, 0.0)).xyz);
+    vfNormal *= uFlipNormals;
     gl_Position = uProjectionMatrix * (uModelviewMatrix * vec4(ivPosition, 1.0));
 }
 )LITERAL";
