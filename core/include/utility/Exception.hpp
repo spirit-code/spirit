@@ -13,8 +13,13 @@ namespace Utility
 		Division_by_zero           = Exception_Division_by_zero,
 		Simulated_domain_too_small = Exception_Simulated_domain_too_small,
 		Not_Implemented            = Exception_Not_Implemented,
-		Unknown_Exception          = Exception_Unknown_Exception
+		Unknown_Exception          = Exception_Unknown_Exception,
+    Non_existing_Image         = Exception_Non_existing_Image,
+    Non_existing_Chain         = Exception_Non_existing_Chain
 	};
+  
+  void Handle_exception( const Exception & ex, int idx_image, int idx_chain );
+  
 }
 
 #endif
