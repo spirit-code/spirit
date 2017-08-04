@@ -335,6 +335,8 @@ void SpinWidget::updateData()
 		spins = System_Get_Spin_Directions(state.get());
 	else if (this->m_source == 1)
 		spins = System_Get_Effective_Field(state.get());
+	else
+		spins = System_Get_Spin_Directions(state.get());
 	//		copy
 	/*positions.assign(spin_pos, spin_pos + 3*nos);
 	directions.assign(spins, spins + 3*nos);*/
