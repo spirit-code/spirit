@@ -130,15 +130,15 @@ namespace Engine
                 out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
             }
         }
-        void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+        void get_random_vectorfield(Data::Parameters_Method_LLG & parameters, vectorfield & xi)
         {
             #pragma omp parallel for collapse(2)
-            for (int i = 0; i < sys.nos; ++i)
+            for (unsigned int i = 0; i < xi.size(); ++i)
             {
                 for (int dim = 0; dim < 3; ++dim)
                 {
                     // PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
-                    xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
+                    xi[i][dim] = parameters.distribution_int(parameters.prng) * 2 - 1;
                 }
             }
         }

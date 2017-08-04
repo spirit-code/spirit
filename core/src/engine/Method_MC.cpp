@@ -23,18 +23,18 @@ namespace Engine
 		this->SenderName = Utility::Log_Sender::MC;
 
 		// We assume it is not converged before the first iteration
-		this->force_maxAbsComponent = system->mc_parameters->force_convergence + 1.0;
+		this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
 
 		// History
         this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_maxAbsComponent}},
-			{"E", {this->force_maxAbsComponent}},
-			{"M_z", {this->force_maxAbsComponent}} };
+			{"max_torque_component", {this->force_max_abs_component}},
+			{"E", {this->force_max_abs_component}},
+			{"M_z", {this->force_max_abs_component}} };
 	}
 
 
 	template <Solver solver>
-	void Method_MC<solver>::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+	void Method_MC<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
 	{
 
 	}

@@ -42,7 +42,6 @@ namespace Engine
         Method_Template(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
             Method(parameters, idx_img, idx_chain)
         {
-            std::cerr << "INIT METHOD TEMPLATE" << std::endl;
         }
         
         // Solver name as string

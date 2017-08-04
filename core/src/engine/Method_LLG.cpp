@@ -22,29 +22,26 @@ namespace Engine
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
 		this->SenderName = Utility::Log_Sender::LLG;
 
-		// We assume it is not converged before the first iteration
-		this->force_converged = std::vector<bool>(this->systems.size(), false);
-		this->force_maxAbsComponent = system->llg_parameters->force_convergence + 1.0;
-
-		// Forces
-		this->force = std::vector<vectorfield>(this->systems.size(), vectorfield(this->systems[0]->spins->size()));	// [noi][3nos]
-		this->Gradient = std::vector<vectorfield>(this->systems.size(), vectorfield(this->systems[0]->spins->size()));	// [noi][3nos]
-
-		// History
-        this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_maxAbsComponent}},
-			{"E", {this->force_maxAbsComponent}},
-			{"M_z", {this->force_maxAbsComponent}} };
-
-
 		this->noi = this->systems.size();
 		this->nos = this->systems[0]->nos;
 
-		this->n_iterations = this->parameters->n_iterations;
-		this->n_iterations_log = this->parameters->n_iterations_log;
-		this->n_log = this->n_iterations / this->n_iterations_log;
+		// Forces
+		this->forces    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
+		this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
 
-		// Create shared pointers to the method's systems' configurations
+		// We assume it is not converged before the first iteration
+		this->force_converged = std::vector<bool>(this->noi, false);
+		this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
+
+		// History
+        this->history = std::map<std::string, std::vector<scalar>>{
+			{"max_torque_component", {this->force_max_abs_component}},
+			{"E", {this->force_max_abs_component}},
+			{"M_z", {this->force_max_abs_component}} };
+
+
+
+		// Create shared pointers to the method's systems' spin configurations
 		this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
 		for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
 
@@ -52,7 +49,7 @@ namespace Engine
 		//this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
 		// Initial force calculation s.t. it does not seem to be already converged
-		this->Calculate_Force(this->configurations, this->force);
+		this->Calculate_Force(this->configurations, this->forces);
 		// Post iteration hook to get forceMaxAbsComponent etc
 		this->Hook_Post_Iteration();
 
@@ -60,12 +57,8 @@ namespace Engine
 
 
 	template <Solver solver>
-	void Method_LLG<solver>::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+	void Method_LLG<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
 	{
-		// int nos = configurations[0]->size() / 3;
-		// this->Force_Converged = std::vector<bool>(configurations.size(), false);
-		//this->force_maxAbsComponent = 0;
-
 		// Loop over images to calculate the total force on each Image
 		for (unsigned int img = 0; img < this->systems.size(); ++img)
 		{
@@ -74,10 +67,9 @@ namespace Engine
 			#ifdef SPIRIT_ENABLE_PINNING
 				Vectormath::set_c_a(1, Gradient[img], Gradient[img], parameters->pinning->mask_unpinned);
 			#endif // SPIRIT_ENABLE_PINNING
-			// Vectormath::scale(Gradient[img], -1);
+			
 			// Copy out
 			Vectormath::set_c_a(-1, Gradient[img], forces[img]);
-			// forces[img] = Gradient[img];
 		}
 	}
 
@@ -111,8 +103,8 @@ namespace Engine
 		{
 			this->force_converged[img] = false;
 			auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), Gradient[img]);
-			if (fmax > 0) this->force_maxAbsComponent = fmax;
-			else this->force_maxAbsComponent = 0;
+			if (fmax > 0) this->force_max_abs_component = fmax;
+			else this->force_max_abs_component = 0;
 			if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
 		}
 
@@ -159,7 +151,7 @@ namespace Engine
 	void Method_LLG<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
 		// History save
-        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+        this->history["max_torque_component"].push_back(this->force_max_abs_component);
 		this->systems[0]->UpdateEnergy();
         this->history["E"].push_back(this->systems[0]->E);
     	auto mag = Engine::Vectormath::Magnetization(*this->systems[0]->spins);

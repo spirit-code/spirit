@@ -34,10 +34,10 @@ namespace Engine
 
 		// History
         this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_maxAbsComponent}} };
+			{"max_torque_component", {this->force_max_abs_component}} };
 
 		// We assume that the systems are not converged before the first iteration
-		this->force_maxAbsComponent = this->collection->parameters->force_convergence + 1.0;
+		this->force_max_abs_component = this->collection->parameters->force_convergence + 1.0;
 
 		this->hessian = std::vector<MatrixX>(noc, MatrixX(3*nos, 3*nos));	// [noc][3nos]
 		// Forces
@@ -56,7 +56,7 @@ namespace Engine
 	
 
 	template <Solver solver>
-    void Method_MMF<solver>::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+    void Method_MMF<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
     {
 		if (this->mm_function == "Spectra Matrix")
 		{
@@ -91,7 +91,7 @@ namespace Engine
 	}
 
 	template <Solver solver>
-	void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+	void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
 	{
 		const int nos = configurations[0]->size();
 		// std::cerr << "mmf iteration" << std::endl;
@@ -316,7 +316,7 @@ namespace Engine
 	template <Solver solver>
     bool Method_MMF<solver>::Force_Converged()
     {
-		if (this->force_maxAbsComponent < this->collection->parameters->force_convergence) return true;
+		if (this->force_max_abs_component < this->collection->parameters->force_convergence) return true;
 		return false;
     }
 
@@ -330,11 +330,11 @@ namespace Engine
     void Method_MMF<solver>::Hook_Post_Iteration()
     {
         // --- Convergence Parameter Update
-		this->force_maxAbsComponent = 0;
+		this->force_max_abs_component = 0;
 		for (int ichain = 0; ichain < collection->noc; ++ichain)
 		{
 			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[ichain]->spins), gradient[ichain]);
-			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
 		}
 
         // --- Update the chains' last images
@@ -350,7 +350,7 @@ namespace Engine
     void Method_MMF<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
 		// History save
-        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+        this->history["max_torque_component"].push_back(this->force_max_abs_component);
 
 		// File save
 		if (this->parameters->output_any)

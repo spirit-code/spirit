@@ -1,15 +1,18 @@
 template <> inline
 void Method_Template<Solver::VP>::Solver_Initialise ()
 {
-    this->spins_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
-    for (int i=0; i<this->noi; i++)
-      spins_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
+    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
 
-    this->velocity = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
-    this->velocity_previous = velocity;	// [noi][nos]
-    this->force_previous = velocity;	// [noi][nos]
-    this->projection = std::vector<scalar>(this->noi, 0);	// [noi]
-    this->force_norm2 = std::vector<scalar>(this->noi, 0);	// [noi]
+    this->configurations_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    for (int i=0; i<this->noi; i++)
+      configurations_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
+
+    this->velocities          = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
+    this->velocities_previous = velocities;	// [noi][nos]
+    this->forces_previous     = velocities;	// [noi][nos]
+    this->projection          = std::vector<scalar>(this->noi, 0);	// [noi]
+    this->force_norm2         = std::vector<scalar>(this->noi, 0);	// [noi]
 };
 
 
@@ -22,37 +25,36 @@ void Method_Template<Solver::VP>::Solver_Initialise ()
 template <> inline
 void Method_Template<Solver::VP>::Solver_Iteration ()
 {
-    std::shared_ptr<Data::Spin_System> s;
     scalar projection_full  = 0;
     scalar force_norm2_full = 0;
 
     // Set previous
     for (int i = 0; i < noi; ++i)
     {
-        Vectormath::set_c_a(1.0, force[i], force_previous[i]);
-        Vectormath::set_c_a(1.0, velocity[i], velocity_previous[i]);
+        Vectormath::set_c_a(1.0, forces[i],   forces_previous[i]);
+        Vectormath::set_c_a(1.0, velocities[i], velocities_previous[i]);
     }
 
     // Get the forces on the configurations
-    this->Calculate_Force(configurations, force);
-
+    this->Calculate_Force(configurations, forces);
+    
     for (int i = 0; i < noi; ++i)
     {
-        auto& l_velocity = velocity[i];
-        auto& l_force = force[i];
-        auto& l_force_prev = force_previous[i];
+        auto& system        = this->systems[i];
+        auto& velocity      = velocities[i];
+        auto& force         = forces[i];
+        auto& force_prev    = forces_previous[i];
         auto& configuration = *(configurations[i]);
 
-        s = this->systems[i];
-        scalar dt = s->llg_parameters->dt;
+        scalar dt = system->llg_parameters->dt;
 
         // Calculate the new velocity
-        Vectormath::add_c_a(0.5 / m * dt, l_force_prev, l_velocity);
-        Vectormath::add_c_a(0.5 / m * dt, l_force, l_velocity);
+        Vectormath::add_c_a(0.5 / m * dt, force_prev, velocity);
+        Vectormath::add_c_a(0.5 / m * dt, force, velocity);
 
         // Get the projection of the velocity on the force
-        projection[i] = Vectormath::dot(l_velocity, l_force);
-        force_norm2[i] = Vectormath::dot(l_force, l_force);
+        projection[i] = Vectormath::dot(velocity, force);
+        force_norm2[i] = Vectormath::dot(force, force);
     }
     for (int i = 0; i < noi; ++i)
     {
@@ -61,35 +63,36 @@ void Method_Template<Solver::VP>::Solver_Iteration ()
     }
     for (int i = 0; i < noi; ++i)
     {
-        auto& l_velocity = velocity[i];
-        auto& l_force = force[i];
-        auto& l_force_prev = force_previous[i];
-        auto& configuration = *(configurations[i]);
+        auto& system             = this->systems[i];
+        auto& velocity           = velocities[i];
+        auto& force              = forces[i];
+        auto& force_prev         = forces_previous[i];
+        auto& configuration      = *(configurations[i]);
+        auto& configuration_temp = *(configurations_temp[i]);
 
-        s = this->systems[i];
-        scalar dt = s->llg_parameters->dt;
+        scalar dt = system->llg_parameters->dt;
 
         // Calculate the projected velocity
         if (projection_full <= 0)
         {
-            Vectormath::fill(l_velocity, { 0,0,0 });
+            Vectormath::fill(velocity, { 0,0,0 });
         }
         else
         {
-            Vectormath::set_c_a(1.0, l_force, l_velocity);
-            Vectormath::scale(l_velocity, projection_full / force_norm2_full);
+            Vectormath::set_c_a(1.0, force, velocity);
+            Vectormath::scale(velocity, projection_full / force_norm2_full);
         }
 
         // Copy in
-        Vectormath::set_c_a(1.0, configuration, *spins_temp[i]);
+        Vectormath::set_c_a(1.0, configuration, configuration_temp);
 
         // Move the spins
-        Vectormath::add_c_a(dt, l_velocity, *spins_temp[i]);
-        Vectormath::add_c_a(0.5/m*dt*dt, l_force, *spins_temp[i]);
-        Vectormath::normalize_vectors(*spins_temp[i]);
+        Vectormath::add_c_a(dt, velocity, configuration_temp);
+        Vectormath::add_c_a(0.5/m*dt*dt, force, configuration_temp);
+        Vectormath::normalize_vectors(configuration_temp);
 
         // Copy out
-        Vectormath::set_c_a(1.0, *spins_temp[i], configuration);
+        Vectormath::set_c_a(1.0, configuration_temp, configuration);
     }
 };
 

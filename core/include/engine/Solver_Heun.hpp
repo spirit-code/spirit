@@ -1,17 +1,17 @@
 template <> inline
 void Method_Template<Solver::Heun>::Solver_Initialise ()
 {
-    this->virtualforce = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     
-    this->spins_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    this->configurations_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for (int i=0; i<this->noi; i++)
-      spins_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
+      configurations_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
   
-    this->spins_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for (int i=0; i<this->noi; i++)
-      spins_predictor[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));  
+      configurations_predictor[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));  
     
-    this->temp2 = vectorfield( this->nos, {0, 0, 0} );
     this->temp1 = vectorfield( this->nos, {0, 0, 0} );
 };
 
@@ -20,51 +20,56 @@ void Method_Template<Solver::Heun>::Solver_Initialise ()
     Template instantiation of the Simulation class for use with the Heun Solver.
     The Heun method is a basic solver for the PDE at hand here. It is sufficiently
     efficient and stable.
+    TODO: reference paper
 */
 template <> inline
 void Method_Template<Solver::Heun>::Solver_Iteration ()
 {
     // Get the actual forces on the configurations
-    this->Calculate_Force( this->configurations, this->force );
+    this->Calculate_Force( this->configurations, this->forces );
     
     // Optimization for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        this->s = systems[i];
-        auto& conf = *this->configurations[i];
+        auto& system         = this->systems[i];
+        auto& conf           = *this->configurations[i];
+        auto& conf_temp      = *this->configurations_temp[i];
+        auto& conf_predictor = *this->configurations_predictor[i];
         
         // First step - Predictor
-        this->VirtualForce( *s->spins, *s->llg_parameters, force[i], xi, virtualforce[i] );
+        this->VirtualForce( conf, *system->llg_parameters, forces[i], forces_virtual[i] );
         
-        Vectormath::set_c_cross( -1, conf, virtualforce[i], *spins_temp[i] );  // temp1 = -( conf x A )
-        Vectormath::set_c_a( 1, conf, *spins_predictor[i] );                   // spins_predictor = conf
-        Vectormath::add_c_a( 1, *spins_temp[i], *spins_predictor[i] );         // spins_predictor = conf + dt*temp1
+        Vectormath::set_c_cross( 1, conf, forces_virtual[i], conf_temp );  // temp1 = -( conf x A )
+        Vectormath::set_c_a( 1, conf, conf_predictor );                   // configurations_predictor = conf
+        Vectormath::add_c_a( 1, conf_temp, conf_predictor );         // configurations_predictor = conf + dt*temp1
         
         // Normalize spins
-        Vectormath::normalize_vectors( *spins_predictor[i] );
+        Vectormath::normalize_vectors( conf_predictor );
     }
     
     // Calculate_Force for the Corrector
-    this->Calculate_Force( spins_predictor, this->force );
+    this->Calculate_Force( configurations_predictor, this->forces );
     
     for (int i=0; i < this->noi; i++)
     {
-        this->s = systems[i];
-        auto& conf = *this->configurations[i];
+        auto& system         = this->systems[i];
+        auto& conf           = *this->configurations[i];
+        auto& conf_temp      = *this->configurations_temp[i];
+        auto& conf_predictor = *this->configurations_predictor[i];
 
         // Second step - Corrector
-        this->VirtualForce( *spins_predictor[i], *s->llg_parameters, force[i], xi, virtualforce[i] );
+        this->VirtualForce( conf_predictor, *system->llg_parameters, forces[i], forces_virtual[i] );
         
-        Vectormath::scale( *spins_temp[i], 0.5 );                                     // spins_temp = 0.5 * spins_temp
-        Vectormath::add_c_a( 1, conf, *spins_temp[i] );                               // spins_temp = conf + 0.5 * spins_temp 
-        Vectormath::set_c_cross( -1, *spins_predictor[i], virtualforce[i], temp1 );   // temp1 = - ( conf' x A' )
-        Vectormath::add_c_a( 0.5, temp1, *spins_temp[i] );                            // spins_temp = conf + 0.5 * spins_temp + 0.5 * temp1        
+        Vectormath::scale( conf_temp, 0.5 );                                     // configurations_temp = 0.5 * configurations_temp
+        Vectormath::add_c_a( 1, conf, conf_temp );                               // configurations_temp = conf + 0.5 * configurations_temp 
+        Vectormath::set_c_cross( 1, conf_predictor, forces_virtual[i], temp1 );   // temp1 = - ( conf' x A' )
+        Vectormath::add_c_a( 0.5, temp1, conf_temp );                            // configurations_temp = conf + 0.5 * configurations_temp + 0.5 * temp1        
 
         // Normalize spins
-        Vectormath::normalize_vectors( *spins_temp[i] );
+        Vectormath::normalize_vectors( conf_temp );
         
         // Copy out
-        conf = *spins_temp[i];
+        conf = conf_temp;
     } 
 };
 

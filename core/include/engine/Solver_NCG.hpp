@@ -24,12 +24,12 @@ void Method_Template<Solver::NCG>::Solver_Initialise ()
     this->r_dot_d = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
     this->dda2    = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
     
-    this->Calculate_Force( this->configurations, this->force );   // initialize residual
+    this->Calculate_Force( this->configurations, this->forces );   // initialize residual
     
     for (int img=0; img<this->noi; img++)
     {
         // set residual = - f'(x)
-        Engine::Vectormath::set_c_a( -1, this->force[img], this->res[img] );    
+        Engine::Vectormath::set_c_a( -1, this->forces[img], this->res[img] );    
         
         // d = r
         Engine::Vectormath::set_c_a( 1, this->res[img], this->d[img] );         
@@ -99,12 +99,12 @@ void Method_Template<Solver::NCG>::Solver_Iteration ()
     } // end Newton-Raphson
     
     // calculate force from the new configurations
-    this->Calculate_Force( this->configurations, this->force );
+    this->Calculate_Force( this->configurations, this->forces );
     
     for (int img=0; img<this->noi; img++)
     {
         // set residual = - f'(x)
-        Engine::Vectormath::set_c_a( -1, this->force[img], this->res[img] ); 
+        Engine::Vectormath::set_c_a( -1, this->forces[img], this->res[img] ); 
         
         // delta_old = delta_new
         this->delta_old[img] = this->delta_new[img];
