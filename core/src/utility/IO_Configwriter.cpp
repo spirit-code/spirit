@@ -88,7 +88,7 @@ namespace Utility
 			config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "llg_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
 			config += "llg_renorm                     " + std::to_string(parameters->renorm_sd) + "\n";
-			config += "llg_seed                       " + std::to_string(parameters->seed) + "\n";
+			config += "llg_seed                       " + std::to_string(parameters->rng_seed) + "\n";
 			config += "llg_temperature                " + std::to_string(parameters->temperature) + "\n";
 			config += "llg_damping                    " + std::to_string(parameters->damping) + "\n";
 			config += "llg_dt                         " + std::to_string(parameters->dt/std::pow(10, -12) * Constants::mu_B/1.760859644/std::pow(10, 11)) + "\n";
@@ -113,7 +113,7 @@ namespace Utility
 			config += "mc_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
 			config += "mc_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "mc_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
-			config += "mc_seed                       " + std::to_string(parameters->seed) + "\n";
+			config += "mc_seed                       " + std::to_string(parameters->rng_seed) + "\n";
 			config += "mc_temperature                " + std::to_string(parameters->temperature) + "\n";
 			config += "mc_acceptance_ratio           " + std::to_string(parameters->acceptance_ratio) + "\n";
 			config += "############### End MC Parameters ################";

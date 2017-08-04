@@ -101,7 +101,11 @@ namespace Engine
 
         // Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
-        void get_random_vectorfield(Data::Parameters_Method_LLG & parameters, vectorfield & xi);
+
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi);
+        void get_random_vector_normalized(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield_normals(std::mt19937 & prng, vectorfield & xi);
 
 
         /////////////////////////////////////////////////////////////////

@@ -15,15 +15,10 @@ namespace Data
 	{
 	public:
 		Parameters_Method_MC(std::string output_folder, std::array<bool,10> output, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int seed_i, scalar temperature_i, scalar acceptance_ratio_i);
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, scalar temperature_i, scalar acceptance_ratio_i);
 
 		//PRNG Seed
-		const int seed;
-		// --------------- Different distributions ------------
-		std::mt19937 prng;
-		std::uniform_real_distribution<scalar> distribution_real;
-		std::uniform_real_distribution<scalar> distribution_minus_plus_one;
-		std::uniform_int_distribution<int> distribution_int;
+		const int rng_seed;
 
 		// Temperature [K]
 		scalar temperature;

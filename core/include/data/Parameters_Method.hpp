@@ -7,6 +7,7 @@
 
 #include <string>
 #include <array>
+#include <random>
 
 namespace Data
 {
@@ -19,7 +20,8 @@ namespace Data
 			scalar force_convergence,
 			long int n_iterations, long int n_iterations_log,
 			long int max_walltime_sec,
-			std::shared_ptr<Pinning> pinning);
+			std::shared_ptr<Pinning> pinning,
+			int rng_seed);
 
 		// Data output folder
 		std::string output_folder;
@@ -45,6 +47,11 @@ namespace Data
 		long int n_iterations_log;
 
 		std::shared_ptr<Pinning> pinning;
+
+		// Seed for RNG
+		int rng_seed;
+		// Mersenne twister PRNG
+		std::mt19937 prng;
 	};
 }
 #endif

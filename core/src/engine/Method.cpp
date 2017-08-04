@@ -44,16 +44,16 @@ namespace Engine
             this->print_precision = 12;
         #endif
 
+        // Random numbers
         this->xi = vectorfield(this->nos, {0,0,0});
     }
 
 
     void Method::Iterate()
     {
-        std::cerr << "iterate start" << std::endl;
         //---- Initialise Solver-specific variables
         this->Solver_Initialise();
-        std::cerr << "s0lver initialized" << std::endl;
+
         //---- Init local vars
         std::stringstream maxforce_stream;
         maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->force_max_abs_component;
@@ -250,10 +250,10 @@ namespace Engine
         // Temperature
         if (llg_params.temperature > 0)
         {
-            scalar epsilon = std::sqrt(2.0*llg_params.damping / (1.0 + std::pow(llg_params.damping, 2)) * llg_params.temperature * Utility::Constants::k_B);
-            Vectormath::get_random_vectorfield(llg_params, xi);
-            Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, xi, force);
-            Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, spins, xi, force);
+            scalar epsilon = llg_params.temperature * Utility::Constants::k_B;//std::sqrt(2.0*llg_params.damping / (1.0 + std::pow(llg_params.damping, 2)) * llg_params.temperature * Utility::Constants::k_B);
+            Vectormath::get_random_vectorfield_normals(llg_params.prng, this->xi);
+            // Vectormath::add_c_a    ( 0.5 * sqrtdtg * epsilon, xi, force);
+            Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, spins, this->xi, force);
         }
 
         // Apply Pinning

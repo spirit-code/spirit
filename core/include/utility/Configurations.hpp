@@ -29,8 +29,6 @@ namespace Utility
 
 		// points all Spins in random directions
 		void Random(Data::Spin_System &s, filterfunction filter=defaultfilter, bool external = false);
-		// points only spin no into a random direction created by prng
-		void Random(Data::Spin_System &s, int no, std::mt19937 &prng);
 		// Add temperature-scaled random noise to a system
 		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed=0, filterfunction filter=defaultfilter);
 

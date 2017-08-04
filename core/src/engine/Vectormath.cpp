@@ -130,16 +130,46 @@ namespace Engine
                 out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
             }
         }
-        void get_random_vectorfield(Data::Parameters_Method_LLG & parameters, vectorfield & xi)
+
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
+            for (int dim = 0; dim < 3; ++dim)
+            {
+                vec[dim] = distribution(prng);
+            }
+        }
+        void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
             #pragma omp parallel for collapse(2)
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-                for (int dim = 0; dim < 3; ++dim)
-                {
-                    // PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
-                    xi[i][dim] = parameters.distribution_int(parameters.prng) * 2 - 1;
-                }
+                get_random_vector(distribution, prng, xi[i]);
+            }
+        }
+
+        void get_random_vector_normalized(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        {
+            for (int dim = 0; dim < 3; ++dim)
+            {
+                vec[dim] = distribution(prng);
+            }
+            if (vec.norm() < 1e-8)
+                get_random_vector_normalized(distribution, prng, vec);
+            else
+                vec.normalize();
+        }
+        void get_random_vectorfield_normals(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
+            #pragma omp parallel for collapse(2)
+            for (unsigned int i = 0; i < xi.size(); ++i)
+            {
+                get_random_vector_normalized(distribution, prng, xi[i]);
             }
         }
 
