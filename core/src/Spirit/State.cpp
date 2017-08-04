@@ -238,19 +238,13 @@ const char * State_DateTime(State * state)
 	return state->datetime_creation_string.c_str();
 }
 
-bool from_indices( const State * state, int & idx_image, int & idx_chain, 
+void from_indices( const State * state, int & idx_image, int & idx_chain, 
                    std::shared_ptr<Data::Spin_System> & image, 
                    std::shared_ptr<Data::Spin_System_Chain> & chain )
 {
-    bool ret_code = true;
-    
-    // In case of positive non-existing image/chain_idx return false
-    if ( idx_chain >= state->collection->noc || idx_image >= state->active_chain->noi )
-        ret_code = false;
-    
-    // TODO: in case of false find a way to exit without doing any action but without breaking any
-    // API function that uses from_indices(). A proper error handling mechanism should implemented
-    // for all the API functions.
+    // In case of positive non-existing image_idx throw exception
+    if ( idx_chain >= state->collection->noc )
+        throw Exception::Non_existing_Chain;
     
     // Chain
     if ( idx_chain < 0 || idx_chain == state->idx_active_chain || 
@@ -264,6 +258,10 @@ bool from_indices( const State * state, int & idx_image, int & idx_chain,
         chain = state->active_chain;
         idx_chain = state->idx_active_chain;
     }
+
+    // In case of positive non-existing chain_idx throw exception    
+    if (  idx_image >= state->active_chain->noi )
+        throw Exception::Non_existing_Image;
     
     // Image
     if ( idx_chain == state->idx_active_chain && 
@@ -278,5 +276,4 @@ bool from_indices( const State * state, int & idx_image, int & idx_chain,
         idx_image = idx_image;
     }
 
-    return ret_code;
 }

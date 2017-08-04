@@ -48,6 +48,14 @@ class simpleTestChain(TestChain):
         ''' Must return the index of the active image '''
         self.assertEqual( system.Get_Index( self.p_state ), 0 ) # active is 0th
 
+class clipboard_TestChain( TestChain ):
+    
+    def test_nonexisting_chain_to_clipboard(self):
+        ''' Must do nothing if we want to add non existing state to clipboard'''
+        chain.Image_to_Clipboard( self.p_state, -1, 10  );      # copy 10th chain
+        chain.Image_to_Clipboard( self.p_state, 10, 10  );      # copy 10th image 10th chain
+        chain.Image_to_Clipboard( self.p_state, -1, -10 );      # copy -10th chain
+
 class insert_deleteTestChain(TestChain):
     
     def test_insert_after(self):
@@ -157,8 +165,6 @@ class remove_TestChain(TestChain):
     
     def test_delete_outoflimits(self):
         
-        # BUG: delete image out of bound should NOT reduce the number of images NOI
-        
         chain.Insert_Image_Before( self.p_state )               # active is 1st
         chain.Insert_Image_Before( self.p_state )               # active is 2nd
         self.assertEqual( system.Get_Index( self.p_state ), 2 ) # active is 2nd
@@ -209,6 +215,7 @@ class data_TestChain(TestChain):
 def suite():
     suite = unittest.TestSuite()
     suite.addTest( unittest.makeSuite( simpleTestChain ) )
+    suite.addTest( unittest.makeSuite( clipboard_TestChain ) )
     suite.addTest( unittest.makeSuite( insert_deleteTestChain ) )
     suite.addTest( unittest.makeSuite( switch_TestChain ) )
     suite.addTest( unittest.makeSuite( jump_TestChain ) )
