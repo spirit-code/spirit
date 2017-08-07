@@ -19,9 +19,6 @@ namespace Engine
         // Sender name for log messages
         this->SenderName = Utility::Log_Sender::All;
 
-        // Initial maximum of absolute values of force components
-        this->force_max_abs_component = parameters->force_convergence + 1.0;
-
         // Default history contains force_max_abs_component
         this->history = std::map<std::string, std::vector<scalar>>{
             {"force_max_abs_component", {this->force_max_abs_component}} };

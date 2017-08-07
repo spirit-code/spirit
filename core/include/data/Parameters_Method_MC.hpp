@@ -15,13 +15,15 @@ namespace Data
 	{
 	public:
 		Parameters_Method_MC(std::string output_folder, std::array<bool,10> output, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, scalar temperature_i, scalar acceptance_ratio_i);
-
-		//PRNG Seed
-		const int rng_seed;
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, scalar temperature, scalar acceptance_ratio);
 
 		// Temperature [K]
 		scalar temperature;
+		// Seed for RNG
+		int rng_seed;
+
+		// Mersenne twister PRNG
+		std::mt19937 prng;
 
 		// Step acceptance ratio
 		scalar acceptance_ratio;

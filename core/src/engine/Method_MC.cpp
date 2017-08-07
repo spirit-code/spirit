@@ -24,7 +24,7 @@ namespace Engine
         this->xi = vectorfield(this->nos, {0,0,0});
 
         // We assume it is not converged before the first iteration
-        this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
+        // this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{

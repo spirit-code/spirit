@@ -87,7 +87,6 @@ namespace Utility
 			config += "llg_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
 			config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 			config += "llg_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
-			config += "llg_renorm                     " + std::to_string(parameters->renorm_sd) + "\n";
 			config += "llg_seed                       " + std::to_string(parameters->rng_seed) + "\n";
 			config += "llg_temperature                " + std::to_string(parameters->temperature) + "\n";
 			config += "llg_damping                    " + std::to_string(parameters->damping) + "\n";
