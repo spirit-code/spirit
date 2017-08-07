@@ -14,68 +14,61 @@ using namespace Utility;
 
 namespace Engine
 {
-	template <Solver solver>
-    Method_MC<solver>::Method_MC(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-		Method_Template<solver>(system->mc_parameters, idx_img, idx_chain)
-	{
-		// Currently we only support a single image being iterated at once:
-		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
-		this->SenderName = Utility::Log_Sender::MC;
+    Method_MC::Method_MC(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
+        Method(system->mc_parameters, idx_img, idx_chain)
+    {
+        // Currently we only support a single image being iterated at once:
+        this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
+        this->SenderName = Utility::Log_Sender::MC;
 
-		// We assume it is not converged before the first iteration
-		this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
+        this->xi = vectorfield(this->nos, {0,0,0});
 
-		// History
+        // We assume it is not converged before the first iteration
+        this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
+
+        // History
         this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_max_abs_component}},
-			{"E", {this->force_max_abs_component}},
-			{"M_z", {this->force_max_abs_component}} };
-	}
-
-
-	template <Solver solver>
-	void Method_MC<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
-	{
-
-	}
-
-
-	template <Solver solver>
-	bool Method_MC<solver>::Force_Converged()
-	{
-		return false;
-	}
-
-	template <Solver solver>
-	void Method_MC<solver>::Hook_Pre_Iteration()
-    {
-
-	}
-
-	template <Solver solver>
-    void Method_MC<solver>::Hook_Post_Iteration()
-    {
-		
+            {"max_torque_component", {this->force_max_abs_component}},
+            {"E", {this->force_max_abs_component}},
+            {"M_z", {this->force_max_abs_component}} };
     }
 
-	template <Solver solver>
-	void Method_MC<solver>::Finalize()
+    void Method_MC::Iteration()
     {
-		
     }
 
-	
-	template <Solver solver>
-	void Method_MC<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
-	{
-		
-	}
 
-	// Optimizer name as string
-	template <Solver solver>
-    std::string Method_MC<solver>::Name() { return "MC"; }
+    bool Method_MC::Converged()
+    {
+        return false;
+    }
+
+    void Method_MC::Hook_Pre_Iteration()
+    {
+
+    }
+
+    void Method_MC::Hook_Post_Iteration()
+    {
+        
+    }
+
+    void Method_MC::Initialize()
+    {
+        
+    }
+
+    void Method_MC::Finalize()
+    {
+        
+    }
 
 
-	// Template instantiations
-	template class Method_MC<Solver::None>;
+    void Method_MC::Save_Current(std::string starttime, int iteration, bool initial, bool final)
+    {
+        
+    }
+
+    // Optimizer name as string
+    std::string Method_MC::Name() { return "MC"; }
 }

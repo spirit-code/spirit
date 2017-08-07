@@ -1,5 +1,5 @@
 template <> inline
-void Method_Template<Solver::SIB>::Solver_Initialise ()
+void Method_Solver<Solver::SIB>::Initialize ()
 {
     this->forces = std::vector<vectorfield>(this->noi, vectorfield(this->nos));  // [noi][nos]
     this->forces_virtual = std::vector<vectorfield>(this->noi, vectorfield(this->nos));  // [noi][nos]
@@ -15,7 +15,7 @@ void Method_Template<Solver::SIB>::Solver_Initialise ()
     TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::SIB>::Solver_Iteration ()
+void Method_Solver<Solver::SIB>::Iteration ()
 {
     // First part of the step
     this->Calculate_Force(this->configurations, forces);
@@ -47,13 +47,13 @@ void Method_Template<Solver::SIB>::Solver_Iteration ()
 };
 
 template <> inline
-std::string Method_Template<Solver::SIB>::SolverName()
+std::string Method_Solver<Solver::SIB>::SolverName()
 {
 	return "SIB";
 };
 
 template <> inline
-std::string Method_Template<Solver::SIB>::SolverFullName()
+std::string Method_Solver<Solver::SIB>::SolverFullName()
 {
 	return "Semi-implicit B";
 };

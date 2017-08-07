@@ -16,7 +16,7 @@ namespace Engine
 {
 	template <Solver solver>
     Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-		Method_Template<solver>(system->llg_parameters, idx_img, idx_chain)
+		Method_Solver<solver>(system->llg_parameters, idx_img, idx_chain)
 	{
 		// Currently we only support a single image being iterated at once:
 		this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
@@ -28,6 +28,7 @@ namespace Engine
 		// Forces
 		this->forces    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
 		this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
+		this->xi = vectorfield(this->nos, {0,0,0});
 
 		// We assume it is not converged before the first iteration
 		this->force_converged = std::vector<bool>(this->noi, false);
@@ -75,7 +76,7 @@ namespace Engine
 
 
 	template <Solver solver>
-	bool Method_LLG<solver>::Force_Converged()
+	bool Method_LLG<solver>::Converged()
 	{
 		for (unsigned int img = 0; img < this->systems.size(); ++img)
 		{

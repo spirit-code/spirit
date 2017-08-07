@@ -16,7 +16,7 @@ namespace Engine
 {
 	template <Solver solver>
     Method_GNEB<solver>::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain) :
-		Method_Template<solver>(chain->gneb_parameters, -1, idx_chain), chain(chain)
+		Method_Solver<solver>(chain->gneb_parameters, -1, idx_chain), chain(chain)
 	{
 		this->systems = chain->images;
 		this->SenderName = Utility::Log_Sender::GNEB;
@@ -33,6 +33,7 @@ namespace Engine
 		this->F_total    = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
 		this->F_gradient = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
 		this->F_spring   = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->xi = vectorfield(this->nos, {0,0,0});
 
 		// Tangents
 		this->tangents = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
@@ -144,7 +145,7 @@ namespace Engine
 	}// end Calculate
 
 	template <Solver solver>
-	bool Method_GNEB<solver>::Force_Converged()
+	bool Method_GNEB<solver>::Converged()
 	{
 		// return this->isConverged;
 		if (this->force_max_abs_component < this->chain->gneb_parameters->force_convergence) return true;

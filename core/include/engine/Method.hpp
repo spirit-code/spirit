@@ -28,12 +28,8 @@ namespace Engine
         //      what they need in Solver_Initialise.
         Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain);
 
-        // `Iterate` uses the `Solver_Iteration` function to evolve given systems according to the
-        // `Calculate_Force` implementation of the Method-Subclass.
-        //      It iterates until: the maximum number of iterations is reached or the maximum
-        //      walltime is reaches or the force has converged or a file called `STOP` is found
-        //      or the calculation is stopped externally (via the API).
-        virtual void Iterate() final;
+        // `Iterate` is supposed to iteratively solve a problem
+        virtual void Iterate();
 
         // Calculate a smooth but current IPS value
         virtual scalar getIterationsPerSecond() final;
@@ -50,17 +46,33 @@ namespace Engine
 
 
     protected:
-        // Solver_Initialise contains the initialisations of arrays etc. for a certain solver
-        virtual void Solver_Initialise();
-        // Solver_Iteration represents one iteration of a certain Solver
-        virtual void Solver_Iteration();
+        // One iteration of the Method
+        virtual void Iteration();
 
 
-        // Calculate Forces onto Systems
-        //      This is currently overridden by methods to specify how the forces on a set of configurations should be
-        //      calculated. This function is used in `the Solver_...` functions.
-        // TODO: maybe rename to separate from deterministic and stochastic force functions
-        virtual void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
+        // Initialize everything for the optimization of the systems before `Iterate` starts
+        virtual void Initialize();
+        // Finalize the optimization of the systems after `Iterate` has finished
+        virtual void Finalize();
+
+        // Log messages at Start, after Steps and at End of Iterate
+        virtual void Message_Start();
+        virtual void Message_Step();
+        virtual void Message_End();
+
+        // A hook into `Iterate` before an Iteration.
+        //      Override this function if special actions are needed
+        //      before each `Solver_Iteration`
+        virtual void Hook_Pre_Iteration();
+        // A hook into `Iterate` after an Iteration.
+        //      Override this function if special actions are needed
+        //      after each `Solver_Iteration`
+        virtual void Hook_Post_Iteration();
+
+
+        // Save current data
+        //      Override to specialize what a Method should save
+        virtual void Save_Current(std::string starttime, int iteration, bool initial=false, bool final=false);
 
 
         // Lock systems in order to prevent otherwise access
@@ -73,44 +85,17 @@ namespace Engine
         virtual void Unlock();
 
 
-        // A hook into `Iterate` before an Iteration.
-        //      Override this function if special actions are needed
-        //      before each `Solver_Iteration`
-        virtual void Hook_Pre_Iteration();
-        // A hook into `Iterate` after an Iteration.
-        //      Override this function if special actions are needed
-        //      after each `Solver_Iteration`
-        virtual void Hook_Post_Iteration();
 
-        // Finalize the optimization of the systems after `Iterate` has finished
-        virtual void Finalize();
 
-        // Save current data
-        //      Override to specialize what a Method should save
-        virtual void Save_Current(std::string starttime, int iteration, bool initial=false, bool final=false);
+        //////////// Check for stopping criteria //////////////////////////////////////////
 
         // Check if iterations allowed
         virtual bool Iterations_Allowed();
-        // Check if the forces are converged
-        virtual bool Force_Converged();
 
+        // Check if convergence criteria have been met
+        virtual bool Converged();
 
-        //////////// Final implementations //////////////////////////////////////////
-
-        // Calculate the effective force on a configuration. It is a combination of
-        //      precession and damping terms for the Hamiltonian, spin currents and
-        //      temperature. This function is used in `the Solver_...` functions.
-        // TODO: separate out the temperature term and create Force_Deterministic and Force_Stochastic
-        virtual void VirtualForce( const vectorfield & spins,
-                                    Data::Parameters_Method_LLG & llg_params,
-                                    const vectorfield & effective_field,
-                                    vectorfield & force ) final;
-
-
-        // Calculate maximum of absolute values of force components for a spin configuration
-        virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
-
-
+        //////////// Final implementations
         // Check wether to continue iterating - stop file, convergence etc.
         virtual bool ContinueIterating() final;
         // Check if walltime ran out
@@ -145,6 +130,7 @@ namespace Engine
         scalar ips;
         std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
         
+        std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
 
         //////////// Parameters //////////////////////////////////////////////////////
         // Number of iterations

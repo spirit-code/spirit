@@ -3,7 +3,7 @@
 #define METHOD_MMF_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method_Template.hpp>
+#include <engine/Method_Solver.hpp>
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/Spin_System_Chain_Collection.hpp>
 
@@ -13,7 +13,7 @@ namespace Engine
         The Minimum Mode Following (MMF) method
     */
     template <Solver solver>
-    class Method_MMF : public Method_Template<solver>
+    class Method_MMF : public Method_Solver<solver>
     {
     public:
         // Constructor
@@ -30,7 +30,7 @@ namespace Engine
         void Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
         
         // Check if the Forces are converged
-        bool Force_Converged() override;
+        bool Converged() override;
 
 
         // Save the current Step's Data: images and images' energies and reaction coordinates

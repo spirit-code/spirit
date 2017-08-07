@@ -1,5 +1,5 @@
 template <> inline
-void Method_Template<Solver::Depondt>::Solver_Initialise ()
+void Method_Solver<Solver::Depondt>::Initialize ()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
@@ -27,7 +27,7 @@ void Method_Template<Solver::Depondt>::Solver_Initialise ()
     TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::Depondt>::Solver_Iteration ()
+void Method_Solver<Solver::Depondt>::Iteration ()
 {
     // Get the actual forces on the configurations
     this->Calculate_Force( this->configurations, this->forces );
@@ -86,13 +86,13 @@ void Method_Template<Solver::Depondt>::Solver_Iteration ()
 };
 
 template <> inline
-std::string Method_Template<Solver::Depondt>::SolverName()
+std::string Method_Solver<Solver::Depondt>::SolverName()
 {
 	return "Depondt";
 };
 
 template <> inline
-std::string Method_Template<Solver::Depondt>::SolverFullName()
+std::string Method_Solver<Solver::Depondt>::SolverFullName()
 {
 	return "Depondt";
 };

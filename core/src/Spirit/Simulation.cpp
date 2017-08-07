@@ -94,7 +94,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         }
         else if (method_type == "MC")
         {
-            method = std::shared_ptr<Engine::Method>(new Engine::Method_MC<Engine::Solver::None>(image, idx_image, idx_chain));
+            method = std::shared_ptr<Engine::Method>(new Engine::Method_MC(image, idx_image, idx_chain));
         }
         else if (method_type == "GNEB")
         {

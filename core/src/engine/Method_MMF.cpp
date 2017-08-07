@@ -18,7 +18,7 @@ namespace Engine
 {
 	template <Solver solver>
     Method_MMF<solver>::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain) :
-        Method_Template<solver>(collection->parameters, -1, idx_chain), collection(collection)
+        Method_Solver<solver>(collection->parameters, -1, idx_chain), collection(collection)
     {
 		int noc = collection->noc;
 		int nos = collection->chains[0]->images[0]->nos;
@@ -43,6 +43,7 @@ namespace Engine
 		// Forces
 		this->gradient   = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
 		this->minimum_mode = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
+		this->xi = vectorfield(this->nos, {0,0,0});
 
 		// Last iteration
 		this->spins_last = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
@@ -314,7 +315,7 @@ namespace Engine
 		
     // Check if the Forces are converged
 	template <Solver solver>
-    bool Method_MMF<solver>::Force_Converged()
+    bool Method_MMF<solver>::Converged()
     {
 		if (this->force_max_abs_component < this->collection->parameters->force_convergence) return true;
 		return false;

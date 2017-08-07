@@ -1,5 +1,5 @@
 template <> inline
-void Method_Template<Solver::Heun>::Solver_Initialise ()
+void Method_Solver<Solver::Heun>::Initialize ()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
@@ -23,7 +23,7 @@ void Method_Template<Solver::Heun>::Solver_Initialise ()
     TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::Heun>::Solver_Iteration ()
+void Method_Solver<Solver::Heun>::Iteration ()
 {
     // Get the actual forces on the configurations
     this->Calculate_Force( this->configurations, this->forces );
@@ -74,13 +74,13 @@ void Method_Template<Solver::Heun>::Solver_Iteration ()
 };
 
 template <> inline
-std::string Method_Template<Solver::Heun>::SolverName()
+std::string Method_Solver<Solver::Heun>::SolverName()
 {
 	return "Heun";
 };
 
 template <> inline
-std::string Method_Template<Solver::Heun>::SolverFullName()
+std::string Method_Solver<Solver::Heun>::SolverFullName()
 {
 	return "Heun";
 };

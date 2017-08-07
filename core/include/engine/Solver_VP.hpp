@@ -1,5 +1,5 @@
 template <> inline
-void Method_Template<Solver::VP>::Solver_Initialise ()
+void Method_Solver<Solver::VP>::Initialize ()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
@@ -23,7 +23,7 @@ void Method_Template<Solver::VP>::Solver_Initialise ()
     TODO: reference paper
 */
 template <> inline
-void Method_Template<Solver::VP>::Solver_Iteration ()
+void Method_Solver<Solver::VP>::Iteration ()
 {
     scalar projection_full  = 0;
     scalar force_norm2_full = 0;
@@ -97,13 +97,13 @@ void Method_Template<Solver::VP>::Solver_Iteration ()
 };
 
 template <> inline
-std::string Method_Template<Solver::VP>::SolverName()
+std::string Method_Solver<Solver::VP>::SolverName()
 {
 	return "VP";
 };
 
 template <> inline
-std::string Method_Template<Solver::VP>::SolverFullName()
+std::string Method_Solver<Solver::VP>::SolverFullName()
 {
 	return "Velocity Projection";
 };

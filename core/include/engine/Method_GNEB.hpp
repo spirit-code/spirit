@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Spirit_Defines.h"
-#include <engine/Method_Template.hpp>
+#include <engine/Method_Solver.hpp>
 #include <data/Spin_System_Chain.hpp>
 
 namespace Engine
@@ -15,7 +15,7 @@ namespace Engine
         // TODO: reference to Paper
     */
     template <Solver solver>
-    class Method_GNEB : public Method_Template<solver>
+    class Method_GNEB : public Method_Solver<solver>
     {
     public:
         // Constructor
@@ -29,7 +29,7 @@ namespace Engine
         void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces) override;
         
         // Check if the Forces are converged
-        bool Force_Converged() override;
+        bool Converged() override;
 
 
         // Save the current Step's Data: images and images' energies and reaction coordinates

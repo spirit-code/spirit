@@ -1,5 +1,5 @@
 template <> inline
-void Method_Template<Solver::NCG>::Solver_Initialise ()
+void Method_Solver<Solver::NCG>::Initialize ()
 {
     this->jmax    = 500;    // max iterations
     this->n       = 50;     // restart every n iterations XXX: what's the appropriate val?
@@ -49,7 +49,7 @@ void Method_Template<Solver::NCG>::Solver_Initialise ()
     TODO: reference painless conjugate gradients
 */
 template <> inline
-void Method_Template<Solver::NCG>::Solver_Iteration ()
+void Method_Solver<Solver::NCG>::Iteration ()
 {
     this->continue_NR = true;   // by default continue Newton-Raphson
     this->restart_nCG = false;  // by default do not restart( XXX:reset?? ) the whole methode
@@ -164,13 +164,13 @@ void Method_Template<Solver::NCG>::Solver_Iteration ()
 };
 
 template <> inline
-std::string Method_Template<Solver::NCG>::SolverName()
+std::string Method_Solver<Solver::NCG>::SolverName()
 {
 	return "NCG";
 };
 
 template <> inline
-std::string Method_Template<Solver::NCG>::SolverFullName()
+std::string Method_Solver<Solver::NCG>::SolverFullName()
 {
 	return "Nonlinear conjugate gradients";
 };

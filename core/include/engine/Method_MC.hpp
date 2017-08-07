@@ -3,7 +3,7 @@
 #define METHOD_MC_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method_Template.hpp>
+#include <engine/Method_Solver.hpp>
 #include <data/Spin_System.hpp>
 // #include <data/Parameters_Method_MC.hpp>
 
@@ -14,8 +14,7 @@ namespace Engine
     /*
         The Monte Carlo method
     */
-    template <Solver solver>
-    class Method_MC : public Method_Template<solver>
+    class Method_MC : public Method
     {
     public:
         // Constructor
@@ -25,11 +24,11 @@ namespace Engine
         std::string Name() override;
         
     private:
-        // Calculate Forces onto Systems
-        void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces) override;
-        
+        // Solver_Iteration represents one iteration of a certain Solver
+        virtual void Iteration() override;
+
         // Check if the Forces are converged
-        bool Force_Converged() override;
+        bool Converged() override;
 
         // Save the current Step's Data: spins and energy
         void Save_Current(std::string starttime, int iteration, bool initial=false, bool final=false) override;
@@ -38,6 +37,8 @@ namespace Engine
         // A hook into the Optimizer after an Iteration
         void Hook_Post_Iteration() override;
 
+        // Sets iteration_allowed to false for the corresponding method
+        void Initialize() override;
         // Sets iteration_allowed to false for the corresponding method
         void Finalize() override;
     };
