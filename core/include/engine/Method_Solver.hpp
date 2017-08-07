@@ -64,17 +64,41 @@ namespace Engine
         //      This is currently overridden by methods to specify how the forces on a set of configurations should be
         //      calculated. This function is used in `the Solver_...` functions.
         // TODO: maybe rename to separate from deterministic and stochastic force functions
-        virtual void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
+        virtual void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+        {
 
+        }
 
+        // Calculate virtual Forces onto Systems (can be precession and damping forces, correctly scaled)
         // Calculate the effective force on a configuration. It is a combination of
         //      precession and damping terms for the Hamiltonian, spin currents and
         //      temperature. This function is used in `the Solver_...` functions.
-        // TODO: separate out the temperature term and create Force_Deterministic and Force_Stochastic
-        virtual void VirtualForce( const vectorfield & spins,
-                                    Data::Parameters_Method_LLG & llg_params,
-                                    const vectorfield & effective_field,
-                                    vectorfield & force ) final;
+        // Default implementation: direct minimization
+        virtual void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+        {
+            using namespace Utility;
+
+            // Calculate the basic force
+            this->Calculate_Force(configurations, forces);
+
+            // Calculate the cross product with the spin configuration to get direct minimization
+            for (unsigned int i=0; i<configurations.size(); ++i)
+            {
+                auto& image = *configurations[i];
+                auto& force = forces[i];
+                auto& parameters = *this->systems[i]->llg_parameters;
+
+                // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+                scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+                Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+
+                // Apply Pinning
+                #ifdef SPIRIT_ENABLE_PINNING
+                    Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+                #endif // SPIRIT_ENABLE_PINNING
+            }
+        }
+
 
         // Calculate maximum of absolute values of force components for a spin configuration
         virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
@@ -97,57 +121,6 @@ namespace Engine
         virtual void Message_End() override;
     };
 
-
-    template<Solver solver>
-    void Method_Solver<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
-    {
-
-    }
-
-    template<Solver solver>
-    void Method_Solver<solver>::VirtualForce(  const vectorfield & spins,
-                                Data::Parameters_Method_LLG & llg_params,
-                                const vectorfield & effective_field,
-                                vectorfield & force )
-    {
-        using namespace Utility;
-
-        //========================= Init local vars ================================
-        // time steps
-        scalar damping = llg_params.damping;
-        // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-        scalar dtg = llg_params.dt * Constants::gamma / Constants::mu_B / (1 + damping*damping);
-        scalar sqrtdtg = dtg / std::sqrt( llg_params.dt );
-        // STT
-        scalar a_j = llg_params.stt_magnitude;
-        Vector3 s_c_vec = llg_params.stt_polarisation_normal;
-        //------------------------ End Init ----------------------------------------
-
-        Vectormath::fill       (force, {0,0,0});
-        Vectormath::add_c_a    (-0.5 * dtg, effective_field, force);
-        Vectormath::add_c_cross(-0.5 * dtg * damping, spins, effective_field, force);
-
-        // STT
-        if (a_j > 0)
-        {
-            Vectormath::add_c_a    ( 0.5 * dtg * a_j * damping, s_c_vec, force);
-            Vectormath::add_c_cross( 0.5 * dtg * a_j, s_c_vec, spins, force);
-        }
-
-        // Temperature
-        if (llg_params.temperature > 0)
-        {
-            scalar epsilon = llg_params.temperature * Utility::Constants::k_B;//std::sqrt(2.0*llg_params.damping / (1.0 + std::pow(llg_params.damping, 2)) * llg_params.temperature * Utility::Constants::k_B);
-            Vectormath::get_random_vectorfield_normals(llg_params.prng, this->xi);
-            // Vectormath::add_c_a    ( 0.5 * sqrtdtg * epsilon, xi, force);
-            Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, spins, this->xi, force);
-        }
-
-        // Apply Pinning
-        #ifdef SPIRIT_ENABLE_PINNING
-            Vectormath::set_c_a(1, force, force, llg_params.pinning->mask_unpinned);
-        #endif // SPIRIT_ENABLE_PINNING
-    }
 
     // Return the maximum of absolute values of force components for an image
     template<Solver solver>

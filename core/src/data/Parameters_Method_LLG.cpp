@@ -10,7 +10,8 @@ namespace Data
         output_energy_divide_by_nspins(output[7]), output_configuration_step(output[8]), output_configuration_archive(output[9]),
         damping(damping_i),
         temperature(temperature_i), rng_seed(rng_seed), prng(std::mt19937(rng_seed)),
-        stt_magnitude(stt_magnitude_i), stt_polarisation_normal(stt_polarisation_normal_i)
+        stt_magnitude(stt_magnitude_i), stt_polarisation_normal(stt_polarisation_normal_i),
+        direct_minimization(false)
     {
     }
 }

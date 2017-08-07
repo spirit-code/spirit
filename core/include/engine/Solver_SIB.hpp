@@ -18,30 +18,23 @@ template <> inline
 void Method_Solver<Solver::SIB>::Iteration ()
 {
     // First part of the step
-    this->Calculate_Force(this->configurations, forces);
+    this->Calculate_Force_Virtual(this->configurations, forces_virtual);
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& system     = this->systems[i];
-        auto& image      = *system->spins;
+        auto& image      = *this->systems[i]->spins;
         auto& image_temp = *configurations_temp[i];
-        auto& parameters = *system->llg_parameters;
 
-        this->VirtualForce(image, parameters, forces[i], forces_virtual[i]);
         Vectormath::transform(image, forces_virtual[i], image_temp);
         Vectormath::add_c_a(1, image, image_temp);
         Vectormath::scale(image_temp, 0.5);
     }
 
     // Second part of the step
-    this->Calculate_Force(this->configurations_temp, forces);
+    this->Calculate_Force_Virtual(this->configurations_temp, forces_virtual);
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& system     = this->systems[i];
-        auto& image      = *system->spins;
-        auto& image_temp = *configurations_temp[i];
-        auto& parameters = *system->llg_parameters;
+        auto& image      = *this->systems[i]->spins;
         
-        this->VirtualForce(image_temp, parameters, forces[i], forces_virtual[i]);
         Vectormath::transform(image, forces_virtual[i], image);
     }
 };

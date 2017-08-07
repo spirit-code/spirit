@@ -30,53 +30,36 @@ template <> inline
 void Method_Solver<Solver::Depondt>::Iteration ()
 {
     // Get the actual forces on the configurations
-    this->Calculate_Force( this->configurations, this->forces );
+    this->Calculate_Force_Virtual( this->configurations, this->forces_virtual );
     
     // Optimization for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& system         = this->systems[i];
         auto& conf           = *this->configurations[i];
         auto& conf_predictor = *this->configurations_predictor[i];
 
-        scalar dtg = system->llg_parameters->dt * Utility::Constants::gamma / Utility::Constants::mu_B / 
-                     ( 1 + pow( system->llg_parameters->damping, 2 )  );
-        
-        // Calculate Virtual force H
-        this->VirtualForce( conf, *system->llg_parameters, forces[i], forces_virtual[i] );
-        
         // For Rotation matrix R := R( H_normed, angle )
         Vectormath::norm( forces_virtual[i], angle );   // angle = |forces_virtual|
 
         Vectormath::set_c_a( 1, forces_virtual[i], rotationaxis[i] );  // rotationaxis = |forces_virtual|
         Vectormath::normalize_vectors( rotationaxis[i] );            // normalize rotation axis 
         
-        Vectormath::scale( angle, -dtg );    // angle = |forces_virtual| * dt
-        
         // Get spin predictor n' = R(H) * n
         Vectormath::rotate( conf, rotationaxis[i], angle, conf_predictor );  
     }
     
-    this->Calculate_Force( configurations_predictor, this->forces );
+    this->Calculate_Force_Virtual( configurations_predictor, this->forces_virtual_predictor );
     
     for (int i=0; i < this->noi; i++)
     {
-        auto& system = this->systems[i];
         auto& conf   = *this->configurations[i];
 
-        scalar dtg = system->llg_parameters->dt * Utility::Constants::gamma / Utility::Constants::mu_B / 
-                     ( 1 + pow( system->llg_parameters->damping, 2 )  );
-        
-        // Calculate Predicted Virtual force H'
-        this->VirtualForce( *configurations_predictor[i], *system->llg_parameters, forces[i], forces_virtual_predictor[i] );
-        
         // Calculate the linear combination of the two forces_virtuals
         Vectormath::scale( forces_virtual[i], 0.5 );   // H = H/2
         Vectormath::add_c_a( 0.5, forces_virtual_predictor[i], forces_virtual[i] ); // H = (H + H')/2
         
         // For Rotation matrix R' := R( H'_normed, angle' )
         Vectormath::norm( forces_virtual[i], angle );   // angle' = |forces_virtual lin combination|
-        Vectormath::scale( angle, -dtg );              // angle' = |forces_virtual lin combination| * dt
         
         Vectormath::normalize_vectors( forces_virtual[i] );  // normalize virtual force
         

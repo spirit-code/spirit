@@ -144,6 +144,31 @@ namespace Engine
 		}// end for img=1..noi-1
 	}// end Calculate
 
+
+	template <Solver solver>
+	void Method_GNEB<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+    {
+        using namespace Utility;
+		
+        Calculate_Force(configurations, forces);
+
+        for (unsigned int i=0; i<configurations.size(); ++i)
+        {
+            auto& image = *configurations[i];
+            auto& force = forces[i];
+            auto& parameters = *this->systems[i]->llg_parameters;
+
+            // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+            scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+            Vectormath::set_c_cross(-0.5 * dtg, image, force, force);
+
+            // Apply Pinning
+            #ifdef SPIRIT_ENABLE_PINNING
+                Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+            #endif // SPIRIT_ENABLE_PINNING
+        }
+    }
+
 	template <Solver solver>
 	bool Method_GNEB<solver>::Converged()
 	{

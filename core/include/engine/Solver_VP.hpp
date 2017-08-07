@@ -36,21 +36,17 @@ void Method_Solver<Solver::VP>::Iteration ()
     }
 
     // Get the forces on the configurations
-    this->Calculate_Force(configurations, forces);
+    this->Calculate_Force_Virtual(configurations, forces);
     
     for (int i = 0; i < noi; ++i)
     {
-        auto& system        = this->systems[i];
         auto& velocity      = velocities[i];
         auto& force         = forces[i];
         auto& force_prev    = forces_previous[i];
-        auto& configuration = *(configurations[i]);
-
-        scalar dt = system->llg_parameters->dt;
 
         // Calculate the new velocity
-        Vectormath::add_c_a(0.5 / m * dt, force_prev, velocity);
-        Vectormath::add_c_a(0.5 / m * dt, force, velocity);
+        Vectormath::add_c_a(0.5/m, force_prev, velocity);
+        Vectormath::add_c_a(0.5/m, force, velocity);
 
         // Get the projection of the velocity on the force
         projection[i] = Vectormath::dot(velocity, force);
@@ -63,14 +59,12 @@ void Method_Solver<Solver::VP>::Iteration ()
     }
     for (int i = 0; i < noi; ++i)
     {
-        auto& system             = this->systems[i];
         auto& velocity           = velocities[i];
         auto& force              = forces[i];
-        auto& force_prev         = forces_previous[i];
         auto& configuration      = *(configurations[i]);
         auto& configuration_temp = *(configurations_temp[i]);
 
-        scalar dt = system->llg_parameters->dt;
+        scalar dt = this->systems[i]->llg_parameters->dt;
 
         // Calculate the projected velocity
         if (projection_full <= 0)
@@ -88,7 +82,7 @@ void Method_Solver<Solver::VP>::Iteration ()
 
         // Move the spins
         Vectormath::add_c_a(dt, velocity, configuration_temp);
-        Vectormath::add_c_a(0.5/m*dt*dt, force, configuration_temp);
+        Vectormath::add_c_a(0.5 / m * dt, force, configuration_temp); // Note: as force is scaled with dt, this corresponds to dt^2
         Vectormath::normalize_vectors(configuration_temp);
 
         // Copy out
