@@ -40,9 +40,6 @@ namespace Engine
         #else
             this->print_precision = 12;
         #endif
-
-        // Random numbers
-        this->xi = vectorfield(this->nos, {0,0,0});
     }
 
 

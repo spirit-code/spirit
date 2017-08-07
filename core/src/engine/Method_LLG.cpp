@@ -100,6 +100,7 @@ namespace Engine
 
             if (parameters.direct_minimization)
             {
+				dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross(0.5 * dtg, image, force, force);
             }
             else

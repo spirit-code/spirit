@@ -36,7 +36,7 @@ void Method_Solver<Solver::VP>::Iteration ()
     }
 
     // Get the forces on the configurations
-    this->Calculate_Force_Virtual(configurations, forces);
+    this->Calculate_Force(configurations, forces);
     
     for (int i = 0; i < noi; ++i)
     {

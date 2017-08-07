@@ -13,6 +13,7 @@ DLLEXPORT void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, 
 DLLEXPORT void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_image=-1, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT void Parameters_Set_LLG_Direct_Minimization(State *state, bool direct, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image=-1, int idx_chain=-1);
@@ -54,6 +55,7 @@ DLLEXPORT void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step
 DLLEXPORT void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_image=-1, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_LLG_Convergence(State *state, int idx_image=-1, int idx_chain=-1);
 // Set the LLG time step in [ps]
 DLLEXPORT float Parameters_Get_LLG_Time_Step(State *state, int idx_image=-1, int idx_chain=-1);

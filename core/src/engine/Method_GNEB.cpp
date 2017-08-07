@@ -28,7 +28,7 @@ namespace Engine
 		this->Rx = std::vector<scalar>(this->noi, 0.0);
 
 		// Forces
-		this->forces    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
+		this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));
 		// this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
 		this->F_total    = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
 		this->F_gradient = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
@@ -95,6 +95,7 @@ namespace Engine
 			this->chain->images[img]->UpdateEffectiveField();
 			//this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
 			F_gradient[img] = this->chain->images[img]->effective_field;
+			Engine::Manifoldmath::project_tangential(F_gradient[img], image);
 
 			// Calculate Force
 			if (chain->image_type[img] == Data::GNEB_Image_Type::Climbing)
@@ -140,7 +141,7 @@ namespace Engine
 			#endif // SPIRIT_ENABLE_PINNING
 
 			// Copy out
-			forces[img] = F_total[img];
+			Vectormath::set_c_a(1, F_total[img], forces[img]);
 		}// end for img=1..noi-1
 	}// end Calculate
 
@@ -148,25 +149,27 @@ namespace Engine
 	template <Solver solver>
 	void Method_GNEB<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
     {
-        using namespace Utility;
-		
-        Calculate_Force(configurations, forces);
+		using namespace Utility;
 
-        for (unsigned int i=0; i<configurations.size(); ++i)
-        {
-            auto& image = *configurations[i];
-            auto& force = forces[i];
-            auto& parameters = *this->systems[i]->llg_parameters;
+		// Calculate the basic force
+		this->Calculate_Force(configurations, forces);
 
-            // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-            scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-            Vectormath::set_c_cross(-0.5 * dtg, image, force, force);
+		// Calculate the cross product with the spin configuration to get direct minimization
+		for (unsigned int i = 0; i < configurations.size(); ++i)
+		{
+			auto& image = *configurations[i];
+			auto& force = forces[i];
+			auto& parameters = *this->systems[i]->llg_parameters;
 
-            // Apply Pinning
-            #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
-            #endif // SPIRIT_ENABLE_PINNING
-        }
+			// dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+			scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+			Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+
+			// Apply Pinning
+			#ifdef SPIRIT_ENABLE_PINNING
+			Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+			#endif // SPIRIT_ENABLE_PINNING
+		}
     }
 
 	template <Solver solver>
