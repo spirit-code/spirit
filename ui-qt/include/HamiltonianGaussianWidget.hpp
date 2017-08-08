@@ -2,7 +2,7 @@
 #ifndef HAMILTONIANGAUSSIANWIDGET_H
 #define HAMILTONIANGAUSSIANWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 #include <thread>

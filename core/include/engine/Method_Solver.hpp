@@ -2,12 +2,12 @@
 #ifndef Method_Solver_H
 #define Method_Solver_H
 
-#include <Method.hpp>
 
 #include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>
+#include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <utility/Timing.hpp>
@@ -272,11 +272,11 @@ namespace Engine
     };
 
     // Include headers which specialize the Solver functions
-    #include <Solver_SIB.hpp>
-    #include <Solver_VP.hpp>
-    #include <Solver_Heun.hpp>
-    #include <Solver_Depondt.hpp>
-    #include <Solver_NCG.hpp>
+    #include <engine/Solver_SIB.hpp>
+    #include <engine/Solver_VP.hpp>
+    #include <engine/Solver_Heun.hpp>
+    #include <engine/Solver_Depondt.hpp>
+    #include <engine/Solver_NCG.hpp>
 }
 
 #endif

@@ -2,7 +2,7 @@
 #ifndef VisualisationSettingsWidget_H
 #define VisualisationSettingsWidget_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 #include <thread>

@@ -2,8 +2,8 @@
 #ifndef MOUSE_DECORATOR_WIDGET_H
 #define MOUSE_DECORATOR_WIDGET_H
 
-#include <QWidget>
-#include <QTimer>
+#include <QtWidgets/QWidget>
+#include <QtCore/QTimer>
 
 class MouseDecoratorWidget : public QWidget
 {

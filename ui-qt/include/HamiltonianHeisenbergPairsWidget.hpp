@@ -2,7 +2,7 @@
 #ifndef HAMILTONIAN_HEISENBERG_PAIRS_WIDGET_H
 #define HAMILTONIAN_HEISENBERG_PAIRS_WIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <vector>
 #include <memory>

@@ -2,7 +2,7 @@
 #ifndef ConfigurationsWidget_H
 #define ConfigurationsWidget_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 #include <thread>

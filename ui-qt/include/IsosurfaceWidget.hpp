@@ -2,7 +2,7 @@
 #ifndef ISOSURFACEWIDGET_H
 #define ISOSURFACEWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 
