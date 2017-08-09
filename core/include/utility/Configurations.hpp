@@ -16,6 +16,7 @@ namespace Utility
 		// Default filter function
 		typedef std::function< bool(const Vector3&, const Vector3&) > filterfunction;
 		filterfunction const defaultfilter = [](const Vector3& spin, const Vector3& pos)->bool { return true; };
+		void filter_to_mask(const vectorfield & spins, const vectorfield & spin_pos, filterfunction filter, intfield & mask);
 
 		// TODO: replace the Spin_System references with smart pointers??
 
@@ -29,8 +30,6 @@ namespace Utility
 
 		// points all Spins in random directions
 		void Random(Data::Spin_System &s, filterfunction filter=defaultfilter, bool external = false);
-		// points only spin no into a random direction created by prng
-		void Random(Data::Spin_System &s, int no, std::mt19937 &prng);
 		// Add temperature-scaled random noise to a system
 		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed=0, filterfunction filter=defaultfilter);
 

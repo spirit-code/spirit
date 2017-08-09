@@ -194,7 +194,9 @@ void PlotWidget::plotEnergies()
 			energies_interp[i] = energies_interp[i] / nos;
 
 			interp.push_back(QPointF(Rx_interp[i], energies_interp[i]));
-			// *series_E_interp << QPointF(Rx_interp[i], energies_interp[i]);
+
+			if (energies_interp[i] < ymin) ymin = energies_interp[i];
+			if (energies_interp[i] > ymax) ymax = energies_interp[i];
 		}
 	}
 
@@ -245,6 +247,8 @@ void PlotWidget::plotEnergies()
 	series_E_current->replace(current);
 	
 	// Rescale y axis
-	this->chart->axisY()->setMin(ymin - 0.1);
-	this->chart->axisY()->setMax(ymax + 0.1);
+	float delta = 0.1*(ymax - ymin);
+	if (delta < 1e-6) delta = 0.1;
+	this->chart->axisY()->setMin(ymin - delta);
+	this->chart->axisY()->setMax(ymax + delta);
 }

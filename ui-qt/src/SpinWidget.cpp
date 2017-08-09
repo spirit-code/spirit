@@ -112,10 +112,7 @@ void SpinWidget::setSuspended(bool suspended)
 {
 	this->m_suspended = suspended;
 	if (!suspended)
-	{
-		
-	QTimer::singleShot(1, this, SLOT(update()));
-	}
+		QTimer::singleShot(1, this, SLOT(update()));
 }
 
 const VFRendering::View * SpinWidget::view()
@@ -464,7 +461,6 @@ void SpinWidget::paintGL()
 	}
   
     m_view.draw();
-	// QTimer::singleShot(1, this, SLOT(update()));
 }
 
 void SpinWidget::setVisualisationSource(int source)
@@ -1057,7 +1053,6 @@ void SpinWidget::setArrows(float size, int lod)
 	m_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>(cylinderradius * size / density);
 	m_view.setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>(lod);
 
-	
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -1248,7 +1243,6 @@ void SpinWidget::updateIsVisibleImplementation()
 	makeCurrent();
 	m_view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(is_visible_implementation);
 
-	
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -1350,7 +1344,6 @@ void SpinWidget::setupRenderers()
 
 	// Update View
 	m_view.renderers(renderers);
-
 	
 	QTimer::singleShot(1, this, SLOT(update()));
 }
@@ -1392,7 +1385,6 @@ void SpinWidget::setColormapArrows(Colormap colormap)
 	makeCurrent();
 	if (this->m_renderer_arrows)
 		this->m_renderer_arrows->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>(colormap_implementation);
-
 	
 	QTimer::singleShot(1, this, SLOT(update()));
 }

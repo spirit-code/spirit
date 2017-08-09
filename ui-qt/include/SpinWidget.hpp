@@ -5,7 +5,7 @@
 #include <memory>
 #include <set>
 
-#include <QOpenGLWidget>
+#include <QtWidgets/QOpenGLWidget>
 #include "MouseDecoratorWidget.hpp"
 
 #include "glm/glm.hpp"

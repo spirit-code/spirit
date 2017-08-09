@@ -61,6 +61,9 @@ void ParametersWidget::Load_Parameters_Contents()
 	bool b1, b2, b3, b4;
 
 	//		LLG
+	// Direct minimization
+	b1 = Parameters_Get_LLG_Direct_Minimization(state.get());
+	this->checkBox_llg_direct->setChecked(b1);
 	// Damping
 	d = Parameters_Get_LLG_Damping(state.get());
 	this->lineEdit_Damping->setText(QString::number(d));
@@ -155,6 +158,10 @@ void ParametersWidget::set_parameters_llg()
 		int i1, i2;
 		bool b1, b2, b3, b4;
 
+		// Direct minimization
+		b1 = this->checkBox_llg_direct->isChecked();
+		Parameters_Set_LLG_Direct_Minimization(this->state.get(), b1, idx_image, idx_chain);
+
 		// Convergence
 		d = std::pow(10, this->spinBox_llg_convergence->value());
 		Parameters_Set_LLG_Convergence(this->state.get(), d, idx_image, idx_chain);
@@ -222,18 +229,18 @@ void ParametersWidget::set_parameters_llg()
 		Parameters_Set_LLG_Output_Configuration(state.get(), b1, b2, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_LLG_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_LLG_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
 			apply(img, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_LLG_ApplyTo->currentText() == "All Images")
 	{
 		for (int ich = 0; ich<Collection_Get_NOC(state.get()); ++ich)
 		{
@@ -261,18 +268,18 @@ void ParametersWidget::set_parameters_mc()
 		Parameters_Set_MC_Acceptance_Ratio(state.get(), d, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_MC_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_MC_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
 			apply(img, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_MC_ApplyTo->currentText() == "All Images")
 	{
 		for (int ich = 0; ich<Collection_Get_NOC(state.get()); ++ich)
 		{
@@ -286,57 +293,33 @@ void ParametersWidget::set_parameters_mc()
 
 void ParametersWidget::set_parameters_gneb()
 {
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
-	{
-		float d;
-		int i1, i2;
+	float d;
+	int i1, i2;
 
-		// Convergence
-		d = std::pow(10, this->spinBox_gneb_convergence->value());
-		Parameters_Set_GNEB_Convergence(this->state.get(), d, idx_image, idx_chain);
-		// Spring Constant
-		d = this->lineEdit_gneb_springconstant->text().toFloat();
-		Parameters_Set_GNEB_Spring_Constant(state.get(), d, idx_image, idx_chain);
-		// Climbing/Falling Image
-		int image_type = 0;
-		if (this->radioButton_ClimbingImage->isChecked())
-			image_type = 1;
-		if (this->radioButton_FallingImage->isChecked())
-			image_type = 2;
-		if (this->radioButton_Stationary->isChecked())
-			image_type = 3;
-		Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, idx_image, idx_chain);
+	int idx_chain = -1;
 
-		// Output
-		i1 = this->lineEdit_gneb_n_iterations->text().toInt();
-		i2 = this->lineEdit_gneb_log_steps->text().toInt();
-		Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2, idx_chain);
-		std::string folder = this->lineEdit_gneb_output_folder->text().toStdString();
-		Parameters_Set_GNEB_Output_Folder(state.get(), folder.c_str(), idx_chain);
-	};
+	// Convergence
+	d = std::pow(10, this->spinBox_gneb_convergence->value());
+	Parameters_Set_GNEB_Convergence(this->state.get(), d, -1, idx_chain);
+	// Spring Constant
+	d = this->lineEdit_gneb_springconstant->text().toFloat();
+	Parameters_Set_GNEB_Spring_Constant(state.get(), d, -1, idx_chain);
+	// Climbing/Falling Image
+	int image_type = 0;
+	if (this->radioButton_ClimbingImage->isChecked())
+		image_type = 1;
+	if (this->radioButton_FallingImage->isChecked())
+		image_type = 2;
+	if (this->radioButton_Stationary->isChecked())
+		image_type = 3;
+	Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, -1, idx_chain);
 
-	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
-	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
-	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
-	{
-		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
-		{
-			apply(img, Chain_Get_Index(state.get()));
-		}
-	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
-	{
-		for (int ich = 0; ich<Collection_Get_NOC(state.get()); ++ich)
-		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ich); ++img)
-			{
-				apply(img, ich);
-			}
-		}
-	}
+	// Output
+	i1 = this->lineEdit_gneb_n_iterations->text().toInt();
+	i2 = this->lineEdit_gneb_log_steps->text().toInt();
+	Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2, idx_chain);
+	std::string folder = this->lineEdit_gneb_output_folder->text().toStdString();
+	Parameters_Set_GNEB_Output_Folder(state.get(), folder.c_str(), idx_chain);
 }
 
 void ParametersWidget::set_gneb_auto_image_type()
@@ -352,18 +335,18 @@ void ParametersWidget::set_parameters_mmf()
 	{
 	};
 
-	if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image")
+	/*if (this->comboBox_MMF_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_MMF_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
 			apply(img, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Parameters_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_MMF_ApplyTo->currentText() == "All Images")
 	{
 		for (int ich = 0; ich<Collection_Get_NOC(state.get()); ++ich)
 		{
@@ -372,13 +355,15 @@ void ParametersWidget::set_parameters_mmf()
 				apply(img, ich);
 			}
 		}
-	}
+	}*/
 }
 
 
 void ParametersWidget::Setup_Parameters_Slots()
 {
 	//		LLG
+	// Direct minimization
+	connect(this->checkBox_llg_direct, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	// Temperature
 	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));

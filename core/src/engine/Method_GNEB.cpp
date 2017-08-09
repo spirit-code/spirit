@@ -14,52 +14,64 @@ using namespace Utility;
 
 namespace Engine
 {
-    Method_GNEB::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain) :
-		Method(chain->gneb_parameters, -1, idx_chain), chain(chain)
+	template <Solver solver>
+    Method_GNEB<solver>::Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain) :
+		Method_Solver<solver>(chain->gneb_parameters, -1, idx_chain), chain(chain)
 	{
 		this->systems = chain->images;
 		this->SenderName = Utility::Log_Sender::GNEB;
 
-		int noi = chain->noi;
-		int nos = chain->images[0]->nos;
+		this->noi = chain->noi;
+		this->nos = chain->images[0]->nos;
 
-		this->energies = std::vector<scalar>(noi, 0.0);
-		this->Rx = std::vector<scalar>(noi, 0.0);
+		this->energies = std::vector<scalar>(this->noi, 0.0);
+		this->Rx = std::vector<scalar>(this->noi, 0.0);
+
+		// Forces
+		this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));
+		// this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
+		this->F_total    = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_gradient = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_spring   = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->xi = vectorfield(this->nos, {0,0,0});
+
+		// Tangents
+		this->tangents = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
+
+		// We assume that the chain is not converged before the first iteration
+		this->force_max_abs_component = this->chain->gneb_parameters->force_convergence + 1.0;
+
+		// Create shared pointers to the method's systems' spin configurations
+		this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
+		for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
 
 		// History
         this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_maxAbsComponent}} };
-
-		// We assume that the chain is not converged before the first iteration
-		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
-
-		// Tangents
-		this->tangents = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
-		// Forces
-		this->F_total    = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
-		this->F_gradient = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
-		this->F_spring   = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
+			{"max_torque_component", {this->force_max_abs_component}} };
 
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
-		this->chain->images[noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
+		this->chain->images[this->noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 	}
 
-	void Method_GNEB::Calculate_Force(std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
+	template <Solver solver>
+	void Method_GNEB<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
 	{
 		int nos = configurations[0]->size();
 
 		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
 		//		The Optimizer shuld respect this, but there is no way to enforce it.
 		// Get Energy and Gradient of configurations
-		for (int i = 0; i < chain->noi; ++i)
+		for (int img = 0; img < chain->noi; ++img)
 		{
+			auto& image = *configurations[img];
+
 			// Calculate the Energy of the image
-			energies[i] = this->chain->images[i]->hamiltonian->Energy(*configurations[i]);
-			if (i>0)
+			energies[img] = this->chain->images[img]->hamiltonian->Energy(image);
+			if (img > 0)
 			{
-				Rx[i] = Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*configurations[i], *configurations[i - 1]);
-				if (Rx[i] - Rx[i-1] < 1e-10)
+				Rx[img] = Rx[img-1] + Engine::Manifoldmath::dist_geodesic(image, *configurations[img-1]);
+				if (Rx[img] - Rx[img-1] < 1e-10)
 				{
         			Log(Log_Level::Error, Log_Sender::GNEB, std::string("The geodesic distance between two images is zero! Stopping..."), -1, this->idx_chain);
 					this->chain->iteration_allowed = false;
@@ -83,6 +95,7 @@ namespace Engine
 			this->chain->images[img]->UpdateEffectiveField();
 			//this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
 			F_gradient[img] = this->chain->images[img]->effective_field;
+			Engine::Manifoldmath::project_tangential(F_gradient[img], image);
 
 			// Calculate Force
 			if (chain->image_type[img] == Data::GNEB_Image_Type::Climbing)
@@ -128,37 +141,68 @@ namespace Engine
 			#endif // SPIRIT_ENABLE_PINNING
 
 			// Copy out
-			forces[img] = F_total[img];
+			Vectormath::set_c_a(1, F_total[img], forces[img]);
 		}// end for img=1..noi-1
 	}// end Calculate
 
-	bool Method_GNEB::Force_Converged()
+
+	template <Solver solver>
+	void Method_GNEB<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+    {
+		using namespace Utility;
+
+		// Calculate the basic force
+		this->Calculate_Force(configurations, forces);
+
+		// Calculate the cross product with the spin configuration to get direct minimization
+		for (unsigned int i = 0; i < configurations.size(); ++i)
+		{
+			auto& image = *configurations[i];
+			auto& force = forces[i];
+			auto& parameters = *this->systems[i]->llg_parameters;
+
+			// dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+			scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+			Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+
+			// Apply Pinning
+			#ifdef SPIRIT_ENABLE_PINNING
+			Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+			#endif // SPIRIT_ENABLE_PINNING
+		}
+    }
+
+	template <Solver solver>
+	bool Method_GNEB<solver>::Converged()
 	{
 		// return this->isConverged;
-		if (this->force_maxAbsComponent < this->chain->gneb_parameters->force_convergence) return true;
+		if (this->force_max_abs_component < this->chain->gneb_parameters->force_convergence) return true;
 		return false;
 	}
 
-	bool Method_GNEB::Iterations_Allowed()
+	template <Solver solver>
+	bool Method_GNEB<solver>::Iterations_Allowed()
 	{
 		return this->chain->iteration_allowed;
 	}
 
-	void Method_GNEB::Hook_Pre_Iteration()
-	{
+	template <Solver solver>
+	void Method_GNEB<solver>::Hook_Pre_Iteration()
+    {
 
 	}
 
-	void Method_GNEB::Hook_Post_Iteration()
+	template <Solver solver>
+	void Method_GNEB<solver>::Hook_Post_Iteration()
 	{
 		// --- Convergence Parameter Update
-		this->force_maxAbsComponent = 0;
+		this->force_max_abs_component = 0;
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
-			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(systems[img]->spins), F_total[img]);
+			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
 			// TODO: how to handle convergence??
 			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
-			if (fmax > this->force_maxAbsComponent) this->force_maxAbsComponent = fmax;
+			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
 		}
 
 		// --- Chain Data Update
@@ -185,16 +229,18 @@ namespace Engine
 		chain->E_interpolated  = interp[1];
 	}
 
-	void Method_GNEB::Finalize()
+	template <Solver solver>
+	void Method_GNEB<solver>::Finalize()
     {
         this->chain->iteration_allowed=false;
     }
 
 
-	void Method_GNEB::Save_Current(std::string starttime, int iteration, bool initial, bool final)
+	template <Solver solver>
+	void Method_GNEB<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
 	{
 		// History save
-        this->history["max_torque_component"].push_back(this->force_maxAbsComponent);
+        this->history["max_torque_component"].push_back(this->force_max_abs_component);
 
 		// File save
 		if (this->parameters->output_any)
@@ -278,16 +324,26 @@ namespace Engine
 	}
 
 
-	void Method_GNEB::Lock()
+	template <Solver solver>
+	void Method_GNEB<solver>::Lock()
 	{
 		this->chain->Lock();
 	}
 
-	void Method_GNEB::Unlock()
+	template <Solver solver>
+	void Method_GNEB<solver>::Unlock()
 	{
 		this->chain->Unlock();
 	}
 
 	// Optimizer name as string
-    std::string Method_GNEB::Name() { return "GNEB"; }
+	template <Solver solver>
+    std::string Method_GNEB<solver>::Name() { return "GNEB"; }
+
+	// Template instantiations
+	template class Method_GNEB<Solver::SIB>;
+	template class Method_GNEB<Solver::Heun>;
+	template class Method_GNEB<Solver::Depondt>;
+	template class Method_GNEB<Solver::NCG>;
+	template class Method_GNEB<Solver::VP>;
 }

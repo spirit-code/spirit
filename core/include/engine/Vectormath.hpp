@@ -101,7 +101,11 @@ namespace Engine
 
         // Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
-        void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi);
+
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi);
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi);
 
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
@@ -177,7 +181,8 @@ namespace Engine
         // out[i] += c*a
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
         // out[i] += c*a[i]
-        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask);
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out );
 
