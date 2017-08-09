@@ -48,6 +48,10 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 		this->tabWidget_Settings->removeTab(2);
 	}
 
+	// Geometry
+	this->geometryWidget = new GeometryWidget(state, spinWidget);
+	this->tab_Settings_Geometry->layout()->addWidget(this->geometryWidget);
+
 	// Visualisation
 	this->visualisationSettingsWidget = new VisualisationSettingsWidget(state, spinWidget);
 	this->tab_Settings_Visualisation->layout()->addWidget(this->visualisationSettingsWidget);

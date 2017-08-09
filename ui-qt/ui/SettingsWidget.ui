@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>370</width>
+    <width>413</width>
     <height>462</height>
    </rect>
   </property>
@@ -114,6 +114,12 @@
         <number>0</number>
        </property>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab_Settings_Geometry">
+      <attribute name="title">
+       <string>Geometry</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout"/>
      </widget>
      <widget class="QWidget" name="tab_Settings_Visualisation">
       <attribute name="title">

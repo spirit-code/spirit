@@ -8,6 +8,7 @@ set(HEADER_UI_QT_ROOT
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergPairsWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ConfigurationsWidget.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GeometryWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MouseDecoratorWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.hpp

@@ -11,6 +11,7 @@
 #include "HamiltonianHeisenbergNeighboursWidget.hpp"
 #include "HamiltonianHeisenbergPairsWidget.hpp"
 #include "HamiltonianGaussianWidget.hpp"
+#include "GeometryWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
 
 #include "ui_SettingsWidget.h"
@@ -43,6 +44,7 @@ private:
 	HamiltonianHeisenbergNeighboursWidget * hamiltonianHeisenbergNeighboursWidget;
 	HamiltonianHeisenbergPairsWidget * hamiltonianHeisenbergPairsWidget;
 	HamiltonianGaussianWidget * hamiltonianGaussianWidget;
+	GeometryWidget * geometryWidget;
 	VisualisationSettingsWidget * visualisationSettingsWidget;
 };
 
