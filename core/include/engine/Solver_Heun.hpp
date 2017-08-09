@@ -18,9 +18,11 @@ void Method_Solver<Solver::Heun>::Initialize ()
 
 /*
     Template instantiation of the Simulation class for use with the Heun Solver.
-    The Heun method is a basic solver for the PDE at hand here. It is sufficiently
-    efficient and stable.
-    TODO: reference paper
+		The Heun method is a basic solver for the PDE at hand here. It is sufficiently
+		efficient and stable.
+	This method is described for spin systems including thermal noise in
+		U. Nowak, Thermally Activated Reversal in Magnetic Nanostructures,
+		Annual Reviews of Computational Physics IX Chapter III (p 105) (2001)
 */
 template <> inline
 void Method_Solver<Solver::Heun>::Iteration ()

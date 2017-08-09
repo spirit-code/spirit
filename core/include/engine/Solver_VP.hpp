@@ -18,9 +18,11 @@ void Method_Solver<Solver::VP>::Initialize ()
 
 /*
     Template instantiation of the Simulation class for use with the VP Solver.
-    The velocity projection method is often efficient for direct minimization,
-    but deals poorly with quickly varying fields or stochastic noise.
-    TODO: reference paper
+		The velocity projection method is often efficient for direct minimization,
+		but deals poorly with quickly varying fields or stochastic noise.
+	Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
+		   of magnetic transitions, applied to skyrmion and antivortex annihilation,
+		   Comp. Phys. Comm. 196, 335 (2015).
 */
 template <> inline
 void Method_Solver<Solver::VP>::Iteration ()

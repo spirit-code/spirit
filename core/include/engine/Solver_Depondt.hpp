@@ -22,9 +22,10 @@ void Method_Solver<Solver::Depondt>::Initialize ()
 
 /*
     Template instantiation of the Simulation class for use with the Depondt Solver.
-    The Depondt method is an improvement of Heun's method for spin systems. It applies
-    rotations instead of finite displacements and thus avoids re-normalizations.
-    TODO: reference paper
+		The Depondt method is an improvement of Heun's method for spin systems. It applies
+		rotations instead of finite displacements and thus avoids re-normalizations.
+	Paper: Ph. Depondt et al., Spin dynamics simulations of two-dimensional clusters with
+		   Heisenberg and dipole-dipole interactions, J. Phys. Condens. Matter 21, 336005 (2009).
 */
 template <> inline
 void Method_Solver<Solver::Depondt>::Iteration ()
