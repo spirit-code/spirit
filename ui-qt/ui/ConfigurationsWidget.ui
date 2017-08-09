@@ -73,7 +73,7 @@
             <x>0</x>
             <y>0</y>
             <width>456</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -434,7 +434,7 @@
             <x>0</x>
             <y>0</y>
             <width>456</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -688,40 +688,11 @@
              </layout>
             </widget>
            </item>
-           <item row="4" column="0">
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
+           <item row="5" column="0">
+            <widget class="QGroupBox" name="groupBox_hopfion">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Expanding</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="2" column="0">
-            <spacer name="verticalSpacer_5">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>30</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="3" column="0">
-            <widget class="QGroupBox" name="groupBox_11">
              <property name="minimumSize">
               <size>
                <width>0</width>
@@ -823,6 +794,86 @@
              </layout>
             </widget>
            </item>
+           <item row="2" column="0">
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="9" column="0">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="0">
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>30</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="0">
+            <widget class="QGroupBox" name="groupBox_globule">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>Globule</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_19">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton">
+                <property name="text">
+                 <string>Create Globule</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_8">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_2">
@@ -831,7 +882,7 @@
             <x>0</x>
             <y>0</y>
             <width>456</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -1420,7 +1471,7 @@
             <x>0</x>
             <y>0</y>
             <width>456</width>
-            <height>651</height>
+            <height>609</height>
            </rect>
           </property>
           <property name="minimumSize">

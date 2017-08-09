@@ -62,7 +62,10 @@ void ControlWidget::updateData()
 	if ( Simulation_Running_Collection(state.get()) ||
 		 Simulation_Running_Chain(state.get())      ||
 		 Simulation_Running_Image(state.get())      )
+	{
 		this->pushButton_PlayPause->setText("Pause");
+		this->spinWidget->updateData();
+	}
 	else
 		this->pushButton_PlayPause->setText("Play");
 

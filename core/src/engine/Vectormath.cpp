@@ -177,6 +177,74 @@ namespace Engine
             }
         }
 
+        
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
+        {
+            // std::cout << "start gradient" << std::endl;
+            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+            auto& n_cells = geometry.n_cells;
+
+            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.translation_vectors[1];
+            Vector3 c = geometry.translation_vectors[2];
+
+            neighbourfield neigh;
+
+            // TODO: calculate Neighbours outside iterations
+            // Neighbours::get_Neighbours(geometry, neigh);
+
+            // TODO: proper usage of neighbours
+            // Hardcoded neighbours - for spin current in a rectangular lattice
+            neigh = neighbourfield(0);
+            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
+            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+
+            // difference quotients in different directions
+            Vector3 diffq, diffqx, diffqy, diffqz;
+
+            // Loop over vectorfield
+            for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
+            {
+                auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
+                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                scalar n = 0;
+
+                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
+                
+                for(unsigned int j = 0; j < neigh.size(); ++j)
+                {
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        
+                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
+                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
+
+                        // difference quotient in direction of the neighbour
+                        diffq = ( vf[ineigh] - vf[ispin] ) / translationVec3.norm();
+
+                        // projection of difference quotient in euclidian space
+                        diffqx += translationVec3[0]*diffq;
+                        diffqy += translationVec3[1]*diffq;
+                        diffqz += translationVec3[2]*diffq;
+                        
+                        // boundary conditions considered
+                        n += 1;
+                    }
+                }
+
+                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
+
+
+                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+            }
+        }
+
         /////////////////////////////////////////////////////////////////
 
         void fill(scalarfield & sf, scalar s)

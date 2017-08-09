@@ -107,6 +107,9 @@ namespace Engine
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi);
 
+        // Calculate the spatial gradient of a vectorfield in a certain direction.
+        //      This requires to know the underlying geometry, as well as the boundary conditions.
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
 
         /////////////////////////////////////////////////////////////////
         //////// Vectormath-like operations

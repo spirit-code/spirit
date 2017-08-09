@@ -213,10 +213,19 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-		{
-			v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle);
-		}
+        void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
+        {
+            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) + 
+                    axis * axis.dot(v) * (1 - std::cos(angle));
+        } 
+        
+        // XXX: should we add test for that function since it's calling the already tested rotat()
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
+                     vectorfield & v_out )
+        {
+          for( unsigned int i=0; i<v_out.size(); i++)
+            rotate( v[i], axis[i], angle[i], v_out[i] );
+        }
 
 		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
 		{
@@ -350,6 +359,147 @@ namespace Engine
             cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(epsilon, xi.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        int neigh_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Neighbour neigh)
+        {
+            // TODO: use pair.i and pair.j to get multi-spin basis correctly
+
+            // Number of cells
+            int Na = n_cells[0];
+            int Nb = n_cells[1];
+            int Nc = n_cells[2];
+
+            // Translations (cell) of spin i
+            // int ni[3];
+            int nic = ispin/(N*Na*Nb);
+            int nib = (ispin-nic*N*Na*Nb)/(N*Na);
+            int nia = ispin-nic*N*Na*Nb-nib*N*Na;
+
+            // Translations (cell) of spin j (possibly outside of non-periodical domain)
+            // int nj[3]
+            int nja = nia+neigh.translations[0];
+            int njb = nib+neigh.translations[1];
+            int njc = nic+neigh.translations[2];
+
+            if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (nja < 0)
+                    nja += Na;
+                // Calculate the correct index
+                if (nja>=Na)
+                    nja-=Na;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njb < 0)
+                    njb += Nb;
+                // Calculate the correct index
+                if (njb>=Nb)
+                    njb-=Nb;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njc < 0)
+                    njc += Nc;
+                // Calculate the correct index
+                if (njc>=Nc)
+                    njc-=Nc;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
+        }
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
+        {
+            // std::cout << "start gradient" << std::endl;
+            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+            auto& n_cells = geometry.n_cells;
+
+            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.translation_vectors[1];
+            Vector3 c = geometry.translation_vectors[2];
+
+            neighbourfield neigh;
+
+            // TODO: calculate Neighbours outside iterations
+            // Neighbours::get_Neighbours(geometry, neigh);
+
+            // TODO: proper usage of neighbours
+            // Hardcoded neighbours - for spin current in a rectangular lattice
+            neigh = neighbourfield(0);
+            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
+            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+
+            // difference quotients in different directions
+            Vector3 diffq, diffqx, diffqy, diffqz;
+
+            // Loop over vectorfield
+            int nos = vf.size();
+            for(unsigned int ispin = 0; ispin < nos; ++ispin)
+            {
+                // auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
+                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                scalar n = 0;
+
+                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
+                
+                for(unsigned int j = 0; j < neigh.size(); ++j)
+                {
+                    int jspin = neigh_cu_get_pair_j(boundary_conditions.data(), n_cells.data(), nos, ispin, neigh[j]);
+                    if (jspin >= 0)
+                    // if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // index of neighbour
+                        // int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        
+                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
+                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
+
+                        // difference quotient in direction of the neighbour
+                        diffq = ( vf[jspin] - vf[ispin] ) / translationVec3.norm();
+
+                        // projection of difference quotient in euclidian space
+                        diffqx += translationVec3[0]*diffq;
+                        diffqy += translationVec3[1]*diffq;
+                        diffqz += translationVec3[2]*diffq;
+                        
+                        // boundary conditions considered
+                        n += 1;
+                    }
+                }
+
+                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
+
+
+                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+            }
+        }
 
 
 
@@ -486,6 +636,21 @@ namespace Engine
             cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        __global__ void cu_norm(const Vector3 * vf, scalar * norm, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                norm[idx] = vf[idx].norm();
+            }
+        }
+        void norm( const vectorfield & vf, scalarfield & norm )
+        {
+            int n = vf.size();
+            cu_norm<<<(n+1023)/1024, 1024>>>(vf.data(), norm.data(), n);
+            cudaDeviceSynchronize();
+        }
 
         scalar  max_abs_component(const vectorfield & vf)
 		{
