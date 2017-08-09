@@ -94,6 +94,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         }
         else if (method_type == "MC")
         {
+			image->iteration_allowed = true;
             method = std::shared_ptr<Engine::Method>(new Engine::Method_MC(image, idx_image, idx_chain));
         }
         else if (method_type == "GNEB")
@@ -173,7 +174,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         state->simulation_information_image[idx_chain][idx_image] = info;
     else if (method_type == "MC")
     {
-        // state->simulation_information_mc[idx_chain][idx_image] = info;
+        state->simulation_information_image[idx_chain][idx_image] = info;
     }
     else if (method_type == "GNEB")
         state->simulation_information_chain[idx_chain] = info;

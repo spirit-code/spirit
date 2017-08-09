@@ -114,7 +114,7 @@ namespace Utility
 			config += "mc_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
 			config += "mc_seed                       " + std::to_string(parameters->rng_seed) + "\n";
 			config += "mc_temperature                " + std::to_string(parameters->temperature) + "\n";
-			config += "mc_acceptance_ratio           " + std::to_string(parameters->acceptance_ratio) + "\n";
+			config += "mc_acceptance_ratio           " + std::to_string(parameters->acceptance_ratio_target) + "\n";
 			config += "############### End MC Parameters ################";
 			Append_String_to_File(config, configFile);
 		}// end Parameters_Method_LLG_to_Config

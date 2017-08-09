@@ -10,6 +10,10 @@
 #include <array>
 #include <algorithm>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace Engine
 {
     namespace Vectormath
@@ -150,18 +154,18 @@ namespace Engine
             }
         }
 
-        void get_random_vector_normalized(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-            for (int dim = 0; dim < 3; ++dim)
-            {
-                vec[dim] = distribution(prng);
-            }
-            if (vec.norm() < 1e-8)
-                get_random_vector_normalized(distribution, prng, vec);
-            else
-                vec.normalize();
+			scalar v_z = distribution(prng);
+			scalar phi = distribution(prng);
+
+			scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+			vec[0] = r_xy * std::cos(2*M_PI*phi);
+			vec[1] = r_xy * std::sin(2 * M_PI*phi);
+			vec[2] = v_z;
         }
-        void get_random_vectorfield_normals(std::mt19937 & prng, vectorfield & xi)
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
         {
             // PRNG gives RN [-1,1] -> multiply with epsilon
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
@@ -169,7 +173,7 @@ namespace Engine
             #pragma omp parallel for collapse(2)
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-                get_random_vector_normalized(distribution, prng, xi[i]);
+				get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
         }
 
@@ -334,77 +338,83 @@ namespace Engine
 
 
         // out[i] += c*a
-        void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+        void add_c_a(const scalar & c, const Vector3 & vec, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a;
+                out[idx] += c*vec;
         }
         // out[i] += c*a[i]
-        void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a[idx];
+                out[idx] += c*vf[idx];
         }
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
+		{
+			#pragma omp parallel for
+			for (unsigned int idx = 0; idx < out.size(); ++idx)
+				out[idx] += mask[idx] * c*vf[idx];
+		}
         // out[i] += c[i]*a[i]
-        void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
             #pragma omp parallel for
             for( unsigned int idx = 0; idx < out.size(); ++idx )
-                out[idx] += c[idx] * a[idx];
+                out[idx] += c[idx] * vf[idx];
         }
 
         // out[i] = c*a
-        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+        void set_c_a(const scalar & c, const Vector3 & vec, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = c*a;
+                out[idx] = c*vec;
         }
         // out[i] = c*a
-        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
+        void set_c_a(const scalar & c, const Vector3 & vec, vectorfield & out, const intfield & mask)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = mask[idx]*c*a;
+                out[idx] = mask[idx]*c*vec;
         }
 
         // out[i] = c*a[i]
-        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+        void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = c*a[idx];
+                out[idx] = c*vf[idx];
         }
         // out[i] = c*a[i]
-        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+        void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = mask[idx] * c*a[idx];
+                out[idx] = mask[idx] * c*vf[idx];
         }
         // out[i] = c[i]*a[i]
-        void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        void set_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
             #pragma omp parallel for
             for( unsigned int idx=0; idx < out.size(); ++idx)
-                out[idx] = c[idx] * a[idx];
+                out[idx] = c[idx] * vf[idx];
         }
 
         // out[i] += c * a*b[i]
-        void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
+        void add_c_dot(const scalar & c, const Vector3 & vec, const vectorfield & vf, scalarfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a.dot(b[idx]);
+                out[idx] += c*vec.dot(vf[idx]);
         }
         // out[i] += c * a[i]*b[i]
-        void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
+        void add_c_dot(const scalar & c, const vectorfield & vf1, const vectorfield & vf2, scalarfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a[idx].dot(b[idx]);
+                out[idx] += c*vf1[idx].dot(vf2[idx]);
         }
 
         // out[i] = c * a*b[i]

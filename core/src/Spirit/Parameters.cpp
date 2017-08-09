@@ -279,7 +279,7 @@ void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int idx_image
 
 	image->Lock();
 
-    image->mc_parameters->acceptance_ratio = ratio;
+    image->mc_parameters->acceptance_ratio_target = ratio;
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set MC acceptance ratio to " + std::to_string(ratio), idx_image, idx_chain);
@@ -620,7 +620,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
-    return (float)image->mc_parameters->acceptance_ratio;
+    return (float)image->mc_parameters->acceptance_ratio_target;
 }
 
 /*------------------------------------------------------------------------------------------------------ */

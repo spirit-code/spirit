@@ -121,7 +121,7 @@ namespace Engine
                 if (parameters.temperature > 0)
                 {
                     scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
-                    Vectormath::get_random_vectorfield_normals(parameters.prng, this->xi);
+                    Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
                     Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, this->xi, force);
                     Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, image, this->xi, force);
                 }

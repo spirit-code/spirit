@@ -25,7 +25,11 @@ namespace Engine
         
     private:
         // Solver_Iteration represents one iteration of a certain Solver
-        virtual void Iteration() override;
+        void Iteration() override;
+
+        // Metropolis iteration with adaptive cone radius
+        void Metropolis(const vectorfield & spins_old, const vectorfield & spins_displaced,
+                        vectorfield & spins_new, int & n_rejected, scalar Temperature, scalar radius);
 
         // Check if the Forces are converged
         bool Converged() override;
@@ -41,6 +45,20 @@ namespace Engine
         void Initialize() override;
         // Sets iteration_allowed to false for the corresponding method
         void Finalize() override;
+
+		// Log message blocks
+		void Message_Start() override;
+		void Message_Step() override;
+		void Message_End() override;
+
+
+
+		std::shared_ptr<Data::Parameters_Method_MC> parameters_mc;
+
+		// Cosine of current cone angle
+		scalar cos_cone_angle;
+		int n_rejected;
+		scalar acceptance_ratio_current;
     };
 }
 
