@@ -77,6 +77,21 @@ void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_itera
 
 
 // Set LLG Simulation Parameters
+void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
+    auto p = image->llg_parameters;
+    p->force_convergence = convergence;
+	image->Unlock();
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set LLG force convergence = " + std::to_string(convergence), idx_image, idx_chain);
+}
+
 void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -85,8 +100,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
 
 	image->Lock();
     auto p = image->llg_parameters;
-    // Translate from picoseconds to units of our SIB
-    p->dt = dt*std::pow(10,-12)/Constants::mu_B*1.760859644*std::pow(10,11);
+    p->dt = dt;
 	image->Unlock();
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -124,7 +138,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
 	image->Unlock();
 }
 
-void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
+void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -132,6 +146,8 @@ void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal,
 
 	image->Lock();
 
+    // Gradient or monolayer
+    image->llg_parameters->stt_use_gradient = use_gradient;
     // Magnitude
     image->llg_parameters->stt_magnitude = magnitude;
     // Normal
@@ -327,6 +343,21 @@ void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int n_iter
 }
 
 // Set GNEB Calculation Parameters
+void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
+    auto p = chain->gneb_parameters;
+    p->force_convergence = convergence;
+	image->Unlock();
+
+	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        "Set GNEB force convergence = " + std::to_string(convergence), idx_image, idx_chain);
+}
+
 void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -436,6 +467,16 @@ void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * itera
 }
 
 // Get LLG Simulation Parameters
+float Parameters_Get_LLG_Convergence(State *state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto p = image->llg_parameters;
+    return (float)p->force_convergence;
+}
+
 float Parameters_Get_LLG_Time_Step(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -443,8 +484,7 @@ float Parameters_Get_LLG_Time_Step(State *state, int idx_image, int idx_chain)
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto p = image->llg_parameters;
-    return (float)(p->dt/std::pow(10, -12)*Constants::mu_B/1.760859644/std::pow(10, 11));
-
+    return (float)p->dt;
 }
 
 float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
@@ -466,12 +506,14 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     return (float)image->llg_parameters->temperature;
 }
 
-void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
+void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image, idx_chain, image, chain);
 
+    // Gradient or monolayer
+    *use_gradient = image->llg_parameters->stt_use_gradient;
     // Magnitude
     *magnitude = (float)image->llg_parameters->stt_magnitude;
     // Normal
@@ -621,6 +663,16 @@ void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iter
 }
 
 // Get GNEB Calculation Parameters
+float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto p = chain->gneb_parameters;
+    return (float)p->force_convergence;
+}
+
 float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;

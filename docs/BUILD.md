@@ -127,6 +127,7 @@ The **Root [CMakeLists.txt](../CMakeLists.txt)** has a few options you can set:
 |  CMake Options          | Use |
 | :---------------------: | :-: |
 | SPIRIT_USE_CUDA         | Use CUDA to speed up numerically intensive parts of the core |
+| SPIRIT_USE_OPENMP       | Use OpenMP to speed up numerically intensive parts of the core |
 | SPIRIT_SCALAR_TYPE      | Should be e.g. `double` or `float`. Sets the C++ type for scalar variables, arrays etc. |
 |  | |
 | SPIRIT_BUILD_TEST       | Build unit tests for the core library |
@@ -163,7 +164,7 @@ remotely modern graphics card.
 | SPIRIT_BUILD_FOR_CXX | Build the C++ interfaces (console or QT) instead of others |
 | UI_CXX_USE_QT        | Build qt user interface instead of console version |
 | USER_PATH_QT         | The path to your CMake installation |
-| OSX_BUNDLE_APP       | On OSX, create .app bundle (not yet fully functional) |
+| BUNDLE_APP           | On OSX, create .app bundle (not yet fully functional) |
 
 
 

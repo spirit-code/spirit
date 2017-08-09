@@ -67,7 +67,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>1019</height>
            </rect>
           </property>
           <attribute name="label">
@@ -537,7 +537,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>1019</height>
            </rect>
           </property>
           <attribute name="label">
@@ -607,7 +607,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>1019</height>
            </rect>
           </property>
           <attribute name="label">
@@ -920,7 +920,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>1019</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1102,7 +1102,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>1019</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1507,7 +1507,21 @@
               <string>Colors</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_52">
-              <item row="1" column="1">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_37">
+                <property name="text">
+                 <string>Colormap General</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_61">
+                <property name="text">
+                 <string>Rotate Colormap</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
                <layout class="QGridLayout" name="gridLayout_82">
                 <item row="0" column="0">
                  <widget class="QLineEdit" name="lineEdit_colormap_rotate_phi">
@@ -1543,29 +1557,122 @@
                 </item>
                </layout>
               </item>
-              <item row="5" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_38">
                 <property name="text">
                  <string>Background Color</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="7" column="1">
                <widget class="QCheckBox" name="checkBox_colormap_invert_xy">
                 <property name="text">
                  <string>Invert xy-component</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_61">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Rotate Colormap</string>
+                 <string>Colormap Arrows</string>
                 </property>
                </widget>
               </item>
+              <item row="6" column="1">
+               <widget class="QCheckBox" name="checkBox_colormap_invert_z">
+                <property name="text">
+                 <string>Invert z-component</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="comboBox_colormap_arrows">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Same as General</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Hue-Saturation-Value</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>HSV, no z-component</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Blue-White-Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Blue-Green-Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Z-Component: Blue-Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gray</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QComboBox" name="comboBox_backgroundColor">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gray</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="comboBox_colormap">
+               <widget class="QComboBox" name="comboBox_colormap_general">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -1616,51 +1723,6 @@
                 <item>
                  <property name="text">
                   <string>Black</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QCheckBox" name="checkBox_colormap_invert_z">
-                <property name="text">
-                 <string>Invert z-component</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_37">
-                <property name="text">
-                 <string>Colormap</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="comboBox_backgroundColor">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>28</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Black</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Gray</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>White</string>
                  </property>
                 </item>
                </widget>
@@ -1907,7 +1969,6 @@
   <tabstop>lineEdit_colormap_rotate_phi</tabstop>
   <tabstop>horizontalSlider_colormap_rotate_phi</tabstop>
   <tabstop>checkBox_colormap_invert_xy</tabstop>
-  <tabstop>comboBox_colormap</tabstop>
   <tabstop>checkBox_colormap_invert_z</tabstop>
   <tabstop>comboBox_backgroundColor</tabstop>
   <tabstop>horizontalSlider_spherePointSize</tabstop>
@@ -1919,7 +1980,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

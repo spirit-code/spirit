@@ -12,7 +12,7 @@ namespace Engine
         prng = std::mt19937(94199188);
 		distribution_int = std::uniform_int_distribution<int>(0, 1);
 
-        delta = 1e-6;
+        delta = 1e-3;
     }
 
 
@@ -24,82 +24,12 @@ namespace Engine
 	}
 
 
-    // void Hamiltonian::Hessian(const std::vector<scalar> & spins, std::vector<scalar> & hessian)
-    // {
-	// 	// This is a regular finite difference implementation (probably not very efficient)
-	//  // using the differences between function values (not gradient)
-	// 	// see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
-
-	// 	int nos = spins.size() / 3;
-
-	// 	// Calculate finite difference
-	// 	std::vector<scalar> spins_pp(3 * nos, 0);
-	// 	std::vector<scalar> spins_mm(3 * nos, 0);
-	// 	std::vector<scalar> spins_pm(3 * nos, 0);
-	// 	std::vector<scalar> spins_mp(3 * nos, 0);
-
-	// 	for (int i = 0; i < 3 * nos; ++i)
-	// 	{
-	// 		for (int j = 0; j < 3 * nos; ++j)
-	// 		{
-	// 			if (i == j)
-	// 			{
-	// 				spins_pp = spins;
-	// 				spins_mm = spins;
-	// 				spins_pm = spins;
-	// 				spins_mp = spins;
-
-	// 				spins_pp[i] = spins_pp[i] + 2.0*delta;
-	// 				spins_mm[i] = spins_mm[i] - 2.0*delta;
-	// 				spins_pm[i] = spins_mm[i] + delta;
-	// 				spins_mp[i] = spins_mm[i] - delta;
-
-	// 				Utility::Vectormath::Normalize_3Nos(spins_pp);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_mm);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_pm);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_mp);
-
-	// 				scalar E_pp = this->Energy(spins_pp);
-	// 				scalar E_mm = this->Energy(spins_mm);
-	// 				scalar E_pm = this->Energy(spins_pm);
-	// 				scalar E_mp = this->Energy(spins_mp);
-	// 				scalar E = this->Energy(spins);
-
-	// 				hessian[i * 3 * nos + j] = (-E_pp +16*E_pm - 30*E + 16*E_mp - E_mm) / (12 * delta*delta);
-	// 			}
-	// 			else
-	// 			{
-	// 				spins_pp = spins;
-	// 				spins_mm = spins;
-	// 				spins_pm = spins;
-	// 				spins_mp = spins;
-
-	// 				spins_pp[i] = spins_pp[i] + delta;
-	// 				spins_pp[j] = spins_pp[j] + delta;
-	// 				spins_mm[i] = spins_mm[i] - delta;
-	// 				spins_mm[j] = spins_mm[j] - delta;
-	// 				spins_pm[i] = spins_mm[i] + delta;
-	// 				spins_pm[j] = spins_mm[j] - delta;
-	// 				spins_mp[i] = spins_mm[i] - delta;
-	// 				spins_mp[j] = spins_mm[j] + delta;
-
-	// 				Utility::Vectormath::Normalize_3Nos(spins_pp);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_mm);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_pm);
-	// 				Utility::Vectormath::Normalize_3Nos(spins_mp);
-
-	// 				scalar E_pp = this->Energy(spins_pp);
-	// 				scalar E_mm = this->Energy(spins_mm);
-	// 				scalar E_pm = this->Energy(spins_pm);
-	// 				scalar E_mp = this->Energy(spins_mp);
-
-	// 				hessian[i * 3 * nos + j] = (E_pp - E_pm - E_mp + E_mm) / (4 * delta*delta);
-	// 			}
-	// 		}
-	// 	}
-    // }
-
 	void Hamiltonian::Hessian(const vectorfield & spins, MatrixX & hessian)
+	{
+		this->Hessian_FD(spins, hessian);
+	}
+
+	void Hamiltonian::Hessian_FD(const vectorfield & spins, MatrixX & hessian)
 	{
 		// This is a regular finite difference implementation (probably not very efficient)
 		// using the differences between gradient values (not function)
@@ -107,49 +37,52 @@ namespace Engine
 
 		int nos = spins.size();
 
-		// Calculate finite difference
-		vectorfield spins_p(nos);
-		vectorfield spins_m(nos);
+		vectorfield spins_pi(nos);
+		vectorfield spins_mi(nos);
+		vectorfield spins_pj(nos);
+		vectorfield spins_mj(nos);
 
-		std::vector<vectorfield> grad_p(3*nos, vectorfield(nos));
-		std::vector<vectorfield> grad_m(3*nos, vectorfield(nos));
+		spins_pi = spins;
+		spins_mi = spins;
+		spins_pj = spins;
+		spins_mj = spins;
 
-		scalarfield d(3 * nos);
+		vectorfield grad_pi(nos);
+		vectorfield grad_mi(nos);
+		vectorfield grad_pj(nos);
+		vectorfield grad_mj(nos);
 
+		std::cerr << "inside FD Hess" << std::endl;
 		for (int i = 0; i < nos; ++i)
 		{
-			for (int dim = 0; dim < 3; ++dim)
+			std::cerr << "inside FD Hess "  << i << std::endl;
+			for (int j = 0; j < nos; ++j)
 			{
-				spins_p = spins;
-				spins_p[i][dim] += delta;
-				spins_p[i].normalize();
-				//Vectormath::Normalize_3Nos(spins_p);
-
-				spins_m = spins;
-				spins_m[i][dim] -= delta;
-				spins_m[i].normalize();
-				//Vectormath::Normalize_3Nos(spins_m);
-
-				d[i + dim*nos] = Manifoldmath::dist_greatcircle(spins_m[i], spins_p[i]);
-				//d[i + dim*nos] = Utility::Manifoldmath::Dist_Geodesic(spins_m, spins_p);
-				if (d[i + dim*nos] > 0)
+				for (int alpha = 0; alpha < 3; ++alpha)
 				{
-					this->Gradient(spins_p, grad_p[i + dim*nos]);
-					this->Gradient(spins_m, grad_m[i + dim*nos]);
-				}
-				else d[i + dim*nos] = 1;
-			}
-		}
-
-		for (int i = 0; i < 3 * nos; ++i)
-		{
-			for (int dimi = 0; dimi < 3 * nos; ++dimi)
-			{
-				for (int j = 0; j < 3 * nos; ++j)
-				{
-					for (int dimj = 0; dimj < 3 * nos; ++dimj)
+					for (int beta = 0; beta < 3; ++beta)
 					{
-						hessian(i + dimi*nos, j + dimj*nos) = (grad_p[i+dimi*nos][j][dimj] - grad_m[i+dimi*nos][j][dimj]) / (2 * d[i+dimi*nos]) + (grad_p[j + dimj*nos][i][dimi] - grad_m[j + dimj*nos][i][dimi]) / (2 * d[j+dimj*nos]);
+						// Displace
+						spins_pi[i][alpha] += delta;
+						spins_mi[i][alpha] -= delta;
+						spins_pj[j][beta]  += delta;
+						spins_mj[j][beta]  -= delta;
+
+						// Calculate Hessian component
+						this->Gradient(spins_pi, grad_pi);
+						this->Gradient(spins_mi, grad_mi);
+						this->Gradient(spins_pj, grad_pj);
+						this->Gradient(spins_mj, grad_mj);
+
+						hessian(3*i + alpha, 3*j + beta) = 0.25 / delta * ( 
+												grad_pj[i][alpha] - grad_mj[i][alpha]
+											  + grad_pi[j][beta]  - grad_mi[j][beta]  );
+						
+						// Un-Displace
+						spins_pi[i][alpha] -= delta;
+						spins_mi[i][alpha] += delta;
+						spins_pj[j][beta]  -= delta;
+						spins_mj[j][beta]  += delta;
 					}
 				}
 			}
@@ -158,39 +91,39 @@ namespace Engine
 
     void Hamiltonian::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
-		// This is a regular finite difference implementation (probably not very efficient)
+		this->Gradient_FD(spins, gradient);
+    }
 
+	void Hamiltonian::Gradient_FD(const vectorfield & spins, vectorfield & gradient)
+	{
         int nos = spins.size();
 
 		// Calculate finite difference
 		vectorfield spins_plus(nos);
 		vectorfield spins_minus(nos);
 
+		spins_plus = spins;
+		spins_minus = spins;
+
 		for (int i = 0; i < nos; ++i)
 		{
 			for (int dim = 0; dim < 3; ++dim)
 			{
-				spins_plus = spins;
-				spins_minus = spins;
-
-				spins_plus[i][dim] += delta;
+				// Displace
+				spins_plus[i][dim]  += delta;
 				spins_minus[i][dim] -= delta;
 
-				spins_plus[i].normalize();
-				spins_minus[i].normalize();
+				// Calculate gradient component
+				scalar E_plus    = this->Energy(spins_plus);
+				scalar E_minus   = this->Energy(spins_minus);
+				gradient[i][dim] = 0.5 * (E_plus - E_minus) / delta;
 
-				scalar d = Manifoldmath::dist_greatcircle(spins_minus[i], spins_plus[i]);
-
-				if (d > 0)
-				{
-					scalar E_plus = this->Energy(spins_plus);
-					scalar E_minus = this->Energy(spins_minus);
-					gradient[i][dim] = (E_plus - E_minus) / d;
-				}
-				else gradient[i][dim] = 0;
+				// Un-Displace
+				spins_plus[i][dim]  -= delta;
+				spins_minus[i][dim] += delta;
 			}
 		}
-    }
+	}
 
 	scalar Hamiltonian::Energy(const vectorfield & spins)
 	{

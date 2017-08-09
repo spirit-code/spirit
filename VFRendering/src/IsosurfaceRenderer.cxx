@@ -72,7 +72,7 @@ void IsosurfaceRenderer::optionsHaveChanged(const std::vector<int>& changed_opti
                 m_value_function_changed = true;
                 break;
 			case Option::LIGHTING_IMPLEMENTATION:
-			case View::Option::COLORMAP_IMPLEMENTATION:
+            case View::Option::COLORMAP_IMPLEMENTATION:
             case View::Option::IS_VISIBLE_IMPLEMENTATION:
             update_shader = true;
             break;
@@ -116,6 +116,11 @@ void IsosurfaceRenderer::draw(float aspect_ratio) {
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uModelviewMatrix"), 1, false, glm::value_ptr(model_view_matrix));
     glUniform3f(glGetUniformLocation(m_program, "uLightPosition"), light_position[0], light_position[1], light_position[2]);
     glUniform2f(glGetUniformLocation(m_program, "uZRange"), z_range[0], z_range[1]);
+    if (options().get<IsosurfaceRenderer::Option::FLIP_NORMALS>()) {
+        glUniform1f(glGetUniformLocation(m_program, "uFlipNormals"), -1.0);
+    } else {
+        glUniform1f(glGetUniformLocation(m_program, "uFlipNormals"), 1.0);
+    }
 
     glDisable(GL_CULL_FACE);
     glDrawElements(GL_TRIANGLES, m_num_indices, GL_UNSIGNED_INT, nullptr);

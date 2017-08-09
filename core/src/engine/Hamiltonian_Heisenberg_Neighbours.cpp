@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 
+#include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
@@ -151,22 +152,31 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			Energy[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[external_field_indices[i]]);
+			int ispin = this->external_field_indices[i];
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp atomic
+				Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			Energy[anisotropy_indices[i]] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[anisotropy_indices[i]]), 2.0);
+			int ispin = this->anisotropy_indices[i];
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp atomic
+				Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -176,7 +186,9 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * exchange_magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
+
+					if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+						Energy[ispin] -= 0.5 * exchange_magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
@@ -184,6 +196,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -193,7 +206,9 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
+
+					if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+						Energy[ispin] -= 0.5 * dmi_magnitudes[ishell] * dmi_normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
@@ -205,6 +220,7 @@ namespace Engine
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
@@ -215,11 +231,14 @@ namespace Engine
 					if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_neighbours[ineigh].translations) )
 					{
 						int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
-
-						Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
-							(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
-						Energy[jspin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
-							(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
+						
+						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+						{
+							Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
+								(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
+							Energy[jspin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
+								(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
+						}
 					}
 				}
 			}
@@ -249,22 +268,31 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
-			gradient[external_field_indices[i]] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
+			int ispin = external_field_indices[i];
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp critical
+				gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
-			gradient[anisotropy_indices[i]] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[anisotropy_indices[i]]);
+			int ispin = anisotropy_indices[i];
+			if ( check_atom_type(this->geometry->atom_types[ispin]) )
+				#pragma omp critical
+				gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -274,7 +302,9 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
-					gradient[ispin] -= exchange_magnitudes[ishell] * spins[jspin];
+
+					if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+						gradient[ispin] -= exchange_magnitudes[ishell] * spins[jspin];
 				}
 			}
 		}
@@ -282,6 +312,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
@@ -291,7 +322,9 @@ namespace Engine
 				{
 					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_neighbours[ineigh].translations);
 					int ishell = dmi_neighbours[ineigh].idx_shell;
-					gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normals[ineigh]);
+					
+					if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+						gradient[ispin] -= dmi_magnitudes[ishell] * spins[jspin].cross(dmi_normals[ineigh]);
 				}
 			}
 		}
@@ -302,6 +335,7 @@ namespace Engine
 		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
+		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
 			for (unsigned int ineigh = 0; ineigh < ddi_neighbours.size(); ++ineigh)
@@ -316,9 +350,12 @@ namespace Engine
 
 						if (ddi_magnitudes[ineigh] > 0.0)
 						{
-							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[ineigh], 3.0);
-							gradient[ispin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[jspin].dot(ddi_normals[ineigh]) - spins[jspin]);
-							gradient[jspin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin]);
+							if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) )
+							{
+								scalar skalar_contrib = mult / std::pow(ddi_magnitudes[ineigh], 3.0);
+								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[jspin].dot(ddi_normals[ineigh]) - spins[jspin]);
+								gradient[jspin] -= skalar_contrib * (3 * ddi_normals[ineigh] * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin]);
+							}
 						}
 					}
 				}

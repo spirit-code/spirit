@@ -36,5 +36,5 @@ void PlotsWidget::RefreshClicked()
 
 void PlotsWidget::ChangeInterpolationClicked()
 {
-	this->energyPlot->set_interpolating(this->checkBox_InterpolateEnergies->isChecked());
+	this->energyPlot->plot_interpolated = this->checkBox_InterpolateEnergies->isChecked();
 }

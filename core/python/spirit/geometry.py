@@ -88,3 +88,17 @@ def Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1):
     array_view = array.view()
     array_view.shape = (nos, 3)
     return array_view
+
+### Get Pointer to atom types
+_Get_Atom_Types            = _spirit.Geometry_Get_Atom_Types
+_Get_Atom_Types.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Atom_Types.restype    = ctypes.POINTER(ctypes.c_int)
+def Get_Atom_Types(p_state, idx_image=-1, idx_chain=-1):
+    nos = system.Get_NOS(p_state, idx_image, idx_chain)
+    ArrayType = ctypes.c_int*3*nos
+    Data = _Get_Atom_Types(p_state, idx_image, idx_chain)
+    array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
+    array = np.frombuffer(array_pointer.contents)
+    array_view = array.view()
+    array_view.shape = (nos, 3)
+    return array_view

@@ -25,7 +25,7 @@ namespace Data
 		// Constructor
 		Geometry(const std::vector<Vector3> basis, const std::vector<Vector3> translation_vectors,
 			const intfield n_cells, const std::vector<Vector3> basis_atoms, const scalar lattice_constant,
-			const vectorfield spin_pos);
+			const vectorfield spin_pos, const intfield atom_types);
 		// Destructor
 		//~Geometry();
 
@@ -61,6 +61,9 @@ namespace Data
 
 		// Positions of the Spins: spin_pos[dim][nos]
 		const vectorfield spin_pos;
+
+		// Atom types: type index 0..n or or vacancy (type < 0)
+		intfield atom_types;
 
 		// //////  What are the segments used for??
 		// segments[nos][4]

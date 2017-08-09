@@ -20,6 +20,21 @@ _Set_LLG_Damping.restype     = None
 def Set_LLG_Damping(p_state, damping, idx_image=-1, idx_chain=-1):
     _Set_LLG_Damping(p_state, ctypes.c_float(damping), idx_image, idx_chain)
 
+### Set spin transfer torque
+_Set_LLG_STT             = _spirit.Parameters_Set_LLG_STT
+_Set_LLG_STT.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Set_LLG_STT.restype     = None
+def Set_LLG_STT(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
+    _Set_LLG_STT(p_state, ctypes.c_bool(use_gradient), ctypes.c_float(magnitude), vec3(*direction), idx_image, idx_chain)
+
+### Set Temperature
+_Set_LLG_Temperature             = _spirit.Parameters_Set_LLG_Temperature
+_Set_LLG_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_Set_LLG_Temperature.restype     = None
+def Set_LLG_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1):
+    _Set_LLG_Temperature(p_state, ctypes.c_float(temperature), idx_image, idx_chain)
+
 ### Set LLG N Iterations
 _Set_LLG_N_Iterations             = _spirit.Parameters_Set_LLG_N_Iterations
 _Set_LLG_N_Iterations.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]

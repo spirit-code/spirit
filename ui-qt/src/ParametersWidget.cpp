@@ -68,7 +68,8 @@ void ParametersWidget::Load_Parameters_Contents()
 	d = Parameters_Get_LLG_Time_Step(state.get());
 	this->lineEdit_dt->setText(QString::number(d));
 	// Spin polarized current
-	Parameters_Get_LLG_STT(state.get(), &d, vd);
+	Parameters_Get_LLG_STT(state.get(), &b1, &d, vd);
+	this->radioButton_stt_gradient->setChecked(b1);
 	this->doubleSpinBox_llg_stt_magnitude->setValue(d);
 	this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
 	this->doubleSpinBox_llg_stt_polarisation_y->setValue(vd[1]);
@@ -78,6 +79,9 @@ void ParametersWidget::Load_Parameters_Contents()
 	d = Parameters_Get_LLG_Temperature(state.get());
 	this->doubleSpinBox_llg_temperature->setValue(d);
 	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
+	// Convergence
+	d = Parameters_Get_LLG_Convergence(state.get());
+	this->spinBox_llg_convergence->setValue(std::log10(d));
 	// Output
 	Parameters_Get_LLG_N_Iterations(state.get(), &i1, &i2);
 	this->lineEdit_llg_n_iterations->setText(QString::number(i1));
@@ -122,6 +126,9 @@ void ParametersWidget::Load_Parameters_Contents()
 	Parameters_Get_GNEB_Output_Chain(state.get(), &b1);
 	this->checkBox_gneb_output_chain_step->setChecked(b1);
 
+	// Convergence
+	d = Parameters_Get_GNEB_Convergence(state.get());
+	this->spinBox_gneb_convergence->setValue(std::log10(d));
 	// GNEB Spring Constant
 	d = Parameters_Get_GNEB_Spring_Constant(state.get());
 	this->lineEdit_gneb_springconstant->setText(QString::number(d));
@@ -148,6 +155,10 @@ void ParametersWidget::set_parameters_llg()
 		int i1, i2;
 		bool b1, b2, b3, b4;
 
+		// Convergence
+		d = std::pow(10, this->spinBox_llg_convergence->value());
+		Parameters_Set_LLG_Convergence(this->state.get(), d, idx_image, idx_chain);
+
 		// Time step [ps]
 		// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
 		d = this->lineEdit_dt->text().toFloat();
@@ -159,6 +170,7 @@ void ParametersWidget::set_parameters_llg()
 
 
 		// Spin polarised current
+		b1 = this->radioButton_stt_gradient->isChecked();
 		if (this->checkBox_llg_stt->isChecked())
 			d = this->doubleSpinBox_llg_stt_magnitude->value();
 		else
@@ -181,7 +193,7 @@ void ParametersWidget::set_parameters_llg()
 			}
 			else { throw(ex); }
 		}
-		Parameters_Set_LLG_STT(state.get(), d, vd, idx_image, idx_chain);
+		Parameters_Set_LLG_STT(state.get(), b1, d, vd, idx_image, idx_chain);
 
 		// Temperature
 		if (this->checkBox_llg_temperature->isChecked())
@@ -280,6 +292,9 @@ void ParametersWidget::set_parameters_gneb()
 		float d;
 		int i1, i2;
 
+		// Convergence
+		d = std::pow(10, this->spinBox_gneb_convergence->value());
+		Parameters_Set_GNEB_Convergence(this->state.get(), d, idx_image, idx_chain);
 		// Spring Constant
 		d = this->lineEdit_gneb_springconstant->text().toFloat();
 		Parameters_Set_GNEB_Spring_Constant(state.get(), d, idx_image, idx_chain);
@@ -368,6 +383,8 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	// STT
+	connect(this->radioButton_stt_gradient, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
+	connect(this->radioButton_stt_monolayer, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
 	connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
@@ -376,6 +393,8 @@ void ParametersWidget::Setup_Parameters_Slots()
 	// Damping
 	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
 	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+	// Convergence criterion
+	connect(this->spinBox_llg_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	// Output
 	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
 	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
@@ -399,6 +418,8 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
 	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
 	connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
+	// Convergence criterion
+	connect(this->spinBox_gneb_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_gneb()));
 	// Output
 	connect(this->lineEdit_gneb_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
 	connect(this->lineEdit_gneb_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));

@@ -13,9 +13,10 @@ DLLEXPORT void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, 
 DLLEXPORT void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_image=-1, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float * normal, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1);
 
 //      Set MC
@@ -37,6 +38,7 @@ DLLEXPORT void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_s
 DLLEXPORT void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image=-1, int idx_chain=-1);
 // Automatically set the image type for a chain.
@@ -52,10 +54,12 @@ DLLEXPORT void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step
 DLLEXPORT void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_image=-1, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT float Parameters_Get_LLG_Convergence(State *state, int idx_image=-1, int idx_chain=-1);
+// Set the LLG time step in [ps]
 DLLEXPORT float Parameters_Get_LLG_Time_Step(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_LLG_Damping(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_LLG_Temperature(State *state, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1);
 
 //      Get MC
 // Output
@@ -76,6 +80,7 @@ DLLEXPORT void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies
 DLLEXPORT void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain=-1);
 DLLEXPORT void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_chain=-1);
 // Simulation Parameters
+DLLEXPORT float Parameters_Get_GNEB_Convergence(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image=-1, int idx_chain=-1);
 DLLEXPORT int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain=-1);

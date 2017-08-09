@@ -18,23 +18,60 @@ State * State_Setup(const char * config_file, bool quiet)
     state->config_file = config_file;
     state->quiet = quiet;
 
-    // Log
-    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "========== Spirit State: Initialising... ============");
-    Log(Log_Level::All, Log_Sender::All,  "==========     Version:  " + std::string(VERSION));
-    Log(Log_Level::Info, Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
-    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "Config file: " + state->config_file);
+    //---------------------- Initial Block of Log messages ----------------------------------------
+    // Log version info
+    Log(Log_Level::All,  Log_Sender::All, "=====================================================");
+    Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
+    Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(VERSION));
+    // Log revision hash
+    Log(Log_Level::All,  Log_Sender::All, "==========     Revision: " + std::string(VERSION_REVISION));
+    // Log if quiet mode
     if (state->quiet)
-        Log(Log_Level::All, Log_Sender::All,  "Going to run in QUIET mode (only Error messages, no output files)");
+        Log(Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)");
+    // Log Config file info
+    Log(Log_Level::All,  Log_Sender::All, "Config file: " + state->config_file);
+    // Read Log Levels
+    try{
+        IO::Log_from_Config(state->config_file, state->quiet); }
+    catch (Exception ex)
+    {
+		if (ex == Exception::System_not_Initialized)
+			Log(Utility::Log_Level::Severe, Utility::Log_Sender::IO, std::string("System not initialized - Terminating."));
+		else if (ex == Exception::Simulated_domain_too_small)
+			Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, std::string("CreateNeighbours:: Simulated domain is too small"));
+		else if (ex == Exception::Not_Implemented)
+			Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, std::string("Tried to use function which has not been implemented"));
+		else
+			Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, std::string("Unknown exception!"));
+	}
+    Log(Log_Level::Info, Log_Sender::All, "=====================================================");
+    Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
+    // Log OpenMP info
+	#ifdef _OPENMP
+		int nt = omp_get_max_threads();
+		Log(Log_Level::Info, Log_Sender::All, ("Using OpenMP (max. " + std::to_string(nt) + " threads)").c_str());
+	#else
+		Log(Log_Level::Info, Log_Sender::All, "Not using OpenMP");
+    #endif
+    // Log CUDA info
+    #ifdef SPIRIT_USE_CUDA
+		Log(Log_Level::Info, Log_Sender::All, "Using CUDA");
+    #else
+		Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
+    #endif
+    // Log Precision info
+    #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+		Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
+    #endif
+    #ifdef SPIRIT_SCALAR_TYPE_FLOAT
+		Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
+    #endif
+    Log(Log_Level::All,  Log_Sender::All, "=====================================================");
+    //---------------------------------------------------------------------------------------------
 
-    
+
     try
     {
-        //---------------------- Read Log Levels ----------------------------------------
-        IO::Log_from_Config(state->config_file, state->quiet);
-        //-------------------------------------------------------------------------------
-
         //---------------------- initialize spin_system ---------------------------------
         // Create a system according to Config
         state->active_image = IO::Spin_System_from_Config(state->config_file);

@@ -95,31 +95,34 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
 	series_E_stationary->setColor(QColor("RoyalBlue"));
 	series_E_stationary->setMarkerSize(10);
 	series_E_stationary->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+	// Interpolated energies
+	series_E_interp = new QLineSeries();
+	series_E_interp->setColor(QColor("RoyalBlue"));
+	
 	// Current energy
 	series_E_current = new QScatterSeries();
 	series_E_current->setColor(QColor("Red"));
 	series_E_current->setMarkerSize(10);
-	// Interpolated energies
-	series_E_interp = new QLineSeries();
-	series_E_interp->setColor(QColor("RoyalBlue"));
+	// series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+	
 
-	// Clear series
-	// series_E_normal->clear();
-	// series_E_climbing->clear();
-	// series_E_falling->clear();
-	// series_E_stationary->clear();
 	// Add Series
-	// chart->addSeries(series_E_normal);
-	// chart->addSeries(series_E_climbing);
-	// chart->addSeries(series_E_falling);
-	// chart->addSeries(series_E_stationary);
+	chart->addSeries(series_E_interp);
+	chart->addSeries(series_E_normal);
+	chart->addSeries(series_E_climbing);
+	chart->addSeries(series_E_falling);
+	chart->addSeries(series_E_stationary);
 	chart->addSeries(series_E_current);
-	//chart->addSeries(series_E_interp);
 
-	// Axes
+	// Create Axes
 	this->chart->createDefaultAxes();
 	this->chart->axisX()->setTitleText("Rx");
+	this->chart->axisX()->setMin(-0.04);
+	this->chart->axisX()->setMax(1.04);
 	this->chart->axisY()->setTitleText("E");
+	
+	// Fill the Series with initial values
+	this->plotEnergies();
 }
 
 
@@ -131,8 +134,6 @@ void PlotWidget::updateData()
 
 void PlotWidget::plotEnergies()
 {
-	// TODO: this function seems incredibly inefficient, how can we do better??
-
 	int noi = Chain_Get_NOI(state.get());
 	int nos = System_Get_NOS(state.get());
 	int size_interp = noi + (noi - 1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
@@ -147,39 +148,43 @@ void PlotWidget::plotEnergies()
 	float Rx_tot = System_Get_Rx(state.get(), noi - 1);
 	Chain_Get_Rx(state.get(), Rx.data());
 	Chain_Get_Energy(state.get(), energies.data());
-	Chain_Get_Rx_Interpolated(state.get(), Rx_interp.data());
 	if (this->plot_interpolated)
+	{
+		Chain_Get_Rx_Interpolated(state.get(), Rx_interp.data());
 		Chain_Get_Energy_Interpolated(state.get(), energies_interp.data());
+	}
 
-	// Previous series sizes
-	int n_previous_normal = series_E_normal->count();
-	int n_previous_climbing = series_E_climbing->count();
-	int n_previous_falling = series_E_falling->count();
-	int n_previous_stationary = series_E_stationary->count();
-	int n_previous_interp = series_E_interp->count();
+	// Replacement data vectors
+	auto empty = QVector<QPointF>(0);
+	auto current = QVector<QPointF>(0);
+	auto normal = QVector<QPointF>(0);
+	auto climbing = QVector<QPointF>(0);
+	auto falling = QVector<QPointF>(0);
+	auto stationary = QVector<QPointF>(0);
+	auto interp  = QVector<QPointF>(0);
 
-	// Clear series
-	series_E_normal->clear();
-	series_E_climbing->clear();
-	series_E_falling->clear();
-	series_E_stationary->clear();
-	if (this->plot_interpolated)
-		series_E_interp->clear();
+	// Min and max yaxis values
+	float ymin=1e8, ymax=-1e8;
 
 	// Add data to series
+	int idx_current = System_Get_Index(state.get());
+	current.push_back(QPointF( Rx[idx_current]/Rx_tot, energies[idx_current]/nos ));
 	for (int i = 0; i < noi; ++i)
 	{
 		if (i > 0 && Rx_tot > 0) Rx[i] = Rx[i] / Rx_tot;
 		energies[i] = energies[i] / nos;
 
 		if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 0)
-			*series_E_normal << QPointF(Rx[i], energies[i]);
+			normal.push_back(QPointF(Rx[i], energies[i]));
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 1)
-			*series_E_climbing << QPointF(Rx[i], energies[i]);
+			climbing.push_back(QPointF(Rx[i], energies[i]));
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 2)
-			*series_E_falling << QPointF(Rx[i], energies[i]);
+			falling.push_back(QPointF(Rx[i], energies[i]));
 		else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 3)
-			*series_E_stationary << QPointF(Rx[i], energies[i]);
+			stationary.push_back(QPointF(Rx[i], energies[i]));
+
+		if (energies[i] < ymin) ymin = energies[i];
+		if (energies[i] > ymax) ymax = energies[i];
 	}
 	if (this->plot_interpolated)
 	{
@@ -188,68 +193,12 @@ void PlotWidget::plotEnergies()
 			if (i > 0 && Rx_tot > 0) Rx_interp[i] = Rx_interp[i] / Rx_tot;
 			energies_interp[i] = energies_interp[i] / nos;
 
-			*series_E_interp << QPointF(Rx_interp[i], energies_interp[i]);
+			interp.push_back(QPointF(Rx_interp[i], energies_interp[i]));
+			// *series_E_interp << QPointF(Rx_interp[i], energies_interp[i]);
 		}
 	}
 
-	// Re-add Series to chart
-	if (series_E_normal->count() > 0 && n_previous_normal == 0)
-		chart->addSeries(series_E_normal);
-	else if (series_E_normal->count() == 0 && n_previous_normal > 0)
-		chart->removeSeries(series_E_normal);
-	else if (series_E_normal->count() > 0)
-	{	
-		chart->removeSeries(series_E_normal);
-		chart->addSeries(series_E_normal);
-	}
-
-	if (series_E_climbing->count() > 0 && n_previous_climbing == 0)
-		chart->addSeries(series_E_climbing);
-	else if (series_E_climbing->count() == 0 && n_previous_climbing > 0)
-		chart->removeSeries(series_E_climbing);
-	else if (series_E_climbing->count() > 0)
-	{	
-		chart->removeSeries(series_E_climbing);
-		chart->addSeries(series_E_climbing);
-	}
-
-	if (series_E_falling->count() > 0 && n_previous_falling == 0)
-		chart->addSeries(series_E_falling);
-	else if (series_E_falling->count() == 0 && n_previous_falling > 0)
-		chart->removeSeries(series_E_falling);
-	else if (series_E_falling->count() > 0)
-	{	
-		chart->removeSeries(series_E_falling);
-		chart->addSeries(series_E_falling);
-	}
-
-	if (series_E_stationary->count() > 0 && n_previous_stationary == 0)
-		chart->addSeries(series_E_stationary);
-	else if (series_E_stationary->count() == 0 && n_previous_stationary > 0)
-		chart->removeSeries(series_E_stationary);
-	else if (series_E_stationary->count() > 0)
-	{	
-		chart->removeSeries(series_E_stationary);
-		chart->addSeries(series_E_stationary);
-	}
-
-	if (this->plot_interpolated)
-	{
-		if (series_E_interp->count() > 0 && n_previous_interp == 0)
-			chart->addSeries(series_E_interp);
-		else if (series_E_interp->count() == 0 && n_previous_interp > 0)
-			chart->removeSeries(series_E_interp);
-		else if (series_E_interp->count() > 0)
-		{
-			chart->removeSeries(series_E_interp);
-			chart->addSeries(series_E_interp);
-		}
-	}
-
-	// Current image - red dot
-	series_E_current->clear();
-	int i = System_Get_Index(state.get());
-	*series_E_current << QPointF(Rx[i], energies[i]);
+	// Set marker type for current image
 	if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
 	{
 		series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
@@ -276,28 +225,26 @@ void PlotWidget::plotEnergies()
 		series_E_current->setMarkerSize(10);
 		series_E_current->setBrush(QColor("Red"));
 	}
-	chart->removeSeries(series_E_current);
-	chart->addSeries(series_E_current);
-	// this->repaint();
 
-	// Renew axes
-	this->chart->createDefaultAxes();
-	this->chart->axisX()->setTitleText("Rx");
-	this->chart->axisY()->setTitleText("E");
-}
+	// Clear series
+	series_E_normal->replace(empty);
+	series_E_climbing->replace(empty);
+	series_E_falling->replace(empty);
+	series_E_stationary->replace(empty);
+	series_E_interp->replace(empty);
 
-void PlotWidget::set_interpolating(bool b)
-{
-	if (this->plot_interpolated == b) return;
-	else if (this->plot_interpolated && !b)
-	{
-		// Turn interpolation off
-		chart->removeSeries(series_E_interp);
-	}
-	else if (!this->plot_interpolated && b)
-	{
-		// Turn interpolation on
-		chart->addSeries(series_E_interp);
-	}
-	this->plot_interpolated = b;
+	// Re-fill Series
+	series_E_normal->replace(normal);
+	series_E_climbing->replace(climbing);
+	series_E_falling->replace(falling);
+	series_E_stationary->replace(stationary);
+	series_E_interp->replace(interp);
+
+	// Current image - red dot
+	series_E_current->replace(empty);
+	series_E_current->replace(current);
+	
+	// Rescale y axis
+	this->chart->axisY()->setMin(ymin - 0.1);
+	this->chart->axisY()->setMax(ymax + 0.1);
 }

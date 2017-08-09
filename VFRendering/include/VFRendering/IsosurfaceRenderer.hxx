@@ -15,7 +15,8 @@ public:
     enum Option {
         ISOVALUE = 700,
         LIGHTING_IMPLEMENTATION,
-        VALUE_FUNCTION
+        VALUE_FUNCTION,
+        FLIP_NORMALS
     };
 
     IsosurfaceRenderer(const View& view);
@@ -61,6 +62,11 @@ struct Options::Option<IsosurfaceRenderer::Option::VALUE_FUNCTION> {
         (void)position;
         return direction.z;
     };
+};
+
+template<>
+struct Options::Option<IsosurfaceRenderer::Option::FLIP_NORMALS> {
+    bool default_value = false;
 };
 }
 }

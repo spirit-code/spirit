@@ -52,7 +52,8 @@ namespace Engine
 		this->starttime = Timing::CurrentDateTime();
         auto sender     = method->SenderName;
         //----
-		int iteration=0, step = 0;
+      this->iteration = 0;
+      this->step      = 0;
         //----
         std::stringstream maxforce_stream;
         maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->method->force_maxAbsComponent;
@@ -80,10 +81,15 @@ namespace Engine
 		auto t_last = system_clock::now();
 
         //---- Initial save
-		this->method->Save_Current(this->starttime, iteration, true, false);
+		this->method->Save_Current(this->starttime, this->iteration, true, false);
 
         //---- Iteration loop
-		for (iteration = 0; iteration < n_iterations && this->method->ContinueIterating() && !this->StopFilePresent() && !this->method->Walltime_Expired(t_current - t_start); ++iteration)
+    for ( this->iteration = 0; 
+          this->iteration < n_iterations && 
+          this->method->ContinueIterating() && 
+          !this->StopFilePresent() && 
+          !this->method->Walltime_Expired(t_current - t_start); 
+          ++this->iteration )
 		{
 			t_current = system_clock::now();
 
@@ -102,7 +108,7 @@ namespace Engine
 			this->t_iterations.push_back(system_clock::now());
 
 			// Log Output every n_iterations_log steps
-			if (iteration>0 && 0 == fmod(iteration, n_iterations_log))
+			if ( this->iteration>0 && 0 == fmod( this->iteration, n_iterations_log))
 			{
 				++step;
 
@@ -117,14 +123,14 @@ namespace Engine
 					{
 						"----- " + this->method->Name() + " Calculation (" + this->Name() + " Optimizer): " + Timing::DateTimePassed(t_current - t_start),
 						"    Step                         " + std::to_string(step) + " / " + std::to_string(n_log),
-						"    Iteration                    " + std::to_string(iteration) + " / " + std::to_string(n_iterations),
+						"    Iteration                    " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations),
 						"    Time since last step:        " + Timing::DateTimePassed(t_current - t_last),
 						"    Iterations / sec:            " + std::to_string(n_iterations_log / Timing::SecondsPassed(t_current - t_last)),
 						"    Force convergence parameter: " + force_param,
 						"    Maximum force component:     " + maxforce
 					}, this->method->idx_image, this->method->idx_chain);
 
-				this->method->Save_Current(this->starttime, iteration, false, false);
+				this->method->Save_Current(this->starttime, this->iteration, false, false);
 
 				t_last = t_current;
 			}
@@ -158,8 +164,8 @@ namespace Engine
 			block.push_back("----- Reason:   " + reason);
 		block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - t_start));
 		block.push_back("    Step              " + std::to_string(step) + " / " + std::to_string(n_log));
-		block.push_back("    Iteration         " + std::to_string(iteration) + " / " + std::to_string(n_iterations));
-        block.push_back("    Iterations / sec: " + std::to_string(iteration / Timing::SecondsPassed(t_end - t_start)));
+		block.push_back("    Iteration         " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations));
+    block.push_back("    Iterations / sec: " + std::to_string( this->iteration / Timing::SecondsPassed(t_end - t_start)));
 		block.push_back("    Force convergence parameter: " + force_param);
 		block.push_back("    Maximum force component:     " + maxforce);
 		block.push_back("    Optimizer: " + this->FullName());
@@ -167,7 +173,7 @@ namespace Engine
 		Log.SendBlock(Log_Level::All, sender, block, this->method->idx_image, this->method->idx_chain);
 
         //---- Final save
-		this->method->Save_Current(this->starttime, iteration, false, true);
+		this->method->Save_Current(this->starttime, this->iteration, false, true);
         //---- Finalize (set iterations_allowed to false etc.)
         this->method->Finalize();
     }

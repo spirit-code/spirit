@@ -1,3 +1,4 @@
+#include <Spirit_Defines.h>
 #include <engine/Method_GNEB.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
@@ -33,11 +34,11 @@ namespace Engine
 		this->force_maxAbsComponent = this->chain->gneb_parameters->force_convergence + 1.0;
 
 		// Tangents
-		this->tangents = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->tangents = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
 		// Forces
-		this->F_total    = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
-		this->F_gradient = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
-		this->F_spring   = std::vector<vectorfield>(noi, vectorfield(nos));	// [noi][nos]
+		this->F_total    = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_gradient = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
+		this->F_spring   = std::vector<vectorfield>(noi, vectorfield( nos, { 0, 0, 0 } ));	// [noi][nos]
 
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
@@ -122,7 +123,9 @@ namespace Engine
 				Vectormath::fill(F_total[img], { 0,0,0 });
 			}
 			// Apply pinning mask
-			Vectormath::set_c_a(1, F_total[img], F_total[img], parameters->pinning->mask_unpinned);
+			#ifdef SPIRIT_ENABLE_PINNING
+				Vectormath::set_c_a(1, F_total[img], F_total[img], parameters->pinning->mask_unpinned);
+			#endif // SPIRIT_ENABLE_PINNING
 
 			// Copy out
 			forces[img] = F_total[img];

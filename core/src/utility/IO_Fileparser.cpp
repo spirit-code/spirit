@@ -75,9 +75,22 @@ namespace Utility
 						if (found == std::string::npos)
 						{
 							auto x = split_string_to_scalar(line, ",");
-							spins[i][0] = x[3];
-							spins[i][1] = x[4];
-							spins[i][2] = x[5];
+
+							if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
+							{
+								spins[i][0] = 0;
+								spins[i][1] = 0;
+								spins[i][2] = 1;
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								s->geometry->atom_types[i] = -1;
+								#endif
+							}
+							else
+							{
+								spins[i][0] = x[3];
+								spins[i][1] = x[4];
+								spins[i][2] = x[5];
+							}
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -86,6 +99,7 @@ namespace Utility
 				else
 				{
 					auto& spins = *s->spins;
+					Vector3 spin;
 					while (getline(myfile, line))
 					{
 						if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
@@ -97,7 +111,15 @@ namespace Utility
 							iss.clear();
 							iss.str(line);
 							//iss >> x >> y >> z;
-							iss >> spins[i][0] >> spins[i][1] >> spins[i][2];
+							iss >> spin[0] >> spin[1] >> spin[2];
+							if (spin.norm() < 1e-5)
+							{
+								spin = {0, 0, 1};
+								#ifdef SPIRIT_ENABLE_DEFECTS
+								s->geometry->atom_types[i] = -1;
+								#endif
+							}
+							spins[i] = spin;
 							++i;
 						}// endif (# not found)
 						 // discard line if # is found
@@ -120,6 +142,7 @@ namespace Utility
 				std::istringstream iss(line);
 				std::size_t found;
 				int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+				Vector3 spin;
 				while (getline(myfile, line))
 				{
 					found = line.find("#");
@@ -158,7 +181,15 @@ namespace Utility
 								iss.str(line);
 								auto& spins = *c->images[iimage]->spins;
 								//iss >> x >> y >> z;
-								iss >> spins[ispin][0] >> spins[ispin][1] >> spins[ispin][2];
+								iss >> spin[0] >> spin[1] >> spin[2];
+								if (spin.norm() < 1e-5)
+								{
+									spin = {0, 0, 1};
+									#ifdef SPIRIT_ENABLE_DEFECTS
+									c->images[iimage]->geometry->atom_types[ispin] = -1;
+									#endif
+								}
+								spins[ispin] = spin;
 							}
 							++ispin;
 						}//end else
@@ -754,6 +785,113 @@ namespace Utility
 			{
 				throw ex;
 			}
-		}
+		} // End Quadruplets_from_File
+
+
+		void Defects_from_File(const std::string defectsFile, int & n_defects,
+			intfield & defect_indices, intfield & defect_types)
+		{
+			n_defects = 0;
+
+			int nod = 0;
+			intfield indices(0), types(0);
+			try
+			{
+				Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
+				IO::Filter_File_Handle myfile(defectsFile);
+
+				if (myfile.Find("n_defects"))
+				{
+					// Read n interaction pairs
+					myfile.iss >> nod;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + defectsFile + " should have " + std::to_string(nod) + " defects");
+				}
+				else
+				{
+					// Read the whole file
+					nod = (int)1e8;
+					// First line should contain the columns
+					myfile.ResetStream();
+					Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
+				}
+
+				int i_defect = 0;
+				while (myfile.GetLine() && i_defect < nod)
+				{
+					int index, type;
+					myfile.iss >> index >> type;
+					indices.push_back(index);
+					types.push_back(type);
+					++i_defect;
+				}
+
+				defect_indices = indices;
+				defect_types = types;
+				n_defects = i_defect;
+
+				Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
+			}
+			catch (Exception ex)
+			{
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Could not read defects file " + defectsFile);
+				else
+					throw ex;
+			}
+		} // End Defects_from_File
+
+		void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
+			intfield & pinned_indices, vectorfield & pinned_spins)
+		{
+			n_pinned = 0;
+
+			int nop = 0;
+			intfield indices(0);
+			vectorfield spins(0);
+			try
+			{
+				Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
+				IO::Filter_File_Handle myfile(pinnedFile);
+
+				if (myfile.Find("n_pinned"))
+				{
+					// Read n interaction pairs
+					myfile.iss >> nop;
+					Log(Log_Level::Debug, Log_Sender::IO, "File " + pinnedFile + " should have " + std::to_string(nop) + " pinned sites");
+				}
+				else
+				{
+					// Read the whole file
+					nop = (int)1e8;
+					// First line should contain the columns
+					myfile.ResetStream();
+					Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
+				}
+
+				int i_pinned = 0;
+				while (myfile.GetLine() && i_pinned < nop)
+				{
+					int index;
+					scalar sx, sy, sz;
+					myfile.iss >> index >> sx >> sy >> sz;
+					indices.push_back(index);
+					spins.push_back({sx, sy, sz});
+					++i_pinned;
+				}
+
+				pinned_indices = indices;
+				pinned_spins = spins;
+				n_pinned = i_pinned;
+
+				Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
+			}
+			catch (Exception ex)
+			{
+				if (ex == Exception::File_not_Found)
+					Log(Log_Level::Error, Log_Sender::IO, "Could not read pinned sites file " + pinnedFile);
+				else
+					throw ex;
+			}
+		} // End Pinned_from_File
 	}
 }

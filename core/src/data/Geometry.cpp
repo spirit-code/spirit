@@ -15,10 +15,10 @@ namespace Data
 {
 	Geometry::Geometry(std::vector<Vector3> basis_i, const std::vector<Vector3> translation_vectors_i,
 		const intfield n_cells_i, const std::vector<Vector3> basis_atoms_i, const scalar lattice_constant_i,
-		const vectorfield spin_pos_i) :
+		const vectorfield spin_pos_i, const intfield atom_types) :
 		basis(basis_i), translation_vectors(translation_vectors_i), n_cells(n_cells_i),
 		n_spins_basic_domain(basis_atoms_i.size()), basis_atoms(basis_atoms_i), lattice_constant(lattice_constant_i),
-		spin_pos(spin_pos_i), nos(basis_atoms_i.size() * n_cells_i[0] * n_cells_i[1] * n_cells_i[2])
+		spin_pos(spin_pos_i), nos(basis_atoms_i.size() * n_cells_i[0] * n_cells_i[1] * n_cells_i[2]), atom_types(atom_types)
 	{
 		// Calculate Bounds of the System
 		this->bounds_max.setZero();

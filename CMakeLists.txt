@@ -1,6 +1,11 @@
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
+### We need at least C++11
+set (CMAKE_CXX_STANDARD 11)
+### Distinction between Clang and AppleClang
+cmake_policy(SET CMP0025 NEW)
 #############################################
+
 
 
 ######### Build Flags #######################
@@ -11,48 +16,65 @@ SET( SPIRIT_BUILD_FOR_JS      OFF  CACHE BOOL "Build the JavaScript library." )
 SET( SPIRIT_BUILD_FOR_JULIA   OFF  CACHE BOOL "Build the shared library for Julia." )
 SET( SPIRIT_BUILD_FOR_PYTHON  ON   CACHE BOOL "Build the shared library for Python." )
 SET( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ applications" )
+### Feature switches for Spirit
+SET( SPIRIT_ENABLE_PINNING    OFF  CACHE BOOL "Enable pinning individual or rows of spins." )
+SET( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in the lattice." )
 ### Options for Spirit
 SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
 SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
+SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
 #############################################
 ### CMake Verbosity
-option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                        OFF )
+option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
 ### Decide CXX UI
-option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."      ON  )
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."       ON  )
 ### Bundle option
-option( OSX_BUNDLE_APP   "Bundle the executable with its dependencies into a .app."     OFF )
+option( BUNDLE_APP       "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster." OFF )
+option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
 #############################################
 
 
+
 #############################################
-if( SPIRIT_BUILD_TEST )
-    enable_testing()
-endif()
+### Depending on compiler versions it may be necessary to specify
+### the compiler. Either pass them in via command-line or use
+### the CUDA_TOOLKIT_ROOT_DIR variable.
+if( SPIRIT_USE_CUDA )
+	### Set cuda toolkit path
+	set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
+	# if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
+	# 	if ( APPLE OR UNIX )
+	# 		set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+	# 	elseif (WIN32)
+	# 		set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
+	# 		MESSAGE( STATUS ">> We are on Windows... CUDA Path may need to be set..." )
+	# 	endif()
+	# endif()
+	### Set compilers
+	if( APPLE OR UNIX )
+		if( DEFINED CUDA_TOOLKIT_ROOT_DIR )
+			MESSAGE( STATUS ">> CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}" )
+			if( NOT DEFINED CMAKE_C_COMPILER )
+				set( CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc )
+				MESSAGE( STATUS ">> Set C compiler accordingly" )
+			endif( )
+			if( NOT DEFINED CMAKE_CXX_COMPILER )
+				set( CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++ )
+				MESSAGE( STATUS ">> Set CXX compiler accordingly" )
+			endif( )
+		else( )
+			MESSAGE( STATUS ">> No CUDA toolkit root dir specified" )
+		endif( )
+	elseif( WIN32 )
+		# MESSAGE( STATUS ">> We are on Windows... CUDA untested" )
+	endif( )
+endif( )
 #############################################
-if (SPIRIT_USE_CUDA)
-    MESSAGE( STATUS ">> -------------- USING CUDA --------------" )
-    ### Set cuda toolkit path 
-    if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
-		if (APPLE OR UNIX)
-        	set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-		elseif (WIN32)
-			set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
-			MESSAGE( STATUS ">> We are on Windows... CUDA Path may need to be set..." )
-		endif()
-    endif()
-    if (APPLE OR UNIX)
-        set(CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc)
-        set(CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++)
-    elseif (WIN32)
-        # MESSAGE( STATUS ">> We are on Windows... CUDA untested" )
-    endif()
-endif()
-#############################################
+
 
 
 ######### General Paths #####################
@@ -90,8 +112,25 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ### Installation Prefix
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "default install path" FORCE )
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE)
 endif()
+#############################################
+
+
+
+#############################################
+if( SPIRIT_BUILD_TEST )
+	enable_testing()
+endif()
+#############################################
+if ( SPIRIT_USE_OPENMP )
+	include( FindOpenMP )
+    if( OPENMP_FOUND )
+        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+    endif( )
+endif( )
 #############################################
 
 
@@ -152,6 +191,17 @@ endif()
 if( SPIRIT_BUILD_FOR_JS )
 	add_subdirectory( ui-web )
 endif()
+#############################################
+
+
+################ Install ####################
+install(DIRECTORY docs        DESTINATION docs/Spirit)
+install(FILES   LICENSE.txt
+				README.md
+				VERSION.txt   DESTINATION docs/Spirit)
+if( SPIRIT_BUILD_FOR_CXX )
+	install(DIRECTORY input   DESTINATION bin)
+endif( )
 #############################################
 
 

@@ -35,12 +35,24 @@ namespace Engine
 		virtual void Hessian(const vectorfield & spins, MatrixX & hessian);
 
 		/*
+			Calculate the Hessian matrix of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient.
+		*/
+		virtual void Hessian_FD(const vectorfield & spins, MatrixX & hessian) final;
+		
+		/*
 			Calculate the energy gradient of a spin configuration.
 			This function uses finite differences and may thus be quite inefficient. You should
 			override it if you want to get proper performance.
 			This function is the fallback for derived classes where it has not been overridden.
 		*/
 		virtual void Gradient(const vectorfield & spins, vectorfield & gradient);
+
+		/*
+			Calculate the energy gradient of a spin configuration.
+			This function uses finite differences and may thus be quite inefficient.
+		*/
+		virtual void Gradient_FD(const vectorfield & spins, vectorfield & gradient) final;
 
 		// Calculate the Energy contributions for the spins of a configuration
 		virtual void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions);
@@ -58,6 +70,32 @@ namespace Engine
 		intfield boundary_conditions; // [3] (a, b, c)
 	
 	protected:
+		// Check atom types
+		inline bool check_atom_type(int atom_type)
+		{
+			#ifdef SPIRIT_ENABLE_DEFECTS
+				// If defects are enabled we check for
+				//		vacancies (type < 0)
+				if (atom_type >= 0) return true;
+				else return false;
+			#else
+				// Else we just return true
+				return true;
+			#endif
+		}
+		inline bool check_atom_type(int atom_type, int reference_type)
+		{
+			#ifdef SPIRIT_ENABLE_DEFECTS
+				// If defects are enabled we do a check if
+				//		atom types match.
+				if (atom_type == reference_type) return true;
+				else return false;
+			#else
+				// Else we just return true
+				return true;
+			#endif
+		}
+
 		// Energy contributions per spin
 		std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
 

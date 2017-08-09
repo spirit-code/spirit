@@ -235,6 +235,10 @@ namespace Utility
 			// Number of Spins
 			int nos;
 			vectorfield spin_pos;
+			// Atom types
+			intfield atom_types;
+			intfield defect_indices(0);
+			intfield defects(0);
 
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
@@ -263,8 +267,8 @@ namespace Utility
 					else {
 						Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
 					}
+
 					// Read Basis
-						
 					if (myfile.Find("basis_from_config"))
 					{
 						myfile.iss >> basis_file;
@@ -277,6 +281,25 @@ namespace Utility
 					else {
 						Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
 					}// end Basis
+
+					// Defects
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					int n_defects = 0;
+
+					std::string defectsFile = "";
+					if (myfile.Find("n_defects"))
+						defectsFile = configFile;
+					else if (myfile.Find("defects_from_file"))
+						myfile.iss >> defectsFile;
+
+					if (defectsFile.length() > 0)
+					{
+						// The file name should be valid so we try to read it
+						Defects_from_File(defectsFile, n_defects,
+							defect_indices, defects);
+					}
+					#endif
+						
 				}// end try
 				catch (Exception ex)
 				{
@@ -309,7 +332,17 @@ namespace Utility
 			// Spin Positions
 			spin_pos = vectorfield(nos);
 			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
-			
+
+			// Atom types (default: type 0, vacancy: < 0)
+			atom_types = intfield(nos, 0);
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			int n_defects = defect_indices.size();
+			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(n_defects) + " defects");
+			if (n_defects > 0)
+				Log(Log_Level::Parameter, Log_Sender::IO, "  defect[0]: ispin=" + std::to_string(defect_indices[0]) + ", type=" + std::to_string(defects[0]) );
+			for (int i = 0; i < n_defects; ++i)
+				atom_types[defect_indices[i]] = defects[i];
+			#endif
 			// Log parameters
 			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[0][2]));
@@ -322,7 +355,7 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
 			
 			// Return geometry
-			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos));
+			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
 			Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
 			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 			return geometry;
@@ -335,96 +368,148 @@ namespace Utility
 			int nb = 0, nb_left = 0, nb_right = 0;
 			int nc = 0, nc_left = 0, nc_right = 0;
 			vectorfield pinned_cell(geometry->n_spins_basic_domain, Vector3{ 0,0,1 });
+			// Additional pinned sites
+			intfield pinned_indices(0);
+			vectorfield pinned_spins(0);
+			int n_pinned = 0;
 
 			// Utility 1D array to build vectors and use Vectormath
 			Vector3 build_array = { 0, 0, 0 };
 
-			Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
-			//------------------------------- Parser --------------------------------
-			if (configFile != "")
-			{
-				try
+			#ifdef SPIRIT_ENABLE_PINNING
+				Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
+				//------------------------------- Parser --------------------------------
+				if (configFile != "")
 				{
-					IO::Filter_File_Handle myfile(configFile);
-
-					// N_a
-					myfile.Read_Single(na_left, "pin_na_left", false);
-					myfile.Read_Single(na_right, "pin_na_right", false);
-					myfile.Read_Single(na, "pin_na ", false);
-					if (na > 0 && (na_left == 0 || na_right == 0))
+					try
 					{
-						na_left = na;
-						na_right = na;
-					}
+						IO::Filter_File_Handle myfile(configFile);
 
-					// N_b
-					myfile.Read_Single(nb_left, "pin_nb_left", false);
-					myfile.Read_Single(nb_right, "pin_nb_right", false);
-					myfile.Read_Single(nb, "pin_nb ", false);
-					if (nb > 0 && (nb_left == 0 || nb_right == 0))
-					{
-						nb_left = nb;
-						nb_right = nb;
-					}
-
-					// N_c
-					myfile.Read_Single(nc_left, "pin_nc_left", false);
-					myfile.Read_Single(nc_right, "pin_nc_right", false);
-					myfile.Read_Single(nc, "pin_nc ", false);
-					if (nc > 0 && (nc_left == 0 || nc_right == 0))
-					{
-						nc_left = nc;
-						nc_right = nc;
-					}
-
-					// How should the cells be pinned
-					if (na_left > 0 || na_right > 0 ||
-						nb_left > 0 || nb_right > 0 ||
-						nc_left > 0 || nc_right > 0)
-					{
-						if (myfile.Find("pinning_cell"))
+						// N_a
+						myfile.Read_Single(na_left, "pin_na_left", false);
+						myfile.Read_Single(na_right, "pin_na_right", false);
+						myfile.Read_Single(na, "pin_na ", false);
+						if (na > 0 && (na_left == 0 || na_right == 0))
 						{
-							for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+							na_left = na;
+							na_right = na;
+						}
+
+						// N_b
+						myfile.Read_Single(nb_left, "pin_nb_left", false);
+						myfile.Read_Single(nb_right, "pin_nb_right", false);
+						myfile.Read_Single(nb, "pin_nb ", false);
+						if (nb > 0 && (nb_left == 0 || nb_right == 0))
+						{
+							nb_left = nb;
+							nb_right = nb;
+						}
+
+						// N_c
+						myfile.Read_Single(nc_left, "pin_nc_left", false);
+						myfile.Read_Single(nc_right, "pin_nc_right", false);
+						myfile.Read_Single(nc, "pin_nc ", false);
+						if (nc > 0 && (nc_left == 0 || nc_right == 0))
+						{
+							nc_left = nc;
+							nc_right = nc;
+						}
+
+						// How should the cells be pinned
+						if (na_left > 0 || na_right > 0 ||
+							nb_left > 0 || nb_right > 0 ||
+							nc_left > 0 || nc_right > 0)
+						{
+							if (myfile.Find("pinning_cell"))
 							{
-								myfile.GetLine();
-								myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+								for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+								{
+									myfile.GetLine();
+									myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+								}
+							}
+							else
+							{
+								na_left = 0; na_right = 0;
+								nb_left = 0; nb_right = 0;
+								nc_left = 0; nc_right = 0;
+								Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
 							}
 						}
-						else
+
+						// Additional pinned sites
+						std::string pinnedFile = "";
+						if (myfile.Find("n_pinned"))
+							pinnedFile = configFile;
+						else if (myfile.Find("pinned_from_file"))
+							myfile.iss >> pinnedFile;
+
+						if (pinnedFile.length() > 0)
 						{
-							na_left = 0; na_right = 0;
-							nb_left = 0; nb_right = 0;
-							nc_left = 0; nc_right = 0;
-							Log(Log_Level::Warning, Log_Sender::IO, "Pinning specified, but keyword 'pinning_cell' not found. Won't pin any spins!");
+							// The file name should be valid so we try to read it
+							Pinned_from_File(pinnedFile, n_pinned,
+								pinned_indices, pinned_spins);
 						}
-					}
-				}// end try
-				catch (Exception ex)
-				{
-					if (ex == Exception::File_not_Found)
+					}// end try
+					catch (Exception ex)
 					{
-						Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
+						if (ex == Exception::File_not_Found)
+						{
+							Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
+						}
+						else throw ex;
+					}// end catch
+				}// end if file=""
+				else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
+
+				// Create Pinning
+				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+					na_left, na_right,
+					nb_left, nb_right,
+					nc_left, nc_right,
+					pinned_cell) );
+
+				// Apply additional pinned sites
+				for (int i = 0; i < n_pinned; ++i)
+				{
+					int idx = pinned_indices[i];
+					pinning->mask_unpinned[idx] = 0;
+					pinning->mask_pinned_cells[idx] = pinned_spins[i];
+				}
+
+				// Return Pinning
+				Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
+				Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
+				for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+					Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
+				Log(Log_Level::Parameter, Log_Sender::IO, "        N additional pinned sites: " + std::to_string(n_pinned));
+				for (int i = 0; i < n_pinned; ++i)
+				Log(Log_Level::Parameter, Log_Sender::IO, "        pinned site[0]           = (" + std::to_string(pinned_spins[0][0]) + ", " + std::to_string(pinned_spins[0][1]) + ", " + std::to_string(pinned_spins[0][2]) + ")");
+				Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
+				return pinning;
+			#else // SPIRIT_ENABLE_PINNING
+				Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
+				if (configFile != "")
+				{
+					try
+					{
+						IO::Filter_File_Handle myfile(configFile);
+						if (myfile.Find("pinning_cell"))
+							Log(Log_Level::Warning, Log_Sender::IO, "You specified a pinning cell even though pinning is disabled!");
 					}
-					else throw ex;
-				}// end catch
-			}// end if file=""
-			else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
+					catch (Exception ex)
+					{
 
+					}
+				}
 
-			// Return Pinning
-			Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
-			for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
-				Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
-			auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
-				na_left, na_right,
-				nb_left, nb_right,
-				nc_left, nc_right,
-				pinned_cell) );
-			Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
-			return pinning;
+				auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning(geometry,
+					intfield(geometry->nos, 1),
+					vectorfield(0)));
+				return pinning;
+			#endif // SPIRIT_ENABLE_PINNING
 		}
 
 		std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
@@ -450,10 +535,14 @@ namespace Utility
 			scalar temperature = 0.0;
 			// Damping constant
 			scalar damping = 0.5;
+			// non-adiabatic parameter
+			scalar beta = 0.0;
 			// iteration time step
 			scalar dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
+			// use the gradient method for stt
+			bool stt_use_gradient = false;
 			// spin transfer torque vector
 			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
@@ -483,12 +572,12 @@ namespace Utility
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
 					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
+					myfile.Read_Single(dt, "llg_dt");
 					myfile.Read_Single(temperature, "llg_temperature");
 					myfile.Read_Single(damping, "llg_damping");
-					myfile.Read_Single(dt, "llg_dt");
-					// dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
-					dt = dt*std::pow(10, -12) / Constants::mu_B*1.760859644*std::pow(10, 11);
+					myfile.Read_Single(beta, "llg_beta");
 					myfile.Read_Single(renorm_sd, "llg_renorm");
+					myfile.Read_Single(stt_use_gradient, "llg_stt_use_gradient");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
@@ -510,9 +599,11 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
 			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        time step [ps]    = " + std::to_string(dt));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        time step         = " + std::to_string(dt));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        beta              = " + std::to_string(beta));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt use gradient  = " + std::to_string(stt_use_gradient));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
@@ -530,7 +621,8 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, beta, dt, renorm_sd,
+				stt_use_gradient, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
