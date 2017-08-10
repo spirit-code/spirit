@@ -335,8 +335,15 @@ namespace Engine
             cudaDeviceSynchronize();
 		}
 
-        // Utility function for the SIB Optimizer
-        __global__ void cu_get_random_vectorfield(scalar epsilon, Vector3 * xi, size_t N)
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        {
+            for (int dim = 0; dim < 3; ++dim)
+            {
+                vec[dim] = distribution(prng);
+            }
+        }
+        
+        __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
             unsigned long long offset= 0;
@@ -349,16 +356,68 @@ namespace Engine
                 curand_init(idx,subsequence,offset,&state);
                 for (int dim=0;dim<3; ++dim)
                 {
-                    xi[idx][dim] = epsilon*(llroundf(curand_uniform(&state))*2-1);
+                    xi[idx][dim] = llroundf(curand_uniform(&state))*2-1;
                 }
             }
         }
-		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+		void get_random_vectorfield(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi)
 		{
             int n = xi.size();
-            cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(epsilon, xi.data(), n);
+            cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
             cudaDeviceSynchronize();
 		}
+
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        {
+			scalar v_z = distribution(prng);
+			scalar phi = distribution(prng);
+
+			scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+			vec[0] = r_xy * std::cos(2*M_PI*phi);
+			vec[1] = r_xy * std::sin(2 * M_PI*phi);
+			vec[2] = v_z;
+        }
+        // __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
+        // {
+        //     unsigned long long subsequence = 0;
+        //     unsigned long long offset= 0;
+
+        //     curandState_t state;
+        //     for(int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        //         idx < N;
+        //         idx +=  blockDim.x * gridDim.x)
+        //     {
+        //         curand_init(idx,subsequence,offset,&state);
+			
+        //         scalar v_z = llroundf(curand_uniform(&state))*2-1;
+        //         scalar phi = llroundf(curand_uniform(&state))*2-1;
+
+		// 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+        //         xi[idx][0] = r_xy * std::cos(2*M_PI*phi);
+        //         xi[idx][1] = r_xy * std::sin(2 * M_PI*phi);
+        //         xi[idx][2] = v_z;
+        //     }
+        // }
+        // void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+        // {
+        //     int n = xi.size();
+        //     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
+        //     cudaDeviceSynchronize();
+        // }
+        // The above CUDA implementation does not work correctly.
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
+            #pragma omp parallel for
+            for (unsigned int i = 0; i < xi.size(); ++i)
+            {
+				get_random_vector_unitsphere(distribution, prng, xi[i]);
+            }
+        }
 
         int neigh_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Neighbour neigh)
         {
@@ -811,6 +870,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_add_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c*mask[idx]*a[idx];
+            }
+        }
+        // out[i] += c*a[i]
+        void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+        {
+            int n = out.size();
+            cu_add_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
             cudaDeviceSynchronize();
         }
 
