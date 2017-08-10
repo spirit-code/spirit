@@ -43,6 +43,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     connect(this->pushButton_X, SIGNAL(clicked()), this, SLOT(xPressed()));
     connect(this->pushButton_Y, SIGNAL(clicked()), this, SLOT(yPressed()));
     connect(this->pushButton_Z, SIGNAL(clicked()), this, SLOT(zPressed()));
+	connect(this->comboBox_Method, SIGNAL(currentIndexChanged(int)), this, SLOT(set_solver_enabled()));
 
 	// Image number
 	// We use a regular expression (regex) to filter the input into the lineEdits
@@ -61,7 +62,10 @@ void ControlWidget::updateData()
 	if ( Simulation_Running_Collection(state.get()) ||
 		 Simulation_Running_Chain(state.get())      ||
 		 Simulation_Running_Image(state.get())      )
+	{
 		this->pushButton_PlayPause->setText("Pause");
+		this->spinWidget->updateData();
+	}
 	else
 		this->pushButton_PlayPause->setText("Play");
 
@@ -366,6 +370,14 @@ void ControlWidget::save_Energies()
 		auto file = string_q2std(fileName);
 		IO_Write_Chain_Energies(this->state.get(), file.c_str());
 	}
+}
+
+void ControlWidget::set_solver_enabled()
+{
+	if (this->comboBox_Method->currentText() == "MC")
+		this->comboBox_Optimizer->setEnabled(false);
+	else
+		this->comboBox_Optimizer->setEnabled(true);
 }
 
 void ControlWidget::save_EPressed()

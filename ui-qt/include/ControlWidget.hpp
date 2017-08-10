@@ -49,6 +49,7 @@ private slots:
     void yPressed();
     void zPressed();
 	void save_EPressed();
+	void set_solver_enabled();
 
 private:
 	void updateOthers();

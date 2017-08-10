@@ -1,5 +1,4 @@
 #include <data/Spin_System_Chain_Collection.hpp>
-#include <engine/Optimizer.hpp>
 #include <engine/Method.hpp>
 #include <utility/Timing.hpp>
 
@@ -12,7 +11,6 @@
 */
 struct Simulation_Information
 {
-	std::shared_ptr<Engine::Optimizer> optimizer;
 	std::shared_ptr<Engine::Method> method;
 };
 

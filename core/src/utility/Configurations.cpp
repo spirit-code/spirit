@@ -21,6 +21,20 @@ namespace Utility
 {
 	namespace Configurations
 	{
+		void filter_to_mask(const vectorfield & spins, const vectorfield & spin_pos, filterfunction filter, intfield & mask)
+		{
+			int nos = spins.size();
+			mask = intfield(nos, 0);
+
+			for (unsigned int iatom = 0; iatom < mask.size(); ++iatom)
+			{
+				if (filter(spins[iatom], spin_pos[iatom]))
+				{
+					mask[iatom] = 1;
+				}
+			}
+		}
+
 		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc)
 		{
 			int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
@@ -70,7 +84,7 @@ namespace Utility
 
 			auto& spins = *s.spins;
 			auto& spin_pos = s.geometry->spin_pos;
-
+			
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
 				if (filter(spins[iatom], spin_pos[iatom]))
@@ -85,12 +99,13 @@ namespace Utility
 			auto& spins = *s.spins;
 			auto& spin_pos = s.geometry->spin_pos;
 
+			auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
 			if (!external) {
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
 					if (filter(spins[iatom], spin_pos[iatom]))
 					{
-						Random(s, iatom, s.llg_parameters->prng);
+						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
 				}
 			}
@@ -100,31 +115,11 @@ namespace Utility
 				{
 					if (filter(spins[iatom], spin_pos[iatom]))
 					{
-						Random(s, iatom, prng);
+						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
 				}
 			}
 		}
-
-		void Random(Data::Spin_System & s, int no, std::mt19937 & prng)
-		{
-			auto& spins = *s.spins;
-			Vector3 v = { 0, 0, 0 };			// declare v= 0,0,0
-			while (true)
-			{
-				for (int dim = 0; dim < 3; ++dim) {		// use spin_system's PRNG
-					v[dim] = s.llg_parameters->distribution_minus_plus_one(prng);		// roll random for v in 3 dimensions
-				}
-				try {
-					v.normalize();	// try normalizing v
-					spins[no] = v;	// copy normalized v into spins array
-					return;			// normalizing worked -> return function
-				}
-				catch (Exception ex) {
-					if (ex != Exception::Division_by_zero) { throw(ex); }				// throw everything except division by zero
-				}
-			}
-		}// end Random
 
 
 		void Add_Noise_Temperature(Data::Spin_System & s, scalar temperature, int delta_seed, filterfunction filter)
@@ -133,39 +128,23 @@ namespace Utility
 
 			auto& spins = *s.spins;
 			auto& spin_pos = s.geometry->spin_pos;
+			vectorfield xi(spins.size());
+			intfield mask;
 
-			Vector3 v = { 0, 0, 0 };
-			auto epsilon = std::sqrt(2.0*s.llg_parameters->damping / (1.0 + std::pow(s.llg_parameters->damping, 2))*temperature*Constants::k_B);
+			filter_to_mask(spins, spin_pos, filter, mask);
+
+			scalar epsilon = std::sqrt(temperature*Constants::k_B);
 			
 			std::mt19937 * prng;
 			if (delta_seed!=0) prng = new std::mt19937(123456789+delta_seed);
 			else prng = &s.llg_parameters->prng;
 
-			for (int i = 0; i < s.nos; ++i)
-			{
-				if (filter(spins[i], spin_pos[i]))
-				{
-					while (true)
-					{
-						for (int dim = 0; dim < 3; ++dim)
-						{		// use spin_system's PRNG
-							v[dim] = s.llg_parameters->distribution_minus_plus_one(*prng) * epsilon;		// roll random for v in 3 dimensions
-						}
-						try
-						{
-							scalar l = v.norm();
-							//Vectormath::Normalize(v);			// try normalizing v
-							(*s.spins)[i] += v;// copy normalized v into spins array
-							break;									// normalizing worked -> return function
-						}
-						catch (Exception ex)
-						{
-							if (ex != Exception::Division_by_zero) throw(ex);				// throw everything except division by zero
-						}
-					}
-				}
-			}
-			for (auto& v : *s.spins) v.normalize();
+			auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+
+			Engine::Vectormath::get_random_vectorfield_unitsphere(*prng, xi);
+			Engine::Vectormath::scale(xi, epsilon);
+			Engine::Vectormath::add_c_a(1, xi, *s.spins, mask);
+			Engine::Vectormath::normalize_vectors(*s.spins);
 		}
 
 		void Hopfion(Data::Spin_System & s, Vector3 pos, scalar r, int order, filterfunction filter)
@@ -390,7 +369,6 @@ namespace Utility
 
 		void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta, filterfunction filter)
 		{
-			scalar phase;
 			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
 			Vector3 e1, e2;
 			Vector3 qm, qk;

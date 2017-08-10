@@ -52,6 +52,14 @@ Work on unit testing and documentation.<br />
 -----------------
 
 
+### Constantin Disselkamp
+* RWTH Aachen 
+
+Implementation and testing of gradient approximation of spin transfer torque.<br />
+
+-----------------
+
+
 ### Ingo Heimbach
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 

@@ -10,6 +10,10 @@
 #include <array>
 #include <algorithm>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace Engine
 {
     namespace Vectormath
@@ -123,23 +127,121 @@ namespace Engine
                 scalar detAi = 1.0 / (1 + pow(A.norm(), 2.0));
 
                 // calculate equation without the predictor?
-                Vector3 a2 = spins[i] + spins[i].cross(A);
+                Vector3 a2 = spins[i] - spins[i].cross(A);
 
-                out[i][0] = (a2[0] * (1 + A[0] * A[0])    + a2[1] * (A[0] * A[1] + A[2]) + a2[2] * (A[0] * A[2] - A[1]))*detAi;
-                out[i][1] = (a2[0] * (A[1] * A[0] - A[2]) + a2[1] * (1 + A[1] * A[1])    + a2[2] * (A[1] * A[2] + A[0]))*detAi;
-                out[i][2] = (a2[0] * (A[2] * A[0] + A[1]) + a2[1] * (A[2] * A[1] - A[0]) + a2[2] * (1 + A[2] * A[2]))*detAi;
+                out[i][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
+                out[i][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
+                out[i][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
             }
         }
-        void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-            #pragma omp parallel for collapse(2)
-            for (int i = 0; i < sys.nos; ++i)
+            for (int dim = 0; dim < 3; ++dim)
             {
-                for (int dim = 0; dim < 3; ++dim)
+                vec[dim] = distribution(prng);
+            }
+        }
+        void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
+            #pragma omp parallel for collapse(2)
+            for (unsigned int i = 0; i < xi.size(); ++i)
+            {
+                get_random_vector(distribution, prng, xi[i]);
+            }
+        }
+
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        {
+			scalar v_z = distribution(prng);
+			scalar phi = distribution(prng);
+
+			scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+			vec[0] = r_xy * std::cos(2*M_PI*phi);
+			vec[1] = r_xy * std::sin(2 * M_PI*phi);
+			vec[2] = v_z;
+        }
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
+            #pragma omp parallel for collapse(2)
+            for (unsigned int i = 0; i < xi.size(); ++i)
+            {
+				get_random_vector_unitsphere(distribution, prng, xi[i]);
+            }
+        }
+
+        
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
+        {
+            // std::cout << "start gradient" << std::endl;
+            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+            auto& n_cells = geometry.n_cells;
+
+            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.translation_vectors[1];
+            Vector3 c = geometry.translation_vectors[2];
+
+            neighbourfield neigh;
+
+            // TODO: calculate Neighbours outside iterations
+            // Neighbours::get_Neighbours(geometry, neigh);
+
+            // TODO: proper usage of neighbours
+            // Hardcoded neighbours - for spin current in a rectangular lattice
+            neigh = neighbourfield(0);
+            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
+            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
+            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+
+            // difference quotients in different directions
+            Vector3 diffq, diffqx, diffqy, diffqz;
+
+            // Loop over vectorfield
+            for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
+            {
+                auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
+                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                scalar n = 0;
+
+                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
+                
+                for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
-                    // PRNG gives RN int [0,1] -> [-1,1] -> multiply with epsilon
-                    xi[i][dim] = epsilon*(sys.llg_parameters->distribution_int(sys.llg_parameters->prng) * 2 - 1);
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        
+                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
+                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
+
+                        // difference quotient in direction of the neighbour
+                        diffq = ( vf[ineigh] - vf[ispin] ) / translationVec3.norm();
+
+                        // projection of difference quotient in euclidian space
+                        diffqx += translationVec3[0]*diffq;
+                        diffqy += translationVec3[1]*diffq;
+                        diffqz += translationVec3[2]*diffq;
+                        
+                        // boundary conditions considered
+                        n += 1;
+                    }
                 }
+
+                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
+
+
+                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
             }
         }
 
@@ -304,77 +406,83 @@ namespace Engine
 
 
         // out[i] += c*a
-        void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+        void add_c_a(const scalar & c, const Vector3 & vec, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a;
+                out[idx] += c*vec;
         }
         // out[i] += c*a[i]
-        void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a[idx];
+                out[idx] += c*vf[idx];
         }
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
+		{
+			#pragma omp parallel for
+			for (unsigned int idx = 0; idx < out.size(); ++idx)
+				out[idx] += mask[idx] * c*vf[idx];
+		}
         // out[i] += c[i]*a[i]
-        void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
             #pragma omp parallel for
             for( unsigned int idx = 0; idx < out.size(); ++idx )
-                out[idx] += c[idx] * a[idx];
+                out[idx] += c[idx] * vf[idx];
         }
 
         // out[i] = c*a
-        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out)
+        void set_c_a(const scalar & c, const Vector3 & vec, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = c*a;
+                out[idx] = c*vec;
         }
         // out[i] = c*a
-        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
+        void set_c_a(const scalar & c, const Vector3 & vec, vectorfield & out, const intfield & mask)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = mask[idx]*c*a;
+                out[idx] = mask[idx]*c*vec;
         }
 
         // out[i] = c*a[i]
-        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out)
+        void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = c*a[idx];
+                out[idx] = c*vf[idx];
         }
         // out[i] = c*a[i]
-        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+        void set_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] = mask[idx] * c*a[idx];
+                out[idx] = mask[idx] * c*vf[idx];
         }
         // out[i] = c[i]*a[i]
-        void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
+        void set_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
             #pragma omp parallel for
             for( unsigned int idx=0; idx < out.size(); ++idx)
-                out[idx] = c[idx] * a[idx];
+                out[idx] = c[idx] * vf[idx];
         }
 
         // out[i] += c * a*b[i]
-        void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out)
+        void add_c_dot(const scalar & c, const Vector3 & vec, const vectorfield & vf, scalarfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a.dot(b[idx]);
+                out[idx] += c*vec.dot(vf[idx]);
         }
         // out[i] += c * a[i]*b[i]
-        void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out)
+        void add_c_dot(const scalar & c, const vectorfield & vf1, const vectorfield & vf2, scalarfield & out)
         {
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
-                out[idx] += c*a[idx].dot(b[idx]);
+                out[idx] += c*vf1[idx].dot(vf2[idx]);
         }
 
         // out[i] = c * a*b[i]

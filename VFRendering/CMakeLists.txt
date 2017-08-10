@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VFRendering VERSION 0.6.1)
+project(VFRendering VERSION 0.7.0)
 
 option(BUILD_DEMO "Whether or not a demo executable should be built" OFF)
 
@@ -91,7 +91,6 @@ set(HEADER_FILES
 )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-add_dependencies(${PROJECT_NAME} ${qhull_LIBS})
 target_link_libraries(${PROJECT_NAME} ${qhull_LIBS})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
@@ -110,8 +109,11 @@ install(DIRECTORY include/VFRendering DESTINATION include)
 if (BUILD_DEMO)
 add_executable(${PROJECT_NAME}Demo demo.cxx)
 target_link_libraries(${PROJECT_NAME}Demo ${PROJECT_NAME})
+if (${UNIX})
+target_link_libraries(${PROJECT_NAME}Demo dl)
+endif(${UNIX})
 
-find_package(glfw3 3.2 REQUIRED)
+find_package(glfw3 3 REQUIRED)
 target_link_libraries(${PROJECT_NAME}Demo glfw)
 
 set_property(TARGET ${PROJECT_NAME}Demo PROPERTY CXX_STANDARD 11)

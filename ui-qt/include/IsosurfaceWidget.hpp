@@ -2,7 +2,7 @@
 #ifndef ISOSURFACEWIDGET_H
 #define ISOSURFACEWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 
@@ -42,6 +42,7 @@ private slots:
 	void slot_setIsovalue_slider();
 	void slot_setIsovalue_lineedit();
 	void slot_setIsocomponent();
+	void slot_setTriangleNormal();
 
 private:
 	void setupSlots();

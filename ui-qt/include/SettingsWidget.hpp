@@ -2,7 +2,7 @@
 #ifndef SETTINGSWIDGET_H
 #define SETTINGSWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
 #include <memory>
 

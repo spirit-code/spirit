@@ -130,6 +130,23 @@ void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_itera
 
 
 // Set LLG Simulation Parameters
+void Parameters_Set_LLG_Direct_Minimization(State *state, bool direct, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+	image->Lock();
+    auto p = image->llg_parameters;
+    p->direct_minimization = direct;
+	image->Unlock();
+
+    if (direct)
+	    Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Set LLG solver to direct minimization", idx_image, idx_chain);
+    else
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Set LLG solver to dynamics", idx_image, idx_chain);
+}
+
 void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -231,7 +248,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
 	image->Unlock();
 }
 
-void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal, int idx_image, int idx_chain)
+void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -249,6 +266,8 @@ void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal,
     
 	image->Lock();
 
+    // Gradient or monolayer
+    //image->llg_parameters->stt_use_gradient = use_gradient;
     // Magnitude
     image->llg_parameters->stt_magnitude = magnitude;
     // Normal
@@ -435,7 +454,7 @@ void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int idx_image
     
 	image->Lock();
 
-    image->mc_parameters->acceptance_ratio = ratio;
+    image->mc_parameters->acceptance_ratio_target = ratio;
 
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
         "Set MC acceptance ratio to " + std::to_string(ratio), idx_image, idx_chain);
@@ -778,6 +797,16 @@ void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * itera
 }
 
 // Get LLG Simulation Parameters
+bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto p = image->llg_parameters;
+    return p->direct_minimization;
+}
+
 float Parameters_Get_LLG_Convergence(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -857,11 +886,11 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     return (float)image->llg_parameters->temperature;
 }
 
-void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int idx_image, int idx_chain)
+void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float * normal, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+ 
     // Fetch correct indices and pointers
     try
     {
@@ -873,6 +902,9 @@ void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int
         return ;
     }
     
+    // Gradient or monolayer
+    //*use_gradient = image->llg_parameters->stt_use_gradient;
+
     // Magnitude
     *magnitude = (float)image->llg_parameters->stt_magnitude;
     // Normal
@@ -1025,8 +1057,8 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
         Utility::Handle_exception( ex, idx_image, idx_chain );
         return 0;
     }
-    
-    return (float)image->mc_parameters->acceptance_ratio;
+
+    return (float)image->mc_parameters->acceptance_ratio_target;
 }
 
 /*------------------------------------------------------------------------------------------------------ */

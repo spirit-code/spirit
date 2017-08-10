@@ -128,10 +128,17 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="2">
+   <item row="4" column="2">
     <widget class="QPushButton" name="pushButton_remove">
      <property name="text">
       <string>Remove this Isosurface</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QCheckBox" name="checkBox_invert_lighting">
+     <property name="text">
+      <string>Invert triangle normals (lighting)</string>
      </property>
     </widget>
    </item>

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <array>
+#include <random>
 
 namespace Data
 {
@@ -16,10 +17,8 @@ namespace Data
 	public:
 		// Constructor
 		Parameters_Method(std::string output_folder, std::array<bool,4> output,
-			scalar force_convergence,
-			long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec,
-			std::shared_ptr<Pinning> pinning);
+			long int n_iterations, long int n_iterations_log, long int max_walltime_sec,
+			std::shared_ptr<Pinning> pinning, scalar force_convergence);
 
 		// Data output folder
 		std::string output_folder;
@@ -33,9 +32,6 @@ namespace Data
 		// Save output at final state
 		bool output_final;
 
-		// Force convergence criterium
-		scalar force_convergence;
-
 		// Maximum walltime for Iterate in seconds
 		long int max_walltime_sec;
 
@@ -44,7 +40,11 @@ namespace Data
 		// Number of iterations after which the Method should save data
 		long int n_iterations_log;
 
+		// Info on pinned spins
 		std::shared_ptr<Pinning> pinning;
+
+		// Force convergence criterium
+		scalar force_convergence;
 	};
 }
 #endif

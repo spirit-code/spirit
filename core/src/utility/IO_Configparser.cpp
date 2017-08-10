@@ -535,10 +535,14 @@ namespace Utility
 			scalar temperature = 0.0;
 			// Damping constant
 			scalar damping = 0.5;
+			// non-adiabatic parameter
+			scalar beta = 0.0;
 			// iteration time step
 			scalar dt = 1.0E-02;
 			// Whether to renormalize spins after every SD iteration
 			bool renorm_sd = 1;
+			// use the gradient method for stt
+			bool stt_use_gradient = false;
 			// spin transfer torque vector
 			scalar stt_magnitude = 1.5;
 			// spin_current polarisation normal vector
@@ -568,10 +572,12 @@ namespace Utility
 					myfile.Read_Single(seed, "llg_seed");
 					myfile.Read_Single(n_iterations, "llg_n_iterations");
 					myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
+					myfile.Read_Single(dt, "llg_dt");
 					myfile.Read_Single(temperature, "llg_temperature");
 					myfile.Read_Single(damping, "llg_damping");
-					myfile.Read_Single(dt, "llg_dt");
+					myfile.Read_Single(beta, "llg_beta");
 					myfile.Read_Single(renorm_sd, "llg_renorm");
+					myfile.Read_Single(stt_use_gradient, "llg_stt_use_gradient");
 					myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
 					myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 					myfile.Read_Single(force_convergence, "llg_force_convergence");
@@ -593,9 +599,11 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
 			Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
 			Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        time step [ps]    = " + std::to_string(dt));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        time step [ps]    = " + std::to_string(dt));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        beta              = " + std::to_string(beta));
+			Log(Log_Level::Parameter, Log_Sender::IO, "        stt use gradient  = " + std::to_string(stt_use_gradient));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
 			Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
@@ -613,7 +621,8 @@ namespace Utility
 			Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 			auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, dt, renorm_sd, stt_magnitude, stt_polarisation_normal));
+				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, beta, dt, renorm_sd,
+				stt_use_gradient, stt_magnitude, stt_polarisation_normal));
 			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
 			return llg_params;
 		}// end Parameters_Method_LLG_from_Config
