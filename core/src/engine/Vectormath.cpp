@@ -147,7 +147,7 @@ namespace Engine
             // PRNG gives RN [-1,1] -> multiply with epsilon
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
             // TODO: parallelization of this is actually not quite so trivial
-            #pragma omp parallel for collapse(2)
+            #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
                 get_random_vector(distribution, prng, xi[i]);
@@ -170,7 +170,7 @@ namespace Engine
             // PRNG gives RN [-1,1] -> multiply with epsilon
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
             // TODO: parallelization of this is actually not quite so trivial
-            #pragma omp parallel for collapse(2)
+            #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
 				get_random_vector_unitsphere(distribution, prng, xi[i]);
