@@ -1,13 +1,25 @@
 #include <Spirit/Quantities.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// image->Lock();
     auto mag = Engine::Vectormath::Magnetization(*image->spins);
 	// image->Unlock();
@@ -20,8 +32,18 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
 	// image->Lock();
     scalar charge = Engine::Vectormath::TopologicalCharge(*image->spins);
 	// image->Unlock();

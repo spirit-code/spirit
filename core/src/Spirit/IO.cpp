@@ -7,6 +7,8 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/IO.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <memory>
 #include <string>
@@ -22,7 +24,17 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
 
 	// Create System (and lock it)
 	std::shared_ptr<Data::Spin_System> system = Utility::IO::Spin_System_from_Config(std::string(file));
@@ -59,8 +71,17 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
     // Read the data
 	image->Lock();
 	Utility::IO::Read_Spin_Configuration(image, std::string(file), Utility::IO::VectorFileFormat(format));
@@ -74,8 +95,18 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	image->Lock();
 	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), false);
@@ -89,8 +120,18 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	image->Lock();
 	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), true);
@@ -110,8 +151,18 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Read the data
 	chain->Lock();
 	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
@@ -139,8 +190,18 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Read the data
 	chain->Lock();
 	Utility::IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
@@ -176,8 +237,18 @@ void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_c
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	Utility::IO::Write_System_Energy_per_Spin(*image, std::string(file));
 }
@@ -187,8 +258,18 @@ void IO_Write_System_Energy(State * state, const char * file, int idx_image, int
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	Utility::IO::Write_System_Energy(*image, std::string(file));
 }
@@ -199,8 +280,18 @@ void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain)
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	Utility::IO::Write_Chain_Energies(*chain, idx_chain, std::string(file));
 }
@@ -211,8 +302,18 @@ void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int 
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Write the data
 	Utility::IO::Write_Chain_Energies_Interpolated(*chain, std::string(file));
 }

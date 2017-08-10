@@ -36,21 +36,14 @@ bool Chain_next_Image(State * state, int idx_chain_i)
     }
     
     // Apply
-    if ( idx_image < chain->noi-1 )
-    {
-        ++chain->idx_active_image;
-        State_Update(state);
-        Log(Utility::Log_Level::Debug, Utility::Log_Sender::API,
-            "Switched to next image " + std::to_string(chain->idx_active_image+1) + " of " + 
-            std::to_string(chain->noi), chain->idx_active_image, idx_chain );
-        return true;
-    }
-    else
-    {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API,
-            "Tried to switch to next image.", chain->idx_active_image, idx_chain);
-        return false;
-    }
+    ++chain->idx_active_image;
+    State_Update(state);
+    
+    Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
+         "Switched to next image " + std::to_string(chain->idx_active_image+1) + " of " + 
+         std::to_string(chain->noi), chain->idx_active_image, idx_chain );
+    
+    return true;
 }
 
 bool Chain_prev_Image(State * state, int idx_chain_i)
@@ -104,18 +97,14 @@ bool Chain_Jump_To_Image(State * state, int idx_image_i, int idx_chain_i)
         return false;
     }
     
-    // Apply
-    if ( idx_image >= 0 && idx_image < chain->noi )
-    {
-        chain->idx_active_image = idx_image;
-        State_Update(state);
-        Log(Utility::Log_Level::Debug, Utility::Log_Sender::API,
-            "Jumped to image " + std::to_string(chain->idx_active_image+1) + " of " + 
-            std::to_string(chain->noi), idx_image, idx_chain );
-        return true;
-    }
-
-    return false;
+    chain->idx_active_image = idx_image;
+    State_Update( state );
+    
+    Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
+         "Jumped to image " + std::to_string( chain->idx_active_image + 1 ) + " of " + 
+         std::to_string( chain->noi ), idx_image, idx_chain );
+    
+    return true;
 }
 
 void Chain_Image_to_Clipboard(State * state, int idx_image_i, int idx_chain_i)

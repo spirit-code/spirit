@@ -14,6 +14,7 @@
 #include <engine/Method_GNEB.hpp>
 #include <engine/Method_MMF.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_optimizer_type, 
@@ -26,8 +27,18 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
      // Determine the method and chain(s) or image(s) involved
     std::shared_ptr<Engine::Method> method;
     std::shared_ptr<Engine::Optimizer> optim;
@@ -130,8 +141,18 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);    
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    } 
+    
     // Determine wether to stop or start a simulation
     if (image->iteration_allowed)
     {
@@ -327,7 +348,17 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
 
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
@@ -354,7 +385,18 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 	// Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
 
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
@@ -381,7 +423,18 @@ const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_
     // Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
 
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
@@ -407,8 +460,18 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
     // Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
     if (Simulation_Running_Image(state, idx_image, idx_chain))
 	{
 		if (state->simulation_information_image[idx_chain][idx_image])
@@ -435,8 +498,18 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
     // Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return false;
+    }
+    
     if (image->iteration_allowed) return true;
     else return false;
 }
@@ -447,8 +520,18 @@ bool Simulation_Running_Chain(State *state, int idx_chain)
     // Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return false;
+    }
+    
     if (state->collection->chains[idx_chain]->iteration_allowed) return true;
     else return false;
 }
@@ -466,8 +549,18 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
     // Fetch correct indices and pointers for image and chain
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return false;
+    }
+    
     if (Simulation_Running_Chain(state, idx_chain)) return true;
     for (int i=0; i<chain->noi; ++i)
         if (Simulation_Running_Image(state, i, idx_chain)) return true;

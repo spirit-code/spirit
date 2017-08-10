@@ -3,6 +3,8 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Configurations.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 #include <cmath>
 
@@ -106,7 +108,17 @@ void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
 	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -117,7 +129,18 @@ void Configuration_From_Clipboard(State *state, const float position[3], const f
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -141,7 +164,17 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return false;
+    }
 
 	// Get relative position
 	Vector3 pos_initial{ position_initial[0], position_initial[1], position_initial[2] };
@@ -189,7 +222,18 @@ void Configuration_Domain(State *state, const float direction[3], const float po
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -234,7 +278,17 @@ void Configuration_PlusZ(State *state, const float position[3], const float r_cu
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -259,7 +313,17 @@ void Configuration_MinusZ(State *state, const float position[3], const float r_c
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -284,7 +348,17 @@ void Configuration_Random(State *state, const float position[3], const float r_c
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2]};
@@ -308,7 +382,17 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, const 
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -332,7 +416,17 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -361,7 +455,17 @@ void Configuration_Skyrmion(State *state, float r, float order, float phase, boo
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
@@ -394,8 +498,18 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };
 	Vector3 vpos = image->geometry->center + _pos;
@@ -425,7 +539,17 @@ void Configuration_SpinSpiral_2q(State *state, const char * direction_type, floa
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Get relative position
 	Vector3 _pos{ position[0], position[1], position[2] };

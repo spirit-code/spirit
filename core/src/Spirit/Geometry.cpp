@@ -1,12 +1,26 @@
 #include <Spirit/Geometry.h>
 #include <data/State.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     return (scalar *)image->geometry->spin_pos[0].data();
 }
 
@@ -14,8 +28,20 @@ int * Geometry_Get_Atom_Types(State * state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers 
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+        
     return (int *)image->geometry->atom_types.data();
 }
 
@@ -23,8 +49,20 @@ void Geometry_Get_Bounds(State *state, float min[3], float max[3], int idx_image
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+        
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -38,8 +76,20 @@ void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_c
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+        
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -51,8 +101,19 @@ void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3], int idx_
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -66,8 +127,20 @@ void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3]
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -89,8 +162,20 @@ int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return false;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     return image->geometry->n_spins_basic_domain;
 }
 
@@ -99,8 +184,20 @@ void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_c
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     auto g = image->geometry;
     n_cells[0] = g->n_cells[0];
 	n_cells[1] = g->n_cells[1];
@@ -111,8 +208,20 @@ void Geometry_Get_Translation_Vectors(State *state, float ta[3], float tb[3], fl
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -126,8 +235,20 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    
 	auto g = image->geometry;
 	return g->dimensionality;
 }
@@ -137,8 +258,19 @@ int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_ce
 {
   std::shared_ptr<Data::Spin_System> image;
   std::shared_ptr<Data::Spin_System_Chain> chain;
-  from_indices(state, idx_image, idx_chain, image, chain);
-
+  // Fetch correct indices and pointers
+  try
+  {
+      from_indices( state, idx_image, idx_chain, image, chain );
+  }
+  catch( const Utility::Exception & ex )
+  {
+      Utility::Handle_exception( ex, idx_image, idx_chain );
+      return 0;
+  }
+  
+  // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+  
   auto g = image->geometry;
   auto& tetrahedra = g->triangulation(n_cell_step);
   if (indices_ptr != nullptr) {

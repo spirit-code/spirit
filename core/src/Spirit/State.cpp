@@ -247,8 +247,7 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
         throw Exception::Non_existing_Chain;
     
     // Chain
-    if ( idx_chain < 0 || idx_chain == state->idx_active_chain || 
-         idx_chain >= state->collection->noc )
+    if ( idx_chain < 0 || idx_chain == state->idx_active_chain )
     {
         chain = state->active_chain;
         idx_chain = state->idx_active_chain;
@@ -265,7 +264,7 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
     
     // Image
     if ( idx_chain == state->idx_active_chain && 
-         (idx_image < 0 || idx_image == state->idx_active_image || idx_image >= chain->noi ) )
+        (idx_image < 0 || idx_image == state->idx_active_image ) )
     {
         image = state->active_image;
         idx_image = state->idx_active_image;

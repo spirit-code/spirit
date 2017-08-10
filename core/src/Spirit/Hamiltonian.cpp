@@ -9,6 +9,8 @@
 #include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <utility/Constants.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 
 using namespace Utility;
 
@@ -20,7 +22,17 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
     image->Lock();
 
@@ -38,7 +50,17 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	image->Lock();
 
@@ -67,7 +89,17 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	// Lock mutex because simulations may be running
 	image->Lock();
@@ -144,7 +176,17 @@ void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float * nor
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	image->Lock();
 
@@ -217,7 +259,17 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
 	image->Lock();
 
@@ -274,8 +326,17 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 	image->Lock();
 
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
@@ -337,8 +398,17 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 	image->Lock();
 
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
@@ -405,8 +475,18 @@ const char * Hamiltonian_Get_Name(State * state, int idx_image, int idx_chain)
 {
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
 	return image->hamiltonian->Name().c_str();
 }
 
@@ -414,8 +494,18 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int id
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     periodical[0] = image->hamiltonian->boundary_conditions[0];
     periodical[1] = image->hamiltonian->boundary_conditions[1];
     periodical[2] = image->hamiltonian->boundary_conditions[2];
@@ -425,8 +515,18 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
@@ -445,8 +545,18 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
@@ -497,8 +607,18 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
@@ -549,8 +669,18 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
@@ -573,7 +703,17 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
 
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
@@ -596,8 +736,18 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
     {
         auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();

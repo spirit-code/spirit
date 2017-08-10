@@ -2,6 +2,9 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
+#include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
+
 
 using namespace Utility;
 
@@ -14,8 +17,18 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     image->llg_parameters->output_folder = folder;
 	image->Unlock();
@@ -28,8 +41,18 @@ void Parameters_Set_LLG_Output_General(State *state, bool any, bool initial, boo
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     image->llg_parameters->output_any = any;
     image->llg_parameters->output_initial = initial;
@@ -41,8 +64,18 @@ void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, bool energ
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->llg_parameters->output_energy_step = energy_step;
     image->llg_parameters->output_energy_archive = energy_archive;
@@ -55,8 +88,18 @@ void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_st
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->llg_parameters->output_configuration_step = configuration_step;
     image->llg_parameters->output_configuration_archive = configuration_archive;
@@ -67,8 +110,18 @@ void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_itera
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->llg_parameters->n_iterations = n_iterations;
     image->llg_parameters->n_iterations_log = n_iterations_log;
@@ -81,8 +134,18 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     auto p = image->llg_parameters;
     p->force_convergence = convergence;
@@ -96,8 +159,18 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     auto p = image->llg_parameters;
     p->dt = dt;
@@ -111,8 +184,18 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     auto p = image->llg_parameters;
     p->damping = damping;
@@ -126,8 +209,18 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
 
     image->llg_parameters->temperature = T;
@@ -142,8 +235,18 @@ void Parameters_Set_LLG_STT(State *state, float magnitude, const float * normal,
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
 
     // Magnitude
@@ -175,8 +278,18 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     image->mc_parameters->output_folder = folder;
 	image->Unlock();
@@ -189,8 +302,18 @@ void Parameters_Set_MC_Output_General(State *state, bool any, bool initial, bool
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     image->mc_parameters->output_any = any;
     image->mc_parameters->output_initial = initial;
@@ -202,8 +325,18 @@ void Parameters_Set_MC_Output_Energy(State *state, bool energy_step, bool energy
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->mc_parameters->output_energy_step = energy_step;
     image->mc_parameters->output_energy_archive = energy_archive;
@@ -216,8 +349,18 @@ void Parameters_Set_MC_Output_Configuration(State *state, bool configuration_ste
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->mc_parameters->output_configuration_step = configuration_step;
     image->mc_parameters->output_configuration_archive = configuration_archive;
@@ -228,8 +371,18 @@ void Parameters_Set_MC_N_Iterations(State *state, int n_iterations, int n_iterat
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
     
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+        
 	image->Lock();
     image->mc_parameters->n_iterations = n_iterations;
     image->mc_parameters->n_iterations_log = n_iterations_log;
@@ -242,8 +395,18 @@ void Parameters_Set_MC_Temperature(State *state, float T, int idx_image, int idx
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
 
     image->mc_parameters->temperature = T;
@@ -258,8 +421,18 @@ void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int idx_image
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
 
     image->mc_parameters->acceptance_ratio = ratio;
@@ -280,8 +453,18 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->gneb_parameters->output_folder = folder;
 	chain->Unlock();
@@ -292,8 +475,18 @@ void Parameters_Set_GNEB_Output_General(State *state, bool any, bool initial, bo
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->gneb_parameters->output_any = any;
     chain->gneb_parameters->output_initial = initial;
@@ -306,8 +499,18 @@ void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_step, bool 
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->gneb_parameters->output_energies_step = energies_step;
     chain->gneb_parameters->output_energies_interpolated = energies_interpolated;
@@ -320,8 +523,18 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->gneb_parameters->output_chain_step = chain_step;
 	chain->Unlock();
@@ -332,8 +545,18 @@ void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int n_iter
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->gneb_parameters->n_iterations = n_iterations;
     chain->gneb_parameters->n_iterations_log = n_iterations_log;
@@ -345,8 +568,18 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	image->Lock();
     auto p = chain->gneb_parameters;
     p->force_convergence = convergence;
@@ -360,8 +593,18 @@ void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, in
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     auto p = chain->gneb_parameters;
     p->spring_constant = spring_constant;
@@ -375,8 +618,18 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	chain->Lock();
     chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>(image_type);
 	chain->Unlock();
@@ -390,8 +643,18 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
     int idx_image=-1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
 	for (int img = 1; img < chain->noi - 1; ++img)
 	{
 		scalar E0 = chain->images[img-1]->E;
@@ -415,8 +678,18 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
     return image->llg_parameters->output_folder.c_str();
 }
 
@@ -424,8 +697,18 @@ void Parameters_Get_LLG_Output_General(State *state, bool * any, bool * initial,
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *any = image->llg_parameters->output_any;
     *initial = image->llg_parameters->output_initial;
     *final = image->llg_parameters->output_final;
@@ -435,8 +718,18 @@ void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step, bool * e
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *energy_step = image->llg_parameters->output_energy_step;
     *energy_archive = image->llg_parameters->output_energy_archive;
     *energy_spin_resolved = image->llg_parameters->output_energy_spin_resolved;
@@ -447,8 +740,18 @@ void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *configuration_step = image->llg_parameters->output_configuration_step;
     *configuration_archive = image->llg_parameters->output_configuration_archive;
 }
@@ -457,8 +760,18 @@ void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * itera
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     auto p = image->llg_parameters;
     *iterations = p->n_iterations;
     *iterations_log = p->n_iterations_log;
@@ -469,8 +782,18 @@ float Parameters_Get_LLG_Convergence(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     auto p = image->llg_parameters;
     return (float)p->force_convergence;
 }
@@ -479,8 +802,18 @@ float Parameters_Get_LLG_Time_Step(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     auto p = image->llg_parameters;
     return (float)p->dt;
 }
@@ -489,8 +822,18 @@ float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     auto p = image->llg_parameters;
     return (float)p->damping;
 }
@@ -499,8 +842,18 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     return (float)image->llg_parameters->temperature;
 }
 
@@ -508,8 +861,18 @@ void Parameters_Get_LLG_STT(State *state, float * magnitude, float * normal, int
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     // Magnitude
     *magnitude = (float)image->llg_parameters->stt_magnitude;
     // Normal
@@ -528,8 +891,18 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
     return image->mc_parameters->output_folder.c_str();
 }
 
@@ -537,8 +910,18 @@ void Parameters_Get_MC_Output_General(State *state, bool * any, bool * initial, 
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *any = image->mc_parameters->output_any;
     *initial = image->mc_parameters->output_initial;
     *final = image->mc_parameters->output_final;
@@ -548,8 +931,18 @@ void Parameters_Get_MC_Output_Energy(State *state, bool * energy_step, bool * en
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *energy_step = image->mc_parameters->output_energy_step;
     *energy_archive = image->mc_parameters->output_energy_archive;
     *energy_spin_resolved = image->mc_parameters->output_energy_spin_resolved;
@@ -560,8 +953,18 @@ void Parameters_Get_MC_Output_Configuration(State *state, bool * configuration_s
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *configuration_step = image->mc_parameters->output_configuration_step;
     *configuration_archive = image->mc_parameters->output_configuration_archive;
 }
@@ -570,8 +973,18 @@ void Parameters_Get_MC_N_Iterations(State *state, int * iterations, int * iterat
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     auto p = image->mc_parameters;
     *iterations = p->n_iterations;
     *iterations_log = p->n_iterations_log;
@@ -582,8 +995,18 @@ float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     return (float)image->mc_parameters->temperature;
 }
 
@@ -591,8 +1014,18 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     return (float)image->mc_parameters->acceptance_ratio;
 }
 
@@ -606,8 +1039,18 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return NULL;
+    }
+    
     return chain->gneb_parameters->output_folder.c_str();
 
 }
@@ -617,8 +1060,18 @@ void Parameters_Get_GNEB_Output_General(State *state, bool * any, bool * initial
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *any = chain->gneb_parameters->output_any;
     *initial = chain->gneb_parameters->output_initial;
     *final = chain->gneb_parameters->output_final;
@@ -629,8 +1082,18 @@ void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, boo
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *energies_step = chain->gneb_parameters->output_energies_step;
     *energies_interpolated = chain->gneb_parameters->output_energies_interpolated;
     *energies_divide_by_nos = chain->gneb_parameters->output_energies_divide_by_nspins;
@@ -641,8 +1104,18 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     *chain_step = chain->gneb_parameters->output_chain_step;
 }
 
@@ -651,8 +1124,18 @@ void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iter
 	int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return ;
+    }
+    
     auto p = chain->gneb_parameters;
     *iterations = p->n_iterations;
     *iterations_log = p->n_iterations_log;
@@ -663,8 +1146,18 @@ float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     auto p = chain->gneb_parameters;
     return (float)p->force_convergence;
 }
@@ -673,8 +1166,18 @@ float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_c
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     auto p = chain->gneb_parameters;
     return (float)p->spring_constant;
 }
@@ -683,8 +1186,18 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
     return (int)chain->image_type[idx_image];
 }
 
@@ -693,8 +1206,18 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
 	int idx_image = -1;
 	std::shared_ptr<Data::Spin_System> image;
 	std::shared_ptr<Data::Spin_System_Chain> chain;
-	from_indices(state, idx_image, idx_chain, image, chain);
-
+    
+    // Fetch correct indices and pointers
+    try
+    {
+        from_indices( state, idx_image, idx_chain, image, chain );
+    }
+    catch( const Utility::Exception & ex )
+    {
+        Utility::Handle_exception( ex, idx_image, idx_chain );
+        return 0;
+    }
+    
 	auto p = chain->gneb_parameters;
 	return p->n_E_interpolations;
 }
