@@ -30,11 +30,10 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
         solver = Engine::Solver::NCG;
     else if (solver_type == "VP")
         solver = Engine::Solver::VP;
-	  else
-	  {
+    else{
         Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Solver selected: " + solver_type);
         return false;
- 	  }
+    }
 
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
@@ -48,7 +47,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
     catch( const Utility::Exception & ex )
     {
         Utility::Handle_exception( ex, idx_image, idx_chain );
-        return ;
+        return false;
     } 
     
     // Determine wether to stop or start a simulation
