@@ -15,7 +15,7 @@ scalar * Geometry_Get_Spin_Positions(State * state, int idx_image, int idx_chain
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -36,7 +36,7 @@ int * Geometry_Get_Atom_Types(State * state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -57,7 +57,7 @@ void Geometry_Get_Bounds(State *state, float min[3], float max[3], int idx_image
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -84,7 +84,7 @@ void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -108,7 +108,7 @@ void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3], int idx_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -135,7 +135,7 @@ void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3]
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -170,7 +170,7 @@ int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     }
     
@@ -192,7 +192,7 @@ void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -216,7 +216,7 @@ void Geometry_Get_Translation_Vectors(State *state, float ta[3], float tb[3], fl
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -243,7 +243,7 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -265,7 +265,7 @@ int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_ce
   }
   catch( const Utility::Exception & ex )
   {
-      Utility::Handle_exception( ex, idx_image, idx_chain );
+      Utility::Handle_Exception( idx_image, idx_chain );
       return 0;
   }
   

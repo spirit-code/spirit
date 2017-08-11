@@ -25,7 +25,7 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -49,7 +49,7 @@ void Parameters_Set_LLG_Output_General(State *state, bool any, bool initial, boo
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -72,7 +72,7 @@ void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, bool energ
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -96,7 +96,7 @@ void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_st
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -118,7 +118,7 @@ void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_itera
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -159,7 +159,7 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -184,7 +184,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -209,7 +209,7 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -234,7 +234,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -260,7 +260,7 @@ void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, co
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -305,7 +305,7 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -329,7 +329,7 @@ void Parameters_Set_MC_Output_General(State *state, bool any, bool initial, bool
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -352,7 +352,7 @@ void Parameters_Set_MC_Output_Energy(State *state, bool energy_step, bool energy
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -376,7 +376,7 @@ void Parameters_Set_MC_Output_Configuration(State *state, bool configuration_ste
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -398,7 +398,7 @@ void Parameters_Set_MC_N_Iterations(State *state, int n_iterations, int n_iterat
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
         
@@ -422,7 +422,7 @@ void Parameters_Set_MC_Temperature(State *state, float T, int idx_image, int idx
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -448,7 +448,7 @@ void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int idx_image
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -480,7 +480,7 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -502,7 +502,7 @@ void Parameters_Set_GNEB_Output_General(State *state, bool any, bool initial, bo
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -526,7 +526,7 @@ void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_step, bool 
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -550,7 +550,7 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -572,7 +572,7 @@ void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int n_iter
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -595,7 +595,7 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -620,7 +620,7 @@ void Parameters_Set_GNEB_Spring_Constant(State *state, float spring_constant, in
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -645,7 +645,7 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -670,7 +670,7 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -705,7 +705,7 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return NULL;
     }
     
@@ -724,7 +724,7 @@ void Parameters_Get_LLG_Output_General(State *state, bool * any, bool * initial,
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -745,7 +745,7 @@ void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step, bool * e
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -767,7 +767,7 @@ void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -787,7 +787,7 @@ void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * itera
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -819,7 +819,7 @@ float Parameters_Get_LLG_Convergence(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -839,7 +839,7 @@ float Parameters_Get_LLG_Time_Step(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -859,7 +859,7 @@ float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -879,7 +879,7 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -898,7 +898,7 @@ void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -931,7 +931,7 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return NULL;
     }
     
@@ -950,7 +950,7 @@ void Parameters_Get_MC_Output_General(State *state, bool * any, bool * initial, 
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -971,7 +971,7 @@ void Parameters_Get_MC_Output_Energy(State *state, bool * energy_step, bool * en
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -993,7 +993,7 @@ void Parameters_Get_MC_Output_Configuration(State *state, bool * configuration_s
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1013,7 +1013,7 @@ void Parameters_Get_MC_N_Iterations(State *state, int * iterations, int * iterat
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1035,7 +1035,7 @@ float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -1054,7 +1054,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
 
@@ -1079,7 +1079,7 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return NULL;
     }
     
@@ -1100,7 +1100,7 @@ void Parameters_Get_GNEB_Output_General(State *state, bool * any, bool * initial
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1122,7 +1122,7 @@ void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, boo
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1144,7 +1144,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1164,7 +1164,7 @@ void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iter
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -1186,7 +1186,7 @@ float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -1206,7 +1206,7 @@ float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -1226,7 +1226,7 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -1246,7 +1246,7 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     

@@ -16,7 +16,7 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -40,7 +40,7 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     

@@ -46,7 +46,7 @@ bool Get_Method(State *state, const char * c_method_type, const char * c_solver_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     } 
     
@@ -261,7 +261,7 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
 
@@ -298,7 +298,7 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return 0;
     }
     
@@ -336,7 +336,7 @@ const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return NULL;
     }
     
@@ -373,7 +373,7 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return NULL;
     }
     
@@ -400,23 +400,23 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
 
 bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
 {
-    // Fetch correct indices and pointers for image and chain
-	std::shared_ptr<Data::Spin_System> image;
-	std::shared_ptr<Data::Spin_System_Chain> chain;
-    
-    // Fetch correct indices and pointers
     try
     {
+        // Fetch correct indices and pointers for image and chain
+    	std::shared_ptr<Data::Spin_System> image;
+    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if (image->iteration_allowed) return true;
+        else return false;
     }
-    catch( const Utility::Exception & ex )
+    catch( ... )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     }
-    
-    if (image->iteration_allowed) return true;
-    else return false;
 }
 
 bool Simulation_Running_Chain(State *state, int idx_chain)
@@ -433,7 +433,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     }
     
@@ -462,7 +462,7 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     }
     

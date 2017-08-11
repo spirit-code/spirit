@@ -7,6 +7,7 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+
 using namespace Utility;
 
 State * State_Setup(const char * config_file, bool quiet)

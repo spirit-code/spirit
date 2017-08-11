@@ -16,9 +16,14 @@ namespace Utility
 		Unknown_Exception          = Exception_Unknown_Exception,
         Non_existing_Image         = Exception_Non_existing_Image,
         Non_existing_Chain         = Exception_Non_existing_Chain
+        // TODO: from Chain.cpp
+        // Last image deletion ?
+        // Empty clipboard     ?
 	};
   
-  void Handle_exception( const Exception & ex, int idx_image, int idx_chain );
+  void Spirit_Exception( const Exception & ex, int idx_image=-1, int idx_chain=-1 );
+
+  void Handle_Exception( int idx_image, int idx_chain );
   
 }
 

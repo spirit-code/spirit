@@ -116,7 +116,7 @@ void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -137,7 +137,7 @@ void Configuration_From_Clipboard(State *state, const float position[3], const f
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -172,7 +172,7 @@ bool Configuration_From_Clipboard_Shift(State *state, const float position_initi
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return false;
     }
 
@@ -230,7 +230,7 @@ void Configuration_Domain(State *state, const float direction[3], const float po
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -286,7 +286,7 @@ void Configuration_PlusZ(State *state, const float position[3], const float r_cu
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -321,7 +321,7 @@ void Configuration_MinusZ(State *state, const float position[3], const float r_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -356,7 +356,7 @@ void Configuration_Random(State *state, const float position[3], const float r_c
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -390,7 +390,7 @@ void Configuration_Add_Noise_Temperature(State *state, float temperature, const 
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -424,7 +424,7 @@ void Configuration_Hopfion(State *state, float r, int order, const float positio
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -463,7 +463,7 @@ void Configuration_Skyrmion(State *state, float r, float order, float phase, boo
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
@@ -506,7 +506,7 @@ void Configuration_SpinSpiral(State *state, const char * direction_type, float q
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
     
@@ -547,7 +547,7 @@ void Configuration_SpinSpiral_2q(State *state, const char * direction_type, floa
     }
     catch( const Utility::Exception & ex )
     {
-        Utility::Handle_exception( ex, idx_image, idx_chain );
+        Utility::Handle_Exception( idx_image, idx_chain );
         return ;
     }
 
