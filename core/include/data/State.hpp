@@ -58,8 +58,12 @@ struct State
 	bool quiet;
 };
 
-
 // TODO: move this away somewhere?
+// Behaviour for illegal (non-existing) idx_image and idx_chain:
+// - In case of negative values the indices must be promoted to the ones of the idx_active_image 
+//  and idx_active_chain. 
+// - In case of negative (non-existing) indices the function should throw an exception before doing 
+// any change to the corresponding variable (eg. )
 void from_indices( const State * state, int & idx_image, int & idx_chain, 
                    std::shared_ptr<Data::Spin_System> & image, 
                    std::shared_ptr<Data::Spin_System_Chain> & chain );
