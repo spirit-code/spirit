@@ -28,7 +28,8 @@ template <> inline
 void Method_Solver<Solver::Heun>::Iteration ()
 {
     // Get the actual forces on the configurations
-    this->Calculate_Force_Virtual( this->configurations, forces_virtual );
+    this->Calculate_Force(this->configurations, this->forces);
+    this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     
     // Optimization for each image
     for (int i = 0; i < this->noi; ++i)
@@ -47,7 +48,8 @@ void Method_Solver<Solver::Heun>::Iteration ()
     }
     
     // Calculate_Force for the Corrector
-    this->Calculate_Force_Virtual( configurations_predictor, forces_virtual );
+    this->Calculate_Force(this->configurations, this->forces);
+    this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     
     for (int i=0; i < this->noi; i++)
     {

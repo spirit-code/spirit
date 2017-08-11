@@ -51,7 +51,8 @@ namespace Engine
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
         // Initial force calculation s.t. it does not seem to be already converged
-        this->Calculate_Force_Virtual(this->configurations, this->forces_virtual);
+        this->Calculate_Force(this->configurations, this->forces);
+        this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
 
@@ -76,16 +77,15 @@ namespace Engine
     }
 
     template <Solver solver>
-    void Method_LLG<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+    void Method_LLG<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual)
     {
         using namespace Utility;
-
-        Calculate_Force(configurations, forces);
 
         for (unsigned int i=0; i<configurations.size(); ++i)
         {
             auto& image = *configurations[i];
             auto& force = forces[i];
+            auto& force_virtual = forces_virtual[i];
             auto& parameters = *this->systems[i]->llg_parameters;
 
             //////////
@@ -99,23 +99,24 @@ namespace Engine
             Vector3 s_c_vec = parameters.stt_polarisation_normal;
             //////////
 
+            // TODO: why the 0.5 everywhere??
             if (parameters.direct_minimization)
             {
-				dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+                dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
             }
             else
             {
                 // std::cerr << damping << std::endl;
                 // Vectormath::scale      (force, -0.5 * dtg);
-                Vectormath::scale      (force, 0.5 * dtg);
-                Vectormath::add_c_cross(damping, image, force, force);
+                Vectormath::set_c_a(0.5 * dtg, force, force_virtual);
+                Vectormath::add_c_cross(0.5 * dtg * damping, image, force, force_virtual);
 
                 // STT
                 if (a_j > 0)
                 {
-                    Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force);
-                    Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force);
+                    Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force_virtual);
+                    Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force_virtual);
                 }
 
                 // Temperature
@@ -123,13 +124,13 @@ namespace Engine
                 {
                     scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-                    Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, this->xi, force);
-                    Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, image, this->xi, force);
+                    Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, this->xi, force_virtual);
+                    Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
                 }
             }
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+                Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }
@@ -172,7 +173,8 @@ namespace Engine
         // ToDo: How to update eff_field without numerical overhead?
         // systems[0]->effective_field = Gradient[0];
         // Vectormath::scale(systems[0]->effective_field, -1);
-        Vectormath::set_c_a(-1, Gradient[0], this->systems[0]->effective_field);
+        Manifoldmath::project_tangential(this->forces[0], *this->systems[0]->spins);
+        Vectormath::set_c_a(1, this->forces[0], this->systems[0]->effective_field);
         // systems[0]->UpdateEffectiveField();
 
         // TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?

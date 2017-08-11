@@ -19,7 +19,8 @@ template <> inline
 void Method_Solver<Solver::SIB>::Iteration ()
 {
     // First part of the step
-    this->Calculate_Force_Virtual(this->configurations, forces_virtual);
+    this->Calculate_Force(this->configurations, this->forces);
+    this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     for (int i = 0; i < this->noi; ++i)
     {
         auto& image      = *this->systems[i]->spins;
@@ -31,7 +32,8 @@ void Method_Solver<Solver::SIB>::Iteration ()
     }
 
     // Second part of the step
-    this->Calculate_Force_Virtual(this->configurations_temp, forces_virtual);
+    this->Calculate_Force(this->configurations, this->forces);
+    this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     for (int i = 0; i < this->noi; ++i)
     {
         auto& image      = *this->systems[i]->spins;
