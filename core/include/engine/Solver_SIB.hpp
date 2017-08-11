@@ -4,8 +4,12 @@ void Method_Solver<Solver::SIB>::Initialize ()
     this->forces = std::vector<vectorfield>(this->noi, vectorfield(this->nos));  // [noi][nos]
     this->forces_virtual = std::vector<vectorfield>(this->noi, vectorfield(this->nos));  // [noi][nos]
     
-    this->configurations_temp = std::vector<std::shared_ptr<vectorfield>>(this->noi);
-    for (int i=0; i<this->noi; ++i) configurations_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos)); // [noi][nos]
+    this->forces_predictor = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    this->forces_virtual_predictor = std::vector<vectorfield>( this->noi, vectorfield( this->nos, {0, 0, 0} ) );
+    
+    this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    for (int i=0; i<this->noi; i++)
+      configurations_predictor[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));  
 };
 
 
@@ -24,7 +28,7 @@ void Method_Solver<Solver::SIB>::Iteration ()
     for (int i = 0; i < this->noi; ++i)
     {
         auto& image      = *this->systems[i]->spins;
-        auto& image_temp = *configurations_temp[i];
+        auto& image_temp = *this->configurations_predictor[i];
 
         Vectormath::transform(image, forces_virtual[i], image_temp);
         Vectormath::add_c_a(1, image, image_temp);
@@ -32,13 +36,13 @@ void Method_Solver<Solver::SIB>::Iteration ()
     }
 
     // Second part of the step
-    this->Calculate_Force(this->configurations, this->forces);
-    this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
+    this->Calculate_Force(this->configurations_predictor, this->forces_predictor);
+    this->Calculate_Force_Virtual(this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor);
     for (int i = 0; i < this->noi; ++i)
     {
         auto& image      = *this->systems[i]->spins;
         
-        Vectormath::transform(image, forces_virtual[i], image);
+        Vectormath::transform(image, forces_virtual_predictor[i], image);
     }
 };
 

@@ -117,6 +117,54 @@ namespace Engine
         virtual void Message_Start() override;
         virtual void Message_Step() override;
         virtual void Message_End() override;
+
+
+        //////////// DEPONDT ////////////////////////////////////////////////////////////
+        // Temporaries for virtual forces
+        std::vector<vectorfield> rotationaxis;
+        std::vector<scalarfield> forces_virtual_norm;
+        // Preccession angle
+        scalarfield angle;
+
+        //////////// NCG ////////////////////////////////////////////////////////////
+        // Check if the Newton-Raphson has converged
+        bool NR_converged();
+        
+        int jmax;     // max iterations for Newton-Raphson loop
+        int n;        // number of iteration after which the nCG will restart
+        
+        scalar tol_nCG, tol_NR;   // tolerances for optimizer and Newton-Raphson
+        scalar eps_nCG, eps_NR;   // Newton-Raphson and optimizer tolerance squared
+        
+        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
+        
+        // Step sizes
+        std::vector<scalarfield> alpha, beta;
+        
+        // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
+        // Delta scalarfields
+        std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
+        
+        // Residual and new configuration states
+        std::vector<vectorfield> res, d;
+
+        // buffer variables for checking convergence for optimizer and Newton-Raphson
+        std::vector<scalarfield> r_dot_d, dda2;
+
+        //////////// VP ///////////////////////////////////////////////////////////////
+        // "Mass of our particle" which we accelerate
+        scalar m = 1.0;
+
+        // Force in previous step [noi][nos]
+        std::vector<vectorfield> forces_previous;
+        // Velocity in previous step [noi][nos]
+        std::vector<vectorfield> velocities_previous;
+        // Velocity used in the Steps [noi][nos]
+        std::vector<vectorfield> velocities;
+        // Projection of velocities onto the forces [noi]
+        std::vector<scalar> projection;
+        // |force|^2
+        std::vector<scalar> force_norm2;
     };
 
 
