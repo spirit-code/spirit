@@ -27,6 +27,7 @@ namespace Engine
 
         // Forces
         this->forces    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
+        this->forces_virtual    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->xi = vectorfield(this->nos, {0,0,0});
 
@@ -50,7 +51,7 @@ namespace Engine
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
         // Initial force calculation s.t. it does not seem to be already converged
-        this->Calculate_Force(this->configurations, this->forces);
+        this->Calculate_Force_Virtual(this->configurations, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
 
@@ -137,11 +138,6 @@ namespace Engine
     template <Solver solver>
     bool Method_LLG<solver>::Converged()
     {
-        for (unsigned int img = 0; img < this->systems.size(); ++img)
-        {
-            if (this->systems[img]->llg_parameters->temperature > 0 || this->systems[img]->llg_parameters->stt_magnitude > 0)
-                return false;
-        }
         // Check if all images converged
         return std::all_of(this->force_converged.begin(),
                             this->force_converged.end(),
@@ -162,7 +158,7 @@ namespace Engine
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             this->force_converged[img] = false;
-            auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), Gradient[img]);
+            auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
             if (fmax > 0) this->force_max_abs_component = fmax;
             else this->force_max_abs_component = 0;
             if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;

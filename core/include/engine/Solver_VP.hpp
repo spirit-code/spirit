@@ -33,17 +33,17 @@ void Method_Solver<Solver::VP>::Iteration ()
     // Set previous
     for (int i = 0; i < noi; ++i)
     {
-        Vectormath::set_c_a(1.0, forces[i],   forces_previous[i]);
+        Vectormath::set_c_a(1.0, forces_virtual[i],   forces_previous[i]);
         Vectormath::set_c_a(1.0, velocities[i], velocities_previous[i]);
     }
 
     // Get the forces on the configurations
-    this->Calculate_Force(configurations, forces);
+    this->Calculate_Force(configurations, forces_virtual);
     
     for (int i = 0; i < noi; ++i)
     {
         auto& velocity      = velocities[i];
-        auto& force         = forces[i];
+        auto& force         = forces_virtual[i];
         auto& force_prev    = forces_previous[i];
 
         // Calculate the new velocity
@@ -62,7 +62,7 @@ void Method_Solver<Solver::VP>::Iteration ()
     for (int i = 0; i < noi; ++i)
     {
         auto& velocity           = velocities[i];
-        auto& force              = forces[i];
+        auto& force              = forces_virtual[i];
         auto& configuration      = *(configurations[i]);
         auto& configuration_temp = *(configurations_temp[i]);
 
