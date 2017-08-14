@@ -24,8 +24,8 @@ namespace Engine
 		this->noi = chain->noi;
 		this->nos = chain->images[0]->nos;
 
-		this->energies = std::vector<scalar>(this->noi, 0.0);
-		this->Rx = std::vector<scalar>(this->noi, 0.0);
+		this->energies = std::vector<scalar>(this->noi, 0);
+		this->Rx = std::vector<scalar>(this->noi, 0);
 
 		// Forces
 		this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));
@@ -141,7 +141,7 @@ namespace Engine
 			}
 			// Apply pinning mask
 			#ifdef SPIRIT_ENABLE_PINNING
-				Vectormath::set_c_a(1, F_total[img], F_total[img], parameters->pinning->mask_unpinned);
+				Vectormath::set_c_a(1, F_total[img], F_total[img], this->parameters->pinning->mask_unpinned);
 			#endif // SPIRIT_ENABLE_PINNING
 
 			// Copy out
@@ -156,7 +156,7 @@ namespace Engine
 		using namespace Utility;
 
 		// Calculate the cross product with the spin configuration to get direct minimization
-		for (unsigned int i = 0; i < configurations.size(); ++i)
+		for (unsigned int i = 1; i < configurations.size()-1; ++i)
 		{
 			auto& image = *configurations[i];
 			auto& force = forces[i];
@@ -219,10 +219,11 @@ namespace Engine
 		for (int i = 0; i < chain->noi; ++i)
 		{
 			// dy/dx
-			for (int j = 0; j < chain->images[i]->nos; ++j)
-			{
-				dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
-			}
+			dE_dRx[i] = Vectormath::dot(this->chain->images[i]->effective_field, this->tangents[i]);
+			// for (int j = 0; j < chain->images[i]->nos; ++j)
+			// {
+			// 	dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
+			// }
 		}
 		// Interpolate data points
 		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
