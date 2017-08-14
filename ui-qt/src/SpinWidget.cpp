@@ -237,25 +237,10 @@ void SpinWidget::initializeGL()
 
 	if (Geometry_Get_Dimensionality(this->state.get()) == 2)
 	{
-		// Determine orthogonality of translation vectors
-		float ta[3], tb[3], tc[3];
-		Geometry_Get_Translation_Vectors(state.get(), ta, tb, tc);
-		float tatb = 0, tatc = 0, tbtc = 0;
-		for (int dim = 0; dim<3; ++dim)
-		{
-			tatb += ta[dim] * tb[dim];
-			tatc += ta[dim] * tc[dim];
-			tbtc += tb[dim] * tc[dim];
-		}
-		// Rectilinear with one basis atom
-		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
-			std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
-		{
-			// 2D Surface options
-			// No options yet...
-			this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
-			this->m_renderer_surface = m_renderer_surface_2D;
-		}
+		// 2D Surface options
+		// No options yet...
+		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
+		this->m_renderer_surface = m_renderer_surface_2D;
 	}
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
@@ -384,7 +369,7 @@ void SpinWidget::updateData()
 		else
 		{
 			const std::array<VFRendering::Geometry::index_type, 4> *tetrahedra_indices_ptr = nullptr;
-			int num_tetrahedra = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr), n_cell_step);
+			int num_tetrahedra = Geometry_Get_Tetrahedra(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr), n_cell_step);
 			std::vector<std::array<VFRendering::Geometry::index_type, 4>>  tetrahedra_indices(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
 			geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
 		}
@@ -414,7 +399,20 @@ void SpinWidget::updateData()
 		// All others
 		else
 		{
-			geometry = VFRendering::Geometry(positions, {}, {}, true);
+			const std::array<VFRendering::Geometry::index_type, 3> *triangle_indices_ptr = nullptr;
+			int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
+			std::vector<std::array<VFRendering::Geometry::index_type, 3>>  triangle_indices(triangle_indices_ptr, triangle_indices_ptr + num_triangles);
+			geometry = VFRendering::Geometry(positions, triangle_indices, {}, true);
+			// std::cerr << "2D delaunay -------------------------------------" << std::endl;
+			// std::cerr << "size of triangulation = " << num_triangles << std::endl;
+			// std::cerr << triangle_indices[0][0] << " " << triangle_indices[0][1] << " " << triangle_indices[0][2] << std::endl;
+			// std::cerr << triangle_indices[1][0] << " " << triangle_indices[1][1] << " " << triangle_indices[1][2] << std::endl;
+			// std::cerr << triangle_indices[2][0] << " " << triangle_indices[2][1] << " " << triangle_indices[2][2] << std::endl;
+			// std::cerr << triangle_indices[3][0] << " " << triangle_indices[3][1] << " " << triangle_indices[3][2] << std::endl;
+			// std::cerr << triangle_indices[4][0] << " " << triangle_indices[4][1] << " " << triangle_indices[4][2] << std::endl;
+			// std::cerr << triangle_indices[5][0] << " " << triangle_indices[5][1] << " " << triangle_indices[5][2] << std::endl;
+			// std::cerr << triangle_indices[6][0] << " " << triangle_indices[6][1] << " " << triangle_indices[6][2] << std::endl;
+			// std::cerr << "----" << std::endl;
 		}
 
 	}
@@ -1263,14 +1261,16 @@ void SpinWidget::setSurface(glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_ra
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
 		// 3D Surface options
-		if ((x_range.x >= x_range.y) || (y_range.x >= y_range.y) || (z_range.x >= z_range.y)) {
+		if ((x_range.x >= x_range.y) || (y_range.x >= y_range.y) || (z_range.x >= z_range.y))
+		{
 			this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
 			{
 				/* The selected cuboid does not exist */
 				return 1;
 			});
 		}
-		else {
+		else
+		{
 			this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>([x_range, y_range, z_range](const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type
 			{
 				(void)direction;
