@@ -69,21 +69,30 @@ namespace Data
 		// Atom types: type index 0..n or or vacancy (type < 0)
 		intfield atom_types;
 
-		// //////  What are the segments used for??
+		// // Segments are used for topological charge
 		// segments[nos][4]
 		//const std::vector<std::vector<int>> segments;
 		// Position of the Segments: segments_pos[dim][nos][4]
 		//const std::vector<std::vector<std::vector<scalar>>> segments_pos;
 
-		const std::vector<triangle_t>&    triangulation(int n_cell_step=1);
-		const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
+		const std::vector<triangle_t>&    triangulation(int n_cell_step = 1);
+		const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step = 1);
+
+		const std::vector<triangle_t>&    triangulation_periodical(int n_cell_step = 1);
+		const std::vector<tetrahedron_t>& tetrahedra_periodical(int n_cell_step = 1);
 
 		int dimensionality;
 		int calculateDimensionality() const;
     
 	private:
+		void update_triangulation(int n_cell_step = 1);
+		void update_tetrahedra(int n_cell_step = 1);
+		
 		std::vector<triangle_t>    _triangulation;
 		std::vector<tetrahedron_t> _tetrahedra;
+		
+		std::vector<triangle_t>    _triangulation_periodical;
+		std::vector<tetrahedron_t> _tetrahedra_periodical;
 		
 		// Temporaries to tell wether the triangulation or tetrahedra
 		// need to be updated when the corresponding function is called

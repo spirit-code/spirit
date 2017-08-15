@@ -26,8 +26,11 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
     scalar charge = 0;
     int dimensionality = Geometry_Get_Dimensionality(state, idx_image, idx_chain);
     image->Lock();
-    if (dimensionality == 2)
-        charge = Engine::Vectormath::TopologicalCharge(*image->spins, image->geometry->spin_pos, image->geometry->triangulation());
+	if (dimensionality == 2)
+	{
+		charge  = Engine::Vectormath::TopologicalCharge(*image->spins, image->geometry->spin_pos, image->geometry->triangulation());
+		// charge += Engine::Vectormath::TopologicalCharge(*image->spins, image->geometry->spin_pos, image->geometry->triangulation_periodical());
+	}
 	image->Unlock();
 
     return (float)charge;

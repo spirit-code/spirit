@@ -67,219 +67,31 @@ namespace Data
         this->last_update_n_cells = intfield(3, -1);
     }
 
-    std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points)
-    {
-        const int ndim = 3;
-        std::vector<tetrahedron_t> tetrahedra;
-        tetrahedron_t tmp_tetrahedron;
-        int *current_index;
-
-        orgQhull::Qhull qhull;
-        qhull.runQhull("", ndim, points.size(), (coordT *) points.data(),  "d Qt Qbb Qz");
-        orgQhull::QhullFacetList facet_list = qhull.facetList();
-        for(const auto & facet : facet_list)
-        {
-            if(!facet.isUpperDelaunay())
-            {
-                current_index = &tmp_tetrahedron[0];
-                for(const auto & vertex : facet.vertices())
-                {
-                    *current_index++ = vertex.point().id();
-                }
-                tetrahedra.push_back(tmp_tetrahedron);
-            }
-        }
-        return tetrahedra;
-    }
-
-    std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points)
-    {
-        const int ndim = 2;
-        std::vector<triangle_t> triangles;
-        triangle_t tmp_triangle;
-        int *current_index;
-
-        orgQhull::Qhull qhull;
-        qhull.runQhull("", ndim, points.size(), (coordT *) points.data(),  "d Qt Qbb Qz");
-        for(const auto & facet : qhull.facetList())
-        {
-            if(!facet.isUpperDelaunay())
-            {
-                current_index = &tmp_triangle[0];
-                for(const auto & vertex : facet.vertices())
-                {
-                    *current_index++ = vertex.point().id();
-                }
-                triangles.push_back(tmp_triangle);
-            }
-        }
-        return triangles;
-    }
 
     const std::vector<triangle_t>& Geometry::triangulation(int n_cell_step)
     {
-        // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
-        //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
-        //      every 2nd spin.
-        if ( (n_cells[0]/n_cell_step < 2 && n_cells[0] > 1) ||
-             (n_cells[1]/n_cell_step < 2 && n_cells[1] > 1) ||
-             (n_cells[2]/n_cell_step < 2 && n_cells[2] > 1) )
-        {
-            _triangulation.clear();
-            return _triangulation;
-        }
-
-        // 2D: triangulation
-        if (dimensionality == 2)
-        {
-            // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
-            if (this->last_update_n_cell_step != n_cell_step ||
-                this->last_update_n_cells[0]  != n_cells[0]  ||
-                this->last_update_n_cells[1]  != n_cells[1]  ||
-                this->last_update_n_cells[2]  != n_cells[2]  )
-            {
-                this->last_update_n_cell_step = n_cell_step;
-                this->last_update_n_cells[0]  = n_cells[0];
-                this->last_update_n_cells[1]  = n_cells[1];
-                this->last_update_n_cells[2]  = n_cells[2];
-                
-                _triangulation.clear();
-
-                std::vector<vector2_t> points;
-                points.resize(spin_pos.size());
-
-                int icell = 0, idx;
-                for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
-                {
-                    for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
-                    {
-                        for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
-                        {
-                            for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
-                            {
-                                idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
-                                points[icell].x = spin_pos[idx][0];
-                                points[icell].y = spin_pos[idx][1];
-                                ++icell;
-                            }
-                        }
-                    }
-                }
-                _triangulation = compute_delaunay_triangulation_2D(points);
-            }
-        }// endif 2D
-        // 0D, 1D and 3D give no triangulation
-        else
-        {
-            _triangulation.clear();
-        }
+        update_triangulation(n_cell_step);
         return _triangulation;
     }
 
     const std::vector<tetrahedron_t>& Geometry::tetrahedra(int n_cell_step)
     {
-        // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
-        //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
-        //      every 2nd spin.
-        if (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2)
-        {
-            _tetrahedra.clear();
-            return _tetrahedra;
-        }
-
-        // 3D: Tetrahedra
-        if (dimensionality == 3)
-        {
-            // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
-            if (this->last_update_n_cell_step != n_cell_step ||
-                this->last_update_n_cells[0]  != n_cells[0]  ||
-                this->last_update_n_cells[1]  != n_cells[1]  ||
-                this->last_update_n_cells[2]  != n_cells[2]  )
-            {
-                this->last_update_n_cell_step = n_cell_step;
-                this->last_update_n_cells[0]  = n_cells[0];
-                this->last_update_n_cells[1]  = n_cells[1];
-                this->last_update_n_cells[2]  = n_cells[2];
-
-                // If we have only one spin in the basis our lattice is a simple regular geometry
-                bool is_simple_regular_geometry = n_spins_basic_domain == 1;
-
-                // If we have a simple regular geometry everything can be calculated by hand
-                if (is_simple_regular_geometry)
-                {
-                    _tetrahedra.clear();
-                    int cell_indices[] = {
-                        0, 1, 5, 3,
-                        1, 3, 2, 5,
-                        3, 2, 5, 6,
-                        7, 6, 5, 3,
-                        4, 7, 5, 3,
-                        0, 4, 3, 5
-                        };
-                    int x_offset = 1;
-                    int y_offset = n_cells[0]/n_cell_step;
-                    int z_offset = n_cells[0]/n_cell_step*n_cells[1]/n_cell_step;
-                    int offsets[] = {
-                        0, x_offset, x_offset+y_offset, y_offset,
-                        z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
-                        };
-                
-                    for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
-                    {
-                        for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
-                        {
-                            for (int iz = 0; iz < (n_cells[2]-1)/n_cell_step; iz++)
-                            {
-                                int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
-                                for (int j = 0; j < 6; j++)
-                                {
-                                    tetrahedron_t tetrahedron;
-                                    for (int k = 0; k < 4; k++)
-                                    {
-                                        int index = base_index + offsets[cell_indices[j*4+k]];
-                                        tetrahedron[k] = index;
-                                    }
-                                    _tetrahedra.push_back(tetrahedron);
-                                }
-                            }
-                        }
-                    }
-                }
-                // For general basis cells we calculate the Delaunay tetrahedra
-                else 
-                {
-                    std::vector<vector3_t> points;
-                    points.resize(spin_pos.size());
-
-                    int icell = 0, idx;
-                    for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
-                    {
-                        for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
-                        {
-                            for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
-                            {
-                                for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
-                                {
-                                    idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
-                                    points[icell].x = spin_pos[idx][0];
-                                    points[icell].y = spin_pos[idx][1];
-                                    points[icell].z = spin_pos[idx][2];
-                                    ++icell;
-                                }
-                            }
-                        }
-                    }
-                    _tetrahedra = compute_delaunay_triangulation_3D(points);
-                }
-            }
-        } // endif 3D
-        // 0-2 D gives no tetrahedra
-        else
-        {
-            _tetrahedra.clear();
-        }
+        update_tetrahedra(n_cell_step);
         return _tetrahedra;
     }
+
+	const std::vector<triangle_t>& Geometry::triangulation_periodical(int n_cell_step)
+	{
+		update_triangulation(n_cell_step);
+		return _triangulation_periodical;
+	}
+
+	const std::vector<tetrahedron_t>& Geometry::tetrahedra_periodical(int n_cell_step)
+	{
+		update_tetrahedra(n_cell_step);
+		return _tetrahedra_periodical;
+	}
+
 
     int Geometry::calculateDimensionality() const
     {
@@ -288,8 +100,6 @@ namespace Data
 
         // ----- Find dimensionality of the basis -----
         if (n_spins_basic_domain == 1) dims_basis = 0;
-        else if (n_spins_basic_domain == 2) dims_basis = 1;
-        else if (n_spins_basic_domain == 3) dims_basis = 2;
         else
         {
             // Get basis atoms relative to the first atom
@@ -392,6 +202,300 @@ namespace Data
         // We should never get here
         throw Utility::Exception::Unknown_Exception;
         return 0;
+    }
+
+	std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points)
+	{
+		const int ndim = 3;
+		std::vector<tetrahedron_t> tetrahedra;
+		tetrahedron_t tmp_tetrahedron;
+		int *current_index;
+
+		orgQhull::Qhull qhull;
+		qhull.runQhull("", ndim, points.size(), (coordT *)points.data(), "d Qt Qbb Qz");
+		orgQhull::QhullFacetList facet_list = qhull.facetList();
+		for (const auto & facet : facet_list)
+		{
+			if (!facet.isUpperDelaunay())
+			{
+				current_index = &tmp_tetrahedron[0];
+				for (const auto & vertex : facet.vertices())
+				{
+					*current_index++ = vertex.point().id();
+				}
+				tetrahedra.push_back(tmp_tetrahedron);
+			}
+		}
+		return tetrahedra;
+	}
+
+	std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points)
+	{
+		const int ndim = 2;
+		std::vector<triangle_t> triangles;
+		triangle_t tmp_triangle;
+		int *current_index;
+
+		orgQhull::Qhull qhull;
+		qhull.runQhull("", ndim, points.size(), (coordT *)points.data(), "d Qt Qbb Qz");
+		for (const auto & facet : qhull.facetList())
+		{
+			if (!facet.isUpperDelaunay())
+			{
+				current_index = &tmp_triangle[0];
+				for (const auto & vertex : facet.vertices())
+				{
+					*current_index++ = vertex.point().id();
+				}
+				triangles.push_back(tmp_triangle);
+			}
+		}
+		return triangles;
+	}
+
+    void Geometry::update_triangulation(int n_cell_step)
+    {
+        // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
+        //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
+        //      every 2nd spin.
+        if ( (n_cells[0]/n_cell_step < 2 && n_cells[0] > 1) ||
+             (n_cells[1]/n_cell_step < 2 && n_cells[1] > 1) ||
+             (n_cells[2]/n_cell_step < 2 && n_cells[2] > 1) )
+        {
+            _triangulation.clear();
+            return;
+        }
+
+        // 2D: triangulation
+        if (dimensionality == 2)
+        {
+            // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
+            if (this->last_update_n_cell_step != n_cell_step ||
+                this->last_update_n_cells[0]  != n_cells[0]  ||
+                this->last_update_n_cells[1]  != n_cells[1]  ||
+                this->last_update_n_cells[2]  != n_cells[2]  )
+            {
+                this->last_update_n_cell_step = n_cell_step;
+                this->last_update_n_cells[0]  = n_cells[0];
+                this->last_update_n_cells[1]  = n_cells[1];
+                this->last_update_n_cells[2]  = n_cells[2];
+                
+                _triangulation.clear();
+
+                std::vector<vector2_t> points;
+
+                // points.resize(spin_pos.size());
+                
+                // int icell = 0, idx;
+                // for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
+                // {
+                //     for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+                //     {
+                //         for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+                //         {
+                //             for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
+                //             {
+                //                 idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
+                //                 points[icell].x = spin_pos[idx][0];
+                //                 points[icell].y = spin_pos[idx][1];
+                //                 ++icell;
+                //             }
+                //         }
+                //     }
+                // }
+                // _triangulation = compute_delaunay_triangulation_2D(points);
+
+                points.resize(n_spins_basic_domain * (n_cells[0]+2) * (n_cells[1]+2));
+
+                // Generate grid points (including one boundary layer all around)
+                int icell = 0;
+                // Regular lattice first
+                //for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)	// TODO: this assumes that the system is spanned by a and b
+                //{
+                    for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+                    {
+                        for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+                        {
+                            for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
+                            {
+                                //idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
+								Vector3 pos = spin_pos[ibasis] + cell_a*translation_vectors[0] + cell_b*translation_vectors[1];// +cell_c*translation_vectors[2];
+                                points[icell].x = pos[0];
+                                points[icell].y = pos[1];
+                                ++icell;
+                            }
+                        }
+                    }
+                //}
+                // Now the boundary positions
+                //for (int cell_c=-1; cell_c<n_cells[2]+1; cell_c+=n_cells[2]+2)	// TODO: this assumes that the system is spanned by a and b
+                //{
+                    for (int cell_b=-1; cell_b<n_cells[1]+1; cell_b+=n_cell_step)
+                    {
+                        for (int cell_a=-1; cell_a<n_cells[0]+1; cell_a+=n_cell_step)
+                        {
+                            for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
+                            {
+								if (cell_a == -1 || cell_b == -1 || cell_a == n_cells[0] || cell_b == n_cells[1])
+								{
+									//idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
+									Vector3 pos = spin_pos[ibasis] + cell_a*translation_vectors[0] + cell_b*translation_vectors[1];// +cell_c*translation_vectors[2];
+									points[icell].x = pos[0];
+									points[icell].y = pos[1];
+									++icell;
+								}
+                            }
+                        }
+                    }
+                //}
+                
+
+                auto all_triangles = compute_delaunay_triangulation_2D(points);
+                std::vector<triangle_t> regular_triangles, boundary_triangles;
+
+                // Calculate triangulation
+
+                // Separate grid triangles from periodical ones
+                for (auto& triangle : all_triangles)
+                {
+                    // An index of the triangle which is larger than nos
+                    // belongs to a periodical triangle
+                    int n_periodical = 0;
+                    for (int i=0; i<3; ++i)
+                    {
+                        if ( triangle[i] > this->nos ) ++n_periodical;
+                    }
+                    // n_periodical = 0 means regular lattice triangle
+                    if (n_periodical == 0)
+                    {
+                        // The basic triangles go into the following member
+                        regular_triangles.push_back(triangle);
+                    }
+                    // 0 < n_periodical < 3 means periodical triangle of the boundary strip
+                    else if (0 < n_periodical && n_periodical < 3)
+                    {
+                        boundary_triangles.push_back(triangle);
+                    }
+                    // everything else is unneeded
+                }
+
+				// TODO: indices in boundary_triangles need to be translated into indices of spins on the lattice
+
+				_triangulation_periodical = boundary_triangles;
+                _triangulation = regular_triangles;
+            }
+        }// endif 2D
+        // 0D, 1D and 3D give no triangulation
+        else
+        {
+            _triangulation.clear();
+        }
+        return;
+    }
+
+    void Geometry::update_tetrahedra(int n_cell_step)
+    {
+        // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
+        //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
+        //      every 2nd spin.
+        if (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2)
+        {
+            _tetrahedra.clear();
+            return;
+        }
+
+        // 3D: Tetrahedra
+        if (dimensionality == 3)
+        {
+            // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
+            if (this->last_update_n_cell_step != n_cell_step ||
+                this->last_update_n_cells[0]  != n_cells[0]  ||
+                this->last_update_n_cells[1]  != n_cells[1]  ||
+                this->last_update_n_cells[2]  != n_cells[2]  )
+            {
+                this->last_update_n_cell_step = n_cell_step;
+                this->last_update_n_cells[0]  = n_cells[0];
+                this->last_update_n_cells[1]  = n_cells[1];
+                this->last_update_n_cells[2]  = n_cells[2];
+
+                // If we have only one spin in the basis our lattice is a simple regular geometry
+                bool is_simple_regular_geometry = n_spins_basic_domain == 1;
+
+                // If we have a simple regular geometry everything can be calculated by hand
+                if (is_simple_regular_geometry)
+                {
+                    _tetrahedra.clear();
+                    int cell_indices[] = {
+                        0, 1, 5, 3,
+                        1, 3, 2, 5,
+                        3, 2, 5, 6,
+                        7, 6, 5, 3,
+                        4, 7, 5, 3,
+                        0, 4, 3, 5
+                        };
+                    int x_offset = 1;
+                    int y_offset = n_cells[0]/n_cell_step;
+                    int z_offset = n_cells[0]/n_cell_step*n_cells[1]/n_cell_step;
+                    int offsets[] = {
+                        0, x_offset, x_offset+y_offset, y_offset,
+                        z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
+                        };
+                
+                    for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
+                    {
+                        for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
+                        {
+                            for (int iz = 0; iz < (n_cells[2]-1)/n_cell_step; iz++)
+                            {
+                                int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
+                                for (int j = 0; j < 6; j++)
+                                {
+                                    tetrahedron_t tetrahedron;
+                                    for (int k = 0; k < 4; k++)
+                                    {
+                                        int index = base_index + offsets[cell_indices[j*4+k]];
+                                        tetrahedron[k] = index;
+                                    }
+                                    _tetrahedra.push_back(tetrahedron);
+                                }
+                            }
+                        }
+                    }
+                }
+                // For general basis cells we calculate the Delaunay tetrahedra
+                else 
+                {
+                    std::vector<vector3_t> points;
+                    points.resize(spin_pos.size());
+
+                    int icell = 0, idx;
+                    for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
+                    {
+                        for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+                        {
+                            for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+                            {
+                                for (int ibasis=0; ibasis < n_spins_basic_domain; ++ibasis)
+                                {
+                                    idx = ibasis + n_spins_basic_domain*cell_a + n_spins_basic_domain*n_cells[0]*cell_b + n_spins_basic_domain*n_cells[0]*n_cells[1]*cell_c;
+                                    points[icell].x = spin_pos[idx][0];
+                                    points[icell].y = spin_pos[idx][1];
+                                    points[icell].z = spin_pos[idx][2];
+                                    ++icell;
+                                }
+                            }
+                        }
+                    }
+                    _tetrahedra = compute_delaunay_triangulation_3D(points);
+                }
+            }
+        } // endif 3D
+        // 0-2 D gives no tetrahedra
+        else
+        {
+            _tetrahedra.clear();
+        }
+        return;
     }
 }
 
