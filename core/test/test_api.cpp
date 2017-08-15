@@ -96,5 +96,22 @@ TEST_CASE( "Quantities", "[quantities]" )
 	}
 	SECTION("Topological Charge")
 	{
+		auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+		
+		SECTION("negative charge")
+		{
+			Configuration_PlusZ(state.get());
+			Configuration_Skyrmion(state.get(), 6.0, 1.0, -90.0, false, false, false);
+			float charge = Quantity_Get_Topological_Charge(state.get());
+			REQUIRE(charge == Approx(-1));
+		}
+
+		SECTION("positive charge")
+		{
+			Configuration_MinusZ(state.get());
+			Configuration_Skyrmion(state.get(), 6.0, 1.0, -90.0, true, false, false);
+			float charge = Quantity_Get_Topological_Charge(state.get());
+			REQUIRE(charge == Approx(1));
+		}
 	}
 }
