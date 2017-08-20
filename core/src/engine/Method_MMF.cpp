@@ -72,7 +72,7 @@ namespace Engine
 			this->Calculate_Force_Lanczos(configurations, forces);
 		}*/
 		#ifdef SPIRIT_ENABLE_PINNING
-			Vectormath::set_c_a(1, forces[0], forces[0], parameters->pinning->mask_unpinned);
+			Vectormath::set_c_a(1, forces[0], forces[0], this->parameters->pinning->mask_unpinned);
 		#endif // SPIRIT_ENABLE_PINNING
     }
 

@@ -258,9 +258,10 @@ int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_ce
 {
   std::shared_ptr<Data::Spin_System> image;
   std::shared_ptr<Data::Spin_System_Chain> chain;
-  // Fetch correct indices and pointers
+
   try
   {
+      // Fetch correct indices and pointers
       from_indices( state, idx_image, idx_chain, image, chain );
   }
   catch( const Utility::Exception & ex )
@@ -270,11 +271,25 @@ int Geometry_Get_Triangulation(State * state, const int ** indices_ptr, int n_ce
   }
   
   // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-  
-  auto g = image->geometry;
-  auto& tetrahedra = g->triangulation(n_cell_step);
-  if (indices_ptr != nullptr) {
-	  *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
-  }
-  return tetrahedra.size();
+
+    auto g = image->geometry;
+    auto& triangles = g->triangulation(n_cell_step);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(triangles.data());
+    }
+    return triangles.size();
+}
+
+int Geometry_Get_Tetrahedra(State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain)
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto g = image->geometry;
+    auto& tetrahedra = g->tetrahedra(n_cell_step);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
+    }
+    return tetrahedra.size();
 }

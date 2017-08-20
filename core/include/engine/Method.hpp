@@ -141,23 +141,20 @@ namespace Engine
         int n_log;
 
 
-
-
         //////////// General /////////////////////////////////////////////////////////
-
-
 
         // Systems the Optimizer will access
         std::vector<std::shared_ptr<Data::Spin_System>> systems;
 
         // Method Parameters
         std::shared_ptr<Data::Parameters_Method> parameters;
-
         
         // Actual Forces on the configurations
         std::vector<vectorfield> forces;
+        std::vector<vectorfield> forces_predictor;
         // Virtual Forces used in the Steps
         std::vector<vectorfield> forces_virtual;
+        std::vector<vectorfield> forces_virtual_predictor;
         // Random vector array
         vectorfield xi;
         
@@ -166,67 +163,11 @@ namespace Engine
 
         // Pointers to Configurations (for Solver methods)
         std::vector<std::shared_ptr<vectorfield>> configurations;
-        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
         std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-
-
-
-
-        
-        
-        
-        // preccession angle
-        scalarfield angle;
+        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 
         // Precision for the conversion of scalar to string
         int print_precision;
-
-
-        //////////// DEPONDT ////////////////////////////////////////////////////////////
-        // Temporaries for virtual forces
-        std::vector<vectorfield> forces_virtual_predictor;
-        std::vector<vectorfield> rotationaxis;
-        std::vector<scalarfield> forces_virtual_norm;
-
-        //////////// NCG ////////////////////////////////////////////////////////////
-        // check if the Newton-Raphson has converged
-        bool NR_converged();
-        
-        int jmax;     // max iterations for Newton-Raphson loop
-        int n;        // number of iteration after which the nCG will restart
-        
-        scalar tol_nCG, tol_NR;   // tolerances for optimizer and Newton-Raphson
-        scalar eps_nCG, eps_NR;   // Newton-Raphson and optimizer tolerance squared
-        
-        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
-        
-        // step sizes
-        std::vector<scalarfield> alpha, beta;
-        
-        // XXX: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
-        // delta scalarfields
-        std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
-        
-        // residual and new configuration states
-        std::vector<vectorfield> res, d;
-
-        // buffer variables for checking convergence for optimizer and Newton-Raphson
-        std::vector<scalarfield> r_dot_d, dda2;
-
-        //////////// VP ///////////////////////////////////////////////////////////////
-        // "Mass of our particle" which we accelerate
-        scalar m = 1.0;
-
-        // Force in previous step [noi][nos]
-        std::vector<vectorfield> forces_previous;
-        // Velocity in previous step [noi][nos]
-        std::vector<vectorfield> velocities_previous;
-        // Velocity used in the Steps [noi][nos]
-        std::vector<vectorfield> velocities;
-        // Projection of velocities onto the forces [noi]
-        std::vector<scalar> projection;
-        // |force|^2
-        std::vector<scalar> force_norm2;
 	};
 }
 

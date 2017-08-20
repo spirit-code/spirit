@@ -24,8 +24,8 @@ namespace Engine
 		this->noi = chain->noi;
 		this->nos = chain->images[0]->nos;
 
-		this->energies = std::vector<scalar>(this->noi, 0.0);
-		this->Rx = std::vector<scalar>(this->noi, 0.0);
+		this->energies = std::vector<scalar>(this->noi, 0);
+		this->Rx = std::vector<scalar>(this->noi, 0);
 
 		// Forces
 		this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));
@@ -70,7 +70,7 @@ namespace Engine
 			energies[img] = this->chain->images[img]->hamiltonian->Energy(image);
 			if (img > 0)
 			{
-				Rx[img] = Rx[img-1] + Engine::Manifoldmath::dist_geodesic(image, *configurations[img-1]);
+				Rx[img] = Rx[img-1] + Manifoldmath::dist_geodesic(image, *configurations[img-1]);
 				if (Rx[img] - Rx[img-1] < 1e-10)
 				{
         			Log(Log_Level::Error, Log_Sender::GNEB, std::string("The geodesic distance between two images is zero! Stopping..."), -1, this->idx_chain);
@@ -81,27 +81,31 @@ namespace Engine
 		}
 
 		// Calculate relevant tangent to magnetisation sphere, considering also the energies of images
-		Engine::Manifoldmath::Tangents(configurations, energies, tangents);
+		Manifoldmath::Tangents(configurations, energies, tangents);
 
 		// Get the total force on the image chain
 		// Loop over images to calculate the total force on each Image
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
 			auto& image = *configurations[img];
-			// The gradient force (unprojected) is simply the effective field
-			//this->chain->images[img]->hamiltonian->Effective_Field(image, F_gradient[img]);
 			// We do it the following way so that the effective field can be e.g. displayed,
 			//		while the gradient force is manipulated (e.g. projected)
-			this->chain->images[img]->UpdateEffectiveField();
-			//this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
-			F_gradient[img] = this->chain->images[img]->effective_field;
-			Engine::Manifoldmath::project_tangential(F_gradient[img], image);
+			// this->chain->images[img]->UpdateEffectiveField();
+			// F_gradient[img] = this->chain->images[img]->effective_field;
+			// // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
+
+			// The gradient force (unprojected) is simply the effective field
+			this->chain->images[img]->hamiltonian->Gradient(image, F_gradient[img]);
+			Vectormath::scale(F_gradient[img], -1);
+
+			// Project the gradient force into the tangent space of the image
+			Manifoldmath::project_tangential(F_gradient[img], image);
 
 			// Calculate Force
 			if (chain->image_type[img] == Data::GNEB_Image_Type::Climbing)
 			{
 				// We reverse the component in tangent direction
-				Engine::Manifoldmath::invert_parallel(F_gradient[img], tangents[img]);
+				Manifoldmath::invert_parallel(F_gradient[img], tangents[img]);
 				// And Spring Force is zero
 				F_total[img] = F_gradient[img];
 			}
@@ -113,7 +117,7 @@ namespace Engine
 			else if (chain->image_type[img] == Data::GNEB_Image_Type::Normal)
 			{
 				// We project the gradient force orthogonal to the TANGENT
-				Engine::Manifoldmath::project_orthogonal(F_gradient[img], tangents[img]);
+				Manifoldmath::project_orthogonal(F_gradient[img], tangents[img]);
 
 				// Calculate the spring force
 				scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
@@ -137,7 +141,7 @@ namespace Engine
 			}
 			// Apply pinning mask
 			#ifdef SPIRIT_ENABLE_PINNING
-				Vectormath::set_c_a(1, F_total[img], F_total[img], parameters->pinning->mask_unpinned);
+				Vectormath::set_c_a(1, F_total[img], F_total[img], this->parameters->pinning->mask_unpinned);
 			#endif // SPIRIT_ENABLE_PINNING
 
 			// Copy out
@@ -147,27 +151,27 @@ namespace Engine
 
 
 	template <Solver solver>
-	void Method_GNEB<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+	void Method_GNEB<solver>::Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual)
     {
 		using namespace Utility;
 
-		// Calculate the basic force
-		this->Calculate_Force(configurations, forces);
-
 		// Calculate the cross product with the spin configuration to get direct minimization
-		for (unsigned int i = 0; i < configurations.size(); ++i)
+		for (unsigned int i = 1; i < configurations.size()-1; ++i)
 		{
 			auto& image = *configurations[i];
 			auto& force = forces[i];
+			auto& force_virtual = forces_virtual[i];
 			auto& parameters = *this->systems[i]->llg_parameters;
 
 			// dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
 			scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-			Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+			Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
+
+			// TODO: add Temperature effects!
 
 			// Apply Pinning
 			#ifdef SPIRIT_ENABLE_PINNING
-			Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+			Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
 			#endif // SPIRIT_ENABLE_PINNING
 		}
     }
@@ -203,6 +207,10 @@ namespace Engine
 			// TODO: how to handle convergence??
 			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
 			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
+
+			// Set the effective fields
+			Manifoldmath::project_tangential(this->forces[img], *this->systems[img]->spins);
+        	Vectormath::set_c_a(1, this->forces[img], this->systems[img]->effective_field);
 		}
 
 		// --- Chain Data Update
@@ -211,10 +219,11 @@ namespace Engine
 		for (int i = 0; i < chain->noi; ++i)
 		{
 			// dy/dx
-			for (int j = 0; j < chain->images[i]->nos; ++j)
-			{
-				dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
-			}
+			dE_dRx[i] = Vectormath::dot(this->chain->images[i]->effective_field, this->tangents[i]);
+			// for (int j = 0; j < chain->images[i]->nos; ++j)
+			// {
+			// 	dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
+			// }
 		}
 		// Interpolate data points
 		auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);

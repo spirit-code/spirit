@@ -109,10 +109,64 @@ namespace Engine
             return M;
         }
 
-        scalar TopologicalCharge(const vectorfield & vf)
+        scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
         {
-            Log(Utility::Log_Level::Warning, Utility::Log_Sender::All, std::string("Calculating the topological charge is not yet implemented"));
-            return 0;
+            // Get sign
+            scalar pm = v1.dot(v2.cross(v3));
+            if (pm != 0) pm /= std::abs(pm);
+
+            // angle
+            scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
+                                std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
+            if (solid_angle == 1)
+                solid_angle = 0;
+            else
+                solid_angle = pm * 2 * std::acos(solid_angle);
+
+            return solid_angle;
+        }
+
+        scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        {
+            // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
+            // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
+
+            scalar x = v1.dot(v2.cross(v3));
+            scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
+            scalar solid_angle = 2 * std::atan2( x , y );
+
+            return solid_angle;
+        }
+
+        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation)
+        {
+            // TODO: this still ignores periodical boundaries, as they are not part of the delaunay triangulation!
+
+            scalar charge = 0, sign;
+            Vector3 triangle_normal;
+            for (int i = 0; i < triangulation.size(); ++i)
+            {
+                int i1 = triangulation[i][0];
+                int i2 = triangulation[i][1];
+                int i3 = triangulation[i][2];
+
+                auto& vp1 = vf_pos[i1];
+                auto& vp2 = vf_pos[i2];
+                auto& vp3 = vf_pos[i3];
+
+                // TODO: this will only work if the vf_pos are in the xy-plane!
+                triangle_normal = (vp1-vp2).cross(vp1-vp3);
+                triangle_normal.normalize();
+                sign = triangle_normal[2]/std::abs(triangle_normal[2]);
+
+                auto& v1 = vf[i1];
+                auto& v2 = vf[i2];
+                auto& v3 = vf[i3];
+
+                // charge += sign * solid_angle_1(v1, v2, v3);
+                charge += sign * solid_angle_2(v1, v2, v3);
+            }
+            return charge / (4*M_PI);
         }
 
         // Utility function for the SIB Optimizer
@@ -147,7 +201,7 @@ namespace Engine
             // PRNG gives RN [-1,1] -> multiply with epsilon
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
             // TODO: parallelization of this is actually not quite so trivial
-            #pragma omp parallel for collapse(2)
+            #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
                 get_random_vector(distribution, prng, xi[i]);
@@ -170,7 +224,7 @@ namespace Engine
             // PRNG gives RN [-1,1] -> multiply with epsilon
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
             // TODO: parallelization of this is actually not quite so trivial
-            #pragma omp parallel for collapse(2)
+            #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
 				get_random_vector_unitsphere(distribution, prng, xi[i]);

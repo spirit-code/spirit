@@ -8,10 +8,12 @@
 General code design and project setup (including CMake).<br />
 Implementation of the core library and UIs, most notably:
 - GNEB and MMF methods
-- VP Optimizer
-- CUDA backend
-- C API
-- C++ QT and Python UIs and initial OpenGL code
+- Velocity projection solver
+- CUDA and OpenMP parallelizations of backend
+- C API and Pyhton bindings
+- C++ QT GUI and initial OpenGL code
+
+(Oct. 2014 - ongoing)
 
 -----------------
 
@@ -20,8 +22,10 @@ Implementation of the core library and UIs, most notably:
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Implementation of the initial core library, notably translating from Fortran90 to C++ and addition of STT to SIB.<br />
-Work on QT Python UIs.
+Implementation of the initial core library, notably translating from Fortran90 to C++ and addition of STT to the SIB solver.<br />
+Work on QT GUI and Python bindings.
+
+(Oct. 2015 - Sept. 2016)
 
 -----------------
 
@@ -29,8 +33,13 @@ Work on QT Python UIs.
 ### Nikolai Kiselev
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Initial (Fortran90) implementations of the isotropic Hamiltonian, Neighbour calculations and the SIB optimizer.<br/>
-Scientific advice, general help and feedback.
+Scientific advice, general help and feedback, initial (Fortran90) implementations of:
+- isotropic Heisenberg Hamiltonian
+- Neighbour calculations
+- SIB solver
+- Monte Carlo methods
+
+(2007 - ongoing)
 
 -----------------
 
@@ -38,8 +47,10 @@ Scientific advice, general help and feedback.
 ### Florian Rhiem
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 
-Implementation of C++ OpenGL code (gl library), as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements (including CMake). 
+Implementation of C++ OpenGL code (VFRendering library), as well as JavaScript Web UI and WebGL code.<br />
+Code design improvements, including the C API and CMake. 
+
+(Jan. 2016 - ongoing)
 
 -----------------
 
@@ -47,7 +58,9 @@ Code design improvements (including CMake).
 ### Stefanos Mavros
 * RWTH Aachen 
 
-Work on unit testing and documentation.<br />
+Work on unit testing and documentation and implementation of the Depondt solver.<br />
+
+(April 2017 - ongoing)
 
 -----------------
 
@@ -56,6 +69,8 @@ Work on unit testing and documentation.<br />
 * RWTH Aachen 
 
 Implementation and testing of gradient approximation of spin transfer torque.<br />
+
+(April 2017 - Juli 2017)
 
 -----------------
 
@@ -66,6 +81,8 @@ Implementation and testing of gradient approximation of spin transfer torque.<br
 Implementation of the initial OpenGL code.<br />
 Code design suggestions and other general help.
 
+(Jan. 2016 - ongoing)
+
 -----------------
 
 
@@ -75,6 +92,8 @@ Code design suggestions and other general help.
 Initial CUDA implementation and tests.<br />
 Code optimizations, suggestions and feedback.
 
+(Sept. 2016 - Dec. 2016)
+
 -----------------
 
 
@@ -82,7 +101,9 @@ Code optimizations, suggestions and feedback.
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Initial (Fortran90) implementations of the isotropic Hamiltonian, Neighbour calculations and the SIB optimizer.
+Initial (Fortran90) implementations of the isotropic Heisenberg Hamiltonian, Neighbour calculations and the SIB solver.
+
+(Oct. 2007 - Sept. 2008)
 
 -----------------
 

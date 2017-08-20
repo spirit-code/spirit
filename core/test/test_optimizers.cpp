@@ -47,7 +47,31 @@ TEST_CASE( "Optimizers testing", "[optimizers]" )
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
             
         // Log the name of the optimizer
-        INFO( opt << std::string( " optimizer using " ) << method );
+        INFO( opt << std::string( " solver using " ) << method );
+
+        // Check the values of energy and magnetization
+        REQUIRE( energy == Approx( energy_expected ) );
+        for (int dim=0; dim<3; dim++)
+            REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ) );
+    }
+
+    // Calculate energy and magnetization for every optimizer with direct minimization
+    Parameters_Set_LLG_Direct_Minimization( state.get(), true );
+    for ( auto opt : optimizers )
+    {
+        // Put a skyrmion in the center of the space
+        Configuration_PlusZ( state.get() );
+        Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
+
+        // Do simulation
+        Simulation_PlayPause( state.get(), method, opt );
+
+        // Save energy and magnetization
+        energy = System_Get_Energy( state.get() );
+        Quantity_Get_Magnetization( state.get(), magnetization.data() );
+            
+        // Log the name of the optimizer
+        INFO( opt << std::string( " solver (direct) using " ) << method );
 
         // Check the values of energy and magnetization
         REQUIRE( energy == Approx( energy_expected ) );

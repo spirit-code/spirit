@@ -7,7 +7,7 @@ void Method_Solver<Solver::VP>::Initialize ()
     this->configurations_temp  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for (int i=0; i<this->noi; i++)
       configurations_temp[i] = std::shared_ptr<vectorfield>(new vectorfield(this->nos));
-
+    
     this->velocities          = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
     this->velocities_previous = velocities;	// [noi][nos]
     this->forces_previous     = velocities;	// [noi][nos]
@@ -39,6 +39,7 @@ void Method_Solver<Solver::VP>::Iteration ()
 
     // Get the forces on the configurations
     this->Calculate_Force(configurations, forces);
+    this->Calculate_Force_Virtual(configurations, forces, forces_virtual);
     
     for (int i = 0; i < noi; ++i)
     {
