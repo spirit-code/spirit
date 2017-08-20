@@ -23,7 +23,7 @@ namespace Utility
   
   void Spirit_Exception( const Exception & ex, int idx_image=-1, int idx_chain=-1 );
 
-  void Handle_Exception( int idx_image, int idx_chain );
+  void Handle_Exception( int idx_image=-1, int idx_chain=-1 );
   
 }
 
