@@ -13,6 +13,8 @@
 
 using namespace Data;
 using namespace Utility;
+using Engine::Vectormath::cu_check_atom_type;
+using Engine::Vectormath::cu_idx_from_pair;
 
 namespace Engine
 {
@@ -48,7 +50,7 @@ namespace Engine
 		dmi_neighbours = Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size());
 		for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 		{
-			dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].iatom, dmi_neighbours[ineigh].ineigh, {dmi_neighbours[ineigh].translations[0], dmi_neighbours[ineigh].translations[1], dmi_neighbours[ineigh].translations[2]} }, dm_chirality));
+			dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, { dmi_neighbours[ineigh].i, dmi_neighbours[ineigh].j, {dmi_neighbours[ineigh].translations[0], dmi_neighbours[ineigh].translations[1], dmi_neighbours[ineigh].translations[2]} }, dm_chirality));
 		}
 
 		// Generate DDI neighbours, magnitudes and normals
@@ -57,7 +59,7 @@ namespace Engine
 		Vector3 normal;
 		for (unsigned int i=0; i<ddi_neighbours.size(); ++i)
 		{
-		    Engine::Neighbours::DDI_from_Pair(*this->geometry, {ddi_neighbours[i].iatom, ddi_neighbours[i].ineigh, {ddi_neighbours[i].translations[0], ddi_neighbours[i].translations[1], ddi_neighbours[i].translations[2]}}, magnitude, normal);
+		    Engine::Neighbours::DDI_from_Pair(*this->geometry, {ddi_neighbours[i].i, ddi_neighbours[i].j, {ddi_neighbours[i].translations[0], ddi_neighbours[i].translations[1], ddi_neighbours[i].translations[2]}}, magnitude, normal);
 			this->ddi_magnitudes.push_back(magnitude);
 			this->ddi_normals.push_back(normal);
 		}
@@ -65,103 +67,7 @@ namespace Engine
 		this->Update_Energy_Contributions();
 	}
 
-	__inline__ __device__ int neigh_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Neighbour neigh)
-	{
-		// TODO: use pair.i and pair.j to get multi-spin basis correctly
-
-		// Number of cells
-		int Na = n_cells[0];
-		int Nb = n_cells[1];
-		int Nc = n_cells[2];
-
-		// Translations (cell) of spin i
-		// int ni[3];
-		int nic = ispin/(N*Na*Nb);
-		int nib = (ispin-nic*N*Na*Nb)/(N*Na);
-		int nia = ispin-nic*N*Na*Nb-nib*N*Na;
-
-		// Translations (cell) of spin j (possibly outside of non-periodical domain)
-		// int nj[3]
-		int nja = nia+neigh.translations[0];
-		int njb = nib+neigh.translations[1];
-		int njc = nic+neigh.translations[2];
-
-		if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (nja < 0)
-				nja += Na;
-			// Calculate the correct index
-			if (nja>=Na)
-				nja-=Na;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njb < 0)
-				njb += Nb;
-			// Calculate the correct index
-			if (njb>=Nb)
-				njb-=Nb;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njc < 0)
-				njc += Nc;
-			// Calculate the correct index
-			if (njc>=Nc)
-				njc-=Nc;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
-	}
-
-	__inline__ __device__ bool cu_check_atom_type(int atom_type)
-	{
-		#ifdef SPIRIT_ENABLE_DEFECTS
-			// If defects are enabled we check for
-			//		vacancies (type < 0)
-			if (atom_type >= 0) return true;
-			else return false;
-		#else
-			// Else we just return true
-			return true;
-		#endif
-	}
 	
-	__inline__ __device__ bool cu_check_atom_type(int atom_type, int reference_type)
-	{
-		#ifdef SPIRIT_ENABLE_DEFECTS
-			// If defects are enabled we do a check if
-			//		atom types match.
-			if (atom_type == reference_type) return true;
-			else return false;
-		#else
-			// Else we just return true
-			return true;
-		#endif
-	}
 	
 	void Hamiltonian_Heisenberg_Neighbours::Update_N_Neighbour_Shells(int n_shells_exchange, int n_shells_dmi)
 	{
@@ -293,14 +199,11 @@ namespace Engine
 		{
 			for (unsigned int ineigh = 0; ineigh < n_neigh; ++ineigh)
 			{
-				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, neighbours[ineigh]);
+				if ( jspin >= 0 )
 				{
-					int ishell = neighbours[ineigh].idx_shell;
-					if ( jspin >= 0 )
-					{
-						Energy[ispin] -= 0.5 * magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
-					}
+					auto& ishell = neighbours[ineigh].idx_shell;
+					Energy[ispin] -= 0.5 * magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
 				}
 			}
 		}
@@ -324,14 +227,11 @@ namespace Engine
 		{
 			for (unsigned int ineigh = 0; ineigh < n_neighbours; ++ineigh)
 			{
-				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, neighbours[ineigh]);
+				if ( jspin >= 0 )
 				{
-					int ishell = neighbours[ineigh].idx_shell;
-					if ( jspin >= 0 )
-					{
-						Energy[ispin] -= 0.5 * magnitudes[ishell] * normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
-					}
+					auto& ishell = neighbours[ineigh].idx_shell;
+					Energy[ispin] -= 0.5 * magnitudes[ishell] * normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
 				}
 			}
 		}
@@ -451,14 +351,11 @@ namespace Engine
 			
 			for (unsigned int ineigh = 0; ineigh < n_neigh; ++ineigh)
 			{
-				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, neighbours[ineigh]);
+				if ( jspin >= 0 )
 				{
-					int ishell = neighbours[ineigh].idx_shell;
-					if ( jspin >= 0 )
-					{
-						grad -= magnitudes[ishell] * spins[jspin];
-					}
+					auto& ishell = neighbours[ineigh].idx_shell;
+					grad -= magnitudes[ishell] * spins[jspin];
 				}
 			}
 			gradient[ispin] += grad;
@@ -485,14 +382,11 @@ namespace Engine
 			Vector3 spin=spins[ispin]; 
 			for (unsigned int ineigh = 0; ineigh < n_neighbours; ++ineigh)
 			{
-				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, neighbours[ineigh]);
+				if ( jspin >= 0 )
 				{
-					int ishell = neighbours[ineigh].idx_shell;
-					if ( jspin >= 0 )
-					{
-						grad -= magnitudes[ishell]*spins[jspin].cross(normals[ineigh]);
-					}
+					auto& ishell = neighbours[ineigh].idx_shell;
+					grad -= magnitudes[ishell]*spins[jspin].cross(normals[ineigh]);
 				}
 			}
 			gradient[ispin] += grad;
@@ -584,8 +478,8 @@ namespace Engine
 		// 		{
 		// 			for (int beta = 0; beta < 3; ++beta)
 		// 			{
-		// 				int idx_i = 3 * dmi_neighbours[ineigh].iatom + alpha;
-		// 				int idx_j = 3 * dmi_neighbours[ineigh].ineigh + beta;
+		// 				int idx_i = 3 * dmi_neighbours[ineigh].i + alpha;
+		// 				int idx_j = 3 * dmi_neighbours[ineigh].j + beta;
 		// 				if ((alpha == 0 && beta == 1))
 		// 				{
 		// 					hessian(idx_i, idx_j) +=
