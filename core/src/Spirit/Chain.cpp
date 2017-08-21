@@ -230,7 +230,9 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
     		chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
     		// Add to state
-    		state->simulation_information_image[idx_chain].insert(state->simulation_information_image[idx_chain].begin() + idx_image, std::shared_ptr<Simulation_Information>());
+    		state->simulation_information_image[idx_chain].insert(
+                state->simulation_information_image[idx_chain].begin() + 
+                    idx_image, std::shared_ptr<Simulation_Information>() );
 
             // Increment active image so that we don't switch between images
             ++chain->idx_active_image;
@@ -248,7 +250,8 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
             
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+                                      idx_image, idx_chain);
             }
         }
         else
@@ -297,7 +300,8 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             // if (idx_image < state->noi - 1)
             // {
                 chain->images.insert(chain->images.begin() + idx_image + 1, copy);
-    			chain->image_type.insert(chain->image_type.begin() + idx_image + 1, Data::GNEB_Image_Type::Normal);
+    			chain->image_type.insert( chain->image_type.begin() + idx_image + 1, 
+                                          Data::GNEB_Image_Type::Normal );
             // }
             // else
             // {
@@ -307,7 +311,9 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             // }
 
     		// Add to state
-    		state->simulation_information_image[idx_chain].insert(state->simulation_information_image[idx_chain].begin() + idx_image + 1, std::shared_ptr<Simulation_Information>());
+    		state->simulation_information_image[idx_chain].insert(
+                state->simulation_information_image[idx_chain].begin() + idx_image + 1, 
+                std::shared_ptr<Simulation_Information>() );
 
             chain->Unlock();
 
@@ -322,7 +328,8 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1,
+                                      idx_image, idx_chain );
             }
         }
         else
@@ -385,12 +392,14 @@ void Chain_Push_Back( State * state, int idx_chain )
             // Update array lengths
             Chain_Setup_Data(state, idx_chain);
 
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Pushed back image from clipboard to chain. NOI is now " + std::to_string(chain->noi), -1, idx_chain);
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 "Pushed back image from clipboard to chain. NOI is now " + 
+                 std::to_string(chain->noi), -1, idx_chain );
 
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+                                      idx_image, idx_chain );
             }
         }
         else
@@ -440,7 +449,8 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
             chain->image_type.erase(chain->image_type.begin() + idx_image);
 
             // Remove from state
-            state->simulation_information_image[idx_chain].erase(state->simulation_information_image[idx_chain].begin() + idx_image);
+            state->simulation_information_image[idx_chain].erase(
+                state->simulation_information_image[idx_chain].begin() + idx_image );
             
             chain->Unlock();
             
@@ -450,12 +460,14 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
             // Update array lengths
             Chain_Setup_Data(state, idx_chain);
 
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Deleted image " + std::to_string(idx_image+1) + " of " + std::to_string(chain->noi+1), -1, idx_chain);
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 "Deleted image " + std::to_string(idx_image+1) + " of " + 
+                 std::to_string(chain->noi+1), -1, idx_chain );
 
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+                                      idx_image, idx_chain );
             }
 
             return true;
@@ -691,7 +703,10 @@ void Chain_Update_Data( State * state, int idx_chain )
             
             chain->images[i]->Lock();
             chain->images[i]->UpdateEnergy();
-            if (i > 0) chain->Rx[i] = chain->Rx[i-1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i-1]->spins, *chain->images[i]->spins);
+            if (i > 0) 
+                chain->Rx[i] = chain->Rx[i-1] + 
+                    Engine::Manifoldmath::dist_geodesic( *chain->images[i-1]->spins, 
+                                                         *chain->images[i]->spins );
     	    chain->images[i]->Unlock();
         }
     }
@@ -717,9 +732,12 @@ void Chain_Setup_Data( State * state, int idx_chain )
 
         // Apply
         chain->Rx = std::vector<scalar>(state->noi, 0);
-        chain->Rx_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-        chain->E_interpolated = std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-        chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+        chain->Rx_interpolated = std::vector<scalar>( state->noi + 
+            (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+        chain->E_interpolated = std::vector<scalar>( state->noi + 
+            (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+        chain->E_array_interpolated = std::vector<std::vector<scalar>>( 7, 
+            std::vector<scalar>( state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
 
         chain->Unlock();
         

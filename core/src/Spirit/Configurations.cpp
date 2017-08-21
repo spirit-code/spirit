@@ -88,7 +88,9 @@ std::string filter_to_string( const float position[3], const float r_cut_rectang
 		if ( r_cut_rectangular[0] > 0 || r_cut_rectangular[1] > 0 || r_cut_rectangular[2] > 0 )
 		{
 			if (ret != "") ret += " ";
-			ret += "Rectangular region: (" + std::to_string(r_cut_rectangular[0]) + "," + std::to_string(r_cut_rectangular[1]) + "," + std::to_string(r_cut_rectangular[2]) + ").";
+			ret += "Rectangular region: (" + std::to_string(r_cut_rectangular[0]) + "," + 
+                   std::to_string(r_cut_rectangular[1]) + "," + 
+                   std::to_string(r_cut_rectangular[2]) + ").";
 		}
 		if ( r_cut_cylindrical > 0 )
 		{
@@ -437,7 +439,9 @@ void Configuration_Add_Noise_Temperature( State *state, float temperature, const
     }
 }
 
-void Configuration_Hopfion(State *state, float r, int order, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain)
+void Configuration_Hopfion( State *state, float r, int order, const float position[3], 
+                            const float r_cut_rectangular[3], float r_cut_cylindrical, 
+                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
 {
     try
     {

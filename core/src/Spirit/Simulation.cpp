@@ -236,7 +236,8 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     {
         // One Iteration
         std::shared_ptr<Engine::Method> method;
-        if (Get_Method(state, c_method_type, c_solver_type, 1, n_iterations_log, idx_image, idx_chain, method))
+        if ( Get_Method( state, c_method_type, c_solver_type, 1, n_iterations_log, 
+                         idx_image, idx_chain, method) )
             method->Iterate();
     }
     catch( ... )
@@ -252,7 +253,8 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     {
         // Iterate
         std::shared_ptr<Engine::Method> method;
-    	if (Get_Method(state, c_method_type, c_solver_type, n_iterations, n_iterations_log, idx_image, idx_chain, method))
+    	if ( Get_Method( state, c_method_type, c_solver_type, n_iterations, n_iterations_log, 
+                         idx_image, idx_chain, method ) )
     		method->Iterate();
     }
     catch( ... )
@@ -408,7 +410,7 @@ const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -444,7 +446,7 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -526,9 +528,13 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Chain(state, idx_chain)) return true;
+        if (Simulation_Running_Chain(state, idx_chain)) 
+            return true;
+        
         for (int i=0; i<chain->noi; ++i)
-            if (Simulation_Running_Image(state, i, idx_chain)) return true;
+            if (Simulation_Running_Image(state, i, idx_chain)) 
+                return true;
+        
         return false;
     }
     catch( ... )
@@ -542,9 +548,13 @@ bool Simulation_Running_Anywhere_Collection(State *state)
 {
     try
     {
-    	if (Simulation_Running_Collection(state)) return true;
+    	if (Simulation_Running_Collection(state)) 
+            return true;
+        
         for (int ichain=0; ichain<state->collection->noc; ++ichain)
-            if (Simulation_Running_Anywhere_Chain(state, ichain)) return true;
+            if (Simulation_Running_Anywhere_Chain(state, ichain)) 
+                return true;
+        
         return false;
     }
     catch( ... )

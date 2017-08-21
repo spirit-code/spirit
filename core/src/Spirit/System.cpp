@@ -51,7 +51,7 @@ scalar * System_Get_Spin_Directions(State * state, int idx_image, int idx_chain)
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -69,7 +69,7 @@ scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 

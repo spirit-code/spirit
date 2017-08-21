@@ -504,7 +504,7 @@ const char * Hamiltonian_Get_Name(State * state, int idx_image, int idx_chain)
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 

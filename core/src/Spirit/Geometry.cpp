@@ -20,7 +20,7 @@ scalar * Geometry_Get_Spin_Positions( State * state, int idx_image, int idx_chai
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return 0;
+        return nullptr;
     }
 }
 
@@ -41,7 +41,7 @@ int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain )
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return 0;
+        return nullptr;
     }
 }
 

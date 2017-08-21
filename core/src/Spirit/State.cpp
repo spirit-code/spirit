@@ -153,7 +153,7 @@ State * State_Setup(const char * config_file, bool quiet)
     catch( ... )
     {
         Utility::Handle_Exception( );
-        return NULL;
+        return nullptr;
     }
 }
 

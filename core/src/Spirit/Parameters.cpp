@@ -150,10 +150,10 @@ void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set LLG solver to dynamics", 
                  idx_image, idx_chain );
          }
-         catch( ... )
-         {
-             Utility::Handle_Exception( idx_image, idx_chain );
-         }    
+     catch( ... )
+     {
+         Utility::Handle_Exception( idx_image, idx_chain );
+     }    
 }
 
 void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain)
@@ -715,7 +715,7 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -951,7 +951,7 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -1101,7 +1101,7 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return NULL;
+        return nullptr;
     }
 }
 
