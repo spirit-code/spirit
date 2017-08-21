@@ -36,7 +36,6 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
      catch( ... )
      {
          Utility::Handle_Exception( idx_image, idx_chain );
-         return ;
      }
 }
 
@@ -68,6 +67,5 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
     catch( const Utility::Exception & ex )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }

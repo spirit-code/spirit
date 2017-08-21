@@ -260,7 +260,6 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 

@@ -15,7 +15,6 @@ void Log_Send( State *state, int level, int sender, const char * message, int id
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -46,8 +45,7 @@ void Log_Append(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
-        return ;        
+        Utility::Handle_Exception();    
     }
 }
 
@@ -59,8 +57,7 @@ void Log_Dump(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
-        return ;        
+        Utility::Handle_Exception();        
     }
 }
 

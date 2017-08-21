@@ -44,7 +44,6 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -83,7 +82,6 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -173,7 +171,6 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -261,7 +258,6 @@ void Hamiltonian_Set_Anisotropy( State *state, float magnitude, const float * no
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -329,7 +325,6 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -409,7 +404,6 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -488,7 +482,6 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -532,7 +525,6 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int id
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -562,7 +554,6 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -624,7 +615,6 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -686,7 +676,6 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -720,7 +709,6 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -753,7 +741,6 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
 
@@ -783,6 +770,5 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
     catch( ... )
     {
         Utility::Handle_Exception( idx_image, idx_chain );
-        return ;
     }
 }
