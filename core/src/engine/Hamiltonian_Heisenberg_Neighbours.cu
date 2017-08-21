@@ -136,6 +136,32 @@ namespace Engine
 
 		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
 	}
+
+	__inline__ __device__ bool cu_check_atom_type(int atom_type)
+	{
+		#ifdef SPIRIT_ENABLE_DEFECTS
+			// If defects are enabled we check for
+			//		vacancies (type < 0)
+			if (atom_type >= 0) return true;
+			else return false;
+		#else
+			// Else we just return true
+			return true;
+		#endif
+	}
+	
+	__inline__ __device__ bool cu_check_atom_type(int atom_type, int reference_type)
+	{
+		#ifdef SPIRIT_ENABLE_DEFECTS
+			// If defects are enabled we do a check if
+			//		atom types match.
+			if (atom_type == reference_type) return true;
+			else return false;
+		#else
+			// Else we just return true
+			return true;
+		#endif
+	}
 	
 	void Hamiltonian_Heisenberg_Neighbours::Update_N_Neighbour_Shells(int n_shells_exchange, int n_shells_dmi)
 	{
@@ -228,10 +254,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - external_field_magnitudes[idx] * external_field_normals[idx].dot(spins[ispin]));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - external_field_magnitudes[idx] * external_field_normals[idx].dot(spins[ispin]));
 		}
 	}
 	void Hamiltonian_Heisenberg_Neighbours::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -247,10 +271,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - anisotropy_magnitudes[idx] * std::pow(anisotropy_normals[idx].dot(spins[ispin]), 2.0));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - anisotropy_magnitudes[idx] * std::pow(anisotropy_normals[idx].dot(spins[ispin]), 2.0));
 		}
 	}
 	void Hamiltonian_Heisenberg_Neighbours::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
@@ -272,18 +294,14 @@ namespace Engine
 			for (unsigned int ineigh = 0; ineigh < n_neigh; ++ineigh)
 			{
 				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 				{
-				#endif
-				int ishell = neighbours[ineigh].idx_shell;
-				if ( jspin >= 0 )
-				{
-					Energy[ispin] -= 0.5 * magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
+					int ishell = neighbours[ineigh].idx_shell;
+					if ( jspin >= 0 )
+					{
+						Energy[ispin] -= 0.5 * magnitudes[ishell] * spins[ispin].dot(spins[jspin]);
+					}
 				}
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				}
-				#endif
 			}
 		}
 	}
@@ -307,18 +325,14 @@ namespace Engine
 			for (unsigned int ineigh = 0; ineigh < n_neighbours; ++ineigh)
 			{
 				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 				{
-				#endif
-				int ishell = neighbours[ineigh].idx_shell;
-				if ( jspin >= 0 )
-				{
-					Energy[ispin] -= 0.5 * magnitudes[ishell] * normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
+					int ishell = neighbours[ineigh].idx_shell;
+					if ( jspin >= 0 )
+					{
+						Energy[ispin] -= 0.5 * magnitudes[ishell] * normals[ineigh].dot(spins[ispin].cross(spins[jspin]));
+					}
 				}
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				}
-				#endif
 			}
 		}
 	}
@@ -384,17 +398,13 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Zeeman(vectorfield & gradient)
@@ -410,18 +420,14 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
@@ -446,18 +452,14 @@ namespace Engine
 			for (unsigned int ineigh = 0; ineigh < n_neigh; ++ineigh)
 			{
 				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 				{
-				#endif
-				int ishell = neighbours[ineigh].idx_shell;
-				if ( jspin >= 0 )
-				{
-					grad -= magnitudes[ishell] * spins[jspin];
+					int ishell = neighbours[ineigh].idx_shell;
+					if ( jspin >= 0 )
+					{
+						grad -= magnitudes[ishell] * spins[jspin];
+					}
 				}
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				}
-				#endif
 			}
 			gradient[ispin] += grad;
 		}
@@ -484,18 +486,14 @@ namespace Engine
 			for (unsigned int ineigh = 0; ineigh < n_neighbours; ++ineigh)
 			{
 				int jspin = neigh_cu_get_pair_j(bc, nc, n_basis_spins, ispin, neighbours[ineigh]);
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+				if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 				{
-				#endif
-				int ishell = neighbours[ineigh].idx_shell;
-				if ( jspin >= 0 )
-				{
-					grad -= magnitudes[ishell]*spins[jspin].cross(normals[ineigh]);
+					int ishell = neighbours[ineigh].idx_shell;
+					if ( jspin >= 0 )
+					{
+						grad -= magnitudes[ishell]*spins[jspin].cross(normals[ineigh]);
+					}
 				}
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				}
-				#endif
 			}
 			gradient[ispin] += grad;
 		}

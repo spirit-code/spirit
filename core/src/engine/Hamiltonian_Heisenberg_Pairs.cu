@@ -217,6 +217,32 @@ namespace Engine
 		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
 	}
 
+	__inline__ __device__ bool cu_check_atom_type(int atom_type)
+	{
+		#ifdef SPIRIT_ENABLE_DEFECTS
+			// If defects are enabled we check for
+			//		vacancies (type < 0)
+			if (atom_type >= 0) return true;
+			else return false;
+		#else
+			// Else we just return true
+			return true;
+		#endif
+	}
+	
+	__inline__ __device__ bool cu_check_atom_type(int atom_type, int reference_type)
+	{
+		#ifdef SPIRIT_ENABLE_DEFECTS
+			// If defects are enabled we do a check if
+			//		atom types match.
+			if (atom_type == reference_type) return true;
+			else return false;
+		#else
+			// Else we just return true
+			return true;
+		#endif
+	}
+
 
 	void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
@@ -257,10 +283,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[ispin]));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[ispin]));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -277,10 +301,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
@@ -305,16 +327,12 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 					{
-					#endif
-					scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-					atomicAdd(&Energy[ispin], sc);
-					atomicAdd(&Energy[jspin], sc);
-					#ifdef SPIRIT_ENABLE_DEFECTS
+						scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+						atomicAdd(&Energy[ispin], sc);
+						atomicAdd(&Energy[jspin], sc);
 					}
-					#endif
 				}
 			}
 		}
@@ -342,16 +360,12 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 					{
-					#endif
-					scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-					atomicAdd(&Energy[ispin], sc);
-					atomicAdd(&Energy[jspin], sc);
-					#ifdef SPIRIT_ENABLE_DEFECTS
+						scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+						atomicAdd(&Energy[ispin], sc);
+						atomicAdd(&Energy[jspin], sc);
 					}
-					#endif
 				}
 			}
 		}
@@ -460,17 +474,13 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
@@ -487,18 +497,14 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
@@ -523,18 +529,14 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 					{
-					#endif
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
-						atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
+						for (int dim=0; dim<3 ; dim++)
+						{
+							atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
+							atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
+						}
 					}
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
 				}
 			}
 		}
@@ -562,20 +564,16 @@ namespace Engine
 				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
+					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
 					{
-					#endif
-					Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
-					Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], -jcross[dim]);
-						atomicAdd(&gradient[jspin][dim],  icross[dim]);
+						Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
+						Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
+						for (int dim=0; dim<3 ; dim++)
+						{
+							atomicAdd(&gradient[ispin][dim], -jcross[dim]);
+							atomicAdd(&gradient[jspin][dim],  icross[dim]);
+						}
 					}
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
 				}
 			}
 		}
