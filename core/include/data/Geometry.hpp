@@ -12,9 +12,13 @@ namespace Data
     // TODO: replace that type with Eigen!
     typedef struct {
         scalar x, y, z;
-    } vector_t;
+    } vector3_t;
+    typedef struct {
+        scalar x, y;
+    } vector2_t;
 
     typedef std::array<int, 4> tetrahedron_t;
+    typedef std::array<int, 3> triangle_t;
 
     // Geometry contains all geometric information about the spin_system
     // The members are const, as a spin system has to be created new whenever one of these members is changed.
@@ -29,7 +33,8 @@ namespace Data
         // Destructor
         //~Geometry();
 
-        const std::vector<tetrahedron_t>& triangulation(int n_cell_step=1);
+		const std::vector<triangle_t>&    triangulation(int n_cell_step=1);
+		const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
         int calculateDimensionality() const;
 
         // -------------------- Input constants ------------------
@@ -73,8 +78,14 @@ namespace Data
 
         int dimensionality;
         
-    private:
-        std::vector<tetrahedron_t> _triangulation;
+	private:
+		std::vector<triangle_t>    _triangulation;
+		std::vector<tetrahedron_t> _tetrahedra;
+		
+		// Temporaries to tell wether the triangulation or tetrahedra
+		// need to be updated when the corresponding function is called
+		int last_update_n_cell_step;
+		intfield last_update_n_cells;
     };
 }
 #endif

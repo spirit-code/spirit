@@ -74,27 +74,25 @@ namespace Engine
         //      precession and damping terms for the Hamiltonian, spin currents and
         //      temperature. This function is used in `the Solver_...` functions.
         // Default implementation: direct minimization
-        virtual void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+        virtual void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual)
         {
             using namespace Utility;
-
-            // Calculate the basic force
-            this->Calculate_Force(configurations, forces);
 
             // Calculate the cross product with the spin configuration to get direct minimization
             for (unsigned int i=0; i<configurations.size(); ++i)
             {
                 auto& image = *configurations[i];
                 auto& force = forces[i];
+                auto& force_virtual = forces_virtual[i];
                 auto& parameters = *this->systems[i]->llg_parameters;
 
                 // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
                 scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force);
+                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
 
                 // Apply Pinning
                 #ifdef SPIRIT_ENABLE_PINNING
-                    Vectormath::set_c_a(1, force, force, parameters.pinning->mask_unpinned);
+                    Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
                 #endif // SPIRIT_ENABLE_PINNING
             }
         }
@@ -119,6 +117,54 @@ namespace Engine
         virtual void Message_Start() override;
         virtual void Message_Step() override;
         virtual void Message_End() override;
+
+
+        //////////// DEPONDT ////////////////////////////////////////////////////////////
+        // Temporaries for virtual forces
+        std::vector<vectorfield> rotationaxis;
+        std::vector<scalarfield> forces_virtual_norm;
+        // Preccession angle
+        scalarfield angle;
+
+        //////////// NCG ////////////////////////////////////////////////////////////
+        // Check if the Newton-Raphson has converged
+        bool NR_converged();
+        
+        int jmax;     // max iterations for Newton-Raphson loop
+        int n;        // number of iteration after which the nCG will restart
+        
+        scalar tol_nCG, tol_NR;   // tolerances for optimizer and Newton-Raphson
+        scalar eps_nCG, eps_NR;   // Newton-Raphson and optimizer tolerance squared
+        
+        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
+        
+        // Step sizes
+        std::vector<scalarfield> alpha, beta;
+        
+        // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
+        // Delta scalarfields
+        std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
+        
+        // Residual and new configuration states
+        std::vector<vectorfield> res, d;
+
+        // buffer variables for checking convergence for optimizer and Newton-Raphson
+        std::vector<scalarfield> r_dot_d, dda2;
+
+        //////////// VP ///////////////////////////////////////////////////////////////
+        // "Mass of our particle" which we accelerate
+        scalar m = 1.0;
+
+        // Force in previous step [noi][nos]
+        std::vector<vectorfield> forces_previous;
+        // Velocity in previous step [noi][nos]
+        std::vector<vectorfield> velocities_previous;
+        // Velocity used in the Steps [noi][nos]
+        std::vector<vectorfield> velocities;
+        // Projection of velocities onto the forces [noi]
+        std::vector<scalar> projection;
+        // |force|^2
+        std::vector<scalar> force_norm2;
     };
 
 

@@ -9,7 +9,16 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     scalarfield sf(N, 1);
     vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
     vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
-
+    
+    SECTION("Magnetization")
+    {
+        Engine::Vectormath::fill( vf1, { 0, 0, 1 } );
+        auto m = Engine::Vectormath::Magnetization( vf1 );
+        REQUIRE( m[0] == Approx( 0 ) );
+        REQUIRE( m[1] == Approx( 0 ) );
+        REQUIRE( m[2] == Approx( 1 ) ); 
+    }
+    
     SECTION("Rotate")
     {
         scalar pi = std::acos( -1 );

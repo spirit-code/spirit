@@ -5,3 +5,5 @@
 #define Exception_Simulated_domain_too_small 3
 #define Exception_Not_Implemented            4
 #define Exception_Unknown_Exception          5
+#define Exception_Non_existing_Image         6
+#define Exception_Non_existing_Chain         7

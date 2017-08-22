@@ -300,11 +300,65 @@ namespace Engine
             return std::array<scalar,3>{M[0], M[1], M[2]};
 		}
 
-		scalar TopologicalCharge(const vectorfield & vf)
-		{
-        	Log(Utility::Log_Level::Warning, Utility::Log_Sender::All, std::string("Calculating the topological charge is not yet implemented"));
-			return 0;
-		}
+		scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        {
+            // Get sign
+            scalar pm = v1.dot(v2.cross(v3));
+            if (pm != 0) pm /= std::abs(pm);
+
+            // angle
+            scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
+                                std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
+            if (solid_angle == 1)
+                solid_angle = 0;
+            else
+                solid_angle = pm * 2 * std::acos(solid_angle);
+
+            return solid_angle;
+        }
+
+        scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        {
+            // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
+            // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
+
+            scalar x = v1.dot(v2.cross(v3));
+            scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
+            scalar solid_angle = 2 * std::atan2( x , y );
+
+            return solid_angle;
+        }
+
+        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation)
+        {
+            // TODO: this still ignores periodical boundaries, as they are not part of the delaunay triangulation!
+
+            scalar charge = 0, sign;
+            Vector3 triangle_normal;
+            for (int i = 0; i < triangulation.size(); ++i)
+            {
+                int i1 = triangulation[i][0];
+                int i2 = triangulation[i][1];
+                int i3 = triangulation[i][2];
+
+                auto& vp1 = vf_pos[i1];
+                auto& vp2 = vf_pos[i2];
+                auto& vp3 = vf_pos[i3];
+
+                // TODO: this will only work if the vf_pos are in the xy-plane!
+                triangle_normal = (vp1-vp2).cross(vp1-vp3);
+                triangle_normal.normalize();
+                sign = triangle_normal[2]/std::abs(triangle_normal[2]);
+
+                auto& v1 = vf[i1];
+                auto& v2 = vf[i2];
+                auto& v3 = vf[i3];
+
+                // charge += sign * solid_angle_1(v1, v2, v3);
+                charge += sign * solid_angle_2(v1, v2, v3);
+            }
+            return charge / (4*M_PI);
+        }
 
         // Utility function for the SIB Optimizer
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
@@ -335,8 +389,15 @@ namespace Engine
             cudaDeviceSynchronize();
 		}
 
-        // Utility function for the SIB Optimizer
-        __global__ void cu_get_random_vectorfield(scalar epsilon, Vector3 * xi, size_t N)
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
+        {
+            for (int dim = 0; dim < 3; ++dim)
+            {
+                vec[dim] = distribution(prng);
+            }
+        }
+        
+        __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
             unsigned long long offset= 0;
@@ -349,88 +410,70 @@ namespace Engine
                 curand_init(idx,subsequence,offset,&state);
                 for (int dim=0;dim<3; ++dim)
                 {
-                    xi[idx][dim] = epsilon*(llroundf(curand_uniform(&state))*2-1);
+                    xi[idx][dim] = llroundf(curand_uniform(&state))*2-1;
                 }
             }
         }
-		void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi)
+		void get_random_vectorfield(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi)
 		{
             int n = xi.size();
-            cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(epsilon, xi.data(), n);
+            cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
             cudaDeviceSynchronize();
 		}
 
-        int neigh_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Neighbour neigh)
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-            // TODO: use pair.i and pair.j to get multi-spin basis correctly
+			scalar v_z = distribution(prng);
+			scalar phi = distribution(prng);
 
-            // Number of cells
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
+			scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-            // Translations (cell) of spin i
-            // int ni[3];
-            int nic = ispin/(N*Na*Nb);
-            int nib = (ispin-nic*N*Na*Nb)/(N*Na);
-            int nia = ispin-nic*N*Na*Nb-nib*N*Na;
-
-            // Translations (cell) of spin j (possibly outside of non-periodical domain)
-            // int nj[3]
-            int nja = nia+neigh.translations[0];
-            int njb = nib+neigh.translations[1];
-            int njc = nic+neigh.translations[2];
-
-            if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (nja < 0)
-                    nja += Na;
-                // Calculate the correct index
-                if (nja>=Na)
-                    nja-=Na;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (njb < 0)
-                    njb += Nb;
-                // Calculate the correct index
-                if (njb>=Nb)
-                    njb-=Nb;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (njc < 0)
-                    njc += Nc;
-                // Calculate the correct index
-                if (njc>=Nc)
-                    njc-=Nc;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
+			vec[0] = r_xy * std::cos(2*M_PI*phi);
+			vec[1] = r_xy * std::sin(2 * M_PI*phi);
+			vec[2] = v_z;
         }
+        // __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
+        // {
+        //     unsigned long long subsequence = 0;
+        //     unsigned long long offset= 0;
+
+        //     curandState_t state;
+        //     for(int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        //         idx < N;
+        //         idx +=  blockDim.x * gridDim.x)
+        //     {
+        //         curand_init(idx,subsequence,offset,&state);
+			
+        //         scalar v_z = llroundf(curand_uniform(&state))*2-1;
+        //         scalar phi = llroundf(curand_uniform(&state))*2-1;
+
+		// 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+        //         xi[idx][0] = r_xy * std::cos(2*M_PI*phi);
+        //         xi[idx][1] = r_xy * std::sin(2 * M_PI*phi);
+        //         xi[idx][2] = v_z;
+        //     }
+        // }
+        // void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+        // {
+        //     int n = xi.size();
+        //     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
+        //     cudaDeviceSynchronize();
+        // }
+        // The above CUDA implementation does not work correctly.
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+        {
+            // PRNG gives RN [-1,1] -> multiply with epsilon
+            auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
+            // TODO: parallelization of this is actually not quite so trivial
+            #pragma omp parallel for
+            for (unsigned int i = 0; i < xi.size(); ++i)
+            {
+				get_random_vector_unitsphere(distribution, prng, xi[i]);
+            }
+        }
+
+
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
         {
             // std::cout << "start gradient" << std::endl;
@@ -449,12 +492,40 @@ namespace Engine
             // TODO: proper usage of neighbours
             // Hardcoded neighbours - for spin current in a rectangular lattice
             neigh = neighbourfield(0);
-            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
-            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+            Neighbour neigh_tmp;
+            neigh_tmp.i = 0;
+            neigh_tmp.j = 0;
+            neigh_tmp.idx_shell = 0;
+
+            neigh_tmp.translations[0] = 1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = -1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = -1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 1;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = -1;
+            neigh.push_back(neigh_tmp);
 
             // difference quotients in different directions
             Vector3 diffq, diffqx, diffqy, diffqz;
@@ -471,7 +542,7 @@ namespace Engine
                 
                 for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
-                    int jspin = neigh_cu_get_pair_j(boundary_conditions.data(), n_cells.data(), nos, ispin, neigh[j]);
+                    int jspin = idx_from_pair(ispin, boundary_conditions, n_cells, geometry.n_spins_basic_domain, geometry.atom_types, neigh[j]);
                     if (jspin >= 0)
                     // if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
@@ -811,6 +882,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_add_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c*mask[idx]*a[idx];
+            }
+        }
+        // out[i] += c*a[i]
+        void add_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+        {
+            int n = out.size();
+            cu_add_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
             cudaDeviceSynchronize();
         }
 

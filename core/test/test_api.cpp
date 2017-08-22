@@ -1,15 +1,61 @@
 #include <catch.hpp>
+#include <data/State.hpp>
 #include <Spirit/State.h>
+#include <Spirit/Chain.h>
+#include <Spirit/System.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Quantities.h>
-
+#include <utility/Exception.hpp>
 
 TEST_CASE( "State", "[state]" )
 {
-	// Test the default config
-	CHECK_NOTHROW(std::shared_ptr<State>(State_Setup(), State_Delete));
-	// Test the default input file
-	CHECK_NOTHROW(std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete));
+    SECTION( "State setup" )
+    {
+        // Test the default config
+        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup(), State_Delete ) );
+        
+        // Test the default input file
+        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup( "input/input.cfg" ), State_Delete ) );    
+    }
+    
+    SECTION( "from_indices()" )
+    {
+        // create a state with two images. Let the second one to be the active
+        auto state = std::shared_ptr<State>( State_Setup( "input/input.cfg" ), State_Delete );
+        Chain_Image_to_Clipboard( state.get(), 0, 0 );      // copy to Clipboard
+        Chain_Insert_Image_Before( state.get(), 0, 0 );     // add before active
+        REQUIRE( Chain_Get_NOI( state.get() ) == 2 );       // number of images are 2
+        REQUIRE( System_Get_Index( state.get() ) == 1 );    // active is 2nd image
+        
+        // arguments for from_indices()
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        int idx_image, idx_chain;
+            
+        // Test for non-existing images
+        idx_chain = 0;
+        idx_image = 5;
+        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
+                         const Utility::Exception & ex );
+        // TODO: find a way to see if the exception thrown was the right one
+        
+        idx_chain = 0;
+        idx_image = -5;
+        CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
+        REQUIRE( idx_image == 1 ); // the negative index image must be promoted to the active image
+        
+        // Test for non-existing chains
+        idx_chain = 5;
+        idx_image = 0;
+        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
+                         const Utility::Exception & ex );
+        // TODO: find a way to see if the exception thrown was the right one
+        
+        idx_chain = -5;
+        idx_image = 0;
+        CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
+        REQUIRE( idx_chain == 0 ); // the negative index chain must be promoted to the active chain
+    }
 }
 
 TEST_CASE( "Configurations", "[configurations]" )
@@ -96,5 +142,22 @@ TEST_CASE( "Quantities", "[quantities]" )
 	}
 	SECTION("Topological Charge")
 	{
+		auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+		
+		SECTION("negative charge")
+		{
+			Configuration_PlusZ(state.get());
+			Configuration_Skyrmion(state.get(), 6.0, 1.0, -90.0, false, false, false);
+			float charge = Quantity_Get_Topological_Charge(state.get());
+			REQUIRE(charge == Approx(-1));
+		}
+
+		SECTION("positive charge")
+		{
+			Configuration_MinusZ(state.get());
+			Configuration_Skyrmion(state.get(), 6.0, 1.0, -90.0, true, false, false);
+			float charge = Quantity_Get_Topological_Charge(state.get());
+			REQUIRE(charge == Approx(1));
+		}
 	}
 }

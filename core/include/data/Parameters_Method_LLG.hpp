@@ -30,9 +30,12 @@ namespace Data
 		// Mersenne twister PRNG
 		std::mt19937 prng;
 
-		// spin-transfer-torque parameter (prop to injected current density)
+		// - true:  use gradient approximation for STT
+		// - false: use pinned monolayer approximation with current in z-direction
+		bool stt_use_gradient;
+		// Spin transfer torque parameter (prop to injected current density)
 		scalar stt_magnitude;
-		// spin_current polarisation normal vector
+		// Spin current polarisation normal vector
 		Vector3 stt_polarisation_normal;
 
 		// Do direct minimization instead of dynamics
