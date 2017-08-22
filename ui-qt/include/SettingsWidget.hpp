@@ -25,13 +25,13 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 
 public:
 	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
-	void updateData();
 	void SelectTab(int index);
 	void incrementNCellStep(int increment);
 
 	std::shared_ptr<State> state;
 
 public slots:
+	void updateData();
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();

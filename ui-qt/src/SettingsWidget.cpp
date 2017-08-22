@@ -51,6 +51,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	// Geometry
 	this->geometryWidget = new GeometryWidget(state, spinWidget);
 	this->tab_Settings_Geometry->layout()->addWidget(this->geometryWidget);
+	connect(this->geometryWidget, SIGNAL(updateNeeded()), this, SLOT(updateData()));
 
 	// Visualisation
 	this->visualisationSettingsWidget = new VisualisationSettingsWidget(state, spinWidget);
@@ -66,6 +67,8 @@ void SettingsWidget::updateData()
 	if (H_name == "Heisenberg (Neighbours)") this->hamiltonianHeisenbergNeighboursWidget->updateData();
 	else if (H_name == "Heisenberg (Pairs)") this->hamiltonianHeisenbergPairsWidget->updateData();
 	else if (H_name == "Gaussian") this->hamiltonianGaussianWidget->updateData();
+	// Geometry
+	this->geometryWidget->updateData();
 	// Visualisation
 	this->visualisationSettingsWidget->updateData();
 

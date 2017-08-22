@@ -36,10 +36,37 @@ void GeometryWidget::updateData()
 
 void GeometryWidget::setNCells()
 {
+	// Get some reference values for the position filter of SpinWidget
+	auto x_range = this->spinWidget->xRangePosition();
+	auto y_range = this->spinWidget->yRangePosition();
+	auto z_range = this->spinWidget->zRangePosition();
+	float b_min[3], b_max[3], b_range[3];
+	Geometry_Get_Bounds(state.get(), b_min, b_max);
+	float pc_x = x_range.y;
+	float pc_y = y_range.y;
+	float pc_z = z_range.y;
+	if (std::abs(b_max[0]) > 0) pc_x /= b_max[0];
+	if (std::abs(b_max[1]) > 0) pc_y /= b_max[1];
+	if (std::abs(b_max[2]) > 0) pc_z /= b_max[2];
+
+	// Update the geometry in the core
 	int n_cells[3]{ 10, 30, 1 };
 	Geometry_Set_N_Cells(this->state.get(), n_cells);
+
+	// Update geometry and arrays in SpinWidget
 	this->spinWidget->initializeGL();
 	this->spinWidget->updateData();
+
+	// Update the position filter of SpinWidget
+	float b_min_new[3], b_max_new[3], b_range_new[3];
+	Geometry_Get_Bounds(state.get(), b_min_new, b_max_new);
+	x_range.y = pc_x * b_max_new[0];
+	y_range.y = pc_y * b_max_new[1];
+	z_range.y = pc_z * b_max_new[2];
+	this->spinWidget->setOverallPositionRange(x_range, y_range, z_range);
+
+	// Update all widgets
+	emit updateNeeded();
 }
 
 void GeometryWidget::Setup_Input_Validators()
