@@ -32,6 +32,11 @@ GeometryWidget::GeometryWidget(std::shared_ptr<State> state, SpinWidget * spinWi
 
 void GeometryWidget::updateData()
 {
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	this->lineEdit_n_cells_a->setText(QString::number(n_cells[0]));
+	this->lineEdit_n_cells_b->setText(QString::number(n_cells[1]));
+	this->lineEdit_n_cells_c->setText(QString::number(n_cells[2]));
 }
 
 void GeometryWidget::setNCells()
@@ -50,7 +55,7 @@ void GeometryWidget::setNCells()
 	if (std::abs(b_max[2]) > 0) pc_z /= b_max[2];
 
 	// Update the geometry in the core
-	int n_cells[3]{ 10, 30, 1 };
+	int n_cells[3]{ this->lineEdit_n_cells_a->text().toFloat(), this->lineEdit_n_cells_b->text().toFloat(), this->lineEdit_n_cells_c->text().toFloat() };
 	Geometry_Set_N_Cells(this->state.get(), n_cells);
 
 	// Update geometry and arrays in SpinWidget
@@ -74,7 +79,6 @@ void GeometryWidget::Setup_Input_Validators()
 	this->lineEdit_n_cells_a->setValidator(this->number_validator_unsigned);
 	this->lineEdit_n_cells_b->setValidator(this->number_validator_unsigned);
 	this->lineEdit_n_cells_c->setValidator(this->number_validator_unsigned);
-
 }
 
 
