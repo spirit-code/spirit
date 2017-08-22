@@ -21,6 +21,9 @@ public:
 	GeometryWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
 	void updateData();
 
+signals:
+	void updateNeeded();
+
 private slots:
 	void setNCells();
 
