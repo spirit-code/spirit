@@ -95,8 +95,13 @@ namespace Engine
             scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B / (1 + damping*damping);
             scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
             // STT
+            // - monolayer
             scalar a_j = parameters.stt_magnitude;
             Vector3 s_c_vec = parameters.stt_polarisation_normal;
+            // - gradient
+            scalar b_j = 1.0;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
+            scalar beta = parameters.beta;  // non-adiabatic parameter of correction term
+            Vector3 je = { 1,0,0 }; // direction of current
             //////////
 
             // TODO: why the 0.5 everywhere??
@@ -107,16 +112,28 @@ namespace Engine
             }
             else
             {
-                // std::cerr << damping << std::endl;
-                // Vectormath::scale      (force, -0.5 * dtg);
                 Vectormath::set_c_a(0.5 * dtg, force, force_virtual);
                 Vectormath::add_c_cross(0.5 * dtg * damping, image, force, force_virtual);
 
                 // STT
                 if (a_j > 0)
                 {
-                    Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force_virtual);
-                    Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force_virtual);
+                    if (parameters.stt_use_gradient)
+                    {
+                        auto& geometry = *this->systems[0]->geometry;
+                        auto& boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
+                        // Gradient approximation for in-plane currents
+                        Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
+                        Vectormath::add_c_a    ( 0.5 * dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        Vectormath::add_c_cross( 0.5 * dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        // Gradient in current richtung, daher => *(-1)
+                    }
+                    else
+                    {
+                        // Monolayer approximation
+                        Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force_virtual);
+                        Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force_virtual);
+                    }
                 }
 
                 // Temperature

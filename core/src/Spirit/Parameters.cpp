@@ -267,7 +267,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
     	image->Lock();
 
         // Gradient or monolayer
-        //image->llg_parameters->stt_use_gradient = use_gradient;
+        image->llg_parameters->stt_use_gradient = use_gradient;
         // Magnitude
         image->llg_parameters->stt_magnitude = magnitude;
         // Normal
@@ -287,6 +287,10 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
              "Set LLG spin current to " + std::to_string( magnitude ) + ", direction (" + 
              std::to_string( normal[0] ) + "," + std::to_string( normal[1] ) + "," + 
              std::to_string( normal[2] ) + ")", idx_image, idx_chain );
+        if (use_gradient)
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "STT: using the gradient approximation", idx_image, idx_chain );
+        else
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "STT: using the pinned monolayer approximation", idx_image, idx_chain );
 
     	image->Unlock();
     }
@@ -915,7 +919,7 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Gradient or monolayer
-        //*use_gradient = image->llg_parameters->stt_use_gradient;
+        *use_gradient = image->llg_parameters->stt_use_gradient;
 
         // Magnitude
         *magnitude = (float)image->llg_parameters->stt_magnitude;

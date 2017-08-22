@@ -708,7 +708,7 @@ namespace Utility
 			max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 			auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
 				output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
-			Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
+			Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: built");
 			return mc_params;
 		}
 
