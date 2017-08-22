@@ -30,13 +30,20 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
                 spin_pos, atom_types);
             
             // Spins
-            // TODO: ordering of spins should be considered -> write a Configurations function for this
-            system->spins->resize(nos);
-            for (int i=nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{0, 0, 1};
+            // TODO: ordering of spins should be considered and date potentially extrapolated -> write a function for this
+			system->spins->resize(nos);
+			system->effective_field.resize(nos);
+			for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
+			for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
 
             // Parameters
             // TODO: properly re-generate pinning
             system->llg_parameters->pinning->mask_unpinned = intfield(nos, 1);
+
+            // Hamiltonian
+            // TODO: can we do this nicer than resizing everything?
+			// TODO: how to resize with correct ordering of data?
+			system->hamiltonian->Update_From_Geometry();
         }
     }
 
@@ -62,7 +69,9 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
         // Spins
         // TODO: ordering of spins should be considered -> write a Configurations function for this
         system->spins->resize(nos);
-        for (int i=nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{0, 0, 1};
+		system->effective_field.resize(nos);
+		for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
+		for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
         
         // Parameters
         // TODO: properly re-generate pinning

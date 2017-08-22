@@ -82,6 +82,24 @@ namespace Engine
 			// Re-calculate dmi neighbour list
 		}
 	}
+	
+	void Hamiltonian_Heisenberg_Neighbours::Update_From_Geometry()
+	{
+		// TODO: data needs to be scaled and ordered correctly
+		// TODO: there should be a basic set of info given through the constructor,
+		//       i.e. per basis cell, which can then be extrapolated. This needs to
+		//       redesigned.
+
+		this->anisotropy_indices.resize(this->geometry->nos);
+		this->anisotropy_magnitudes.resize(this->geometry->nos);
+		this->anisotropy_normals.resize(this->geometry->nos);
+
+		this->external_field_indices.resize(this->geometry->nos);
+		this->external_field_magnitudes.resize(this->geometry->nos);
+		this->external_field_normals.resize(this->geometry->nos);
+
+		// TODO: potentially neighbours need to be recalculated
+	}
 
 	void Hamiltonian_Heisenberg_Neighbours::Update_Energy_Contributions()
 	{

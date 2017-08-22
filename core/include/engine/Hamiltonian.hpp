@@ -20,6 +20,12 @@ namespace Engine
 		Hamiltonian(intfield boundary_conditions);
 
 		/*
+			When the geometry is updated, the Hamiltonians data array may need to be updated
+			as well. That should be implemented in this function.
+		*/
+		virtual void Update_From_Geometry();
+
+		/*
 			Update the Energy array.
 			This needs to be done every time the parameters are changed, in case an energy
 			contribution is now non-zero or vice versa.
