@@ -250,12 +250,40 @@ namespace Engine
             // TODO: proper usage of neighbours
             // Hardcoded neighbours - for spin current in a rectangular lattice
             neigh = neighbourfield(0);
-            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
-            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+            Neighbour neigh_tmp;
+            neigh_tmp.i = 0;
+            neigh_tmp.j = 0;
+            neigh_tmp.idx_shell = 0;
+
+            neigh_tmp.translations[0] = 1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = -1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = -1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 1;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = -1;
+            neigh.push_back(neigh_tmp);
 
             // difference quotients in different directions
             Vector3 diffq, diffqx, diffqy, diffqz;

@@ -298,9 +298,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     		scalarfield magnitudes(0);
     		for (auto& neigh : neighbours)
     		{
-    			pairs.push_back( { neigh.iatom, neigh.ineigh, { neigh.translations[0], 
-                                                                neigh.translations[1], 
-                                                                neigh.translations[2]} } );
+    			pairs.push_back( neigh );
     			magnitudes.push_back( { (scalar)0.5 * jij[ neigh.idx_shell ] } );
     		}
             
@@ -353,10 +351,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     		for (unsigned int ineigh = 0; ineigh < ham->dmi_neighbours.size(); ++ineigh)
     		{
     			ham->dmi_normals.push_back( Engine::Neighbours::DMI_Normal_from_Pair( *image->geometry, 
-                    { ham->dmi_neighbours[ineigh].iatom, ham->dmi_neighbours[ineigh].ineigh, 
-                      { ham->dmi_neighbours[ineigh].translations[0], 
-                        ham->dmi_neighbours[ineigh].translations[1], 
-                        ham->dmi_neighbours[ineigh].translations[2]} }, 1 ) );
+                    ham->dmi_neighbours[ineigh], 1 ) );
     		}
 
             ham->Update_Energy_Contributions();
@@ -374,9 +369,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     		vectorfield normals(0);
     		for (auto& neigh : neighbours)
     		{
-    			pairs.push_back( { neigh.iatom, neigh.ineigh, { neigh.translations[0], 
-                                                                neigh.translations[1], 
-                                                                neigh.translations[2]} } );
+    			pairs.push_back( neigh );
     			magnitudes.push_back({ (scalar)0.5*dij[neigh.idx_shell] });
     			normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair( *image->geometry, 
                                                                                pairs.back(), 1) } );
@@ -431,10 +424,7 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
     		for (unsigned int i=0; i<neighbours.size(); ++i)
     		{
     		    Engine::Neighbours::DDI_from_Pair( *image->geometry, 
-                    { neighbours[i].iatom, neighbours[i].ineigh, 
-                        { neighbours[i].translations[0], 
-                          neighbours[i].translations[1], 
-                          neighbours[i].translations[2] } }, magnitude, normal );
+                    neighbours[i], magnitude, normal );
     			magnitudes.push_back(magnitude);
     			normals.push_back(normal);
     		}

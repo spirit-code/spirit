@@ -16,6 +16,8 @@ using std::function;
 
 using namespace Data;
 using namespace Utility;
+using Engine::Vectormath::cu_check_atom_type;
+using Engine::Vectormath::cu_idx_from_pair;
 
 namespace Engine
 {
@@ -145,103 +147,6 @@ namespace Engine
 		return idx;
 	}
 
-	__inline__ __device__ int pair_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Pair pair)
-	{
-		// TODO: use pair.i and pair.j to get multi-spin basis correctly
-
-		// Number of cells
-		int Na = n_cells[0];
-		int Nb = n_cells[1];
-		int Nc = n_cells[2];
-
-		// Translations (cell index) of spin i
-		// int ni[3];
-		int nic = ispin/(N*Na*Nb);
-		int nib = (ispin-nic*N*Na*Nb)/(N*Na);
-		int nia = ispin-nic*N*Na*Nb-nib*N*Na;
-
-		// Translations (cell index) of spin j (possibly outside of non-periodical domain)
-		// int nj[3]
-		int nja = nia+pair.translations[0];
-		int njb = nib+pair.translations[1];
-		int njc = nic+pair.translations[2];
-
-		if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (nja < 0)
-				nja += Na;
-			// Calculate the correct index
-			if (nja>=Na)
-				nja-=Na;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njb < 0)
-				njb += Nb;
-			// Calculate the correct index
-			if (njb>=Nb)
-				njb-=Nb;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njc < 0)
-				njc += Nc;
-			// Calculate the correct index
-			if (njc>=Nc)
-				njc-=Nc;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
-	}
-
-	__inline__ __device__ bool cu_check_atom_type(int atom_type)
-	{
-		#ifdef SPIRIT_ENABLE_DEFECTS
-			// If defects are enabled we check for
-			//		vacancies (type < 0)
-			if (atom_type >= 0) return true;
-			else return false;
-		#else
-			// Else we just return true
-			return true;
-		#endif
-	}
-	
-	__inline__ __device__ bool cu_check_atom_type(int atom_type, int reference_type)
-	{
-		#ifdef SPIRIT_ENABLE_DEFECTS
-			// If defects are enabled we do a check if
-			//		atom types match.
-			if (atom_type == reference_type) return true;
-			else return false;
-		#else
-			// Else we just return true
-			return true;
-		#endif
-	}
 
 
 	void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
@@ -324,15 +229,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
-					{
-						scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-						atomicAdd(&Energy[ispin], sc);
-						atomicAdd(&Energy[jspin], sc);
-					}
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin2]);
 				}
 			}
 		}
@@ -357,15 +262,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
-					{
-						scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-						atomicAdd(&Energy[ispin], sc);
-						atomicAdd(&Energy[jspin], sc);
-					}
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					Energy[ispin] += 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin2]));
 				}
 			}
 		}
@@ -526,17 +431,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
-					{
-						for (int dim=0; dim<3 ; dim++)
-						{
-							atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
-							atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
-						}
-					}
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin];
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin2];
 				}
 			}
 		}
@@ -561,19 +464,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					if ( cu_check_atom_type(atom_types[ispin]) && cu_check_atom_type(atom_types[jspin]) )
-					{
-						Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
-						Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
-						for (int dim=0; dim<3 ; dim++)
-						{
-							atomicAdd(&gradient[ispin][dim], -jcross[dim]);
-							atomicAdd(&gradient[jspin][dim],  icross[dim]);
-						}
-					}
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					gradient[ispin] += magnitudes[ipair]*spins[jspin2].cross(normals[ipair]);
 				}
 			}
 		}

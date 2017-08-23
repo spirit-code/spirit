@@ -173,7 +173,14 @@ namespace Engine
 									delta = std::abs(dx - radius);
 									if (delta < 1e-6)
 									{
-										neighbours.push_back( {iatom, jatom, ishell, {i, j, k} } );
+										Neighbour neigh;
+										neigh.i = iatom;
+										neigh.j = jatom;
+										neigh.translations[0] = i;
+										neigh.translations[1] = j;
+										neigh.translations[2] = k;
+										neigh.idx_shell = ishell;
+										neighbours.push_back( neigh );
 									}
 								}//endfor jatom
 							}//endfor k
@@ -297,7 +304,14 @@ namespace Engine
 									dx = (x0 - x1).norm();
 									if (dx < radius)
 									{
-										neighbours.push_back( {iatom, jatom, 0, {i, j, k} } );
+										Neighbour neigh;
+										neigh.i = iatom;
+										neigh.j = jatom;
+										neigh.translations[0] = i;
+										neigh.translations[1] = j;
+										neigh.translations[2] = k;
+										neigh.idx_shell = 0;
+										neighbours.push_back( neigh );
 									}
 								}//endfor jatom
 							}//endfor k

@@ -473,77 +473,7 @@ namespace Engine
             }
         }
 
-        int neigh_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Neighbour neigh)
-        {
-            // TODO: use pair.i and pair.j to get multi-spin basis correctly
 
-            // Number of cells
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
-
-            // Translations (cell) of spin i
-            // int ni[3];
-            int nic = ispin/(N*Na*Nb);
-            int nib = (ispin-nic*N*Na*Nb)/(N*Na);
-            int nia = ispin-nic*N*Na*Nb-nib*N*Na;
-
-            // Translations (cell) of spin j (possibly outside of non-periodical domain)
-            // int nj[3]
-            int nja = nia+neigh.translations[0];
-            int njb = nib+neigh.translations[1];
-            int njc = nic+neigh.translations[2];
-
-            if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (nja < 0)
-                    nja += Na;
-                // Calculate the correct index
-                if (nja>=Na)
-                    nja-=Na;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (njb < 0)
-                    njb += Nb;
-                // Calculate the correct index
-                if (njb>=Nb)
-                    njb-=Nb;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
-            {
-                // Boundary conditions fulfilled
-                // Find the translations of spin j within the non-periodical domain
-                if (njc < 0)
-                    njc += Nc;
-                // Calculate the correct index
-                if (njc>=Nc)
-                    njc-=Nc;
-            }
-            else
-            {
-                // Boundary conditions not fulfilled
-                return -1;
-            }
-
-            return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
-        }
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
         {
             // std::cout << "start gradient" << std::endl;
@@ -562,12 +492,40 @@ namespace Engine
             // TODO: proper usage of neighbours
             // Hardcoded neighbours - for spin current in a rectangular lattice
             neigh = neighbourfield(0);
-            neigh.push_back({ 0, 0, 0, { 1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, {-1,  0,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0, -1,  0} });
-            neigh.push_back({ 0, 0, 0, { 0,  0,  1} });
-            neigh.push_back({ 0, 0, 0, { 0,  0, -1} });
+            Neighbour neigh_tmp;
+            neigh_tmp.i = 0;
+            neigh_tmp.j = 0;
+            neigh_tmp.idx_shell = 0;
+
+            neigh_tmp.translations[0] = 1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = -1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = -1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 1;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = -1;
+            neigh.push_back(neigh_tmp);
 
             // difference quotients in different directions
             Vector3 diffq, diffqx, diffqy, diffqz;
@@ -584,7 +542,7 @@ namespace Engine
                 
                 for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
-                    int jspin = neigh_cu_get_pair_j(boundary_conditions.data(), n_cells.data(), nos, ispin, neigh[j]);
+                    int jspin = idx_from_pair(ispin, boundary_conditions, n_cells, geometry.n_spins_basic_domain, geometry.atom_types, neigh[j]);
                     if (jspin >= 0)
                     // if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {

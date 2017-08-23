@@ -25,7 +25,9 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     typedef std::vector<Vector3,         managed_allocator<Vector3>>         vectorfield;
     struct Pair
     {
+        // Basis indices of first and second atom of pair
         int i, j;
+        // Translations of the basis cell of second atom of pair
         int translations[3];
     };
     struct Triplet
@@ -38,14 +40,10 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
         int i, j, k, l;
         int d_j[3], d_k[3], d_l[3];
     };
-    struct Neighbour
+    struct Neighbour : Pair
     {
-        // Basis indices of atom and neighbour
-        int iatom, ineigh;
         // Shell index
         int idx_shell;
-        // Translations of the neighbour cell
-        int translations[3];
     };
     typedef std::vector<Pair,       managed_allocator<Pair>>       pairfield;
     typedef std::vector<Triplet,    managed_allocator<Triplet>>    tripletfield;
@@ -70,14 +68,10 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
         int i, j, k, l;
         std::array<int,3> d_j, d_k, d_l;
     };
-    struct Neighbour
+    struct Neighbour : Pair
     {
-        // Basis indices of atom and neighbour
-        int iatom, ineigh;
         // Shell index
         int idx_shell;
-        // Translations of the neighbour cell
-        std::array<int,3> translations;
     };
     typedef std::vector<Pair>       pairfield;
     typedef std::vector<Triplet>    tripletfield;
