@@ -165,7 +165,7 @@ namespace Engine
 
 			// dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
 			scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-			Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
+			Vectormath::set_c_cross( dtg, image, force, force_virtual);
 
 			// TODO: add Temperature effects!
 

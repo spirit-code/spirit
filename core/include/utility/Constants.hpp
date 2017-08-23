@@ -22,7 +22,8 @@ namespace Utility
         // Millirydberg [mRy/meV]
         double const mRy = 1.0/13.605693009;
 
-        // Gyromagnetic ratio of electron [rad/(ps*T)]
+        // Gyromagnetic ratio of electron [rad/(ps*T)] 
+        // Also gives the Larmor precession frequency for electron
         double const gamma = 0.1760859644;
 
         // Electron g-factor [unitless]

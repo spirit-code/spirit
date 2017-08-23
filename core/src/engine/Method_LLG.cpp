@@ -103,20 +103,20 @@ namespace Engine
             if (parameters.direct_minimization)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
+                Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
             else
             {
                 // std::cerr << damping << std::endl;
                 // Vectormath::scale      (force, -0.5 * dtg);
-                Vectormath::set_c_a(0.5 * dtg, force, force_virtual);
-                Vectormath::add_c_cross(0.5 * dtg * damping, image, force, force_virtual);
+                Vectormath::set_c_a( dtg, force, force_virtual);
+                Vectormath::add_c_cross( dtg * damping, image, force, force_virtual);
 
                 // STT
                 if (a_j > 0)
                 {
-                    Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force_virtual);
-                    Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force_virtual);
+                    Vectormath::add_c_a    ( dtg * a_j * damping, s_c_vec, force_virtual);
+                    Vectormath::add_c_cross( dtg * a_j, s_c_vec, image, force_virtual);
                 }
 
                 // Temperature
@@ -124,8 +124,8 @@ namespace Engine
                 {
                     scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-                    Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, this->xi, force_virtual);
-                    Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
+                    Vectormath::add_c_a    (-1 * sqrtdtg * epsilon, this->xi, force_virtual);
+                    Vectormath::add_c_cross(-1 * sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
                 }
             }
             // Apply Pinning
