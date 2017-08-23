@@ -59,7 +59,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
             REQUIRE( direction[2] == 0 );     // spin should always be to the xy plane
             
             // gamma must be scalled by mu_s
-            REQUIRE( Approx(angle)  == ( (i+1) * mu_s * Constants_gamma() ) );
+            REQUIRE( Approx(angle)  == ( (i+1) * 0.01 * mu_s * Constants_gamma() ) );
         }        
     }
 }
