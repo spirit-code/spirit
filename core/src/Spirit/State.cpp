@@ -269,12 +269,13 @@ const char * State_DateTime(State * state)
 {
     try
     {
-	       return state->datetime_creation_string.c_str();
-   }
-   catch( ... )
-   {
-       Utility::Handle_Exception();
-   }
+        return state->datetime_creation_string.c_str();
+    }
+    catch( ... )
+    {
+        Utility::Handle_Exception();
+        return "00:00:00";
+    }
 }
 
 void from_indices( const State * state, int & idx_image, int & idx_chain, 
