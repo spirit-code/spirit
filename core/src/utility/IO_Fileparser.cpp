@@ -96,6 +96,13 @@ namespace Utility
 						 // discard line if # is found
 					}// endif new line (while)
 				}
+				else if (format == VectorFileFormat::OVF)
+				{
+					auto& spins = *s->spins;
+					auto& geometry = *s->geometry;
+
+					Read_From_OVF(spins, geometry, file);
+				}
 				else
 				{
 					auto& spins = *s->spins;
@@ -893,5 +900,300 @@ namespace Utility
 					throw ex;
 			}
 		} // End Pinned_from_File
+
+
+		int ReadHeaderLine(FILE * fp, char * line)
+		{
+			char c;//single character 
+			int pos=0;
+			
+			do
+			{
+				c = (char)fgetc(fp); //get current char and move pointer to the next position
+				if (c != EOF && c != '\n') line[pos++] = c; //if it's not the end of the file
+			}
+			while(c != EOF && c != '\n'); //if it's not the end of the file or end of the line
+			
+			line[pos] = 0; //complite the readed line
+			if ((pos==0 || line[0]!='#') && c != EOF)
+				return ReadHeaderLine(fp, line);// recursive call for ReadHeaderLine if the current line is empty
+			
+			// the last symbol is the line end symbol
+			return pos-1;
+		}
+		
+		void ReadDataLine(FILE * fp, char * line)
+		{
+			char c;//single character 
+			int pos=0;
+
+			do
+			{
+				c = (char)fgetc(fp);
+				if (c != EOF && c != '\n') line[pos++] = c;
+			}
+			while(c != EOF && c != '\n');
+
+			line[pos] = 0;
+		}
+
+		// Read vectorfield and positions from file OVF in OVF format
+		void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string inputfilename )
+		{
+			// auto inputfilename = "test.ovf";
+			auto& n_cells = geometry.n_cells;
+			int   nos_basis = geometry.n_spins_basic_domain;
+
+			char  line[256]; // Whole line of header should be not longer then 256 characters
+			int   lineLength=0;
+			int   valuedim=3;
+			int   xnodes;
+			int   ynodes;
+			int   znodes;
+			char  keyW1 [256]; // key word 1
+			char  keyW2 [256]; // key word 2
+			char  keyW3 [256]; // key word 3
+			int   binType = 4;
+			float temp4_x, temp4_y, temp4_z;
+			double temp8_x, temp8_y, temp8_z;
+
+			FILE * FilePointer = fopen(inputfilename.c_str(), "rb");
+
+			if( FilePointer != NULL )
+			{
+				// Read and check the first nonempty line which starts with '#'
+				lineLength = ReadHeaderLine(FilePointer, line);
+				// If there are no one line which starts with '#'
+				if( lineLength == -1 )
+					printf("%s has a wrong file format! \n", inputfilename.c_str());
+				else
+				{
+					sscanf(line, "# %s %s %s", keyW1, keyW2, keyW3 );
+					if( strncmp(keyW1, "OOMMF",5) != 0 || strncmp(keyW2, "OVF",  3) != 0 || strncmp(keyW3, "2.0",  3) != 0 )
+					{
+						//if the first line isn't "OOMMF OFV 2.0"
+						printf("%s has wrong header of wrong file format! \n", inputfilename.c_str());
+						lineLength = -1;
+					}
+				}
+
+				// Reading header
+				if( lineLength != -1 )
+				{
+					do
+					{
+						lineLength = ReadHeaderLine(FilePointer, line);
+						sscanf(line, "# %s %s %s", keyW1, keyW2, keyW3 );
+						//printf("%s %s %s\n", keyW1, keyW2, keyW3);
+
+						if (strncmp(keyW1, "valuedim:",9) == 0)
+						{
+							sscanf(keyW2, "%d", &valuedim );
+							printf("valuedim=%d\n", valuedim);
+						}
+						else if (strncmp(keyW1, "xnodes:",7) == 0)
+						{
+							sscanf(keyW2, "%d", &xnodes );
+							printf("xnodes=%d\n", xnodes);
+						}
+						else if (strncmp(keyW1, "ynodes:",7) == 0)
+						{
+							sscanf(keyW2, "%d", &ynodes );
+							printf("ynodes=%d\n", ynodes);
+						}
+						else if (strncmp(keyW1, "znodes:",7) == 0)
+						{
+							sscanf(keyW2, "%d", &znodes );
+							printf("znodes=%d\n", znodes);
+						} 
+					}
+					while( strncmp(keyW1, "Begin:",6) == 0 && strncmp(keyW2, "Data",4) != 0 && lineLength != -1 );
+				}
+
+				// Reading data
+				if( valuedim != 0 && xnodes != 0 && ynodes != 0 && znodes != 0 )
+				{
+					sscanf(line, "#%*s %s %s %s", keyW1, keyW2, keyW3 );
+					
+					int n;
+					if( strncmp(keyW2, "Text",4) == 0 )
+					{
+						//Text data format
+						printf("...reading data in text format: %s \n", inputfilename.c_str());
+						for (int k=0; k < znodes; k++)
+						{
+							for (int j=0; j < ynodes; j++)
+							{
+								for (int i=0; i < xnodes; i++)
+								{
+									ReadDataLine(FilePointer, line);
+									if ( k < n_cells[2] && j < n_cells[1] && i < n_cells[0] )
+									{
+										n = i + j*n_cells[0] + k*n_cells[0]*n_cells[1];
+										auto& vec = vf[n];
+										sscanf(line, "%lf %lf %lf", &vec[0], &vec[1], &vec[2]);
+									}
+								}// i
+							}// j
+						}// k
+					}
+					else if( strncmp(keyW2, "Binary",6) == 0 )
+					{
+						if( strncmp(keyW3, "4",1) == 0 )
+							binType = 4;
+						else if( strncmp(keyW3, "8",1) == 0 )
+							binType = 8;
+
+						//Binary data format
+						printf("...reading data of binary (%d) format: %s \n", binType, inputfilename.c_str());
+
+						if( fread(&vf[0][0], binType, 1, FilePointer) )
+						{
+							//printf("%f \n",bSx[0]);	
+							for (int k=0; k<znodes; k++)
+							{
+								for (int j=0; j<ynodes; j++)
+								{
+									for (int i=0; i<xnodes; i++)
+									{
+										if ( k < n_cells[2] && j < n_cells[1] && i < n_cells[0] )
+										{
+											//index of the block!
+											n = i + j*xnodes + k*xnodes*ynodes;
+											auto& vec = vf[n];
+											//printf("n=%d\n", n);
+											if (binType==4)
+											{
+												if( !fread(&temp4_x, binType, 1, FilePointer) ) break;
+												if( !fread(&temp4_y, binType, 1, FilePointer) ) break;
+												if( !fread(&temp4_z, binType, 1, FilePointer) ) break;
+												for (int t=0; t<nos_basis; t++)
+												{
+													int I = n*nos_basis + t;
+													vec[I] = (scalar)temp4_x;
+													vec[I] = (scalar)temp4_y;
+													vec[I] = (scalar)temp4_z;
+												}
+											}
+											else
+											{
+												if( !fread(&temp8_x, binType, 1, FilePointer) ) break;
+												if( !fread(&temp8_y, binType, 1, FilePointer) ) break;
+												if( !fread(&temp8_z, binType, 1, FilePointer) ) break;
+												
+												for (int t=0; t<nos_basis; t++)
+												{
+													int I = n*nos_basis + t;
+													vec[I] = (scalar)temp8_x;
+													vec[I] = (scalar)temp8_y;
+													vec[I] = (scalar)temp8_z;	
+												}
+											}
+										}	
+									}// i
+								}// j
+							}// k
+						}
+						else printf("problem\n");
+					}
+					else printf("Do not know what to do with \"%s\" data format in %s\n", keyW2, inputfilename.c_str());
+				}
+				else printf("%s has wrong data format or dimentionality!\n", inputfilename.c_str());
+
+				// when everything is done
+				printf("Done!\n");
+				fclose(FilePointer);
+			}
+			else
+				printf("Cannot open file: %s \n", inputfilename.c_str());
+			
+			// ChangeVectorMode(1);
+		}
+
+		// Save vectorfield and positions to file OVF in OVF format
+		void Save_To_OVF( const vectorfield & vf, const Data::Geometry & geometry, std::string outputfilename )
+		{
+			// auto outputfilename = "test_out.ovf";
+			auto& n_cells = geometry.n_cells;
+			int   nos_basis = geometry.n_spins_basic_domain;
+
+			char shortBufer[64]   = "";
+			char ovf_filename[64] = "";
+			strncpy(ovf_filename, outputfilename.c_str(), strcspn (outputfilename.c_str(), "."));
+			strcat(ovf_filename, ".ovf");
+			if( strncmp(ovf_filename, ".ovf",4) == 0 )
+			{
+				printf("Enter the file name. It cannot be empty!");
+			}
+			else
+			{
+				FILE * pFile = fopen (ovf_filename,"wb");
+				if( pFile != NULL )
+				{
+					fputs ("# OOMMF OVF 2.0\n",pFile);
+					fputs ("# Segment count: 1\n",pFile);
+					fputs ("# Begin: Segment\n",pFile);
+					fputs ("# Begin: Header\n",pFile);
+					fputs ("# Title: m\n",pFile);
+					fputs ("# meshtype: rectangular\n",pFile);
+					fputs ("# meshunit: m\n",pFile);
+					fputs ("# xmin: 0\n",pFile);
+					fputs ("# ymin: 0\n",pFile);
+					fputs ("# zmin: 0\n",pFile);
+					snprintf(shortBufer,80,"# xmax: %f\n", n_cells[0]*1e-9);
+					fputs (shortBufer,pFile);
+					snprintf(shortBufer,80,"# ymax: %f\n", n_cells[1]*1e-9);
+					fputs (shortBufer,pFile);
+					snprintf(shortBufer,80,"# ymax: %f\n", n_cells[2]*1e-9);
+					fputs (shortBufer,pFile);
+					fputs ("# valuedim: 3\n",pFile);
+					fputs ("# valuelabels: m_x m_y m_z\n",pFile);
+					fputs ("# valueunits: 1 1 1\n",pFile);
+					fputs ("# Desc: Total simulation time:  0  s\n",pFile);
+					fputs ("# xbase: 6.171875e-10\n",pFile);
+					fputs ("# ybase: 7.126667385309444e-10\n",pFile);
+					fputs ("# zbase: 5e-08\n",pFile);
+					snprintf(shortBufer,80,"# xnodes: %d\n", n_cells[0]);
+					fputs (shortBufer,pFile);
+					snprintf(shortBufer,80,"# ynodes: %d\n", n_cells[1]);
+					fputs (shortBufer,pFile);
+					snprintf(shortBufer,80,"# znodes: %d\n", n_cells[2]);
+					fputs (shortBufer,pFile);
+					fputs ("# xstepsize: 1.234375e-09\n",pFile);
+					fputs ("# ystepsize: 1.4253334770618889e-09\n",pFile);
+					fputs ("# zstepsize: 1e-07\n",pFile);
+					fputs ("# End: Header\n",pFile);
+					fputs ("# Begin: Data Binary 8\n",pFile);
+
+					scalar Temp1[]= {123456789012345.0};
+					fwrite (Temp1, sizeof(scalar), 1, pFile);
+
+					for (int cn = 0; cn < n_cells[2]; cn++)
+					{
+						for (int bn = 0; bn < n_cells[1]; bn++)
+						{
+							for (int an = 0; an < n_cells[0]; an++)
+							{
+								// index of the block
+								int n = an + bn*n_cells[0] + cn*n_cells[0]*n_cells[1];
+								// index of the first spin in the block
+								n = n*nos_basis;
+								for (int atom=0; atom < nos_basis; atom++)
+								{
+									int N = n + atom;
+									// TODO
+									auto& vec = vf[n];
+									fwrite (&vec , sizeof(scalar), 3, pFile);
+								}
+							}// a
+						}// b
+					}// c
+					fputs ("# End: Data Binary 4\n",pFile);
+					fputs ("# End: Segment\n",pFile);
+					fclose (pFile);
+				}
+				printf("Done!");
+			}
+		} // end save OVF
 	}
 }

@@ -31,7 +31,8 @@ namespace Utility
 			CSV_POS_SPIN = IO_Fileformat_CSV_Pos,
 			CSV_SPIN = IO_Fileformat_CSV,
 			WHITESPACE_POS_SPIN = IO_Fileformat_Regular_Pos,
-			WHITESPACE_SPIN = IO_Fileformat_Regular
+			WHITESPACE_SPIN = IO_Fileformat_Regular,
+			OVF = IO_Fileformat_OVF
 		};
 
 		// ------------------------------------------------------------
@@ -80,9 +81,11 @@ namespace Utility
 		void Hamiltonian_Gaussian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian);
 
 		// ========================= Fileparser =========================
+		void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string inputfilename );
 		void Read_Spin_Configuration_CSV(std::shared_ptr<Data::Spin_System> s, const std::string file);
 		void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VectorFileFormat format = VectorFileFormat::CSV_POS_SPIN);
 		void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file);
+
 		void External_Field_from_File(const std::string externalFieldFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
 			intfield & external_field_index, scalarfield & external_field_magnitude, vectorfield & external_field_normal);
 		void Anisotropy_from_File(const std::string anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
@@ -98,6 +101,7 @@ namespace Utility
 			intfield & pinned_indices, vectorfield & pinned_spins);
 
 		// =========================== Saving Configurations ===========================
+		void Save_To_OVF( const vectorfield & vf, const Data::Geometry & geometry, std::string outputfilename );
 		// Append Spin_Configuration to file
 		void Write_Spin_Configuration(const std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append=false);
 		// Saves Spin_Chain_Configuration to file

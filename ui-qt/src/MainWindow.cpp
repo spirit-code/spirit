@@ -1058,22 +1058,33 @@ void MainWindow::return_focus()
 
 void MainWindow::save_Spin_Configuration()
 {
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Spin Configuration"), "./output", tr("Spin Configuration (*.txt)"));
-	if (!fileName.isEmpty()) {
+	// std::cerr << "inside save spins" << std::endl;
+	auto fileName = QFileDialog::getSaveFileName(this,
+		tr("Save Spin Configuration"),
+		"./output",
+		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
+	if (!fileName.isEmpty())
+	{
 		auto file = string_q2std(fileName);
-		IO_Image_Write(this->state.get(), file.c_str());
+		IO_Image_Write(this->state.get(), file.c_str(), IO_Fileformat_OVF);
 	}
 }
 
 void MainWindow::load_Spin_Configuration()
 {
-	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt *.csv)"));
-	if (!fileName.isEmpty()) {
+	auto fileName = QFileDialog::getOpenFileName(this,
+		tr("Load Spin Configuration"),
+		"./input",
+		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
+	if (!fileName.isEmpty())
+	{
 		QFileInfo fi(fileName);
+		// Determine file type from suffix
 		auto qs_type = fi.completeSuffix();
-		int type;
+		int type = IO_Fileformat_Regular;
 		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else type = IO_Fileformat_Regular;
+		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		// Read the file
 		auto file = string_q2std(fileName);
 		IO_Image_Read(this->state.get(), file.c_str(), type);
 	}
@@ -1083,7 +1094,8 @@ void MainWindow::load_Spin_Configuration()
 void MainWindow::save_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
 		auto file = string_q2std(fileName);
 		IO_Chain_Write(this->state.get(), file.c_str());
 	}
@@ -1092,7 +1104,8 @@ void MainWindow::save_SpinChain_Configuration()
 void MainWindow::load_SpinChain_Configuration()
 {
 	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
 		auto file = string_q2std(fileName);
 		IO_Chain_Read(this->state.get(), file.c_str());
 	}

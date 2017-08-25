@@ -104,8 +104,11 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
         from_indices( state, idx_image, idx_chain, image, chain );
         
     	// Write the data
-    	image->Lock();
-    	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), false);
+        image->Lock();
+        if (format != IO_Fileformat_OVF)
+            Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), false);
+        else
+            Utility::IO::Save_To_OVF(*image->spins, *image->geometry, std::string(file));
     	image->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
