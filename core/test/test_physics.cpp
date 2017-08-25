@@ -6,9 +6,16 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Parameters.h>
+#include <data/State.hpp>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 TEST_CASE( "Larmor Precession","[physics]" )
 {
@@ -22,7 +29,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
     auto method = "LLG";
     
     // Optimizers to be tested
-    std::vector<const char *>  optimizers { "Depondt", "Heun", "SIB"  };
+    std::vector<const char *>  optimizers{ "Depondt", "Heun", "SIB" };
     
     // set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
@@ -97,5 +104,41 @@ TEST_CASE( "Larmor Precession","[physics]" )
             
             REQUIRE( Approx( projection ) == direction[2] );
         }
+    }
+}
+
+TEST_CASE( "Finite Differences", "[physics]" )
+{
+    // Hamiltonians to be tested
+    std::vector<const char *>  hamiltonians{ "core/test/input/fd_pairs.cfg" };
+                                             //"core/test/input/fd_neighbours",
+                                             //"core/test/input/fd_gaussian.cfg"};
+    for( auto ham: hamiltonians )
+    {
+        INFO( " Testing " << ham );
+        
+        // create state
+        auto state = std::shared_ptr<State>( State_Setup( ham ), State_Delete );
+        
+        Configuration_Random( state.get() );
+        
+        auto& vf = *state->active_image->spins;
+        auto grad = vectorfield( state->nos );
+        auto grad_fd = vectorfield( state->nos );
+        
+        state->active_image->hamiltonian->Gradient_FD( vf, grad_fd );
+        state->active_image->hamiltonian->Gradient( vf, grad );
+        
+        for( int i=0; i<state->nos; i++)
+            REQUIRE( grad_fd[i].isApprox( grad[i] ) );
+        
+        auto hessian = MatrixX( 3*state->nos, 3*state->nos );
+        auto hessian_fd = MatrixX( 3*state->nos, 3*state->nos );
+        
+        state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
+        state->active_image->hamiltonian->Hessian( vf, hessian );
+        
+        for( int i=0; i<state->nos; i++)
+            REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }
