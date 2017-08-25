@@ -67,7 +67,11 @@ void ControlWidget::updateData()
 		this->spinWidget->updateData();
 	}
 	else
+    {
+        if( this->pushButton_PlayPause->text() == "Pause" )
+            this->spinWidget->updateData();
 		this->pushButton_PlayPause->setText("Play");
+    }
 
 	// Update Image number
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
