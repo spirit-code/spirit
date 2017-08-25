@@ -369,7 +369,7 @@ namespace Engine
             if(idx < N)
             {
                 e1 = spins[idx];
-				A = force[idx];
+				A = 0.5 * force[idx];
 
 				// 1/determinant(A)
 				detAi = 1.0 / (1 + pow(A.norm(), 2.0));

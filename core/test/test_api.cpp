@@ -7,6 +7,8 @@
 #include <Spirit/Quantities.h>
 #include <utility/Exception.hpp>
 
+auto inputfile = "core/test/input/api.cfg";
+
 TEST_CASE( "State", "[state]" )
 {
     SECTION( "State setup" )
@@ -15,13 +17,13 @@ TEST_CASE( "State", "[state]" )
         CHECK_NOTHROW( std::shared_ptr<State>( State_Setup(), State_Delete ) );
         
         // Test the default input file
-        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup( "input/input.cfg" ), State_Delete ) );    
+        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );    
     }
     
     SECTION( "from_indices()" )
     {
         // create a state with two images. Let the second one to be the active
-        auto state = std::shared_ptr<State>( State_Setup( "input/input.cfg" ), State_Delete );
+        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
         Chain_Image_to_Clipboard( state.get(), 0, 0 );      // copy to Clipboard
         Chain_Insert_Image_Before( state.get(), 0, 0 );     // add before active
         REQUIRE( Chain_Get_NOI( state.get() ) == 2 );       // number of images are 2
@@ -60,7 +62,7 @@ TEST_CASE( "State", "[state]" )
 
 TEST_CASE( "Configurations", "[configurations]" )
 {
-	auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+	auto state = std::shared_ptr<State>(State_Setup(inputfile), State_Delete);
 	
 	// filters
 	float position[3]{0,0,0};
@@ -114,7 +116,7 @@ TEST_CASE( "Quantities", "[quantities]" )
 {
 	SECTION("Magnetization")
 	{
-		auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+		auto state = std::shared_ptr<State>(State_Setup(inputfile), State_Delete);
 		float m[3] = { 0,0,1 };
 
 		SECTION("001")
@@ -142,7 +144,7 @@ TEST_CASE( "Quantities", "[quantities]" )
 	}
 	SECTION("Topological Charge")
 	{
-		auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+		auto state = std::shared_ptr<State>(State_Setup(inputfile), State_Delete);
 		
 		SECTION("negative charge")
 		{

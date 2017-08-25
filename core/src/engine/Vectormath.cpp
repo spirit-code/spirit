@@ -175,7 +175,7 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i < spins.size(); ++i)
             {
-                const Vector3& A = force[i];
+                Vector3 A = 0.5 * force[i];
 
                 // 1/determinant(A)
                 scalar detAi = 1.0 / (1 + pow(A.norm(), 2.0));

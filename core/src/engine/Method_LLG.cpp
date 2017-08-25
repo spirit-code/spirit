@@ -108,31 +108,32 @@ namespace Engine
             if (parameters.direct_minimization)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
+                Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
             else
             {
-                Vectormath::set_c_a(0.5 * dtg, force, force_virtual);
-                Vectormath::add_c_cross(0.5 * dtg * damping, image, force, force_virtual);
+                Vectormath::set_c_a( dtg, force, force_virtual);
+                Vectormath::add_c_cross( dtg * damping, image, force, force_virtual);
 
                 // STT
                 if (a_j > 0)
                 {
+
                     if (parameters.stt_use_gradient)
                     {
                         auto& geometry = *this->systems[0]->geometry;
                         auto& boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
                         // Gradient approximation for in-plane currents
                         Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
-                        Vectormath::add_c_a    ( 0.5 * dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen 
-                        Vectormath::add_c_cross( 0.5 * dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        Vectormath::add_c_a    ( dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        Vectormath::add_c_cross( dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen 
                         // Gradient in current richtung, daher => *(-1)
                     }
                     else
                     {
                         // Monolayer approximation
-                        Vectormath::add_c_a    (-0.5 * dtg * a_j * damping, s_c_vec, force_virtual);
-                        Vectormath::add_c_cross(-0.5 * dtg * a_j, s_c_vec, image, force_virtual);
+                        Vectormath::add_c_a    ( -dtg * a_j * damping, s_c_vec, force_virtual);
+                        Vectormath::add_c_cross( -dtg * a_j, s_c_vec, image, force_virtual);
                     }
                 }
 
@@ -141,8 +142,8 @@ namespace Engine
                 {
                     scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-                    Vectormath::add_c_a    (-0.5 * sqrtdtg * epsilon, this->xi, force_virtual);
-                    Vectormath::add_c_cross(-0.5 * sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
+                    Vectormath::add_c_a    ( sqrtdtg * epsilon, this->xi, force_virtual);
+                    Vectormath::add_c_cross( sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
                 }
             }
             // Apply Pinning
