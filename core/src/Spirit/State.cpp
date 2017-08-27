@@ -1,6 +1,7 @@
 #include <Spirit/State.h>
-#include <data/State.hpp>
+#include <Spirit/Version.h>
 #include "Spirit_Defines.h"
+#include <data/State.hpp>
 #include <io/IO.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>

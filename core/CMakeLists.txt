@@ -178,6 +178,7 @@ if ( SPIRIT_USE_THREADS )
 	set ( SPIRIT_DEFINE_THREADS "#define SPIRIT_USE_THREADS")
 endif()
 configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Spirit_Defines.h)
+configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.h.in ${PROJECT_SOURCE_DIR}/include/Spirit/Version.h)
 #############################################
 
 
