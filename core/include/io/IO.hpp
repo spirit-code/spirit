@@ -3,6 +3,7 @@
 #define IO_H
 
 #include <string>
+#include <vector>
 
 #include <Spirit/IO.h>
 #include "Spirit_Defines.h"
