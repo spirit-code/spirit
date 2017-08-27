@@ -2,7 +2,6 @@
 #ifndef Method_Solver_H
 #define Method_Solver_H
 
-
 #include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
@@ -19,6 +18,8 @@
 #include <map>
 #include <sstream>
 #include <iomanip>
+
+#include <fmt/format.h>
 
 namespace Engine
 {
@@ -212,21 +213,14 @@ namespace Engine
     {
         using namespace Utility;
 
-        std::stringstream maxforce_stream;
-        maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->force_max_abs_component;
-        std::string maxforce = maxforce_stream.str();
-        std::stringstream force_param_stream;
-        force_param_stream << std::fixed << std::setprecision(this->print_precision) << this->parameters->force_convergence;
-        std::string force_param = force_param_stream.str();
-
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 "------------  Started  " + this->Name() + " Calculation  ------------",
                 "    Going to iterate " + std::to_string(this->n_log) + " steps",
                 "                with " + std::to_string(this->n_iterations_log) + " iterations per step",
-                "    Force convergence parameter: " + force_param,
-                "    Maximum force component:     " + maxforce,
+                "    Force convergence parameter: " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->parameters->force_convergence),
+                "    Maximum force component:     " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->force_max_abs_component),
                 "    Solver: " + this->SolverFullName(),
                 "-----------------------------------------------------"
             }, this->idx_image, this->idx_chain);
@@ -237,13 +231,6 @@ namespace Engine
     {
         using namespace Utility;
         
-        std::stringstream maxforce_stream;
-        maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->force_max_abs_component;
-        std::string maxforce = maxforce_stream.str();
-        std::stringstream force_param_stream;
-        force_param_stream << std::fixed << std::setprecision(this->print_precision) << this->parameters->force_convergence;
-        std::string force_param = force_param_stream.str();
-
         // Update time of current step
         auto t_current = system_clock::now();
 
@@ -255,8 +242,8 @@ namespace Engine
                 "    Iteration                    " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations),
                 "    Time since last step:        " + Timing::DateTimePassed(t_current - this->t_last),
                 "    Iterations / sec:            " + std::to_string(this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-                "    Force convergence parameter: " + force_param,
-                "    Maximum force component:     " + maxforce
+                "    Force convergence parameter: " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->parameters->force_convergence),
+                "    Maximum force component:     " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->force_max_abs_component)
             }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -270,14 +257,6 @@ namespace Engine
         
         //---- End timings
         auto t_end = system_clock::now();
-
-        //---- Maximum force component as string
-        std::stringstream maxforce_stream;
-        maxforce_stream << std::fixed << std::setprecision(this->print_precision) << this->force_max_abs_component;
-        std::string maxforce = maxforce_stream.str();
-        std::stringstream force_param_stream;
-        force_param_stream << std::fixed << std::setprecision(this->print_precision) << this->parameters->force_convergence;
-        std::string force_param = force_param_stream.str();
 
         //---- Termination reason
         std::string reason = "";
@@ -297,8 +276,8 @@ namespace Engine
         block.push_back("    Step              " + std::to_string(step) + " / " + std::to_string(n_log));
         block.push_back("    Iteration         " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations));
         block.push_back("    Iterations / sec: " + std::to_string( this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back("    Force convergence parameter: " + force_param);
-        block.push_back("    Maximum force component:     " + maxforce);
+        block.push_back("    Force convergence parameter: " + fmt::format("{:."+std::to_string(this->print_precision)+"f}", this->parameters->force_convergence));
+        block.push_back("    Maximum force component:     " + fmt::format("{:."+std::to_string(this->print_precision)+"f}", this->force_max_abs_component));
         block.push_back("    Solver: " + this->SolverFullName());
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
