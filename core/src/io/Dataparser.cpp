@@ -15,6 +15,24 @@ using namespace Utility;
 
 namespace IO
 {
+	// A helper function for splitting a string with a delimiter
+    std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
+    {
+        std::vector<scalar> result;
+
+        scalar temp;
+        std::stringstream ss(source);
+        while (ss >> temp)
+        {
+            result.push_back(temp);
+
+            if (ss.peek() == ',' || ss.peek() == ' ')
+                ss.ignore();
+        }
+
+        return result;
+	}
+	
 	/*
 	Reads a configuration file into an existing Spin_System
 	*/

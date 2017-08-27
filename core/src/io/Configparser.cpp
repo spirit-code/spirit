@@ -12,6 +12,9 @@
 #include <sstream>
 #include <ctime>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 using namespace Utility;
 
 namespace IO
@@ -79,14 +82,14 @@ namespace IO
 		}
 
 		// Log the parameters
-		Log(Log_Level::Parameter, Log_Sender::IO, "Tag time on output     = " + std::to_string(tag_time));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log output folder      = " + output_folder);
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log to file            = " + std::to_string(messages_to_file));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log file accept level  = " + std::to_string(i_level_file));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log to console         = " + std::to_string(messages_to_console));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log print accept level = " + std::to_string(i_level_console));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log input save initial = " + std::to_string(save_input_initial));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Log input save final   = " + std::to_string(save_input_final));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Tag time on output     = {0}", tag_time));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log output folder      = {0}", output_folder));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to file            = {0}", messages_to_file));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log file accept level  = {0}", i_level_file));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to console         = {0}", messages_to_console));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log print accept level = {0}", i_level_console));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save initial = {0}", save_input_initial));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save final   = {0}", save_input_final));
 		
 		// Update the Log
 		if (!force_quiet)
@@ -200,20 +203,20 @@ namespace IO
 		else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
 		
 		// Log the parameters
-		Log(Log_Level::Parameter, Log_Sender::IO, "Lattice constant = " + std::to_string(lattice_constant) + " angstrom");
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
 		Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-		Log(Log_Level::Debug, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]/lattice_constant) + " " + std::to_string(basis[0][1]/lattice_constant) + " " + std::to_string(basis[0][2]/lattice_constant));
-		Log(Log_Level::Debug, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]/lattice_constant) + " " + std::to_string(basis[1][1]/lattice_constant) + " " + std::to_string(basis[1][2]/lattice_constant));
-		Log(Log_Level::Debug, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]/lattice_constant) + " " + std::to_string(basis[2][1]/lattice_constant) + " " + std::to_string(basis[2][2]/lattice_constant));
+		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()/lattice_constant));
+		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()/lattice_constant));
+		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()/lattice_constant));
 		Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(basis[0][0]) + " " + std::to_string(basis[0][1]) + " " + std::to_string(basis[0][2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(basis[1][0]) + " " + std::to_string(basis[1][1]) + " " + std::to_string(basis[1][2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(basis[2][0]) + " " + std::to_string(basis[2][1]) + " " + std::to_string(basis[2][2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Basis: " + std::to_string(n_spins_basic_domain) + " atom(s) at the following positions:");
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
+
+
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_spins_basic_domain));
 		for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
-		{
-			Log(Log_Level::Parameter, Log_Sender::IO, "            " + std::to_string(iatom) + " = " + std::to_string(basis_atoms[iatom][0]) + " " + std::to_string(basis_atoms[iatom][1]) + " " + std::to_string(basis_atoms[iatom][2]));
-		}
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, basis_atoms[iatom].transpose()));
 		Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 	}// End Basis_from_Config
 
@@ -299,7 +302,7 @@ namespace IO
 						defect_indices, defects);
 				}
 				#endif
-					
+
 			}// end try
 			catch (Exception ex)
 			{
@@ -313,9 +316,9 @@ namespace IO
 		else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
 
 		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[2][0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[2][1]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[0][2]) + " " + std::to_string(translation_vectors[1][2]) + " " + std::to_string(translation_vectors[2][2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
 
 		// Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
 		for (dim = 0; dim < 3; ++dim)
@@ -337,26 +340,27 @@ namespace IO
 		atom_types = intfield(nos, 0);
 		#ifdef SPIRIT_ENABLE_DEFECTS
 		int n_defects = defect_indices.size();
-		Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(n_defects) + " defects");
-		if (n_defects > 0)
-			Log(Log_Level::Parameter, Log_Sender::IO, "  defect[0]: ispin=" + std::to_string(defect_indices[0]) + ", type=" + std::to_string(defects[0]) );
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
 		for (int i = 0; i < n_defects; ++i)
+		{
+			if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
 			atom_types[defect_indices[i]] = defects[i];
+		}
 		#endif
 		// Log parameters
 		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        a = " + std::to_string(translation_vectors[0][0]) + " " + std::to_string(translation_vectors[0][1]) + " " + std::to_string(translation_vectors[0][2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        b = " + std::to_string(translation_vectors[1][0]) + " " + std::to_string(translation_vectors[1][1]) + " " + std::to_string(translation_vectors[1][2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        c = " + std::to_string(translation_vectors[2][0]) + " " + std::to_string(translation_vectors[2][1]) + " " + std::to_string(translation_vectors[2][2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
 		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        na = " + std::to_string(n_cells[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        nb = " + std::to_string(n_cells[1]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        nc = " + std::to_string(n_cells[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: " + std::to_string(nos) + " spins");
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
 		
 		// Return geometry
 		auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Geometry is " + std::to_string(geometry->dimensionality) + "-dimensional"); 
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
 		Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
 		return geometry;
 	}// end Geometry from Config
@@ -479,17 +483,17 @@ namespace IO
 
 			// Return Pinning
 			Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_a (left, right) = " + std::to_string(na_left) + ", " + std::to_string(na_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_b (left, right) = " + std::to_string(nb_left) + ", " + std::to_string(nb_right));
-			Log(Log_Level::Parameter, Log_Sender::IO, "        n_c (left, right) = " + std::to_string(nc_left) + ", " + std::to_string(nc_right));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={0}, right={1}", na_left, na_right));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={0}, right={1}", nb_left, nb_right));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={0}, right={1}", nc_left, nc_right));
 			for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
-				Log(Log_Level::Parameter, Log_Sender::IO, "        cell atom[0]      = (" + std::to_string(pinned_cell[0][0]) + ", " + std::to_string(pinned_cell[0][1]) + ", " + std::to_string(pinned_cell[0][2]) + ")");
-			Log(Log_Level::Parameter, Log_Sender::IO, "        N additional pinned sites: " + std::to_string(n_pinned));
+				Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[0]      = ({0})", pinned_cell[0].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites: ", n_pinned));
 			for (int i = 0; i < n_pinned; ++i)
-			Log(Log_Level::Parameter, Log_Sender::IO, "        pinned site[0]           = (" + std::to_string(pinned_spins[0][0]) + ", " + std::to_string(pinned_spins[0][1]) + ", " + std::to_string(pinned_spins[0][2]) + ")");
+				Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        pinned site[0]           = ({0})", pinned_spins[0].transpose()));
 			Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
 			return pinning;
-		#else // SPIRIT_ENABLE_PINNING
+			#else // SPIRIT_ENABLE_PINNING
 			Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
 			if (configFile != "")
 			{
@@ -597,28 +601,29 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        time step [ps]    = " + std::to_string(dt));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        damping           = " + std::to_string(damping));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        beta              = " + std::to_string(beta));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        stt use gradient  = " + std::to_string(stt_use_gradient));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        stt magnitude     = " + std::to_string(stt_magnitude));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        stt normal        = " + std::to_string(stt_polarisation_normal[0]) + " " + std::to_string(stt_polarisation_normal[1]) + " " + std::to_string(stt_polarisation_normal[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        force convergence = " + std::to_string(force_convergence));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_spin_resolved    = " + std::to_string(output_energy_spin_resolved));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "seed", seed));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "time step [ps]", dt));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature", temperature));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "damping", damping));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "beta", beta));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt use gradient", stt_use_gradient));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt magnitude", stt_magnitude));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt normal", stt_polarisation_normal.transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1:e}", "force convergence", force_convergence));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+
 		max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 		auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG( output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
 			output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive}, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, damping, beta, dt, renorm_sd,
@@ -689,22 +694,22 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MC:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        seed              = " + std::to_string(seed));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        temperature       = " + std::to_string(temperature));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        acceptance_ratio  = " + std::to_string(acceptance_ratio));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_spin_resolved    = " + std::to_string(output_energy_spin_resolved));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "seed", seed));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature", temperature));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "acceptance_ratio", acceptance_ratio));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
 		max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 		auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
 			output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
@@ -767,18 +772,19 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        spring_constant      = " + std::to_string(spring_constant));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence    = " + std::to_string(force_convergence));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_E_interpolations   = " + std::to_string(n_E_interpolations));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations         = " + std::to_string(n_iterations));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log     = " + std::to_string(n_iterations_log));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder        = " + output_folder);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_any           = " + std::to_string(output_any));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial       = " + std::to_string(output_initial));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_final         = " + std::to_string(output_final));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energies_step = " + std::to_string(output_energies_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_chain_step    = " + std::to_string(output_chain_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "spring_constant", spring_constant));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_E_interpolations", n_E_interpolations));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1:e}", "force convergence", force_convergence));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "maximum walltime", str_max_walltime));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_iterations", n_iterations));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_iterations_log", n_iterations_log));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_folder", output_folder));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_any", output_any));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_initial", output_initial));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_final", output_final));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_step", output_energies_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_step", output_chain_step));
+
 		max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 		auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step },
 			force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
@@ -837,19 +843,19 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        maximum walltime  = " + str_max_walltime);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        force_convergence = " + std::to_string(force_convergence));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations      = " + std::to_string(n_iterations));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_iterations_log  = " + std::to_string(n_iterations_log));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_folder     = " + output_folder);
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_any        = " + std::to_string(output_any));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_initial    = " + std::to_string(output_initial));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_final      = " + std::to_string(output_final));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_step             = " + std::to_string(output_energy_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_archive          = " + std::to_string(output_energy_archive));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_energy_divide_by_nspins = " + std::to_string(output_energy_divide_by_nspins));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_step      = " + std::to_string(output_configuration_step));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        output_configuration_archive   = " + std::to_string(output_configuration_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1:e}", "force convergence", force_convergence));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
 		max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
 		auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, { output_tag_time, output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
 			force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
@@ -1159,24 +1165,24 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
 		if (external_field_from_file)
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
 		if (anisotropy_from_file)
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_exchange   = " + std::to_string(n_neigh_shells_exchange));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_neigh_shells_exchange));
 		if (n_neigh_shells_exchange > 0)
-			Log(Log_Level::Parameter, Log_Sender::IO, "        J_ij[0]             = " + std::to_string(jij[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_shells_dmi        = " + std::to_string(n_neigh_shells_dmi));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", jij[0]));
 		if (n_neigh_shells_dmi > 0)
-			Log(Log_Level::Parameter, Log_Sender::IO, "        D_ij[0]             = " + std::to_string(dij[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        DM chirality        = " + std::to_string(dm_chirality));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(dd_radius));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_neigh_shells_dmi));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dij[0]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", dd_radius));
 		auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
 				mu_s, external_field_index, external_field_magnitude, external_field_normal,
 				anisotropy_index, anisotropy_magnitude, anisotropy_normal,
@@ -1476,17 +1482,17 @@ namespace IO
 		
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        boundary conditions = " + std::to_string(boundary_conditions[0]) + " " + std::to_string(boundary_conditions[1]) + " " + std::to_string(boundary_conditions[2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
 		if (external_field_from_file)
 			Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        B[0]                = " + std::to_string(B));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        B_normal[0]         = " + std::to_string(B_normal[0]) + " " + std::to_string(B_normal[1]) + " " + std::to_string(B_normal[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        mu_s[0]             = " + std::to_string(mu_s[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        K[0]                = " + std::to_string(K));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
 		if (anisotropy_from_file)
 			Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        K_normal[0]         = " + std::to_string(K_normal[0]) + " " + std::to_string(K_normal[1]) + " " + std::to_string(K_normal[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        dd_radius           = " + std::to_string(ddi_radius));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
 		auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
 			mu_s,
 			external_field_index, external_field_magnitude, external_field_normal,
@@ -1561,10 +1567,10 @@ namespace IO
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian:");
-		Log(Log_Level::Parameter, Log_Sender::IO, "        n_gaussians  = " + std::to_string(n_gaussians));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        amplitude[0] = " + std::to_string(amplitude[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        width[0]     = " + std::to_string(width[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, "        center[0]    = " + std::to_string(center[0][0]) + " " + std::to_string(center[0][1]) + " " + std::to_string(center[0][2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<12} = {1}", "n_gaussians", n_gaussians));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<12} = {1}", "amplitude[0]", amplitude[0]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<12} = {1}", "width[0]", width[0]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<12} = {1}", "center[0]", center[0].transpose()));
 		auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Gaussian>(new Engine::Hamiltonian_Gaussian(
 			amplitude, width, center
 		));

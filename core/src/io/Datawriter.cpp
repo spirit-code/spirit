@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <cctype>
 
+#include <fmt/format.h>
+
 #ifdef CORE_USE_THREADS
 #include <thread>
 #endif
@@ -26,7 +28,8 @@ namespace IO
 		for (unsigned int i=0; i<firstcolumns.size(); ++i)
 		{
 			if (readability_toggle) separator += "--------------------++";
-			line += center(firstcolumns[i], 20) + "||";
+			// Centered column titles
+			line += fmt::format("{:^20}", firstcolumns[i]) + "||";
 		}
 		if (contributions)
 		{
@@ -39,7 +42,8 @@ namespace IO
 					line += "|";;
 					if (readability_toggle) separator += "+";
 				}
-				line += center(pair.first, 20);
+				// Centered column titles
+				line += fmt::format("{:^20}", pair.first);
 				if (readability_toggle) separator += "--------------------";
 			}
 		}
@@ -62,7 +66,8 @@ namespace IO
 
 		// s.UpdateEnergy();
 
-		std::string line = center(iteration, 0, 20) + "||" + center(s.E * nd, 10, 20) + "||";
+		// Centered column entries
+		std::string line = fmt::format("{:^20}", iteration) + "||" + fmt::format("{:^20}", fmt::format("{:.10f}", s.E * nd)) + "||";
 		bool first = true;
 		for (auto pair : s.E_array)
 		{
@@ -71,7 +76,7 @@ namespace IO
 			{
 				line += "|";;
 			}
-			line += center(pair.second * nd, 10, 20);
+			line += fmt::format("{:^20}", fmt::format("{:.10f}", pair.second * nd));
 		}
 		line += "\n";
 
@@ -88,7 +93,7 @@ namespace IO
 
 		Write_Energy_Header(system, fileName, {"E_tot"});
 
-		std::string line = center(system.E * nd, 10, 20) + "||";
+		std::string line = fmt::format("{:^20}", fmt::format("{:.10f}", system.E * nd)) + "||";
 		bool first = true;
 		for (auto pair : system.E_array)
 		{
@@ -97,7 +102,7 @@ namespace IO
 			{
 				line += "|";;
 			}
-			line += center(pair.second * nd, 10, 20);
+			line += fmt::format("{:^20}", fmt::format("{:.10f}", pair.second * nd));
 		}
 		line += "\n";
 
@@ -124,7 +129,7 @@ namespace IO
 		{
 			scalar E_spin=0;
 			for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
-			data += center(ispin, 0, 20) + "||" + center(E_spin * nd, 10, 20) + "||";
+			data += fmt::format("{:^20}", ispin) + "||" + fmt::format("{:^20}", fmt::format("{:.10f}", E_spin * nd)) + "||";
 			bool first = true;
 			for (auto pair : contributions_spins)
 			{
@@ -133,7 +138,7 @@ namespace IO
 				{
 					data += "|";;
 				}
-				data += center(pair.second[ispin] * nd, 10, 20);
+				data += fmt::format("{:^20}", fmt::format("{:.10f}", pair.second[ispin] * nd));
 			}
 			data += "\n";
 		}
@@ -159,7 +164,9 @@ namespace IO
 		for (isystem = 0; isystem < (int)c.noi; ++isystem)
 		{
 			auto& system = *c.images[isystem];
-			std::string line = center(isystem, 0, 20) + "||" + center(c.Rx[isystem], 10, 20) + "||" + center(system.E * nd, 10, 20) + "||";
+			std::string line = fmt::format("{:^20}", isystem) + "||"
+				+ fmt::format("{:^20}", fmt::format("{:.10f}", c.Rx[isystem])) + "||"
+				+ fmt::format("{:^20}", fmt::format("{:.10f}", system.E * nd)) + "||";
 			bool first = true;
 			for (auto pair : system.E_array)
 			{
@@ -168,7 +175,7 @@ namespace IO
 				{
 					line += "|";;
 				}
-				line += center(pair.second * nd, 10, 20);
+				line += fmt::format("{:^20}", fmt::format("{:.10f}", pair.second * nd));
 			}
 			line += "\n";
 
@@ -194,7 +201,10 @@ namespace IO
 			for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations+1; ++iinterp)
 			{
 				idx = isystem * (c.gneb_parameters->n_E_interpolations+1) + iinterp;
-				std::string line = center(isystem, 0, 20) + "||" + center(iinterp, 0, 20) + "||" + center(c.Rx_interpolated[idx], 10, 20) + "||" + center(c.E_interpolated[idx] * nd, 10, 20) + "||";
+				std::string line = fmt::format("{:^20}", isystem) + "||"
+					+ fmt::format("{:^20}", iinterp) + "||"
+					+ fmt::format("{:^20}", fmt::format("{:.10f}", c.Rx_interpolated[idx])) + "||"
+					+ fmt::format("{:^20}", fmt::format("{:.10f}", c.E_interpolated[idx] * nd)) + "||";
 				
 				// TODO: interpolated Energy contributions
 				// bool first = true;

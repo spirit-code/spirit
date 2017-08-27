@@ -11,6 +11,9 @@
 #include <string>
 #include <sstream>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 using namespace Utility;
 
 namespace IO
@@ -54,9 +57,7 @@ namespace IO
 		std::string config = "";
 		config += "#################### Geometry ####################\n";
 		config += "basis\n";
-		config += std::to_string(geometry->basis[0][0]) + " " + std::to_string(geometry->basis[0][1]) + " " + std::to_string(geometry->basis[0][2]) + "\n";
-		config += std::to_string(geometry->basis[1][0]) + " " + std::to_string(geometry->basis[1][1]) + " " + std::to_string(geometry->basis[1][2]) + "\n";
-		config += std::to_string(geometry->basis[2][0]) + " " + std::to_string(geometry->basis[2][1]) + " " + std::to_string(geometry->basis[2][2]) + "\n";
+		config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0], geometry->basis[1], geometry->basis[2]);
 		config += std::to_string(geometry->n_spins_basic_domain) + "\n";
 		for (int i=0; i<geometry->n_spins_basic_domain; ++i)
 		{
@@ -84,7 +85,7 @@ namespace IO
 		config += "llg_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
 		config += "llg_output_configuration_step      " + std::to_string(parameters->output_configuration_step) + "\n";
 		config += "llg_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
-		config += "llg_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
+		config += "llg_force_convergence          " + fmt::format("{:e}", parameters->force_convergence) + "\n";
 		config += "llg_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 		config += "llg_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
 		config += "llg_seed                       " + std::to_string(parameters->rng_seed) + "\n";
@@ -130,7 +131,7 @@ namespace IO
 		config += "gneb_output_energies_interpolated     " + std::to_string(parameters->output_energies_interpolated) + "\n";
 		config += "gneb_output_energies_divide_by_nspins " + std::to_string(parameters->output_energies_divide_by_nspins) + "\n";
 		config += "gneb_output_chain_step    " + std::to_string(parameters->output_chain_step) + "\n";
-		config += "gneb_force_convergence         " + center(parameters->force_convergence, 14, 16) + "\n";
+		config += "gneb_force_convergence         " + fmt::format("{:e}", parameters->force_convergence) + "\n";
 		config += "gneb_n_iterations              " + std::to_string(parameters->n_iterations) + "\n";
 		config += "gneb_n_iterations_log          " + std::to_string(parameters->n_iterations_log) + "\n";
 		// config += "gneb_renorm                    " + std::to_string(parameters->renorm_gneb) + "\n";
@@ -152,7 +153,7 @@ namespace IO
 		config += "mmf_output_energy_divide_by_nspins " + std::to_string(parameters->output_energy_divide_by_nspins) + "\n";
 		config += "mmf_output_configuration_step      " + std::to_string(parameters->output_configuration_step) + "\n";
 		config += "mmf_output_configuration_archive   " + std::to_string(parameters->output_configuration_archive) + "\n";
-		config += "mmf_force_convergence          " + center(parameters->force_convergence, 14, 16) + "\n";
+		config += "mmf_force_convergence          " + fmt::format("{:e}", parameters->force_convergence) + "\n";
 		config += "mmf_n_iterations               " + std::to_string(parameters->n_iterations) + "\n";
 		config += "mmf_n_iterations_log           " + std::to_string(parameters->n_iterations_log) + "\n";
 		config += "############### End MMF Parameters ###############";

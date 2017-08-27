@@ -11,6 +11,8 @@
 #include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
 #include <GenEigsRealShiftSolver.h>
 
+#include <fmt/format.h>
+
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
@@ -357,7 +359,7 @@ namespace Engine
 		if (this->parameters->output_any)
 		{
 			// Convert indices to formatted strings
-			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
+            std::string s_img = fmt::format("{:0>2}", this->idx_image);
 
 			std::string preSpinsFile;
 			std::string preEnergyFile;
@@ -384,7 +386,8 @@ namespace Engine
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
-				auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+				int base = (int)log10(this->parameters->n_iterations);
+				std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
 				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
 
 				// File name
@@ -433,7 +436,8 @@ namespace Engine
 			}
 
 			// Single file output
-			auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+            int base = (int)log10(this->parameters->n_iterations);
+            std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
 			if (this->systems[0]->llg_parameters->output_configuration_step)
 			{
 				writeOutputConfiguration("_" + s_iter, false);

@@ -10,6 +10,8 @@
 #include <ctime>
 #include <math.h>
 
+#include <fmt/format.h>
+
 using namespace Utility;
 
 namespace Engine
@@ -237,8 +239,9 @@ namespace Engine
         if (this->parameters->output_any)
         {
             // Convert indices to formatted strings
-            auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
-            auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+            auto s_img  = fmt::format("{:0>2}", this->idx_image);
+            int base = (int)log10(this->parameters->n_iterations);
+            std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
 
             std::string preSpinsFile;
             std::string preEnergyFile;

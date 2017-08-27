@@ -24,24 +24,7 @@ namespace IO
         // OOMF Vector Field file format
         OVF                 = IO_Fileformat_OVF
     };
-
-    // ------ Formatting Helpers ----------------------------------------
-    // Helpers for centering strings
-    std::string center(const std::string s, const int w);
-    // trim from start
-    static inline std::string &ltrim(std::string &s);
-    // trim from end
-    static inline std::string &rtrim(std::string &s);
-    // trim from both ends
-    static inline std::string &trim(std::string &s);
-    std::string center(const scalar s, const int precision, const int w);
-    // Convert an int to a formatted string
-    std::string int_to_formatted_string(int in, int n = 6);
-    // TODO: this function does not make much sense...
-    //       need to do this stuff coherently throughout the parser...
-    std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter);
-    // ------------------------------------------------------------------
-
+    
     // ------ Saving Helpers --------------------------------------------
 	// Creates a new thread with String_to_File, which is immediately detached
 	void Dump_to_File(const std::string text, const std::string name);

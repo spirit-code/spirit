@@ -10,6 +10,8 @@
 #include <iostream>
 #include <math.h>
 
+#include <fmt/format.h>
+
 using namespace Utility;
 
 namespace Engine
@@ -255,7 +257,7 @@ namespace Engine
 		if (this->parameters->output_any)
 		{
 			// always formatting to 6 digits may be problematic!
-			auto s_iter = IO::int_to_formatted_string(iteration, 6);
+			std::string s_iter = fmt::format("{:0>6}", iteration);
 
 			std::string preChainFile;
 			std::string preEnergiesFile;
