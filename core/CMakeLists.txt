@@ -213,6 +213,8 @@ if ( SPIRIT_USE_OPENMP )
 endif( )
 #############################################
 
+### flag for fmt to be header-only
+add_definitions( -DFMT_HEADER_ONLY )
 
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
