@@ -6,7 +6,7 @@
 #include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -31,7 +31,7 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
         from_indices( state, idx_image, idx_chain, image, chain );
         
     	// Create System (and lock it)
-    	std::shared_ptr<Data::Spin_System> system = Utility::IO::Spin_System_from_Config(std::string(file));
+    	std::shared_ptr<Data::Spin_System> system = IO::Spin_System_from_Config(std::string(file));
     	system->Lock();
     	
     	// Filter for unacceptable differences to other systems in the chain
@@ -80,7 +80,7 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
         
         // Read the data
     	image->Lock();
-    	Utility::IO::Read_Spin_Configuration(image, std::string(file), Utility::IO::VectorFileFormat(format));
+    	IO::Read_Spin_Configuration(image, std::string(file), IO::VF_FileFormat(format));
     	image->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -106,9 +106,9 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
     	// Write the data
         image->Lock();
         if (format != IO_Fileformat_OVF)
-            Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), false);
+            IO::Write_Spin_Configuration(image, 0, std::string(file), false);
         else
-            Utility::IO::Save_To_OVF(*image->spins, *image->geometry, std::string(file));
+            IO::Save_To_OVF(*image->spins, *image->geometry, std::string(file));
     	image->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -133,7 +133,7 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
         
     	// Write the data
     	image->Lock();
-    	Utility::IO::Write_Spin_Configuration(image, 0, std::string(file), true);
+    	IO::Write_Spin_Configuration(image, 0, std::string(file), true);
     	image->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -165,7 +165,7 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
         
     	// Read the data
     	chain->Lock();
-    	Utility::IO::Read_SpinChain_Configuration(chain, std::string(file));
+    	IO::Read_SpinChain_Configuration(chain, std::string(file));
     	chain->Unlock();
 
     	// Update llg simulation information array size
@@ -206,7 +206,7 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
         
     	// Read the data
     	chain->Lock();
-    	Utility::IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
+    	IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
     	chain->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -251,7 +251,7 @@ void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_c
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        Utility::IO::Write_System_Energy_per_Spin(*image, std::string(file));
+        IO::Write_System_Energy_per_Spin(*image, std::string(file));
     }
     catch( ... )
     {
@@ -271,7 +271,7 @@ void IO_Write_System_Energy(State * state, const char * file, int idx_image, int
         from_indices( state, idx_image, idx_chain, image, chain );
         
     	// Write the data
-    	Utility::IO::Write_System_Energy(*image, std::string(file));
+    	IO::Write_System_Energy(*image, std::string(file));
     }
     catch( ... )
     {
@@ -293,7 +293,7 @@ void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain)
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        Utility::IO::Write_Chain_Energies(*chain, idx_chain, std::string(file));
+        IO::Write_Chain_Energies(*chain, idx_chain, std::string(file));
     }
     catch( ... )
     {
@@ -315,7 +315,7 @@ void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int 
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        Utility::IO::Write_Chain_Energies_Interpolated(*chain, std::string(file));
+        IO::Write_Chain_Energies_Interpolated(*chain, std::string(file));
     }
     catch( ... )
     {

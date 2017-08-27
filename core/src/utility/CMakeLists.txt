@@ -1,16 +1,11 @@
 set(SOURCE_SPIRIT_UTILITY
     ${SOURCE_SPIRIT_UTILITY}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Exception.cpp	
-  ${CMAKE_CURRENT_SOURCE_DIR}/IO_Configparser.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Configwriter.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Fileparser.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filedump.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filter_File_Handle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Configurations.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Exception.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

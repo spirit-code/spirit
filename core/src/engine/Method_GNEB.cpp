@@ -3,8 +3,8 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <io/IO.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
-#include <utility/IO.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
@@ -277,7 +277,7 @@ namespace Engine
 				std::string chainFile = preChainFile + suffix + ".txt";
 
 				// Chain
-				Utility::IO::Save_SpinChain_Configuration(this->chain, iteration, chainFile);
+				IO::Save_SpinChain_Configuration(this->chain, iteration, chainFile);
 			};
 
 			auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
@@ -290,16 +290,16 @@ namespace Engine
 				// std::string energiesFilePerSpin = preEnergiesFile + "PerSpin" + suffix + ".txt";
 
 				// Energies
-				Utility::IO::Write_Chain_Energies(*this->chain, iteration, energiesFile, normalize);
+				IO::Write_Chain_Energies(*this->chain, iteration, energiesFile, normalize);
 
 				// Interpolated Energies
 				if (this->chain->gneb_parameters->output_energies_interpolated)
 				{
-					Utility::IO::Write_Chain_Energies_Interpolated(*this->chain, energiesFileInterpolated, normalize);
+					IO::Write_Chain_Energies_Interpolated(*this->chain, energiesFileInterpolated, normalize);
 				}
 				/*if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
 				{
-					Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
+					IO::Write_System_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
 				}*/
 			};
 

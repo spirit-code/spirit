@@ -3,7 +3,7 @@
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
@@ -260,7 +260,7 @@ namespace Engine
                 std::string spinsFile = preSpinsFile + suffix + ".txt";
 
                 // Spin Configuration
-                Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -276,17 +276,17 @@ namespace Engine
                 {
                     // Check if Energy File exists and write Header if it doesn't
                     std::ifstream f(energyFile);
-                    if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
                     // Append Energy to File
-                    Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
                 }
                 else
                 {
-                    Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Write_Energy_Header(*this->systems[0], energyFile);
+                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        Utility::IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                        IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
                     }
                 }
             };

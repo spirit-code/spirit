@@ -1,13 +1,11 @@
 ﻿#include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 
 #include <string>
 #include <iostream>
 #include <ctime>
-#include <IO.hpp>
 #include <signal.h>
-
 
 namespace Utility
 {

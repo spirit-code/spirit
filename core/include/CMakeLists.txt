@@ -1,6 +1,7 @@
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/Spirit)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/data)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/engine)
+add_subdirectory(${PROJECT_SOURCE_DIR}/include/io)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/utility)
 
 set(HEADER_SPIRIT_ROOT
@@ -22,6 +23,11 @@ set(HEADER_SPIRIT_DATA
 
 set(HEADER_SPIRIT_ENGINE
     ${HEADER_SPIRIT_ENGINE}
+    PARENT_SCOPE
+)
+
+set(HEADER_SPIRIT_IO
+    ${HEADER_SPIRIT_IO}
     PARENT_SCOPE
 )
 

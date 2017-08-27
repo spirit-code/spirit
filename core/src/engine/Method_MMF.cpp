@@ -2,8 +2,8 @@
 #include <engine/Method_MMF.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <io/IO.hpp>
 #include <utility/Logging.hpp>
-#include <utility/IO.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -357,7 +357,7 @@ namespace Engine
 		if (this->parameters->output_any)
 		{
 			// Convert indices to formatted strings
-			auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
+			auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
 
 			std::string preSpinsFile;
 			std::string preEnergyFile;
@@ -379,12 +379,12 @@ namespace Engine
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
 
 				// Spin Configuration
-				Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+				IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
 			};
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
-				auto s_iter = Utility::IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+				auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
 				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
 
 				// File name
@@ -394,9 +394,9 @@ namespace Engine
 				// Energy
 				// Check if Energy File exists and write Header if it doesn't
 				std::ifstream f(energyFile);
-				if (!f.good()) Utility::IO::Write_Energy_Header(*this->systems[0], energyFile);
+				if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
 				// Append Energy to File
-				//Utility::IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+				//IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
 
 				scalar nd = 1.0;
 				if (this->collection->parameters->output_energy_divide_by_nspins) nd /= this->systems[0]->nos; // nos divide
@@ -415,7 +415,7 @@ namespace Engine
 				//
 				output_to_file += s_iter;
 				output_to_file.append(buffer_string_conversion);
-				Utility::IO::Append_String_to_File(output_to_file, energyFile);
+				IO::Append_String_to_File(output_to_file, energyFile);
 			};
 
 
@@ -433,7 +433,7 @@ namespace Engine
 			}
 
 			// Single file output
-			auto s_iter = Utility::IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
+			auto s_iter = IO::int_to_formatted_string(iteration, (int)log10(this->parameters->n_iterations));
 			if (this->systems[0]->llg_parameters->output_configuration_step)
 			{
 				writeOutputConfiguration("_" + s_iter, false);
@@ -486,8 +486,8 @@ namespace Engine
 			//auto writeoutput = [this, starttime, iteration](std::string suffix)
 			//{
 			//	// Convert indices to formatted strings
-			//	auto s_img = Utility::IO::int_to_formatted_string(this->idx_image, 2);
-			//	auto s_iter = Utility::IO::int_to_formatted_string(iteration, 6);
+			//	auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
+			//	auto s_iter = IO::int_to_formatted_string(iteration, 6);
 
 			//	// if (this->parameters->output_archive)
 			//	// {
@@ -497,7 +497,7 @@ namespace Engine
 			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
 			//		else
 			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
-			//		Utility::IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, true);
+			//		IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, true);
 			//		
 			//		if (this->collection->parameters->output_energy)
 			//		{
@@ -522,7 +522,7 @@ namespace Engine
 			//			//
 			//			output_to_file += s_iter;
 			//			output_to_file.append(buffer_string_conversion);
-			//			Utility::IO::Append_String_to_File(output_to_file, energyFile);
+			//			IO::Append_String_to_File(output_to_file, energyFile);
 			//		}
 			//	// }
 
@@ -540,7 +540,7 @@ namespace Engine
 			//	//	output_to_file.append(buffer_string_conversion);
 			//	//}
 			//	//output_to_file.append("\n");
-			//	//Utility::IO::Append_String_to_File(output_to_file, spinsFile);
+			//	//IO::Append_String_to_File(output_to_file, spinsFile);
 
 			//};
 

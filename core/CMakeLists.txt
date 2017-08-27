@@ -220,8 +220,9 @@ set( SPIRIT_INCLUDE_DIRS
 	 ${PROJECT_SOURCE_DIR}/include
 	 ${PROJECT_SOURCE_DIR}/include/data
 	 ${PROJECT_SOURCE_DIR}/include/engine
+	 ${PROJECT_SOURCE_DIR}/include/io
 	 ${PROJECT_SOURCE_DIR}/include/Spirit
-	 ${PROJECT_SOURCE_DIR}/include/utility 
+	 ${PROJECT_SOURCE_DIR}/include/utility
 	 ${PROJECT_SOURCE_DIR}/src/utility
 	 ${EIGEN_INCLUDE_DIRS}
 	 ${SPECTRA_INCLUDE_DIRS}
@@ -236,12 +237,14 @@ set(HEADER_SPIRIT_ROOT)
 set(HEADER_SPIRIT)
 set(HEADER_SPIRIT_DATA)
 set(HEADER_SPIRIT_ENGINE)
+set(HEADER_SPIRIT_IO)
 set(HEADER_SPIRIT_UTILITY)
 ### Source Groups
 set(SOURCE_SPIRIT_ROOT)
 set(SOURCE_SPIRIT)
 set(SOURCE_SPIRIT_DATA)
 set(SOURCE_SPIRIT_ENGINE)
+set(SOURCE_SPIRIT_IO)
 set(SOURCE_SPIRIT_UTILITY)
 #############################################
 
@@ -257,12 +260,14 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/include)
 source_group("include" FILES ${HEADER_SPIRIT_ROOT})
 source_group("include\\data" FILES ${HEADER_SPIRIT_DATA})
 source_group("include\\engine" FILES ${HEADER_SPIRIT_ENGINE})
+source_group("include\\io" FILES ${HEADER_SPIRIT_IO})
 source_group("include\\utility" FILES ${HEADER_SPIRIT_UTILITY})
 source_group("include\\spirit" FILES ${HEADER_SPIRIT})
 ### Folder src
 source_group("src" FILES  ${SOURCE_SPIRIT_ROOT}) #${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 source_group("src\\data" FILES ${SOURCE_SPIRIT_DATA})
 source_group("src\\engine" FILES ${SOURCE_SPIRIT_ENGINE})
+source_group("src\\io" FILES ${SOURCE_SPIRIT_IO})
 source_group("src\\utility" FILES ${SOURCE_SPIRIT_UTILITY})
 source_group("src\\spirit" FILES ${SOURCE_SPIRIT})
 #############################################
@@ -274,11 +279,13 @@ set( SPIRIT_LIBRARY_SOURCES
     ${HEADER_SPIRIT_DATA}
     ${HEADER_SPIRIT_ENGINE}
 	${HEADER_SPIRIT}
+	${HEADER_SPIRIT_IO}
 	${HEADER_SPIRIT_UTILITY}
 	${SOURCE_SPIRIT_ROOT}
 	${SOURCE_SPIRIT_DATA}
 	${SOURCE_SPIRIT_ENGINE}
 	${SOURCE_SPIRIT}
+	${SOURCE_SPIRIT_IO}
 	${SOURCE_SPIRIT_UTILITY} )
 
 if( NOT SPIRIT_USE_CUDA )
@@ -492,10 +499,12 @@ set(SPIRIT_INCLUDE_DIRS     ${SPIRIT_INCLUDE_DIRS}      PARENT_SCOPE)
 set(HEADER_SPIRIT_DATA      ${HEADER_SPIRIT_DATA}       PARENT_SCOPE)
 set(HEADER_SPIRIT_ENGINE    ${HEADER_SPIRIT_ENGINE}     PARENT_SCOPE)
 set(HEADER_SPIRIT 			${HEADER_SPIRIT} 		    PARENT_SCOPE)
+set(HEADER_SPIRIT_IO        ${HEADER_SPIRIT_IO}         PARENT_SCOPE)
 set(HEADER_SPIRIT_UTILITY   ${HEADER_SPIRIT_UTILITY}    PARENT_SCOPE)
 set(SOURCE_SPIRIT_DATA      ${SOURCE_SPIRIT_DATA}       PARENT_SCOPE)
 set(SOURCE_SPIRIT_ENGINE    ${SOURCE_SPIRIT_ENGINE}     PARENT_SCOPE)
 set(SOURCE_SPIRIT 			${SOURCE_SPIRIT} 		    PARENT_SCOPE)
+set(SOURCE_SPIRIT_IO        ${SOURCE_SPIRIT_IO}         PARENT_SCOPE)
 set(SOURCE_SPIRIT_UTILITY   ${SOURCE_SPIRIT_UTILITY}    PARENT_SCOPE)
 #############################################
 

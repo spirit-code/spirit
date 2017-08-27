@@ -3,7 +3,7 @@
 #include <engine/Vectormath.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
