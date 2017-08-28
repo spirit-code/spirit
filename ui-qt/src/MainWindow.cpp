@@ -61,6 +61,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// File Menu
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
+	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
@@ -1065,8 +1066,15 @@ void MainWindow::save_Spin_Configuration()
 		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
 	if (!fileName.isEmpty())
 	{
+		QFileInfo fi(fileName);
+		// Determine file type from suffix
+		auto qs_type = fi.completeSuffix();
+		int type = IO_Fileformat_Regular;
+		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		// Write the file
 		auto file = string_q2std(fileName);
-		IO_Image_Write(this->state.get(), file.c_str(), IO_Fileformat_OVF);
+		IO_Image_Write(this->state.get(), file.c_str(), type);
 	}
 }
 
@@ -1140,6 +1148,19 @@ void MainWindow::load_Configuration()
 			this->spinWidget->updateData();
 			this->settingsWidget->updateData();
 		}
+	}
+}
+
+void MainWindow::save_Configuration()
+{
+	int idx_img = System_Get_Index(state.get());
+	// Read Spin System from cfg
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Config"), "./input", tr("Config (*.cfg)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		
+		State_To_Config(this->state.get(), file.c_str(), ">unknown<");
 	}
 }
 

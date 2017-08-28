@@ -126,7 +126,7 @@ State * State_Setup(const char * config_file, bool quiet)
         // Save the config
         if (Log.save_input_initial)
         {
-            std::string file = "input";
+            std::string file = Log.output_folder + "/input";
             if (Log.tag_time)
                 file += "_" + state->datetime_creation_string;
             file += "_initial.cfg";
@@ -168,7 +168,7 @@ void State_Delete(State * state)
         // Save the config
         if (Log.save_input_final)
         {
-            std::string file = "input";
+            std::string file = Log.output_folder + "/input";
             if (Log.tag_time)
                 file += "_" + state->datetime_creation_string;
             file += "_final.cfg";
@@ -232,12 +232,14 @@ void State_To_Config(State * state, const char * config_file, const char * origi
 {
     try
     {
-        std::string cfg = Log.output_folder + "/" + std::string(config_file);
+        Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
+
+        std::string cfg = std::string(config_file);
         
         // Header
         std::string header = "###\n### Original configuration file was called\n###   " + 
                              std::string(original_config_file) + "\n###\n\n";
-        IO::Append_String_to_File(header, cfg);
+        IO::String_to_File(header, cfg);
         // Folders
         IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
                                state->active_chain->gneb_parameters, state->collection->parameters );

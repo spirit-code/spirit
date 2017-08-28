@@ -62,6 +62,7 @@ private slots:
     void about();
 	void keyBindings();
 	void load_Configuration();
+	void save_Configuration();
 	void save_Spin_Configuration();
 	void load_Spin_Configuration();
 	void save_SpinChain_Configuration();

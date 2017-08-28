@@ -57,7 +57,7 @@ namespace IO
 		std::string config = "";
 		config += "#################### Geometry ####################\n";
 		config += "basis\n";
-		config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0], geometry->basis[1], geometry->basis[2]);
+		config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0].transpose(), geometry->basis[1].transpose(), geometry->basis[2].transpose());
 		config += std::to_string(geometry->n_spins_basic_domain) + "\n";
 		for (int i=0; i<geometry->n_spins_basic_domain; ++i)
 		{
