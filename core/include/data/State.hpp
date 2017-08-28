@@ -3,18 +3,6 @@
 #include <utility/Timing.hpp>
 
 /*
-	Simulation_Information
-		This struct contains the necessary instances to extract information
-		during a running simulation.
-		The Play_Pause function will insert this information in to the state
-		appropriately.
-*/
-struct Simulation_Information
-{
-	std::shared_ptr<Engine::Method> method;
-};
-
-/*
 	State
       The State struct is passed around in an application to make the
       simulation's state available.
@@ -41,11 +29,11 @@ struct State
 
 	// The Methods
 	//    max. noi*noc LLG methods [noc][noi]
-	std::vector<std::vector<std::shared_ptr<Simulation_Information>>> simulation_information_image;
+	std::vector<std::vector<std::shared_ptr<Engine::Method>>> method_image;
 	//    max. noc GNEB methods [noc]
-	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_chain;
+	std::vector<std::shared_ptr<Engine::Method>> method_chain;
 	//    max. 1 MMF method
-	std::shared_ptr<Simulation_Information> simulation_information_collection;
+	std::shared_ptr<Engine::Method> method_collection;
 
 	// Timepoint of creation
 	system_clock::time_point datetime_creation;

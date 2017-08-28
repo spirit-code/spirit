@@ -206,33 +206,33 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
         
         bool running = Simulation_Running_Chain(state, idx_chain);
-        std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+        std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
         if (state->clipboard_image.get())
         {
             if (running)
             {
-        	    chain->iteration_allowed = false;
+                chain->iteration_allowed = false;
             }
 
             // Copy the clipboard image
-    	    state->clipboard_image->Lock();
+            state->clipboard_image->Lock();
             auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
-    	    state->clipboard_image->Unlock();
+            state->clipboard_image->Unlock();
             
             chain->Lock();
-    		copy->Lock();
+            copy->Lock();
 
             // Add to chain
             chain->noi++;
             chain->images.insert(chain->images.begin() + idx_image, copy);
-    		chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
+            chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
-    		// Add to state
-    		state->simulation_information_image[idx_chain].insert(
-                state->simulation_information_image[idx_chain].begin() + 
-                    idx_image, std::shared_ptr<Simulation_Information>() );
+            // Add to state
+            state->method_image[idx_chain].insert(
+                state->method_image[idx_chain].begin() + 
+                    idx_image, std::shared_ptr<Engine::Method>() );
 
             // Increment active image so that we don't switch between images
             ++chain->idx_active_image;
@@ -250,7 +250,7 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
             
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
                                       idx_image, idx_chain);
             }
         }
@@ -277,31 +277,31 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
         
         bool running = Simulation_Running_Chain(state, idx_chain);
-        std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+        std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
         if (state->clipboard_image.get())
         {
             if (running)
             {
-        	    chain->iteration_allowed = false;
+                chain->iteration_allowed = false;
             }
 
             // Copy the clipboard image
-    	    state->clipboard_image->Lock();
+            state->clipboard_image->Lock();
             auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
-    	    state->clipboard_image->Unlock();
+            state->clipboard_image->Unlock();
             
             chain->Lock();
-    		copy->Lock();
+            copy->Lock();
 
             // Add to chain
             chain->noi++;
             // if (idx_image < state->noi - 1)
             // {
                 chain->images.insert(chain->images.begin() + idx_image + 1, copy);
-    			chain->image_type.insert( chain->image_type.begin() + idx_image + 1, 
-                                          Data::GNEB_Image_Type::Normal );
+                chain->image_type.insert( chain->image_type.begin() + idx_image + 1, 
+                                            Data::GNEB_Image_Type::Normal );
             // }
             // else
             // {
@@ -310,10 +310,10 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             //     chain->falling_image.push_back(false);
             // }
 
-    		// Add to state
-    		state->simulation_information_image[idx_chain].insert(
-                state->simulation_information_image[idx_chain].begin() + idx_image + 1, 
-                std::shared_ptr<Simulation_Information>() );
+            // Add to state
+            state->method_image[idx_chain].insert(
+                state->method_image[idx_chain].begin() + idx_image + 1, 
+                std::shared_ptr<Engine::Method>() );
 
             chain->Unlock();
 
@@ -328,8 +328,8 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1,
-                                      idx_image, idx_chain );
+                Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1,
+                                        idx_image, idx_chain );
             }
         }
         else
@@ -358,7 +358,7 @@ void Chain_Push_Back( State * state, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
         
         bool running = Simulation_Running_Chain(state, idx_chain);
-        std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+        std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
         if (state->clipboard_image.get())
@@ -382,7 +382,7 @@ void Chain_Push_Back( State * state, int idx_chain )
             chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
                 
     		// Add to state
-    		state->simulation_information_image[idx_chain].push_back(std::shared_ptr<Simulation_Information>());
+    		state->method_image[idx_chain].push_back(std::shared_ptr<Engine::Method>());
 
             chain->Unlock();
 
@@ -398,7 +398,7 @@ void Chain_Push_Back( State * state, int idx_chain )
 
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
                                       idx_image, idx_chain );
             }
         }
@@ -425,7 +425,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
 
         bool running = Simulation_Running_Chain(state, idx_chain);
-        std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+        std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
         // Apply
@@ -449,8 +449,8 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
             chain->image_type.erase(chain->image_type.begin() + idx_image);
 
             // Remove from state
-            state->simulation_information_image[idx_chain].erase(
-                state->simulation_information_image[idx_chain].begin() + idx_image );
+            state->method_image[idx_chain].erase(
+                state->method_image[idx_chain].begin() + idx_image );
             
             chain->Unlock();
             
@@ -466,7 +466,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
 
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), optimizer.c_str(), -1, -1, 
+        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
                                       idx_image, idx_chain );
             }
 
@@ -500,7 +500,7 @@ bool Chain_Pop_Back( State * state, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
         
         bool running = Simulation_Running_Chain(state, idx_chain);
-        std::string optimizer = Simulation_Get_Optimizer_Name(state, idx_image, idx_chain);
+        std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
         
         if (chain->noi > 1)
@@ -524,7 +524,7 @@ bool Chain_Pop_Back( State * state, int idx_chain )
             chain->image_type.pop_back();
                 
             // Add to state
-            state->simulation_information_image[idx_chain].pop_back();
+            state->method_image[idx_chain].pop_back();
 
             chain->Unlock();
 
@@ -539,7 +539,7 @@ bool Chain_Pop_Back( State * state, int idx_chain )
 
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), optimizer.c_str(), -1, -1, idx_image, idx_chain);
+        	    Simulation_PlayPause(state, method.c_str(), solver.c_str(), -1, -1, idx_image, idx_chain);
             }
 
     		return true;

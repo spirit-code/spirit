@@ -116,12 +116,12 @@ State * State_Setup(const char * config_file, bool quiet)
         state->nos = state->active_image->nos;
 
         // Methods
-        state->simulation_information_image = 
-            std::vector<std::vector<std::shared_ptr<Simulation_Information>>>( state->noc, 
-                std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
-        state->simulation_information_chain = 
-            std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
-        state->simulation_information_collection = std::shared_ptr<Simulation_Information>();
+        state->method_image = 
+            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
+                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
+        state->method_chain = 
+            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
+        state->method_collection = std::shared_ptr<Engine::Method>();
 
         // Save the config
         if (Log.save_input_initial)
