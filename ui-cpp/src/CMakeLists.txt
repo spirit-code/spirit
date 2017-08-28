@@ -1,6 +1,6 @@
 set(SOURCE_UI_QT_ROOT
 	${SOURCE_UI_QT_ROOT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SpinWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/SpinWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergNeighboursWidget.cpp
@@ -15,6 +15,6 @@ set(SOURCE_UI_QT_ROOT
 	${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlotWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IsosurfaceWidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE
 )
