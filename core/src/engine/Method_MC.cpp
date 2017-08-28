@@ -216,6 +216,6 @@ namespace Engine
         
     }
 
-    // Optimizer name as string
+    // Method name as string
     std::string Method_MC::Name() { return "MC"; }
 }

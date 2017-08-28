@@ -106,11 +106,11 @@ void ControlWidget::cycleMethod()
 	this->comboBox_Method->setCurrentIndex((idx + 1) % idx_max);
 }
 
-void ControlWidget::cycleOptimizer()
+void ControlWidget::cycleSolver()
 {
-	int idx = this->comboBox_Optimizer->currentIndex();
-	int idx_max = this->comboBox_Optimizer->count();
-	this->comboBox_Optimizer->setCurrentIndex((idx + 1) % idx_max);
+	int idx = this->comboBox_Solver->currentIndex();
+	int idx_max = this->comboBox_Solver->count();
+	this->comboBox_Solver->setCurrentIndex((idx + 1) % idx_max);
 }
 
 std::string ControlWidget::methodName()
@@ -118,9 +118,9 @@ std::string ControlWidget::methodName()
 	return this->comboBox_Method->currentText().toStdString();
 }
 
-std::string ControlWidget::optimizerName()
+std::string ControlWidget::solverName()
 {
-	return this->comboBox_Optimizer->currentText().toStdString();
+	return this->comboBox_Solver->currentText().toStdString();
 }
 
 void ControlWidget::play_pause()
@@ -132,20 +132,20 @@ void ControlWidget::play_pause()
 	Chain_Update_Data(this->state.get());
 
 	auto qs_method = this->comboBox_Method->currentText();
-	auto qs_optimizer = this->comboBox_Optimizer->currentText();
+	auto qs_solver = this->comboBox_Solver->currentText();
 	
 	this->s_method = string_q2std(qs_method);
-	this->s_optimizer = string_q2std(qs_optimizer);
+	this->s_solver = string_q2std(qs_solver);
 	
 	auto c_method = s_method.c_str();
-	auto c_optimizer = s_optimizer.c_str();
+	auto c_solver = s_solver.c_str();
 
 	if ( Simulation_Running_Image(this->state.get()) ||
 		 Simulation_Running_Chain(this->state.get()) ||
 		 Simulation_Running_Collection(this->state.get()) )
 	{
 		// Running, so we stop it
-		Simulation_PlayPause(this->state.get(), c_method, c_optimizer);
+		Simulation_PlayPause(this->state.get(), c_method, c_solver);
 		// Join the thread of the stopped simulation
 		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
 		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
@@ -161,26 +161,26 @@ void ControlWidget::play_pause()
 			int idx = System_Get_Index(state.get());
 			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
 			this->threads_llg[System_Get_Index(state.get())] =
-				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
 		}
 		else if (this->s_method == "MC")
 		{
 			int idx = System_Get_Index(state.get());
 			if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
 			this->threads_llg[System_Get_Index(state.get())] =
-				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
 		}
 		else if (this->s_method == "GNEB")
 		{
 			if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
 			this->threads_gneb[Chain_Get_Index(state.get())] =
-				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
 		}
 		else if (this->s_method == "MMF")
 		{
 			if (thread_mmf.joinable()) thread_mmf.join();
 			this->thread_mmf =
-				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_optimizer, -1, -1, -1, -1);
+				std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
 		}
 		// New button text
 		this->pushButton_PlayPause->setText("Pause");
@@ -379,9 +379,9 @@ void ControlWidget::save_Energies()
 void ControlWidget::set_solver_enabled()
 {
 	if (this->comboBox_Method->currentText() == "MC")
-		this->comboBox_Optimizer->setEnabled(false);
+		this->comboBox_Solver->setEnabled(false);
 	else
-		this->comboBox_Optimizer->setEnabled(true);
+		this->comboBox_Solver->setEnabled(true);
 }
 
 void ControlWidget::save_EPressed()
@@ -423,10 +423,10 @@ void ControlWidget::readSettings()
 {
 	QSettings settings("Spirit Code", "Spirit");
 
-	// Method and Optimizer
+	// Method and Solver
 	settings.beginGroup("ControlWidget");
 	this->comboBox_Method->setCurrentIndex(settings.value("Method").toInt());
-	this->comboBox_Optimizer->setCurrentIndex(settings.value("Optimizer").toInt());
+	this->comboBox_Solver->setCurrentIndex(settings.value("Solver").toInt());
 	settings.endGroup();
 }
 
@@ -434,10 +434,10 @@ void ControlWidget::writeSettings()
 {
 	QSettings settings("Spirit Code", "Spirit");
 
-	// Method and Optimizer
+	// Method and Solver
 	settings.beginGroup("ControlWidget");
 	settings.setValue("Method", this->comboBox_Method->currentIndex());
-	settings.setValue("Optimizer", this->comboBox_Optimizer->currentIndex());
+	settings.setValue("Solver", this->comboBox_Solver->currentIndex());
 	settings.endGroup();
 }
 

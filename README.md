@@ -78,8 +78,8 @@ control of parameters.
 ### *Physics Features*
 * Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
 * **Spin Dynamics simulations** obeying the
-  [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation "Titel, der beim Überfahren mit der Maus angezeigt wird")
-* Direct **Energy minimisation** with different optimizers
+  [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation)
+* Direct **Energy minimisation** with different solvers
 * **Minimum Energy Path calculations** for transitions between different
   spin configurations, using the GNEB method
 
@@ -123,7 +123,7 @@ It provides functionality to
 - Locally insert Configurations (homogeneous, skyrmions, spin spiral, ... )
 - Generate homogeneous Transition Paths
 - Change parameters of the Hamiltonian
-- Change parameters of the Method and Optimizer
+- Change parameters of the Method and Solver
 - Configure the Visualization (arrows, isosurfaces, lighting, ...)
 
 See the [UI-QT Reference](docs/UI-Qt.md) for the key bindings of the various features.

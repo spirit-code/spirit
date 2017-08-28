@@ -82,7 +82,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionPlay_Pause_Simulation, SIGNAL(triggered()), this, SLOT(control_playpause()));
 	connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
 	connect(this->actionCycle_Method, SIGNAL(triggered()), this, SLOT(control_cycle_method()));
-	connect(this->actionCycle_Optimizer, SIGNAL(triggered()), this, SLOT(control_cycle_optimizer()));
+	connect(this->actionCycle_Solver, SIGNAL(triggered()), this, SLOT(control_cycle_solver()));
 	connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
 
 	// View Menu
@@ -334,9 +334,9 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_M:
 				this->control_cycle_method();
 				break;
-				// CTRL+O - Cycle Optimizer
-			case Qt::Key_O:
-				this->control_cycle_optimizer();
+				// CTRL+S - Cycle Solver
+			case Qt::Key_S:
+				this->control_cycle_solver();
 				break;
 		}
 	}
@@ -921,10 +921,10 @@ void MainWindow::control_cycle_method()
 	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
 }
 
-void MainWindow::control_cycle_optimizer()
+void MainWindow::control_cycle_solver()
 {
-	this->controlWidget->cycleOptimizer();
-	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+	this->controlWidget->cycleSolver();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->solverName().c_str()), 5000);
 }
 
 void MainWindow::view_regular_mode()
@@ -1019,7 +1019,7 @@ void MainWindow::keyBindings()
 			"<i>Control Simulations</i><br>"
 			" - <b>Space</b>:   Play/Pause<br>"
 			" - <b>Ctrl+M</b>:  Cycle Method<br>"
-			" - <b>Ctrl+O</b>:  Cycle Optimizer<br>"
+			" - <b>Ctrl+S</b>:  Cycle Solver<br>"
 			"<br>"
 			"<i>Manipulate the current images</i><br>"
 			" - <b>Ctrl+R</b>:  Random configuration<br>"

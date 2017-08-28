@@ -6,7 +6,7 @@ libraries. It enables the user to control parameters during simulations and prov
 a powerful live visualisation of the spin systems.
 
 ### Widgets
-The available calculation methods and optimizers, starting and stopping the calculation
+The available calculation methods and solvers, starting and stopping the calculation
 as well as the switching between images are implemented in `ControlWidget`. Via the file
 menu, one can import and export e.g. spin configurations.
 The `Spin Widget` wraps the **VFRendering** library's visualisation capabilities

@@ -176,20 +176,23 @@ The available `method_type`s are:
 | Geodesic Nudged Elastic Band  | `"GNEB"` |
 | Monte-Carlo                   | `"MC"`   |
 
-The available `optimizer_type`s are:
+The available `solver_type`s are:
 
-| optimizer                     | Argument |
-| ----------------------------- | :------: |
-| Semi-Implicit Method          | `"SIB"`  |
-| Velocity Projection           | `"VP"`   |
-| Heun Method (Direct)          | `"Heun"` |
-| Nonlinear Conjugate Gradient  | `"NCG"`  |
+| Solver                        | Argument    |
+| ----------------------------- | :---------: |
+| Semi-Implicit Method B        | `"SIB"`     |
+| Heun Method                   | `"Heun"`    |
+| Depondt Method                | `"Depondt"` |
+| Velocity Projection           | `"VP"`      |
+| Nonlinear Conjugate Gradient  | `"NCG"`     |
+
+Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
 
 
 | Simulation state                                                                                                          | Return     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `SingleShot( p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`    | `None`     |
-| `PlayPause( p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`     | `None`     |
+| `SingleShot( p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`       | `None`     |
+| `PlayPause( p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1 )`        | `None`     |
 | `Stop_All( p_state )`                                                                                                     | `None`     |
 | `Running_LLG( p_state, idx_image=-1, idx_chain=-1 )`                                                                      | `Boolean`  |
 | `Running_LLG_Chain( p_state, idx_chain=-1 )`                                                                              | `Boolean`  |

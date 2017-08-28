@@ -565,7 +565,7 @@ namespace Engine
 		return this->collection->iteration_allowed;
 	}
 
-    // Optimizer name as string
+    // Method name as string
 	template <Solver solver>
     std::string Method_MMF<solver>::Name() { return "MMF"; }
 

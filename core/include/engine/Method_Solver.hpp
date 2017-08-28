@@ -134,8 +134,8 @@ namespace Engine
         int jmax;     // max iterations for Newton-Raphson loop
         int n;        // number of iteration after which the nCG will restart
         
-        scalar tolerance_nCG, tolerance_NR;   // tolerances for optimizer and Newton-Raphson
-        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and optimizer tolerance squared
+        scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
+        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
         
         bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
         
@@ -149,7 +149,7 @@ namespace Engine
         // Residual and new configuration states
         std::vector<vectorfield> residual, direction;
 
-        // buffer variables for checking convergence for optimizer and Newton-Raphson
+        // buffer variables for checking convergence for solver and Newton-Raphson
         std::vector<scalarfield> r_dot_d, dda2;
 
         //////////// VP ///////////////////////////////////////////////////////////////

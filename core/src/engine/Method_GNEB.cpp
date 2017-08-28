@@ -61,8 +61,8 @@ namespace Engine
 	{
 		int nos = configurations[0]->size();
 
-		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the optimizer.
-		//		The Optimizer shuld respect this, but there is no way to enforce it.
+		// We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the Solver.
+		//		The Solver shuld respect this, but there is no way to enforce it.
 		// Get Energy and Gradient of configurations
 		for (int img = 0; img < chain->noi; ++img)
 		{
@@ -347,7 +347,7 @@ namespace Engine
 		this->chain->Unlock();
 	}
 
-	// Optimizer name as string
+	// Method name as string
 	template <Solver solver>
     std::string Method_GNEB<solver>::Name() { return "GNEB"; }
 

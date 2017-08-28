@@ -360,7 +360,7 @@ namespace Engine
             return charge / (4*M_PI);
         }
 
-        // Utility function for the SIB Optimizer
+        // Utility function for the SIB Solver
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;

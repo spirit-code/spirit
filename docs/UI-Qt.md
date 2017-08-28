@@ -97,7 +97,7 @@ Key bindings
 | -------------------------------------- | :---------------------------------: |
 | Play/Pause                             | <kbd>Space</kbd>                    |
 | Cycle Method                           | <kbd>Ctrl</kbd>+<kbd>M</kbd>        |
-| Cycle Optimizer                        | <kbd>Ctrl</kbd>+<kbd>O</kbd>        |
+| Cycle Solver                           | <kbd>Ctrl</kbd>+<kbd>S</kbd>        |
 
 ### Manipulate the current images
 
