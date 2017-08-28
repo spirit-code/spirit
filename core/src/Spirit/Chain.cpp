@@ -7,6 +7,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+
 int Chain_Get_Index(State * state)
 {
     try
@@ -51,8 +53,8 @@ bool Chain_next_Image(State * state, int idx_chain)
         State_Update(state);
         
         Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-             "Switched to next image " + std::to_string(chain->idx_active_image+1) + " of " + 
-             std::to_string(chain->noi), chain->idx_active_image, idx_chain );
+            fmt::format("Switched to next image {} of {}", chain->idx_active_image+1, chain->noi),
+            chain->idx_active_image, idx_chain );
         
         return true;
     }
@@ -81,8 +83,8 @@ bool Chain_prev_Image( State * state, int idx_chain )
             --chain->idx_active_image;
             State_Update(state);
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-                 "Switched to previous image " + std::to_string(chain->idx_active_image+1) + 
-                 " of " + std::to_string(chain->noi), chain->idx_active_image, idx_chain );
+                fmt::format("Switched to previous image {} of {}", chain->idx_active_image+1, chain->noi),
+                chain->idx_active_image, idx_chain );
             return true;
         }
         else
@@ -113,8 +115,8 @@ bool Chain_Jump_To_Image( State * state, int idx_image, int idx_chain )
         State_Update( state );
         
         Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-             "Jumped to image " + std::to_string( chain->idx_active_image + 1 ) + " of " + 
-             std::to_string( chain->noi ), idx_image, idx_chain );
+            fmt::format("Jumped to image {} of {}", chain->idx_active_image+1, chain->noi ),
+            idx_image, idx_chain );
         
         return true;
     }
@@ -246,12 +248,13 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
             Chain_Setup_Data(state, idx_chain);
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Inserted image before. NOI is now " + std::to_string(chain->noi), idx_image, idx_chain);
+                fmt::format("Inserted image before. NOI is now {}", chain->noi),
+                idx_image, idx_chain);
             
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
-                                      idx_image, idx_chain);
+                Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
+                                        idx_image, idx_chain);
             }
         }
         else
@@ -324,7 +327,8 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
             Chain_Setup_Data(state, idx_chain);
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Inserted image after. NOI is now " + std::to_string(chain->noi), idx_image, idx_chain);
+                fmt::format("Inserted image after. NOI is now ", chain->noi),
+                idx_image, idx_chain);
             
             if (running)
             {
@@ -365,24 +369,24 @@ void Chain_Push_Back( State * state, int idx_chain )
         {
             if (running)
             {
-        	    chain->iteration_allowed = false;
+                chain->iteration_allowed = false;
             }
 
             // Copy the clipboard image
-    	    state->clipboard_image->Lock();
+            state->clipboard_image->Lock();
             auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
-    	    state->clipboard_image->Unlock();
+            state->clipboard_image->Unlock();
             
             chain->Lock();
-    		copy->Lock();
+            copy->Lock();
 
             // Add to chain
             chain->noi++;
-    		chain->images.push_back(copy);
+            chain->images.push_back(copy);
             chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
                 
-    		// Add to state
-    		state->method_image[idx_chain].push_back(std::shared_ptr<Engine::Method>());
+            // Add to state
+            state->method_image[idx_chain].push_back(std::shared_ptr<Engine::Method>());
 
             chain->Unlock();
 
@@ -393,13 +397,13 @@ void Chain_Push_Back( State * state, int idx_chain )
             Chain_Setup_Data(state, idx_chain);
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 "Pushed back image from clipboard to chain. NOI is now " + 
-                 std::to_string(chain->noi), -1, idx_chain );
+                 fmt::format("Pushed back image from clipboard to chain. NOI is now {}", chain->noi),
+                 -1, idx_chain );
 
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
-                                      idx_image, idx_chain );
+                Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
+                                        idx_image, idx_chain );
             }
         }
         else
@@ -461,8 +465,8 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
             Chain_Setup_Data(state, idx_chain);
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 "Deleted image " + std::to_string(idx_image+1) + " of " + 
-                 std::to_string(chain->noi+1), -1, idx_chain );
+                 fmt::format("Deleted image {} of {}", idx_image+1, chain->noi+1),
+                 -1, idx_chain );
 
             if (running)
             {
@@ -535,14 +539,15 @@ bool Chain_Pop_Back( State * state, int idx_chain )
             Chain_Setup_Data(state, idx_chain);
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Popped back image of chain. NOI is now " + std::to_string(chain->noi), -1, idx_chain);
+                fmt::format("Popped back image of chain. NOI is now {}", chain->noi),
+                -1, idx_chain);
 
             if (running)
             {
-        	    Simulation_PlayPause(state, method.c_str(), solver.c_str(), -1, -1, idx_image, idx_chain);
+                Simulation_PlayPause(state, method.c_str(), solver.c_str(), -1, -1, idx_image, idx_chain);
             }
 
-    		return true;
+            return true;
         }
         else
         {

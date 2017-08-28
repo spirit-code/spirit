@@ -387,7 +387,7 @@ namespace Engine
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
 				int base = (int)log10(this->parameters->n_iterations);
-				std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
+				std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
 				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
 
 				// File name
@@ -437,7 +437,7 @@ namespace Engine
 
 			// Single file output
             int base = (int)log10(this->parameters->n_iterations);
-            std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
+            std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
 			if (this->systems[0]->llg_parameters->output_configuration_step)
 			{
 				writeOutputConfiguration("_" + s_iter, false);

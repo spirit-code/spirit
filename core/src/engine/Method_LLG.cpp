@@ -241,7 +241,7 @@ namespace Engine
             // Convert indices to formatted strings
             auto s_img  = fmt::format("{:0>2}", this->idx_image);
             int base = (int)log10(this->parameters->n_iterations);
-            std::string s_iter = fmt::format("{:0>"+std::to_string(base)+"}", iteration);
+            std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
 
             std::string preSpinsFile;
             std::string preEnergyFile;
