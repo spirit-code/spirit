@@ -120,6 +120,7 @@ int main(int argc, char ** argv)
 		// If Application is closed normally
 		if (exec != 0) throw exec;
 		// Finish
+		state.reset();
 		return exec;
 		//-------------------------------------------------------------------------------
 	#else
@@ -128,6 +129,6 @@ int main(int argc, char ** argv)
 		//-------------------------------------------------------------------------------
 	#endif
 
-
+	state.reset();
 	return 0;
 }
