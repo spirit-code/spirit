@@ -379,7 +379,7 @@ namespace Engine
 						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
 						//		neighbours implementation (in terms of the number of pairs)
 						#ifdef _OPENMP
-						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[ipair], true);
+						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[i_pair], true);
 						if (jspin2 >= 0)
 						{
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin2];
