@@ -1088,10 +1088,16 @@ void MainWindow::load_Spin_Configuration()
 	{
 		QFileInfo fi(fileName);
 		// Determine file type from suffix
-		auto qs_type = fi.completeSuffix();
+		auto qs_type = fi.suffix();
 		int type = IO_Fileformat_Regular;
-		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+		if (qs_type == "txt") type = IO_Fileformat_Regular;
+		else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
 		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		else
+		{
+			Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+			return;
+		}
 		// Read the file
 		auto file = string_q2std(fileName);
 		IO_Image_Read(this->state.get(), file.c_str(), type);
