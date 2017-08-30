@@ -51,29 +51,29 @@ number_of_images = chain.Get_NOI(p_state )
 | Get Info                                                                    | Returns        | Description                                                |
 | --------------------------------------------------------------------------- | -------------- | ---------------------------------------------------------- |
 | `Get_Index(p_state )`                                                       | `int`          | Get Chain index                                            |
-| `Get_NOI(p_state, idx_chain=-1)  `                                          | `int`          | Get Chain number of images                                 |
-| `Get_Rx(p_state, idx_chain=-1)  `                                           | `Array`        | Get Rx                                                     |
-| `Get_Rx_Interpolated(p_state, idx_chain=-1)  `                              | `array(float)` | Get Rx interpolated                                        |
-| `Get_Energy(p_state, idx_chain=-1)  `                                       | `array(float)` | Get Energy of every System in Chain                        |
-| `Get_Energy_Interpolated(p_state, idx_chain=-1)  `                          | `array(float)` | Get interpolated Energy of every System in Chain           |
+| `Get_NOI(p_state, idx_chain=-1)`                                            | `int`          | Get Chain number of images                                 |
+| `Get_Rx(p_state, idx_chain=-1)`                                             | `Array`        | Get Rx                                                     |
+| `Get_Rx_Interpolated(p_state, idx_chain=-1)`                                | `Array(float)` | Get Rx interpolated                                        |
+| `Get_Energy(p_state, idx_chain=-1)`                                         | `Array(float)` | Get Energy of every System in Chain                        |
+| `Get_Energy_Interpolated(p_state, idx_chain=-1)`                            | `Array(float)` | Get interpolated Energy of every System in Chain           |
 
 | Image Manipulation                                              | Returns        | Description                                                |
 | --------------------------------------------------------------- | -------------- | ---------------------------------------------------------- |
-| `Next_Image(p_state, idx_chain=-1)  `                           | `None`         | Switch active to next image of chain (one with largest index). If the current active is the last there is no effect. |
-| `Prev_Image(p_state, idx_chain=-1)  `                           | `None`         | Switch active to previous image of chain (one with smaller index). If the current active is the frist one there is no effect |
-| `Jump_To_Image(p_state, idx_image=-1, idx_chain=-1)  `          | `None`         | Switch active to specific image of chain. If this image does not exist there is no effect.          |
-| `Image_to_Clipboard(p_state, idx_image=-1, idx_chain=-1)  `     | `None`         | Copy active image to clipboard                             |
-| `Replace_Image(p_state, idx_image=-1, idx_chain=-1)  `          | `None`         | Replace active image in chain. If the image does not exist there is no effect.                      |
-| `Insert_Image_Before(p_state, idx_image=-1, idx_chain=-1)  `    | `None`         | Inserts clipboard image before the current active image. Active image index is increment by one.    |
-| `Insert_Image_After(p_state, idx_image=-1, idx_chain=-1)  `     | `None`         | Insert clipboard image after the current active image. Active image has the same index.             |
-| `Push_Back(p_state, idx_chain=-1)  `                            | `None`         | Insert clipboard image at end of chain (after the image with the largest index).                    |
-| `Delete_Image(p_state, idx_image=-1, idx_chain=-1)  `           | `None`         | Delete active image. If index is specified delete the corresponding image. If the image does not exist there is no effect. |
-| `Pop_Back(p_state, idx_chain=-1)  `                             | `None`         | Delete image at end of chain.    |
+| `Next_Image(p_state, idx_chain=-1)`                             | `None`         | Switch active to next image of chain (one with largest index). If the current active is the last there is no effect. |
+| `Prev_Image(p_state, idx_chain=-1)`                             | `None`         | Switch active to previous image of chain (one with smaller index). If the current active is the first one there is no effect |
+| `Jump_To_Image(p_state, idx_image=-1, idx_chain=-1)`            | `None`         | Switch active to specific image of chain. If this image does not exist there is no effect.          |
+| `Image_to_Clipboard(p_state, idx_image=-1, idx_chain=-1)`       | `None`         | Copy active image to clipboard                             |
+| `Replace_Image(p_state, idx_image=-1, idx_chain=-1)`            | `None`         | Replace active image in chain. If the image does not exist there is no effect.                      |
+| `Insert_Image_Before(p_state, idx_image=-1, idx_chain=-1)`      | `None`         | Inserts clipboard image before the current active image. Active image index is increment by one.    |
+| `Insert_Image_After(p_state, idx_image=-1, idx_chain=-1)`       | `None`         | Insert clipboard image after the current active image. Active image has the same index.             |
+| `Push_Back(p_state, idx_chain=-1)`                              | `None`         | Insert clipboard image at end of chain (after the image with the largest index).                    |
+| `Delete_Image(p_state, idx_image=-1, idx_chain=-1)`             | `None`         | Delete active image. If index is specified delete the corresponding image. If the image does not exist there is no effect. |
+| `Pop_Back(p_state, idx_chain=-1)`                               | `None`         | Delete image at end of chain.    |
 
 | Data                                        | Returns        | Description                                                |
 | ------------------------------------------- | -------------- | ---------------------------------------------------------- |
-| `Update_Data(p_state, idx_chain=-1)  `      | `None`         | Update the chain's data (interpolated energies etc.)       |
-| `Setup_Data(p_state, idx_chain=-1)  `       | `None`         | Setup the chain's data arrays (when is this necessary?)    |
+| `Update_Data(p_state, idx_chain=-1)`        | `None`         | Update the chain's data (interpolated energies etc.)       |
+| `Setup_Data(p_state, idx_chain=-1)`         | `None`         | Setup the chain's data arrays                              |
 
 
 System
@@ -106,13 +106,13 @@ Geometry
 
 | Get Geometry parameters                                                         | Returns               | Description                                        |
 | ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
-| `Get_Bounds(p_state, min, max, idx_image=-1, idx_chain=-1)  `                   | `None`                | Get Bounds                                         |
-| `Get_Center(p_state, center, idx_image=-1, idx_chain=-1)  `                     | `None`                | Get Center                                         |
-| `Get_Basis_Vectors(p_state, a, b, c, idx_image=-1, idx_chain=-1)  `             | `None`                | Get Basis vectors                                  |
-| `Get_N_Cells(p_state, idx_image=-1, idx_chain=-1)  `                            | `Int, Int, Int`       | Get N Cells                                        |
-| `Get_Translation_Vectors(p_state, ta, tb, tc, idx_image=-1, idx_chain=-1)  `    | `None`                | Get Translation Vectors                            |
-| `Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1)  `                     | `int`                 | Get Translation Vectors                            |
-| `Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1)  `                     | `Array`               | Get Pointer to Spin Positions                      |
+| `Get_Bounds(p_state, min, max, idx_image=-1, idx_chain=-1)`                     | `None`                | Get Bounds                                         |
+| `Get_Center(p_state, center, idx_image=-1, idx_chain=-1)`                       | `None`                | Get Center                                         |
+| `Get_Basis_Vectors(p_state, a, b, c, idx_image=-1, idx_chain=-1)`               | `None`                | Get Basis vectors                                  |
+| `Get_N_Cells(p_state, idx_image=-1, idx_chain=-1)`                              | `Int, Int, Int`       | Get N Cells                                        |
+| `Get_Translation_Vectors(p_state, ta, tb, tc, idx_image=-1, idx_chain=-1)`      | `None`                | Get Translation Vectors                            |
+| `Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1)`                       | `int`                 | Get Translation Vectors                            |
+| `Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1)`                       | `Array`               | Get Pointer to Spin Positions                      |
 
 
 Hamiltonian
@@ -120,10 +120,10 @@ Hamiltonian
 
 | Set Parameters                                                                  | Returns               | Description                                        |
 | ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
-| `Set_Field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)  `        | `None`                | Set external magnetic field                        |
-| `Set_Anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)  `   | `None`                | Set anisotropy                                     |
-| `Set_STT(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)  `          | `None`                | Set spin transfer torque                           |
-| `Set_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1)  `           | `None`                | Set temperature                                    |
+| `Set_Field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`          | `None`                | Set external magnetic field                        |
+| `Set_Anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`     | `None`                | Set anisotropy                                     |
+| `Set_STT(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`            | `None`                | Set spin transfer torque                           |
+| `Set_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1)`             | `None`                | Set temperature                                    |
 
 
 Log
@@ -131,7 +131,7 @@ Log
 
 | Log manipulation                                                         | Returns   | Description                 |
 | ------------------------------------------------------------------------ | --------- | --------------------------- |
-| `Send(p_state, level, sender, message, idx_image=-1, idx_chain=-1)  `    | `None`    | Send a Log message          |
+| `Send(p_state, level, sender, message, idx_image=-1, idx_chain=-1)`      | `None`    | Send a Log message          |
 | `Append(p_state)`                                                        | `None`    | Append Log to file          |
 
 
@@ -224,7 +224,7 @@ Transition
 
 | Transition options                                                           | Returns  | Description                                                                        |
 | ---------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------- |
-| `Homogeneous(p_state, idx_1, idx_2, idx_chain=-1)  `                         | `None`   | Generate homogeneous transition between two images of a chain                      |
+| `Homogeneous(p_state, idx_1, idx_2, idx_chain=-1)`                           | `None`   | Generate homogeneous transition between two images of a chain                      |
 | `Add_Noise_Temperature(p_state, temperature, idx_1, idx_2, idx_chain=-1)`    | `None`   | Add some temperature-scaled noise to a transition between two images of a chain    |
 
 
