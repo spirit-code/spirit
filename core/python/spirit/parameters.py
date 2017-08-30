@@ -207,7 +207,7 @@ def Get_GNEB_Convergence(p_state, idx_image=-1, idx_chain=-1):
 ### Get GNEB Spring Constant
 _Get_GNEB_Spring_Constant             = _spirit.Parameters_Get_GNEB_Spring_Constant
 _Get_GNEB_Spring_Constant.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_GNEB_Spring_Constant.restype     = ctypes.c_int
+_Get_GNEB_Spring_Constant.restype     = ctypes.c_float
 def Get_GNEB_Spring_Constant(p_state, idx_image=-1, idx_chain=-1):
     return float(_Get_GNEB_Spring_Constant(ctypes.c_void_p(p_state), 
                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))

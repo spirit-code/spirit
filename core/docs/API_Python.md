@@ -53,9 +53,9 @@ number_of_images = chain.Get_NOI(p_state )
 | `Get_Index(p_state )`                                                       | `int`          | Get Chain index                                            |
 | `Get_NOI(p_state, idx_chain=-1)  `                                          | `int`          | Get Chain number of images                                 |
 | `Get_Rx(p_state, idx_chain=-1)  `                                           | `Array`        | Get Rx                                                     |
-| `Get_Rx_Interpolated(p_state, idx_chain=-1)  `                              | `array(Float)` | Get Rx interpolated                                        |
-| `Get_Energy(p_state, idx_chain=-1)  `                                       | `array(Float)` | Get Energy of every System in Chain                        |
-| `Get_Energy_Interpolated(p_state, idx_chain=-1)  `                          | `array(Float)` | Get interpolated Energy of every System in Chain           |
+| `Get_Rx_Interpolated(p_state, idx_chain=-1)  `                              | `array(float)` | Get Rx interpolated                                        |
+| `Get_Energy(p_state, idx_chain=-1)  `                                       | `array(float)` | Get Energy of every System in Chain                        |
+| `Get_Energy_Interpolated(p_state, idx_chain=-1)  `                          | `array(float)` | Get interpolated Energy of every System in Chain           |
 
 | Image Manipulation                                              | Returns        | Description                                                |
 | --------------------------------------------------------------- | -------------- | ---------------------------------------------------------- |
@@ -81,23 +81,25 @@ System
 
 | System                                                                | Returns  | Description                                                                          |
 | --------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
-| `Get_Index(p_state )`                                                 | `int`    | Returnss the index of the currently active image                                      |
-| `Get_NOS(p_state, idx_image=-1, idx_chain=-1)  `                      | `int`    | Returnss the number of spins                                                          |
-| `Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1)  `          | `Array`  | Returnss an `Array` of size `3*NOS` with the components of each spin's vector         |
-| `Get_Energy(p_state, idx_image=-1, idx_chain=-1)  `                   | `Float`  | Returnss the energy of the system                                                     |
-| `Get_Energy_Array(p_state, energies, idx_image=-1, idx_chain=-1)  `   | `None`   | Fill the energy arrays that you pass in as an argument                               |
-| `Update_Data(p_state, idx_image=-1, idx_chain=-1)  `                  | `None`   | Update the data of that state                                                        |
-| `Print_Energy_Array(p_state, idx_image=-1, idx_chain=-1)  `           | `None`   | Print the energy array of that state                                                 |
+| `Get_Index(p_state)`                                                  | `int`    | Returns the index of the currently active image                                      |
+| `Get_NOS(p_state, idx_image=-1, idx_chain=-1)`                        | `int`    | Returns the number of spins                                                          |
+| `Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1)`            | `[3*NOS]`| Returns an `numpy.Array` of size `3*NOS` with the components of each spin's vector   |
+| `Get_Energy(p_state, idx_image=-1, idx_chain=-1)`                     | `float`  | Returns the energy of the system                                                     |
+| `Update_Data(p_state, idx_image=-1, idx_chain=-1)`                    | `None`   | Update the data of the state                                                         |
+| `Print_Energy_Array(p_state, idx_image=-1, idx_chain=-1)`             | `None`   | Print the energy array of the state                                                  |
 
 
 Constants
 ---------
 
-| Physical Constants                                                          | Returns        | Description                                        |
-| --------------------------------------------------------------------------- | -------------- | -------------------------------------------------- |
-| `mu_B( )`                                                                   | `Float`        | The Bohr Magneton [meV / T]                        |
-| `k_B( )`                                                                    | `Float`        | The Boltzmann constant [meV / K]                   |
-
+| Physical Constants                      | Returns        | Description                                        |
+| --------------------------------------- | -------------- | -------------------------------------------------- |
+| `mu_B()`                                | `float`        | The Bohr Magneton [meV / T]                        |
+| `k_B()`                                 | `float`        | The Boltzmann constant [meV / K]                   |
+| `hbar()`                                | `float`        | Planck's constant over 2pi [meV*ps / rad]          |
+| `mRy()`                                 | `float`        | Millirydberg [mRy / meV]                           |
+| `gamma()`                               | `float`        | The Gyromagnetic ratio of electron [rad / (ps*T)]  |
+| `g_e()`                                 | `float`        | The Electron g-factor [unitless]                   |
 
 Geometry
 --------

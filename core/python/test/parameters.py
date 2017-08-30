@@ -12,7 +12,9 @@ import unittest
 
 ##########
 
-cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
+#cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
+cfgfile = "core/test/input/api.cfg"   # Input File
+
 p_state = state.setup(cfgfile)                  # State setup
 
 class TestParameters(unittest.TestCase):
@@ -91,11 +93,11 @@ class GNEB_set_get(TestParameters):
         conv_get = parameters.Get_GNEB_Convergence(self.p_state)         # try get
         self.assertAlmostEqual(conv_get, conv_set)
     
-    # def test_GNEB_Spring_Constant(self):
-    #     k_set = 0.15
-    #     parameters.Set_GNEB_Spring_Constant(self.p_state, k_set)        # try set
-    #     k_get = parameters.Get_GNEB_Spring_Constant(self.p_state)       # try get
-    #     self.assertAlmostEqual(k_set, k_get)
+    def test_GNEB_Spring_Constant(self):
+        k_set = 0.15
+        parameters.Set_GNEB_Spring_Constant(self.p_state, k_set)        # try set
+        k_get = parameters.Get_GNEB_Spring_Constant(self.p_state)       # try get
+        self.assertAlmostEqual(k_set, k_get)
     
     def test_GNEB_Climbing_Falling(self):
         img_type_set = 1
