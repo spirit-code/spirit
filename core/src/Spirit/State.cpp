@@ -8,6 +8,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+
 using namespace Utility;
 
 State * State_Setup(const char * config_file, bool quiet)
@@ -44,25 +46,24 @@ State * State_Setup(const char * config_file, bool quiet)
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
-    	#ifdef _OPENMP
-    		int nt = omp_get_max_threads();
-    		Log(Log_Level::Info, Log_Sender::All, ("Using OpenMP (max. " + std::to_string(nt) + 
-                " threads)").c_str() );
-    	#else
-    		Log(Log_Level::Info, Log_Sender::All, "Not using OpenMP");
+        #ifdef _OPENMP
+            int nt = omp_get_max_threads();
+            Log(Log_Level::Info, Log_Sender::All, fmt::format("Using OpenMP (max. {} threads)", nt).c_str() );
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Not using OpenMP");
         #endif
         // Log CUDA info
         #ifdef SPIRIT_USE_CUDA
-    		Log(Log_Level::Info, Log_Sender::All, "Using CUDA");
+            Log(Log_Level::Info, Log_Sender::All, "Using CUDA");
         #else
-    		Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
+            Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
         #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-    		Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
+            Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
         #endif
         #ifdef SPIRIT_SCALAR_TYPE_FLOAT
-    		Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
+            Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
         #endif
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         //------------------------------------------------------------------------------------------
@@ -116,17 +117,17 @@ State * State_Setup(const char * config_file, bool quiet)
         state->nos = state->active_image->nos;
 
         // Methods
-        state->simulation_information_image = 
-            std::vector<std::vector<std::shared_ptr<Simulation_Information>>>( state->noc, 
-                std::vector<std::shared_ptr<Simulation_Information>>(state->noi));
-        state->simulation_information_chain = 
-            std::vector<std::shared_ptr<Simulation_Information>>(state->noc);
-        state->simulation_information_collection = std::shared_ptr<Simulation_Information>();
+        state->method_image = 
+            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
+                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
+        state->method_chain = 
+            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
+        state->method_collection = std::shared_ptr<Engine::Method>();
 
         // Save the config
         if (Log.save_input_initial)
         {
-            std::string file = "input";
+            std::string file = Log.output_folder + "/input";
             if (Log.tag_time)
                 file += "_" + state->datetime_creation_string;
             file += "_initial.cfg";
@@ -136,15 +137,12 @@ State * State_Setup(const char * config_file, bool quiet)
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
-        Log(Log_Level::All, Log_Sender::All, "============     NOS="+std::to_string(state->nos)+
-            " NOI="+std::to_string(state->noi) + " NOC="+std::to_string(state->noc) );
-    	auto now = system_clock::now();
-    	auto diff = Timing::DateTimePassed(now - state->datetime_creation);
-    	Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
-    	Log(Log_Level::All, Log_Sender::All, "    Number of  Errors:  " + 
-            std::to_string(Log_Get_N_Errors(state)));
-    	Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + 
-            std::to_string(Log_Get_N_Warnings(state)));
+        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={} NOC={}", state->nos, state->noi, state->noc));
+        auto now = system_clock::now();
+        auto diff = Timing::DateTimePassed(now - state->datetime_creation);
+        Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
+        Log(Log_Level::All, Log_Sender::All, "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)));
+        Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)));
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log.Append_to_File();
         
@@ -168,7 +166,7 @@ void State_Delete(State * state)
         // Save the config
         if (Log.save_input_final)
         {
-            std::string file = "input";
+            std::string file = Log.output_folder + "/input";
             if (Log.tag_time)
                 file += "_" + state->datetime_creation_string;
             file += "_final.cfg";
@@ -179,11 +177,9 @@ void State_Delete(State * state)
         auto now = system_clock::now();
         auto diff = Timing::DateTimePassed(now - state->datetime_creation);
         Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + 
-             std::to_string(Log_Get_N_Errors(state)) );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + 
-             std::to_string(Log_Get_N_Warnings(state)) );
-    	
+        Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
+        Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+
         // Delete
         delete(state);
         
@@ -232,12 +228,14 @@ void State_To_Config(State * state, const char * config_file, const char * origi
 {
     try
     {
-        std::string cfg = Log.output_folder + "/" + std::string(config_file);
+        Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
+
+        std::string cfg = std::string(config_file);
         
         // Header
         std::string header = "###\n### Original configuration file was called\n###   " + 
                              std::string(original_config_file) + "\n###\n\n";
-        IO::Append_String_to_File(header, cfg);
+        IO::String_to_File(header, cfg);
         // Folders
         IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
                                state->active_chain->gneb_parameters, state->collection->parameters );
@@ -250,6 +248,9 @@ void State_To_Config(State * state, const char * config_file, const char * origi
         // LLG
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
+        // MC
+        IO::Append_String_to_File("\n\n\n", cfg);
+        IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
         // GNEB
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Parameters_Method_GNEB_to_Config(cfg, state->active_chain->gneb_parameters);

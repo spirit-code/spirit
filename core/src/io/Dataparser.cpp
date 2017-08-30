@@ -144,7 +144,7 @@ namespace IO
 
 						if (iimage >= noi)
 						{
-							Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi) + ". Appending image " + std::to_string(iimage+1));
+							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}. Appending image {}", iimage+1, noi, iimage+1));
 							// Copy Image
 							auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
 							new_system->Lock();
@@ -158,8 +158,8 @@ namespace IO
 
 						if (ispin >= nos)
 						{
-							Log(Log_Level::Warning, Log_Sender::IO, "NOS missmatch in image " + std::to_string(iimage+1));
-							Log(Log_Level::Warning, Log_Sender::IO, "NOS(file) = " + std::to_string(nos) + " > NOS(image) = " + std::to_string(ispin+1));
+							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
+							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", nos, ispin+1));
 							//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 							//myfile.close();
 							//return;
@@ -186,13 +186,13 @@ namespace IO
 					{
 						if (ispin < nos && iimage>0)	// Check if less than NOS spins were read for the image before
 						{
-							Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(ispin+1) + " in image " + std::to_string(iimage+1));
+							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
 						}
 						++iimage;
 						ispin = 0;
 						if (iimage >= noi)
 						{
-							Log(Log_Level::Warning, Log_Sender::IO, "NOI(file) = " + std::to_string(iimage+1) + " > NOI(chain) = " + std::to_string(noi));
+							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
 						}
 						else
 						{
@@ -202,8 +202,8 @@ namespace IO
 				}// endif (# not found)
 					// discard line if # is found
 			}// endif new line (while)
-			if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, "NOS(image) = " + std::to_string(nos) + " > NOS(file) = " + std::to_string(ispin+1) + " in image " + std::to_string(iimage+1));
-			if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, "NOI(chain) = " + std::to_string(noi) + " > NOI(file) = " + std::to_string(iimage+1));
+			if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
+			if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(chain) = {} > NOI(file) = {}", noi, iimage+1));
 			myfile.close();
 			Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 		}
@@ -229,7 +229,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				file.iss >> n_field;
-				Log(Log_Level::Debug, Log_Sender::IO, "External field file " + externalFieldFile + " should have " + std::to_string(n_field) + " vectors");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("External field file {} should have {} vectors", externalFieldFile, n_field));
 			}
 			else
 			{
@@ -363,7 +363,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				file.iss >> n_anisotropy;
-				Log(Log_Level::Debug, Log_Sender::IO, "Anisotropy file " + anisotropyFile + " should have " + std::to_string(n_anisotropy) + " vectors");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy));
 			}
 			else
 			{
@@ -502,7 +502,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				file.iss >> n_pairs;
-				Log(Log_Level::Debug, Log_Sender::IO, "File " + pairsFile + " should have " + std::to_string(n_pairs) + " pairs");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} pairs", pairsFile, n_pairs));
 			}
 			else
 			{
@@ -625,7 +625,7 @@ namespace IO
 
 				++i_pair;
 			}// end while GetLine
-			Log(Log_Level::Info, Log_Sender::IO, "Done reading " + std::to_string(i_pair) + " spin pairs from file " + pairsFile);
+			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file {}", i_pair, pairsFile));
 			nop = i_pair;
 		}// end try
 		catch (Exception ex)
@@ -667,7 +667,7 @@ namespace IO
 			{
 				// Read n interaction quadruplets
 				file.iss >> n_quadruplets;
-				Log(Log_Level::Debug, Log_Sender::IO, "File " + quadrupletsFile + " should have " + std::to_string(n_quadruplets) + " quadruplets");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} quadruplets", quadrupletsFile, n_quadruplets));
 			}
 			else
 			{
@@ -767,7 +767,7 @@ namespace IO
 
 				++i_quadruplet;
 			}// end while GetLine
-			Log(Log_Level::Info, Log_Sender::IO, "Done reading " + std::to_string(i_quadruplet) + " spin quadruplets from file " + quadrupletsFile);
+			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file {}", i_quadruplet, quadrupletsFile));
 			noq = i_quadruplet;
 		}// end try
 		catch (Exception ex)
@@ -793,7 +793,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				myfile.iss >> nod;
-				Log(Log_Level::Debug, Log_Sender::IO, "File " + defectsFile + " should have " + std::to_string(nod) + " defects");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} defects", defectsFile, nod));
 			}
 			else
 			{
@@ -846,7 +846,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				myfile.iss >> nop;
-				Log(Log_Level::Debug, Log_Sender::IO, "File " + pinnedFile + " should have " + std::to_string(nop) + " pinned sites");
+				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} pinned sites", pinnedFile, nop));
 			}
 			else
 			{

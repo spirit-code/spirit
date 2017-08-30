@@ -83,7 +83,7 @@ namespace IO
         }
         else
         {
-            Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to write to file");
+            Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to append to file");
         }
     }
 

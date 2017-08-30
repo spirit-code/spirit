@@ -28,9 +28,9 @@ public:
 	ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget);
 	void updateData();
 	void cycleMethod();
-	void cycleOptimizer();
+	void cycleSolver();
 	std::string methodName();
-	std::string optimizerName();
+	std::string solverName();
 
 public slots:
 	void play_pause();
@@ -69,7 +69,7 @@ private:
 
 	// Temporary string storage
 	std::string s_method;
-	std::string s_optimizer;
+	std::string s_solver;
 
 	// ...
 	void save_Energies();

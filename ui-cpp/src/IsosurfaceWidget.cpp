@@ -50,6 +50,7 @@ bool IsosurfaceWidget::showIsosurface()
 void IsosurfaceWidget::setShowIsosurface(bool show)
 {
 	this->m_show_isosurface = show;
+	QTimer::singleShot(1, this->spinWidget, SLOT(update()));
 }
 
 
@@ -62,6 +63,7 @@ void IsosurfaceWidget::setIsovalue(float value)
 {
 	this->m_isovalue = value;
 	m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(m_isovalue);
+	QTimer::singleShot(1, this->spinWidget, SLOT(update()));
 }
 
 
@@ -95,6 +97,8 @@ void IsosurfaceWidget::setIsocomponent(int component)
 			return direction.z;
 		});
 	}
+
+	QTimer::singleShot(1, this->spinWidget, SLOT(update()));
 }
 
 
@@ -124,6 +128,8 @@ void IsosurfaceWidget::setDrawShadows(bool show)
 		m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
 			"float lighting(vec3 position, vec3 normal) { return 1.0; }");
 	}
+
+	QTimer::singleShot(1, this->spinWidget, SLOT(update()));
 }
 
 

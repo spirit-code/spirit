@@ -50,9 +50,9 @@ namespace Engine
         virtual void Iteration();
 
 
-        // Initialize everything for the optimization of the systems before `Iterate` starts
+        // Initialize arrays etc. before `Iterate` starts
         virtual void Initialize();
-        // Finalize the optimization of the systems after `Iterate` has finished
+        // Finalize (e.g. output informaiton) after `Iterate` has finished
         virtual void Finalize();
 
         // Log messages at Start, after Steps and at End of Iterate
@@ -143,7 +143,7 @@ namespace Engine
 
         //////////// General /////////////////////////////////////////////////////////
 
-        // Systems the Optimizer will access
+        // Systems the Solver will access
         std::vector<std::shared_ptr<Data::Spin_System>> systems;
 
         // Method Parameters

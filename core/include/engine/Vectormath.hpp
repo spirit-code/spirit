@@ -335,7 +335,7 @@ namespace Engine
         // Calculate the topological charge inside a vectorfield
         scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation);
 
-        // Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
+        // Utility function for the SIB Solver - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);

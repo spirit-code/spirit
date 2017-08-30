@@ -61,6 +61,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// File Menu
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
+	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
@@ -82,7 +83,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionPlay_Pause_Simulation, SIGNAL(triggered()), this, SLOT(control_playpause()));
 	connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
 	connect(this->actionCycle_Method, SIGNAL(triggered()), this, SLOT(control_cycle_method()));
-	connect(this->actionCycle_Optimizer, SIGNAL(triggered()), this, SLOT(control_cycle_optimizer()));
+	connect(this->actionCycle_Solver, SIGNAL(triggered()), this, SLOT(control_cycle_solver()));
 	connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
 
 	// View Menu
@@ -334,9 +335,9 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_M:
 				this->control_cycle_method();
 				break;
-				// CTRL+O - Cycle Optimizer
-			case Qt::Key_O:
-				this->control_cycle_optimizer();
+				// CTRL+S - Cycle Solver
+			case Qt::Key_S:
+				this->control_cycle_solver();
 				break;
 		}
 	}
@@ -921,10 +922,10 @@ void MainWindow::control_cycle_method()
 	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
 }
 
-void MainWindow::control_cycle_optimizer()
+void MainWindow::control_cycle_solver()
 {
-	this->controlWidget->cycleOptimizer();
-	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->optimizerName().c_str()), 5000);
+	this->controlWidget->cycleSolver();
+	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->solverName().c_str()), 5000);
 }
 
 void MainWindow::view_regular_mode()
@@ -1019,7 +1020,7 @@ void MainWindow::keyBindings()
 			"<i>Control Simulations</i><br>"
 			" - <b>Space</b>:   Play/Pause<br>"
 			" - <b>Ctrl+M</b>:  Cycle Method<br>"
-			" - <b>Ctrl+O</b>:  Cycle Optimizer<br>"
+			" - <b>Ctrl+S</b>:  Cycle Solver<br>"
 			"<br>"
 			"<i>Manipulate the current images</i><br>"
 			" - <b>Ctrl+R</b>:  Random configuration<br>"
@@ -1065,8 +1066,15 @@ void MainWindow::save_Spin_Configuration()
 		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
 	if (!fileName.isEmpty())
 	{
+		QFileInfo fi(fileName);
+		// Determine file type from suffix
+		auto qs_type = fi.completeSuffix();
+		int type = IO_Fileformat_Regular;
+		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		// Write the file
 		auto file = string_q2std(fileName);
-		IO_Image_Write(this->state.get(), file.c_str(), IO_Fileformat_OVF);
+		IO_Image_Write(this->state.get(), file.c_str(), type);
 	}
 }
 
@@ -1080,10 +1088,16 @@ void MainWindow::load_Spin_Configuration()
 	{
 		QFileInfo fi(fileName);
 		// Determine file type from suffix
-		auto qs_type = fi.completeSuffix();
+		auto qs_type = fi.suffix();
 		int type = IO_Fileformat_Regular;
-		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+		if (qs_type == "txt") type = IO_Fileformat_Regular;
+		else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
 		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		else
+		{
+			Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+			return;
+		}
 		// Read the file
 		auto file = string_q2std(fileName);
 		IO_Image_Read(this->state.get(), file.c_str(), type);
@@ -1140,6 +1154,19 @@ void MainWindow::load_Configuration()
 			this->spinWidget->updateData();
 			this->settingsWidget->updateData();
 		}
+	}
+}
+
+void MainWindow::save_Configuration()
+{
+	int idx_img = System_Get_Index(state.get());
+	// Read Spin System from cfg
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Config"), "./input", tr("Config (*.cfg)"));
+	if (!fileName.isEmpty())
+	{
+		auto file = string_q2std(fileName);
+		
+		State_To_Config(this->state.get(), file.c_str(), ">unknown<");
 	}
 }
 

@@ -5,6 +5,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using namespace Utility;
 
@@ -166,13 +168,13 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         auto p = image->llg_parameters;
         p->force_convergence = convergence;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set LLG force convergence = " + std::to_string(convergence), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set LLG force convergence = {}", convergence), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -196,7 +198,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     	image->Unlock();
 
     	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set LLG dt = " + std::to_string(dt), idx_image, idx_chain);
+            fmt::format("Set LLG dt = {}", dt), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -214,13 +216,13 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         auto p = image->llg_parameters;
         p->damping = damping;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set LLG damping = " + std::to_string(damping), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set LLG damping = {}", damping), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -238,14 +240,14 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
 
         image->llg_parameters->temperature = T;
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set LLG temperature to " + std::to_string(T), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set LLG temperature to {}", T), idx_image, idx_chain);
 
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -264,7 +266,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
 
         // Gradient or monolayer
         image->llg_parameters->stt_use_gradient = use_gradient;
@@ -274,25 +276,23 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
         image->llg_parameters->stt_polarisation_normal[0] = normal[0];
         image->llg_parameters->stt_polarisation_normal[1] = normal[1];
         image->llg_parameters->stt_polarisation_normal[2] = normal[2];
-    	if (image->llg_parameters->stt_polarisation_normal.norm() < 0.9)
-    	{
-    		image->llg_parameters->stt_polarisation_normal = { 0,0,1 };
-    		Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, 
-                 "s_c_vec = {0,0,0} replaced by {0,0,1}" );
-    	}
-    	else 
+        if (image->llg_parameters->stt_polarisation_normal.norm() < 0.9)
+        {
+            image->llg_parameters->stt_polarisation_normal = { 0,0,1 };
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, 
+                    "s_c_vec = {0,0,0} replaced by {0,0,1}" );
+        }
+        else 
             image->llg_parameters->stt_polarisation_normal.normalize();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             "Set LLG spin current to " + std::to_string( magnitude ) + ", direction (" + 
-             std::to_string( normal[0] ) + "," + std::to_string( normal[1] ) + "," + 
-             std::to_string( normal[2] ) + ")", idx_image, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set LLG spin current to {}, direction ({})", magnitude, image->llg_parameters->stt_polarisation_normal.transpose()), idx_image, idx_chain );
         if (use_gradient)
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "STT: using the gradient approximation", idx_image, idx_chain );
         else
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "STT: using the pinned monolayer approximation", idx_image, idx_chain );
 
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -433,14 +433,14 @@ void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int id
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
 
         image->mc_parameters->temperature = T;
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set MC temperature to " + std::to_string(T), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set MC temperature to {}", T), idx_image, idx_chain);
 
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -458,14 +458,14 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
 
         image->mc_parameters->acceptance_ratio_target = ratio;
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set MC acceptance ratio to " + std::to_string(ratio), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set MC acceptance ratio to {}", ratio), idx_image, idx_chain);
 
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -606,13 +606,13 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         auto p = chain->gneb_parameters;
         p->force_convergence = convergence;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set GNEB force convergence = " + std::to_string(convergence), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set GNEB force convergence = {}", convergence), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -631,13 +631,13 @@ void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant,
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	chain->Lock();
+        chain->Lock();
         auto p = chain->gneb_parameters;
         p->spring_constant = spring_constant;
-    	chain->Unlock();
+        chain->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set GNEB spring constant =" + std::to_string(spring_constant), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set GNEB spring constant = {}", spring_constant), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -655,12 +655,12 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	chain->Lock();
+        chain->Lock();
         chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>(image_type);
-    	chain->Unlock();
+        chain->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Set GNEB image type =" + std::to_string(image_type), idx_image, idx_chain);
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set GNEB image type = {}", image_type), idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -680,17 +680,17 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	for (int img = 1; img < chain->noi - 1; ++img)
-    	{
-    		scalar E0 = chain->images[img-1]->E;
-    		scalar E1 = chain->images[img]->E;
-    		scalar E2 = chain->images[img+1]->E;
+        for (int img = 1; img < chain->noi - 1; ++img)
+        {
+            scalar E0 = chain->images[img-1]->E;
+            scalar E1 = chain->images[img]->E;
+            scalar E2 = chain->images[img+1]->E;
 
-    		// Maximum
-    		if (E0 < E1 && E1 > E2) Parameters_Set_GNEB_Climbing_Falling(state, 1, img);
-    		// Minimum
-    		if (E0 > E1 && E1 < E2) Parameters_Set_GNEB_Climbing_Falling(state, 2, img);
-    	}
+            // Maximum
+            if (E0 < E1 && E1 > E2) Parameters_Set_GNEB_Climbing_Falling(state, 1, img);
+            // Minimum
+            if (E0 > E1 && E1 < E2) Parameters_Set_GNEB_Climbing_Falling(state, 2, img);
+        }
     }
     catch( ... )
     {
@@ -1090,7 +1090,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
 // Get GNEB Output Parameters
 const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
 {
-	int idx_image = -1;
+    int idx_image = -1;
 
     try
     {
@@ -1136,7 +1136,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
                                           bool * energies_interpolated, bool * energies_divide_by_nos, 
                                           int idx_chain )
 {
-	int idx_image = -1;
+    int idx_image = -1;
     
     try
     {
@@ -1158,7 +1158,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
 
 void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain)
 {
-	int idx_image = -1;
+    int idx_image = -1;
     
     try
     {
@@ -1261,18 +1261,18 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
 
 int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
 {
-	int idx_image = -1;
+    int idx_image = -1;
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	auto p = chain->gneb_parameters;
-    	return p->n_E_interpolations;
+        auto p = chain->gneb_parameters;
+        return p->n_E_interpolations;
     }
     catch( ... )
     {

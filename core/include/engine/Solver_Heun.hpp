@@ -34,7 +34,7 @@ void Method_Solver<Solver::Heun>::Iteration ()
     this->Calculate_Force(this->configurations, this->forces);
     this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     
-    // Optimization for each image
+    // Predictor for each image
     for (int i = 0; i < this->noi; ++i)
     {
         auto& conf           = *this->configurations[i];
@@ -54,6 +54,7 @@ void Method_Solver<Solver::Heun>::Iteration ()
     this->Calculate_Force(this->configurations_predictor, this->forces_predictor);
     this->Calculate_Force_Virtual(this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor);
     
+    // Corrector step for each image
     for (int i=0; i < this->noi; i++)
     {
         auto& conf           = *this->configurations[i];

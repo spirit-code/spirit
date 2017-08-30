@@ -14,17 +14,17 @@ import threading
 _SingleShot          = _spirit.Simulation_SingleShot
 _SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _SingleShot.restype  = None
-def SingleShot(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
-    # _SingleShot(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    spiritlib.WrapFunction(_SingleShot, [p_state, ctypes.c_char_p(method_type.encode('utf-8')), ctypes.c_char_p(optimizer_type.encode('utf-8')), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+def SingleShot(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
+    # _SingleShot(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    spiritlib.WrapFunction(_SingleShot, [p_state, ctypes.c_char_p(method_type.encode('utf-8')), ctypes.c_char_p(solver_type.encode('utf-8')), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
 
 ### Play/Pause
 _PlayPause          = _spirit.Simulation_PlayPause
 _PlayPause.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _PlayPause.restype  = None
-def PlayPause(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
-    spiritlib.WrapFunction(_PlayPause, [p_state, ctypes.c_char_p(method_type.encode('utf-8')), ctypes.c_char_p(optimizer_type.encode('utf-8')), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    #_PlayPause(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(optimizer_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+def PlayPause(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1):
+    spiritlib.WrapFunction(_PlayPause, [p_state, ctypes.c_char_p(method_type.encode('utf-8')), ctypes.c_char_p(solver_type.encode('utf-8')), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    #_PlayPause(p_state, ctypes.c_char_p(method_type), ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Stop All
 _Stop_All           = _spirit.Simulation_Stop_All

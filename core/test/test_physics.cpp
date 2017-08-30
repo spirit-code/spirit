@@ -28,8 +28,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
     // choose method
     auto method = "LLG";
     
-    // Optimizers to be tested
-    std::vector<const char *>  optimizers{ "Depondt", "Heun", "SIB" };
+    // Solvers to be tested
+    std::vector<const char *>  solvers{ "Depondt", "Heun", "SIB" };
     
     // set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
@@ -61,7 +61,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
     // testing values
     float angle, projection;
     
-    for( auto opt : optimizers )
+    for( auto opt : solvers )
     {
         // Test Larmor frequency
         

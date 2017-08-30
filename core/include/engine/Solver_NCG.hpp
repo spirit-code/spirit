@@ -5,9 +5,9 @@ void Method_Solver<Solver::NCG>::Initialize ()
     this->n       = 50;     // restart every n iterations XXX: what's the appropriate val?
     
     this->tolerance_NR  = 1e-5;   // Newton-Raphson error tolerance
-    this->tolerance_nCG = 1e-5;   // optimizer's error tolerance1
+    this->tolerance_nCG = 1e-5;   // solver's error tolerance1
 	this->epsilon_NR  = 1e-5;// pow(this->tolerance_NR, 2);   // for Newton-Raphson's convergence condition 
-    this->epsilon_nCG = pow( this->tolerance_nCG, 2 );  // for optimizer's convergence condition
+    this->epsilon_nCG = pow( this->tolerance_nCG, 2 );  // for solver's convergence condition
     
     this->alpha = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
     this->beta  = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );

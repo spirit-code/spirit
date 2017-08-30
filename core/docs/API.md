@@ -6,7 +6,7 @@ This will list the available API functions of the Spirit library.
 The API is exposed as a C interface and may thus also be used from other
 languages, such as Python, Julia or even JavaScript (see *ui-web*).
 The API revolves around a simulation `State` which contains all the necessary
-data and keeps track of running Optimizers.
+data and keeps track of running Solvers.
 
 The API exposes functions for:
 * Control of simulations
@@ -78,19 +78,19 @@ System
 Simulation
 ----------
 
-With `Simulation_*` functions one can control and get information from the State's Optimizers and their Methods.
+With `Simulation_*` functions one can control and get information from the State's Solvers and their Methods.
 
 | Simulation Basics                                                          | Effect |
 | -------------------------------------------------------------------------- | ------ |
-| `Simulation_SingleShot( State *, const char * c_method_type, const char * c_optimizer_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Executes a single Optimization iteration with a given method <br/> (CAUTION! does not check for already running simulations) |
-| `Simulation_PlayPause( State *, const char * c_method_type, const char * c_optimizer_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Play/Pause functionality |
+| `Simulation_SingleShot( State *, const char * c_method_type, const char * c_solver_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Executes a single Optimization iteration with a given method <br/> (CAUTION! does not check for already running simulations) |
+| `Simulation_PlayPause( State *, const char * c_method_type, const char * c_solver_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Play/Pause functionality |
 | `Simulation_Stop_All( State * )` | Stop all State's simulations |
 
 | Simulation Data                                                                 | Return          | Effect |
 | ------------------------------------------------------------------------------- | --------------- | ------ |
 | `Simulation_Get_MaxTorqueComponent( State *, int idx_image, int idx_chain )`    | `float`         | Get Simulation's maximum torque component  |
 | `Simulation_Get_IterationsPerSecond( State *, int idx_image, int idx_chain )`   | `float`         | Get Simulation's iterations per second     |
-| `Simulation_Get_Optimizer_Name( State *, int idx_image, int idx_chain )`        | `const char *`  | Get Optimizer's name                       |
+| `Simulation_Get_Solver_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Solver's name                       |
 | `Simulation_Get_Method_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Method's name                          |
 
 | Simulation Running Checking                                                     | Return          |
