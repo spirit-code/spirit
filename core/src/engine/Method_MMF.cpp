@@ -401,23 +401,14 @@ namespace Engine
 				// Append Energy to File
 				//IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
 
-				scalar nd = 1.0;
-				if (this->collection->parameters->output_energy_divide_by_nspins) nd /= this->systems[0]->nos; // nos divide
-				const int buffer_length = 200;
-				std::string output_to_file = "";
-				output_to_file.reserve(int(1E+08));
-				char buffer_string_conversion[buffer_length + 2];
 				//
 				scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
-				//
-				snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
-					Rx, this->systems[0]->E * nd);
-				//
 				spins_last[0] = *this->systems[0]->spins;
 				Rx_last = Rx;
 				//
-				output_to_file += s_iter;
-				output_to_file.append(buffer_string_conversion);
+				scalar nd = 1.0;
+				if (this->collection->parameters->output_energy_divide_by_nspins) nd /= this->systems[0]->nos; // nos divide
+				std::string output_to_file = s_iter + fmt::format("    {18.10f}    {18.10f}\n", Rx, this->systems[0]->E * nd);
 				IO::Append_String_to_File(output_to_file, energyFile);
 			};
 

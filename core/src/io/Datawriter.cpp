@@ -67,16 +67,10 @@ namespace IO
 		// s.UpdateEnergy();
 
 		// Centered column entries
-		std::string line = fmt::format("{:^20}", iteration) + "||" + fmt::format("{:^20.10f}", s.E * nd) + "||";
-		bool first = true;
+		std::string line = fmt::format("{:^20} || {:^20.10f} |", iteration, s.E * nd);
 		for (auto pair : s.E_array)
 		{
-			if (first) first = false;
-			else
-			{
-				line += "|";;
-			}
-			line += fmt::format("{:^20.10f}", pair.second * nd);
+			line += fmt::format("| {:^20.10f} ", pair.second * nd);
 		}
 		line += "\n";
 
@@ -93,16 +87,10 @@ namespace IO
 
 		Write_Energy_Header(system, fileName, {"E_tot"});
 
-		std::string line = fmt::format("{:^20.10f}", system.E * nd) + "||";
-		bool first = true;
+		std::string line = fmt::format("{:^20.10f} |", system.E * nd);
 		for (auto pair : system.E_array)
 		{
-			if (first) first = false;
-			else
-			{
-				line += "|";;
-			}
-			line += fmt::format("{:^20.10f}", pair.second * nd);
+			line += fmt::format("| {:^20.10f} ", pair.second * nd);
 		}
 		line += "\n";
 
@@ -129,16 +117,10 @@ namespace IO
 		{
 			scalar E_spin=0;
 			for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
-			data += fmt::format("{:^20}", ispin) + "||" + fmt::format("{:^20.10f}", E_spin * nd) + "||";
-			bool first = true;
+			data += fmt::format("{:^20} || {:^20.10f} |", ispin, E_spin * nd);
 			for (auto pair : contributions_spins)
 			{
-				if (first) first = false;
-				else
-				{
-					data += "|";;
-				}
-				data += fmt::format("{:^20.10f}", pair.second[ispin] * nd);
+				data += fmt::format("| {:^20.10f} ", pair.second[ispin] * nd);
 			}
 			data += "\n";
 		}
@@ -164,18 +146,10 @@ namespace IO
 		for (isystem = 0; isystem < (int)c.noi; ++isystem)
 		{
 			auto& system = *c.images[isystem];
-			std::string line = fmt::format("{:^20}", isystem) + "||"
-				+ fmt::format("{:^20.10f}", c.Rx[isystem]) + "||"
-				+ fmt::format("{:^20.10f}", system.E * nd) + "||";
-			bool first = true;
+			std::string line = fmt::format("{:^20} || {:^20.10f} || {:^20.10f} |", isystem, c.Rx[isystem], system.E * nd);
 			for (auto pair : system.E_array)
 			{
-				if (first) first = false;
-				else
-				{
-					line += "|";;
-				}
-				line += fmt::format("{:^20.10f}", pair.second * nd);
+				line += fmt::format("| {:^20.10f} ", pair.second * nd);
 			}
 			line += "\n";
 
@@ -201,10 +175,8 @@ namespace IO
 			for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations+1; ++iinterp)
 			{
 				idx = isystem * (c.gneb_parameters->n_E_interpolations+1) + iinterp;
-				std::string line = fmt::format("{:^20}", isystem) + "||"
-					+ fmt::format("{:^20}", iinterp) + "||"
-					+ fmt::format("{:^20.10f}", c.Rx_interpolated[idx]) + "||"
-					+ fmt::format("{:^20.10f}", c.E_interpolated[idx] * nd) + "||";
+				std::string line = fmt::format("{:^20} || {:^20} || {:^20.10f} || {:^20.10f} ||", isystem, iinterp,
+					c.Rx_interpolated[idx], c.E_interpolated[idx] * nd);
 				
 				// TODO: interpolated Energy contributions
 				// bool first = true;
@@ -267,25 +239,21 @@ namespace IO
 
 	void Write_Spin_Configuration(const std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append)
 	{
-		int iatom;
-		const int buffer_length = 80;
+		auto& spins = *s->spins;
+		// Header
 		std::string output_to_file = "";
 		output_to_file.reserve(int(1E+08));
-		char buffer_string_conversion[buffer_length + 2];
-		snprintf(buffer_string_conversion, buffer_length, "### Spin Configuration for NOS = %8i and iteration %8i", s->nos, iteration);
-		output_to_file.append(buffer_string_conversion);
-		//------------------------ End Init ----------------------------------------
+		output_to_file += fmt::format("### Spin Configuration for NOS = {} and iteration {}", s->nos, iteration);
 
-		for (iatom = 0; iatom < s->nos; ++iatom)
+		// Data
+		for (int iatom = 0; iatom < s->nos; ++iatom)
 		{
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (s->geometry->atom_types[iatom] < 0)
-				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f", 0, 0, 0);
+				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0, 0, 0);
 			else
 			#endif
-			snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-				(*s->spins)[iatom][0], (*s->spins)[iatom][1], (*s->spins)[iatom][2]);
-			output_to_file.append(buffer_string_conversion);
+				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 		}
 		output_to_file.append("\n");
 		
@@ -297,32 +265,115 @@ namespace IO
 
 	void Save_SpinChain_Configuration(const std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
 	{
-		int iimage, iatom, nos;
-		const int buffer_length = 80;
+		// Header
 		std::string output_to_file = "";
 		output_to_file.reserve(int(1E+08));
-		char buffer_string_conversion[buffer_length + 2];
-		snprintf(buffer_string_conversion, buffer_length, "### Spin Chain Configuration for %3i images with NOS = %8i after iteration %8i", c->noi, c->images[0]->nos, iteration);
-		output_to_file.append(buffer_string_conversion);
-		//------------------------ End Init ----------------------------------------
-		for (iimage = 0; iimage < c->noi; ++iimage)
+		output_to_file += fmt::format("### Spin Chain Configuration for {} images with NOS = {} after iteration {}", c->noi, c->images[0]->nos, iteration);
+
+		// Data
+		for (int iimage = 0; iimage < c->noi; ++iimage)
 		{
-			snprintf(buffer_string_conversion, buffer_length, "\n Image No %3i", iimage);
-			output_to_file.append(buffer_string_conversion);
-			nos = c->images[iimage]->nos;
+			output_to_file += fmt::format("\n Image No {}", iimage);
+
+			int nos = c->images[iimage]->nos;
 			auto& spins = *c->images[iimage]->spins;
-			for (iatom = 0; iatom < nos; ++iatom)
+			for (int iatom = 0; iatom < nos; ++iatom)
 			{
 				#ifdef SPIRIT_ENABLE_DEFECTS
 				if (c->images[iimage]->geometry->atom_types[iatom] < 0)
-					snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f", 0, 0, 0);
+					output_to_file += fmt::format("\n {18.10f} {18.10f} {18.10f}", 0, 0, 0);
 				else
 				#endif
-				snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-					spins[iatom][0], spins[iatom][1], spins[iatom][2]);
-				output_to_file.append(buffer_string_conversion);
+					output_to_file += fmt::format("\n {18.10f} {18.10f} {18.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 			}
 		}
 		Dump_to_File(output_to_file, fileName);
 	}
+
+	
+	// Save vectorfield and positions to file OVF in OVF format
+	void Save_To_OVF( const vectorfield & vf, const Data::Geometry & geometry, std::string outputfilename )
+	{
+		// auto outputfilename = "test_out.ovf";
+		auto& n_cells = geometry.n_cells;
+		int   nos_basis = geometry.n_spins_basic_domain;
+
+		char shortBufer[64]   = "";
+		char ovf_filename[64] = "";
+		strncpy(ovf_filename, outputfilename.c_str(), strcspn (outputfilename.c_str(), "."));
+		strcat(ovf_filename, ".ovf");
+		if( strncmp(ovf_filename, ".ovf",4) == 0 )
+		{
+			printf("Enter the file name. It cannot be empty!");
+		}
+		else
+		{
+			FILE * pFile = fopen (ovf_filename,"wb");
+			if( pFile != NULL )
+			{
+				fputs ("# OOMMF OVF 2.0\n",pFile);
+				fputs ("# Segment count: 1\n",pFile);
+				fputs ("# Begin: Segment\n",pFile);
+				fputs ("# Begin: Header\n",pFile);
+				fputs ("# Title: m\n",pFile);
+				fputs ("# meshtype: rectangular\n",pFile);
+				fputs ("# meshunit: m\n",pFile);
+				fputs ("# xmin: 0\n",pFile);
+				fputs ("# ymin: 0\n",pFile);
+				fputs ("# zmin: 0\n",pFile);
+				snprintf(shortBufer,80,"# xmax: %f\n", n_cells[0]*1e-9);
+				fputs (shortBufer,pFile);
+				snprintf(shortBufer,80,"# ymax: %f\n", n_cells[1]*1e-9);
+				fputs (shortBufer,pFile);
+				snprintf(shortBufer,80,"# ymax: %f\n", n_cells[2]*1e-9);
+				fputs (shortBufer,pFile);
+				fputs ("# valuedim: 3\n",pFile);
+				fputs ("# valuelabels: m_x m_y m_z\n",pFile);
+				fputs ("# valueunits: 1 1 1\n",pFile);
+				fputs ("# Desc: Total simulation time:  0  s\n",pFile);
+				fputs ("# xbase: 6.171875e-10\n",pFile);
+				fputs ("# ybase: 7.126667385309444e-10\n",pFile);
+				fputs ("# zbase: 5e-08\n",pFile);
+				snprintf(shortBufer,80,"# xnodes: %d\n", n_cells[0]);
+				fputs (shortBufer,pFile);
+				snprintf(shortBufer,80,"# ynodes: %d\n", n_cells[1]);
+				fputs (shortBufer,pFile);
+				snprintf(shortBufer,80,"# znodes: %d\n", n_cells[2]);
+				fputs (shortBufer,pFile);
+				fputs ("# xstepsize: 1.234375e-09\n",pFile);
+				fputs ("# ystepsize: 1.4253334770618889e-09\n",pFile);
+				fputs ("# zstepsize: 1e-07\n",pFile);
+				fputs ("# End: Header\n",pFile);
+				fputs ("# Begin: Data Binary 8\n",pFile);
+
+				scalar Temp1[]= {123456789012345.0};
+				fwrite (Temp1, sizeof(scalar), 1, pFile);
+
+				for (int cn = 0; cn < n_cells[2]; cn++)
+				{
+					for (int bn = 0; bn < n_cells[1]; bn++)
+					{
+						for (int an = 0; an < n_cells[0]; an++)
+						{
+							// index of the block
+							int n = an + bn*n_cells[0] + cn*n_cells[0]*n_cells[1];
+							// index of the first spin in the block
+							n = n*nos_basis;
+							for (int atom=0; atom < nos_basis; atom++)
+							{
+								int N = n + atom;
+								// TODO
+								auto& vec = vf[n];
+								fwrite (&vec , sizeof(scalar), 3, pFile);
+							}
+						}// a
+					}// b
+				}// c
+				fputs ("# End: Data Binary 4\n",pFile);
+				fputs ("# End: Segment\n",pFile);
+				fclose (pFile);
+			}
+			printf("Done!");
+		}
+	} // end save OVF
 }
