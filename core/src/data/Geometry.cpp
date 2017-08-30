@@ -390,7 +390,7 @@ namespace Data
         }
 
         // We should never get here
-        throw Utility::Exception::Unknown_Exception;
+        throw std::runtime_error("Geometry::calculateDimensionality() failed!");
         return 0;
     }
 }

@@ -7,6 +7,8 @@
 
 #include <Eigen/Dense>
 
+#include <fmt/format.h>
+
 #include <random>
 #include <iostream>
 #include <string>
@@ -75,7 +77,7 @@ namespace Utility
 			{
 				if (ex == Exception::Division_by_zero) 
 				{
-					std::string message = "Homogeneous vector was (" + std::to_string(v[0]) + ", " + std::to_string(v[1]) + ", " + std::to_string(v[2]) + ") and got set to (0, 0, 1)";
+					std::string message = fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]);
 					Log(Log_Level::Warning, Log_Sender::All, message);
 					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
 				}

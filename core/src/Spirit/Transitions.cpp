@@ -6,6 +6,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+
 #include <memory>
 
 void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
@@ -30,8 +32,7 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
     	chain->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             "Set homogeneous transition between images " + std::to_string(idx_1+1) + " and " + 
-             std::to_string(idx_2+1) + ".", -1, idx_chain );
+             fmt::format("Set homogeneous transition between images {} and {}", idx_1+1, idx_2+1), -1, idx_chain );
      }
      catch( ... )
      {
@@ -52,17 +53,16 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Use this when State implements chain collection: else c = state->collection[idx_chain];
-    	chain->Lock();
+        chain->Lock();
         Utility::Configuration_Chain::Add_Noise_Temperature(chain, idx_1, idx_2, temperature);
-    	for (int img = 0; img < chain->noi; ++img)
-    	{
-    		chain->gneb_parameters->pinning->Apply(*chain->images[img]->spins);
-    	}
-    	chain->Unlock();
+        for (int img = 0; img < chain->noi; ++img)
+        {
+            chain->gneb_parameters->pinning->Apply(*chain->images[img]->spins);
+        }
+        chain->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Added noise with temperature T=" + std::to_string( temperature ) + " to images " + 
-             std::to_string( idx_1+1 ) + " to " + std::to_string( idx_2+1 ) + ".", -1, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Added noise with temperature T={} to images {} - {}", temperature, idx_1+1, idx_2+1 ), -1, idx_chain );
     }
     catch( const Utility::Exception & ex )
     {

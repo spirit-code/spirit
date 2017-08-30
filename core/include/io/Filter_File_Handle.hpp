@@ -11,6 +11,9 @@
 #include <utility/Logging.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 namespace IO
 {
 	class Filter_File_Handle
@@ -44,22 +47,29 @@ namespace IO
 		// Reads a single variable into var, with optional logging in case of failure.
 		template <typename T> void Read_Single(T & var, const std::string name, bool log_notfound = true)
 		{
-			if (Find(name)) iss >> var;
-			else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + stringify(var));
+			if (Find(name))
+				iss >> var;
+			else if (log_notfound)
+				Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: " + fmt::format("{}", var));
 		};
 
-		// Reads a vector into var, with optional logging in case of failure.
-		void Read_Vector3(Vector3 & var, const std::string name, bool log_notfound = true) {
-			if (Find(name)) iss >> var[0] >> var[1] >> var[2];
-			else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+		// Reads a Vector3 into var, with optional logging in case of failure.
+		void Read_Vector3(Vector3 & var, const std::string name, bool log_notfound = true)
+		{
+			if (Find(name))
+				iss >> var[0] >> var[1] >> var[2];
+			else if (log_notfound)
+				Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: (" + fmt::format("{}", var.transpose()) + ")");
 		};
+
+		// Reads a 3-component object, with optional logging in case of failure
 		template <typename T> void Read_3Vector(T & var, const std::string name, bool log_notfound = true)
 		{
-			if (Find(name)) iss >> var[0] >> var[1] >> var[2];
-			else if (log_notfound) Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default: {" + stringify(var[0]) + ", " + stringify(var[1]) + ", " + stringify(var[2]) + "}");
+			if (Find(name))
+				iss >> var[0] >> var[1] >> var[2];
+			else if (log_notfound)
+				Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + "' not found. Using Default:  (" + fmt::format("{}", var[0]) + " " + fmt::format("{}", var[1]) + " " + fmt::format("{}", var[2]) + ")");
 		};
-		template<class T> typename std::enable_if<std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::to_string(t); }
-		template<class T> typename std::enable_if<!std::is_fundamental<T>::value, std::string>::type stringify(const T& t) { return std::string(t); }
 	};//end class FilterFileHandle
 }// end namespace IO
 

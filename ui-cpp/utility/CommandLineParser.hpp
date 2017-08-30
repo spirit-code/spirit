@@ -1,16 +1,16 @@
 #pragma once
-#ifndef INPUTPARSER_H
-#define INPUTPARSER_H
+#ifndef CommandLineParser_H
+#define CommandLineParser_H
 
 #include <string>
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
-class InputParser
+class CommandLineParser
 {
     public:
-        InputParser (int &argc, char **argv)
+        CommandLineParser (int &argc, char **argv)
         {
             for (int i=1; i < argc; ++i)
                 this->tokens.push_back(std::string(argv[i]));

@@ -45,7 +45,7 @@ private slots:
 	void control_insertconfiguration();
 	void control_playpause();
 	void control_cycle_method();
-	void control_cycle_optimizer();
+	void control_cycle_solver();
 	void view_toggleDebug();
 	void view_togglePlots();
 	void view_toggleSettings();
@@ -62,6 +62,7 @@ private slots:
     void about();
 	void keyBindings();
 	void load_Configuration();
+	void save_Configuration();
 	void save_Spin_Configuration();
 	void load_Spin_Configuration();
 	void save_SpinChain_Configuration();

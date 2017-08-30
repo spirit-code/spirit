@@ -134,8 +134,8 @@ namespace Engine
         int jmax;     // max iterations for Newton-Raphson loop
         int n;        // number of iteration after which the nCG will restart
         
-        scalar tolerance_nCG, tolerance_NR;   // tolerances for optimizer and Newton-Raphson
-        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and optimizer tolerance squared
+        scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
+        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
         
         bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
         
@@ -149,7 +149,7 @@ namespace Engine
         // Residual and new configuration states
         std::vector<vectorfield> residual, direction;
 
-        // buffer variables for checking convergence for optimizer and Newton-Raphson
+        // buffer variables for checking convergence for solver and Newton-Raphson
         std::vector<scalarfield> r_dot_d, dda2;
 
         //////////// VP ///////////////////////////////////////////////////////////////
@@ -217,10 +217,10 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 "------------  Started  " + this->Name() + " Calculation  ------------",
-                "    Going to iterate " + std::to_string(this->n_log) + " steps",
-                "                with " + std::to_string(this->n_iterations_log) + " iterations per step",
-                "    Force convergence parameter: " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->parameters->force_convergence),
-                "    Maximum force component:     " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->force_max_abs_component),
+                "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
+                "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
+                "    Force convergence parameter: " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
+                "    Maximum force component:     " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
                 "    Solver: " + this->SolverFullName(),
                 "-----------------------------------------------------"
             }, this->idx_image, this->idx_chain);
@@ -238,12 +238,12 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 "----- " + this->Name() + " Calculation (" + this->SolverName() + " Solver): " + Timing::DateTimePassed(t_current - this->t_start),
-                "    Step                         " + std::to_string(step) + " / " + std::to_string(n_log),
-                "    Iteration                    " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations),
+                "    Step                         " + fmt::format("{} / {}", step, n_log),
+                "    Iteration                    " + fmt::format("{} / {}", this->iteration, n_iterations),
                 "    Time since last step:        " + Timing::DateTimePassed(t_current - this->t_last),
-                "    Iterations / sec:            " + std::to_string(this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-                "    Force convergence parameter: " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->parameters->force_convergence),
-                "    Maximum force component:     " + fmt::format("{:." + std::to_string(this->print_precision) + "f}", this->force_max_abs_component)
+                "    Iterations / sec:            " + fmt::format("{}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
+                "    Force convergence parameter: " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
+                "    Maximum force component:     " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component)
             }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -273,11 +273,11 @@ namespace Engine
         if (reason.length() > 0)
             block.push_back("----- Reason:   " + reason);
         block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - this->t_start));
-        block.push_back("    Step              " + std::to_string(step) + " / " + std::to_string(n_log));
-        block.push_back("    Iteration         " + std::to_string( this->iteration) + " / " + std::to_string(n_iterations));
-        block.push_back("    Iterations / sec: " + std::to_string( this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back("    Force convergence parameter: " + fmt::format("{:."+std::to_string(this->print_precision)+"f}", this->parameters->force_convergence));
-        block.push_back("    Maximum force component:     " + fmt::format("{:."+std::to_string(this->print_precision)+"f}", this->force_max_abs_component));
+        block.push_back("    Step              " + fmt::format("{} / {}", step, n_log));
+        block.push_back("    Iteration         " + fmt::format("{} / {}", this->iteration, n_iterations));
+        block.push_back("    Iterations / sec: " + fmt::format("{}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
+        block.push_back("    Force convergence parameter: " + fmt::format("{:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
+        block.push_back("    Maximum force component:     " + fmt::format("{:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
         block.push_back("    Solver: " + this->SolverFullName());
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);

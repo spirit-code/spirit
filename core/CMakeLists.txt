@@ -404,11 +404,11 @@ if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
     enable_testing()
 
     ### Tests
-    add_framework_test( test_vmath test/test_vectormath.cpp )
-    add_framework_test( test_mmath test/test_manifoldmath.cpp )
-    add_framework_test( test_api   test/test_api.cpp )
-    add_framework_test( test_optim test/test_optimizers.cpp )
-    add_framework_test( test_phys  test/test_physics.cpp )
+    add_framework_test( test_vmath    test/test_vectormath.cpp )
+    add_framework_test( test_mmath    test/test_manifoldmath.cpp )
+    add_framework_test( test_api      test/test_api.cpp )
+    add_framework_test( test_solvers  test/test_solvers.cpp )
+    add_framework_test( test_physics  test/test_physics.cpp )
 endif()
 #############################################
 

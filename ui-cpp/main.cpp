@@ -1,27 +1,37 @@
-#include "MainWindow.hpp"
-#include "InputParser.hpp"
+#include "utility/CommandLineParser.hpp"
+#include "utility/Handle_Signal.hpp"
 
 #include "Spirit/State.h"
 #include "Spirit/Chain.h"
 #include "Spirit/Configurations.h"
 #include "Spirit/Transitions.h"
+#include "Spirit/Simulation.h"
 #include "Spirit/Log.h"
 
 #ifdef _OPENMP
 	#include <omp.h>
 #endif
 
+#ifdef UI_CXX_USE_QT
+	#include "MainWindow.hpp"
+#endif
+
+#include <memory>
+
+// Initialise global state pointer
+std::shared_ptr<State> state;
+
 // Main
 int main(int argc, char ** argv)
 {
 	// Put arguments into the parser
-	InputParser input(argc, argv);
+	CommandLineParser cmdline(argc, argv);
     
 	//--- Register SigInt
-	// signal(SIGINT, Signal::Handle_SigInt);
+	signal(SIGINT, Utility::Handle_Signal::Handle_SigInt);
 	
 	//--- Option for output-less State
-	bool quiet = input.cmdOptionExists("-quiet");
+	bool quiet = cmdline.cmdOptionExists("-quiet");
 
 	//---------------------- file names ---------------------------------------------
 	const char * cfgfile;
@@ -36,18 +46,15 @@ int main(int argc, char ** argv)
 	// cfgfile = "input/gaussian/example-1.cfg";
 	// cfgfile = "input/gaussian/gideon-paper.cfg";
 	//--- Command line passed config file
-    const std::string &filename = input.getCmdOption("-f");
-    if (!filename.empty())
-	{
-        cfgfile = filename.c_str();
-    }
+    const std::string &filename = cmdline.getCmdOption("-f");
+    if (!filename.empty()) cfgfile = filename.c_str();
 	//--- Data Files
 	// std::string spinsfile = "input/anisotropic/achiral.txt";
 	// std::string chainfile = "input/chain.txt";
 	//-------------------------------------------------------------------------------
 	
 	//--- Initialise State
-	std::shared_ptr<State> state = std::shared_ptr<State>(State_Setup(cfgfile, quiet), State_Delete);
+	state = std::shared_ptr<State>(State_Setup(cfgfile, quiet), State_Delete);
 
 	//---------------------- initialize spin_systems --------------------------------
 	// Copy the system a few times
@@ -79,42 +86,49 @@ int main(int argc, char ** argv)
 	Chain_Update_Data(state.get());
 	//-------------------------------------------------------------------------------
 
-	//------------------------ User Interface ---------------------------------------
-	// Initialise Application and MainWindow
-	QApplication app(argc, argv);
-	//app.setOrganizationName("--");
-	//app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
-
 	#ifdef _OPENMP
 		int nt = omp_get_max_threads() - 1;
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Using OpenMP with n=" + std::to_string(nt) + " threads").c_str());
 	#endif
-	
-	// Format for all GL Surfaces
-	QSurfaceFormat format;
-	format.setSamples(16);
-	format.setVersion(3, 3);
-	//format.setVersion(4, 2);
-	//glFormat.setVersion( 3, 3 );
-	//glFormat.setProfile( QGLFormat::CoreProfile ); // Requires >=Qt-4.8.0
-	//glFormat.setSampleBuffers( true );
-	format.setProfile(QSurfaceFormat::CoreProfile);
-	format.setDepthBufferSize(24);
-	format.setStencilBufferSize(8);
-	QSurfaceFormat::setDefaultFormat(format);
-	Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion())).c_str());
 
-	MainWindow window(state);
-	window.setWindowTitle(app.applicationName());
-	window.show();
-	// Open the Application
-	int exec = app.exec();
-	// If Application is closed normally
-	if (exec != 0) throw exec;
-	// Finish
-	return exec;
-	//-------------------------------------------------------------------------------
+	#ifdef UI_CXX_USE_QT
+		//------------------------ User Interface ---------------------------------------
+		// Initialise Application and MainWindow
+		QApplication app(argc, argv);
+		//app.setOrganizationName("--");
+		//app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
+		// Format for all GL Surfaces
+		QSurfaceFormat format;
+		format.setSamples(16);
+		format.setVersion(3, 3);
+		//format.setVersion(4, 2);
+		//glFormat.setVersion( 3, 3 );
+		//glFormat.setProfile( QGLFormat::CoreProfile ); // Requires >=Qt-4.8.0
+		//glFormat.setSampleBuffers( true );
+		format.setProfile(QSurfaceFormat::CoreProfile);
+		format.setDepthBufferSize(24);
+		format.setStencilBufferSize(8);
+		QSurfaceFormat::setDefaultFormat(format);
+		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("QSurfaceFormat version: " + std::to_string(format.majorVersion()) + "." + std::to_string(format.minorVersion())).c_str());
 
+		MainWindow window(state);
+		window.setWindowTitle(app.applicationName());
+		window.show();
+		// Open the Application
+		int exec = app.exec();
+		// If Application is closed normally
+		if (exec != 0) throw exec;
+		// Finish
+		state.reset();
+		return exec;
+		//-------------------------------------------------------------------------------
+	#else
+		//----------------------- LLG Iterations ----------------------------------------
+		Simulation_PlayPause(state.get(), "LLG", "SIB");
+		//-------------------------------------------------------------------------------
+	#endif
+
+	state.reset();
 	return 0;
 }

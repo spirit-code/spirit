@@ -16,15 +16,18 @@ namespace Utility
                 }
                 else
                 {
-                    Log( Log_Level::Error, Log_Sender::API, "Unknown Exception. Terminating",
-                         idx_image, idx_chain );
+                    Log( Log_Level::Severe, Log_Sender::API, "Unknown Exception. Terminating", idx_image, idx_chain );
                     Log.Append_to_File();
                     std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 }
             }
             catch ( const std::exception & ex )
             {
-                std::cerr << "std error " << ex.what() << std::endl;
+                Log( Log_Level::Severe, Log_Sender::API, "Caught std::exception: " + std::string(ex.what()), idx_image, idx_chain );
+                Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
+                Log.Append_to_File();
+
+                std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
             }
             catch ( const Utility::Exception & ex )
             {
@@ -33,10 +36,7 @@ namespace Utility
         }
         catch ( ... )
         {
-            Log( Log_Level::Error, Log_Sender::API, std::string( "Something went wrong in " ) +
-                 std::string( "handling Exceptions. Application terminating." ), 
-                 idx_image, idx_chain );
-            Log.Append_to_File();
+            std::cerr << "Something went super-wrong! TERMINATING!" << std::endl;
             std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
         }
     }
@@ -52,22 +52,19 @@ namespace Utility
                 break;
             
             case Exception::System_not_Initialized : 
-                Log( Log_Level::Error, Log_Sender::API, "System is uninitialized. Terminating.",
-                     idx_image, idx_chain );
+                Log( Log_Level::Severe, Log_Sender::API, "System is uninitialized. Terminating.", idx_image, idx_chain );
                 Log.Append_to_File();
                 std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 break;
             
             case Exception::Division_by_zero:
-                Log( Log_Level::Error, Log_Sender::API, "Division by zero", idx_image, idx_chain );
+                Log( Log_Level::Severe, Log_Sender::API, "Division by zero", idx_image, idx_chain );
                 Log.Append_to_File();
                 std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 break;
             
-            // XXX: should the next two cases be Error or Warning?
-            
             case Exception::Simulated_domain_too_small:
-                Log( Log_Level::Warning, Log_Sender::API, std::string( "Simulated domain is " ) + 
+                Log( Log_Level::Error, Log_Sender::API, std::string( "Simulated domain is " ) + 
                      std::string( "too small. No action taken." ), idx_image, idx_chain );
                 break;
             

@@ -10,6 +10,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+
 #include <memory>
 #include <string>
 
@@ -72,20 +74,20 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Read the data
-    	image->Lock();
-    	IO::Read_Spin_Configuration(image, std::string(file), IO::VF_FileFormat(format));
-    	image->Unlock();
+        image->Lock();
+        IO::Read_Spin_Configuration(image, std::string(file), IO::VF_FileFormat(format));
+        image->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Read spins from file " + std::string(file) + " with format " + std::to_string(format),
-             idx_image, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Read spins from file {} with format {}", file, format),
+            idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -112,8 +114,8 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
     	image->Unlock();
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Wrote spins to file " + std::string(file) + " with format " + std::to_string(format), 
-             idx_image, idx_chain );
+            fmt::format("Wrote spins to file {} with format {}", file, format), 
+            idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -125,20 +127,20 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	// Write the data
-    	image->Lock();
-    	IO::Write_Spin_Configuration(image, 0, std::string(file), true);
-    	image->Unlock();
+        // Write the data
+        image->Lock();
+        IO::Write_Spin_Configuration(image, 0, std::string(file), true);
+        image->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Appended spins to file " + std::string(file) + " with format " + 
-             std::to_string(format), idx_image, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Appended spins to file {} with format {}", file, format),
+            idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -169,11 +171,11 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
     	chain->Unlock();
 
     	// Update llg simulation information array size
-    	if ((int)state->simulation_information_image[idx_chain].size() < chain->noi)
+    	if ((int)state->method_image[idx_chain].size() < chain->noi)
     	{
-    		for (int i=state->simulation_information_image[idx_chain].size(); i < chain->noi; ++i)
-    			state->simulation_information_image[idx_chain].push_back( 
-                    std::shared_ptr<Simulation_Information>( new Simulation_Information() ) );
+    		for (int i=state->method_image[idx_chain].size(); i < chain->noi; ++i)
+    			state->method_image[idx_chain].push_back( 
+                    std::shared_ptr<Engine::Method>( ) );
     	}
 
     	// Update state
@@ -183,7 +185,7 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
     	Chain_Setup_Data(state, idx_chain);
 
     	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Read chain from file " + std::string(file) + " with format " + std::to_string(format), 
+            fmt::format("Read chain from file {} with format {}", file, format), 
              idx_image, idx_chain );
     }
     catch( ... )
@@ -198,20 +200,20 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
 
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	// Read the data
-    	chain->Lock();
-    	IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
-    	chain->Unlock();
+        // Read the data
+        chain->Lock();
+        IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
+        chain->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		 "Wrote chain to file " + std::string(file) + " with format " + std::to_string(format), 
-             idx_image, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format("Wrote chain to file {} with format {}", file, format), 
+                idx_image, idx_chain );
     }
     catch( ... )
     {

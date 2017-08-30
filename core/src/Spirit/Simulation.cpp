@@ -80,7 +80,6 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             chain->Lock();
 
             // Determine the method and chain(s) or image(s) involved
-            // std::shared_ptr<Engine::Optimizer> optim;
             if (method_type == "LLG")
             {
                 image->iteration_allowed = true;
@@ -202,19 +201,19 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
         }
 
         // Create Simulation Information
-        auto info = std::shared_ptr<Simulation_Information>(new Simulation_Information{ method } );
+        auto info = std::shared_ptr<Engine::Method>(method);
 
         // Add to correct list
         if (method_type == "LLG")
-            state->simulation_information_image[idx_chain][idx_image] = info;
+            state->method_image[idx_chain][idx_image] = info;
         else if (method_type == "MC")
         {
-            state->simulation_information_image[idx_chain][idx_image] = info;
+            state->method_image[idx_chain][idx_image] = info;
         }
         else if (method_type == "GNEB")
-            state->simulation_information_chain[idx_chain] = info;
+            state->method_chain[idx_chain] = info;
         else if (method_type == "MMF")
-            state->simulation_information_collection = info;
+            state->method_collection = info;
         
         // Unlock chain in order to be able to iterate
         chain->Unlock();
@@ -316,18 +315,18 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
 
         if (Simulation_Running_Image(state, idx_image, idx_chain))
     	{
-    		if (state->simulation_information_image[idx_chain][idx_image])
-    			return (float) state->simulation_information_image[idx_chain][idx_image]->method->getForceMaxAbsComponent();
+    		if (state->method_image[idx_chain][idx_image])
+    			return (float) state->method_image[idx_chain][idx_image]->getForceMaxAbsComponent();
     	}
     	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->simulation_information_chain[idx_chain])
-    			return (float) state->simulation_information_chain[idx_chain]->method->getForceMaxAbsComponent();
+    		if (state->method_chain[idx_chain])
+    			return (float) state->method_chain[idx_chain]->getForceMaxAbsComponent();
         }
     	else if (Simulation_Running_Collection(state))
         {
-    		if (state->simulation_information_collection)
-    			return (float) state->simulation_information_collection->method->getForceMaxAbsComponent();
+    		if (state->method_collection)
+    			return (float) state->method_collection->getForceMaxAbsComponent();
         }
 
     	return 0;
@@ -353,18 +352,18 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
     	{
-    		if (state->simulation_information_image[idx_chain][idx_image])
-    			return (float)state->simulation_information_image[idx_chain][idx_image]->method->getIterationsPerSecond();
+    		if (state->method_image[idx_chain][idx_image])
+    			return (float)state->method_image[idx_chain][idx_image]->getIterationsPerSecond();
     	}
     	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->simulation_information_chain[idx_chain])
-    			return (float)state->simulation_information_chain[idx_chain]->method->getIterationsPerSecond();
+    		if (state->method_chain[idx_chain])
+    			return (float)state->method_chain[idx_chain]->getIterationsPerSecond();
         }
     	else if (Simulation_Running_Collection(state))
         {
-    		if (state->simulation_information_collection)
-    			return (float)state->simulation_information_collection->method->getIterationsPerSecond();
+    		if (state->method_collection)
+    			return (float)state->method_collection->getIterationsPerSecond();
         }
 
     	return 0;
@@ -377,7 +376,7 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 }
 
 
-const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain)
 {
     try
     {
@@ -391,18 +390,18 @@ const char * Simulation_Get_Optimizer_Name(State *state, int idx_image, int idx_
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
     	{
-    		if (state->simulation_information_image[idx_chain][idx_image])
-    			return "";//state->simulation_information_image[idx_chain][idx_image]->optimizer->Name().c_str();
+    		if (state->method_image[idx_chain][idx_image])
+    			return state->method_image[idx_chain][idx_image]->SolverName().c_str();
     	}
     	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->simulation_information_chain[idx_chain])
-    			return "";//state->simulation_information_chain[idx_chain]->optimizer->Name().c_str();
+    		if (state->method_chain[idx_chain])
+    			return state->method_chain[idx_chain]->SolverName().c_str();
         }
     	else if (Simulation_Running_Collection(state))
         {
-    		if (state->simulation_information_collection)
-    			return "";//state->simulation_information_collection->optimizer->Name().c_str();
+    		if (state->method_collection)
+    			return state->method_collection->SolverName().c_str();
         }
         
     	return "";
@@ -427,18 +426,18 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
     	{
-    		if (state->simulation_information_image[idx_chain][idx_image])
-    			return state->simulation_information_image[idx_chain][idx_image]->method->Name().c_str();
+    		if (state->method_image[idx_chain][idx_image])
+    			return state->method_image[idx_chain][idx_image]->Name().c_str();
     	}
     	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->simulation_information_chain[idx_chain])
-    			return state->simulation_information_chain[idx_chain]->method->Name().c_str();
+    		if (state->method_chain[idx_chain])
+    			return state->method_chain[idx_chain]->Name().c_str();
         }
     	else if (Simulation_Running_Collection(state))
         {
-    		if (state->simulation_information_collection)
-    			return state->simulation_information_collection->method->Name().c_str();
+    		if (state->method_collection)
+    			return state->method_collection->Name().c_str();
         }
 
     	return "";

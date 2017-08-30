@@ -169,7 +169,7 @@ namespace Engine
             return charge / (4*M_PI);
         }
 
-        // Utility function for the SIB Optimizer
+        // Utility function for the SIB Solver
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
         {
             #pragma omp parallel for

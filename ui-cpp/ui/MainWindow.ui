@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>29</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -91,6 +91,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoad_Configuration"/>
+    <addaction name="actionSave_Cfg_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Spin_Configuration"/>
     <addaction name="actionLoad_SpinChain_Configuration"/>
@@ -149,7 +150,7 @@
     <addaction name="actionPlay_Pause_Simulation"/>
     <addaction name="actionRandomize_Spins"/>
     <addaction name="actionCycle_Method"/>
-    <addaction name="actionCycle_Optimizer"/>
+    <addaction name="actionCycle_Solver"/>
     <addaction name="actionToggle_Dragging_mode"/>
    </widget>
    <addaction name="menuFile"/>
@@ -489,9 +490,9 @@
     <string>&amp;Cycle Method</string>
    </property>
   </action>
-  <action name="actionCycle_Optimizer">
+  <action name="actionCycle_Solver">
    <property name="text">
-    <string>Cycle &amp;Optimizer</string>
+    <string>Cycle &amp;Solver</string>
    </property>
   </action>
   <action name="actionRandomize_Spins">
@@ -507,6 +508,11 @@
   <action name="actionSave_Energies_Interpolated">
    <property name="text">
     <string>Save &amp;Interpolated Energies of the Chain</string>
+   </property>
+  </action>
+  <action name="actionSave_Cfg_File">
+   <property name="text">
+    <string>Save Cfg File</string>
    </property>
   </action>
  </widget>
