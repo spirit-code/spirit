@@ -104,16 +104,16 @@ Constants
 Geometry
 --------
 
-| Get Geometry parameters                                                         | Returns               | Description                                        |
-| ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
-| `Get_Bounds(p_state, min, max, idx_image=-1, idx_chain=-1)`                     | `None`                | Get Bounds                                         |
-| `Get_Center(p_state, center, idx_image=-1, idx_chain=-1)`                       | `None`                | Get Center                                         |
-| `Get_Basis_Vectors(p_state, a, b, c, idx_image=-1, idx_chain=-1)`               | `None`                | Get Basis vectors                                  |
-| `Get_N_Cells(p_state, idx_image=-1, idx_chain=-1)`                              | `Int, Int, Int`       | Get N Cells                                        |
-| `Get_Translation_Vectors(p_state, ta, tb, tc, idx_image=-1, idx_chain=-1)`      | `None`                | Get Translation Vectors                            |
-| `Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1)`                       | `int`                 | Get Translation Vectors                            |
-| `Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1)`                       | `Array`               | Get Pointer to Spin Positions                      |
-
+| Get Geometry parameters                                              | Returns               | Description                                        |
+| -------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
+| `Get_Bounds(p_state, idx_image=-1, idx_chain=-1)`                    | `[3], [3]`            | Get bounds (minimum and maximum arrays)            |
+| `Get_Center(p_state, idx_image=-1, idx_chain=-1)`                    | `float, float, float` | Get center                                         |
+| `Get_Basis_Vectors(p_state, idx_image=-1, idx_chain=-1)`             | `[3],[3],[3]`         | Get basis vectors                                  |
+| `Get_N_Cells(p_state, idx_image=-1, idx_chain=-1)`                   | `Int, Int, Int`       | Get number of  cells in each dimension             |
+| `Get_Translation_Vectors(p_state, idx_image=-1, idx_chain=-1)`       | `[3],[3],[3]`         | Get translation vectors                            |
+| `Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1)`            | `int`                 | Get dimensionality of the system                   |
+| `Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1)`            | `[3*NOS]`             | Get Spin positions                                 |
+| `Get_Atom_Types(p_state, idx_image=-1, idx_chain=-1)`                | `[NOS]`               | Get atom types                                     |
 
 Hamiltonian
 -----------
