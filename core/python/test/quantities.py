@@ -5,9 +5,43 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state
-from spirit import quantities
+from spirit import state, quantities, configuration
 
 import unittest
 
 ##########
+
+cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
+
+p_state = state.setup(cfgfile)                  # State setup
+
+class TestParameters(unittest.TestCase):
+    
+    def setUp(self):
+        ''' Setup a p_state and copy it to Clipboard'''
+        self.p_state = p_state
+        
+class Quantities_Get(TestParameters):
+    
+    def test_magnetization(self):
+        configuration.PlusZ(self.p_state)
+        M = quantities.Get_Magnetization(self.p_state)
+        self.assertAlmostEqual(M[0], 0)
+        self.assertAlmostEqual(M[1], 0)
+        self.assertAlmostEqual(M[2], 1)
+    
+#########
+
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(Quantities_Get))
+    return suite
+
+suite = suite()
+
+runner = unittest.TextTestRunner()
+success = runner.run(suite).wasSuccessful()
+
+state.delete( p_state )                         # Delete State
+
+sys.exit(not success)

@@ -177,6 +177,13 @@ Parameters
 | `Get_GNEB_N_Energy_Interpolations(p_state, idx_chain=-1)`            | `int`         |
 
 
+Quantities
+----------
+
+| Get Physical Quantities                                              | Returns       |
+| -------------------------------------------------------------------- | ------------- |
+| `Get_Magnetization(p_state, idx_image=-1, idx_chain=-1)`             | `[3*float]` |
+
 Simulation
 ----------
 
@@ -200,21 +207,16 @@ The available `solver_type`s are:
 
 Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
 
-
 | Simulation state                                                                                                          | Returns    |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `SingleShot(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1)`      | `None`     |
-| `PlayPause(p_state, method_type, optimizer_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1)`       | `None`     |
-| `Stop_All(p_state )`                                                                                                      | `None`     |
-| `Running_LLG(p_state, idx_image=-1, idx_chain=-1)`                                                                        | `Boolean`  |
-| `Running_LLG_Chain(p_state, idx_chain=-1)`                                                                                | `Boolean`  |
-| `Running_LLG_Anywhere(p_state )`                                                                                          | `Boolean`  |
-| `Running_GNEB(p_state, idx_chain=-1)`                                                                                     | `Boolean`  |
-| `Running_GNEB_Anywhere(p_state )`                                                                                         | `Boolean`  |
-| `Running_MMF(p_state )`                                                                                                   | `Boolean`  |
-| `Running_Any(p_state, idx_image=-1, idx_chain=-1)`                                                                        | `Boolean`  |
-| `Running_Any_Anywhere(p_state )`                                                                                          | `Boolean`  |
-
+| `SingleShot(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1)`         | `None`     |
+| `PlayPause(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, idx_image=-1, idx_chain=-1)`          | `None`     |
+| `Stop_All(p_state)`                                                                                                       | `None`     |
+| `Running_Image(p_state, idx_image=-1, idx_chain=-1)`                                                                      | `Boolean`  |
+| `Running_Chain(p_state, idx_chain=-1)`                                                                                    | `Boolean`  |
+| `Running_Collection(p_state)`                                                                                             | `Boolean`  |
+| `Running_Anywhere_Chain(p_state, idx_chain=-1)`                                                                           | `Boolean`  |
+| `Running_Anywhere_Collection(p_state)`                                                                                    | `Boolean`  |
 
 
 Transition
