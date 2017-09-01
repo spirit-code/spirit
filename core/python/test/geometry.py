@@ -5,8 +5,7 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state
-from spirit import geometry
+from spirit import state, geometry
 
 import unittest
 
@@ -44,7 +43,8 @@ class Geometry(TestParameters):
     def test_basis_vector(self):
         a, b, c = geometry.Get_Basis_Vectors(self.p_state)
         # From the api.cfg the basis is (1,0,0), (0,1,0), (0,0,1)
-        self.assertEqual(a[0], b[1], c[2])
+        self.assertEqual(a[0], b[1])
+        self.assertEqual(b[1], c[2])
     
     def test_N_cells(self):
         ncells = geometry.Get_N_Cells(self.p_state)
@@ -55,7 +55,9 @@ class Geometry(TestParameters):
     def test_translational_vector(self):
         ta, tb, tc = geometry.Get_Translation_Vectors(self.p_state)
         # From the api.cfg the tvec are (1,0,0), (0,1,0), (0,0,1)
-        self.assertEqual(ta[0], tb[1], tc[2])
+        self.assertEqual(ta[0], tb[1])
+        self.assertEqual(ta[1], tb[2])
+    
     
     def test_dimensionality(self):
         dimen = geometry.Get_Dimensionality(self.p_state)

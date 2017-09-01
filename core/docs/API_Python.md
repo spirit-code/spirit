@@ -122,8 +122,6 @@ Hamiltonian
 | ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
 | `Set_Field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`          | `None`                | Set external magnetic field                        |
 | `Set_Anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`     | `None`                | Set anisotropy                                     |
-| `Set_STT(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`            | `None`                | Set spin transfer torque                           |
-| `Set_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1)`             | `None`                | Set temperature                                    |
 
 
 Log
@@ -228,6 +226,20 @@ Transition
 | `Add_Noise_Temperature(p_state, temperature, idx_1, idx_2, idx_chain=-1)`    | `None`   | Add some temperature-scaled noise to a transition between two images of a chain    |
 
 
+Input/Output
+------------
+
+| For Image                                                                     | Description                          |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| `Image_Read(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`     | Read an image from disk              |
+| `Image_Write(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`    | Write an image to disk               |
+| `Image_Append(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`   | Append an image to an existing file  |
+
+| For Chain                                                                     | Description                          |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| `Chain_Read(p_state, filename, fileformat=0, idx_chain=-1)`                   | Read a chain of images from disk     |
+| `Chain_Write(p_state, filename, fileformat=0, idx_chain=-1)`                  | Write a chain of images to disk      |
+
 ---
 
-[Home](Readme.md)
+[Home](README.md)
