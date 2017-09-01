@@ -27,9 +27,9 @@ namespace IO
 		std::string line = "";
 		for (unsigned int i=0; i<firstcolumns.size(); ++i)
 		{
-			if (readability_toggle) separator += "--------------------++";
+			if (readability_toggle) separator += "----------------------++";
 			// Centered column titles
-			line += fmt::format("{:^20}", firstcolumns[i]) + "||";
+			line += fmt::format("{:^22}", firstcolumns[i]) + "||";
 		}
 		if (contributions)
 		{
@@ -44,7 +44,7 @@ namespace IO
 				}
 				// Centered column titles
 				line += fmt::format("{:^20}", pair.first);
-				if (readability_toggle) separator += "--------------------";
+				if (readability_toggle) separator += "----------------------";
 			}
 		}
 		line += "\n";
@@ -67,7 +67,7 @@ namespace IO
 		// s.UpdateEnergy();
 
 		// Centered column entries
-		std::string line = fmt::format("{:^20} || {:^20.10f} |", iteration, s.E * nd);
+		std::string line = fmt::format(" {:^20} || {:^20.10f} |", iteration, s.E * nd);
 		for (auto pair : s.E_array)
 		{
 			line += fmt::format("| {:^20.10f} ", pair.second * nd);
@@ -87,7 +87,7 @@ namespace IO
 
 		Write_Energy_Header(system, fileName, {"E_tot"});
 
-		std::string line = fmt::format("{:^20.10f} |", system.E * nd);
+		std::string line = fmt::format(" {:^20.10f} |", system.E * nd);
 		for (auto pair : system.E_array)
 		{
 			line += fmt::format("| {:^20.10f} ", pair.second * nd);
@@ -117,7 +117,7 @@ namespace IO
 		{
 			scalar E_spin=0;
 			for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
-			data += fmt::format("{:^20} || {:^20.10f} |", ispin, E_spin * nd);
+			data += fmt::format(" {:^20} || {:^20.10f} |", ispin, E_spin * nd);
 			for (auto pair : contributions_spins)
 			{
 				data += fmt::format("| {:^20.10f} ", pair.second[ispin] * nd);
@@ -146,7 +146,7 @@ namespace IO
 		for (isystem = 0; isystem < (int)c.noi; ++isystem)
 		{
 			auto& system = *c.images[isystem];
-			std::string line = fmt::format("{:^20} || {:^20.10f} || {:^20.10f} |", isystem, c.Rx[isystem], system.E * nd);
+			std::string line = fmt::format(" {:^20} || {:^20.10f} || {:^20.10f} |", isystem, c.Rx[isystem], system.E * nd);
 			for (auto pair : system.E_array)
 			{
 				line += fmt::format("| {:^20.10f} ", pair.second * nd);
@@ -281,10 +281,10 @@ namespace IO
 			{
 				#ifdef SPIRIT_ENABLE_DEFECTS
 				if (c->images[iimage]->geometry->atom_types[iatom] < 0)
-					output_to_file += fmt::format("\n {18.10f} {18.10f} {18.10f}", 0, 0, 0);
+					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", 0, 0, 0);
 				else
 				#endif
-					output_to_file += fmt::format("\n {18.10f} {18.10f} {18.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
+					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
 			}
 		}
 		Dump_to_File(output_to_file, fileName);
