@@ -118,7 +118,7 @@ class GNEB_set_get(TestParameters):
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(LLG_set_get))
-#    suite.addTest(unittest.makeSuite(GNEB_set_get))
+    suite.addTest(unittest.makeSuite(GNEB_set_get))
     return suite
 
 suite = suite()
