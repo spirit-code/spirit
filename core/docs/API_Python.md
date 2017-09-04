@@ -140,41 +140,41 @@ Parameters
 
 | Set LLG Parameters                                                                            | Returns       |
 | --------------------------------------------------------------------------------------------- | ------------- |
-| `Set_LLG_N_Iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1)`   | `None`        |
-| `Set_LLG_Direct_Minimization(p_state, use_minimization, idx_image=-1, idx_chain=-1)`          | `None`        |
-| `Set_LLG_Convergence(p_state, convergence, idx_image=-1, idx_chain=-1)`                       | `None`        |
-| `Set_LLG_Time_Step(p_state, dt, idx_image=-1, idx_chain=-1)`                                  | `None`        |
-| `Set_LLG_Damping(p_state, damping, idx_image=-1, idx_chain=-1)`                               | `None`        |
-| `Set_LLG_STT(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=-1)`        | `None`        |
-| `Set_LLG_Temperature(p_state, temperature, idx_image=-1, idx_chain=-1)`                       | `None`        |
+| `setIterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1)`          | `None`        |
+| `setDirectMinimization(p_state, use_minimization, idx_image=-1, idx_chain=-1)`                | `None`        |
+| `setConvergence(p_state, convergence, idx_image=-1, idx_chain=-1)`                            | `None`        |
+| `setTimeStep(p_state, dt, idx_image=-1, idx_chain=-1)`                                        | `None`        |
+| `setDamping(p_state, damping, idx_image=-1, idx_chain=-1)`                                    | `None`        |
+| `setSTT(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=-1)`             | `None`        |
+| `setTemperature(p_state, temperature, idx_image=-1, idx_chain=-1)`                            | `None`        |
 
 | Get LLG Parameters                                                     | Returns       |
 | ---------------------------------------------------------------------- | ------------- |
-| `Get_LLG_N_Iterations(p_state, idx_image=-1, idx_chain=-1)`            | `int, int`    |
-| `Get_LLG_Direct_Minimization(p_state, idx_image=-1, idx_chain=-1)`     | `int`         |
-| `Get_LLG_Convergence(p_state, idx_image=-1, idx_chain=-1)`             | `float`       |
-| `Get_LLG_Time_Step(p_state, idx_image=-1, idx_chain=-1)`               | `float`       |
-| `Get_LLG_Damping(p_state, idx_image=-1, idx_chain=-1)`                 | `float`       |
-| `Get_LLG_STT(p_state, idx_image=-1, idx_chain=-1)`                     | `float, [3*float], bool` |
-| `Get_LLG_Temperature(p_state, idx_image=-1, idx_chain=-1)`             | `float`       |
+| `getIterations(p_state, idx_image=-1, idx_chain=-1)`                   | `int, int`    |
+| `getDirect_Minimization(p_state, idx_image=-1, idx_chain=-1)`          | `int`         |
+| `getConvergence(p_state, idx_image=-1, idx_chain=-1)`                  | `float`       |
+| `getTimeStep(p_state, idx_image=-1, idx_chain=-1)`                     | `float`       |
+| `getDamping(p_state, idx_image=-1, idx_chain=-1)`                      | `float`       |
+| `getSTT(p_state, idx_image=-1, idx_chain=-1)`                          | `float, [3], bool` |
+| `getTemperature(p_state, idx_image=-1, idx_chain=-1)`                  | `float`       |
 
 ### GNEB
 
 | Set GNEB Parameters                                                                                | Returns       |
 | -------------------------------------------------------------------------------------------------- | ------------- |
-| `Set_GNEB_N_Iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1)`       | `None`        |
-| `Set_GNEB_Convergence(p_state, convergence, idx_image=-1, idx_chain=-1)`                           | `None`        |
-| `Set_GNEB_Spring_Constant(p_state, c_spring, idx_image=-1, idx_chain=-1)`                          | `None`        |
-| `Set_GNEB_Climbing_Falling(p_state, image_type, idx_image=-1, idx_chain=-1)`                       | `None`        |
-| `Set_GNEB_Image_Type_Automatically(p_state, idx_chain=-1)`                                         | `None`        |
+| `setIterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1)`               | `None`        |
+| `setConvergence(p_state, convergence, idx_image=-1, idx_chain=-1)`                                 | `None`        |
+| `setSpringConstant(p_state, c_spring, idx_image=-1, idx_chain=-1)`                                 | `None`        |
+| `setClimbingFalling(p_state, image_type, idx_image=-1, idx_chain=-1)`                              | `None`        |
+| `setImageTypeAutomatically(p_state, idx_chain=-1)`                                                 | `None`        |
 
 | Get GNEB Parameters                                                  | Returns       |
 | -------------------------------------------------------------------- | ------------- |
-| `Get_GNEB_N_Iterations(p_state, idx_chain=-1)`                       | `int, int`    |
-| `Get_GNEB_Convergence(p_state, idx_image=-1, idx_chain=-1)`          | `float`       |
-| `Get_GNEB_Spring_Constant(p_state,  idx_image=-1, idx_chain=-1)`     | `float`       |
-| `Get_GNEB_Climbing_Falling(p_state, idx_image=-1, idx_chain=-1)`     | `int`         |
-| `Get_GNEB_N_Energy_Interpolations(p_state, idx_chain=-1)`            | `int`         |
+| `getIterations(p_state, idx_chain=-1)`                               | `int, int`    |
+| `getConvergence(p_state, idx_image=-1, idx_chain=-1)`                | `float`       |
+| `getSpringConstant(p_state,  idx_image=-1, idx_chain=-1)`            | `float`       |
+| `getClimbingFalling(p_state, idx_image=-1, idx_chain=-1)`            | `int`         |
+| `getEnergyInterpolations(p_state, idx_chain=-1)`                     | `int`         |
 
 
 Quantities
