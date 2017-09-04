@@ -255,7 +255,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
     }
 }
 
-void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, const float * normal,
+void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, const float normal[3],
                              int idx_image, int idx_chain )
 {
     try
@@ -907,7 +907,7 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     }
 }
 
-void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitude, float * normal, 
+void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitude, float normal[3], 
                              int idx_image, int idx_chain )
 {
     try

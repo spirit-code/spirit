@@ -32,7 +32,6 @@ spirit.js.mem
 
 ### Generated Files
 core/python/LICENSE.txt
-__init__.py
 VERSION.txt
 scalar.py
 version.py

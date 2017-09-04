@@ -30,4 +30,4 @@ _State_Delete = _spirit.State_Delete
 _State_Delete.argtypes = [ctypes.c_void_p]
 _State_Delete.restype = None
 def delete(p_state):
-    return _State_Delete(p_state)
+    return _State_Delete(ctypes.c_void_p(p_state))

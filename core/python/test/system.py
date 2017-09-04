@@ -5,9 +5,59 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state
-from spirit import system
+from spirit import state, system, configuration
 
 import unittest
 
 ##########
+
+cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
+p_state = state.setup(cfgfile)                  # State setup
+
+class TestSystem(unittest.TestCase):
+    
+    def setUp(self):
+        ''' Setup a p_state and copy it to Clipboard'''
+        self.p_state = p_state
+        
+class SystemGetters(TestSystem):
+    
+    def test_get_index(self):
+        index = system.Get_Index(self.p_state)
+        self.assertEqual(index, 0)
+    
+    def test_get_nos(self):
+        nos = system.Get_NOS(self.p_state)
+        self.assertEqual(nos, 4)
+    
+    def test_get_spin_directions(self):
+        configuration.PlusZ(self.p_state)
+        nos = system.Get_NOS(self.p_state)
+        arr = system.Get_Spin_Directions(self.p_state)
+        for i in range(nos):
+            self.assertAlmostEqual( arr[i][0], 0. )
+            self.assertAlmostEqual( arr[i][1], 0. )
+            self.assertAlmostEqual( arr[i][2], 1. )
+    
+    def test_get_energy(self):
+        # NOTE: that test is trivial
+        E = system.Get_Energy(self.p_state)
+    
+    
+    # NOTE: there is no way to test the system.Update_Data() and system.Print_Energy_Array()
+
+#########
+
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(SystemGetters))
+    return suite
+
+suite = suite()
+
+runner = unittest.TextTestRunner()
+success = runner.run(suite).wasSuccessful()
+
+state.delete( p_state )                         # delete state
+
+sys.exit(not success)

@@ -5,8 +5,7 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state
-from spirit import configuration
+from spirit import state, configuration
 
 import unittest
 

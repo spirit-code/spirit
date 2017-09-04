@@ -14,7 +14,7 @@ VERSION.txt
 python/LICENSE.txt
 Spirit_Defines.h
 Version.h
-__init__.py
+python/spirit/__init__.py
 scalar.py
 version.py
 
