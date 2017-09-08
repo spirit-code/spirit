@@ -11,12 +11,23 @@ platform:
 
 # Build Configurations, i.e. Debug, Release, etc.
 configuration:
-  - Release
-  # - Debug
+- Debug
+- Release
 
+# Environment variables: add Python3 path and only on Debug also
+# EXCLUDETESTS to exclude tests which would take too much time
 environment:
-    matrix:
-        - PYTHON: "C:\\Python36-x64"
+  matrix:
+    - PYTHON: "C:\\Python36-x64"
+      EXCLUDETESTS: solver
+    - PYTHON: "C:\\Python36-x64"
+      EXCLUDETESTS:
+matrix:
+  exclude:
+    - configuration: Release
+      EXCLUDETESTS: solver
+    - configuration: Debug
+      EXCLUDETESTS:
         
 # Cmake will autodetect the compiler, but we set the arch
 before_build:
@@ -35,4 +46,4 @@ install:
 
 test_script:
   - cd Build
-  - ctest --output-on-failure -C %CONFIGURATION%
+  - ctest --output-on-failure -C %CONFIGURATION% -E %EXCLUDETESTS%
