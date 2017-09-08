@@ -6,6 +6,7 @@
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
     int N = 10000;
+	int N_check = std::min(100, N);
     scalarfield sf(N, 1);
     vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
     vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
@@ -51,7 +52,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Vector3 vtest{ 0, stest, 0 };
         Engine::Vectormath::fill(sf, stest);
         Engine::Vectormath::fill(vf1, vtest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
         {
             REQUIRE(sf[i] == stest);
             REQUIRE(vf1[i] == vtest);
@@ -64,7 +65,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Vector3 vtest{ stest, stest, stest };
         Engine::Vectormath::scale(sf, stest);
         Engine::Vectormath::scale(vf1, stest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
         {
             REQUIRE(sf[i] == stest);
             REQUIRE(vf1[i] == vtest);
@@ -100,7 +101,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         scalarfield denominator( N, 2 );
         scalarfield result( N, 0 );
         Engine::Vectormath::divide( numerator, denominator, result );
-        for (int i=0; i < N; i++)
+        for (int i=0; i < N_check; i++)
         {
             REQUIRE( result[i] == stest3 );
         }
@@ -115,7 +116,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Vector3 vtest2 = vf2[0].normalized();
         Engine::Vectormath::normalize_vectors(vf1);
         Engine::Vectormath::normalize_vectors(vf2);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
         {
             REQUIRE(vf1[i] == vtest1);
             REQUIRE(vf2[i] == vtest2);
@@ -177,36 +178,36 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Vector3 vtest1{ 1.0, 1.0, 1.0 };
         Vector3 vtest2{ 1.0, 3.0, 3.0 };
         Engine::Vectormath::add_c_a(2, vtest1, vf2);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vf2[i] == vtest2);
         
         // out[i] += c*a[i]
         Vector3 vtest3{ 0.0, -2.0, -2.0 };
         Engine::Vectormath::add_c_a(-1, vf2, vf1);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vf1[i] == vtest3);
         
         // out[i] = c*a
         Engine::Vectormath::set_c_a(3, vtest1, vf1);    // vf1 is now { 3, 3, 3 }
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vf1[i] == 3*vtest1);
         
         // out[i] = c*a[i]
         Engine::Vectormath::set_c_a(3, vf1, vf2);   // vf2 is now { 9, 9, 9 }
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vf2[i] == 3*vf1[i]); 
         
         // out[i] += c[i]*a[i]
         Vector3 vtest4{ -6, -6, -6 };
         scalarfield sf( N, -1 );
         Engine::Vectormath::add_c_a( sf, vf2, vf1 );    // vf1 is now { -6, -6, -6 }
-        for (int i=0; i < N; i++)
+        for (int i=0; i < N_check; i++)
             REQUIRE( vf1[i] == vtest4 ); 
         
         // out[i] = c[i]*a[i]
         Vector3 vtest5{ 6, 6, 6 };
         Engine::Vectormath::set_c_a( sf, vf1, vf2 );    // vf2 is now { 6, 6, 6 }
-        for (int i=0; i < N; i++)
+        for (int i=0; i < N_check; i++)
             REQUIRE( vf2[i] == vtest5 );
     } 
 
@@ -215,22 +216,22 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         // out[i] += c * a*b[i]
         Vector3 vtest1{ 1.0, -2.0, -3.0 };
         Engine::Vectormath::add_c_dot(-3, vtest1, vf1, sf);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == 13);
         
         // out[i] += c * a[i]*b[i]
         Engine::Vectormath::add_c_dot(-2, vf1, vf2, sf);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == 11);
         
         // out[i] = c * a*b[i]
         Engine::Vectormath::set_c_dot(3, vtest1, vf1, sf);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == -12);
         
         // out[i] = c * a[i]*b[i]
         Engine::Vectormath::set_c_dot(2, vf1, vf2, sf);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == 2);
     }
 
@@ -241,24 +242,24 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         // out[i] += c * a x b[i]
         Vector3 vtest1{ 1.0, 9.0, -7.0 };
         Engine::Vectormath::add_c_cross(4, vf2[0], vf1, vftest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest1);
         
         // out[i] += c * a[i] x b[i]
         Vector3 vtest2{ 1.0, 1.0, 1.0 };
         Engine::Vectormath::add_c_cross(4, vf1, vf2, vftest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest2);
 
         // out[i] = c * a x b[i]
         Vector3 vtest3{ 0.0, -6.0, 6.0 };
         Engine::Vectormath::set_c_cross(3, vf1[0], vf2, vftest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest3);
         
         // out[i] = c * a[i] x b[i]
         Engine::Vectormath::set_c_cross(3, vf1, vf2, vftest);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest3);
     }
 }

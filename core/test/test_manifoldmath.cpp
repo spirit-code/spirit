@@ -7,6 +7,7 @@
 TEST_CASE( "Manifold operations", "[manifold]" )
 {
 	int N = 10000;
+	int N_check = std::min(100, N);
 	vectorfield v1(N, Vector3{ 0.0, 0.0, 1.0 });
 	vectorfield v2(N, Vector3{ 1.0, 1.0, 1.0 });
 
@@ -58,7 +59,7 @@ TEST_CASE( "Manifold operations", "[manifold]" )
     REQUIRE_FALSE( Engine::Vectormath::dot(v1,v2) == Approx(0) );  // Assert they are not orthogonal
     Engine::Vectormath::normalize_vectors( v2 );    // Normalize all vector3 of v2 for projection
     Engine::Manifoldmath::project_tangential(v1,v2); 
-    for (int i=0; i<N; i++)
+    for (int i=0; i<N_check; i++)
     {
       
       REQUIRE( v2[i].dot(v1[i]) == Approx(0) );
