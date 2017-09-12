@@ -49,17 +49,17 @@ string( REPLACE ";" ", " INTERFACE_EXPORT_FUNCTIONS_STRING "${INTERFACE_EXPORT_F
 
 ######## GNU Compiler Collection - gcc ###############################
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	### Message
-	MESSAGE( STATUS ">> Chose compiler:                gcc" )
-	### Compiler Flags
-	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -DEIGEN_NO_DEBUG" )
-	### Linker Flags
-	if (APPLE)
-		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -Wl,-no_compact_unwind -pthread" )
-	else()
-		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -pthread" )
-	endif()
-	# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}    "-O3")
+### Message
+MESSAGE( STATUS ">> Chose compiler:                gcc" )
+### Compiler Flags
+set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -DEIGEN_NO_DEBUG" )
+### Linker Flags
+if (APPLE)
+	set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -Wl,-no_compact_unwind -pthread" )
+else()
+	set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -pthread" )
+endif()
+# set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}    "-O3")
 ######################################################################
 
 ######## Apple Clang #################################################
@@ -91,10 +91,18 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2")
 ######################################################################
 
-######## Intel Compiler ##############################################
-# elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-# 	### Message
-# 	MESSAGE( STATUS ">> Chose Intel compiler" )
+######## Intel Compiler - icc ########################################
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
+	### Message
+	MESSAGE( STATUS ">> Chose compiler:                Intel" )
+	### Compiler Flags
+	set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -DEIGEN_NO_DEBUG" )
+	### Linker Flags
+	if (APPLE)
+		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -Wl,-no_compact_unwind -pthread" )
+	else()
+		set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -DEIGEN_NO_DEBUG -pthread" )
+	endif()
 ######################################################################
 
 ######## The End #####################################################

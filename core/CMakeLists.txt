@@ -125,10 +125,14 @@ if((NOT qhull_LIBS) OR (NOT qhull_INCLUDE_DIRS))
 		message(WARNING "qhull_INCLUDE_DIRS is set, but qhull_LIBS is missing.")
 	endif()
 
+	set (       CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install")
+	list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
+	list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+	
 	include(ExternalProject)
 	ExternalProject_add(qhull
 		GIT_REPOSITORY https://github.com/qhull/qhull.git
-		CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
+		CMAKE_ARGS ${CMAKE_QHULL_ARGS}
 		PREFIX qhull-prefix
 	)
 
