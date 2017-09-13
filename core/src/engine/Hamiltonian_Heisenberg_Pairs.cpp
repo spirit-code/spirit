@@ -167,12 +167,16 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
+		const int Na = geometry->n_cells[0];
+		const int Nb = geometry->n_cells[1];
+		const int Nc = geometry->n_cells[2];
+
 		#pragma omp parallel for collapse(3)
-		for (int da = 0; da < geometry->n_cells[0]; ++da)
+		for (int da = 0; da < Na; ++da)
 		{
-			for (int db = 0; db < geometry->n_cells[1]; ++db)
+			for (int db = 0; db < Nb; ++db)
 			{
-				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+				for (int dc = 0; dc < Nc; ++dc)
 				{
 					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
 					{
@@ -205,12 +209,16 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
+		const int Na = geometry->n_cells[0];
+		const int Nb = geometry->n_cells[1];
+		const int Nc = geometry->n_cells[2];
+
 		#pragma omp parallel for collapse(3)
-		for (int da = 0; da < geometry->n_cells[0]; ++da)
+		for (int da = 0; da < Na; ++da)
 		{
-			for (int db = 0; db < geometry->n_cells[1]; ++db)
+			for (int db = 0; db < Nb; ++db)
 			{
-				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+				for (int dc = 0; dc < Nc; ++dc)
 				{
 					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
 					{
@@ -355,12 +363,16 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
+		const int Na = geometry->n_cells[0];
+		const int Nb = geometry->n_cells[1];
+		const int Nc = geometry->n_cells[2];
+
 		#pragma omp parallel for collapse(3)
-		for (int da = 0; da < geometry->n_cells[0]; ++da)
+		for (int da = 0; da < Na; ++da)
 		{
-			for (int db = 0; db < geometry->n_cells[1]; ++db)
+			for (int db = 0; db < Nb; ++db)
 			{
-				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+				for (int dc = 0; dc < Nc; ++dc)
 				{
 					std::array<int, 3> translations = { da, db, dc };
 					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
@@ -393,12 +405,16 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
+		const int Na = geometry->n_cells[0];
+		const int Nb = geometry->n_cells[1];
+		const int Nc = geometry->n_cells[2];
+
 		#pragma omp parallel for collapse(3)
-		for (int da = 0; da < geometry->n_cells[0]; ++da)
+		for (int da = 0; da < Na; ++da)
 		{
-			for (int db = 0; db < geometry->n_cells[1]; ++db)
+			for (int db = 0; db < Nb; ++db)
 			{
-				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+				for (int dc = 0; dc < Nc; ++dc)
 				{
 					std::array<int, 3 > translations = { da, db, dc };
 					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
