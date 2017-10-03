@@ -47,6 +47,7 @@ private slots:
 	void control_cycle_method();
 	void control_cycle_solver();
 	void view_toggleDebug();
+	void view_toggleGeometry();
 	void view_togglePlots();
 	void view_toggleSettings();
 	void view_regular_mode();

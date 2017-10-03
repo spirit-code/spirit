@@ -48,6 +48,12 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 		this->tabWidget_Settings->removeTab(2);
 	}
 
+	// Geometry
+	this->geometryWidget = new GeometryWidget(state, spinWidget);
+	this->tab_Settings_Geometry->layout()->addWidget(this->geometryWidget);
+	connect(this->geometryWidget, SIGNAL(updateNeeded()), this, SLOT(updateData()));
+	this->tabWidget_Settings->removeTab(3);
+
 	// Visualisation
 	this->visualisationSettingsWidget = new VisualisationSettingsWidget(state, spinWidget);
 	this->tab_Settings_Visualisation->layout()->addWidget(this->visualisationSettingsWidget);
@@ -62,6 +68,8 @@ void SettingsWidget::updateData()
 	if (H_name == "Heisenberg (Neighbours)") this->hamiltonianHeisenbergNeighboursWidget->updateData();
 	else if (H_name == "Heisenberg (Pairs)") this->hamiltonianHeisenbergPairsWidget->updateData();
 	else if (H_name == "Gaussian") this->hamiltonianGaussianWidget->updateData();
+	// Geometry
+	this->geometryWidget->updateData();
 	// Visualisation
 	this->visualisationSettingsWidget->updateData();
 
@@ -90,4 +98,12 @@ void SettingsWidget::randomPressed()
 void SettingsWidget::configurationAddNoise()
 {
 	this->configurationsWidget->configurationAddNoise();
+}
+
+void SettingsWidget::toggleGeometry()
+{
+	if (this->tabWidget_Settings->count() > 4)
+		this->tabWidget_Settings->removeTab(3);
+	else
+		this->tabWidget_Settings->insertTab(3, this->tab_Settings_Geometry, "Geometry");
 }

@@ -90,6 +90,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
 	connect(this->actionShow_Plots, SIGNAL(triggered()), this, SLOT(view_togglePlots()));
 	connect(this->actionShow_Debug, SIGNAL(triggered()), this, SLOT(view_toggleDebug()));
+	connect(this->actionToggle_Geometry, SIGNAL(triggered()), this, SLOT(view_toggleGeometry()));
 	connect(this->actionToggle_camera_projection, SIGNAL(triggered()), this, SLOT(view_cycle_camera()));
 	connect(this->actionRegular_mode, SIGNAL(triggered()), this, SLOT(view_regular_mode()));
 	connect(this->actionIsosurface_mode, SIGNAL(triggered()), this, SLOT(view_isosurface_mode()));
@@ -567,6 +568,11 @@ void MainWindow::view_toggleDebug()
 {
 	if (this->dockWidget_Debug->isVisible()) this->dockWidget_Debug->hide();
 	else this->dockWidget_Debug->show();
+}
+
+void MainWindow::view_toggleGeometry()
+{
+	this->settingsWidget->toggleGeometry();
 }
 
 void MainWindow::view_togglePlots()

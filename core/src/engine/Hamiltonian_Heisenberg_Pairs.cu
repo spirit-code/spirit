@@ -62,6 +62,22 @@ namespace Engine
 		this->Update_Energy_Contributions();
 	}
 
+	void Hamiltonian_Heisenberg_Pairs::Update_From_Geometry()
+	{
+		// TODO: data needs to be scaled and ordered correctly
+		// TODO: there should be a basic set of info given through the constructor,
+		//       i.e. per basis cell, which can then be extrapolated. This needs to
+		//       redesigned.
+
+		this->anisotropy_indices.resize(this->geometry->nos);
+		this->anisotropy_magnitudes.resize(this->geometry->nos);
+		this->anisotropy_normals.resize(this->geometry->nos);
+
+		this->external_field_indices.resize(this->geometry->nos);
+		this->external_field_magnitudes.resize(this->geometry->nos);
+		this->external_field_normals.resize(this->geometry->nos);
+	}
+
 	void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
 	{
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);

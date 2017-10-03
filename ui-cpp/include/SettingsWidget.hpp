@@ -11,6 +11,7 @@
 #include "HamiltonianHeisenbergNeighboursWidget.hpp"
 #include "HamiltonianHeisenbergPairsWidget.hpp"
 #include "HamiltonianGaussianWidget.hpp"
+#include "GeometryWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
 
 #include "ui_SettingsWidget.h"
@@ -24,13 +25,14 @@ class SettingsWidget : public QWidget, private Ui::SettingsWidget
 
 public:
 	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
-	void updateData();
 	void SelectTab(int index);
 	void incrementNCellStep(int increment);
+	void toggleGeometry();
 
 	std::shared_ptr<State> state;
 
 public slots:
+	void updateData();
 	// Configurations
 	void configurationAddNoise();
 	void randomPressed();
@@ -43,6 +45,7 @@ private:
 	HamiltonianHeisenbergNeighboursWidget * hamiltonianHeisenbergNeighboursWidget;
 	HamiltonianHeisenbergPairsWidget * hamiltonianHeisenbergPairsWidget;
 	HamiltonianGaussianWidget * hamiltonianGaussianWidget;
+	GeometryWidget * geometryWidget;
 	VisualisationSettingsWidget * visualisationSettingsWidget;
 };
 

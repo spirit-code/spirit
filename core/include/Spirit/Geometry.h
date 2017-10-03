@@ -6,6 +6,18 @@ struct State;
 
 #include "Spirit_Defines.h"
 
+
+// Set the number of basis cells in the three translation directions
+DLLEXPORT void Geometry_Set_N_Cells(State * state, int n_cells[3]);
+// Set the number and positions of atoms in a basis cell
+DLLEXPORT void Geometry_Set_Basis_Atoms(State *state, int n_atoms, float ** atoms);
+// Set the three translation vectors
+DLLEXPORT void Geometry_Set_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3]);
+
+
+// Get number of spins
+DLLEXPORT int Geometry_Get_NOS(State * state);
+
 // Get positions of spins
 DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1);
 
@@ -40,6 +52,7 @@ DLLEXPORT int Geometry_Get_Triangulation(State * state, const int **indices_ptr,
 // Get the 3D Delaunay triangulation. Returns the number of tetrahedrons and
 // sets *indices_ptr to point to a list of index 4-tuples.
 DLLEXPORT int Geometry_Get_Tetrahedra(State * state, const int **indices_ptr, int n_cell_step=1, int idx_image=-1, int idx_chain=-1);
+
 
 #include "DLL_Undefine_Export.h"
 #endif
