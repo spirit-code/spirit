@@ -14,6 +14,9 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
     // Deal with all systems in all chains
     for (auto& chain : state->collection->chains)
     {
+		// Lock to avoid memory errors
+		chain->Lock();
+		// Modify all systems in the chain
         for (auto& system : chain->images)
         {
             int nos_old = system->nos;
@@ -45,6 +48,8 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
 			// TODO: how to resize with correct ordering of data?
 			system->hamiltonian->Update_From_Geometry();
         }
+		// Unlock again
+		chain->Unlock();
     }
 
     // Update convenience integers across everywhere
@@ -55,6 +60,9 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
         auto& system = state->clipboard_image;
         int nos_old = system->nos;
         system->nos = nos;
+
+		// Lock to avoid memory errors
+		system->Lock();
         
         // Geometry
         auto ge = system->geometry;
@@ -76,6 +84,9 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
         // Parameters
         // TODO: properly re-generate pinning
         system->llg_parameters->pinning->mask_unpinned = intfield(nos, 1);
+
+		// Unlock
+		system->Unlock();
 	}
     // Deal with clipboard configuration of State
 	if (state->clipboard_spins)

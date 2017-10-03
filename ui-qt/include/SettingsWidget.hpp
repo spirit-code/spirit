@@ -27,6 +27,7 @@ public:
 	SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
 	void SelectTab(int index);
 	void incrementNCellStep(int increment);
+	void toggleGeometry();
 
 	std::shared_ptr<State> state;
 

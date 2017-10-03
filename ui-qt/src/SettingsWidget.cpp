@@ -52,6 +52,7 @@ SettingsWidget::SettingsWidget(std::shared_ptr<State> state, SpinWidget *spinWid
 	this->geometryWidget = new GeometryWidget(state, spinWidget);
 	this->tab_Settings_Geometry->layout()->addWidget(this->geometryWidget);
 	connect(this->geometryWidget, SIGNAL(updateNeeded()), this, SLOT(updateData()));
+	this->tabWidget_Settings->removeTab(3);
 
 	// Visualisation
 	this->visualisationSettingsWidget = new VisualisationSettingsWidget(state, spinWidget);
@@ -97,4 +98,12 @@ void SettingsWidget::randomPressed()
 void SettingsWidget::configurationAddNoise()
 {
 	this->configurationsWidget->configurationAddNoise();
+}
+
+void SettingsWidget::toggleGeometry()
+{
+	if (this->tabWidget_Settings->count() > 4)
+		this->tabWidget_Settings->removeTab(3);
+	else
+		this->tabWidget_Settings->insertTab(3, this->tab_Settings_Geometry, "Geometry");
 }

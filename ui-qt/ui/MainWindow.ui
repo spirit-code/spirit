@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>29</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -129,6 +129,7 @@
     <addaction name="actionShow_Settings"/>
     <addaction name="actionShow_Plots"/>
     <addaction name="actionShow_Debug"/>
+    <addaction name="actionToggle_Geometry"/>
     <addaction name="separator"/>
     <addaction name="actionToggle_camera_projection"/>
     <addaction name="separator"/>
@@ -507,6 +508,11 @@
   <action name="actionSave_Energies_Interpolated">
    <property name="text">
     <string>Save &amp;Interpolated Energies of the Chain</string>
+   </property>
+  </action>
+  <action name="actionToggle_Geometry">
+   <property name="text">
+    <string>Toggle Geometry</string>
    </property>
   </action>
  </widget>
