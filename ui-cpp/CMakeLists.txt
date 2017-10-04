@@ -1,5 +1,5 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
-MESSAGE( STATUS ">> --------------------- UI - QT -------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - CPP ------------------------------------- <<" )
 
 ######### CMake Version #####################
 cmake_minimum_required( VERSION 3.0 )
@@ -43,7 +43,7 @@ endif ( )
 ### Installation
 set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
 #############################################
-set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
+# set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 #############################################
 
@@ -189,10 +189,10 @@ if ( UI_CXX_USE_QT )
     ENDIF ( WIN32 AND BUNDLE_APP )
     ###
     IF ( WIN32 )
-        set(ICON_FILE {CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico)
+        set(ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico)
         configure_file(
-            "${PROJECT_SOURCE_DIR}/cmake/windows_metafile.rc.in"
-            "windows_metafile.rc" )
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/windows_metafile.rc.in
+            ${CMAKE_CURRENT_SOURCE_DIR}/windows_metafile.rc )
         SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} "windows_metafile.rc" )
         set(CMAKE_RC_COMPILER_INIT windres)
         ENABLE_LANGUAGE(RC)
@@ -380,5 +380,5 @@ if ( PRINT_SOURCES )
 endif ()
 #############################################
 
-MESSAGE( STATUS ">> --------------------- UI - QT done --------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - CPP done -------------------------------- <<" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
