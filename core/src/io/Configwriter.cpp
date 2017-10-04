@@ -26,7 +26,7 @@ namespace IO
     {
         std::string config = "";
         config += "################# Output Folders #################\n";
-        config += "output_tag_time    " + fmt::format("{:d}", Log.tag_time) + "\n";
+        config += "output_file_tag    " + Log.file_tag + "\n";
         config += "log_output_folder  " + Log.output_folder + "\n";
         config += "llg_output_folder  " + parameters_llg->output_folder + "\n";
         config += "mc_output_folder   " + parameters_mc->output_folder + "\n";

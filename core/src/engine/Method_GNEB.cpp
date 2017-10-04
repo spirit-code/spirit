@@ -261,16 +261,17 @@ namespace Engine
 
 			std::string preChainFile;
 			std::string preEnergiesFile;
-			if (this->systems[0]->llg_parameters->output_tag_time)
-			{
-				preChainFile = this->parameters->output_folder + "/" + starttime + "_Chain";
-				preEnergiesFile = this->parameters->output_folder + "/" + starttime + "_Chain_Energies";
-			}
-			else
-			{
-				preChainFile = this->parameters->output_folder + "/Chain";
-				preEnergiesFile = this->parameters->output_folder + "/Chain_Energies";
-			}
+            std::string fileTag;
+            
+            if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->systems[0]->llg_parameters->output_file_tag != "")
+                fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
+            else 
+                fileTag = "";
+            
+            preChainFile = this->parameters->output_folder + "/" + fileTag + "Chain";
+            preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
 			// Function to write or append image and energy files
 			auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)

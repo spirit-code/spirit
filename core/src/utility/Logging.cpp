@@ -125,11 +125,15 @@ namespace Utility
 	{
 		// Set the default Log parameters
 		output_folder = ".";
-		if (tag_time)
+		
+        if ( file_tag == std::string("<time>") )
 			fileName  = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-		else
-			fileName = "Log.txt";
-		messages_to_file    = false;
+		else if ( file_tag == std::string("") )
+            fileName = "Log.txt";
+        else
+			fileName = "Log_" + file_tag + ".txt";
+		
+        messages_to_file    = false;
 		level_file          = Log_Level::Debug;
 		messages_to_console = true;
 		level_console       = Log_Level::Parameter;

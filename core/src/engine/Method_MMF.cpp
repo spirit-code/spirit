@@ -363,17 +363,18 @@ namespace Engine
 
 			std::string preSpinsFile;
 			std::string preEnergyFile;
-			if (this->collection->parameters->output_tag_time)
-			{
-				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img;
-				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img;
-			}
-			else
-			{
-				preSpinsFile = this->parameters->output_folder + "/Spins_" + s_img;
-				preEnergyFile = this->parameters->output_folder + "/Energy_" + s_img;
-			}
-
+            std::string fileTag;
+            
+			if (this->collection->parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->collection->parameters->output_file_tag != "")
+                fileTag = this->collection->parameters->output_file_tag + "_";
+            else
+                fileTag = "";
+            
+			preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Spins_" + s_img;
+			preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Energy_" + s_img;
+			
 			// Function to write or append image and energy files
 			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{

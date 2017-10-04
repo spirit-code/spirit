@@ -128,8 +128,12 @@ State * State_Setup(const char * config_file, bool quiet)
         if (Log.save_input_initial)
         {
             std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
+            
+            if ( Log.file_tag == std::string("<time>") )
                 file += "_" + state->datetime_creation_string;
+            else if ( Log.file_tag != std::string("") )
+                file += "_" + Log.file_tag;
+            
             file += "_initial.cfg";
             State_To_Config(state, file.c_str(), state->config_file.c_str());
         }
@@ -167,8 +171,12 @@ void State_Delete(State * state)
         if (Log.save_input_final)
         {
             std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
+            
+            if ( Log.file_tag == std::string("<time>") )
                 file += "_" + state->datetime_creation_string;
+            else if ( Log.file_tag != std::string("") )
+                file += "_" + Log.file_tag;
+            
             file += "_final.cfg";
             State_To_Config(state, file.c_str(), state->config_file.c_str());
         }
