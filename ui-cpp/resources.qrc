@@ -1,7 +1,6 @@
 <RCC>
-    <qresource prefix="/">
-        <!-- <file>src/visualisation/gl/shaders/fragment.shader</file> -->
-        <!-- <file>src/visualisation/gl/shaders/vertex.shader</file> -->
-        <file>logo.jpg</file>
-    </qresource>
+	<qresource prefix="/Icons">
+		<file alias="AppIcon32">res/AppIcon32.png</file>
+		<file alias="AppIcon128">res/AppIcon128.png</file>
+	</qresource>
 </RCC>

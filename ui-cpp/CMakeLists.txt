@@ -140,13 +140,14 @@ if ( UI_CXX_USE_QT )
 
     #############################################
     SET( OS_BUNDLE_NAME )
+    SET( META_FILES )
     IF( APPLE AND BUNDLE_APP )
 
         # For Apple set the icns file containing icons
         # set how it shows up in the Info.plist file
-        SET( MACOSX_BUNDLE_ICON_FILE QtTest.icns ) 
+        SET( MACOSX_BUNDLE_ICON_FILE AppIcon.icns ) 
         # set where in the bundle to put the icns file
-        SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/QtTest.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
+        SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         # include the icns file in the target
         SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/QtTest.icns )
 
@@ -186,6 +187,17 @@ if ( UI_CXX_USE_QT )
     IF ( WIN32 AND BUNDLE_APP )
         SET( OS_BUNDLE_NAME WIN32 )
     ENDIF ( WIN32 AND BUNDLE_APP )
+    ###
+    IF ( WIN32 )
+        set(ICON_FILE {CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico)
+        configure_file(
+            "${PROJECT_SOURCE_DIR}/cmake/windows_metafile.rc.in"
+            "windows_metafile.rc" )
+        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} "windows_metafile.rc" )
+        set(CMAKE_RC_COMPILER_INIT windres)
+        ENABLE_LANGUAGE(RC)
+        SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+    ENDIF ( )
     #############################################
 
 

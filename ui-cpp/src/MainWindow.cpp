@@ -105,6 +105,18 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
+	// MenuBar updates
+	connect(this->actionShow_Settings,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionShow_Plots,      SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionShow_Debug,      SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_Geometry,            SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_visualisation,       SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_fullscreen_window,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Settings, SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Plots,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+
 	// Status Bar
 	//		Spacer
 	this->m_Spacer_5 = new QLabel("    |    ");
@@ -147,6 +159,8 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 	//		Initialisations
 	this->createStatusBar();
+	//		MenuBar checkboxes
+	QTimer::singleShot(1000, this, SLOT(updateMenuBar()));
 	
 
 	// Set up Update Timers
@@ -840,6 +854,30 @@ void MainWindow::updateStatusBar()
 		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("th)");
 	}
 	this->m_Label_Dims->setText(text);
+}
+
+void MainWindow::updateMenuBar()
+{
+	// Settings
+	if (this->dockWidget_Settings->isVisible())
+		this->actionShow_Settings->setChecked(true);
+	else
+		this->actionShow_Settings->setChecked(false);
+	// Plots
+	if (this->dockWidget_Plots->isVisible())
+		this->actionShow_Plots->setChecked(true);
+	else
+		this->actionShow_Plots->setChecked(false);
+	// Debug
+	if (this->dockWidget_Debug->isVisible())
+		this->actionShow_Debug->setChecked(true);
+	else
+		this->actionShow_Debug->setChecked(false);
+
+	// Visualisation
+	this->actionToggle_visualisation->setChecked(this->m_spinWidgetActive);
+	this->actionToggle_large_visualisation->setChecked(this->view_spins_only);
+	this->actionToggle_fullscreen_window->setChecked(this->view_fullscreen);
 }
 
 void MainWindow::takeScreenshot()

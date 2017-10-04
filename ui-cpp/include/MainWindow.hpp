@@ -72,6 +72,7 @@ private slots:
 	void save_Chain_Energies();
 	void save_Chain_Energies_Interpolated();
 	void return_focus();
+	void updateMenuBar();
 
 private:
     /*void createWidgets(Spin_System * s);

@@ -337,16 +337,25 @@
    </property>
   </action>
   <action name="actionShow_Settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Toggle Settings</string>
    </property>
   </action>
   <action name="actionShow_Plots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle &amp;Plots</string>
    </property>
   </action>
   <action name="actionShow_Debug">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle &amp;Debug</string>
    </property>
@@ -412,16 +421,25 @@
    </property>
   </action>
   <action name="actionToggle_large_visualisation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle &amp;large visualisation</string>
    </property>
   </action>
   <action name="actionToggle_fullscreen_window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle &amp;fullscreen window</string>
    </property>
   </action>
   <action name="actionToggle_Dragging_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Toggle &quot;Dragging&quot; mode</string>
    </property>
@@ -437,6 +455,9 @@
    </property>
   </action>
   <action name="actionToggle_visualisation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle &amp;visualisation</string>
    </property>
@@ -517,11 +538,16 @@
    </property>
   </action>
   <action name="actionToggle_Geometry">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle Geometry</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
