@@ -33,7 +33,7 @@ namespace Engine
 			intfield boundary_conditions
 		);
 
-		void Update_From_Geometry();
+		void Update_From_Geometry() override;
 
 		void Update_Energy_Contributions() override;
 

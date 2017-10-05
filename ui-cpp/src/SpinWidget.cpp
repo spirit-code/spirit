@@ -95,6 +95,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 	this->mouse_decoration->setParent(this);
 	this->m_interactionmode = InteractionMode::REGULAR;
 	this->m_timer_drag = new QTimer(this);
+	this->m_timer_drag_decoration = new QTimer(this);
 	this->m_dragging = false;
 
 	// 		Setup Arrays
@@ -444,12 +445,6 @@ void SpinWidget::paintGL()
 	if (this->m_suspended)
 		return;
 
-	if (m_interactionmode == InteractionMode::DRAG)
-	{
-		auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
-		this->mouse_decoration->move((int)pos.x(), (int)pos.y());
-	}
-
 	if ( Simulation_Running_Image(this->state.get())      ||
 		 Simulation_Running_Chain(this->state.get())      ||
 		 Simulation_Running_Collection(this->state.get()) ||
@@ -592,11 +587,18 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 	}
 }
 
+
+void SpinWidget::updateMouseDecoration()
+{
+	auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
+	this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+}
+
+
 const VFRendering::Options& SpinWidget::options() const
 {
 	return m_view.options();
 }
-
 
 
 void SpinWidget::moveCamera(float backforth, float rightleft, float updown)
@@ -683,9 +685,15 @@ void SpinWidget::setInteractionMode(InteractionMode mode)
 		this->setCameraProjection(false);
 		// Set mode after changes so that changes are not blocked
 		this->m_interactionmode = mode;
+		// Set up update timers
+		m_timer_drag_decoration->stop();
+		connect(m_timer_drag_decoration, &QTimer::timeout, this, &SpinWidget::updateMouseDecoration);
+		m_timer_drag_decoration->start(10);
 	}
 	else
 	{
+		// Stop update timers
+		m_timer_drag_decoration->stop();
 		// Unset cursor
 		this->unsetCursor();
 		this->mouse_decoration->hide();
@@ -1447,110 +1455,110 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
 			break;
 		// Custom color maps not included in VFRendering:
 		case Colormap::HSV:
-			colormap_implementation = R"(
-			float atan2(float y, float x) {
-				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		colormap_implementation = R"(
+		float atan2(float y, float x) {
+			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		}
+		vec3 hsv2rgb(vec3 c) {
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
+		vec3 colormap(vec3 direction) {
+			vec2 xy = normalize(direction.xy);
+			float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
+			float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+			if (saturation > 0.0) {
+				return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
+			} else {
+				return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
 			}
-			vec3 hsv2rgb(vec3 c) {
-				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-			}
-			vec3 colormap(vec3 direction) {
-				vec2 xy = normalize(direction.xy);
-				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
-				float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
-				if (saturation > 0.0) {
-					return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
-				} else {
-					return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
-				}
-			}
-			)";
-			break;
-		case Colormap::HSV_NO_Z:
-			colormap_implementation = R"(
-			float atan2(float y, float x) {
-				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
-			}
-			vec3 hsv2rgb(vec3 c) {
-				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-			}
-			vec3 colormap(vec3 direction) {
-				vec2 xy = normalize(direction.xy);
-				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(;
-				return hsv2rgb(vec3(hue, 1.0, 1.0));
-			}
-			)";
-			break;
-		case Colormap::BLUE_RED:
-			colormap_implementation = R"(
-			vec3 colormap(vec3 direction) {
-				float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
-				vec3 color_down = vec3(0.0, 0.0, 1.0);
-				vec3 color_up = vec3(1.0, 0.0, 0.0);
-				return mix(color_down, color_up, z_sign*0.5+0.5);
-			}
-			)";
-			break;
-		case Colormap::BLUE_GREEN_RED:
-			colormap_implementation = R"(
-			float atan2(float y, float x) {
-				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
-			}
-			vec3 hsv2rgb(vec3 c) {
-				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-			}
+		}
+		)";
+		break;
+	case Colormap::HSV_NO_Z:
+		colormap_implementation = R"(
+		float atan2(float y, float x) {
+			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		}
+		vec3 hsv2rgb(vec3 c) {
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
+		vec3 colormap(vec3 direction) {
+			vec2 xy = normalize(direction.xy);
+			float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(;
+			return hsv2rgb(vec3(hue, 1.0, 1.0));
+		}
+		)";
+		break;
+	case Colormap::BLUE_RED:
+		colormap_implementation = R"(
+		vec3 colormap(vec3 direction) {
+			float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+			vec3 color_down = vec3(0.0, 0.0, 1.0);
+			vec3 color_up = vec3(1.0, 0.0, 0.0);
+			return mix(color_down, color_up, z_sign*0.5+0.5);
+		}
+		)";
+		break;
+	case Colormap::BLUE_GREEN_RED:
+		colormap_implementation = R"(
+		float atan2(float y, float x) {
+			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		}
+		vec3 hsv2rgb(vec3 c) {
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
 
-			vec3 colormap(vec3 direction) {
-				float hue = 1.0/3.0-normalize(direction).z/3.0* )" + std::string(s_sign_z) + R"(;
-				return hsv2rgb(vec3(hue, 1.0, 1.0));
+		vec3 colormap(vec3 direction) {
+			float hue = 1.0/3.0-normalize(direction).z/3.0* )" + std::string(s_sign_z) + R"(;
+			return hsv2rgb(vec3(hue, 1.0, 1.0));
+		}
+		)";
+		break;
+	case Colormap::BLUE_WHITE_RED:
+		colormap_implementation = R"(
+		vec3 colormap(vec3 direction) {
+			float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+			if (z_sign < 0) {
+				vec3 color_down = vec3(0.0, 0.0, 1.0);
+				vec3 color_up = vec3(1.0, 1.0, 1.0);
+				return mix(color_down, color_up, z_sign+1);
+			} else {
+				vec3 color_down = vec3(1.0, 1.0, 1.0);
+				vec3 color_up = vec3(1.0, 0.0, 0.0);
+				return mix(color_down, color_up, z_sign);
 			}
-			)";
-			break;
-		case Colormap::BLUE_WHITE_RED:
-			colormap_implementation = R"(
-			vec3 colormap(vec3 direction) {
-				float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
-				if (z_sign < 0) {
-					vec3 color_down = vec3(0.0, 0.0, 1.0);
-					vec3 color_up = vec3(1.0, 1.0, 1.0);
-					return mix(color_down, color_up, z_sign+1);
-				} else {
-					vec3 color_down = vec3(1.0, 1.0, 1.0);
-					vec3 color_up = vec3(1.0, 0.0, 0.0);
-					return mix(color_down, color_up, z_sign);
-				}
+		}
+		)";
+		break;
+	// Default is regular HSV
+	default:
+		colormap_implementation = R"(
+		float atan2(float y, float x) {
+			return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
+		}
+		vec3 hsv2rgb(vec3 c) {
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
+		vec3 colormap(vec3 direction) {
+			vec2 xy = normalize(direction.xy);
+			float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
+			float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+			if (saturation > 0.0) {
+				return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
+			} else {
+				return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
 			}
-			)";
-			break;
-		// Default is regular HSV
-		default:
-			colormap_implementation = R"(
-			float atan2(float y, float x) {
-				return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
-			}
-			vec3 hsv2rgb(vec3 c) {
-				vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-				vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-				return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-			}
-			vec3 colormap(vec3 direction) {
-				vec2 xy = normalize(direction.xy);
-				float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
-				float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
-				if (saturation > 0.0) {
-					return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
-				} else {
-					return hsv2rgb(vec3(hue, 1.0, 1.0+saturation));
-				}
-			}
-			)";
-			break;
+		}
+		)";
+		break;
 	}
 	return colormap_implementation;
 }
