@@ -346,8 +346,9 @@ namespace IO
 				fputs ("# End: Header\n",pFile);
 				fputs ("# Begin: Data Binary 8\n",pFile);
 
-				scalar Temp1[]= {123456789012345.0};
-				fwrite (Temp1, sizeof(scalar), 1, pFile);
+				//scalar Temp1[]= {123456789012345.0};
+				const scalar testVariable = 123456789012345.0;
+                fwrite ( &testVariable, sizeof(scalar), 1, pFile );
 
 				for (int cn = 0; cn < n_cells[2]; cn++)
 				{
@@ -358,18 +359,25 @@ namespace IO
 							// index of the block
 							int n = an + bn*n_cells[0] + cn*n_cells[0]*n_cells[1];
 							// index of the first spin in the block
-							n = n*nos_basis;
-							for (int atom=0; atom < nos_basis; atom++)
-							{
-								int N = n + atom;
-								// TODO
-								auto& vec = vf[n];
-								fwrite (&vec , sizeof(scalar), 3, pFile);
-							}
+
+							// n = n*nos_basis;
+							// for (int atom=0; atom < nos_basis; atom++)
+							// {
+							// 	int N = n + atom;
+							// 	// TODO
+							// 	auto& vec = vf[n];
+							// 	fwrite (&vec , sizeof(scalar), 3, pFile);
+							// }
+                            
+                            fwrite ( &vf[n][0], sizeof(scalar), 1, pFile );
+                            fwrite ( &vf[n][1], sizeof(scalar), 1, pFile );
+                            fwrite ( &vf[n][2], sizeof(scalar), 1, pFile );
+
 						}// a
 					}// b
 				}// c
-				fputs ("# End: Data Binary 4\n",pFile);
+                fputs ( "\n", pFile );  // a new line at the end of the data
+				fputs ("# End: Data Binary 8\n",pFile);
 				fputs ("# End: Segment\n",pFile);
 				fclose (pFile);
 			}

@@ -15,6 +15,10 @@ python/LICENSE.txt
 Spirit_Defines.h
 Version.h
 python/spirit/__init__.py
+python/test/io_test_files/*
+!python/test/io_test_files/.gitkeep
+test/io_test_files/*
+!test/io_test_files/.gitkeep
 scalar.py
 version.py
 
