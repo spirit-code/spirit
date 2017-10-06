@@ -74,17 +74,9 @@ if ( UI_CXX_USE_QT )
 
 
     ######### Find the Qt libraries ##########
-    #find_package(Qt5 REQUIRED)
-    find_package( Qt5Core REQUIRED )
-    #MESSAGE( STATUS ">> Found QTCore at:        " ${Qt5Core_DIR} )
-    find_package( Qt5Gui REQUIRED )
-    #MESSAGE( STATUS ">> Found QTGui at:         " ${Qt5Gui_DIR} )
-    find_package( Qt5Widgets REQUIRED )
-    #MESSAGE( STATUS ">> Found QTWidgets at:     " ${Qt5Widgets_DIR} )
-    find_package( Qt5Charts REQUIRED )
-    #MESSAGE( STATUS ">> Found QTCharts at:      " ${Qt5Charts_DIR} )
-    find_package( Qt5OpenGL REQUIRED )
-    #MESSAGE( STATUS ">> Found QTOpenGL at:      " ${Qt5OpenGL_DIR} )
+    find_package( Qt5 5.7 REQUIRED COMPONENTS Core Gui Widgets Charts OpenGL )
+    MESSAGE( STATUS ">> QT version:  " ${Qt5_VERSION} )
+    MESSAGE( STATUS ">> Found QT at: " ${Qt5_DIR} )
     ###########################################
 
 

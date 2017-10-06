@@ -189,7 +189,7 @@ configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.h.in ${PROJECT_SOURCE_
 ######### CUDA decisions ####################
 if ( SPIRIT_USE_CUDA )
 	# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-    find_package( CUDA REQUIRED )
+    find_package( CUDA 8 REQUIRED )
     add_definitions( -DUSE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...

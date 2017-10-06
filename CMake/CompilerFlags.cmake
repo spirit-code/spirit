@@ -51,6 +51,10 @@ string( REPLACE ";" ", " INTERFACE_EXPORT_FUNCTIONS_STRING "${INTERFACE_EXPORT_F
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 ### Message
 MESSAGE( STATUS ">> Chose compiler:                gcc" )
+# Require at least gcc 5.1
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1)
+	message(FATAL_ERROR "GCC version must be at least 5.1!")
+endif()
 ### Compiler Flags
 set( CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -g -O2 -std=c++11 -DEIGEN_NO_DEBUG" )
 ### Linker Flags
