@@ -10,25 +10,21 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.0
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.9.0
 
+env:
+  global:
+    - secure: "IeryGzYD1DUkDjFgAscWGQIu7lebz+uN8xi42rWUwBqn8PUpJRoeniEd2/445CdGrX7G3YKDq4YMUFip0n1WyyjmzOQS2dUgJvH3+VU/rtGYoSF8SJkDGXvUl4OTTY0BMGM3+caOb9s91+ZW5C2536e/la0Ti37tu6xq+2URiOZ4ZIxaM+PBJPNJ/e8V9RXPGZxTAlNgpkKrAwv+lVYi7lxqLTTW+0Iu9jilzcAfvZ7tuFvsADNLJ+vEfYSerdeXeq0sma3ez1Z3q+pCyGBv35r/NIsgIH73i9eco0CVNkXmALOQMaw/zRxprHNZxegv0rsEP9/5IDgLXn61ZBOaIrF9Ywi0DTSHWnwoqC/R3XfOX4CXvhttbq6htTepKIfNFsW3SCBqTknil6eOObJaTIu77Y+dU/PpEOmlZI3wq7WKCeMIywNTgGyuTyctFF088XgpqH+ysYOTTN9TOk/U/W29DCT6yEFAuPx/MO24q+v9I5+uwrpIyCdpe2KVOdnIZnegAXYKWw9vjfQRn2n37RKCwkCTG+PWmMMxXgQwuvHzz9z/nV9MkoqbDSwf7pm7y5f+1ggaCBZeGD1Q9N6jx02dTdOeZ7HU9QDWan3YTdqNU1bAp6zDlO76heDOa9EZrRK56FbObFD+60Qm6+ZxzHX4DgS5Q0syOSWbHilKBMk="
+    - secure: "WsRnpkAUCnsf4jjf519HlDCXMWObLiG8pm/dQp321LbjjADTcGRqfKRG2cFenK0hG2VrrdnzVWkK4qfzsdQX9OiSZvhqV5ZdVCpSHodhdPWfDxZM1jRJ/oXyjyaE+BwxWRl6Ve1SEbBLMOvdLEiMOt2YbiYE72Hwj5l7qWcVJxQ96L5S160gKA54Efz8ZaLO+lyy0QVh6gdK7DMFZDvFGICH1Yr93drPNFnWmWp3lvEdvomf3F/YCh4M5LMf3EbAjpUssj2r7We2UN6UaXwHfzYFLogOoLLLkrFYYhNgn1jj5rom8MOGj183bKW4jv9Czx7AhjwxRTLUXGKeTQdaaSrZ0t2+Xs4KoqseyT6uQUlE955SfZNdPsjsYrqXHbsC45waSsavlSdKHVLQ20gmY/e+kO982lIIbdrOKzZPjqq9SgI/b2ZdOv0st2ToQHLKbYUIWL8xPt/zA2IqRk0pT7tQgm3uvLB4P+/RAQxdvj7jHz4xXT8mmyHvajbvG4UvJGa9xwn5V58K+xFUxJKYiSDt68ALaFEogQsynkNgNT3xfbF5u/PWOYJ77gbELkg9ExGHCLBLJliVOhEu5sndq46EfSKlifxaG50aj4NKT8SFfykQjhQow/ygs0iqYcBfTM4BoBLVXCFp+yT5YGG+LgYVWq+Gtn51qGJxQYCoMCs="
+
 
 matrix:
   include:
-    # Linux, GCC 5.1
-    - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57"
-      compiler: g++
-      addons:
-        apt:
-          packages:
-          - g++-5
-          - qt57base
-          - qt57charts-no-lgpl
-          sources:
-          - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # OSX, xcode 8
+    - os: osx
+      osx_image: xcode8
+      env: USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
     # Linux, GCC 6
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57"
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
       compiler: g++
       addons:
         apt:
@@ -39,10 +35,19 @@ matrix:
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
           - sourceline: 'ppa:beineri/opt-qt571-trusty'
-    # OSX, xcode 8
-    - os: osx
-      osx_image: xcode8
-      env: USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1"
+    # Linux, GCC 5.1
+    - os: linux
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-5
+          - qt57base
+          - qt57charts-no-lgpl
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
 
     # - compiler: clang
     #   addons:
@@ -65,8 +70,8 @@ matrix:
 
 
 before_install:
-    - sudo pip install numpy
-    - '[ "$TRAVIS_OS_NAME" != osx ] || brew update'
+  - sudo pip install numpy wheel twine
+  - '[ "$TRAVIS_OS_NAME" != osx ] || brew update'
 
 
 install:
@@ -113,3 +118,29 @@ script:
     cd ..
   - ./make.sh -j8
   - ./ctest.sh
+  - cd core/python
+
+
+deploy:
+  # Deploy commits on master to pypi
+  - provider: pypi
+    server: https://upload.pypi.org/legacy/
+    skip_cleanup: true
+    user: ${PYPIUSER}
+    password: ${PYPIPASSWORD}
+    distributions: "sdist bdist_wheel"
+    on:
+      repo: spirit-code/spirit
+      branch: master
+      condition: "$PYPI == true"
+  # Deploy commits on other branches to testpypi
+  - provider: pypi
+    server: https://test.pypi.org/legacy/
+    skip_cleanup: true
+    user: ${PYPIUSER}
+    password: ${PYPIPASSWORD}
+    distributions: "sdist bdist_wheel"
+    on:
+      repo: spirit-code/spirit
+      all_branches: true
+      condition: "$PYPI == true"
