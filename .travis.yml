@@ -10,6 +10,7 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.0
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.9.0
 
+
 env:
   global:
     - secure: "IeryGzYD1DUkDjFgAscWGQIu7lebz+uN8xi42rWUwBqn8PUpJRoeniEd2/445CdGrX7G3YKDq4YMUFip0n1WyyjmzOQS2dUgJvH3+VU/rtGYoSF8SJkDGXvUl4OTTY0BMGM3+caOb9s91+ZW5C2536e/la0Ti37tu6xq+2URiOZ4ZIxaM+PBJPNJ/e8V9RXPGZxTAlNgpkKrAwv+lVYi7lxqLTTW+0Iu9jilzcAfvZ7tuFvsADNLJ+vEfYSerdeXeq0sma3ez1Z3q+pCyGBv35r/NIsgIH73i9eco0CVNkXmALOQMaw/zRxprHNZxegv0rsEP9/5IDgLXn61ZBOaIrF9Ywi0DTSHWnwoqC/R3XfOX4CXvhttbq6htTepKIfNFsW3SCBqTknil6eOObJaTIu77Y+dU/PpEOmlZI3wq7WKCeMIywNTgGyuTyctFF088XgpqH+ysYOTTN9TOk/U/W29DCT6yEFAuPx/MO24q+v9I5+uwrpIyCdpe2KVOdnIZnegAXYKWw9vjfQRn2n37RKCwkCTG+PWmMMxXgQwuvHzz9z/nV9MkoqbDSwf7pm7y5f+1ggaCBZeGD1Q9N6jx02dTdOeZ7HU9QDWan3YTdqNU1bAp6zDlO76heDOa9EZrRK56FbObFD+60Qm6+ZxzHX4DgS5Q0syOSWbHilKBMk="
@@ -121,29 +122,32 @@ script:
   - cd core/python
 
 
-# Add a missing flag to twine
-before_deploy: "export alias twine='twine --skip-existing $@'"
-
-deploy:
-  # Deploy commits on master to pypi
-  - provider: pypi
-    server: https://upload.pypi.org/legacy/
-    skip_cleanup: true
-    user: ${PYPIUSER}
-    password: ${PYPIPASSWORD}
-    distributions: "sdist bdist_wheel"
-    on:
-      repo: spirit-code/spirit
-      branch: master
-      condition: "$PYPI == true"
-  # Deploy commits on other branches to testpypi
-  - provider: pypi
-    server: https://test.pypi.org/legacy/
-    skip_cleanup: true
-    user: ${PYPIUSER}
-    password: ${PYPIPASSWORD}
-    distributions: "sdist bdist_wheel"
-    on:
-      repo: spirit-code/spirit
-      all_branches: true
-      condition: "$PYPI == true"
+# Deploy to pypi if commit on master and deploy all branches to testpypi
+after_success:
+  # Specify account details for PyPI
+  - echo "[distutils]"                                 > ~/.pypirc
+  - echo "index-servers ="                            >> ~/.pypirc
+  - echo "    testpypi"                               >> ~/.pypirc
+  - echo "    pypi"                                   >> ~/.pypirc
+  - echo "[pypi]"                                     >> ~/.pypirc
+  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  - echo "[testpypi]"                                 >> ~/.pypirc
+  - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  # Use twine to upload
+  - >
+    if [ "$PYPI" == "true" ]; then
+      pip install wheel twine;
+      python setup.py sdist bdist_wheel;
+      twine upload --skip-existing -r testpypi dist/*;
+      if [ "$TRAVIS_BRANCH" == "master" ]; then
+        twine upload --skip-existing -r pypi dist/*;
+      else
+        echo "Not deploying to pypi because not on master.";
+      fi
+    else
+      echo "Not deploying to pypi or testpypi";
+    fi

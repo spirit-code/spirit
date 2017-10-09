@@ -91,7 +91,7 @@ after_test:
   - echo [testpypi]                                  >> %USERPROFILE%\\.pypirc
   - echo repository=https://test.pypi.org/legacy/    >> %USERPROFILE%\\.pypirc
   - echo username=%PYPIUSER%                         >> %USERPROFILE%\\.pypirc
-  - echo password=%PYPIPASSWORD%                     >> %USERPROFILE%\\.pypirc65t
+  - echo password=%PYPIPASSWORD%                     >> %USERPROFILE%\\.pypirc
 
   # Workaround required to ensure setup.py finds the .pypirc under Windows
   - set HOME=%USERPROFILE%
@@ -110,7 +110,7 @@ on_success:
   - ps: echo "pypi - $Env:PYPI"
   # Upload to pypi on master commits
   - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
-  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -u $Env:PYPIUSER -p $Env:PYPIPASSWORD -r pypi --skip-existing dist/*" 2>$null}
+  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
   # Upload to testpypi on other commits
   - ps: if (("$Env:PYPI" -eq "true")) {echo "Deploying to testpypi."} else {echo "Not deploying to testpypi."}
-  - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -u $Env:PYPIUSER -p $Env:PYPIPASSWORD -r testpypi --skip-existing dist/*" 2>$null}
+  - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r testpypi --skip-existing dist/*"}
