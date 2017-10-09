@@ -121,6 +121,9 @@ script:
   - cd core/python
 
 
+# Add a missing flag to twine
+before_deploy: "export alias twine='twine --skip-existing $@'"
+
 deploy:
   # Deploy commits on master to pypi
   - provider: pypi
