@@ -60,6 +60,16 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+def get_git_branch():
+    return subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], stderr=subprocess.STDOUT).decode("utf-8").strip()
+
+
+def get_git_commits_since_master(branch):
+    x = int(subprocess.check_output(['git', 'rev-list', '--count', 'master'], stderr=subprocess.STDOUT).decode("utf-8").strip())
+    y = int(subprocess.check_output(['git', 'rev-list', '--count', branch], stderr=subprocess.STDOUT).decode("utf-8").strip())
+    return y-x
+
+
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
         from sys import platform as _platform
@@ -86,14 +96,25 @@ class CleanCommand(Command):
 
 
 if __name__ == "__main__":
-    long_description = read('README.md')
+    # Version suffix if not on master branch
+    version_suffix = ""
+    git_branch = get_git_branch()
+    if git_branch != "master":
+        if git_branch == "develop":
+            version_suffix += ".dev"
+        else:
+            version_suffix += "." + git_branch
+        N = get_git_commits_since_master(git_branch)
+        version_suffix += str(N)
+
+    # Setup the package info
     setup(
         name=NAME,
         description=find_meta("description"),
-        long_description=long_description,
+        long_description=read('README.md'),
         license=find_meta("license"),
         url=find_meta("uri"),
-        version=find_meta("version"),
+        version=find_meta("version")+version_suffix,
         author=find_meta("author"),
         author_email=find_meta("email"),
         maintainer=find_meta("author"),
