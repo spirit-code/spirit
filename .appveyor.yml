@@ -45,6 +45,17 @@ environment:
       PYPI:
 
 
+install:
+  # Log out the python version just so we know it
+  - ECHO "%PYTHON_VERSION%"
+
+  # update path to use installed pip
+  - set PATH=%PYTHON%\\scripts;%PATH%
+
+  # Install numpy wheel and twine
+  - "%PYTHON%/Scripts/pip.exe install numpy wheel twine"
+
+
 # Cmake will autodetect the compiler, but we set the arch
 before_build:
   - set PATH=%QTDIR%\bin;%PYTHON%;%PATH%
@@ -59,17 +70,7 @@ build:
   verbosity: normal         # MSBuild verbosity level {quiet|minimal|normal|detailed}
 
 
-install:
-  # Log out the python version just so we know it
-  - ECHO "%PYTHON_VERSION%"
-
-  # update path to use installed pip
-  - set PATH=%PYTHON%\\scripts;%PATH%
-
-  # Install numpy wheel and twine
-  - "%PYTHON%/Scripts/pip.exe install numpy wheel twine"
-
-
+# Run unit tests with CTest
 test_script:
   - cd Build
   - ctest --output-on-failure -C %CONFIGURATION% -E %EXCLUDETESTS%
@@ -78,7 +79,14 @@ test_script:
 
 # Deployment:
 after_test:
+  # Build source distro and wheel
   - echo Going to build python package and wheel
+  - ps: if ("$Env:APPVEYOR_REPO_BRANCH" -eq "master") {$env:SPIRIT_ADD_VERSION_SUFFIX="false"} else {$env:SPIRIT_ADD_VERSION_SUFFIX="true"}
+  - ps: echo "Add suffix to spirit version tag for python package $env:SPIRIT_ADD_VERSION_SUFFIX"
+  
+  - cd core/python
+  - "%PYTHON%/python setup.py sdist bdist_wheel"
+
   # Specify account details for PyPI
   - echo [distutils]                                  > %USERPROFILE%\\.pypirc
   - echo index-servers =                             >> %USERPROFILE%\\.pypirc
@@ -96,21 +104,16 @@ after_test:
   # Workaround required to ensure setup.py finds the .pypirc under Windows
   - set HOME=%USERPROFILE%
 
-  # Build source distro and wheel
-  - cd core/python
-  - "%PYTHON%/python setup.py sdist bdist_wheel"
+  # Publish python package
+  - ps: echo "PYPI deployment"
+  - ps: echo "pypi - $Env:PYPI"
+  # Upload to pypi on master commits (if PYPI == true)
+  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
+  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
+  # Upload to testpypi on all commits (if PYPI == true)
+  - ps: if (("$Env:PYPI" -eq "true")) {echo "Deploying to testpypi."} else {echo "Not deploying to testpypi."}
+  - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r testpypi --skip-existing dist/*"}
 
 
 artifacts:
 - path: core\python\dist\*
-
-
-on_success:
-  - ps: echo "PYPI deployment"
-  - ps: echo "pypi - $Env:PYPI"
-  # Upload to pypi on master commits
-  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
-  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
-  # Upload to testpypi on other commits
-  - ps: if (("$Env:PYPI" -eq "true")) {echo "Deploying to testpypi."} else {echo "Not deploying to testpypi."}
-  - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r testpypi --skip-existing dist/*"}

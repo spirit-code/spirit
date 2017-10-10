@@ -73,9 +73,6 @@ matrix:
 before_install:
   - sudo pip install numpy wheel twine
   - '[ "$TRAVIS_OS_NAME" != osx ] || brew update'
-
-
-install:
   # Setup default versions and override compiler if needed
   - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.9.0; fi
   # Install a recent CMake (unless already installed on OS X)
@@ -110,7 +107,8 @@ install:
 #     fi
 
 
-script:
+install:
+  # Build everything
   - cd ${TRAVIS_BUILD_DIR}
   - |
     mkdir -p build
@@ -118,12 +116,19 @@ script:
     cmake ${CMAKE_OPTIONS} ..
     cd ..
   - ./make.sh -j8
+
+
+script:
+  # Run all tests
   - ./ctest.sh
+
+  # Build the python package
+  - echo "Python package build"
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
+  - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
   - cd core/python
+  - python setup.py sdist bdist_wheel;
 
-
-# Deploy to pypi if commit on master and deploy all branches to testpypi
-after_success:
   # Specify account details for PyPI
   - echo "[distutils]"                                 > ~/.pypirc
   - echo "index-servers ="                            >> ~/.pypirc
@@ -137,17 +142,12 @@ after_success:
   - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
   - echo "username=$PYPIUSER"                         >> ~/.pypirc
   - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-  # Use twine to upload
-  - >
-    if [ "$PYPI" == "true" ]; then
-      pip install wheel twine;
-      python setup.py sdist bdist_wheel;
-      twine upload --skip-existing -r testpypi dist/*;
-      if [ "$TRAVIS_BRANCH" == "master" ]; then
-        twine upload --skip-existing -r pypi dist/*;
-      else
-        echo "Not deploying to pypi because not on master.";
-      fi
-    else
-      echo "Not deploying to pypi or testpypi";
-    fi
+
+  # Publish python package
+  - echo "PYPI deployment"
+  # Upload to pypi on master commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Going to deploy to pypi"; else echo "Not deploying to pypi"; fi
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
+  # Upload to testpypi on all commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ]; then echo "Going to deploy to testpypi"; else echo "Not deploying this build"; fi
+  - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
