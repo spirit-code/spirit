@@ -144,10 +144,14 @@ script:
   - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
 
   # Publish python package
-  - echo "PYPI deployment"
+  - echo "PYPI deployment:"
+  - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
+  # Do not build pull requests
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
   # Upload to pypi on master commits (if PYPI == true)
-  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Going to deploy to pypi"; else echo "Not deploying to pypi"; fi
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
   - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
   # Upload to testpypi on all commits (if PYPI == true)
-  - if [ "$PYPI" == "true" ]; then echo "Going to deploy to testpypi"; else echo "Not deploying this build"; fi
+  - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
   - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi

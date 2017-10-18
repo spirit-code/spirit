@@ -105,11 +105,14 @@ after_test:
   - set HOME=%USERPROFILE%
 
   # Publish python package
-  - ps: echo "PYPI deployment"
-  - ps: echo "pypi - $Env:PYPI"
+  - ps: echo "PYPI deployment:"
+  - ps: if ("$Env:PYPI" -ne "true") {echo "Not going to deploy because not configured to."}
+  # Do not build pull requests
+  - ps: if (Test-Path env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {echo "Not going to deploy because pull request."}
+  - ps: if (Test-Path env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {$env:PYPI="false"}
   # Upload to pypi on master commits (if PYPI == true)
-  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
-  - ps: if (("$Env:APPVEYOR_REPO_BRANCH" -eq "master")  -and ("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
+  - ps: if (("$Env:PYPI" -eq "true")  -and ("$Env:APPVEYOR_REPO_BRANCH" -eq "master")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
+  - ps: if (("$Env:PYPI" -eq "true")  -and ("$Env:APPVEYOR_REPO_BRANCH" -eq "master")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
   # Upload to testpypi on all commits (if PYPI == true)
   - ps: if (("$Env:PYPI" -eq "true")) {echo "Deploying to testpypi."} else {echo "Not deploying to testpypi."}
   - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r testpypi --skip-existing dist/*"}
