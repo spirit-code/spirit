@@ -14,7 +14,8 @@ namespace Utility
 		Simulated_domain_too_small = Exception_Simulated_domain_too_small,
 		Not_Implemented            = Exception_Not_Implemented,
         Non_existing_Image         = Exception_Non_existing_Image,
-        Non_existing_Chain         = Exception_Non_existing_Chain
+        Non_existing_Chain         = Exception_Non_existing_Chain,
+        File_reading_error         = Exception_File_reading_error
         // TODO: from Chain.cpp
         // Last image deletion ?
         // Empty clipboard     ?

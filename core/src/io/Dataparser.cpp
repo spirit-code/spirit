@@ -1,5 +1,6 @@
-﻿#include <io/IO.hpp>
+#include <io/IO.hpp>
 #include <io/Filter_File_Handle.hpp>
+#include <io/Dataparser.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -223,7 +224,7 @@ namespace IO
 			Vector3 B_temp = { 0, 0, 0 };
 			int n_field;
 
-			IO::Filter_File_Handle file(externalFieldFile);
+			Filter_File_Handle file(externalFieldFile);
 
 			if (file.Find("n_external_field"))
 			{
@@ -357,7 +358,7 @@ namespace IO
 			Vector3 K_temp = { 0, 0, 0 };
 			int n_anisotropy;
 
-			IO::Filter_File_Handle file(anisotropyFile);
+			Filter_File_Handle file(anisotropyFile);
 
 			if (file.Find("n_anisotropy"))
 			{
@@ -496,7 +497,7 @@ namespace IO
 			int pair_periodicity = 0;
 			Vector3 pair_D_temp = { 0, 0, 0 };
 			// Get column indices
-			IO::Filter_File_Handle file(pairsFile);
+			Filter_File_Handle file(pairsFile);
 
 			if (file.Find("n_interaction_pairs"))
 			{
@@ -661,7 +662,7 @@ namespace IO
 			int n_quadruplets = 0;
 
 			// Get column indices
-			IO::Filter_File_Handle file(quadrupletsFile);
+			Filter_File_Handle file(quadrupletsFile);
 
 			if (file.Find("n_interaction_quadruplets"))
 			{
@@ -787,7 +788,7 @@ namespace IO
 		try
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
-			IO::Filter_File_Handle myfile(defectsFile);
+			Filter_File_Handle myfile(defectsFile);
 
 			if (myfile.Find("n_defects"))
 			{
@@ -840,7 +841,7 @@ namespace IO
 		try
 		{
 			Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
-			IO::Filter_File_Handle myfile(pinnedFile);
+			Filter_File_Handle myfile(pinnedFile);
 
 			if (myfile.Find("n_pinned"))
 			{
@@ -919,174 +920,273 @@ namespace IO
 		line[pos] = 0;
 	}
 
-	// Read vectorfield and positions from file OVF in OVF format
-	void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string inputfilename )
-	{
-		// auto inputfilename = "test.ovf";
-		auto& n_cells = geometry.n_cells;
-		int   nos_basis = geometry.n_spins_basic_domain;
+    void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string ovfFileName )
+    {
+        try
+        {
+            VF_FileFormat format = VF_FileFormat::OVF;     // set the format to ovf
+            
+            Log( Log_Level::Info, Log_Sender::IO, "Start reading OOMMF OVF file" );
+            Filter_File_Handle myfile( ovfFileName, VF_FileFormat::OVF );
+            
+            // initialize strings
+            std::string ovf_version = "";
+            std::string ovf_title = "";
+            std::string ovf_meshunit = "";
+            std::string ovf_meshtype = "";
+            std::string ovf_valueunits = "";
+            Vector3 ovf_xyz_max;
+            Vector3 ovf_xyz_min;
+            //std::string valueunits_list = "";
+            int ovf_valuedim = 0;
+            // irregular mesh attributes
+            int ovf_pointcount = 0;
+            // rectangular mesh attributes
+            Vector3 ovf_xyz_base;
+            Vector3 ovf_xyz_stepsize;
+            std::array<int, 3> ovf_xyz_nodes;
+            // raw data attributes
+            std::string ovf_data_representation = "";
+            int ovf_binary_length = 0;
+            
+            // OVF Header Block
+            
+            // first line - OVF version
+            myfile.Read_String( ovf_version, "# OOMMF " );
+            if( ovf_version != "OVF 2.0" && ovf_version != "OVF 2" )
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, fmt::format( "{0} is not" 
+                "supported", ovf_version ) );
+            
+            // title
+            myfile.Read_String( ovf_title, "# Title:" );
+            
+            // mesh units 
+            myfile.Read_Single( ovf_meshunit, "# meshunit:" );
+            
+            // value's dimensions
+            myfile.Read_Single( ovf_valuedim, "# valuedim:" );
+            
+            // value's units
+            // myfile.Read_Single( ovf_valueunits, "# valueunits:" );
+            
+            // value's labels
+            
+            // {x,y,z} x {min,max}
+            myfile.Read_Single( ovf_xyz_min[0], "# xmin:" );
+            myfile.Read_Single( ovf_xyz_min[1], "# ymin:" );
+            myfile.Read_Single( ovf_xyz_min[2], "# zmin:" );
+            myfile.Read_Single( ovf_xyz_max[0], "# xmax:" );
+            myfile.Read_Single( ovf_xyz_max[1], "# ymax:" );
+            myfile.Read_Single( ovf_xyz_max[2], "# zmax:" );
+            
+            // meshtype
+            myfile.Read_Single( ovf_meshtype, "# meshtype:" );
+            
+            // TODO: Change the throw to something more meaningfull we don't need want termination
+            if( ovf_meshtype != "rectangular" && ovf_meshtype != "irregular" )
+            {
+                Log( Log_Level::Error, Log_Sender::IO, "Mesh type must be either \"rectangular\" "
+                     "or \"irregular\"" );
+                throw Exception::File_reading_error;
+            }
+            
+            // Emit Header to Log
+            
+            auto lvl = Log_Level::Parameter;
+            auto sender = Log_Sender::IO;
+            
+            Log( lvl, sender, fmt::format( "# OVF version             = {}", ovf_version ) );
+            Log( lvl, sender, fmt::format( "# OVF title               = {}", ovf_title ) );
+            Log( lvl, sender, fmt::format( "# OVF values dimensions   = {}", ovf_valuedim ) );
+            Log( lvl, sender, fmt::format( "# OVF meshunit            = {}", ovf_meshunit ) );
+            Log( lvl, sender, fmt::format( "# OVF xmin                = {}", ovf_xyz_min[0] ) );
+            Log( lvl, sender, fmt::format( "# OVF ymin                = {}", ovf_xyz_min[1] ) );
+            Log( lvl, sender, fmt::format( "# OVF zmin                = {}", ovf_xyz_min[2] ) );
+            Log( lvl, sender, fmt::format( "# OVF xmax                = {}", ovf_xyz_max[0] ) );
+            Log( lvl, sender, fmt::format( "# OVF ymax                = {}", ovf_xyz_max[1] ) );
+            Log( lvl, sender, fmt::format( "# OVF zmax                = {}", ovf_xyz_max[2] ) );
+            
+            // for different mesh types
+            if( ovf_meshtype == "rectangular" )
+            {
+                // {x,y,z} x {base,stepsize,nodes} 
+                
+                myfile.Read_Single( ovf_xyz_base[0], "# xbase:" );
+                myfile.Read_Single( ovf_xyz_base[1], "# ybase:" );
+                myfile.Read_Single( ovf_xyz_base[2], "# zbase:" );
+                
+                myfile.Read_Single( ovf_xyz_stepsize[0], "# xstepsize:" );
+                myfile.Read_Single( ovf_xyz_stepsize[1], "# ystepsize:" );
+                myfile.Read_Single( ovf_xyz_stepsize[2], "# zstepsize:" );
+                
+                myfile.Read_Single( ovf_xyz_nodes[0], "# xnodes:" );
+                myfile.Read_Single( ovf_xyz_nodes[1], "# ynodes:" );
+                myfile.Read_Single( ovf_xyz_nodes[2], "# znodes:" );
+                
+                // Write to Log
+                Log( lvl, sender, fmt::format( "# OVF meshtype <{}>", ovf_meshtype ) );
+                Log( lvl, sender, fmt::format( "# xbase      = {:.8f}", ovf_xyz_base[0] ) );
+                Log( lvl, sender, fmt::format( "# ybase      = {:.8f}", ovf_xyz_base[1] ) );
+                Log( lvl, sender, fmt::format( "# zbase      = {:.8f}", ovf_xyz_base[2] ) );
+                Log( lvl, sender, fmt::format( "# xstepsize  = {:.8f}", ovf_xyz_stepsize[0] ) );
+                Log( lvl, sender, fmt::format( "# ystepsize  = {:.8f}", ovf_xyz_stepsize[1] ) );
+                Log( lvl, sender, fmt::format( "# zstepsize  = {:.8f}", ovf_xyz_stepsize[2] ) );
+                Log( lvl, sender, fmt::format( "# xnodes     = {}", ovf_xyz_nodes[0] ) );
+                Log( lvl, sender, fmt::format( "# ynodes     = {}", ovf_xyz_nodes[1] ) );
+                Log( lvl, sender, fmt::format( "# znodes     = {}", ovf_xyz_nodes[2] ) );
+            }
+            
+            if ( ovf_meshtype == "irregular" )
+            {
+                // pointcount
+                myfile.Read_Single( ovf_pointcount, "# pointcount:" );
+                
+                // Write to Log
+                Log( lvl, sender, fmt::format( "# OVF meshtype <{}>", ovf_meshtype ) );
+                Log( lvl, sender, fmt::format( "# OVF point count = {}", ovf_pointcount ) );
+            }
+            
+            // raw data representation
+            myfile.Read_String( ovf_data_representation, "# Begin: data" );
+            std::istringstream repr( ovf_data_representation );
+            repr >> ovf_data_representation;
+            if( ovf_data_representation == "binary" ) 
+                repr >> ovf_binary_length;
+            
+            Log( lvl, sender, fmt::format( "# OVF data representation = {}", ovf_data_representation ) );
+            Log( lvl, sender, fmt::format( "# OVF binary length       = {}", ovf_binary_length ) );
+            
+            // check that representation and binary length valures are ok
+            if( ovf_data_representation != "text" && ovf_data_representation != "binary" )
+            {
+                Log( Log_Level::Error, Log_Sender::IO, "Data representation must be either "
+                     "\"text\' or \"binary\"" );
+                throw Exception::File_reading_error;
+            }
+            
+            if( ovf_data_representation == "binary" && 
+                 ovf_binary_length != 4 && ovf_binary_length != 8  )
+            {
+                Log( Log_Level::Error, Log_Sender::IO, "Dinary representation can be either "
+                     "\"binary 8\" or \"binary 4\"");
+                throw Exception::File_reading_error;
+            }
+            
+            // Read the data
+            if( ovf_data_representation == "binary" )
+                OVF_Read_Binary( myfile, ovf_binary_length, ovf_xyz_nodes, vf );
+            else if( ovf_data_representation == "text" )
+                // TODO: function not implemented
+                OVF_Read_Text( myfile, vf ); 
+        
+        }
+        catch (Exception ex) 
+        {
+            if (ex == Exception::File_not_Found) {
+                Log( Log_Level::Error, Log_Sender::IO, "Log_Levels: Unable to read OVF File " + 
+                     ovfFileName + " Leaving values at default." );
+            }
+            else throw ex;
+        }
+    }
+    
+    void OVF_Read_Binary( Filter_File_Handle& myfile, const int ovf_binary_length, 
+                          const std::array<int, 3>& ovf_xyz_nodes, vectorfield & vf )
+    {
+        try
+        {        
+            // set the input stream indicator to the end of the line describing the data block
+            myfile.iss.seekg( std::ios::end );
+            
+            // check if the initial check value of the binary data is valid
+            if( !OVF_Check_Binary_Initial_Values( myfile, ovf_binary_length ) )
+                throw Exception::File_reading_error;
+            
+            // comparison of datum size compared to scalar type
+            if ( sizeof(scalar) == ovf_binary_length )
+            {
+            
+            }
+            else if ( sizeof(scalar) == 8 && ovf_binary_length == 4 )
+            {
+                // TODO: implement reading and converting from 
+            }
+            else if ( sizeof(scalar) == 4 && ovf_binary_length == 8 )
+            {
+                // TODO: implement reading and converting from 8 
+            }
+            
+            int index;
+            for( int k=0; k<ovf_xyz_nodes[2]; k++ )
+            {
+                for( int j=0; j<ovf_xyz_nodes[1]; j++ )
+                {
+                    for( int i=0; i<ovf_xyz_nodes[0]; i++ )
+                    {
+                        index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
+                        
+                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][0] ), 8 );
+                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][1] ), 8 );
+                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][2] ), 8 );
+                    
+                    }
+                }
+            }
+        }
+        catch (...)
+        {
+            Utility::Handle_Exception( -1, -1 );
+            return;
+        }
+    }
+    
+    bool OVF_Check_Binary_Initial_Values( Filter_File_Handle& myfile, const int ovf_binary_length )
+    {
+        try
+        {
+            // create initial check values for the binary data (see OVF specification)
+            uint64_t hex_8byte = 0x42DC12218377DE40;
+            double reference_8byte = *reinterpret_cast<double *>( &hex_8byte );
+            double read_8byte;
+            
+            uint32_t hex_4byte = 0x4996B438;
+            float reference_4byte = *reinterpret_cast<float *>( &hex_4byte );
+            float read_4byte;
+            
+            // check the validity of the initial check value read with the reference one
+            if ( ovf_binary_length == 4 )
+            {    
+                myfile.myfile->read( reinterpret_cast<char *>( &read_4byte ), sizeof(float) );
+                if ( read_4byte != reference_4byte ) 
+                {
+                    Log( Log_Level::Error, Log_Sender::IO, "OVF initial check value of binary data "
+                         "is inconsistent" );
+                    return false;
+                }
+            }
+            else if ( ovf_binary_length == 8 )
+            {
+                myfile.myfile->read( reinterpret_cast<char *>( &read_8byte ), sizeof(double) );
+                if ( read_8byte != reference_8byte )
+                {
+                    Log( Log_Level::Error, Log_Sender::IO, "OVF initial check value of binary data "
+                         "is inconsistent" );
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        catch (...)
+        {
+            Utility::Handle_Exception( -1, -1 );
+            return false;
+        }
+    }
+    
+    void OVF_Read_Text( Filter_File_Handle& myfile, vectorfield & vf )
+    {
+        
+    }
 
-		char  line[256]; // Whole line of header should be not longer then 256 characters
-		int   lineLength=0;
-		int   valuedim=3;
-		int   xnodes;
-		int   ynodes;
-		int   znodes;
-		char  keyW1 [256]; // key word 1
-		char  keyW2 [256]; // key word 2
-		char  keyW3 [256]; // key word 3
-		int   binType = 4;
-		float temp4_x, temp4_y, temp4_z;
-		double temp8_x, temp8_y, temp8_z;
-
-		FILE * FilePointer = fopen(inputfilename.c_str(), "rb");
-
-		if( FilePointer != NULL )
-		{
-			// Read and check the first nonempty line which starts with '#'
-			lineLength = ReadHeaderLine(FilePointer, line);
-			// If there are no one line which starts with '#'
-			if( lineLength == -1 )
-				printf("%s has a wrong file format! \n", inputfilename.c_str());
-			else
-			{
-				sscanf(line, "# %s %s %s", keyW1, keyW2, keyW3 );
-				if( strncmp(keyW1, "OOMMF",5) != 0 || strncmp(keyW2, "OVF",  3) != 0 || strncmp(keyW3, "2.0",  3) != 0 )
-				{
-					//if the first line isn't "OOMMF OFV 2.0"
-					printf("%s has wrong header of wrong file format! \n", inputfilename.c_str());
-					lineLength = -1;
-				}
-			}
-
-			// Reading header
-			if( lineLength != -1 )
-			{
-				do
-				{
-					lineLength = ReadHeaderLine(FilePointer, line);
-					sscanf(line, "# %s %s %s", keyW1, keyW2, keyW3 );
-					//printf("%s %s %s\n", keyW1, keyW2, keyW3);
-
-					if (strncmp(keyW1, "valuedim:",9) == 0)
-					{
-						sscanf(keyW2, "%d", &valuedim );
-						printf("valuedim=%d\n", valuedim);
-					}
-					else if (strncmp(keyW1, "xnodes:",7) == 0)
-					{
-						sscanf(keyW2, "%d", &xnodes );
-						printf("xnodes=%d\n", xnodes);
-					}
-					else if (strncmp(keyW1, "ynodes:",7) == 0)
-					{
-						sscanf(keyW2, "%d", &ynodes );
-						printf("ynodes=%d\n", ynodes);
-					}
-					else if (strncmp(keyW1, "znodes:",7) == 0)
-					{
-						sscanf(keyW2, "%d", &znodes );
-						printf("znodes=%d\n", znodes);
-					} 
-				}
-				while( strncmp(keyW1, "Begin:",6) == 0 && strncmp(keyW2, "Data",4) != 0 && lineLength != -1 );
-			}
-
-			// Reading data
-			if( valuedim != 0 && xnodes != 0 && ynodes != 0 && znodes != 0 )
-			{
-				sscanf(line, "#%*s %s %s %s", keyW1, keyW2, keyW3 );
-				
-				int n;
-				if( strncmp(keyW2, "Text",4) == 0 )
-				{
-					//Text data format
-					printf("...reading data in text format: %s \n", inputfilename.c_str());
-					for (int k=0; k < znodes; k++)
-					{
-						for (int j=0; j < ynodes; j++)
-						{
-							for (int i=0; i < xnodes; i++)
-							{
-								ReadDataLine(FilePointer, line);
-								if ( k < n_cells[2] && j < n_cells[1] && i < n_cells[0] )
-								{
-									n = i + j*n_cells[0] + k*n_cells[0]*n_cells[1];
-									auto& vec = vf[n];
-									sscanf(line, "%lf %lf %lf", &vec[0], &vec[1], &vec[2]);
-								}
-							}// i
-						}// j
-					}// k
-				}
-				else if( strncmp(keyW2, "Binary",6) == 0 )
-				{
-					if( strncmp(keyW3, "4",1) == 0 )
-						binType = 4;
-					else if( strncmp(keyW3, "8",1) == 0 )
-						binType = 8;
-
-					//Binary data format
-					printf("...reading data of binary (%d) format: %s \n", binType, inputfilename.c_str());
-
-					if( fread(&vf[0][0], binType, 1, FilePointer) )
-					{
-						//printf("%f \n",bSx[0]);	
-						for (int k=0; k<znodes; k++)
-						{
-							for (int j=0; j<ynodes; j++)
-							{
-								for (int i=0; i<xnodes; i++)
-								{
-									if ( k < n_cells[2] && j < n_cells[1] && i < n_cells[0] )
-									{
-										//index of the block!
-										n = i + j*xnodes + k*xnodes*ynodes;
-										auto& vec = vf[n];
-										//printf("n=%d\n", n);
-										if (binType==4)
-										{
-											if( !fread(&temp4_x, binType, 1, FilePointer) ) break;
-											if( !fread(&temp4_y, binType, 1, FilePointer) ) break;
-											if( !fread(&temp4_z, binType, 1, FilePointer) ) break;
-											for (int t=0; t<nos_basis; t++)
-											{
-												int I = n*nos_basis + t;
-												vec[I] = (scalar)temp4_x;
-												vec[I] = (scalar)temp4_y;
-												vec[I] = (scalar)temp4_z;
-											}
-										}
-										else
-										{
-											if( !fread(&temp8_x, binType, 1, FilePointer) ) break;
-											if( !fread(&temp8_y, binType, 1, FilePointer) ) break;
-											if( !fread(&temp8_z, binType, 1, FilePointer) ) break;
-											
-											for (int t=0; t<nos_basis; t++)
-											{
-												int I = n*nos_basis + t;
-												vec[I] = (scalar)temp8_x;
-												vec[I] = (scalar)temp8_y;
-												vec[I] = (scalar)temp8_z;	
-											}
-										}
-									}	
-								}// i
-							}// j
-						}// k
-					}
-					else printf("problem\n");
-				}
-				else printf("Do not know what to do with \"%s\" data format in %s\n", keyW2, inputfilename.c_str());
-			}
-			else printf("%s has wrong data format or dimentionality!\n", inputfilename.c_str());
-
-			// when everything is done
-			printf("Done!\n");
-			fclose(FilePointer);
-		}
-		else
-			printf("Cannot open file: %s \n", inputfilename.c_str());
-	}// end Read_From_OVF
 }// end namespace IO

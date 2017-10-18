@@ -52,7 +52,8 @@ namespace Utility
                 break;
             
             case Exception::System_not_Initialized : 
-                Log( Log_Level::Severe, Log_Sender::API, "System is uninitialized. Terminating.", idx_image, idx_chain );
+                Log( Log_Level::Severe, Log_Sender::API, "System is uninitialized. Terminating.", 
+                     idx_image, idx_chain );
                 Log.Append_to_File();
                 std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 break;
@@ -64,13 +65,13 @@ namespace Utility
                 break;
             
             case Exception::Simulated_domain_too_small:
-                Log( Log_Level::Error, Log_Sender::API, std::string( "Simulated domain is " ) + 
-                     std::string( "too small. No action taken." ), idx_image, idx_chain );
+                Log( Log_Level::Error, Log_Sender::API, std::string( "Simulated domain is too "
+                     "small. No action taken." ), idx_image, idx_chain );
                 break;
             
             case Exception::Not_Implemented:
-                Log( Log_Level::Warning, Log_Sender::API, std::string( "Feature not " ) + 
-                     std::string( " implemented. No action taken." ), idx_image, idx_chain );
+                Log( Log_Level::Warning, Log_Sender::API, "Feature not implemented. No action "
+                     "taken.", idx_image, idx_chain );
                 break;
             
             case Exception::Non_existing_Image:
@@ -81,6 +82,11 @@ namespace Utility
             case Exception::Non_existing_Chain:
                 Log( Log_Level::Warning, Log_Sender::API, "Non existing chain. No action taken.",
                      idx_image, idx_chain );
+                break;
+                
+            case Exception::File_reading_error:
+                Log( Log_Level::Error, Log_Sender::IO, "Error while reading file. Operation "
+                     "Aborted.", idx_image, idx_chain );
                 break;
         }
   

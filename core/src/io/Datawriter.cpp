@@ -344,7 +344,7 @@ namespace IO
 				fputs ("# ystepsize: 1.4253334770618889e-09\n",pFile);
 				fputs ("# zstepsize: 1e-07\n",pFile);
 				fputs ("# End: Header\n",pFile);
-				fputs ("# Begin: Data Binary 8\n",pFile);
+				fputs ("# Begin: data binary 8\n",pFile);
 
 				//scalar Temp1[]= {123456789012345.0};
 				const scalar testVariable = 123456789012345.0;
@@ -377,7 +377,7 @@ namespace IO
 					}// b
 				}// c
                 fputs ( "\n", pFile );  // a new line at the end of the data
-				fputs ("# End: Data Binary 8\n",pFile);
+				fputs ("# End: data binary 8\n",pFile);
 				fputs ("# End: Segment\n",pFile);
 				fclose (pFile);
 			}

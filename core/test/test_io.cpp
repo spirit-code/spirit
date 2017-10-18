@@ -15,14 +15,14 @@ TEST_CASE( "IO", "[io]" )
     
     Configuration_PlusZ( state.get() );
     
-    IO_Image_Read( state.get(), "core/test/io_test_files/test_ovf", IO_Fileformat_OVF );
+    IO_Image_Read( state.get(), "core/test/io_test_files/test_ovf.ovf", IO_Fileformat_OVF );
     
     //IO::Read_Spin_Configuration(image, "core/test/io_test_files/test_ovf", IO_Fileformat_OVF );
     
     int nos = System_Get_NOS( state.get() );
     REQUIRE( nos == 4 );
     
-    scalar * data = System_Get_Spin_Directions( state.get() );
+    scalar* data = System_Get_Spin_Directions( state.get() );
     scalar eps  = 1e-8;
     
     for (int i=0; i<nos; i++)

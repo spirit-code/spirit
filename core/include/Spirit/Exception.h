@@ -6,3 +6,4 @@
 #define Exception_Not_Implemented            4
 #define Exception_Non_existing_Image         5
 #define Exception_Non_existing_Chain         6
+#define Exception_File_reading_error         7
