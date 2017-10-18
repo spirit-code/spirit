@@ -2,11 +2,10 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "fmt/time.h"
+#include <fmt/time.h>
 
 #include <string>
 #include <sstream>
-#include <iomanip>
 
 namespace Utility
 {
@@ -78,16 +77,31 @@ namespace Utility
 
         duration<scalar> DurationFromString(std::string dt)
         {
-            // Convert std::string to std::tm
-            std::tm tm;
-            std::istringstream iss(dt);
-            iss >> std::get_time(&tm, "%H:%M:%S");
+            int hours=0, minutes=0;
+            long int seconds=0;
 
-            // Get total seconds from std::tm
-            std::chrono::seconds sec(tm.tm_hour*60*60 + tm.tm_min*60 + tm.tm_sec);
+            std::istringstream iss(dt);
+            std::string token = "";
+
+            // Hours
+            if (std::getline(iss, token, ':'))
+                if (!token.empty())
+                    iss >> hours;
+            // Minutes
+            if (std::getline(iss, token, ':'))
+                if (!token.empty())
+                    iss >> minutes;
+            // Seconds
+            if (std::getline(iss, token, ':'))
+                if (!token.empty())
+                    iss >> seconds;
+
+            // Convert to std::chrono::seconds
+            seconds += 60*minutes + 60*60*hours;
+            std::chrono::seconds chrono_seconds(seconds);
 
             // Return duration
-            return duration<scalar>(sec);
+            return duration<scalar>(chrono_seconds);
         }
     }
 }
