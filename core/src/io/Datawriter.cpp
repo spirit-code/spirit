@@ -250,7 +250,7 @@ namespace IO
 		{
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (s->geometry->atom_types[iatom] < 0)
-				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0, 0, 0);
+				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0.0, 0.0, 0.0);
 			else
 			#endif
 				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
@@ -281,7 +281,7 @@ namespace IO
 			{
 				#ifdef SPIRIT_ENABLE_DEFECTS
 				if (c->images[iimage]->geometry->atom_types[iatom] < 0)
-					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", 0, 0, 0);
+					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", 0.0, 0.0, 0.0);
 				else
 				#endif
 					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
