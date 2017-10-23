@@ -131,6 +131,12 @@ namespace Engine
             auto& Nb = n_cells[1];
             auto& Nc = n_cells[2];
 
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
+
             // Translations (cell) of spin i
             int nic = ispin / (N*Na*Nb);
             int nib = (ispin - nic*N*Na*Nb) / (N*Na);
@@ -247,6 +253,12 @@ namespace Engine
             auto& Na = n_cells[0];
             auto& Nb = n_cells[1];
             auto& Nc = n_cells[2];
+
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
 
             // Translations (cell) of spin i
             int nic = ispin / (N*Na*Nb);
