@@ -84,7 +84,7 @@ namespace Utility
                      idx_image, idx_chain );
                 break;
                 
-            case Exception::File_reading_error:
+            case Exception::Bad_File_Content:
                 Log( Log_Level::Error, Log_Sender::IO, "Error while reading file. Operation "
                      "Aborted.", idx_image, idx_chain );
                 break;

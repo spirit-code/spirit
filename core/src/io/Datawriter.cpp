@@ -325,7 +325,7 @@ namespace IO
 				fputs (shortBufer,pFile);
 				snprintf(shortBufer,80,"# ymax: %f\n", n_cells[1]*1e-9);
 				fputs (shortBufer,pFile);
-				snprintf(shortBufer,80,"# ymax: %f\n", n_cells[2]*1e-9);
+				snprintf(shortBufer,80,"# zmax: %f\n", n_cells[2]*1e-9);
 				fputs (shortBufer,pFile);
 				fputs ("# valuedim: 3\n",pFile);
 				fputs ("# valuelabels: m_x m_y m_z\n",pFile);

@@ -935,16 +935,16 @@ namespace IO
             std::string ovf_meshunit = "";
             std::string ovf_meshtype = "";
             std::string ovf_valueunits = "";
-            Vector3 ovf_xyz_max;
-            Vector3 ovf_xyz_min;
+            Vector3 ovf_xyz_max(0,0,0);
+            Vector3 ovf_xyz_min(0,0,0);
             //std::string valueunits_list = "";
             int ovf_valuedim = 0;
             // irregular mesh attributes
             int ovf_pointcount = 0;
             // rectangular mesh attributes
-            Vector3 ovf_xyz_base;
-            Vector3 ovf_xyz_stepsize;
-            std::array<int, 3> ovf_xyz_nodes;
+            Vector3 ovf_xyz_base(0,0,0);
+            Vector3 ovf_xyz_stepsize(0,0,0);
+            std::array<int, 3> ovf_xyz_nodes{ {0,0,0} };
             // raw data attributes
             std::string ovf_data_representation = "";
             int ovf_binary_length = 0;
@@ -987,7 +987,7 @@ namespace IO
             {
                 Log( Log_Level::Error, Log_Sender::IO, "Mesh type must be either \"rectangular\" "
                      "or \"irregular\"" );
-                throw Exception::File_reading_error;
+                throw Exception::Bad_File_Content;
             }
             
             // Emit Header to Log
@@ -1061,7 +1061,7 @@ namespace IO
             {
                 Log( Log_Level::Error, Log_Sender::IO, "Data representation must be either "
                      "\"text\' or \"binary\"" );
-                throw Exception::File_reading_error;
+                throw Exception::Bad_File_Content;
             }
             
             if( ovf_data_representation == "binary" && 
@@ -1069,7 +1069,7 @@ namespace IO
             {
                 Log( Log_Level::Error, Log_Sender::IO, "Dinary representation can be either "
                      "\"binary 8\" or \"binary 4\"");
-                throw Exception::File_reading_error;
+                throw Exception::Bad_File_Content;
             }
             
             // Read the data
@@ -1082,10 +1082,12 @@ namespace IO
         }
         catch (Exception ex) 
         {
-            if (ex == Exception::File_not_Found) {
+            if (ex == Exception::File_not_Found) 
                 Log( Log_Level::Error, Log_Sender::IO, "Log_Levels: Unable to read OVF File " + 
                      ovfFileName + " Leaving values at default." );
-            }
+            if (ex == Exception::Bad_File_Content)
+                Log( Log_Level::Error, Log_Sender::IO, "Log_Levels: Unexpected argument or data"
+                     "in OVF File. Reading aborted" );
             else throw ex;
         }
     }
@@ -1100,7 +1102,7 @@ namespace IO
             
             // check if the initial check value of the binary data is valid
             if( !OVF_Check_Binary_Initial_Values( myfile, ovf_binary_length ) )
-                throw Exception::File_reading_error;
+                throw Exception::Bad_File_Content;
             
             // comparison of datum size compared to scalar type
             if ( sizeof(scalar) == ovf_binary_length )

@@ -15,7 +15,7 @@ namespace Utility
 		Not_Implemented            = Exception_Not_Implemented,
         Non_existing_Image         = Exception_Non_existing_Image,
         Non_existing_Chain         = Exception_Non_existing_Chain,
-        File_reading_error         = Exception_File_reading_error
+        Bad_File_Content           = Exception_Bad_File_Content
         // TODO: from Chain.cpp
         // Last image deletion ?
         // Empty clipboard     ?

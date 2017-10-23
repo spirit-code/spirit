@@ -35,16 +35,11 @@ namespace IO
         // if the file is not open
         if ( !this->myfile->is_open() )
             throw Utility::Exception::File_not_Found;
-        else 
-            Log( Log_Level::Debug, Utility::Log_Sender::IO, 
-                 std::string("  Reading from Config File ").append( filename ) );
 	}
 
 	Filter_File_Handle::~Filter_File_Handle()
 	{ 
 		myfile->close();
-		Log( Log_Level::Debug, Utility::Log_Sender::IO, 
-             std::string("  Config File Closed: ").append(filename) );
 	}
 
     bool Filter_File_Handle::GetLine_Handle()
@@ -152,8 +147,8 @@ namespace IO
                 var = var.substr( start, ( end - start + 1 ) );
         }
         else if ( log_notfound )
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + name + 
-             " not found. Using Default: " + fmt::format( "{}", var ) );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + name + 
+                 " not found. Using Default: " + fmt::format( "{}", var ) );
     }
     
     int Filter_File_Handle::Count_Words( const std::string& phrase )
