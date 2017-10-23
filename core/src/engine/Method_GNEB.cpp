@@ -92,13 +92,14 @@ namespace Engine
 			auto& image = *configurations[img];
 			// We do it the following way so that the effective field can be e.g. displayed,
 			//		while the gradient force is manipulated (e.g. projected)
-			// this->chain->images[img]->UpdateEffectiveField();
+			this->chain->images[img]->UpdateEffectiveField();
 			// F_gradient[img] = this->chain->images[img]->effective_field;
+			Vectormath::set_c_a(1, this->chain->images[img]->effective_field, F_gradient[img]);
 			// // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
 
 			// The gradient force (unprojected) is simply the effective field
-			this->chain->images[img]->hamiltonian->Gradient(image, F_gradient[img]);
-			Vectormath::scale(F_gradient[img], -1);
+			// this->chain->images[img]->hamiltonian->Gradient(image, F_gradient[img]);
+			// Vectormath::scale(F_gradient[img], -1);
 
 			// Project the gradient force into the tangent space of the image
 			Manifoldmath::project_tangential(F_gradient[img], image);
@@ -212,7 +213,7 @@ namespace Engine
 
 			// Set the effective fields
 			Manifoldmath::project_tangential(this->forces[img], *this->systems[img]->spins);
-        	Vectormath::set_c_a(1, this->forces[img], this->systems[img]->effective_field);
+        	// Vectormath::set_c_a(1, this->forces[img], this->systems[img]->effective_field);
 		}
 
 		// --- Chain Data Update

@@ -7,8 +7,8 @@ C/C++ Library <a name="CPP"></a>
 
 | Dependencies | Versions |
 | :----------: | -------- |
-| gcc          | >= 4.8.1 (C++11 stdlib) or any modern compiler |
-| CMake        | >= 2.8.12 |
+| gcc          | >= 5.1 (C++11 stdlib) or any modern compiler |
+| CMake        | >= 3.1 |
 
 This is pretty much a standalone library and should be easy to implement into existing
 projects in which CMake is already used.

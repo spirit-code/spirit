@@ -55,7 +55,7 @@ void GeometryWidget::setNCells()
 	if (std::abs(b_max[2]) > 0) pc_z /= b_max[2];
 
 	// Update the geometry in the core
-	int n_cells[3]{ this->lineEdit_n_cells_a->text().toFloat(), this->lineEdit_n_cells_b->text().toFloat(), this->lineEdit_n_cells_c->text().toFloat() };
+	int n_cells[3]{ this->lineEdit_n_cells_a->text().toInt(), this->lineEdit_n_cells_b->text().toInt(), this->lineEdit_n_cells_c->text().toInt() };
 	Geometry_Set_N_Cells(this->state.get(), n_cells);
 
 	// Update geometry and arrays in SpinWidget

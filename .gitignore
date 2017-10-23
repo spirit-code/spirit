@@ -35,6 +35,7 @@ core/python/LICENSE.txt
 VERSION.txt
 scalar.py
 version.py
+windows_metafile.rc
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

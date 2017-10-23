@@ -102,7 +102,6 @@ namespace Engine
 			int noi = configurations.size();
 			int nos = (*configurations[0]).size();
 
-            #pragma omp parallel for
 			for (int idx_img = 0; idx_img < noi; ++idx_img)
 			{
 				auto& image = *configurations[idx_img];
@@ -111,80 +110,64 @@ namespace Engine
 				if (idx_img == 0)
 				{
 					auto& image_plus = *configurations[idx_img + 1];
-
-					//tangents = IMAGES_LAST(idx_img + 1, :, : ) - IMAGES_LAST(idx_img, :, : );
-					for (int i = 0; i < nos; ++i)
-					{
-						tangents[idx_img][i] = image_plus[i] - image[i];
-					}
+					Vectormath::set_c_a( 1, image_plus, tangents[idx_img]);
+					Vectormath::add_c_a(-1, image,      tangents[idx_img]);
 				}
 				// Last Image
 				else if (idx_img == noi - 1)
 				{
 					auto& image_minus = *configurations[idx_img - 1];
-
-					//tangents = IMAGES_LAST(idx_img, :, : ) - IMAGES_LAST(idx_img - 1, :, : );
-					for (int i = 0; i < nos; ++i)
-					{
-						tangents[idx_img][i] = image[i] - image_minus[i];
-					}
+					Vectormath::set_c_a( 1, image,       tangents[idx_img]);
+					Vectormath::add_c_a(-1, image_minus, tangents[idx_img]);
 				}
 				// Images Inbetween
 				else
 				{
-					auto& image_plus = *configurations[idx_img + 1];
+					auto& image_plus  = *configurations[idx_img + 1];
 					auto& image_minus = *configurations[idx_img - 1];
 
 					// Energies
 					scalar E_mid = 0, E_plus = 0, E_minus = 0;
-					E_mid = energies[idx_img];
-					E_plus = energies[idx_img + 1];
+					E_mid   = energies[idx_img];
+					E_plus  = energies[idx_img + 1];
 					E_minus = energies[idx_img - 1];
 
 					// Vectors to neighbouring images
 					vectorfield t_plus(nos), t_minus(nos);
-					for (int i = 0; i < nos; ++i)
-					{
-						t_plus[i] = image_plus[i] - image[i];
-						t_minus[i] = image[i] - image_minus[i];
-					}
+
+					Vectormath::set_c_a( 1, image_plus, t_plus);
+					Vectormath::add_c_a(-1, image,      t_plus);
+
+					Vectormath::set_c_a( 1, image,       t_minus);
+					Vectormath::add_c_a(-1, image_minus, t_minus);
 
 					// Near maximum or minimum
 					if ((E_plus < E_mid && E_mid > E_minus) || (E_plus > E_mid && E_mid < E_minus))
 					{
 						// Get a smooth transition between forward and backward tangent
-						scalar E_max = std::fmax(std::abs(E_plus - E_mid), std::abs(E_minus - E_mid));
-						scalar E_min = std::fmin(std::abs(E_plus - E_mid), std::abs(E_minus - E_mid));
+						scalar E_max = std::max(std::abs(E_plus - E_mid), std::abs(E_minus - E_mid));
+						scalar E_min = std::min(std::abs(E_plus - E_mid), std::abs(E_minus - E_mid));
 
 						if (E_plus > E_minus)
 						{
-							//tangents = t_plus*E_max + t_minus*E_min;
-							for (int i = 0; i < nos; ++i)
-							{
-								tangents[idx_img][i] = t_plus[i] * E_max + t_minus[i] * E_min;
-							}
+							Vectormath::set_c_a(E_max, t_plus,  tangents[idx_img]);
+							Vectormath::add_c_a(E_min, t_minus, tangents[idx_img]);
 						}
 						else
 						{
-							//tangents = t_plus*E_min + t_minus*E_max;
-							for (int i = 0; i < nos; ++i)
-							{
-								tangents[idx_img][i] = t_plus[i] * E_min + t_minus[i] * E_max;
-							}
+							Vectormath::set_c_a(E_min, t_plus,  tangents[idx_img]);
+							Vectormath::add_c_a(E_max, t_minus, tangents[idx_img]);
 						}
 					}
 					// Rising slope
 					else if (E_plus > E_mid && E_mid > E_minus)
 					{
-						//tangents = t_plus;
-						for (int i = 0; i < nos; ++i)
-						{
-							tangents[idx_img][i] = t_plus[i];
-						}
+						Vectormath::set_c_a(1, t_plus,  tangents[idx_img]);
 					}
 					// Falling slope
 					else if (E_plus < E_mid && E_mid < E_minus)
 					{
+						Vectormath::set_c_a(1, t_minus,  tangents[idx_img]);
 						//tangents = t_minus;
 						for (int i = 0; i < nos; ++i)
 						{
@@ -194,25 +177,13 @@ namespace Engine
 					// No slope(constant energy)
 					else
 					{
-						//tangents = t_plus + t_minus;
-						for (int i = 0; i < nos; ++i)
-						{
-							tangents[idx_img][i] = t_plus[i] + t_minus[i];
-						}
+						Vectormath::set_c_a(1, t_plus,  tangents[idx_img]);
+						Vectormath::add_c_a(1, t_minus, tangents[idx_img]);
 					}
-
 				}
 
 				// Project tangents into tangent planes of spin vectors to make them actual tangents
         		project_tangential(tangents[idx_img], image);
-
-				// //Project_Orthogonal(tangents[idx_img], configurations[idx_img]);
-				// scalar v1v2 = 0.0;
-				// for (int i = 0; i < nos; ++i)
-				// {
-				// 	// Get the scalar product of the vectors
-				// 	tangents[idx_img][i] -= tangents[idx_img][i].dot(image[i]) * image[i];
-				// }
 
 				// Normalise in 3N - dimensional space
 				Manifoldmath::normalize(tangents[idx_img]);

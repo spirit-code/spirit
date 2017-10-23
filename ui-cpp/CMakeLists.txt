@@ -1,5 +1,5 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
-MESSAGE( STATUS ">> --------------------- UI - QT -------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - CPP ------------------------------------- <<" )
 
 ######### CMake Version #####################
 cmake_minimum_required( VERSION 3.0 )
@@ -43,7 +43,7 @@ endif ( )
 ### Installation
 set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
 #############################################
-set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
+# set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 #############################################
 
@@ -74,17 +74,9 @@ if ( UI_CXX_USE_QT )
 
 
     ######### Find the Qt libraries ##########
-    #find_package(Qt5 REQUIRED)
-    find_package( Qt5Core REQUIRED )
-    #MESSAGE( STATUS ">> Found QTCore at:        " ${Qt5Core_DIR} )
-    find_package( Qt5Gui REQUIRED )
-    #MESSAGE( STATUS ">> Found QTGui at:         " ${Qt5Gui_DIR} )
-    find_package( Qt5Widgets REQUIRED )
-    #MESSAGE( STATUS ">> Found QTWidgets at:     " ${Qt5Widgets_DIR} )
-    find_package( Qt5Charts REQUIRED )
-    #MESSAGE( STATUS ">> Found QTCharts at:      " ${Qt5Charts_DIR} )
-    find_package( Qt5OpenGL REQUIRED )
-    #MESSAGE( STATUS ">> Found QTOpenGL at:      " ${Qt5OpenGL_DIR} )
+    find_package( Qt5 5.7 REQUIRED COMPONENTS Core Gui Widgets Charts OpenGL )
+    MESSAGE( STATUS ">> QT version:  " ${Qt5_VERSION} )
+    MESSAGE( STATUS ">> Found QT at: " ${Qt5_DIR} )
     ###########################################
 
 
@@ -140,13 +132,14 @@ if ( UI_CXX_USE_QT )
 
     #############################################
     SET( OS_BUNDLE_NAME )
+    SET( META_FILES )
     IF( APPLE AND BUNDLE_APP )
 
         # For Apple set the icns file containing icons
         # set how it shows up in the Info.plist file
-        SET( MACOSX_BUNDLE_ICON_FILE QtTest.icns ) 
+        SET( MACOSX_BUNDLE_ICON_FILE AppIcon.icns ) 
         # set where in the bundle to put the icns file
-        SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/QtTest.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
+        SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         # include the icns file in the target
         SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/QtTest.icns )
 
@@ -186,6 +179,17 @@ if ( UI_CXX_USE_QT )
     IF ( WIN32 AND BUNDLE_APP )
         SET( OS_BUNDLE_NAME WIN32 )
     ENDIF ( WIN32 AND BUNDLE_APP )
+    ###
+    IF ( WIN32 )
+        set(ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico)
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/windows_metafile.rc.in
+            ${CMAKE_CURRENT_SOURCE_DIR}/windows_metafile.rc )
+        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} "windows_metafile.rc" )
+        set(CMAKE_RC_COMPILER_INIT windres)
+        ENABLE_LANGUAGE(RC)
+        SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+    ENDIF ( )
     #############################################
 
 
@@ -368,5 +372,5 @@ if ( PRINT_SOURCES )
 endif ()
 #############################################
 
-MESSAGE( STATUS ">> --------------------- UI - QT done --------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - CPP done -------------------------------- <<" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )

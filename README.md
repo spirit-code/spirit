@@ -12,6 +12,9 @@ SPIRIT
 |  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
 
 
+[Python package](https://pypi.org/project/spirit/): [![PyPI version](https://badge.fury.io/py/spirit.svg)](https://badge.fury.io/py/spirit)
+
+
 &nbsp;
 
 

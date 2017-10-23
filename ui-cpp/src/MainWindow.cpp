@@ -105,6 +105,18 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
 	connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
+	// MenuBar updates
+	connect(this->actionShow_Settings,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionShow_Plots,      SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionShow_Debug,      SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_Geometry,            SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_visualisation,       SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_fullscreen_window,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Settings, SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Plots,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+	connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
+
 	// Status Bar
 	//		Spacer
 	this->m_Spacer_5 = new QLabel("    |    ");
@@ -147,6 +159,8 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 	//		Initialisations
 	this->createStatusBar();
+	//		MenuBar checkboxes
+	QTimer::singleShot(1000, this, SLOT(updateMenuBar()));
 	
 
 	// Set up Update Timers
@@ -842,6 +856,30 @@ void MainWindow::updateStatusBar()
 	this->m_Label_Dims->setText(text);
 }
 
+void MainWindow::updateMenuBar()
+{
+	// Settings
+	if (this->dockWidget_Settings->isVisible())
+		this->actionShow_Settings->setChecked(true);
+	else
+		this->actionShow_Settings->setChecked(false);
+	// Plots
+	if (this->dockWidget_Plots->isVisible())
+		this->actionShow_Plots->setChecked(true);
+	else
+		this->actionShow_Plots->setChecked(false);
+	// Debug
+	if (this->dockWidget_Debug->isVisible())
+		this->actionShow_Debug->setChecked(true);
+	else
+		this->actionShow_Debug->setChecked(false);
+
+	// Visualisation
+	this->actionToggle_visualisation->setChecked(this->m_spinWidgetActive);
+	this->actionToggle_large_visualisation->setChecked(this->view_spins_only);
+	this->actionToggle_fullscreen_window->setChecked(this->view_fullscreen);
+}
+
 void MainWindow::takeScreenshot()
 {
 	std::string tag = State_DateTime(state.get());
@@ -1086,28 +1124,60 @@ void MainWindow::save_Spin_Configuration()
 
 void MainWindow::load_Spin_Configuration()
 {
-	auto fileName = QFileDialog::getOpenFileName(this,
+	auto fileNames = QFileDialog::getOpenFileNames(this,
 		tr("Load Spin Configuration"),
 		"./input",
 		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
-	if (!fileName.isEmpty())
+
+	int n_files = fileNames.size();
+	int n_read  = 0;
+	int i_start = System_Get_Index(this->state.get());
+	
+	for (auto& fileName : fileNames)
 	{
-		QFileInfo fi(fileName);
-		// Determine file type from suffix
-		auto qs_type = fi.suffix();
+		int noi = Chain_Get_NOI(this->state.get());
+		bool read_image = true;
 		int type = IO_Fileformat_Regular;
-		if (qs_type == "txt") type = IO_Fileformat_Regular;
-		else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
-		else
+
+		if (!fileName.isEmpty())
 		{
-			Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
-			return;
+			QFileInfo fi(fileName);
+			// Determine file type from suffix
+			auto qs_type = fi.suffix();
+			if (qs_type == "txt") type = IO_Fileformat_Regular;
+			else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
+			else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+			else
+			{
+				Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+				read_image = false;
+			}
 		}
-		// Read the file
-		auto file = string_q2std(fileName);
-		IO_Image_Read(this->state.get(), file.c_str(), type);
+		else read_image = false;
+
+		if (read_image)
+		{
+			std::cerr << i_start << " " << n_read << " " << noi << std::endl;
+			// Append image to chain if necessary
+			if (i_start+n_read == noi)
+			{
+				Chain_Image_to_Clipboard(this->state.get());
+				Chain_Insert_Image_After(this->state.get());
+				Chain_next_Image(this->state.get());
+			}
+			else if (n_read > 0)
+			{
+				Chain_next_Image(this->state.get());
+			}
+
+			// Read the file
+			auto file = string_q2std(fileName);
+			IO_Image_Read(this->state.get(), file.c_str(), type);
+			++n_read;
+		}
 	}
+
+	Chain_Jump_To_Image(this->state.get(), i_start);
 	this->spinWidget->updateData();
 }
 

@@ -85,8 +85,8 @@ set(META_AUTHOR_DOMAIN        "https://spirit-code.github.io")
 set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
 set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
-set(META_VERSION_MINOR        "6")
-set(META_VERSION_PATCH        "2")
+set(META_VERSION_MINOR        "7")
+set(META_VERSION_PATCH        "0")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
 ### Propagate version and name_version upwards
@@ -189,7 +189,7 @@ configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.h.in ${PROJECT_SOURCE_
 ######### CUDA decisions ####################
 if ( SPIRIT_USE_CUDA )
 	# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-    find_package( CUDA REQUIRED )
+    find_package( CUDA 8 REQUIRED )
     add_definitions( -DUSE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
@@ -514,8 +514,16 @@ set(SOURCE_SPIRIT_ENGINE    ${SOURCE_SPIRIT_ENGINE}     PARENT_SCOPE)
 set(SOURCE_SPIRIT 			${SOURCE_SPIRIT} 		    PARENT_SCOPE)
 set(SOURCE_SPIRIT_IO        ${SOURCE_SPIRIT_IO}         PARENT_SCOPE)
 set(SOURCE_SPIRIT_UTILITY   ${SOURCE_SPIRIT_UTILITY}    PARENT_SCOPE)
+######### Export  Meta ######################
+set(META_PROJECT_NAME        ${META_PROJECT_NAME}        PARENT_SCOPE)
+set(META_PROJECT_DESCRIPTION ${META_PROJECT_DESCRIPTION} PARENT_SCOPE)
+set(META_AUTHOR_ORGANIZATION ${META_AUTHOR_ORGANIZATION} PARENT_SCOPE)
+set(META_AUTHOR_DOMAIN       ${META_AUTHOR_DOMAIN}       PARENT_SCOPE)
+set(META_AUTHOR_MAINTAINER   ${META_AUTHOR_MAINTAINER}   PARENT_SCOPE)
+set(META_AUTHOR_EMAIL        ${META_AUTHOR_EMAIL}        PARENT_SCOPE)
+set(META_VERSION             ${META_VERSION}             PARENT_SCOPE)
+set(META_VERSION_REVISION    ${META_VERSION_REVISION}    PARENT_SCOPE)
 #############################################
-
 
 
 ######### Header and Source messages ########

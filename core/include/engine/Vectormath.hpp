@@ -82,9 +82,10 @@ namespace Engine
             int Nb = n_cells[1];
             int Nc = n_cells[2];
             int N = n_spins_basic_domain;
+
             ret[2] = idx / (N*Na*Nb);
             ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
-            ret[0] = idx - ret[2] * N*Na*Nb - ret[1] * N*Na;
+            ret[0] = (idx - ret[2] * N*Na*Nb - ret[1] * N*Na) / N;
             return ret;
         }
         #endif
@@ -129,6 +130,12 @@ namespace Engine
             auto& Na = n_cells[0];
             auto& Nb = n_cells[1];
             auto& Nc = n_cells[2];
+
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
 
             // Translations (cell) of spin i
             int nic = ispin / (N*Na*Nb);
@@ -238,8 +245,6 @@ namespace Engine
         // This function takes into account boundary conditions and atom types and returns `-1` if any condition is not met.
         inline int idx_from_pair(int ispin, const intfield & boundary_conditions, const intfield & n_cells, int N, const intfield & atom_types, const Pair & pair, bool invert=false)
         {
-            // TODO: use pair.i and pair.j to get multi-spin basis correctly
-
             // Invalid index if atom type of spin i is not correct
             if ( pair.i != ispin%N || !check_atom_type(atom_types[ispin]) )
                 return -1;
@@ -249,10 +254,16 @@ namespace Engine
             auto& Nb = n_cells[1];
             auto& Nc = n_cells[2];
 
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
+
             // Translations (cell) of spin i
             int nic = ispin / (N*Na*Nb);
             int nib = (ispin - nic*N*Na*Nb) / (N*Na);
-            int nia = ispin - nic*N*Na*Nb - nib*N*Na;
+            int nia = (ispin - nic*N*Na*Nb - nib*N*Na) / N;
 
             int pm = 1;
             if (invert)
@@ -317,7 +328,7 @@ namespace Engine
             int jspin = pair.j + (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
 
             // Invalid index if atom type of spin j is not correct
-            if ( pair.j != jspin%N || !check_atom_type(atom_types[jspin]) )
+            if ( !check_atom_type(atom_types[jspin]) )
                 return -1;
             
             // Return a valid index
