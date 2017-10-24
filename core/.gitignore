@@ -13,7 +13,8 @@ spirit.js.mem
 VERSION.txt
 python/LICENSE.txt
 Spirit_Defines.h
-__init__.py
+Version.h
+python/spirit/__init__.py
 scalar.py
 version.py
 

@@ -1,7 +1,7 @@
 #include <data/Spin_System.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 
 #include <numeric>
 #include <iostream>
@@ -9,8 +9,6 @@
 #include <cmath>
 #include <algorithm>
 #include <random>
-
-using namespace Utility;
 
 namespace Data
 {

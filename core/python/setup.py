@@ -6,6 +6,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import datetime
 
 from distutils.util import get_platform
 from setuptools import setup, Command
@@ -59,6 +60,17 @@ def find_meta(meta):
         return meta_match.group(1)
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
+def get_git_commit_datetime():
+    try:
+        commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
+        commit_datetime = subprocess.check_output("git show -s --format=%ci "+commit_hash, shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
+        print(commit_datetime)
+        datetime_object = datetime.datetime.strptime(commit_datetime, '%Y-%m-%d %H:%M:%S +%f')
+        print("{:%Y%m%d%H%M%S}".format(datetime_object))
+        return "{:%Y%m%d%H%M%S}".format(datetime_object)
+    except subprocess.CalledProcessError as cpe:
+        print(cpe.output)
+        return "00000000000000"
 
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
@@ -86,24 +98,35 @@ class CleanCommand(Command):
 
 
 if __name__ == "__main__":
-    long_description = read('README.md')
+    # If the environment variable SPIRIT_VERSION_SUFFIX is defined,
+    # it is appended to the package version number.
+    version_suffix = ""
+    add_version_suffix = os.environ.get("SPIRIT_ADD_VERSION_SUFFIX", "")
+    if add_version_suffix.lower() in ("yes", "true", "t", "1"):
+        timepoint_string = get_git_commit_datetime()
+        if timepoint_string == "00000000000000":
+            timepoint_string = "{:%Y%m%d%H%M}".format(datetime.datetime.now())
+        version_suffix = ".dev"+timepoint_string
+        print("setup.py: package version suffix = ", version_suffix)
+
+    # Setup the package info
     setup(
-        name=NAME,
-        description=find_meta("description"),
-        long_description=long_description,
-        license=find_meta("license"),
-        url=find_meta("uri"),
-        version=find_meta("version"),
-        author=find_meta("author"),
-        author_email=find_meta("email"),
-        maintainer=find_meta("author"),
-        maintainer_email=find_meta("email"),
-        keywords=KEYWORDS,
-        packages=PACKAGES,
-        classifiers=CLASSIFIERS,
-        install_requires=INSTALL_REQUIRES,
-        package_data={
+        name             = NAME,
+        description      = find_meta("description"),
+        long_description = read('README.md'),
+        license          = find_meta("license"),
+        url              = find_meta("uri"),
+        version          = find_meta("version")+version_suffix,
+        author           = find_meta("author"),
+        author_email     = find_meta("email"),
+        maintainer       = find_meta("author"),
+        maintainer_email = find_meta("email"),
+        keywords         = KEYWORDS,
+        packages         = PACKAGES,
+        classifiers      = CLASSIFIERS,
+        install_requires = INSTALL_REQUIRES,
+        package_data     = {
             'spirit': ['libSpirit.dylib', 'libSpirit.so', 'libSpirit.dll'],
         },
-        cmdclass={'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
+        cmdclass = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
     )

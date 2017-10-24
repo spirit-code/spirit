@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1218</width>
+    <height>718</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Spirit - Atomistic Spin Code (QT UI)</string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>100</height>
+    </size>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetNoConstraint</enum>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="30,0">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetNoConstraint</enum>
+      </property>
+      <item>
+       <layout class="QGridLayout" name="gridLayout" rowstretch="0" rowminimumheight="0" columnminimumwidth="0">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetNoConstraint</enum>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2"/>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1218</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_Configuration"/>
+    <addaction name="actionSave_Cfg_File"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Spin_Configuration"/>
+    <addaction name="actionLoad_SpinChain_Configuration"/>
+    <addaction name="separator"/>
+    <addaction name="action_Save_Spin_Configuration"/>
+    <addaction name="actionSave_SpinChain_Configuration"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Energy_per_Spin"/>
+    <addaction name="actionSave_Energies"/>
+    <addaction name="actionSave_Energies_Interpolated"/>
+    <addaction name="separator"/>
+    <addaction name="actionTake_Screenshot"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionCut_Configuration"/>
+    <addaction name="actionCopy_Configuration"/>
+    <addaction name="actionPaste_Configuration"/>
+    <addaction name="actionInsert_Left"/>
+    <addaction name="actionInsert_Right"/>
+    <addaction name="actionDelete_Configuration"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionKey_Bindings"/>
+    <addaction name="actionAbout_this_Application"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionShow_Settings"/>
+    <addaction name="actionShow_Plots"/>
+    <addaction name="actionShow_Debug"/>
+    <addaction name="actionToggle_Geometry"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggle_camera_projection"/>
+    <addaction name="separator"/>
+    <addaction name="actionRegular_mode"/>
+    <addaction name="actionIsosurface_mode"/>
+    <addaction name="actionSlab_mode_X"/>
+    <addaction name="actionSlab_mode_Y"/>
+    <addaction name="actionSlab_mode_Z"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggle_visualisation"/>
+    <addaction name="actionToggle_large_visualisation"/>
+    <addaction name="actionToggle_fullscreen_window"/>
+   </widget>
+   <widget class="QMenu" name="menuControls">
+    <property name="title">
+     <string>&amp;Controls</string>
+    </property>
+    <addaction name="actionPlay_Pause_Simulation"/>
+    <addaction name="actionRandomize_Spins"/>
+    <addaction name="actionCycle_Method"/>
+    <addaction name="actionCycle_Solver"/>
+    <addaction name="actionToggle_Dragging_mode"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuControls"/>
+   <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_Settings">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>524287</width>
+     <height>524287</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>160</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Setti&amp;ngs</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_4"/>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_Plots">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>524287</width>
+     <height>524287</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>160</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>P&amp;lots</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QGridLayout" name="gridLayout_5"/>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_Debug">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>524287</width>
+     <height>524287</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>160</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>&amp;Debug</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_6">
+    <layout class="QGridLayout" name="gridLayout_6"/>
+   </widget>
+  </widget>
+  <action name="actionOpenFile">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Open File...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>Print</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>Help</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionLoad_Spin_Configuration">
+   <property name="text">
+    <string>Load Spin &amp;Configuration</string>
+   </property>
+  </action>
+  <action name="actionSave_2">
+   <property name="text">
+    <string>(Save)</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="text">
+    <string>(&amp;Copy)</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="text">
+    <string>(&amp;Paste)</string>
+   </property>
+  </action>
+  <action name="actionCopy_Configuration">
+   <property name="text">
+    <string>Copy &amp;System</string>
+   </property>
+  </action>
+  <action name="actionPaste_Configuration">
+   <property name="text">
+    <string>&amp;Paste System</string>
+   </property>
+  </action>
+  <action name="actionDelete_Configuration">
+   <property name="text">
+    <string>&amp;Delete System</string>
+   </property>
+  </action>
+  <action name="actionAbout_this_Application">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionShow_Settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Toggle Settings</string>
+   </property>
+  </action>
+  <action name="actionShow_Plots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &amp;Plots</string>
+   </property>
+  </action>
+  <action name="actionShow_Debug">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &amp;Debug</string>
+   </property>
+  </action>
+  <action name="action_Load_Spin_System">
+   <property name="text">
+    <string>(Load Sp&amp;in System)</string>
+   </property>
+  </action>
+  <action name="action_Load_Spin_System_Chain">
+   <property name="text">
+    <string>(Load Spi&amp;n System Chain)</string>
+   </property>
+  </action>
+  <action name="actionLoad_Configuration">
+   <property name="text">
+    <string>&amp;Load Cfg File</string>
+   </property>
+  </action>
+  <action name="action_Save_Spin_Configuration">
+   <property name="text">
+    <string>Sa&amp;ve Spin Configuration</string>
+   </property>
+  </action>
+  <action name="actionSave_Energies">
+   <property name="text">
+    <string>&amp;Save Energies of the Chain</string>
+   </property>
+  </action>
+  <action name="action_Load_LLG_Parameters">
+   <property name="text">
+    <string>(Load LLG &amp;Parameters)</string>
+   </property>
+  </action>
+  <action name="action_Load_GNEB_Parameters">
+   <property name="text">
+    <string>(Load &amp;GNEB Parameters)</string>
+   </property>
+  </action>
+  <action name="action_Load_Debug_Parameters">
+   <property name="text">
+    <string>(Load &amp;Debug Parameters)</string>
+   </property>
+  </action>
+  <action name="actionLoad_Hamiltonian">
+   <property name="text">
+    <string>(Load &amp;Hamiltonian)</string>
+   </property>
+  </action>
+  <action name="actionLoad_SpinChain_Configuration">
+   <property name="text">
+    <string>Load Spin Configuration Chain</string>
+   </property>
+  </action>
+  <action name="actionSave_SpinChain_Configuration">
+   <property name="text">
+    <string>Save Spin Configuration Chain</string>
+   </property>
+  </action>
+  <action name="actionKey_Bindings">
+   <property name="text">
+    <string>&amp;Key Bindings</string>
+   </property>
+  </action>
+  <action name="actionToggle_large_visualisation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &amp;large visualisation</string>
+   </property>
+  </action>
+  <action name="actionToggle_fullscreen_window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &amp;fullscreen window</string>
+   </property>
+  </action>
+  <action name="actionToggle_Dragging_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Toggle &quot;Dragging&quot; mode</string>
+   </property>
+  </action>
+  <action name="actionTake_Screenshot">
+   <property name="text">
+    <string>&amp;Take Screenshot</string>
+   </property>
+  </action>
+  <action name="actionToggle_camera_projection">
+   <property name="text">
+    <string>Toggle &amp;camera projection</string>
+   </property>
+  </action>
+  <action name="actionToggle_visualisation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &amp;visualisation</string>
+   </property>
+  </action>
+  <action name="actionRegular_mode">
+   <property name="text">
+    <string>&amp;Regular mode</string>
+   </property>
+  </action>
+  <action name="actionIsosurface_mode">
+   <property name="text">
+    <string>&amp;Isosurface mode</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_X">
+   <property name="text">
+    <string>&amp;Slab mode X</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_Y">
+   <property name="text">
+    <string>Slab &amp;mode Y</string>
+   </property>
+  </action>
+  <action name="actionSlab_mode_Z">
+   <property name="text">
+    <string>Slab mode &amp;Z</string>
+   </property>
+  </action>
+  <action name="actionInsert_Left">
+   <property name="text">
+    <string>&amp;Insert Left</string>
+   </property>
+  </action>
+  <action name="actionInsert_Right">
+   <property name="text">
+    <string>Insert &amp;Right</string>
+   </property>
+  </action>
+  <action name="actionCut_Configuration">
+   <property name="text">
+    <string>&amp;Cut System</string>
+   </property>
+  </action>
+  <action name="actionPlay_Pause_Simulation">
+   <property name="text">
+    <string>&amp;Play/Pause Simulation</string>
+   </property>
+  </action>
+  <action name="actionCycle_Method">
+   <property name="text">
+    <string>&amp;Cycle Method</string>
+   </property>
+  </action>
+  <action name="actionCycle_Solver">
+   <property name="text">
+    <string>Cycle &amp;Solver</string>
+   </property>
+  </action>
+  <action name="actionRandomize_Spins">
+   <property name="text">
+    <string>&amp;Randomize Spins</string>
+   </property>
+  </action>
+  <action name="actionSave_Energy_per_Spin">
+   <property name="text">
+    <string>Save Energy &amp;per Spin</string>
+   </property>
+  </action>
+  <action name="actionSave_Energies_Interpolated">
+   <property name="text">
+    <string>Save &amp;Interpolated Energies of the Chain</string>
+   </property>
+  </action>
+  <action name="actionSave_Cfg_File">
+   <property name="text">
+    <string>Save Cfg File</string>
+   </property>
+  </action>
+  <action name="actionToggle_Geometry">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Geometry</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

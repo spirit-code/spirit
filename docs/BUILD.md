@@ -150,8 +150,8 @@ Desktop User Interface <a name="QT"></a>
 |  Dependencies  | Versions |
 | :------------: | -------- |
 | OpenGL Drivers | >= 3.3   |
-| CMake          | >= 3.5   |
-| QT             | 5.7 including QT-Charts |
+| CMake          | >= 3.1   |
+| QT             | >= 5.7 including QT-Charts |
 
 **Note** that in order to build with QT as a dependency on Windows, you may need to add
 `path/to/qt/qtbase/bin` to your PATH variable.

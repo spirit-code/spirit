@@ -8,10 +8,9 @@
 
 #include "Spirit/State.h"
 
-// TODO: is there a way to remove these?
+// TODO: remove these and use SingleShot API function instead
 #include "State.hpp"
 #include "Method_LLG.hpp"
-#include "Optimizer_SIB.hpp"
 /////
 
 int main(void)
@@ -23,11 +22,9 @@ int main(void)
 extern "C" void JS_LLG_Iteration(State *state)
 {
     // LLG Method
-    static std::shared_ptr<Engine::Method_LLG> method = std::shared_ptr<Engine::Method_LLG>(new Engine::Method_LLG(state->active_image, 0, 0));
-
-    // SIB optimizer
-    static std::shared_ptr<Engine::Optimizer> optimizer = std::shared_ptr<Engine::Optimizer>(new Engine::Optimizer_SIB(method));
+    static std::shared_ptr<Engine::Method_LLG> method =
+        std::shared_ptr<Engine::Method>( new Engine::Method_LLG<Engine::Solver::SIB>( state->active_image ) );
 
     // Iterate
-    optimizer->Iteration();
+    method->Iteration();
 }

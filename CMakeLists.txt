@@ -136,13 +136,16 @@ endif( )
 
 
 ######### External Project: QHull ###########
+set (       CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
 include(ExternalProject)
 ExternalProject_add(qhull
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
 	# GIT_REPOSITORY https://github.com/qhull/qhull.git
 	BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
 	# INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install"
+	CMAKE_ARGS ${CMAKE_QHULL_ARGS}
 	CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
 )
 ### qhullstatic reentrant library
@@ -182,10 +185,9 @@ add_subdirectory( core )
 if( SPIRIT_BUILD_FOR_CXX )
 	if ( UI_CXX_USE_QT )
 		add_subdirectory( VFRendering )
-		add_subdirectory( ui-qt )
-	else()
-		add_subdirectory( ui-console )
+		add_definitions( -DUI_CXX_USE_QT )
 	endif()
+	add_subdirectory( ui-cpp )
 endif()
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )

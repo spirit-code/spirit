@@ -1,14 +1,7 @@
 sudo: required
-# dist: "trusty"
-dist: precise
+dist: trusty
 language: cpp
 
-addons:
-  apt:
-    packages:
-      - g++-6
-    sources: &sources
-      - ubuntu-toolchain-r-test
 
 cache:
   directories:
@@ -17,32 +10,49 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.0
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.9.0
 
+
+env:
+  global:
+    - secure: "IeryGzYD1DUkDjFgAscWGQIu7lebz+uN8xi42rWUwBqn8PUpJRoeniEd2/445CdGrX7G3YKDq4YMUFip0n1WyyjmzOQS2dUgJvH3+VU/rtGYoSF8SJkDGXvUl4OTTY0BMGM3+caOb9s91+ZW5C2536e/la0Ti37tu6xq+2URiOZ4ZIxaM+PBJPNJ/e8V9RXPGZxTAlNgpkKrAwv+lVYi7lxqLTTW+0Iu9jilzcAfvZ7tuFvsADNLJ+vEfYSerdeXeq0sma3ez1Z3q+pCyGBv35r/NIsgIH73i9eco0CVNkXmALOQMaw/zRxprHNZxegv0rsEP9/5IDgLXn61ZBOaIrF9Ywi0DTSHWnwoqC/R3XfOX4CXvhttbq6htTepKIfNFsW3SCBqTknil6eOObJaTIu77Y+dU/PpEOmlZI3wq7WKCeMIywNTgGyuTyctFF088XgpqH+ysYOTTN9TOk/U/W29DCT6yEFAuPx/MO24q+v9I5+uwrpIyCdpe2KVOdnIZnegAXYKWw9vjfQRn2n37RKCwkCTG+PWmMMxXgQwuvHzz9z/nV9MkoqbDSwf7pm7y5f+1ggaCBZeGD1Q9N6jx02dTdOeZ7HU9QDWan3YTdqNU1bAp6zDlO76heDOa9EZrRK56FbObFD+60Qm6+ZxzHX4DgS5Q0syOSWbHilKBMk="
+    - secure: "WsRnpkAUCnsf4jjf519HlDCXMWObLiG8pm/dQp321LbjjADTcGRqfKRG2cFenK0hG2VrrdnzVWkK4qfzsdQX9OiSZvhqV5ZdVCpSHodhdPWfDxZM1jRJ/oXyjyaE+BwxWRl6Ve1SEbBLMOvdLEiMOt2YbiYE72Hwj5l7qWcVJxQ96L5S160gKA54Efz8ZaLO+lyy0QVh6gdK7DMFZDvFGICH1Yr93drPNFnWmWp3lvEdvomf3F/YCh4M5LMf3EbAjpUssj2r7We2UN6UaXwHfzYFLogOoLLLkrFYYhNgn1jj5rom8MOGj183bKW4jv9Czx7AhjwxRTLUXGKeTQdaaSrZ0t2+Xs4KoqseyT6uQUlE955SfZNdPsjsYrqXHbsC45waSsavlSdKHVLQ20gmY/e+kO982lIIbdrOKzZPjqq9SgI/b2ZdOv0st2ToQHLKbYUIWL8xPt/zA2IqRk0pT7tQgm3uvLB4P+/RAQxdvj7jHz4xXT8mmyHvajbvG4UvJGa9xwn5V58K+xFUxJKYiSDt68ALaFEogQsynkNgNT3xfbF5u/PWOYJ77gbELkg9ExGHCLBLJliVOhEu5sndq46EfSKlifxaG50aj4NKT8SFfykQjhQow/ygs0iqYcBfTM4BoBLVXCFp+yT5YGG+LgYVWq+Gtn51qGJxQYCoMCs="
+
+
 matrix:
   include:
-    # GCC 6
-    - os: linux
-      env: COMPILER=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DCMAKE_CXX_COMPILER=g++-6 -DUI_CXX_USE_QT=OFF -DUSE_CUDA=OFF"
-      compiler: gcc
+    # OSX, xcode 8
     - os: osx
       osx_image: xcode8
-      env: USE_CUDA="false" CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DUSE_CUDA=OFF"
+      env: USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
+    # Linux, GCC 6
+    - os: linux
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-6
+          - qt57base
+          - qt57charts-no-lgpl
+          - ca-certificates
+          - python2.7
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+          - sourceline: 'ppa:jonathonf/python-2.7'
+    # Linux, GCC 5.1
+    - os: linux
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-5
+          - qt57base
+          - qt57charts-no-lgpl
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
 
-    # - compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-4.9
-    #   env: COMPILER=g++-4.9
-    # - compiler: gcc
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-5
-    #   env: COMPILER=g++-5
     # - compiler: clang
     #   addons:
     #     apt:
@@ -62,28 +72,28 @@ matrix:
     #         - clang-3.7
     #   env: COMPILER=clang++-3.7
 
-# before_install:
-#   - sudo apt-get update -qq
-#   - sudo apt-get install -y libopencv-dev
 
 before_install:
-    - sudo pip install numpy
-
-install:
-  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+  - sudo pip install numpy wheel twine
+  # Run homebrew on osx
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
   - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.9.0; fi
-  - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
   # Install a recent CMake (unless already installed on OS X)
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+      mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
       CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+      export CC=${COMPILER_C} CXX=${COMPILER_CXX}
+      source /opt/qt57/bin/qt57-env.sh
     else
       if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
+      brew install cppcheck qt@5.7
+      brew link --force qt@5.7
+      export PATH=/usr/local/opt/qt@5.7/bin:${PATH}
     fi
 #   # Install CUDA
 #   - |
@@ -97,17 +107,55 @@ install:
 #       cd ${TRAVIS_BUILD_DIR}
 #       sudo apt-get update
 #       sudo apt-get install cuda-drivers cuda-core-7-0 cuda-cudart-dev-7-0
-#       CMAKE_OPTIONS+=" -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda"
+#       CMAKE_OPTIONS+="  -DUSE_CUDA=OFF -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda"
 #     fi
 
-before_script:
+
+install:
+  # Build everything
   - cd ${TRAVIS_BUILD_DIR}
   - |
     mkdir -p build
     cd build
     cmake ${CMAKE_OPTIONS} ..
     cd ..
+  - ./make.sh -j8
+
 
 script:
-  - ./make.sh -j8
+  # Run all tests
   - ./ctest.sh
+
+  # Build the python package
+  - echo "Python package build"
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
+  - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
+  - cd core/python
+  - python setup.py sdist bdist_wheel;
+
+  # Specify account details for PyPI
+  - echo "[distutils]"                                 > ~/.pypirc
+  - echo "index-servers ="                            >> ~/.pypirc
+  - echo "    testpypi"                               >> ~/.pypirc
+  - echo "    pypi"                                   >> ~/.pypirc
+  - echo "[pypi]"                                     >> ~/.pypirc
+  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  - echo "[testpypi]"                                 >> ~/.pypirc
+  - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+
+  # Publish python package
+  - echo "PYPI deployment:"
+  - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
+  # Do not build pull requests
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
+  # Upload to pypi on master commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
+  # Upload to testpypi on all commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
+  - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi

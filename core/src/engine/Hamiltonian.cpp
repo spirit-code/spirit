@@ -15,6 +15,13 @@ namespace Engine
         delta = 1e-3;
     }
 
+	void Hamiltonian::Update_From_Geometry()
+	{
+		// Not Implemented!
+		Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Hamiltonian::Update_From_Geometry() of the Hamiltonian base class!"));
+		throw Utility::Exception::Not_Implemented;
+	}
+
 
 	void Hamiltonian::Update_Energy_Contributions()
 	{

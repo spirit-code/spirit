@@ -1,20 +1,6 @@
 #include <data/Spin_System_Chain_Collection.hpp>
-#include <engine/Optimizer.hpp>
 #include <engine/Method.hpp>
 #include <utility/Timing.hpp>
-
-/*
-	Simulation_Information
-		This struct contains the necessary instances to extract information
-		during a running simulation.
-		The Play_Pause function will insert this information in to the state
-		appropriately.
-*/
-struct Simulation_Information
-{
-	std::shared_ptr<Engine::Optimizer> optimizer;
-	std::shared_ptr<Engine::Method> method;
-};
 
 /*
 	State
@@ -43,11 +29,11 @@ struct State
 
 	// The Methods
 	//    max. noi*noc LLG methods [noc][noi]
-	std::vector<std::vector<std::shared_ptr<Simulation_Information>>> simulation_information_image;
+	std::vector<std::vector<std::shared_ptr<Engine::Method>>> method_image;
 	//    max. noc GNEB methods [noc]
-	std::vector<std::shared_ptr<Simulation_Information>> simulation_information_chain;
+	std::vector<std::shared_ptr<Engine::Method>> method_chain;
 	//    max. 1 MMF method
-	std::shared_ptr<Simulation_Information> simulation_information_collection;
+	std::shared_ptr<Engine::Method> method_collection;
 
 	// Timepoint of creation
 	system_clock::time_point datetime_creation;
@@ -60,6 +46,12 @@ struct State
 	bool quiet;
 };
 
-
 // TODO: move this away somewhere?
-void from_indices(State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image, std::shared_ptr<Data::Spin_System_Chain> & chain);
+// Behaviour for illegal (non-existing) idx_image and idx_chain:
+// - In case of negative values the indices must be promoted to the ones of the idx_active_image 
+//  and idx_active_chain. 
+// - In case of negative (non-existing) indices the function should throw an exception before doing 
+// any change to the corresponding variable (eg. )
+void from_indices( const State * state, int & idx_image, int & idx_chain, 
+                   std::shared_ptr<Data::Spin_System> & image, 
+                   std::shared_ptr<Data::Spin_System_Chain> & chain );

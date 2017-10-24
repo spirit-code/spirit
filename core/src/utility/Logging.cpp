@@ -1,13 +1,13 @@
 ﻿#include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
-#include <utility/IO.hpp>
+#include <io/IO.hpp>
 
 #include <string>
 #include <iostream>
 #include <ctime>
-#include <IO.hpp>
 #include <signal.h>
 
+#include <fmt/format.h>
 
 namespace Utility
 {
@@ -42,10 +42,10 @@ namespace Utility
 		if (braces_separators) result.append("[");
 		else result.append(" ");
 		// Level
-		if      (level == Log_Level::All)    	  result.append("  ALL  ");
+		if      (level == Log_Level::All)       result.append("  ALL  ");
 		else if (level == Log_Level::Severe)    result.append("SEVERE ");
-		else if (level == Log_Level::Error)	  result.append(" ERROR ");
-		else if (level == Log_Level::Warning)	  result.append("WARNING");
+		else if (level == Log_Level::Error)     result.append(" ERROR ");
+		else if (level == Log_Level::Warning)   result.append("WARNING");
 		else if (level == Log_Level::Parameter) result.append(" PARAM ");
 		else if (level == Log_Level::Info)      result.append(" INFO  ");
 		else if (level == Log_Level::Debug)     result.append(" DEBUG ");
@@ -64,7 +64,7 @@ namespace Utility
 		if (braces_separators) result.append("[");
 		else result.append(" ");
 		// Index
-		auto s_idx = IO::int_to_formatted_string(idx+1, 2);
+		std::string s_idx = fmt::format("{:0>2}", idx+1);
 		if (idx >= 0) result.append(s_idx);
 		else result.append("--");
 		// Braces

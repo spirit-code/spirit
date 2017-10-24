@@ -32,10 +32,10 @@ spirit.js.mem
 
 ### Generated Files
 core/python/LICENSE.txt
-__init__.py
 VERSION.txt
 scalar.py
 version.py
+windows_metafile.rc
 
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudio,visualstudiocode,cmake,python,c++,qt

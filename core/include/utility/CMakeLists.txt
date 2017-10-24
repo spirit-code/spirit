@@ -1,14 +1,12 @@
 set(HEADER_SPIRIT_UTILITY
     ${HEADER_SPIRIT_UTILITY}
-	${CMAKE_CURRENT_SOURCE_DIR}/IO.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/IO_Filter_File_Handle.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Constants.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Configurations.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Exception.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Constants.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Exception.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

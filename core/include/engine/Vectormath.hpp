@@ -82,12 +82,259 @@ namespace Engine
             int Nb = n_cells[1];
             int Nc = n_cells[2];
             int N = n_spins_basic_domain;
+
             ret[2] = idx / (N*Na*Nb);
             ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
-            ret[0] = idx - ret[2] * N*Na*Nb - ret[1] * N*Na;
+            ret[0] = (idx - ret[2] * N*Na*Nb - ret[1] * N*Na) / N;
             return ret;
         }
         #endif
+
+        #ifdef USE_CUDA
+
+        __inline__ __device__ bool cu_check_atom_type(int atom_type)
+        {
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                // If defects are enabled we check for
+                //		vacancies (type < 0)
+                if (atom_type >= 0) return true;
+                else return false;
+            #else
+                // Else we just return true
+                return true;
+            #endif
+        }
+
+        __inline__ __device__ bool cu_check_atom_type(int atom_type, int reference_type)
+        {
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                // If defects are enabled we do a check if
+                //		atom types match.
+                if (atom_type == reference_type) return true;
+                else return false;
+            #else
+                // Else we just return true
+                return true;
+            #endif
+        }
+
+        // Calculates, for a spin i, a pair spin's index j.
+        // This function takes into account boundary conditions and atom types and returns `-1` if any condition is not met.
+        __inline__ __device__ int cu_idx_from_pair(int ispin, const int * boundary_conditions, const int * n_cells, int N, const int * atom_types, const Pair & pair, bool invert=false)
+        {
+            // Invalid index if atom type of spin i is not correct
+            if ( pair.i != ispin%N || !cu_check_atom_type(atom_types[ispin]) )
+                return -1;
+
+            // Number of cells
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
+
+            // Translations (cell) of spin i
+            int nic = ispin / (N*Na*Nb);
+            int nib = (ispin - nic*N*Na*Nb) / (N*Na);
+            int nia = ispin - nic*N*Na*Nb - nib*N*Na;
+
+            // Translations (cell) of spin j (possibly outside of non-periodical domain)
+            int pm = 1;
+            if (invert)
+                pm = -1;
+            int nja = nia + pm*pair.translations[0];
+            int njb = nib + pm*pair.translations[1];
+            int njc = nic + pm*pair.translations[2];
+
+            // Check boundary conditions: a
+            if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (nja < 0)
+                    nja += Na;
+                // Calculate the correct index
+                if (nja >= Na)
+                    nja -= Na;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Check boundary conditions: b
+            if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njb < 0)
+                    njb += Nb;
+                // Calculate the correct index
+                if (njb >= Nb)
+                    njb -= Nb;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Check boundary conditions: c
+            if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njc < 0)
+                    njc += Nc;
+                // Calculate the correct index
+                if (njc >= Nc)
+                    njc -= Nc;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Calculate the index of spin j according to it's translations
+            int jspin = pair.j + (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
+
+            // Invalid index if atom type of spin j is not correct
+            if ( pair.j != jspin%N || !cu_check_atom_type(atom_types[jspin]) )
+                return -1;
+            
+            // Return a valid index
+            return jspin;
+        }
+
+        #endif
+
+
+		// Check atom types
+		inline bool check_atom_type(int atom_type)
+		{
+			#ifdef SPIRIT_ENABLE_DEFECTS
+				// If defects are enabled we check for
+				//		vacancies (type < 0)
+				if (atom_type >= 0) return true;
+				else return false;
+			#else
+				// Else we just return true
+				return true;
+			#endif
+		}
+		inline bool check_atom_type(int atom_type, int reference_type)
+		{
+			#ifdef SPIRIT_ENABLE_DEFECTS
+				// If defects are enabled we do a check if
+				//		atom types match.
+				if (atom_type == reference_type) return true;
+				else return false;
+			#else
+				// Else we just return true
+				return true;
+			#endif
+		}
+
+        // Calculates, for a spin i, a pair spin's index j.
+        // This function takes into account boundary conditions and atom types and returns `-1` if any condition is not met.
+        inline int idx_from_pair(int ispin, const intfield & boundary_conditions, const intfield & n_cells, int N, const intfield & atom_types, const Pair & pair, bool invert=false)
+        {
+            // Invalid index if atom type of spin i is not correct
+            if ( pair.i != ispin%N || !check_atom_type(atom_types[ispin]) )
+                return -1;
+
+            // Number of cells
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+
+            // Invalid index if translations reach out over the lattice bounds
+            if (std::abs(pair.translations[0]) > Na ||
+                std::abs(pair.translations[1]) > Nb ||
+                std::abs(pair.translations[2]) > Nc )
+                return -1;
+
+            // Translations (cell) of spin i
+            int nic = ispin / (N*Na*Nb);
+            int nib = (ispin - nic*N*Na*Nb) / (N*Na);
+            int nia = (ispin - nic*N*Na*Nb - nib*N*Na) / N;
+
+            int pm = 1;
+            if (invert)
+                pm = -1;
+            // Translations (cell) of spin j (possibly outside of non-periodical domain)
+            int nja = nia + pm*pair.translations[0];
+            int njb = nib + pm*pair.translations[1];
+            int njc = nic + pm*pair.translations[2];
+
+            // Check boundary conditions: a
+            if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (nja < 0)
+                    nja += Na;
+                // Calculate the correct index
+                if (nja >= Na)
+                    nja -= Na;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Check boundary conditions: b
+            if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njb < 0)
+                    njb += Nb;
+                // Calculate the correct index
+                if (njb >= Nb)
+                    njb -= Nb;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Check boundary conditions: c
+            if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
+            {
+                // Boundary conditions fulfilled
+                // Find the translations of spin j within the non-periodical domain
+                if (njc < 0)
+                    njc += Nc;
+                // Calculate the correct index
+                if (njc >= Nc)
+                    njc -= Nc;
+            }
+            else
+            {
+                // Boundary conditions not fulfilled
+                return -1;
+            }
+
+            // Calculate the index of spin j according to it's translations
+            int jspin = pair.j + (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
+
+            // Invalid index if atom type of spin j is not correct
+            if ( !check_atom_type(atom_types[jspin]) )
+                return -1;
+            
+            // Return a valid index
+            return jspin;
+        }
+
 
         /////////////////////////////////////////////////////////////////
         //////// Vectorfield Math - special stuff
@@ -97,11 +344,15 @@ namespace Engine
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
-        scalar TopologicalCharge(const vectorfield & vf);
+        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation);
 
-        // Utility function for the SIB Optimizer - maybe create a MathUtil namespace?
+        // Utility function for the SIB Solver - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
-        void get_random_vectorfield(const Data::Spin_System & sys, scalar epsilon, vectorfield & xi);
+
+        void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi);
+        void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
+        void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi);
 
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
@@ -177,7 +428,8 @@ namespace Engine
         // out[i] += c*a
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
         // out[i] += c*a[i]
-        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask);
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out );
 

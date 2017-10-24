@@ -6,12 +6,12 @@
 #include <vector>
 
 #include "Spirit_Defines.h"
-#include <data/Parameters_Method.hpp>
+#include <data/Parameters_Method_Solver.hpp>
 
 namespace Data
 {
 	// LLG_Parameters contains all LLG information about the spin system
-	class Parameters_Method_GNEB : public Parameters_Method
+	class Parameters_Method_GNEB : public Parameters_Method_Solver
 	{
 	public:
 		// Constructor
@@ -28,6 +28,13 @@ namespace Data
 
 		// Number of Energy interpolations between Images
 		int n_E_interpolations;
+
+		// Temperature [K]
+		scalar temperature;
+		// Seed for RNG
+		int rng_seed;
+		// Mersenne twister PRNG
+		std::mt19937 prng;
 	};
 }
 #endif

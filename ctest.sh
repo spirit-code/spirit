@@ -1,2 +1,2 @@
 cd build
-ctest --output-on-failure $1
+ctest --output-on-failure $@

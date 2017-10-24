@@ -16,6 +16,8 @@ using std::function;
 
 using namespace Data;
 using namespace Utility;
+using Engine::Vectormath::cu_check_atom_type;
+using Engine::Vectormath::cu_idx_from_pair;
 
 namespace Engine
 {
@@ -58,6 +60,22 @@ namespace Engine
 		}
 
 		this->Update_Energy_Contributions();
+	}
+
+	void Hamiltonian_Heisenberg_Pairs::Update_From_Geometry()
+	{
+		// TODO: data needs to be scaled and ordered correctly
+		// TODO: there should be a basic set of info given through the constructor,
+		//       i.e. per basis cell, which can then be extrapolated. This needs to
+		//       redesigned.
+
+		this->anisotropy_indices.resize(this->geometry->nos);
+		this->anisotropy_magnitudes.resize(this->geometry->nos);
+		this->anisotropy_normals.resize(this->geometry->nos);
+
+		this->external_field_indices.resize(this->geometry->nos);
+		this->external_field_magnitudes.resize(this->geometry->nos);
+		this->external_field_normals.resize(this->geometry->nos);
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
@@ -145,77 +163,6 @@ namespace Engine
 		return idx;
 	}
 
-	__inline__ __device__ int pair_cu_get_pair_j(const int * boundary_conditions, const int * n_cells, int N, int ispin, Pair pair)
-	{
-		// TODO: use pair.i and pair.j to get multi-spin basis correctly
-
-		// Number of cells
-		int Na = n_cells[0];
-		int Nb = n_cells[1];
-		int Nc = n_cells[2];
-
-		// Translations (cell index) of spin i
-		// int ni[3];
-		int nic = ispin/(N*Na*Nb);
-		int nib = (ispin-nic*N*Na*Nb)/(N*Na);
-		int nia = ispin-nic*N*Na*Nb-nib*N*Na;
-
-		// Translations (cell index) of spin j (possibly outside of non-periodical domain)
-		// int nj[3]
-		int nja = nia+pair.translations[0];
-		int njb = nib+pair.translations[1];
-		int njc = nic+pair.translations[2];
-
-		if ( boundary_conditions[0] || (0 <= nja && nja < Na) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (nja < 0)
-				nja += Na;
-			// Calculate the correct index
-			if (nja>=Na)
-				nja-=Na;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[1] || (0 <= njb && njb < Nb) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njb < 0)
-				njb += Nb;
-			// Calculate the correct index
-			if (njb>=Nb)
-				njb-=Nb;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		if ( boundary_conditions[2] || (0 <= njc && njc < Nc) )
-		{
-			// Boundary conditions fulfilled
-			// Find the translations of spin j within the non-periodical domain
-			if (njc < 0)
-				njc += Nc;
-			// Calculate the correct index
-			if (njc>=Nc)
-				njc-=Nc;
-		}
-		else
-		{
-			// Boundary conditions not fulfilled
-			return -1;
-		}
-
-		return (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
-	}
 
 
 	void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
@@ -257,10 +204,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[ispin]));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - external_field_magnitude[idx] * external_field_normal[idx].dot(spins[ispin]));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -277,10 +222,8 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
-			#endif
-			atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
+			if ( cu_check_atom_type(atom_types[ispin]) )
+				atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
@@ -302,19 +245,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
-					{
-					#endif
-					scalar sc = - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-					atomicAdd(&Energy[ispin], sc);
-					atomicAdd(&Energy[jspin], sc);
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin2]);
 				}
 			}
 		}
@@ -339,19 +278,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
-					{
-					#endif
-					scalar sc = - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-					atomicAdd(&Energy[ispin], sc);
-					atomicAdd(&Energy[jspin], sc);
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
+					Energy[ispin] += - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					Energy[ispin] += 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin2]));
 				}
 			}
 		}
@@ -460,17 +395,13 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = external_field_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], -external_field_magnitude[idx]*external_field_normal[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
@@ -487,18 +418,14 @@ namespace Engine
 			idx +=  blockDim.x * gridDim.x)
 		{
 			int ispin = anisotropy_indices[idx];
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (atom_types[ispin] >= 0)
+			if ( cu_check_atom_type(atom_types[ispin]) )
 			{
-			#endif
-			scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
-			for (int dim=0; dim<3 ; dim++)
-			{
-				atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				scalar sc = -2 * anisotropy_magnitudes[idx] * anisotropy_normals[idx].dot(spins[ispin]);
+				for (int dim=0; dim<3 ; dim++)
+				{
+					atomicAdd(&gradient[ispin][dim], sc*anisotropy_normals[idx][dim]);
+				}
 			}
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			}
-			#endif
 		}
 	}
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
@@ -520,21 +447,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
-					{
-					#endif
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], -magnitudes[ipair]*spins[jspin][dim]);
-						atomicAdd(&gradient[jspin][dim], -magnitudes[ipair]*spins[ispin][dim]);
-					}
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin];
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin2];
 				}
 			}
 		}
@@ -559,23 +480,15 @@ namespace Engine
 		{
 			for(auto ipair = 0; ipair < n_pairs; ++ipair)
 			{
-				int jspin = pair_cu_get_pair_j(bc, nc, n_basis_spins, ispin, pairs[ipair]);
+				int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
 				if (jspin >= 0)
 				{
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					if (atom_types[ispin] >= 0 && atom_types[jspin] >= 0)
-					{
-					#endif
-					Vector3 jcross = magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
-					Vector3 icross = magnitudes[ipair]*spins[ispin].cross(normals[ipair]);
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], -jcross[dim]);
-						atomicAdd(&gradient[jspin][dim],  icross[dim]);
-					}
-					#ifdef SPIRIT_ENABLE_DEFECTS
-					}
-					#endif
+					gradient[ispin] += -magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
+				}
+				int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
+				if (jspin2 >= 0)
+				{
+					gradient[ispin] += magnitudes[ipair]*spins[jspin2].cross(normals[ipair]);
 				}
 			}
 		}

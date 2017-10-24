@@ -20,6 +20,12 @@ namespace Engine
 		Hamiltonian(intfield boundary_conditions);
 
 		/*
+			When the geometry is updated, the Hamiltonians data array may need to be updated
+			as well. That should be implemented in this function.
+		*/
+		virtual void Update_From_Geometry();
+
+		/*
 			Update the Energy array.
 			This needs to be done every time the parameters are changed, in case an energy
 			contribution is now non-zero or vice versa.
@@ -70,32 +76,6 @@ namespace Engine
 		intfield boundary_conditions; // [3] (a, b, c)
 	
 	protected:
-		// Check atom types
-		inline bool check_atom_type(int atom_type)
-		{
-			#ifdef SPIRIT_ENABLE_DEFECTS
-				// If defects are enabled we check for
-				//		vacancies (type < 0)
-				if (atom_type >= 0) return true;
-				else return false;
-			#else
-				// Else we just return true
-				return true;
-			#endif
-		}
-		inline bool check_atom_type(int atom_type, int reference_type)
-		{
-			#ifdef SPIRIT_ENABLE_DEFECTS
-				// If defects are enabled we do a check if
-				//		atom types match.
-				if (atom_type == reference_type) return true;
-				else return false;
-			#else
-				// Else we just return true
-				return true;
-			#endif
-		}
-
 		// Energy contributions per spin
 		std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
 
