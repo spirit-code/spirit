@@ -133,10 +133,10 @@ namespace IO
         return true;
     }
 
-    void Filter_File_Handle::Read_String( std::string& var, const std::string name, 
+    void Filter_File_Handle::Read_String( std::string& var, const std::string keyword, 
                                           bool log_notfound )
     {
-        if ( Find( name ) )
+        if ( Find( keyword ) )
         {
             getline( this->iss, var );
             
@@ -147,7 +147,7 @@ namespace IO
                 var = var.substr( start, ( end - start + 1 ) );
         }
         else if ( log_notfound )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + name + 
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + keyword + 
                  " not found. Using Default: " + fmt::format( "{}", var ) );
     }
     

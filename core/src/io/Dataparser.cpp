@@ -968,20 +968,20 @@ namespace IO
             myfile.Read_Single( ovf_valuedim, "# valuedim:" );
             
             // value's units
-            // myfile.Read_Single( ovf_valueunits, "# valueunits:" );
+            myfile.Read_String( ovf_valueunits, "# valueunits:" );
             
             // value's labels
             
             // {x,y,z} x {min,max}
-            myfile.Read_Single( ovf_xyz_min[0], "# xmin:" );
-            myfile.Read_Single( ovf_xyz_min[1], "# ymin:" );
-            myfile.Read_Single( ovf_xyz_min[2], "# zmin:" );
-            myfile.Read_Single( ovf_xyz_max[0], "# xmax:" );
-            myfile.Read_Single( ovf_xyz_max[1], "# ymax:" );
-            myfile.Read_Single( ovf_xyz_max[2], "# zmax:" );
+            myfile.Require_Single( ovf_xyz_min[0], "# xmin:" );
+            myfile.Require_Single( ovf_xyz_min[1], "# ymin:" );
+            myfile.Require_Single( ovf_xyz_min[2], "# zmin:" );
+            myfile.Require_Single( ovf_xyz_max[0], "# xmax:" );
+            myfile.Require_Single( ovf_xyz_max[1], "# ymax:" );
+            myfile.Require_Single( ovf_xyz_max[2], "# zmax:" );
             
             // meshtype
-            myfile.Read_Single( ovf_meshtype, "# meshtype:" );
+            myfile.Require_Single( ovf_meshtype, "# meshtype:" );
             
             // TODO: Change the throw to something more meaningfull we don't need want termination
             if( ovf_meshtype != "rectangular" && ovf_meshtype != "irregular" )
@@ -1012,17 +1012,17 @@ namespace IO
             {
                 // {x,y,z} x {base,stepsize,nodes} 
                 
-                myfile.Read_Single( ovf_xyz_base[0], "# xbase:" );
-                myfile.Read_Single( ovf_xyz_base[1], "# ybase:" );
-                myfile.Read_Single( ovf_xyz_base[2], "# zbase:" );
+                myfile.Require_Single( ovf_xyz_base[0], "# xbase:" );
+                myfile.Require_Single( ovf_xyz_base[1], "# ybase:" );
+                myfile.Require_Single( ovf_xyz_base[2], "# zbase:" );
                 
-                myfile.Read_Single( ovf_xyz_stepsize[0], "# xstepsize:" );
-                myfile.Read_Single( ovf_xyz_stepsize[1], "# ystepsize:" );
-                myfile.Read_Single( ovf_xyz_stepsize[2], "# zstepsize:" );
+                myfile.Require_Single( ovf_xyz_stepsize[0], "# xstepsize:" );
+                myfile.Require_Single( ovf_xyz_stepsize[1], "# ystepsize:" );
+                myfile.Require_Single( ovf_xyz_stepsize[2], "# zstepsize:" );
                 
-                myfile.Read_Single( ovf_xyz_nodes[0], "# xnodes:" );
-                myfile.Read_Single( ovf_xyz_nodes[1], "# ynodes:" );
-                myfile.Read_Single( ovf_xyz_nodes[2], "# znodes:" );
+                myfile.Require_Single( ovf_xyz_nodes[0], "# xnodes:" );
+                myfile.Require_Single( ovf_xyz_nodes[1], "# ynodes:" );
+                myfile.Require_Single( ovf_xyz_nodes[2], "# znodes:" );
                 
                 // Write to Log
                 Log( lvl, sender, fmt::format( "# OVF meshtype <{}>", ovf_meshtype ) );
@@ -1040,7 +1040,7 @@ namespace IO
             if ( ovf_meshtype == "irregular" )
             {
                 // pointcount
-                myfile.Read_Single( ovf_pointcount, "# pointcount:" );
+                myfile.Require_Single( ovf_pointcount, "# pointcount:" );
                 
                 // Write to Log
                 Log( lvl, sender, fmt::format( "# OVF meshtype <{}>", ovf_meshtype ) );

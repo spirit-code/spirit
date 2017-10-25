@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <io/Fileformat.hpp>
 
@@ -49,22 +50,36 @@ namespace IO
 		void Remove_Chars_From_String(std::string &str, char* charsToRemove);
         // Removes comments from a string
         bool Remove_Comments_From_String( std::string &str );
-        // Read a string into var
-        void Read_String( std::string& var, const std::string name, bool log_notfound = true );
+        // Read a string (separeated by whitespaces) into var
+        void Read_String( std::string& var, const std::string keyword, bool log_notfound = true );
         // Count the words of a string
         int Count_Words( const std::string& str );
         // get name 
         
 		// Reads a single variable into var, with optional logging in case of failure.
-		template <typename T> void Read_Single( T & var, const std::string name,  
-                                                bool log_notfound = true )
-		{
-			if (Find(name))
-				iss >> var;
-			else if (log_notfound)
-				Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + 
+		template <typename T> bool Read_Single( T & var, const std::string name,  
+                                               bool log_notfound = true )
+        {
+            if (Find(name))
+            {
+                iss >> var;
+                return true;
+            }
+            else if (log_notfound)
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword '" + name + 
                      "' not found. Using Default: " + fmt::format( "{}", var ) );
+            return false;
         };
+        
+        template <typename T> void Require_Single( T& var, const std::string name )
+        {
+            if( !Read_Single( var, name, false ) )
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, "Required eyword '" 
+                     + name + "' not found." );
+                throw Utility::Exception::Bad_File_Content;
+            }
+        }
         
 		// Reads a Vector3 into var, with optional logging in case of failure.
 		void Read_Vector3(Vector3 & var, const std::string name, bool log_notfound = true)
