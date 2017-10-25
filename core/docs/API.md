@@ -296,24 +296,27 @@ IO
 | `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
 | `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
 | `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
+| `IO_Fileformat_OVF`                      | 4       | [OOMMF vector filed (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
 
 Read and Write functions
 
-| Images IO                                                                                                                         | Return     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `IO_Image_Read( State *, const char* file, int format=IO_Fileformat_Regular, int idx_image, int idx_chain )`                      | `void`     |
-| `IO_Image_Write( State *, const char* file, int format=IO_Fileformat_Regular, int idx_image, int idx_chain )`                     | `void`     |
-| `IO_Image_Append( State *, const char* file, int iteration, int format=IO_Fileformat_Regular, int idx_image, int idx_chain )`     | `void`     |
+| Images IO                                                                                                                                       | Return     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `IO_N_Images_In_File( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_chain )`                                        | `int`      |
+| `IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_image, int idx_chain )`                              | `void`     |
+| `IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_image, int idx_chain )`                             | `void`     |
+| `IO_Image_Read( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_image_infile, int idx_image_inchain, int idx_chain )` | `void`     |
 
-| Chains IO                                                                                                                         | Return     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `IO_Chain_Read( State *, const char* file, int idx_image, int idx_chain )`                                                        | `void`     |
-| `IO_Chain_Write( State *, const char* file, int idx_image, int idx_chain )`                                                       | `void`     |
+| Chains IO                                                                                                              | Return     |
+| ---------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_chain )`                    | `void`     |
+| `IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_Regular, int idx_chain )`                   | `void`     |
+| `IO_Chain_Read( State *state, const char *file, int format=IO_Fileformat_Regular, int starting_image, int ending_image, int insert_idx, int idx_chain )` | `void`     |
 
-| Collection IO                                                                                                                     | Return     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `IO_Collection_Read( State *, const char* file, int idx_image, int idx_chain )`                                                   | `void`     |
-| `IO_Collection_Write( State *, const char* file, int idx_image, int idx_chain )`                                                  | `void`     |
+| Collection IO                                                                           | Return     |
+| --------------------------------------------------------------------------------------- | ---------- |
+| `IO_Collection_Read( State *state, const char* file, int idx_image, int idx_chain )`    | `void`     |
+| `IO_Collection_Write( State *state, const char* file, int idx_image, int idx_chain )`   | `void`     |
 
 Energies from `System` and `Chain`
 

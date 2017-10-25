@@ -237,23 +237,26 @@ namespace IO
 	}
 
 
-	void Write_Spin_Configuration(const std::shared_ptr<Data::Spin_System> & s, const int iteration, const std::string fileName, bool append)
+	void Write_Spin_Configuration( const std::shared_ptr<Data::Spin_System>& s, 
+                                   const int iteration, const std::string fileName, bool append )
 	{
 		auto& spins = *s->spins;
 		// Header
 		std::string output_to_file = "";
 		output_to_file.reserve(int(1E+08));
-		output_to_file += fmt::format("### Spin Configuration for NOS = {} and iteration {}", s->nos, iteration);
+		output_to_file += fmt::format( "### Spin Configuration for NOS = {} and iteration {}", 
+                                       s->nos, iteration );
 
 		// Data
 		for (int iatom = 0; iatom < s->nos; ++iatom)
 		{
 			#ifdef SPIRIT_ENABLE_DEFECTS
 			if (s->geometry->atom_types[iatom] < 0)
-				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0.0, 0.0, 0.0);
+				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0.0, 0.0, 0.0 );
 			else
 			#endif
-				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
+				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 
+                                                spins[iatom][0], spins[iatom][1], spins[iatom][2] );
 		}
 		output_to_file.append("\n");
 		
@@ -263,7 +266,7 @@ namespace IO
 			Dump_to_File(output_to_file, fileName);
 	}
 
-	void Save_SpinChain_Configuration(const std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
+	void Write_Spin_Configuration_Chain(const std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
 	{
 		// Header
 		std::string output_to_file = "";

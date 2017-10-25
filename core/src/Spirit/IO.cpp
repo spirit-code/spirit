@@ -70,8 +70,17 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 /*-------------------------------------- Images -------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void IO_Image_Read(State * state, const char * file, int format, int idx_image, int idx_chain)
+int IO_N_Images_In_File( State *state, const char *file, int format, int idx_chain )
 {
+    // TODO: implementation
+    
+}
+
+void IO_Image_Read( State *state, const char *file, int format, int idx_image_infile, 
+                    int idx_image_inchain, int idx_chain )
+{
+    int idx_image = -1;
+    
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -95,7 +104,7 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
     }
 }
 
-void IO_Image_Write(State * state, const char * file, int format, int idx_image, int idx_chain)
+void IO_Image_Write( State *state, const char *file, int format, int idx_image, int idx_chain )
 {
     try
     {
@@ -123,7 +132,7 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
     }
 }
 
-void IO_Image_Append(State * state, const char * file, int iteration, int format, int idx_image, int idx_chain)
+void IO_Image_Append( State *state, const char *file, int format, int idx_image, int idx_chain )
 {
     try
     {
@@ -153,7 +162,8 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
 /*-------------------------------------- Chains -------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
+void IO_Chain_Read( State *state, const char *file, int format, int starting_image, 
+                    int ending_image, int insert_idx, int idx_chain )
 {
 	int idx_image = -1;
 
@@ -194,7 +204,7 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
     }
 }
 
-void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
+void IO_Chain_Write( State *state, const char *file, int format, int idx_chain )
 {
     int idx_image = -1;
 
@@ -208,7 +218,7 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
         
         // Read the data
         chain->Lock();
-        IO::Save_SpinChain_Configuration(chain, 0, std::string(file));
+        IO::Write_Spin_Configuration_Chain(chain, 0, std::string(file));
         chain->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -219,6 +229,12 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
     {
         Utility::Handle_Exception( idx_image, idx_chain );
     }
+}
+
+void IO_Chain_Append( State *state, const char *file, int format, int idx_chain )
+{
+    // TODO: implementation
+    
 }
 
 /*------------------------------------------------------------------------------------------------------ */

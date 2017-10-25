@@ -281,7 +281,7 @@ namespace Engine
 				std::string chainFile = preChainFile + suffix + ".txt";
 
 				// Chain
-				IO::Save_SpinChain_Configuration(this->chain, iteration, chainFile);
+				IO::Write_Spin_Configuration_Chain(this->chain, iteration, chainFile);
 			};
 
 			auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)

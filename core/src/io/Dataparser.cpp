@@ -105,6 +105,7 @@ namespace IO
 						if (spin.norm() < 1e-5)
 						{
 							spin = {0, 0, 1};
+                            // in case of spin vector close to zero we have a vacancy
 							#ifdef SPIRIT_ENABLE_DEFECTS
 							s->geometry->atom_types[i] = -1;
 							#endif

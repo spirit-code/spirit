@@ -12,33 +12,48 @@ struct State;
 #define IO_Fileformat_OVF           4   // OOMF Vector Field (OVF) file format
 
 // From Config File
-DLLEXPORT int IO_System_From_Config(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT int IO_System_From_Config( State *state, const char * file, int idx_image=-1, 
+                                     int idx_chain=-1);
 
 ///// TODO: give bool returns for these functions to indicate success??
 
 // Images
-DLLEXPORT void IO_Image_Read(State * state, const char * file, int format=IO_Fileformat_Regular, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void IO_Image_Write(State * state, const char * file, int format=IO_Fileformat_Regular, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void IO_Image_Append(State * state, const char * file, int iteration=0, int format=IO_Fileformat_Regular, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT int IO_N_Images_In_File( State *state, const char *file, 
+                                   int format=IO_Fileformat_Regular, int idx_chain=-1 );
+DLLEXPORT void IO_Image_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                              int idx_image_infile=-1, int idx_image_inchain=-1, int idx_chain=-1 );
+DLLEXPORT void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                               int idx_image=-1, int idx_chain=-1 );
+DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                                int idx_image=-1, int idx_chain=-1 );
 
 // Chains
-DLLEXPORT void IO_Chain_Read(State * state, const char * file, int format=IO_Fileformat_Regular, int idx_chain=-1);
-DLLEXPORT void IO_Chain_Write(State * state, const char * file, int format=IO_Fileformat_Regular, int idx_chain=-1);
+DLLEXPORT void IO_Chain_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                              int starting_image=-1, int ending_image=-1, int insert_idx=-1, 
+                              int idx_chain=-1 );
+DLLEXPORT void IO_Chain_Write( State * state, const char *file, int format=IO_Fileformat_Regular, 
+                               int idx_chain=-1 );
+DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                                int idx_chain=-1 );
 
 // Collection
-DLLEXPORT void IO_Collection_Read(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
-DLLEXPORT void IO_Collection_Write(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void IO_Collection_Read( State *state, const char *file, int idx_image=-1, 
+                                   int idx_chain=-1 );
+DLLEXPORT void IO_Collection_Write( State *state, const char *file, int idx_image=-1, 
+                                    int idx_chain=-1 );
 
 
 // Save the spin-resolved energy contributions of a spin system
-DLLEXPORT void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_chain = -1);
+DLLEXPORT void IO_Write_System_Energy_per_Spin( State *state, const char *file, int idx_chain = -1);
 // Save the Energy contributions of a spin system
-DLLEXPORT void IO_Write_System_Energy(State * state, const char * file, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void IO_Write_System_Energy( State *state, const char *file, int idx_image=-1, 
+                                       int idx_chain=-1 );
 
 // Save the Energy contributions of a chain of spin systems
-DLLEXPORT void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain = -1);
+DLLEXPORT void IO_Write_Chain_Energies( State *state, const char *file, int idx_chain = -1 );
 // Save the interpolated energies of a chain of spin systems
-DLLEXPORT void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int idx_chain = -1);
+DLLEXPORT void IO_Write_Chain_Energies_Interpolated( State *state, const char *file, 
+                                                     int idx_chain = -1 );
 
 
 #include "DLL_Undefine_Export.h"

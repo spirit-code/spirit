@@ -7,15 +7,15 @@
 const char inputfile[] = "core/test/input/fd_neighbours.cfg";
 
 TEST_CASE( "IO", "[io]" )
-{
-    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-    
-    Configuration_MinusZ( state.get() );
-    
+{    
     // TODO: Diferent OVF test for text, 8 and 4 byte raw data
     
     SECTION( "OVF format" )
     {        
+        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+        
+        Configuration_MinusZ( state.get() );
+        
         IO_Image_Write( state.get(), "core/test/io_test_files/test_ovf.ovf", IO_Fileformat_OVF );
         
         Configuration_PlusZ( state.get() );
@@ -40,6 +40,10 @@ TEST_CASE( "IO", "[io]" )
     {
         SECTION( "Regural spin" )
         {
+            auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+            
+            Configuration_MinusZ( state.get() );
+            
             IO_Image_Write( state.get(), "core/test/io_test_files/regular.data", 
                             IO_Fileformat_Regular );
             
@@ -64,6 +68,10 @@ TEST_CASE( "IO", "[io]" )
         
         SECTION( "Regular position spin" )
         {
+            auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+            
+            Configuration_MinusZ( state.get() );
+            
             IO_Image_Write( state.get(), "core/test/io_test_files/regular_pos.data", 
                             IO_Fileformat_Regular_Pos );
             
@@ -93,6 +101,10 @@ TEST_CASE( "IO", "[io]" )
     // {
     //     SECTION( "CSV spin" )
     //     {
+    //         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+    // 
+    //         Configuration_MinusZ( state.get() );
+    //
     //         IO_Image_Write( state.get(), "core/test/io_test_files/csv.data", IO_Fileformat_CSV );
     //         
     //         Configuration_PlusZ( state.get() );
@@ -115,6 +127,10 @@ TEST_CASE( "IO", "[io]" )
     //     
     //     SECTION( "CSV position spin")
     //     {
+    //         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+    // 
+    //         Configuration_MinusZ( state.get() );
+    //
     //         IO_Image_Write( state.get(), "core/test/io_test_files/csv_pos.data", 
     //                         IO_Fileformat_CSV_Pos );
     //         
