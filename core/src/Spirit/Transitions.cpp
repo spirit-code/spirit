@@ -10,7 +10,7 @@
 
 #include <memory>
 
-void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
+void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain) noexcept
 {
     int idx_image = -1;
     
@@ -40,7 +40,7 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain)
      }
 }
 
-void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_1, int idx_2, int idx_chain )
+void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_1, int idx_2, int idx_chain ) noexcept
 {
     int idx_image = -1;
     

@@ -6,9 +6,9 @@
 struct State;
 
 // Total Magnetization
-DLLEXPORT void Quantity_Get_Magnetization(State * state, float m[3], int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Quantity_Get_Magnetization(State * state, float m[3], int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Topological Charge
-DLLEXPORT float Quantity_Get_Topological_Charge(State * state, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT float Quantity_Get_Topological_Charge(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 #endif

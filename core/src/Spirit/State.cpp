@@ -12,7 +12,7 @@
 
 using namespace Utility;
 
-State * State_Setup(const char * config_file, bool quiet)
+State * State_Setup(const char * config_file, bool quiet) noexcept
 {
     try
     {
@@ -156,7 +156,7 @@ State * State_Setup(const char * config_file, bool quiet)
     }
 }
 
-void State_Delete(State * state)
+void State_Delete(State * state) noexcept
 {
     try
     {
@@ -193,7 +193,7 @@ void State_Delete(State * state)
     }
 }
 
-void State_Update(State * state)
+void State_Update(State * state) noexcept
 {
     try
     {
@@ -224,7 +224,7 @@ void State_Update(State * state)
     }
 }
 
-void State_To_Config(State * state, const char * config_file, const char * original_config_file)
+void State_To_Config(State * state, const char * config_file, const char * original_config_file) noexcept
 {
     try
     {
@@ -267,7 +267,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     }
 }
 
-const char * State_DateTime(State * state)
+const char * State_DateTime(State * state) noexcept
 {
     try
     {

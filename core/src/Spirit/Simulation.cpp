@@ -13,7 +13,7 @@
 
 bool Get_Method( State *state, const char * c_method_type, const char * c_solver_type, 
                  int n_iterations, int n_iterations_log, int idx_image, int idx_chain, 
-                 std::shared_ptr<Engine::Method> & method )
+                 std::shared_ptr<Engine::Method> & method ) noexcept
 {
     try
     {
@@ -229,7 +229,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -246,7 +246,7 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
 }
 
 void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_solver_type,
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -262,7 +262,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     }
 }
 
-void Simulation_Stop_All(State *state)
+void Simulation_Stop_All(State *state) noexcept
 {
     try
     {
@@ -303,7 +303,7 @@ void Simulation_Stop_All(State *state)
 }
 
 
-float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain)
+float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -339,7 +339,7 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
 }
 
 
-float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
+float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -376,7 +376,7 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 }
 
 
-const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -413,7 +413,7 @@ const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_cha
     }
 }
 
-const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -451,7 +451,7 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
 
 
 
-bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
+bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -472,7 +472,7 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
     }
 }
 
-bool Simulation_Running_Chain(State *state, int idx_chain)
+bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -497,7 +497,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain)
     }
 }
 
-bool Simulation_Running_Collection(State *state)
+bool Simulation_Running_Collection(State *state) noexcept
 {
     try
     {
@@ -514,7 +514,7 @@ bool Simulation_Running_Collection(State *state)
 }
 
 
-bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
+bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -543,7 +543,7 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
     }
 }
 
-bool Simulation_Running_Anywhere_Collection(State *state)
+bool Simulation_Running_Anywhere_Collection(State *state) noexcept
 {
     try
     {

@@ -2,7 +2,7 @@
 #include <utility/Exception.hpp>
 #include <data/State.hpp>
 
-int Collection_Get_NOC(State * state)
+int Collection_Get_NOC(State * state) noexcept
 {
     try
     {
@@ -15,12 +15,12 @@ int Collection_Get_NOC(State * state)
     }
 }
 
-void Collection_next_Chain(State * state)
+void Collection_next_Chain(State * state) noexcept
 {
 
 }
 
-void Collection_prev_Chain(State * state)
+void Collection_prev_Chain(State * state) noexcept
 {
 
 }

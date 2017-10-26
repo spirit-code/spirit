@@ -15,7 +15,7 @@ using namespace Utility;
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set LLG Output
-void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -39,7 +39,7 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
 }
 
 void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bool final, 
-                                        int idx_image, int idx_chain )
+                                        int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -63,7 +63,7 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
 
 void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, 
                                        bool energy_spin_resolved, bool energy_divide_by_nos, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -87,7 +87,7 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
 }
 
 void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step, 
-                                              bool configuration_archive, int idx_image, int idx_chain )
+                                              bool configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -109,7 +109,7 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
 }
 
 void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -132,7 +132,7 @@ void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iter
 
 
 // Set LLG Simulation Parameters
-void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_image, int idx_chain )
+void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -158,7 +158,7 @@ void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_
      }    
 }
 
-void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -182,7 +182,7 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
     }
 }
 
-void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -206,7 +206,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     }
 }
 
-void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -230,7 +230,7 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
     }
 }
 
-void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -256,7 +256,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
 }
 
 void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, const float normal[3],
-                             int idx_image, int idx_chain )
+                             int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -306,7 +306,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set MC Output
-void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain)
+void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -330,7 +330,7 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
 }
 
 void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, bool final, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -354,7 +354,7 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
 
 void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, 
                                       bool energy_spin_resolved, bool energy_divide_by_nos, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -378,7 +378,7 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
 }
 
 void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, 
-                                             bool configuration_archive, int idx_image, int idx_chain )
+                                             bool configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -400,7 +400,7 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
 }
 
 void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                     int idx_image, int idx_chain )
+                                     int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -423,7 +423,7 @@ void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_itera
 
 
 // Set MG Simulation Parameters
-void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int idx_chain )
+void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -448,7 +448,7 @@ void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int id
     }
 }
 
-void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_image, int idx_chain )
+void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -478,7 +478,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set GNEB Output
-void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain)
+void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain) noexcept
 {
 	int idx_image = -1;
 
@@ -500,7 +500,7 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
     }
 }
 
-void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, bool final, int idx_chain )
+void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, bool final, int idx_chain ) noexcept
 {
 	int idx_image = -1;
 
@@ -525,7 +525,7 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
 }
 
 void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, 
-                                          bool energies_divide_by_nos, int idx_chain )
+                                          bool energies_divide_by_nos, int idx_chain ) noexcept
 {
 	int idx_image = -1;
 
@@ -549,7 +549,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
     }
 }
 
-void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain)
+void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain) noexcept
 {
 	int idx_image = -1;
 
@@ -572,7 +572,7 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
 }
 
 void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                       int idx_chain )
+                                       int idx_chain ) noexcept
 {
 	int idx_image = -1;
     
@@ -596,7 +596,7 @@ void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_ite
 }
 
 // Set GNEB Calculation Parameters
-void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -621,7 +621,7 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
 }
 
 void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant, 
-                                          int idx_image, int idx_chain )
+                                          int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -645,7 +645,7 @@ void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant,
     }
 }
 
-void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -668,7 +668,7 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
     }
 }
 
-void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
+void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -704,7 +704,7 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get LLG Output Parameters
-const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int idx_chain)
+const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -724,7 +724,7 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
 }
 
 void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial, 
-                                        bool * final, int idx_image, int idx_chain )
+                                        bool * final, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -746,7 +746,7 @@ void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial
 
 void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
                                        bool * energy_spin_resolved, bool * energy_divide_by_nos, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -769,7 +769,7 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
 
 void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, 
                                               bool * configuration_archive, int idx_image, 
-                                              int idx_chain )
+                                              int idx_chain ) noexcept
 {
     try
     {
@@ -789,7 +789,7 @@ void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration
 }
 
 void Parameters_Get_LLG_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -810,7 +810,7 @@ void Parameters_Get_LLG_N_Iterations( State *state, int * iterations, int * iter
 }
 
 // Get LLG Simulation Parameters
-bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx_chain)
+bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -828,7 +828,7 @@ bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx
     }
 }
 
-float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain )
+float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -848,7 +848,7 @@ float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain
     }
 }
 
-float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain )
+float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -868,7 +868,7 @@ float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain )
     }
 }
 
-float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
+float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -888,7 +888,7 @@ float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
     }
 }
 
-float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
+float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -908,7 +908,7 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
 }
 
 void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitude, float normal[3], 
-                             int idx_image, int idx_chain )
+                             int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -940,7 +940,7 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get MC Output Parameters
-const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int idx_chain)
+const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -960,7 +960,7 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
 }
 
 void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial, bool * final, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -982,7 +982,7 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
 
 void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
                                       bool * energy_spin_resolved, bool * energy_divide_by_nos, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1004,7 +1004,7 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
 }
 
 void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, 
-                                             bool * configuration_archive, int idx_image, int idx_chain )
+                                             bool * configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1024,7 +1024,7 @@ void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_
 }
 
 void Parameters_Get_MC_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                     int idx_image, int idx_chain )
+                                     int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1045,7 +1045,7 @@ void Parameters_Get_MC_N_Iterations( State *state, int * iterations, int * itera
 }
 
 // Get MC Simulation Parameters
-float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
+float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1064,7 +1064,7 @@ float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
     }
 }
 
-float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_chain)
+float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1088,7 +1088,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get GNEB Output Parameters
-const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
+const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain) noexcept
 {
     int idx_image = -1;
 
@@ -1110,7 +1110,7 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
 }
 
 void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initial, bool * final, 
-                                         int idx_chain )
+                                         int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -1134,7 +1134,7 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
 
 void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step, 
                                           bool * energies_interpolated, bool * energies_divide_by_nos, 
-                                          int idx_chain )
+                                          int idx_chain ) noexcept
 {
     int idx_image = -1;
     
@@ -1156,7 +1156,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
     }
 }
 
-void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain)
+void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain) noexcept
 {
     int idx_image = -1;
     
@@ -1177,7 +1177,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
 }
 
 void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                       int idx_chain )
+                                       int idx_chain ) noexcept
 {
 	int idx_image = -1;
     
@@ -1200,7 +1200,7 @@ void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * ite
 }
 
 // Get GNEB Calculation Parameters
-float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain)
+float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1220,7 +1220,7 @@ float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain
     }
 }
 
-float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_chain)
+float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1240,7 +1240,7 @@ float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_c
     }
 }
 
-int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_chain)
+int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1259,7 +1259,7 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
     }
 }
 
-int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
+int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain) noexcept
 {
     int idx_image = -1;
     
