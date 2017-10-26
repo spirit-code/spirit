@@ -332,8 +332,7 @@ namespace IO
 		}// end try
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read external field from file  \"{}\"", externalFieldFile) );
+			spirit_rethrow( fmt::format("Could not read external field from file  \"{}\"", externalFieldFile) );
 		}
 	}
 
@@ -468,8 +467,7 @@ namespace IO
 		}// end try
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
+			spirit_rethrow(	fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
 		}
 	}
 
@@ -627,8 +625,7 @@ namespace IO
 		}// end try
 		catch( ... )
 		{
-			spirit_rethrow(Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read pairs file \"{}\"", pairsFile));
+			spirit_rethrow(fmt::format("Could not read pairs file \"{}\"", pairsFile));
 		}
 	}
 
@@ -767,8 +764,7 @@ namespace IO
 		}// end try
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read quadruplets from file  \"{}\"", quadrupletsFile) );
+			spirit_rethrow( fmt::format("Could not read quadruplets from file  \"{}\"", quadrupletsFile) );
 		}
 	} // End Quadruplets_from_File
 
@@ -818,8 +814,7 @@ namespace IO
 		}
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read defects file  \"{}\"", defectsFile) );
+			spirit_rethrow(	fmt::format("Could not read defects file  \"{}\"", defectsFile) );
 		}
 	} // End Defects_from_File
 
@@ -870,8 +865,7 @@ namespace IO
 		}
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-				fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
+			spirit_rethrow(	fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
 		}
 	} // End Pinned_from_File
 

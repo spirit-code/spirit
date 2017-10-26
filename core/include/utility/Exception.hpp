@@ -62,33 +62,26 @@ namespace Utility
         std::string  _function;
     };
 
-    // Rethrow (creating a std::nested_exception) an exception using the Exception class
-    // to add file and line info
-    void rethrow(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function);
+	// Rethrow (creating a std::nested_exception) an exception using the Exception class
+	// to add file and line info
+	void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function);
 
     // Handle_Exception finalizes what should be done when an exception is encountered.
     //      This function should only be used inside API functions, since that is the
     //      top level at which an exception is caught.
-    void Handle_Exception( const std::string & message="", int idx_image=-1, int idx_chain=-1 );
-
+    void Handle_Exception( const std::string & function="", int idx_image=-1, int idx_chain=-1 );
 
 
     // Shorthand for throwing a Spirit library exception with file and line info
-    #define spirit_throw(classifier, level, message) throw Utility::S_Exception(classifier, level, message, __FILE__, __LINE__, __func__);
+    #define spirit_throw(classifier, level, message) throw Utility::S_Exception(classifier, level, message, __FILE__, __LINE__, __func__)
 
-    // Rethrow any exception to create a backtraceable nested exception
-    #define spirit_rethrow(classifier, level, message) Utility::rethrow(classifier, level, message, __FILE__, __LINE__, __func__);
-
-
+	// Rethrow any exception to create a backtraceable nested exception
+	#define spirit_rethrow(message) Utility::rethrow(message, __FILE__, __LINE__, __func__)
+	
     // Handle exception with backtrace and logging information on the calling API function
     // #define spirit_handle_exception() Handle_Exception(__func__, -1, -1);
     // #define spirit_handle_exception(idx_image) Handle_Exception(__func__, idx_image, -1);
-    #define spirit_handle_exception(idx_image, idx_chain) Utility::Handle_Exception(__func__, idx_image, idx_chain);
-
-
-    // void Spirit_Exception( const Exception & ex, int idx_image=-1, int idx_chain=-1 );
-
-  
+    #define spirit_handle_exception(idx_image, idx_chain) Utility::Handle_Exception(__func__, idx_image, idx_chain)
 }
 
 #endif

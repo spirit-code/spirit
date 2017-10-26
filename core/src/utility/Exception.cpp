@@ -3,20 +3,23 @@
 
 namespace Utility
 {
-    void rethrow(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function)
-    {
-        try
-        {
-            std::rethrow_exception(std::current_exception());
-        }
-        catch(...)
-        {
-            auto ex = S_Exception(classifier, level, message, file, line, function);
-            // ex.classifier = classifier;
-            // ex.level = level;
-            std::throw_with_nested(ex);
-        }
-    }
+	void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function)
+	{
+		try
+		{
+			std::rethrow_exception(std::current_exception());
+		}
+		catch( const S_Exception & ex )
+		{
+			auto ex2 = S_Exception(ex.classifier, ex.level, message, file, line, function);
+			std::throw_with_nested(ex2);
+		}
+		catch( ... )
+		{
+			auto ex = S_Exception(Exception_Classifier::Unknown_Exception, Log_Level::Error, message, file, line, function);
+			std::throw_with_nested(ex);
+		}
+	}
 
 
     void Backtrace_Exception()
@@ -60,7 +63,7 @@ namespace Utility
         }
     }
 
-    void Handle_Exception( const std::string & message, int idx_image, int idx_chain )
+    void Handle_Exception( const std::string & function, int idx_image, int idx_chain )
     {
         try
         {
@@ -71,8 +74,8 @@ namespace Utility
             }
             catch( const S_Exception & ex )
             {
-                Log( ex.level, Log_Sender::API, "----------------------------------------------------------", idx_image, idx_chain );
-                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in API function \'{}\'", message), idx_image, idx_chain );
+                Log( ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain );
+                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in function \'{}\'", function), idx_image, idx_chain );
                 if (int(ex.level) > 1)
                     Log( ex.level, Log_Sender::API, "Exception was not severe", idx_image, idx_chain );
                 else
@@ -81,6 +84,7 @@ namespace Utility
 
                 // Create backtrace
                 Backtrace_Exception();
+				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
                 Log.Append_to_File();
     
                 // Check if the exception was recoverable

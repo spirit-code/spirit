@@ -75,8 +75,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 
@@ -136,10 +135,17 @@ namespace IO
 			// Return
 			return system;
 		}
+		catch( const S_Exception & ex )
+		{
+			Log(Log_Level::Error, Log_Sender::All, "Inside Spin_System_from_Config");
+			if (int(ex.level) > 1 && ex.classifier != Exception_Classifier::System_not_Initialized)
+				spirit_handle_exception(-1, -1);
+			else
+				spirit_rethrow( fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile) );
+		}
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-				fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile) );
+			spirit_rethrow( fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile) );
 		}
 
 		return nullptr;
@@ -204,8 +210,7 @@ namespace IO
 				}// end try
 				catch( ... )
 				{
-					spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-						fmt::format("Failed to read Basis from file \"{}\". Leaving values at default.", configFile) );
+					spirit_rethrow(	fmt::format("Failed to read Basis from file \"{}\". Leaving values at default.", configFile) );
 				}
 			}
 			else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
@@ -229,8 +234,7 @@ namespace IO
 		}
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-				fmt::format("Unable to parse basis from config file  \"{}\"", configFile) );
+			spirit_rethrow(	fmt::format("Unable to parse basis from config file  \"{}\"", configFile) );
 		}
 	}// End Basis_from_Config
 
@@ -322,8 +326,7 @@ namespace IO
 				}// end try
 				catch( ... )
 				{
-					spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-						fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile) );
+					spirit_rethrow(	fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile) );
 				}
 			}// end if file=""
 			else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
@@ -379,8 +382,7 @@ namespace IO
 		}
 		catch( ... )
 		{
-			spirit_rethrow(	Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-				fmt::format("Unable to parse geometry from config file  \"{}\"", configFile) );
+			spirit_rethrow(	fmt::format("Unable to parse geometry from config file  \"{}\"", configFile) );
 		}
 
 		return nullptr;
@@ -526,8 +528,7 @@ namespace IO
 				}
 				catch( ... )
 				{
-					spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-						fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile) );
+					spirit_rethrow(	fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile) );
 				}
 			}
 
@@ -580,7 +581,8 @@ namespace IO
 		Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: building");
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				IO::Filter_File_Handle myfile(configFile);
 
 				myfile.Read_Single(output_tag_time,"output_tag_time");
@@ -610,8 +612,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read LLG parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read LLG parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
@@ -704,8 +705,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read MC parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read MC parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
@@ -780,8 +780,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow( Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read GNEB parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow( fmt::format("Failed to read GNEB parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters GNEB: Using default configuration!");
@@ -849,8 +848,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read MMF parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read MMF parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MMF: Using default configuration!");
@@ -899,31 +897,41 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian type from file \"{}\". Using default Hamiltonian: {}", configFile, hamiltonian_type) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian type from file \"{}\". Using default Hamiltonian: {}", configFile, hamiltonian_type) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
-		
+
 		// Hamiltonian
 		std::unique_ptr<Engine::Hamiltonian> hamiltonian;
-		if (hamiltonian_type == "heisenberg_neighbours")
+		try
 		{
-			hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
-		}// endif isotropic
-		else if (hamiltonian_type == "heisenberg_pairs")
-		{
-			// TODO: to std::move or not to std::move, that is the question...
-			hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
-		}// endif anisotropic
-		else if (hamiltonian_type == "gaussian")
-		{
-			hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			if (hamiltonian_type == "heisenberg_neighbours")
+			{
+				hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
+			}// endif isotropic
+			else if (hamiltonian_type == "heisenberg_pairs")
+			{
+				// TODO: to std::move or not to std::move, that is the question...
+				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
+			}// endif anisotropic
+			else if (hamiltonian_type == "gaussian")
+			{
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			}
+			else
+			{
+				spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
+			}// endif neither
 		}
-		else
+		catch( const S_Exception & ex )
 		{
-			Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
-		}// endif neither
+			spirit_rethrow(fmt::format("Failed to read Hamiltonian from file \"{}\"", configFile));
+		}
+		catch( ... )
+		{
+			spirit_rethrow(fmt::format("Failed to read Hamiltonian from file \"{}\"", configFile));
+		}
 		
 		// Return
 		Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: built hamiltonian of type: " + hamiltonian_type);
@@ -1009,8 +1017,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours boundary conditions from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours boundary conditions from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1057,8 +1064,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1105,8 +1111,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours anisotropy parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours anisotropy parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1128,8 +1133,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours exchange parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours exchange parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1153,8 +1157,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours DMI parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours DMI parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1165,8 +1168,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours DDI parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Neighbours DDI parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
@@ -1264,8 +1266,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs boundary conditions from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs boundary conditions from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1289,8 +1290,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs mu_s from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs mu_s from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1347,8 +1347,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs external field from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs external field from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1405,8 +1404,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs anisotropies from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs anisotropies from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1435,8 +1433,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs interaction pairs from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs interaction pairs from file \"{}\". Leaving values at default.", configFile) );
 			}
 			
 			try
@@ -1449,8 +1446,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs DDI radius from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow( fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs DDI radius from file \"{}\". Leaving values at default.", configFile) );
 			}
 
 			try
@@ -1473,8 +1469,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs interaction quadruplets from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Heisenberg_Pairs interaction quadruplets from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
@@ -1555,8 +1550,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
-					fmt::format("Failed to read Hamiltonian_Gaussian parameters from file \"{}\". Leaving values at default.", configFile) );
+				spirit_rethrow(	fmt::format("Failed to read Hamiltonian_Gaussian parameters from file \"{}\". Leaving values at default.", configFile) );
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
