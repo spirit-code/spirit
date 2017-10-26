@@ -31,7 +31,7 @@ int System_Get_NOS(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return 0;
     }
 }
@@ -50,7 +50,7 @@ scalar * System_Get_Spin_Directions(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -68,7 +68,7 @@ scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -87,7 +87,7 @@ float System_Get_Rx(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return 0;
     }
 }
@@ -106,7 +106,7 @@ float System_Get_Energy(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return 0;
     }
 }
@@ -128,7 +128,7 @@ void System_Get_Energy_Array(State * state, float * energies, int idx_image, int
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -155,7 +155,7 @@ void System_Print_Energy_Array(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -175,6 +175,6 @@ void System_Update_Data(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }

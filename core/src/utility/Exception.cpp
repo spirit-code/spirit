@@ -3,35 +3,92 @@
 
 namespace Utility
 {
-    
-    void Handle_Exception( int idx_image, int idx_chain )
+    void rethrow(Exception classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function)
     {
         try
         {
-            try
-            {
-                if ( std::exception_ptr eptr = std::current_exception() )
-                {
-                    std::rethrow_exception( eptr );
-                }
-                else
-                {
-                    Log( Log_Level::Severe, Log_Sender::API, "Unknown Exception. Terminating", idx_image, idx_chain );
-                    Log.Append_to_File();
-                    std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
-                }
-            }
-            catch ( const std::exception & ex )
-            {
-                Log( Log_Level::Severe, Log_Sender::API, "Caught std::exception: " + std::string(ex.what()), idx_image, idx_chain );
-                Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
-                Log.Append_to_File();
+            std::rethrow_exception(std::current_exception());
+        }
+        catch(...)
+        {
+            auto ex = S_Exception(classifier, level, message, file, line, function);
+            // ex.classifier = classifier;
+            // ex.level = level;
+            std::throw_with_nested(ex);
+        }
+    }
 
+
+    void Backtrace_Exception()
+    {
+        try
+        {
+            if ( std::exception_ptr eptr = std::current_exception() )
+            {
+                std::rethrow_exception( eptr );
+            }
+            else
+            {
+                Log( Log_Level::Severe, Log_Sender::API, "Unknown Exception. Terminating" );
+                Log.Append_to_File();
                 std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
             }
-            catch ( const Utility::Exception & ex )
+        }
+        catch ( const S_Exception & ex )
+        {
+            Log( ex.level, Log_Sender::API, std::string(ex.what()));
+            try
             {
-                Spirit_Exception( ex, idx_image, idx_chain );
+                rethrow_if_nested(ex);
+            }
+            catch( ... )
+            {
+                Backtrace_Exception();
+            }
+        }
+        catch ( const std::exception & ex )
+        {
+            Log( Log_Level::Severe, Log_Sender::API, std::string(ex.what()));
+            try
+            {
+                rethrow_if_nested(ex);
+            }
+            catch( ... )
+            {
+                Backtrace_Exception();
+            }
+        }
+    }
+
+    void Handle_Exception( const std::string & message, int idx_image, int idx_chain )
+    {
+        try
+        {
+            // Rethrow in order to get an exception reference (instead of pointer)
+            try
+            {
+                std::rethrow_exception(std::current_exception());
+            }
+            catch( const S_Exception & ex )
+            {
+                Log( ex.level, Log_Sender::API, "----------------------------------------------------------", idx_image, idx_chain );
+                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in API function \'{}\'", message), idx_image, idx_chain );
+                if (int(ex.level) > 1)
+                    Log( ex.level, Log_Sender::API, "Exception was not severe", idx_image, idx_chain );
+                else
+                    Log( ex.level, Log_Sender::API, "SEVERE EXCEPTION", idx_image, idx_chain );
+                Log( ex.level, Log_Sender::API, "Exception bactrace:", idx_image, idx_chain );
+
+                // Create backtrace
+                Backtrace_Exception();
+                Log.Append_to_File();
+    
+                // Check if the exception was recoverable
+                if (int(ex.level) <= 1)
+                {
+                    Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
+                    std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
+                }
             }
         }
         catch ( ... )
@@ -85,5 +142,4 @@ namespace Utility
         }
   
     }
-
 }

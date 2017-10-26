@@ -61,7 +61,7 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return 0;
     }
 }
@@ -91,7 +91,7 @@ void IO_Image_Read(State * state, const char * file, int format, int idx_image, 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -119,7 +119,7 @@ void IO_Image_Write(State * state, const char * file, int format, int idx_image,
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -144,7 +144,7 @@ void IO_Image_Append(State * state, const char * file, int iteration, int format
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -190,7 +190,7 @@ void IO_Chain_Read(State * state, const char * file, int format, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -217,7 +217,7 @@ void IO_Chain_Write(State * state, const char * file, int format, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -257,7 +257,7 @@ void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -277,7 +277,7 @@ void IO_Write_System_Energy(State * state, const char * file, int idx_image, int
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -299,7 +299,7 @@ void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -321,6 +321,6 @@ void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }

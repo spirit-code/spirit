@@ -17,7 +17,7 @@ int Chain_Get_Index(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( -1, -1 );
+        spirit_handle_exception(-1, -1);
         return 0;
     }
 }
@@ -31,7 +31,7 @@ int Chain_Get_NOI(State * state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( -1, idx_chain );
+        spirit_handle_exception(-1, idx_chain);
         return 0;
     }
 }
@@ -60,7 +60,7 @@ bool Chain_next_Image(State * state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return false;
     }
 }
@@ -96,7 +96,7 @@ bool Chain_prev_Image( State * state, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return false;
     }
 }
@@ -122,7 +122,7 @@ bool Chain_Jump_To_Image( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return false;
     }
 
@@ -148,7 +148,7 @@ void Chain_Image_to_Clipboard( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -193,7 +193,7 @@ void Chain_Replace_Image( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -265,7 +265,7 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -344,7 +344,7 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -414,7 +414,7 @@ void Chain_Push_Back( State * state, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -485,7 +485,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return false;
     }
 }
@@ -558,7 +558,7 @@ bool Chain_Pop_Back( State * state, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         return false;
     }
 }
@@ -582,7 +582,7 @@ void Chain_Get_Rx( State * state, float * Rx, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -605,7 +605,7 @@ void Chain_Get_Rx_Interpolated( State * state, float * Rx_interpolated, int idx_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -628,7 +628,7 @@ void Chain_Get_Energy( State * state, float * Energy, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -651,7 +651,7 @@ void Chain_Get_Energy_Interpolated( State * state, float * E_interpolated, int i
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -679,7 +679,7 @@ std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated( State * sta
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
         
         // XXX: what should we return in that situation
         std::vector<std::vector<float>> E_at_failure ( 1 );
@@ -717,7 +717,7 @@ void Chain_Update_Data( State * state, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }
 
@@ -751,6 +751,6 @@ void Chain_Setup_Data( State * state, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception(idx_image, idx_chain);
     }
 }

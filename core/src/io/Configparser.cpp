@@ -1429,13 +1429,11 @@ namespace IO
 				//	// Not implemented!
 				//}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_rethrow(Exception::System_not_Initialized, Log_Level::Severe, fmt::format("No interaction pairs could be determined from input file \"{}\"", configFile));
 			}
-
+			
 			try
 			{
 				IO::Filter_File_Handle myfile(configFile);

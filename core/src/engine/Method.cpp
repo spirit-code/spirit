@@ -200,29 +200,26 @@ namespace Engine
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Utility::Exception::Not_Implemented, Utility::Log_Level::Error, "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Pre_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Utility::Exception::Not_Implemented, Utility::Log_Level::Error, "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Post_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Utility::Exception::Not_Implemented, Utility::Log_Level::Error, "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Finalize()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        
+        spirit_throw(Utility::Exception::Not_Implemented, Utility::Log_Level::Error, "Tried to use Method::Save_Current() of the Method base class!");
     }
 
 

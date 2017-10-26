@@ -151,7 +151,7 @@ State * State_Setup(const char * config_file, bool quiet)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( );
+        spirit_handle_exception(-1, -1);
         return nullptr;
     }
 }
