@@ -64,8 +64,8 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Added noise with temperature T={} to images {} - {}", temperature, idx_1+1, idx_2+1 ), -1, idx_chain );
     }
-    catch( const Utility::Exception & ex )
+    catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception(-1, idx_chain);
     }
 }

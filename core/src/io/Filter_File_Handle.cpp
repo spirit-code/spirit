@@ -22,7 +22,7 @@ namespace IO
 		found = std::string::npos;
 		myfile = std::unique_ptr<std::ifstream>(new std::ifstream(filename));
 		if (!myfile->is_open())
-			spirit_throw(Exception::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
+			spirit_throw(Exception_Classifier::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
 	}
 
 	Filter_File_Handle::~Filter_File_Handle()

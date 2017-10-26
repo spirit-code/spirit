@@ -73,15 +73,20 @@ namespace Utility
 			{
 				v.normalize();
 			}
-			catch (Exception ex)
+			catch( const Utility::S_Exception & ex )
 			{
-				if (ex == Exception::Division_by_zero) 
+				if( ex.classifier == Exception_Classifier::Division_by_zero )
 				{
-					std::string message = fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]);
-					Log(Log_Level::Warning, Log_Sender::All, message);
+					spirit_rethrow(	Exception_Classifier::Division_by_zero, Log_Level::Warning,
+						fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]) );
 					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
 				}
-				else { throw(ex); }
+				else
+					spirit_rethrow(	Exception_Classifier::Unknown_Exception, Log_Level::Error, "Unknown exception" );
+			}
+			catch( ... )
+			{
+				spirit_rethrow(	Exception_Classifier::Unknown_Exception, Log_Level::Error, "Unknown exception" );
 			}
 
 			auto& spins = *s.spins;

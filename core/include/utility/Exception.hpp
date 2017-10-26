@@ -9,7 +9,7 @@
 
 namespace Utility
 {
-    enum class Exception
+    enum class Exception_Classifier
     {
         File_not_Found             = Exception_File_not_Found,
         System_not_Initialized     = Exception_System_not_Initialized,
@@ -18,7 +18,8 @@ namespace Utility
         Not_Implemented            = Exception_Not_Implemented,
         Non_existing_Image         = Exception_Non_existing_Image,
         Non_existing_Chain         = Exception_Non_existing_Chain,
-        Input_parse_failed
+        Input_parse_failed,
+        Unknown_Exception
         // TODO: from Chain.cpp
         // Last image deletion ?
         // Empty clipboard     ?
@@ -33,7 +34,7 @@ namespace Utility
     class S_Exception : public std::runtime_error
     {
     public:
-        S_Exception(Exception classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
+        S_Exception(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
             std::runtime_error(message)
         {
             _message  = fmt::format("{}:{} in function \'{}\': {}", file, line, function, message);
@@ -51,7 +52,7 @@ namespace Utility
             return _message.c_str();
         }
         
-        Exception classifier;
+        Exception_Classifier classifier;
         Log_Level level;
 
     private:
@@ -63,7 +64,7 @@ namespace Utility
 
     // Rethrow (creating a std::nested_exception) an exception using the Exception class
     // to add file and line info
-    void rethrow(Exception classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function);
+    void rethrow(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function);
 
     // Handle_Exception finalizes what should be done when an exception is encountered.
     //      This function should only be used inside API functions, since that is the

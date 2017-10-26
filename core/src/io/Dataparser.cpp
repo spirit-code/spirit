@@ -330,13 +330,11 @@ namespace IO
 			}// end while getline
 			n_indices = i_field;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "External_Field_from_File: Unable to open file " + externalFieldFile);
-			else throw ex;
+			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read external field from file  \"{}\"", externalFieldFile) );
 		}
-
 	}
 
 
@@ -468,11 +466,10 @@ namespace IO
 			}// end while getline
 			n_indices = i_anisotropy;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Anisotropy_from_File: Unable to open file " + anisotropyFile);
-			else throw ex;
+			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
 		}
 	}
 
@@ -630,7 +627,8 @@ namespace IO
 		}// end try
 		catch( ... )
 		{
-			spirit_rethrow(Exception::Input_parse_failed, Log_Level::Error, fmt::format("Could not read pairs file \"{}\"", pairsFile));
+			spirit_rethrow(Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read pairs file \"{}\"", pairsFile));
 		}
 	}
 
@@ -767,9 +765,10 @@ namespace IO
 			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file {}", i_quadruplet, quadrupletsFile));
 			noq = i_quadruplet;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			throw ex;
+			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read quadruplets from file  \"{}\"", quadrupletsFile) );
 		}
 	} // End Quadruplets_from_File
 
@@ -817,12 +816,10 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read defects file " + defectsFile);
-			else
-				throw ex;
+			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read defects file  \"{}\"", defectsFile) );
 		}
 	} // End Defects_from_File
 
@@ -871,12 +868,10 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read pinned sites file " + pinnedFile);
-			else
-				throw ex;
+			spirit_rethrow(	Exception_Classifier::Input_parse_failed, Log_Level::Error,
+				fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
 		}
 	} // End Pinned_from_File
 

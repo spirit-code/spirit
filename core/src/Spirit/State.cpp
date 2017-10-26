@@ -189,7 +189,7 @@ void State_Delete(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception(-1, -1);
     }
 }
 
@@ -220,7 +220,7 @@ void State_Update(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception(-1, -1);
     }
 }
 
@@ -263,7 +263,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception(-1, -1);
     }
 }
 
@@ -275,7 +275,7 @@ const char * State_DateTime(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception(-1, -1);
         return "00:00:00";
     }
 }
@@ -286,7 +286,7 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
 {
     // In case of positive non-existing image_idx throw exception
     if ( idx_chain >= state->collection->noc )
-        throw Exception::Non_existing_Chain;
+        spirit_throw(Exception_Classifier::Non_existing_Chain, Log_Level::Warning, "Non existing chain. No action taken.");
     
     // Chain
     if ( idx_chain < 0 || idx_chain == state->idx_active_chain )
@@ -300,9 +300,9 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
         idx_chain = state->idx_active_chain;
     }
 
-    // In case of positive non-existing chain_idx throw exception    
+    // In case of positive non-existing chain_idx throw exception
     if (  idx_image >= state->active_chain->noi )
-        throw Exception::Non_existing_Image;
+        spirit_throw(Exception_Classifier::Non_existing_Image, Log_Level::Warning, "Non existing image. No action taken.");
     
     // Image
     if ( idx_chain == state->idx_active_chain && 
