@@ -20,7 +20,7 @@ namespace IO
 {
     void Read_Spin_Configuration_CSV( std::shared_ptr<Data::Spin_System> s, const std::string file );
     void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
-                                  VF_FileFormat format = VF_FileFormat::CSV_POS_SPIN );
+                                  VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_POS_SPIN );
     void Read_SpinChain_Configuration( std::shared_ptr<Data::Spin_System_Chain> c, 
                                        const std::string file );
     void External_Field_from_File( const std::string externalFieldFile, 

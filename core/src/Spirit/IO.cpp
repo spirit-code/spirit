@@ -18,9 +18,9 @@
 /////// TODO: make use of file format specifications
 /////// TODO: implement remaining functions
 
-/*------------------------------------------------------------------------------------------------------ */
-/*--------------------------------- From Config File --------------------------------------------------- */
-/*------------------------------------------------------------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+/*--------------------------------- From Config File -------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
 
 int IO_System_From_Config(State * state, const char * file, int idx_image, int idx_chain)
 {
@@ -66,9 +66,9 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
     }
 }
 
-/*------------------------------------------------------------------------------------------------------ */
-/*-------------------------------------- Images -------------------------------------------------------- */
-/*------------------------------------------------------------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+/*-------------------------------------- Images ------------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
 
 int IO_N_Images_In_File( State *state, const char *file, int format, int idx_chain )
 {
@@ -116,15 +116,12 @@ void IO_Image_Write( State *state, const char *file, int format, int idx_image, 
         
     	// Write the data
         image->Lock();
-        if (format != IO_Fileformat_OVF)
-            IO::Write_Spin_Configuration(image, 0, std::string(file), false);
-        else
-            IO::Save_To_OVF(*image->spins, *image->geometry, std::string(file));
-    	image->Unlock();
-
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Wrote spins to file {} with format {}", file, format), 
-            idx_image, idx_chain );
+        IO::Write_Spin_Configuration( *image->spins, *image->geometry, 0, 
+                                      std::string(file), (IO::VF_FileFormat)format, false );
+        image->Unlock();
+        
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins to file "
+             "{} with format {}", file, format ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -144,12 +141,13 @@ void IO_Image_Append( State *state, const char *file, int format, int idx_image,
         
         // Write the data
         image->Lock();
-        IO::Write_Spin_Configuration(image, 0, std::string(file), true);
+        IO::Write_Spin_Configuration( *image->spins, *image->geometry, 0, 
+                                      std::string(file), (IO::VF_FileFormat)format, true );
         image->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Appended spins to file {} with format {}", file, format),
-            idx_image, idx_chain );
+             fmt::format("Appended spins to file {} with format {}", file, format),
+             idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -158,9 +156,9 @@ void IO_Image_Append( State *state, const char *file, int format, int idx_image,
 }
 
 
-/*------------------------------------------------------------------------------------------------------ */
-/*-------------------------------------- Chains -------------------------------------------------------- */
-/*------------------------------------------------------------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+/*-------------------------------------- Chains ------------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
 
 void IO_Chain_Read( State *state, const char *file, int format, int starting_image, 
                     int ending_image, int insert_idx, int idx_chain )
@@ -237,9 +235,9 @@ void IO_Chain_Append( State *state, const char *file, int format, int idx_chain 
     
 }
 
-/*------------------------------------------------------------------------------------------------------ */
-/*------------------------------------ Collection ------------------------------------------------------ */
-/*------------------------------------------------------------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+/*------------------------------------ Collection ----------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
 
 void IO_Collection_Read(State * state, const char * file, int idx_image, int idx_chain)
 {
@@ -251,9 +249,9 @@ void IO_Collection_Write(State * state, const char * file, int idx_image, int id
 
 }
 
-/*------------------------------------------------------------------------------------------------------ */
-/*--------------------------------------- Data --------------------------------------------------------- */
-/*------------------------------------------------------------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+/*--------------------------------------- Data -------------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
 
 //IO_Energies_Spins_Save
 void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_chain)

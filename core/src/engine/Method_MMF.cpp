@@ -382,7 +382,9 @@ namespace Engine
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
 
 				// Spin Configuration
-				IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
+                                              *( this->systems[0] )->geometry, iteration, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, append );
 			};
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -493,7 +495,8 @@ namespace Engine
 			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
 			//		else
 			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
-			//		IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, true);
+			//		IO::Write_Spin_Configuration( *(this->systems[0])->spins, iteration, spinsFile, 
+            //                                     true );
 			//		
 			//		if (this->collection->parameters->output_energy)
 			//		{

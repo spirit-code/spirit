@@ -37,7 +37,8 @@ namespace IO
 	/*
 	Reads a configuration file into an existing Spin_System
 	*/
-	void Read_Spin_Configuration(std::shared_ptr<Data::Spin_System> s, const std::string file, VF_FileFormat format)
+	void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
+                                  VF_FileFormat format )
 	{
 		std::ifstream myfile(file);
 		if (myfile.is_open())
@@ -47,12 +48,18 @@ namespace IO
 			std::istringstream iss(line);
 			std::size_t found;
 			int i = 0;
-			if (format == VF_FileFormat::CSV_POS_SPIN)
+			if (format == VF_FileFormat::SPIRIT_CSV_POS_SPIN)
 			{
 				auto& spins = *s->spins;
 				while (getline(myfile, line))
 				{
-					if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+					if (i >= s->nos) 
+                    { 
+                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
+                             "Configuration - Aborting" ); 
+                        myfile.close(); 
+                        return; 
+                    }
 					found = line.find("#");
 					// Read the line if # is not found (# marks a comment)
 					if (found == std::string::npos)
@@ -79,20 +86,35 @@ namespace IO
 						// discard line if # is found
 				}// endif new line (while)
 			}
-			else if (format == VF_FileFormat::OVF)
+			else if (format == VF_FileFormat::OVF_BIN8)
 			{
 				auto& spins = *s->spins;
 				auto& geometry = *s->geometry;
 
-				Read_From_OVF(spins, geometry, file);
+				Read_From_OVF( spins, geometry, file );
 			}
+            else if (format == VF_FileFormat::OVF_BIN4 || format == VF_FileFormat::OVF_TEXT )
+            {
+                // TODO: remove after implementation
+                
+                Log( Log_Level::Warning, Log_Sender::IO, fmt::format( "OVF file format {} is not "
+                     "supported yet. Aborting", (int)format ) ); 
+                myfile.close(); 
+                return; 
+            }
 			else
 			{
 				auto& spins = *s->spins;
 				Vector3 spin;
 				while (getline(myfile, line))
 				{
-					if (i >= s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration - Aborting"); myfile.close(); return; }
+					if (i >= s->nos) 
+                    { 
+                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
+                             "Configuration - Aborting"); 
+                        myfile.close(); 
+                        return; 
+                    }
 					found = line.find("#");
 					// Read the line if # is not found (# marks a comment)
 					if (found == std::string::npos)
@@ -925,10 +947,10 @@ namespace IO
     {
         try
         {
-            VF_FileFormat format = VF_FileFormat::OVF;     // set the format to ovf
+            VF_FileFormat format = VF_FileFormat::OVF_BIN8;     // set the format to ovf
             
             Log( Log_Level::Info, Log_Sender::IO, "Start reading OOMMF OVF file" );
-            Filter_File_Handle myfile( ovfFileName, VF_FileFormat::OVF );
+            Filter_File_Handle myfile( ovfFileName, VF_FileFormat::OVF_BIN8 );
             
             // initialize strings
             std::string ovf_version = "";

@@ -296,7 +296,7 @@ IO
 | `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
 | `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
 | `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
-| `IO_Fileformat_OVF`                      | 4       | [OOMMF vector filed (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
+| `IO_Fileformat_OVF_bin8`                      | 4       | [OOMMF vector filed (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
 
 Read and Write functions
 

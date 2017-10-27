@@ -27,10 +27,17 @@ namespace IO
                                                        std::ios::in | std::ios::binary ) );
         
         // set the comment tag
-        if( this->ff == VF_FileFormat::OVF ) 
-            this->comment_tag = "##";
-        else if( this->ff == VF_FileFormat::SPIRIT_GENERAL ) 
-            this->comment_tag = "#";
+        switch( this->ff )
+        {
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+                this->comment_tag = "##";
+                break;
+            // for every SPIRIT file format
+            default:
+                this->comment_tag = "#";
+        }
         
         // if the file is not open
         if ( !this->myfile->is_open() )

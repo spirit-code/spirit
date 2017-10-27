@@ -265,7 +265,9 @@ namespace Engine
                 std::string spinsFile = preSpinsFile + suffix + ".txt";
 
                 // Spin Configuration
-                IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
+                                              *( this->systems[0] )->geometry, iteration, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, append );
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)

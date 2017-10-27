@@ -1115,7 +1115,7 @@ void MainWindow::save_Spin_Configuration()
 		auto qs_type = fi.completeSuffix();
 		int type = IO_Fileformat_Regular;
 		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
 		// Write the file
 		auto file = string_q2std(fileName);
 		IO_Image_Write(this->state.get(), file.c_str(), type);
@@ -1146,7 +1146,7 @@ void MainWindow::load_Spin_Configuration()
 			auto qs_type = fi.suffix();
 			if (qs_type == "txt") type = IO_Fileformat_Regular;
 			else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-			else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+			else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
 			else
 			{
 				Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());

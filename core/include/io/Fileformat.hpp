@@ -10,15 +10,17 @@ namespace IO
     enum class VF_FileFormat
     {
         // Comma-separated values for position and orientation
-        CSV_POS_SPIN        = IO_Fileformat_CSV_Pos,
+        SPIRIT_CSV_POS_SPIN        = IO_Fileformat_CSV_Pos,
         // Comma-separated values for orientation
-        CSV_SPIN            = IO_Fileformat_CSV,
+        SPIRIT_CSV_SPIN            = IO_Fileformat_CSV,
         // Whitespace-separated values for position and orientation
-        WHITESPACE_POS_SPIN = IO_Fileformat_Regular_Pos,
+        SPIRIT_WHITESPACE_POS_SPIN = IO_Fileformat_Regular_Pos,
         // Whitespace-separated values for orientation
-        WHITESPACE_SPIN     = IO_Fileformat_Regular,
+        SPIRIT_WHITESPACE_SPIN     = IO_Fileformat_Regular,
         // OOMF Vector Field file format
-        OVF                 = IO_Fileformat_OVF,
+        OVF_BIN8                   = IO_Fileformat_OVF_bin8,
+        OVF_BIN4                   = IO_Fileformat_OVF_bin4,
+        OVF_TEXT                   = IO_Fileformat_OVF_text,
         // General Spirit file
         SPIRIT_GENERAL
     };

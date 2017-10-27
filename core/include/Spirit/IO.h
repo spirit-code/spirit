@@ -9,7 +9,9 @@ struct State;
 #define IO_Fileformat_Regular_Pos   1   // px py pz sx sy sz (separated by whitespace)
 #define IO_Fileformat_CSV           2   // sx, sy, sz (separated by commas)
 #define IO_Fileformat_CSV_Pos       3   // px, py, pz, sx, sy, (sz separated by commas)
-#define IO_Fileformat_OVF           4   // OOMF Vector Field (OVF) file format
+#define IO_Fileformat_OVF_bin8      4   // 
+#define IO_Fileformat_OVF_bin4      5   // OOMF Vector Field (OVF2.0) file format
+#define IO_Fileformat_OVF_text      6   // 
 
 // From Config File
 DLLEXPORT int IO_System_From_Config( State *state, const char * file, int idx_image=-1, 

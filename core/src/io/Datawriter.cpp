@@ -1,4 +1,5 @@
 #include <io/IO.hpp>
+#include <io/Fileformat.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Logging.hpp>
 
@@ -19,7 +20,9 @@
 
 namespace IO
 {
-	void Write_Energy_Header(const Data::Spin_System & s, const std::string fileName, std::vector<std::string> firstcolumns, bool contributions, bool normalize_by_nos)
+	void Write_Energy_Header( const Data::Spin_System & s, const std::string filename, 
+                              std::vector<std::string> firstcolumns, bool contributions, 
+                              bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
 
@@ -54,10 +57,11 @@ namespace IO
 		if (readability_toggle) header = separator + line + separator;
 		else header = line;
 		if (!readability_toggle) std::replace( header.begin(), header.end(), '|', ' ');
-		String_to_File(header, fileName);
+		String_to_File(header, filename);
 	}
 
-	void Append_System_Energy(const Data::Spin_System & s, const int iteration, const std::string fileName, bool normalize_by_nos)
+	void Append_System_Energy( const Data::Spin_System & s, const int iteration, 
+                               const std::string filename, bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
 		scalar nd = 1.0; // nos divide
@@ -75,17 +79,18 @@ namespace IO
 		line += "\n";
 
 		if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
-		Append_String_to_File(line, fileName);
+		Append_String_to_File(line, filename);
 	}
 
-	void Write_System_Energy(const Data::Spin_System & system, const std::string fileName, bool normalize_by_nos)
+	void Write_System_Energy( const Data::Spin_System & system, const std::string filename, 
+                              bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
 		scalar nd = 1.0; // nos divide
 		if (normalize_by_nos) nd = 1.0 / system.nos;
 		else nd = 1;
 
-		Write_Energy_Header(system, fileName, {"E_tot"});
+		Write_Energy_Header(system, filename, {"E_tot"});
 
 		std::string line = fmt::format(" {:^20.10f} |", system.E * nd);
 		for (auto pair : system.E_array)
@@ -95,10 +100,11 @@ namespace IO
 		line += "\n";
 
 		if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
-		Append_String_to_File(line, fileName);
+		Append_String_to_File(line, filename);
 	}
 
-	void Write_System_Energy_per_Spin(const Data::Spin_System & s, const std::string fileName, bool normalize_by_nos)
+	void Write_System_Energy_per_Spin( const Data::Spin_System & s, const std::string filename, 
+                                       bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
 		scalar nd = 1.0; // nos divide
@@ -107,7 +113,7 @@ namespace IO
 
 		// s.UpdateEnergy();
 
-		Write_Energy_Header(s, fileName, {"ispin", "E_tot"});
+		Write_Energy_Header(s, filename, {"ispin", "E_tot"});
 		
 		std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
 		s.hamiltonian->Energy_Contributions_per_Spin(*s.spins, contributions_spins);
@@ -126,14 +132,15 @@ namespace IO
 		}
 
 		if (!readability_toggle) std::replace( data.begin(), data.end(), '|', ' ');
-		Append_String_to_File(data, fileName);
+		Append_String_to_File(data, filename);
 	}
 
-	void Write_System_Force(const Data::Spin_System & s, const std::string fileName)
+	void Write_System_Force(const Data::Spin_System & s, const std::string filename)
 	{
 	}
 
-	void Write_Chain_Energies(const Data::Spin_System_Chain & c, const int iteration, const std::string fileName, bool normalize_by_nos)
+	void Write_Chain_Energies( const Data::Spin_System_Chain & c, const int iteration, 
+                               const std::string filename, bool normalize_by_nos )
 	{
 		int isystem;
 		bool readability_toggle = true;
@@ -141,12 +148,13 @@ namespace IO
 		if (normalize_by_nos) nd = 1.0 / c.images[0]->nos;
 		else nd = 1;
 
-		Write_Energy_Header(*c.images[0], fileName, {"image", "Rx", "E_tot"});
+		Write_Energy_Header(*c.images[0], filename, {"image", "Rx", "E_tot"});
 
 		for (isystem = 0; isystem < (int)c.noi; ++isystem)
 		{
 			auto& system = *c.images[isystem];
-			std::string line = fmt::format(" {:^20} || {:^20.10f} || {:^20.10f} |", isystem, c.Rx[isystem], system.E * nd);
+			std::string line = fmt::format(" {:^20} || {:^20.10f} || {:^20.10f} |", isystem, 
+                               c.Rx[isystem], system.E * nd );
 			for (auto pair : system.E_array)
 			{
 				line += fmt::format("| {:^20.10f} ", pair.second * nd);
@@ -154,11 +162,12 @@ namespace IO
 			line += "\n";
 
 			if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
-			Append_String_to_File(line, fileName);
+			Append_String_to_File(line, filename);
 		}
 	}
 
-	void Write_Chain_Energies_Interpolated(const Data::Spin_System_Chain & c, const std::string fileName, bool normalize_by_nos)
+	void Write_Chain_Energies_Interpolated( const Data::Spin_System_Chain & c, 
+                                            const std::string filename, bool normalize_by_nos )
 	{
 		int isystem, iinterp, idx;
 		bool readability_toggle = true;
@@ -166,7 +175,7 @@ namespace IO
 		if (normalize_by_nos) nd = 1.0 / c.images[0]->nos;
 		else nd = 1;
 
-		Write_Energy_Header(*c.images[0], fileName, {"image", "iinterp", "Rx", "E_tot"});
+		Write_Energy_Header(*c.images[0], filename, {"image", "iinterp", "Rx", "E_tot"});
 
 		for (isystem = 0; isystem < (int)c.noi; ++isystem)
 		{
@@ -175,8 +184,9 @@ namespace IO
 			for (iinterp = 0; iinterp < c.gneb_parameters->n_E_interpolations+1; ++iinterp)
 			{
 				idx = isystem * (c.gneb_parameters->n_E_interpolations+1) + iinterp;
-				std::string line = fmt::format("{:^20} || {:^20} || {:^20.10f} || {:^20.10f} ||", isystem, iinterp,
-					c.Rx_interpolated[idx], c.E_interpolated[idx] * nd);
+				std::string line = fmt::format("{:^20} || {:^20} || {:^20.10f} || {:^20.10f} ||", 
+                                    isystem, iinterp, c.Rx_interpolated[idx], 
+                                    c.E_interpolated[idx] * nd );
 				
 				// TODO: interpolated Energy contributions
 				// bool first = true;
@@ -192,7 +202,7 @@ namespace IO
 				line += "\n";
 
 				if (!readability_toggle) std::replace( line.begin(), line.end(), '|', ' ');
-				Append_String_to_File(line, fileName);
+				Append_String_to_File(line, filename);
 
 				// Exit the loop if we reached the end
 				if (isystem == c.noi-1) break;
@@ -201,7 +211,7 @@ namespace IO
 	}
 
 
-	void Write_Chain_Forces(const Data::Spin_System_Chain & c, const std::string fileName)
+	void Write_Chain_Forces(const Data::Spin_System_Chain & c, const std::string filename)
 	{
 		/////////////////
 		// TODO: rewrite like save_energy functions
@@ -233,45 +243,45 @@ namespace IO
 		// 	if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
 		// 	output_to_file.append(buffer_string_conversion);
 		// }
-		// Dump_to_File(output_to_file, fileName);
+		// Dump_to_File(output_to_file, filename);
 	}
 
 
-	void Write_Spin_Configuration( const std::shared_ptr<Data::Spin_System>& s, 
-                                   const int iteration, const std::string fileName, bool append )
+	void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
+                                   const int iteration, const std::string filename, 
+                                   VF_FileFormat format, bool append )
 	{
-		auto& spins = *s->spins;
-		// Header
-		std::string output_to_file = "";
-		output_to_file.reserve(int(1E+08));
-		output_to_file += fmt::format( "### Spin Configuration for NOS = {} and iteration {}", 
-                                       s->nos, iteration );
-
-		// Data
-		for (int iatom = 0; iatom < s->nos; ++iatom)
-		{
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			if (s->geometry->atom_types[iatom] < 0)
-				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 0.0, 0.0, 0.0 );
-			else
-			#endif
-				output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 
-                                                spins[iatom][0], spins[iatom][1], spins[iatom][2] );
-		}
-		output_to_file.append("\n");
-		
-		if (append)
-			Append_String_to_File(output_to_file, fileName);
-		else
-			Dump_to_File(output_to_file, fileName);
+        switch( format )
+        {
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+                Save_To_SPIRIT( vf, geometry, iteration, filename, format, append );
+                break;
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+                Save_To_OVF( vf, geometry, iteration, filename, format );
+                break;
+            default:
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                     "existent file format" ), -1, -1 );
+                     
+                // TODO: throw some exception to avoid logging "success" by API function
+                     
+                break;
+        }        
 	}
 
-	void Write_Spin_Configuration_Chain(const std::shared_ptr<Data::Spin_System_Chain>& c, const int iteration, const std::string fileName)
+	void Write_Spin_Configuration_Chain( const std::shared_ptr<Data::Spin_System_Chain>& c, 
+                                         const int iteration, const std::string filename )
 	{
 		// Header
 		std::string output_to_file = "";
 		output_to_file.reserve(int(1E+08));
-		output_to_file += fmt::format("### Spin Chain Configuration for {} images with NOS = {} after iteration {}", c->noi, c->images[0]->nos, iteration);
+		output_to_file += fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
+                                       "after iteration {}", c->noi, c->images[0]->nos, iteration );
 
 		// Data
 		for (int iimage = 0; iimage < c->noi; ++iimage)
@@ -284,26 +294,108 @@ namespace IO
 			{
 				#ifdef SPIRIT_ENABLE_DEFECTS
 				if (c->images[iimage]->geometry->atom_types[iatom] < 0)
-					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", 0.0, 0.0, 0.0);
+					output_to_file += fmt::format( "\n {:18.10f} {:18.10f} {:18.10f}", 
+                                                   0.0, 0.0, 0.0 );
 				else
 				#endif
-					output_to_file += fmt::format("\n {:18.10f} {:18.10f} {:18.10f}", spins[iatom][0], spins[iatom][1], spins[iatom][2]);
+					output_to_file += fmt::format( "\n {:18.10f} {:18.10f} {:18.10f}", 
+                                                   spins[iatom][0], spins[iatom][1], 
+                                                   spins[iatom][2] );
 			}
 		}
-		Dump_to_File(output_to_file, fileName);
+		Dump_to_File( output_to_file, filename );
 	}
-
-	
+    
+    void Save_To_SPIRIT( const vectorfield& vf, const Data::Geometry& geometry, 
+                         const int iteration, std::string filename, VF_FileFormat format,
+                         bool append )
+    {
+        // Header
+        std::string output_to_file = "";
+        output_to_file.reserve(int(1E+08));
+        output_to_file += fmt::format( "### Spin Configuration for NOS = {} and iteration {}", 
+                                       vf.size(), iteration );
+        
+        // Delimiter
+        std::string delimiter;
+        switch( format ) 
+        {
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+                delimiter = " ";
+                break;
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+                delimiter = ", ";
+                break;
+        }
+        
+        // Data
+        switch( format )
+        {
+            // Write only spin
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+                for (int iatom = 0; iatom < vf.size(); ++iatom)
+                {
+                    #ifdef SPIRIT_ENABLE_DEFECTS
+                    if( geometry->atom_types[iatom] < 0 )
+                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                                                       0.0, delimiter, 0.0, delimiter, 0.0 );
+                    else
+                    #endif
+                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                                                        vf[iatom][0], delimiter, 
+                                                        vf[iatom][1], delimiter, 
+                                                        vf[iatom][2] );
+                }
+                break;
+            // Write position and spin
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+                for (int iatom = 0; iatom < vf.size(); ++iatom)
+                {
+                    #ifdef SPIRIT_ENABLE_DEFECTS
+                    if( geometry->atom_types[iatom] < 0 )
+                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}",
+                                                       geometry.spin_pos[iatom][0], delimiter,
+                                                       geometry.spin_pos[iatom][1], delimiter,
+                                                       geometry.spin_pos[iatom][2], delimiter,
+                                                       0.0, delimiter, 0.0, delimiter, 0.0 );
+                    else
+                    #endif
+                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                                                       geometry.spin_pos[iatom][0], delimiter,
+                                                       geometry.spin_pos[iatom][1], delimiter,
+                                                       geometry.spin_pos[iatom][2], delimiter,
+                                                       vf[iatom][0], delimiter, 
+                                                       vf[iatom][1], delimiter, 
+                                                       vf[iatom][2] );
+                }
+                break;
+        }
+        
+        output_to_file.append("\n");
+        
+        if ( append )
+            Append_String_to_File( output_to_file, filename );
+        else
+            Dump_to_File( output_to_file, filename );
+    }
+    
 	// Save vectorfield and positions to file OVF in OVF format
-	void Save_To_OVF( const vectorfield & vf, const Data::Geometry & geometry, std::string outputfilename )
+    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, const int iteration, 
+                      std::string filename, VF_FileFormat format )
 	{
-		// auto outputfilename = "test_out.ovf";
+		// auto filename = "test_out.ovf";
 		auto& n_cells = geometry.n_cells;
 		int   nos_basis = geometry.n_spins_basic_domain;
 
 		char shortBufer[64]   = "";
 		char ovf_filename[64] = "";
-		strncpy(ovf_filename, outputfilename.c_str(), strcspn (outputfilename.c_str(), "."));
+		strncpy(ovf_filename, filename.c_str(), strcspn( filename.c_str(), ".") );
 		strcat(ovf_filename, ".ovf");
 		if( strncmp(ovf_filename, ".ovf",4) == 0 )
 		{
