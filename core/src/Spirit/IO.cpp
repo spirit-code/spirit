@@ -74,6 +74,7 @@ int IO_N_Images_In_File( State *state, const char *file, int format, int idx_cha
 {
     // TODO: implementation
     
+    return 0;
 }
 
 void IO_Image_Read( State *state, const char *file, int format, int idx_image_infile, 

@@ -3,6 +3,8 @@
 #include <Spirit/State.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/System.h>
+#include <utility>
+#include <vector>
 
 const char inputfile[] = "core/test/input/fd_neighbours.cfg";
 
@@ -14,11 +16,11 @@ TEST_CASE( "IO", "[io]" )
     
     // files to be written
     std::vector<std::pair< std::string, int >>  filetypes { 
-        { "core/test/io_test_files/test_ovf.ovf",     IO_Fileformat_OVF_bin8         },
+        { "core/test/io_test_files/regular.data",     IO_Fileformat_Regular     }, 
+        //{ "core/test/io_test_files/regular_pos.data", IO_Fileformat_Regular_Pos },  
         //{ "core/test/io_test_files/csv.data",         IO_Fileformat_CSV         },
         { "core/test/io_test_files/csv_pos.data",     IO_Fileformat_CSV_Pos     },
-        //{ "core/test/io_test_files/regular_pos.data", IO_Fileformat_Regular_Pos },  
-        { "core/test/io_test_files/regular.data",     IO_Fileformat_Regular     } };
+        { "core/test/io_test_files/test_ovf.ovf",     IO_Fileformat_OVF_bin8    } };
     
     // buffer variables for better readability
     const char *filename;
