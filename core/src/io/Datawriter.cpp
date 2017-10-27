@@ -248,8 +248,8 @@ namespace IO
 
 
 	void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
-                                   const int iteration, const std::string filename, 
-                                   VF_FileFormat format, bool append )
+                                   const std::string filename, VF_FileFormat format,
+                                   const std::string comment, bool append )
 	{
         switch( format )
         {
@@ -257,12 +257,12 @@ namespace IO
             case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                Save_To_SPIRIT( vf, geometry, iteration, filename, format, append );
+                Save_To_SPIRIT( vf, geometry, filename, format, comment, append );
                 break;
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
-                Save_To_OVF( vf, geometry, iteration, filename, format );
+                Save_To_OVF( vf, geometry, filename, format, comment );
                 break;
             default:
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
@@ -307,14 +307,14 @@ namespace IO
 	}
     
     void Save_To_SPIRIT( const vectorfield& vf, const Data::Geometry& geometry, 
-                         const int iteration, std::string filename, VF_FileFormat format,
-                         bool append )
+                         const std::string filename, VF_FileFormat format,
+                         const std::string comment, bool append )
     {
         // Header
         std::string output_to_file = "";
         output_to_file.reserve(int(1E+08));
-        output_to_file += fmt::format( "### Spin Configuration for NOS = {} and iteration {}", 
-                                       vf.size(), iteration );
+        output_to_file += fmt::format( "### Spin Configuration for NOS = {} comment: {}", 
+                                       vf.size(), comment );
         
         // Delimiter
         std::string delimiter;
@@ -386,8 +386,8 @@ namespace IO
     }
     
 	// Save vectorfield and positions to file OVF in OVF format
-    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, const int iteration, 
-                      std::string filename, VF_FileFormat format )
+    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
+                      VF_FileFormat format, const std::string comment )
 	{
 		// auto filename = "test_out.ovf";
 		auto& n_cells = geometry.n_cells;

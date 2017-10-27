@@ -105,7 +105,8 @@ void IO_Image_Read( State *state, const char *file, int format, int idx_image_in
     }
 }
 
-void IO_Image_Write( State *state, const char *file, int format, int idx_image, int idx_chain )
+void IO_Image_Write( State *state, const char *file, int format, const char* comment, 
+                     int idx_image, int idx_chain )
 {
     try
     {
@@ -117,8 +118,8 @@ void IO_Image_Write( State *state, const char *file, int format, int idx_image, 
         
     	// Write the data
         image->Lock();
-        IO::Write_Spin_Configuration( *image->spins, *image->geometry, 0, 
-                                      std::string(file), (IO::VF_FileFormat)format, false );
+        IO::Write_Spin_Configuration( *image->spins, *image->geometry, std::string( file ), 
+                                      (IO::VF_FileFormat)format, std::string( comment ), false );
         image->Unlock();
         
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins to file "
@@ -130,7 +131,8 @@ void IO_Image_Write( State *state, const char *file, int format, int idx_image, 
     }
 }
 
-void IO_Image_Append( State *state, const char *file, int format, int idx_image, int idx_chain )
+void IO_Image_Append( State *state, const char *file, int format, const char * comment, 
+                      int idx_image, int idx_chain )
 {
     try
     {
@@ -142,8 +144,8 @@ void IO_Image_Append( State *state, const char *file, int format, int idx_image,
         
         // Write the data
         image->Lock();
-        IO::Write_Spin_Configuration( *image->spins, *image->geometry, 0, 
-                                      std::string(file), (IO::VF_FileFormat)format, true );
+        IO::Write_Spin_Configuration( *image->spins, *image->geometry, std::string( file ), 
+                                      (IO::VF_FileFormat)format, std::string( comment ), true );
         image->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,

@@ -261,13 +261,14 @@ namespace Engine
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                // File name
+                // File name and comment
                 std::string spinsFile = preSpinsFile + suffix + ".txt";
-
+                std::string comment = std::to_string( iteration );
                 // Spin Configuration
                 IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
-                                              *( this->systems[0] )->geometry, iteration, spinsFile, 
-                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, append );
+                                              *( this->systems[0] )->geometry, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
+                                              comment, append );
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)

@@ -34,7 +34,7 @@ class Image_IO(TestParameters):
     
         configuration.PlusZ(self.p_state)
     
-        io.Image_Write(self.p_state, io_image_test)
+        io.Image_Write(self.p_state, io_image_test, 0, "python io test")
         io.Image_Read(self.p_state, io_image_test)
         spins = system.Get_Spin_Directions(self.p_state)
         for i in range(nos):
@@ -44,7 +44,7 @@ class Image_IO(TestParameters):
         
         configuration.MinusZ(self.p_state)
         
-        io.Image_Write(self.p_state, io_image_test)
+        io.Image_Write(self.p_state, io_image_test, 0, "python io test")
         io.Image_Read(self.p_state, io_image_test)
         spins = system.Get_Spin_Directions(self.p_state)
         for i in range(nos):
@@ -54,12 +54,10 @@ class Image_IO(TestParameters):
         
     def test_append(self):
         configuration.MinusZ(self.p_state)
-        io.Image_Append(self.p_state, io_image_test)    
-        io.Image_Append(self.p_state, io_image_test)
+        io.Image_Append(self.p_state, io_image_test, 0, "python io test")
+        io.Image_Append(self.p_state, io_image_test, 0, "python io test")
     
 class Chain_IO(TestParameters):
-    
-    
     
     def test_chain_writeread(self):
         nos = system.Get_NOS(self.p_state)

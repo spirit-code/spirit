@@ -36,7 +36,7 @@ TEST_CASE( "IO", "[io]" )
         
         // set config to minus z and write the system out
         Configuration_MinusZ( state.get() );
-        IO_Image_Write( state.get(), filename, filetype );
+        IO_Image_Write( state.get(), filename, filetype, "io test" );
         
         // set config to plus z and read the previously saved system
         Configuration_PlusZ( state.get() );

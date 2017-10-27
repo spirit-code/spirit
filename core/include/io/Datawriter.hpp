@@ -11,16 +11,18 @@ namespace IO
     // =========================== Saving Configurations ===========================
     // Append Spin_Configuration to file
     void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
-                                   const int iteration, const std::string filename, 
-                                   VF_FileFormat format, bool append = false );
+                                   const std::string filename, VF_FileFormat format, 
+                                   const std::string comment, bool append = false );
     // Saves Spin_Chain_Configuration to file
     void Write_Spin_Configuration_Chain( const std::shared_ptr<Data::Spin_System_Chain>& c, 
                                          const int iteration, const std::string filename );
-    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, 
-                      const int iteration, std::string filename, VF_FileFormat format );
+    // Saves any OVF format 
+    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
+                      VF_FileFormat format, const std::string comment );
+    // Saves any SPIRIT format
     void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
-                         const int iteration, std::string filename, VF_FileFormat format, 
-                         bool append = false );
+                         const std::string filename, VF_FileFormat format, 
+                         const std::string comment, bool append = false );
 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 

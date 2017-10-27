@@ -25,9 +25,9 @@ DLLEXPORT int IO_N_Images_In_File( State *state, const char *file,
 DLLEXPORT void IO_Image_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
                               int idx_image_infile=-1, int idx_image_inchain=-1, int idx_chain=-1 );
 DLLEXPORT void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_Regular, 
-                               int idx_image=-1, int idx_chain=-1 );
+                               const char *comment = " ", int idx_image=-1, int idx_chain=-1 );
 DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_Regular, 
-                                int idx_image=-1, int idx_chain=-1 );
+                                const char *comment = " ", int idx_image=-1, int idx_chain=-1 );
 
 // Chains
 DLLEXPORT void IO_Chain_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
