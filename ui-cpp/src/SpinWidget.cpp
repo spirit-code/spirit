@@ -291,7 +291,7 @@ void SpinWidget::resizeGL(int width, int height)
 void SpinWidget::screenShot(std::string filename)
 {
 	auto pixmap = this->grab();
-	pixmap.save((filename+".bmp").c_str());
+	pixmap.save((filename + ".png").c_str());
 }
 
 void SpinWidget::updateData()
