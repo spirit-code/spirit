@@ -34,7 +34,7 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -57,7 +57,7 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -82,7 +82,7 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -104,7 +104,7 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -126,7 +126,7 @@ void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iter
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -178,7 +178,7 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -202,7 +202,7 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -226,7 +226,7 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -251,7 +251,7 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -296,7 +296,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -325,7 +325,7 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -348,7 +348,7 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -373,7 +373,7 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -395,7 +395,7 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -417,7 +417,7 @@ void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_itera
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -444,7 +444,7 @@ void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -469,7 +469,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -496,7 +496,7 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -520,7 +520,7 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -545,7 +545,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -567,7 +567,7 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -591,7 +591,7 @@ void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_ite
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -616,7 +616,7 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -641,7 +641,7 @@ void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant,
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -664,7 +664,7 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -694,7 +694,7 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) n
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -718,7 +718,7 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -740,7 +740,7 @@ void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -763,7 +763,7 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -784,7 +784,7 @@ void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -805,7 +805,7 @@ void Parameters_Get_LLG_N_Iterations( State *state, int * iterations, int * iter
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -823,7 +823,7 @@ bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
@@ -843,7 +843,7 @@ float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -863,7 +863,7 @@ float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -883,7 +883,7 @@ float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain) noe
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -902,7 +902,7 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -930,7 +930,7 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -954,7 +954,7 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -976,7 +976,7 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -999,7 +999,7 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1019,7 +1019,7 @@ void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1040,7 +1040,7 @@ void Parameters_Get_MC_N_Iterations( State *state, int * iterations, int * itera
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1059,7 +1059,7 @@ float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain) 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1078,7 +1078,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1104,7 +1104,7 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain) noex
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -1128,7 +1128,7 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1152,7 +1152,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1172,7 +1172,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1195,7 +1195,7 @@ void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * ite
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -1215,7 +1215,7 @@ float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1235,7 +1235,7 @@ float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_c
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1254,7 +1254,7 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1276,7 +1276,7 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain) noe
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }

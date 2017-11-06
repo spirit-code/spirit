@@ -44,7 +44,7 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -82,7 +82,7 @@ void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -169,7 +169,7 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -254,7 +254,7 @@ void Hamiltonian_Set_Anisotropy( State *state, float magnitude, const float * no
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -319,7 +319,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -393,7 +393,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -466,7 +466,7 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -488,7 +488,7 @@ const char * Hamiltonian_Get_Name(State * state, int idx_image, int idx_chain) n
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -509,7 +509,7 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -538,7 +538,7 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -599,7 +599,7 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -660,7 +660,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -693,7 +693,7 @@ void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -725,7 +725,7 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -754,6 +754,6 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }

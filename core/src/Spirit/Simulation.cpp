@@ -222,7 +222,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     } 
 }
@@ -241,7 +241,7 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
@@ -258,7 +258,7 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
@@ -333,7 +333,7 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -370,7 +370,7 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -408,7 +408,7 @@ const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_cha
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -444,7 +444,7 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
@@ -467,7 +467,7 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexce
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
@@ -492,7 +492,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
@@ -538,7 +538,7 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }

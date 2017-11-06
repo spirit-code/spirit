@@ -36,7 +36,7 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain) n
      }
      catch( ... )
      {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
      }
 }
 
@@ -66,6 +66,6 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, idx_chain);
+        spirit_handle_exception_api(-1, idx_chain);
     }
 }

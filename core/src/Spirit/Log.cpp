@@ -14,7 +14,7 @@ void Log_Send( State *state, int level, int sender, const char * message, int id
     }
     catch( ... )
     {
-        spirit_handle_exception(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 

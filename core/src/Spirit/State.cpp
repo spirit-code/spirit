@@ -14,16 +14,17 @@ using namespace Utility;
 
 State * State_Setup(const char * config_file, bool quiet) noexcept
 {
+	State *state = new State();
+
+    //---------------------- initial state data and initial block of log messages ---
     try
     {
         // Create the State
-        State *state = new State();
         state->datetime_creation = system_clock::now();
         state->datetime_creation_string = Utility::Timing::TimePointToString(state->datetime_creation);
         state->config_file = config_file;
         state->quiet = quiet;
 
-        //---------------------- Initial Block of Log messages -------------------------------------
         // Log version info
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
@@ -39,10 +40,29 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
                  std::string( " (only Error messages, no output files)" ) );
         
         // Log Config file info
-        Log(Log_Level::All,  Log_Sender::All, "Config file: " + state->config_file);
-        
-        // Read Log Levels
-        IO::Log_from_Config(state->config_file, state->quiet);
+		Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+	//------------------------------------------------------------------------------------------
+
+	//---------------------- initialize the log ------------------------------------------------
+	try
+	{
+		// Read Log Levels
+		IO::Log_from_Config(state->config_file, state->quiet);
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+	//------------------------------------------------------------------------------------------
+
+	//----------------------- additional info log ----------------------------------------------
+	try
+	{
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
@@ -66,19 +86,40 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
         #endif
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
-        //------------------------------------------------------------------------------------------
-        
-        
-        //---------------------- initialize spin_system ---------------------------------
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+    //------------------------------------------------------------------------------------------
+    
+    
+    //---------------------- initialize spin_system ---------------------------------
+	try
+	{
         // Create a system according to Config
         state->active_image = IO::Spin_System_from_Config(state->config_file);
-        //-------------------------------------------------------------------------------
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+    //-------------------------------------------------------------------------------
 
-        //---------------------- set image configuration --------------------------------
+    //---------------------- set image configuration --------------------------------
+	try
+	{
         Configurations::Random(*state->active_image);
-        //-------------------------------------------------------------------------------
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+    //-------------------------------------------------------------------------------
 
-        //----------------------- initialize spin system chain --------------------------
+    //----------------------- initialize spin system chain --------------------------
+	try
+	{
         // Get parameters
         auto params_gneb = 
             std::shared_ptr<Data::Parameters_Method_GNEB>(
@@ -90,9 +131,16 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         sv.push_back(state->active_image);
         state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(
             new Data::Spin_System_Chain(sv, params_gneb, false));
-        //-------------------------------------------------------------------------------
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+    //-------------------------------------------------------------------------------
 
-        //----------------------- initialize spin system chain collection ---------------
+    //----------------------- initialize spin system chain collection ---------------
+	try
+	{
         // Get parameters
         auto params_mmf = 
             std::shared_ptr<Data::Parameters_Method_MMF>(
@@ -105,24 +153,42 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         state->collection = 
             std::shared_ptr<Data::Spin_System_Chain_Collection>(
                 new Data::Spin_System_Chain_Collection( cv, params_mmf, false ) );
-        //-------------------------------------------------------------------------------
-        
-        // active images
-        state->idx_active_chain = 0;
-        state->idx_active_image = 0;
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+    //-------------------------------------------------------------------------------
 
-        // Info
-        state->noc = 1;
-        state->noi = 1;
-        state->nos = state->active_image->nos;
+	//----------------------- fill in the state -------------------------------------
+	try
+	{
+		// active images
+		state->idx_active_chain = 0;
+		state->idx_active_image = 0;
 
-        // Methods
-        state->method_image = 
-            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
-                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
-        state->method_chain = 
-            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
-        state->method_collection = std::shared_ptr<Engine::Method>();
+		// Info
+		state->noc = 1;
+		state->noi = 1;
+		state->nos = state->active_image->nos;
+
+		// Methods
+		state->method_image = 
+			std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
+				std::vector<std::shared_ptr<Engine::Method>>(state->noi));
+		state->method_chain = 
+			std::vector<std::shared_ptr<Engine::Method>>(state->noc);
+		state->method_collection = std::shared_ptr<Engine::Method>();
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+	//-------------------------------------------------------------------------------
+
+	//----------------------- generate re-useable config from input -----------------
+	try
+	{
 
         // Save the config
         if (Log.save_input_initial)
@@ -133,7 +199,16 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             file += "_initial.cfg";
             State_To_Config(state, file.c_str(), state->config_file.c_str());
         }
+	}
+	catch (...)
+	{
+		spirit_handle_exception_api(-1, -1);
+	}
+	//-------------------------------------------------------------------------------
 
+	//----------------------- final log ---------------------------------------------
+	try
+	{
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
@@ -151,9 +226,12 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, -1);
-        return nullptr;
+        spirit_handle_exception_api(-1, -1);
     }
+
+	// This should never happen
+	std::exit(EXIT_FAILURE);
+	return nullptr;
 }
 
 void State_Delete(State * state) noexcept
@@ -189,7 +267,7 @@ void State_Delete(State * state) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, -1);
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
@@ -220,7 +298,7 @@ void State_Update(State * state) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, -1);
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
@@ -263,7 +341,7 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, -1);
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
@@ -275,7 +353,7 @@ const char * State_DateTime(State * state) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception(-1, -1);
+        spirit_handle_exception_api(-1, -1);
         return "00:00:00";
     }
 }

@@ -2,22 +2,20 @@
 #ifndef UTILITY_EXEPTION_H
 #define UTILITY_EXEPTION_H
 
-#include <Spirit/Exception.h>
 #include <utility/Logging.hpp>
 #include <fmt/format.h>
-// #include <sstream>
 
 namespace Utility
 {
     enum class Exception_Classifier
     {
-        File_not_Found             = Exception_File_not_Found,
-        System_not_Initialized     = Exception_System_not_Initialized,
-        Division_by_zero           = Exception_Division_by_zero,
-        Simulated_domain_too_small = Exception_Simulated_domain_too_small,
-        Not_Implemented            = Exception_Not_Implemented,
-        Non_existing_Image         = Exception_Non_existing_Image,
-        Non_existing_Chain         = Exception_Non_existing_Chain,
+        File_not_Found,
+        System_not_Initialized,
+        Division_by_zero,
+        Simulated_domain_too_small,
+        Not_Implemented,
+        Non_existing_Image,
+        Non_existing_Chain,
         Input_parse_failed,
         Unknown_Exception
         // TODO: from Chain.cpp
@@ -37,7 +35,7 @@ namespace Utility
         S_Exception(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
             std::runtime_error(message)
         {
-            _message  = fmt::format("{}:{} in function \'{}\': {}", file, line, function, message);
+            _message  = fmt::format("{}:{}\n{:>49}{} \'{}\': {}", file, line, " ", "in function", function, message);
             _file     = file;
             _line     = line;
             _function = function;
@@ -81,7 +79,11 @@ namespace Utility
     // Handle exception with backtrace and logging information on the calling API function
     // #define spirit_handle_exception() Handle_Exception(__func__, -1, -1);
     // #define spirit_handle_exception(idx_image) Handle_Exception(__func__, idx_image, -1);
-    #define spirit_handle_exception(idx_image, idx_chain) Utility::Handle_Exception(__func__, idx_image, idx_chain)
+    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception(__func__, idx_image, idx_chain)
+
+
+	void spirit_handle_exception_core_func(std::vector<Exception_Classifier> exceptions_to_handle, std::string message, const char * file, unsigned int line, const std::string & function);
+	#define spirit_handle_exception_core(exceptions_to_handle, message) Utility::spirit_handle_exception_core_func(exceptions_to_handle, message, __FILE__, __LINE__, __func__) 
 }
 
 #endif

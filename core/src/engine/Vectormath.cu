@@ -258,11 +258,10 @@ namespace Engine
 								sp = basis_atoms[i] - (basis_atoms[j]
 									+ ka*translation_vectors[0] + kb*translation_vectors[1] + kc*translation_vectors[2]);
 								if ((i != j || ka != 0 || kb != 0 || kc != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
-								{
-									Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-									Log.Append_to_File();
-									throw Utility::Exception::System_not_Initialized;
-								}
+                                {
+                                    spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+                                        "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                }
 							}
 						}
 					}
