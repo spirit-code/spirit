@@ -581,7 +581,7 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 	else
 	{
 		float wheel_delta = event->angleDelta().y();
-		m_view.mouseScroll(wheel_delta * 0.1 * scale);
+		m_view.mouseScroll(-wheel_delta * 0.1 * scale);
 		
 		QTimer::singleShot(1, this, SLOT(update()));
 	}
