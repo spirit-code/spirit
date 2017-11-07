@@ -12,7 +12,7 @@ int System_Get_Index(State * state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return -1;
     }
 }

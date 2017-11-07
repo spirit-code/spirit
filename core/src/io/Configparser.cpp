@@ -137,7 +137,7 @@ namespace IO
 		}
 		catch (...)
 		{
-			spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile));
+			spirit_handle_exception_core(fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile));
 		}
 
 		return nullptr;
@@ -320,8 +320,7 @@ namespace IO
 				}// end try
 				catch( ... )
 				{
-					spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile));
-					//spirit_rethrow(	fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile) );
+					spirit_handle_exception_core(fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile));
 				}
 			}// end if file=""
 			else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
@@ -473,17 +472,9 @@ namespace IO
 							pinned_indices, pinned_spins);
 					}
 				}// end try
-				catch( const S_Exception & ex )
+				catch (...)
 				{
-					Log(Log_Level::Error, Log_Sender::All, "Inside Pinning_from_Config");
-					if (int(ex.level) > 1 && ex.classifier != Exception_Classifier::File_not_Found)
-						spirit_handle_exception_core(-1, -1);
-					else
-						spirit_rethrow( fmt::format("Unable to initialize pinned spins from config file  \"{}\"", configFile) );
-				}
-				catch( ... )
-				{
-					spirit_rethrow( fmt::format("Unable to initialize pinned spins from config file  \"{}\"", configFile) );
+					spirit_handle_exception_core(fmt::format("Failed to read Pinning from file \"{}\". Leaving values at default.", configFile));
 				}
 				
 			}// end if file=""
@@ -528,8 +519,7 @@ namespace IO
 				}
 				catch( ... )
 				{
-					spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile));
-					//spirit_rethrow(	fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile) );
+					spirit_handle_exception_core(fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile));
 				}
 			}
 
@@ -613,7 +603,7 @@ namespace IO
 			}// end try
 			catch (...)
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to parse LLG parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to parse LLG parameters from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
@@ -707,7 +697,7 @@ namespace IO
 			}// end try
 			catch (...)
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to parse MC parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to parse MC parameters from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MC: Using default configuration!");
@@ -783,7 +773,7 @@ namespace IO
 			}// end try
 			catch (...)
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to parse GNEB parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to parse GNEB parameters from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters GNEB: Using default configuration!");
@@ -852,7 +842,7 @@ namespace IO
 			}// end try
 			catch (...)
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to parse MMF parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to parse MMF parameters from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MMF: Using default configuration!");
@@ -901,7 +891,7 @@ namespace IO
 			}// end try
 			catch (...)
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile));
 				hamiltonian_type = "heisenberg_neighbours";
 			}
 		}
@@ -931,7 +921,7 @@ namespace IO
 		}
 		catch (...)
 		{
-			spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to initialize Hamiltonian from config file  \"{}\"", configFile));
+			spirit_handle_exception_core(fmt::format("Unable to initialize Hamiltonian from config file  \"{}\"", configFile));
 		}
 		
 		// Return
@@ -1018,7 +1008,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read boundary_conditions from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read boundary_conditions from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1065,7 +1055,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read external field from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read external field from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1112,7 +1102,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read anisotropy from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read anisotropy from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1134,7 +1124,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1158,7 +1148,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1169,7 +1159,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Failed to read dd_radius from config file \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Failed to read dd_radius from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
@@ -1267,7 +1257,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1291,7 +1281,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1348,7 +1338,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read external field from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read external field from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1405,7 +1395,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1434,7 +1424,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
 			}
 			
 			try
@@ -1447,7 +1437,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read DDI radius from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1470,7 +1460,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
@@ -1551,7 +1541,7 @@ namespace IO
 			}// end try
 			catch( ... )
 			{
-				spirit_handle_exception_core({ Exception_Classifier::System_not_Initialized }, fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile));
+				spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");

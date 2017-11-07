@@ -10,7 +10,7 @@ int Collection_Get_NOC(State * state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return false;
     }
 }

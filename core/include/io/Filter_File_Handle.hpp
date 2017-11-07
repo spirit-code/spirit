@@ -57,7 +57,7 @@ namespace IO
 			}
 			catch (...)
 			{
-				spirit_handle_exception_core({ Utility::Exception_Classifier::Unknown_Exception }, fmt::format("Failed to read single variable \"{}\".", name));
+				spirit_handle_exception_core(fmt::format("Failed to read single variable \"{}\".", name));
 			}
 		};
 
@@ -73,7 +73,7 @@ namespace IO
 			}
 			catch (...)
 			{
-				spirit_handle_exception_core({ Utility::Exception_Classifier::Unknown_Exception }, fmt::format("Failed to read Vector3 \"{}\".", name));
+				spirit_handle_exception_core(fmt::format("Failed to read Vector3 \"{}\".", name));
 			}
 		};
 
@@ -89,7 +89,7 @@ namespace IO
 			}
 			catch (...)
 			{
-				spirit_handle_exception_core({ Utility::Exception_Classifier::Unknown_Exception }, fmt::format("Failed to read 3Vector \"{}\".", name));
+				spirit_handle_exception_core(fmt::format("Failed to read 3Vector \"{}\".", name));
 			}
 
 		};

@@ -60,14 +60,19 @@ namespace Utility
         std::string  _function;
     };
 
+
 	// Rethrow (creating a std::nested_exception) an exception using the Exception class
 	// to add file and line info
 	void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function);
 
-    // Handle_Exception finalizes what should be done when an exception is encountered.
-    //      This function should only be used inside API functions, since that is the
-    //      top level at which an exception is caught.
-    void Handle_Exception( const std::string & function="", int idx_image=-1, int idx_chain=-1 );
+    // Handle_Exception_API finalizes what should be done when an exception is encountered at the API layer.
+    //      This function should only be used inside API functions, since that is the top level at which an
+    //      exception is caught.
+    void Handle_Exception_API( const std::string & function="", int idx_image=-1, int idx_chain=-1 );
+
+	// Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core.
+	//      This function should only be used inside the core, below the API layer.
+	void Handle_Exception_Core(std::string message, const char * file, unsigned int line, const std::string & function);
 
 
     // Shorthand for throwing a Spirit library exception with file and line info
@@ -77,13 +82,10 @@ namespace Utility
 	#define spirit_rethrow(message) Utility::rethrow(message, __FILE__, __LINE__, __func__)
 	
     // Handle exception with backtrace and logging information on the calling API function
-    // #define spirit_handle_exception() Handle_Exception(__func__, -1, -1);
-    // #define spirit_handle_exception(idx_image) Handle_Exception(__func__, idx_image, -1);
-    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception(__func__, idx_image, idx_chain)
+    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception_API(__func__, idx_image, idx_chain)
 
-
-	void spirit_handle_exception_core_func(std::vector<Exception_Classifier> exceptions_to_handle, std::string message, const char * file, unsigned int line, const std::string & function);
-	#define spirit_handle_exception_core(exceptions_to_handle, message) Utility::spirit_handle_exception_core_func(exceptions_to_handle, message, __FILE__, __LINE__, __func__) 
+	// Handle exception with backtrace and logging information on the calling core function
+	#define spirit_handle_exception_core(message) Utility::Handle_Exception_Core(message, __FILE__, __LINE__, __func__) 
 }
 
 #endif

@@ -298,7 +298,7 @@ void Simulation_Stop_All(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();        
+		spirit_handle_exception_api(-1, -1);
     }
 }
 
@@ -508,7 +508,7 @@ bool Simulation_Running_Collection(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return false;
     }
 }
@@ -538,7 +538,7 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+		spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
@@ -558,7 +558,7 @@ bool Simulation_Running_Anywhere_Collection(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return false;        
     }
 }

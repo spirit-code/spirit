@@ -154,7 +154,7 @@ void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_
          }
      catch( ... )
      {
-         Utility::Handle_Exception( "", idx_image, idx_chain );
+		 spirit_handle_exception_api(idx_image, idx_chain);
      }    
 }
 

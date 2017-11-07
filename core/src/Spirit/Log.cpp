@@ -27,7 +27,7 @@ std::vector<Utility::LogEntry> Log_Get_Entries(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         
         Utility::LogEntry Error = { std::chrono::system_clock::now(), 
                                     Utility::Log_Sender::API, Utility::Log_Level::Error,
@@ -45,7 +45,7 @@ void Log_Append(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();    
+		spirit_handle_exception_api(-1, -1);
     }
 }
 
@@ -57,7 +57,7 @@ void Log_Dump(State *state) noexcept
     }
     catch( ... )
     {
-        Utility::Handle_Exception();        
+		spirit_handle_exception_api(-1, -1);
     }
 }
 

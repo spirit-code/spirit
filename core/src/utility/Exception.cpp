@@ -65,7 +65,7 @@ namespace Utility
         }
     }
 
-    void Handle_Exception( const std::string & function, int idx_image, int idx_chain )
+    void Handle_Exception_API( const std::string & function, int idx_image, int idx_chain )
     {
         try
         {
@@ -77,7 +77,7 @@ namespace Utility
             catch( const S_Exception & ex )
             {
                 Log( ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain );
-                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in function \'{}\'", function), idx_image, idx_chain );
+                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in API function \'{}\'", function), idx_image, idx_chain );
                 if (int(ex.level) > 1)
                     Log( ex.level, Log_Sender::API, "Exception was not severe", idx_image, idx_chain );
                 else
@@ -106,7 +106,7 @@ namespace Utility
     }
 
 
-	void spirit_handle_exception_core_func(std::vector<Exception_Classifier> severe_exceptions, std::string message, const char * file, unsigned int line, const std::string & function)
+	void Handle_Exception_Core(std::string message, const char * file, unsigned int line, const std::string & function)
 	{
 		// Rethrow in order to get an exception reference (instead of pointer)
 		try
@@ -115,7 +115,11 @@ namespace Utility
 		}
 		catch (const S_Exception & ex)
 		{
-			bool can_handle = int(ex.level) > 1 && std::none_of(severe_exceptions.begin(), severe_exceptions.end(), [ex](Exception_Classifier classifier) {return ex.classifier == classifier; });
+			bool can_handle = true;
+			if (ex.classifier == Exception_Classifier::Unknown_Exception ||
+				ex.classifier == Exception_Classifier::System_not_Initialized ||
+				ex.classifier == Exception_Classifier::Simulated_domain_too_small)
+				can_handle = false;
 
 			if (can_handle)
 			{
