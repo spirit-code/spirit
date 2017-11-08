@@ -385,98 +385,162 @@ namespace IO
             Dump_to_File( output_to_file, filename );
     }
     
-	// Save vectorfield and positions to file OVF in OVF format
+    // Save vectorfield and positions to file OVF in OVF format
     void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
                       VF_FileFormat format, const std::string comment )
-	{
-		// auto filename = "test_out.ovf";
-		auto& n_cells = geometry.n_cells;
-		int   nos_basis = geometry.n_spins_basic_domain;
-
-		char shortBufer[64]   = "";
-		char ovf_filename[64] = "";
-		strncpy(ovf_filename, filename.c_str(), strcspn( filename.c_str(), ".") );
-		strcat(ovf_filename, ".ovf");
-		if( strncmp(ovf_filename, ".ovf",4) == 0 )
-		{
-			printf("Enter the file name. It cannot be empty!");
-		}
-		else
-		{
-			FILE * pFile = fopen (ovf_filename,"wb");
-			if( pFile != NULL )
-			{
-				fputs ("# OOMMF OVF 2.0\n",pFile);
-				fputs ("# Segment count: 1\n",pFile);
-				fputs ("# Begin: Segment\n",pFile);
-				fputs ("# Begin: Header\n",pFile);
-				fputs ("# Title: m\n",pFile);
-				fputs ("# meshtype: rectangular\n",pFile);
-				fputs ("# meshunit: m\n",pFile);
-				fputs ("# xmin: 0\n",pFile);
-				fputs ("# ymin: 0\n",pFile);
-				fputs ("# zmin: 0\n",pFile);
-				snprintf(shortBufer,80,"# xmax: %f\n", n_cells[0]*1e-9);
-				fputs (shortBufer,pFile);
-				snprintf(shortBufer,80,"# ymax: %f\n", n_cells[1]*1e-9);
-				fputs (shortBufer,pFile);
-				snprintf(shortBufer,80,"# zmax: %f\n", n_cells[2]*1e-9);
-				fputs (shortBufer,pFile);
-				fputs ("# valuedim: 3\n",pFile);
-				fputs ("# valuelabels: m_x m_y m_z\n",pFile);
-				fputs ("# valueunits: 1 1 1\n",pFile);
-				fputs ("# Desc: Total simulation time:  0  s\n",pFile);
-				fputs ("# xbase: 6.171875e-10\n",pFile);
-				fputs ("# ybase: 7.126667385309444e-10\n",pFile);
-				fputs ("# zbase: 5e-08\n",pFile);
-				snprintf(shortBufer,80,"# xnodes: %d\n", n_cells[0]);
-				fputs (shortBufer,pFile);
-				snprintf(shortBufer,80,"# ynodes: %d\n", n_cells[1]);
-				fputs (shortBufer,pFile);
-				snprintf(shortBufer,80,"# znodes: %d\n", n_cells[2]);
-				fputs (shortBufer,pFile);
-				fputs ("# xstepsize: 1.234375e-09\n",pFile);
-				fputs ("# ystepsize: 1.4253334770618889e-09\n",pFile);
-				fputs ("# zstepsize: 1e-07\n",pFile);
-				fputs ("# End: Header\n",pFile);
-				fputs ("# Begin: data binary 8\n",pFile);
-
-				//scalar Temp1[]= {123456789012345.0};
-				const scalar testVariable = 123456789012345.0;
-                fwrite ( &testVariable, sizeof(scalar), 1, pFile );
-
-				for (int cn = 0; cn < n_cells[2]; cn++)
-				{
-					for (int bn = 0; bn < n_cells[1]; bn++)
-					{
-						for (int an = 0; an < n_cells[0]; an++)
-						{
-							// index of the block
-							int n = an + bn*n_cells[0] + cn*n_cells[0]*n_cells[1];
-							// index of the first spin in the block
-
-							// n = n*nos_basis;
-							// for (int atom=0; atom < nos_basis; atom++)
-							// {
-							// 	int N = n + atom;
-							// 	// TODO
-							// 	auto& vec = vf[n];
-							// 	fwrite (&vec , sizeof(scalar), 3, pFile);
-							// }
-                            
-                            fwrite ( &vf[n][0], sizeof(scalar), 1, pFile );
-                            fwrite ( &vf[n][1], sizeof(scalar), 1, pFile );
-                            fwrite ( &vf[n][2], sizeof(scalar), 1, pFile );
-
-						}// a
-					}// b
-				}// c
-                fputs ( "\n", pFile );  // a new line at the end of the data
-				fputs ("# End: data binary 8\n",pFile);
-				fputs ("# End: Segment\n",pFile);
-				fclose (pFile);
-			}
-			printf("Done!");
-		}
-	} // end save OVF
+    {
+        std::string output_to_file = "";
+        std::string empty_line = "#\n";
+        output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
+        
+        std::string datatype = "";
+        switch ( format ) {
+            case VF_FileFormat::OVF_BIN8:
+                datatype = "binary 8";
+                break;
+            case VF_FileFormat::OVF_BIN4:
+                datatype = "binary 4";
+                break;
+            case VF_FileFormat::OVF_TEXT:
+                datatype = "text";
+                break;
+        }
+        
+        // Header
+        output_to_file += fmt::format( "# OOMMF OVF 2.0\n" );
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# Segment count: 1\n" );
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# Begin: Segment\n" );
+        output_to_file += fmt::format( "# Begin: Header\n" );
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# Title: \n" );                     //// TODO: find a Title
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# Desc: {}\n", comment );
+        output_to_file += fmt::format( empty_line );
+        
+        // The value dimension is always 1 in this implementation since we are writting only one vf
+        output_to_file += fmt::format( "# Valuedim: {} ##Value dimension\n", 1 );
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "## Fundamental mesh measurement unit. "
+                                       "Treated as a label:\n" );
+        output_to_file += fmt::format( "# meshunit: nm\n" );                  //// TODO: treat that
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# xmin: {}\n", geometry.bounds_min[0] );
+        output_to_file += fmt::format( "# ymin: {}\n", geometry.bounds_min[1] );
+        output_to_file += fmt::format( "# zmin: {}\n", geometry.bounds_min[2] );
+        output_to_file += fmt::format( "# xmax: {}\n", geometry.bounds_max[0] );
+        output_to_file += fmt::format( "# ymax: {}\n", geometry.bounds_max[1] );
+        output_to_file += fmt::format( "# zmax: {}\n", geometry.bounds_max[2] );
+        output_to_file += fmt::format( empty_line );
+        
+        // XXX: Spirit does not support irregular geometry yet. We are emmiting rectangular mesh
+        output_to_file += fmt::format( "# meshtype: rectangular\n" );
+        
+        // XXX: maybe this is not true for every system
+        output_to_file += fmt::format( "# xbase: {}\n", 0 );
+        output_to_file += fmt::format( "# ybase: {}\n", 0 );
+        output_to_file += fmt::format( "# zbase: {}\n", 0 );
+        
+        output_to_file += fmt::format( "# xstepsize: {}\n", 
+                                       geometry.lattice_constant * geometry.basis[0][0] );
+        output_to_file += fmt::format( "# ystepsize: {}\n", 
+                                       geometry.lattice_constant * geometry.basis[1][1] );
+        output_to_file += fmt::format( "# zstepsize: {}\n", 
+                                       geometry.lattice_constant * geometry.basis[2][2] );
+        
+        output_to_file += fmt::format( "# xnodes: {}\n", geometry.n_cells[0] );
+        output_to_file += fmt::format( "# ynodes: {}\n", geometry.n_cells[1] );
+        output_to_file += fmt::format( "# znodes: {}\n", geometry.n_cells[2] );
+        output_to_file += fmt::format( empty_line );
+        
+        output_to_file += fmt::format( "# End: Header\n" );
+        output_to_file += fmt::format( empty_line );
+        
+        // Data
+        output_to_file += fmt::format( "# Begin: data {}\n", datatype );
+                
+        switch ( format ) {
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+                Dump_to_File( output_to_file, filename );   // dump to file
+                output_to_file = "\n";                      // reset output string (start new line)
+                Write_OVF_bin_data( vf, geometry, filename, format ); // write the binary
+                break;
+            case VF_FileFormat::OVF_TEXT:
+                Write_OVF_text_data( vf, geometry, output_to_file );
+                break;
+        }
+        
+        output_to_file += fmt::format( "# End: data {}\n", datatype );
+        
+        output_to_file += fmt::format( "# End: Segment\n" );
+        
+        // after data writting append output if binary or dump output if text
+        switch ( format ) {
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+                Append_String_to_File( output_to_file, filename );
+                break;
+            case VF_FileFormat::OVF_TEXT:
+                Dump_to_File( output_to_file, filename );
+                break;
+        }
+    }
+    
+    // Writes the OVF bin data
+    void Write_OVF_bin_data( const vectorfield& vf, const Data::Geometry& geometry, 
+                             const std::string filename, VF_FileFormat format )
+    {
+        // open the file to append binary
+        std::ofstream outputfile( filename, std::ios::out | std::ios::app ); 
+        outputfile.seekp( std::ios::end );                      // go to the end of the header
+        
+        if( format == VF_FileFormat::OVF_BIN8 )
+        {
+            // write binary test value
+            uint64_t hex_8b_test = 0x42DC12218377DE40;
+            double ref_8b_test = *reinterpret_cast<double *>( &hex_8b_test );
+            outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
+            
+            //// TODO: in case that sizeof(scalar) != sizeof(double)
+            
+            // write data
+            outputfile.write( const_cast<char *>( reinterpret_cast<const char *>(&vf[0]) ), 
+                              vf.size() * vf[0].size() * sizeof(double) ); 
+        }
+        else if( format == VF_FileFormat::OVF_BIN4 )
+        {
+            // write binary test value
+            uint32_t hex_4b_test = 0x4996B438;
+            float ref_4b_test = *reinterpret_cast<float *>( &hex_4b_test );
+            outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
+            
+            //// TODO: in case that sizeof(scalar) != sizeof(double)
+            
+            //// TODO: implement that properly
+            
+            //outputfile.write( reinterpret_cast<char *>(vf[0]), vf.size() * sizeof(float) ); 
+        }
+        
+        outputfile.close();
+    }
+    
+    // Writes the OVF text data
+    void Write_OVF_text_data( const vectorfield& vf, const Data::Geometry& geometry, 
+                              std::string& output_to_file )
+    {
+        for (int iatom = 0; iatom < vf.size(); ++iatom)
+        {
+                output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 
+                                                vf[iatom][0], vf[iatom][1], vf[iatom][2] );
+        }
+    }
+    
 }
