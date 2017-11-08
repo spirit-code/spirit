@@ -1,6 +1,5 @@
 ﻿#include <io/Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
-#include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
 #include <iostream>
@@ -22,16 +21,13 @@ namespace IO
 		line = "";
 		found = std::string::npos;
 		myfile = std::unique_ptr<std::ifstream>(new std::ifstream(filename));
-		if (!myfile->is_open()) { throw Utility::Exception::File_not_Found; }
-		else {
-			Log(Log_Level::Debug, Utility::Log_Sender::IO, std::string("  Reading from Config File ").append(filename));
-		}
+		if (!myfile->is_open())
+			spirit_throw(Exception_Classifier::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
 	}
 
 	Filter_File_Handle::~Filter_File_Handle()
 	{ 
 		myfile->close();
-		Log(Log_Level::Debug, Utility::Log_Sender::IO, std::string("  Config File Closed: ").append(filename));
 	}
 
 	bool Filter_File_Handle::GetLine_Handle()

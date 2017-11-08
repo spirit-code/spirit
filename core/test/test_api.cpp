@@ -38,7 +38,7 @@ TEST_CASE( "State", "[state]" )
         idx_chain = 0;
         idx_image = 5;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
-                         const Utility::Exception & ex );
+                         const Utility::S_Exception & ex );
         // TODO: find a way to see if the exception thrown was the right one
         
         idx_chain = 0;
@@ -50,7 +50,7 @@ TEST_CASE( "State", "[state]" )
         idx_chain = 5;
         idx_image = 0;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
-                         const Utility::Exception & ex );
+                         const Utility::S_Exception & ex );
         // TODO: find a way to see if the exception thrown was the right one
         
         idx_chain = -5;

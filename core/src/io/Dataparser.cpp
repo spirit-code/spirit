@@ -330,13 +330,10 @@ namespace IO
 			}// end while getline
 			n_indices = i_field;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "External_Field_from_File: Unable to open file " + externalFieldFile);
-			else throw ex;
+			spirit_rethrow( fmt::format("Could not read external field from file  \"{}\"", externalFieldFile) );
 		}
-
 	}
 
 
@@ -468,11 +465,9 @@ namespace IO
 			}// end while getline
 			n_indices = i_anisotropy;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Anisotropy_from_File: Unable to open file " + anisotropyFile);
-			else throw ex;
+			spirit_rethrow(	fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
 		}
 	}
 
@@ -483,7 +478,7 @@ namespace IO
 		pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
 		pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
 	{
-		Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
+		Log(Log_Level::Info, Log_Sender::IO, fmt::format("Reading spin pairs from file \"{}\"", pairsFile));
 		try
 		{
 			std::vector<std::string> columns(20);	// at least: 2 (indices) + 3 (J) + 3 (DMI)
@@ -625,15 +620,12 @@ namespace IO
 
 				++i_pair;
 			}// end while GetLine
-			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file {}", i_pair, pairsFile));
+			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file \"{}\"", i_pair, pairsFile));
 			nop = i_pair;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read pairs file " + pairsFile);
-			else
-				throw ex;
+			spirit_rethrow(fmt::format("Could not read pairs file \"{}\"", pairsFile));
 		}
 	}
 
@@ -770,9 +762,9 @@ namespace IO
 			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file {}", i_quadruplet, quadrupletsFile));
 			noq = i_quadruplet;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			throw ex;
+			spirit_rethrow( fmt::format("Could not read quadruplets from file  \"{}\"", quadrupletsFile) );
 		}
 	} // End Quadruplets_from_File
 
@@ -820,12 +812,9 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read defects file " + defectsFile);
-			else
-				throw ex;
+			spirit_rethrow(	fmt::format("Could not read defects file  \"{}\"", defectsFile) );
 		}
 	} // End Defects_from_File
 
@@ -874,12 +863,9 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read pinned sites file " + pinnedFile);
-			else
-				throw ex;
+			spirit_rethrow(	fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
 		}
 	} // End Pinned_from_File
 

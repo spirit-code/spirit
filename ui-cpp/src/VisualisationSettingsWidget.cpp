@@ -8,10 +8,10 @@
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
-#include <Spirit/Exception.h>
 #include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
 
 // Small function for normalization of vectors
+#define Exception_Division_by_zero 666666666666
 template <typename T>
 void normalize(T v[3])
 {

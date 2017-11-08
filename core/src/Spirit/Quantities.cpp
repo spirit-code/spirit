@@ -5,7 +5,7 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
-void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int idx_chain)
+void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -27,11 +27,11 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chain)
+float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -55,7 +55,7 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }

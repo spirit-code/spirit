@@ -73,12 +73,10 @@ namespace IO
 				myfile.Read_Single(save_input_final, "log_input_save_final");
 
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found) {
-					Log(Log_Level::Error, Log_Sender::IO, "Log_Levels: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch( ... )
+			{
+				spirit_rethrow(	fmt::format("Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile) );
+			}
 		}
 
 		// Log the parameters
@@ -115,254 +113,273 @@ namespace IO
 
 	std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile)
 	{
-		Log(Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------");
-		// ----------------------------------------------------------------------------------------------
-		// Geometry
-		auto geometry = Geometry_from_Config(configFile);
-		// Pinning configuration
-		auto pinning = Pinning_from_Config(configFile, geometry);
-		// LLG Parameters
-		auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
-		// MC Parameters
-		auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
-		// Hamiltonian
-		auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
-		// Spin System
-		auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
-		// ----------------------------------------------------------------------------------------------
-		Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
+		try
+		{
+			Log(Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------");
+			// ----------------------------------------------------------------------------------------------
+			// Geometry
+			auto geometry = Geometry_from_Config(configFile);
+			// Pinning configuration
+			auto pinning = Pinning_from_Config(configFile, geometry);
+			// LLG Parameters
+			auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
+			// MC Parameters
+			auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
+			// Hamiltonian
+			auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
+			// Spin System
+			auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
+			// ----------------------------------------------------------------------------------------------
+			Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
-		// Return
-		return system;
+			// Return
+			return system;
+		}
+		catch (...)
+		{
+			spirit_handle_exception_core(fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile));
+		}
+
+		return nullptr;
 	}// End Spin_System_from_Config		
 
 
 	void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms, scalar & lattice_constant)
 	{
-		// ---------- Default values
-		// Lattice constant [Angtrom]
-		lattice_constant = 1.0;
-		// Basis: vector {a, b, c}
-		basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-		// Atoms in the basis [dim][n_basis_atoms]
-		basis_atoms = { Vector3{0,0,0} };
-		// NoS in the basic domain (= unit cell for periodic lattices)
-		int n_spins_basic_domain = 0;
-		
-		Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
-
-		if (configFile != "")
+		try
 		{
-			try {
-				IO::Filter_File_Handle myfile(configFile);
+			// ---------- Default values
+			// Lattice constant [Angtrom]
+			lattice_constant = 1.0;
+			// Basis: vector {a, b, c}
+			basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
+			// Atoms in the basis [dim][n_basis_atoms]
+			basis_atoms = { Vector3{0,0,0} };
+			// NoS in the basic domain (= unit cell for periodic lattices)
+			int n_spins_basic_domain = 0;
+			
+			Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
 
-				myfile.Read_Single(lattice_constant, "lattice_constant");
-
-				// Utility 1D array to build vectors and use Vectormath
-				Vector3 build_array = { 0, 0, 0 };
-
-				if (myfile.Find("basis"))
+			if (configFile != "")
+			{
+				try
 				{
-					// Read the basis vectors a, b, c
-					myfile.GetLine();
-					myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
-					myfile.GetLine();
-					myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
-					myfile.GetLine();
-					myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
+					IO::Filter_File_Handle myfile(configFile);
 
-					// Read no_spins_basic_domain and atoms in basis
-					myfile.GetLine();
-					myfile.iss >> n_spins_basic_domain;
-					basis_atoms = std::vector<Vector3>(n_spins_basic_domain);
+					myfile.Read_Single(lattice_constant, "lattice_constant");
 
-					// Read spins per basic domain
-					for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
+					// Utility 1D array to build vectors and use Vectormath
+					Vector3 build_array = { 0, 0, 0 };
+
+					if (myfile.Find("basis"))
 					{
+						// Read the basis vectors a, b, c
 						myfile.GetLine();
-						myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
-						// Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
-						build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
-						basis_atoms[iatom] = lattice_constant * build_array;
-					}// endfor iatom
+						myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
+						myfile.GetLine();
+						myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
+						myfile.GetLine();
+						myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
 
-				}// end find "basis"
-				else {
-					Log(Log_Level::Error, Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
-				}
-			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
+						// Read no_spins_basic_domain and atoms in basis
+						myfile.GetLine();
+						myfile.iss >> n_spins_basic_domain;
+						basis_atoms = std::vector<Vector3>(n_spins_basic_domain);
+
+						// Read spins per basic domain
+						for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
+						{
+							myfile.GetLine();
+							myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
+							// Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
+							build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
+							basis_atoms[iatom] = lattice_constant * build_array;
+						}// endfor iatom
+
+					}// end find "basis"
+					else {
+						Log(Log_Level::Error, Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
+					}
+				}// end try
+				catch( ... )
 				{
-					Log(Log_Level::Error, Log_Sender::IO, "Basis: Unable to open Config File " + configFile + " Leaving values at default.");
-					throw Exception::System_not_Initialized;
+					spirit_rethrow(	fmt::format("Failed to read Basis from file \"{}\". Leaving values at default.", configFile) );
 				}
-				else throw ex;
-			}// end catch
+			}
+			else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
+			
+			// Log the parameters
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
+			Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()/lattice_constant));
+			Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()/lattice_constant));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
+
+
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_spins_basic_domain));
+			for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
+				Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, basis_atoms[iatom].transpose()));
+			Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 		}
-		else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
-		
-		// Log the parameters
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
-		Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()/lattice_constant));
-		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()/lattice_constant));
-		Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()/lattice_constant));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
-
-
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_spins_basic_domain));
-		for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
-			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, basis_atoms[iatom].transpose()));
-		Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
+		catch( ... )
+		{
+			spirit_rethrow(	fmt::format("Unable to parse basis from config file  \"{}\"", configFile) );
+		}
 	}// End Basis_from_Config
 
 	std::shared_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile)
 	{
-		//-------------- Insert default values here -----------------------------
-		// Basis from separate file?
-		std::string basis_file = "";
-		// Basis: vector {a, b, c}
-		std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-		// Atoms in the basis [dim][n_basis_atoms]
-		std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
-		// Lattice Constant [Angstrom]
-		scalar lattice_constant = 1;
-		// Translation vectors [dim][nov]
-		std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-		// Number of translations nT for each basis direction
-		intfield n_cells = { 100, 100, 1 };
-		// Number of Spins
-		int nos;
-		vectorfield spin_pos;
-		// Atom types
-		intfield atom_types;
-		intfield defect_indices(0);
-		intfield defects(0);
-
-		// Utility 1D array to build vectors and use Vectormath
-		Vector3 build_array = { 0, 0, 0 };
-
-		Log(Log_Level::Info, Log_Sender::IO, "Geometry: building");
-		//------------------------------- Parser --------------------------------
-		// iteration variables
-		int iatom = 0, dim = 0;
-		if (configFile != "")
+		try
 		{
-			try {
-				Log(Log_Level::Info, Log_Sender::IO, "Reading Geometry Parameters");
-				IO::Filter_File_Handle myfile(configFile);
+			//-------------- Insert default values here -----------------------------
+			// Basis from separate file?
+			std::string basis_file = "";
+			// Basis: vector {a, b, c}
+			std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
+			// Atoms in the basis [dim][n_basis_atoms]
+			std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
+			// Lattice Constant [Angstrom]
+			scalar lattice_constant = 1;
+			// Translation vectors [dim][nov]
+			std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
+			// Number of translations nT for each basis direction
+			intfield n_cells = { 100, 100, 1 };
+			// Number of Spins
+			int nos;
+			vectorfield spin_pos;
+			// Atom types
+			intfield atom_types;
+			intfield defect_indices(0);
+			intfield defects(0);
 
-				// Read Shape of spins in term of the basis
-				if (myfile.Find("translation_vectors"))
-				{
-					// Read translation vectors into translation_vectors & nTa, nTb, nTc
-					myfile.GetLine();
-					myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
-					myfile.GetLine();
-					myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
-					myfile.GetLine();
-					myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
-				}// finish Reading Shape in terms of basis
-				else {
-					Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
-				}
+			// Utility 1D array to build vectors and use Vectormath
+			Vector3 build_array = { 0, 0, 0 };
 
-				// Read Basis
-				if (myfile.Find("basis_from_config"))
-				{
-					myfile.iss >> basis_file;
-					Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
-				}
-				else if (myfile.Find("basis"))
-				{
-					Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
-				}
-				else {
-					Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
-				}// end Basis
-
-				// Defects
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				int n_defects = 0;
-
-				std::string defectsFile = "";
-				if (myfile.Find("n_defects"))
-					defectsFile = configFile;
-				else if (myfile.Find("defects_from_file"))
-					myfile.iss >> defectsFile;
-
-				if (defectsFile.length() > 0)
-				{
-					// The file name should be valid so we try to read it
-					Defects_from_File(defectsFile, n_defects,
-						defect_indices, defects);
-				}
-				#endif
-
-			}// end try
-			catch (Exception ex)
+			Log(Log_Level::Info, Log_Sender::IO, "Geometry: building");
+			//------------------------------- Parser --------------------------------
+			// iteration variables
+			int iatom = 0, dim = 0;
+			if (configFile != "")
 			{
-				if (ex == Exception::File_not_Found)
+				try
 				{
-					Log(Log_Level::Error, Log_Sender::IO, "Geometry: Unable to open Config File " + configFile + " Leaving values at default.");
+					Log(Log_Level::Info, Log_Sender::IO, "Reading Geometry Parameters");
+					IO::Filter_File_Handle myfile(configFile);
+
+					// Read Shape of spins in term of the basis
+					if (myfile.Find("translation_vectors"))
+					{
+						// Read translation vectors into translation_vectors & nTa, nTb, nTc
+						myfile.GetLine();
+						myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
+						myfile.GetLine();
+						myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
+						myfile.GetLine();
+						myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
+					}// finish Reading Shape in terms of basis
+					else {
+						Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+					}
+
+					// Read Basis
+					if (myfile.Find("basis_from_config"))
+					{
+						myfile.iss >> basis_file;
+						Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
+					}
+					else if (myfile.Find("basis"))
+					{
+						Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
+					}
+					else {
+						Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
+					}// end Basis
+
+					// Defects
+					#ifdef SPIRIT_ENABLE_DEFECTS
+					int n_defects = 0;
+
+					std::string defectsFile = "";
+					if (myfile.Find("n_defects"))
+						defectsFile = configFile;
+					else if (myfile.Find("defects_from_file"))
+						myfile.iss >> defectsFile;
+
+					if (defectsFile.length() > 0)
+					{
+						// The file name should be valid so we try to read it
+						Defects_from_File(defectsFile, n_defects,
+							defect_indices, defects);
+					}
+					#endif
+
+				}// end try
+				catch( ... )
+				{
+					spirit_handle_exception_core(fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile));
 				}
-				else throw ex;
-			}// end catch
-		}// end if file=""
-		else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
+			}// end if file=""
+			else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
 
-		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors");
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
 
-		// Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
-		for (dim = 0; dim < 3; ++dim)
-		{
-			for (int i = 0; i < 3; ++i)
+			// Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
+			for (dim = 0; dim < 3; ++dim)
 			{
-				build_array[i] = basis[0][i] * translation_vectors[dim][0] + basis[1][i] * translation_vectors[dim][1] + basis[2][i] * translation_vectors[dim][2];
+				for (int i = 0; i < 3; ++i)
+				{
+					build_array[i] = basis[0][i] * translation_vectors[dim][0] + basis[1][i] * translation_vectors[dim][1] + basis[2][i] * translation_vectors[dim][2];
+				}
+				translation_vectors[dim] = build_array;
 			}
-			translation_vectors[dim] = build_array;
+			// Calculate NOS
+			nos = basis_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
+
+			// Spin Positions
+			spin_pos = vectorfield(nos);
+			Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
+
+			// Atom types (default: type 0, vacancy: < 0)
+			atom_types = intfield(nos, 0);
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			int n_defects = defect_indices.size();
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
+			for (int i = 0; i < n_defects; ++i)
+			{
+				if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
+				atom_types[defect_indices[i]] = defects[i];
+			}
+			#endif
+			// Log parameters
+			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
+			Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
+			
+			// Return geometry
+			auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
+			Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
+			Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
+			return geometry;
 		}
-		// Calculate NOS
-		nos = basis_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
-
-		// Spin Positions
-		spin_pos = vectorfield(nos);
-		Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
-
-		// Atom types (default: type 0, vacancy: < 0)
-		atom_types = intfield(nos, 0);
-		#ifdef SPIRIT_ENABLE_DEFECTS
-		int n_defects = defect_indices.size();
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
-		for (int i = 0; i < n_defects; ++i)
+		catch( ... )
 		{
-			if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
-			atom_types[defect_indices[i]] = defects[i];
+			spirit_rethrow(	fmt::format("Unable to parse geometry from config file  \"{}\"", configFile) );
 		}
-		#endif
-		// Log parameters
-		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
-		Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
-		
-		// Return geometry
-		auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
-		Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
-		return geometry;
+
+		return nullptr;
 	}// end Geometry from Config
 
 	std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
@@ -455,14 +472,11 @@ namespace IO
 							pinned_indices, pinned_spins);
 					}
 				}// end try
-				catch (Exception ex)
+				catch (...)
 				{
-					if (ex == Exception::File_not_Found)
-					{
-						Log(Log_Level::Error, Log_Sender::IO, "Pinning: Unable to open Config File " + configFile + " Leaving values at default.");
-					}
-					else throw ex;
-				}// end catch
+					spirit_handle_exception_core(fmt::format("Failed to read Pinning from file \"{}\". Leaving values at default.", configFile));
+				}
+				
 			}// end if file=""
 			else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
 
@@ -493,7 +507,7 @@ namespace IO
 				Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        pinned site[0]           = ({0})", pinned_spins[0].transpose()));
 			Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
 			return pinning;
-			#else // SPIRIT_ENABLE_PINNING
+		#else // SPIRIT_ENABLE_PINNING
 			Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
 			if (configFile != "")
 			{
@@ -503,9 +517,9 @@ namespace IO
 					if (myfile.Find("pinning_cell"))
 						Log(Log_Level::Warning, Log_Sender::IO, "You specified a pinning cell even though pinning is disabled!");
 				}
-				catch (Exception ex)
+				catch( ... )
 				{
-
+					spirit_handle_exception_core(fmt::format("Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile));
 				}
 			}
 
@@ -558,7 +572,8 @@ namespace IO
 		Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: building");
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				IO::Filter_File_Handle myfile(configFile);
 
 				myfile.Read_Single(output_tag_time,"output_tag_time");
@@ -586,13 +601,10 @@ namespace IO
 				myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
 				myfile.Read_Single(force_convergence, "llg_force_convergence");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Parameters LLG: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch (...)
+			{
+				spirit_handle_exception_core(fmt::format("Unable to parse LLG parameters from config file \"{}\"", configFile));
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
 
@@ -661,7 +673,8 @@ namespace IO
 
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				IO::Filter_File_Handle myfile(configFile);
 
 				myfile.Read_Single(output_tag_time, "output_tag_time");
@@ -682,15 +695,12 @@ namespace IO
 				myfile.Read_Single(temperature, "mc_temperature");
 				myfile.Read_Single(acceptance_ratio, "mc_acceptance_ratio");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Parameters MC: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch (...)
+			{
+				spirit_handle_exception_core(fmt::format("Unable to parse MC parameters from config file \"{}\"", configFile));
+			}
 		}
-		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
+		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MC: Using default configuration!");
 
 		// Return
 		Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MC:");
@@ -741,7 +751,8 @@ namespace IO
 		Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: building");
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				IO::Filter_File_Handle myfile(configFile);
 
 				myfile.Read_Single(output_tag_time, "output_tag_time");
@@ -760,13 +771,10 @@ namespace IO
 				myfile.Read_Single(n_iterations_log, "gneb_n_iterations_log");
 				myfile.Read_Single(n_E_interpolations, "gneb_n_energy_interpolations");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Parameters GNEB: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch (...)
+			{
+				spirit_handle_exception_core(fmt::format("Unable to parse GNEB parameters from config file \"{}\"", configFile));
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters GNEB: Using default configuration!");
 
@@ -813,7 +821,8 @@ namespace IO
 		Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: building");
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				IO::Filter_File_Handle myfile(configFile);
 
 				myfile.Read_Single(output_tag_time, "output_tag_time");
@@ -831,13 +840,10 @@ namespace IO
 				myfile.Read_Single(n_iterations, "mmf_n_iterations");
 				myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Parameters MMF: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch (...)
+			{
+				spirit_handle_exception_core(fmt::format("Unable to parse MMF parameters from config file \"{}\"", configFile));
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MMF: Using default configuration!");
 
@@ -875,41 +881,48 @@ namespace IO
 		// Hamiltonian type
 		if (configFile != "")
 		{
-			try {
+			try
+			{
 				Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: deciding type");
 				IO::Filter_File_Handle myfile(configFile);
 
 				// What hamiltonian do we use?
 				myfile.Read_Single(hamiltonian_type, "hamiltonian");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found) {
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian: Unable to open Config File " + configFile + " Using default Hamiltonian: " + hamiltonian_type);
-				}
-				else throw ex;
-			}// end catch
+			catch (...)
+			{
+				spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile));
+				hamiltonian_type = "heisenberg_neighbours";
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
-		
+
 		// Hamiltonian
 		std::unique_ptr<Engine::Hamiltonian> hamiltonian;
-		if (hamiltonian_type == "heisenberg_neighbours")
+		try
 		{
-			hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
-		}// endif isotropic
-		else if (hamiltonian_type == "heisenberg_pairs")
-		{
-			// TODO: to std::move or not to std::move, that is the question...
-			hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
-		}// endif anisotropic
-		else if (hamiltonian_type == "gaussian")
-		{
-			hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			if (hamiltonian_type == "heisenberg_neighbours")
+			{
+				hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
+			}// endif isotropic
+			else if (hamiltonian_type == "heisenberg_pairs")
+			{
+				// TODO: to std::move or not to std::move, that is the question...
+				hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
+			}// endif anisotropic
+			else if (hamiltonian_type == "gaussian")
+			{
+				hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
+			}
+			else
+			{
+				spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
+			}// endif neither
 		}
-		else
+		catch (...)
 		{
-			Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian: Invalid type: " + hamiltonian_type);
-		}// endif neither
+			spirit_handle_exception_core(fmt::format("Unable to initialize Hamiltonian from config file  \"{}\"", configFile));
+		}
 		
 		// Return
 		Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: built hamiltonian of type: " + hamiltonian_type);
@@ -993,11 +1006,9 @@ namespace IO
 				boundary_conditions[1] = (boundary_conditions_i[1] != 0);
 				boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read boundary_conditions from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1042,11 +1053,9 @@ namespace IO
 					}
 				}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read external field from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1091,11 +1100,9 @@ namespace IO
 					}
 				}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read anisotropy from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1115,11 +1122,9 @@ namespace IO
 					else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
 				}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1141,11 +1146,9 @@ namespace IO
 				myfile.Read_Single(dm_chirality, "dm_chirality");
 
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
 			}
 
 			try
@@ -1154,11 +1157,9 @@ namespace IO
 
 				myfile.Read_Single(dd_radius, "dd_radius");
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Failed to read dd_radius from config file \"{}\"", configFile));
 			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
@@ -1254,11 +1255,9 @@ namespace IO
 				boundary_conditions[1] = (boundary_conditions_i[1] != 0);
 				boundary_conditions[2] = (boundary_conditions_i[2] != 0);
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1280,11 +1279,9 @@ namespace IO
 				}
 				else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1339,11 +1336,9 @@ namespace IO
 					}
 				}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read external field from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1398,11 +1393,9 @@ namespace IO
 					}
 				}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1429,13 +1422,11 @@ namespace IO
 				//	// Not implemented!
 				//}
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
 			}
-
+			
 			try
 			{
 				IO::Filter_File_Handle myfile(configFile);
@@ -1444,11 +1435,9 @@ namespace IO
 				// Dipole Dipole radius
 				myfile.Read_Single(ddi_radius, "dd_radius");
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				else throw ex;
+				spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file  \"{}\"", configFile));
 			}
 
 			try
@@ -1469,14 +1458,10 @@ namespace IO
 				}
 
 			}// end try
-			catch (Exception ex)
+			catch( ... )
 			{
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+				spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
 		
@@ -1554,13 +1539,10 @@ namespace IO
 				}
 				else Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}");
 			}// end try
-			catch (Exception ex) {
-				if (ex == Exception::File_not_Found)
-				{
-					Log(Log_Level::Error, Log_Sender::IO, "Hamiltonian_Gaussian: Unable to open Config File " + configFile + " Leaving values at default.");
-				}
-				else throw ex;
-			}// end catch
+			catch( ... )
+			{
+				spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile));
+			}
 		}
 		else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
 

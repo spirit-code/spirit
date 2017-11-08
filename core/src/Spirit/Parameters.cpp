@@ -15,7 +15,7 @@ using namespace Utility;
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set LLG Output
-void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -34,12 +34,12 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bool final, 
-                                        int idx_image, int idx_chain )
+                                        int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -57,13 +57,13 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, 
                                        bool energy_spin_resolved, bool energy_divide_by_nos, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -82,12 +82,12 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step, 
-                                              bool configuration_archive, int idx_image, int idx_chain )
+                                              bool configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -104,12 +104,12 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -126,13 +126,13 @@ void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iter
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 
 // Set LLG Simulation Parameters
-void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_image, int idx_chain )
+void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -154,11 +154,11 @@ void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_
          }
      catch( ... )
      {
-         Utility::Handle_Exception( idx_image, idx_chain );
+		 spirit_handle_exception_api(idx_image, idx_chain);
      }    
 }
 
-void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -178,11 +178,11 @@ void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_ima
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -202,11 +202,11 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -226,11 +226,11 @@ void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image, int 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int idx_chain)
+void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -251,12 +251,12 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, const float normal[3],
-                             int idx_image, int idx_chain )
+                             int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -296,7 +296,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -306,7 +306,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set MC Output
-void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain)
+void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -325,12 +325,12 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, bool final, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -348,13 +348,13 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, 
                                       bool energy_spin_resolved, bool energy_divide_by_nos, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -373,12 +373,12 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, 
-                                             bool configuration_archive, int idx_image, int idx_chain )
+                                             bool configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -395,12 +395,12 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                     int idx_image, int idx_chain )
+                                     int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -417,13 +417,13 @@ void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_itera
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 
 // Set MG Simulation Parameters
-void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int idx_chain )
+void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -444,11 +444,11 @@ void Parameters_Set_MC_Temperature( State *state, float T, int idx_image, int id
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_image, int idx_chain )
+void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -469,7 +469,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -478,7 +478,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set GNEB Output
-void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain)
+void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain) noexcept
 {
 	int idx_image = -1;
 
@@ -496,11 +496,11 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, bool final, int idx_chain )
+void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, bool final, int idx_chain ) noexcept
 {
 	int idx_image = -1;
 
@@ -520,12 +520,12 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, 
-                                          bool energies_divide_by_nos, int idx_chain )
+                                          bool energies_divide_by_nos, int idx_chain ) noexcept
 {
 	int idx_image = -1;
 
@@ -545,11 +545,11 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain)
+void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain) noexcept
 {
 	int idx_image = -1;
 
@@ -567,12 +567,12 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
-                                       int idx_chain )
+                                       int idx_chain ) noexcept
 {
 	int idx_image = -1;
     
@@ -591,12 +591,12 @@ void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_ite
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Set GNEB Calculation Parameters
-void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -616,12 +616,12 @@ void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_im
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant, 
-                                          int idx_image, int idx_chain )
+                                          int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -641,11 +641,11 @@ void Parameters_Set_GNEB_Spring_Constant( State *state, float spring_constant,
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image, int idx_chain)
+void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -664,11 +664,11 @@ void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type, int idx_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
+void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -694,7 +694,7 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -704,7 +704,7 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain)
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get LLG Output Parameters
-const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int idx_chain)
+const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -718,13 +718,13 @@ const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int i
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
 void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial, 
-                                        bool * final, int idx_image, int idx_chain )
+                                        bool * final, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -740,13 +740,13 @@ void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
                                        bool * energy_spin_resolved, bool * energy_divide_by_nos, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -763,13 +763,13 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, 
                                               bool * configuration_archive, int idx_image, 
-                                              int idx_chain )
+                                              int idx_chain ) noexcept
 {
     try
     {
@@ -784,12 +784,12 @@ void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_LLG_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -805,12 +805,12 @@ void Parameters_Get_LLG_N_Iterations( State *state, int * iterations, int * iter
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Get LLG Simulation Parameters
-bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx_chain)
+bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -823,12 +823,12 @@ bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image, int idx
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain )
+float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -843,12 +843,12 @@ float Parameters_Get_LLG_Convergence( State *state, int idx_image, int idx_chain
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain )
+float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -863,12 +863,12 @@ float Parameters_Get_LLG_Time_Step( State *state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
+float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -883,12 +883,12 @@ float Parameters_Get_LLG_Damping(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
+float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -902,13 +902,13 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitude, float normal[3], 
-                             int idx_image, int idx_chain )
+                             int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -930,7 +930,7 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -940,7 +940,7 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get MC Output Parameters
-const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int idx_chain)
+const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -954,13 +954,13 @@ const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int id
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
 void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial, bool * final, 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -976,13 +976,13 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
                                       bool * energy_spin_resolved, bool * energy_divide_by_nos, 
-                                      int idx_image, int idx_chain )
+                                      int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -999,12 +999,12 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, 
-                                             bool * configuration_archive, int idx_image, int idx_chain )
+                                             bool * configuration_archive, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1019,12 +1019,12 @@ void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_MC_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                     int idx_image, int idx_chain )
+                                     int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1040,12 +1040,12 @@ void Parameters_Get_MC_N_Iterations( State *state, int * iterations, int * itera
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Get MC Simulation Parameters
-float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
+float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1059,12 +1059,12 @@ float Parameters_Get_MC_Temperature(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_chain)
+float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1078,7 +1078,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
@@ -1088,7 +1088,7 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get GNEB Output Parameters
-const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
+const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain) noexcept
 {
     int idx_image = -1;
 
@@ -1104,13 +1104,13 @@ const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
 void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initial, bool * final, 
-                                         int idx_chain )
+                                         int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -1128,13 +1128,13 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step, 
                                           bool * energies_interpolated, bool * energies_divide_by_nos, 
-                                          int idx_chain )
+                                          int idx_chain ) noexcept
 {
     int idx_image = -1;
     
@@ -1152,11 +1152,11 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain)
+void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain) noexcept
 {
     int idx_image = -1;
     
@@ -1172,12 +1172,12 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log, 
-                                       int idx_chain )
+                                       int idx_chain ) noexcept
 {
 	int idx_image = -1;
     
@@ -1195,12 +1195,12 @@ void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * ite
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Get GNEB Calculation Parameters
-float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain)
+float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1215,12 +1215,12 @@ float Parameters_Get_GNEB_Convergence(State *state, int idx_image, int idx_chain
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_chain)
+float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1235,12 +1235,12 @@ float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image, int idx_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_chain)
+int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -1254,12 +1254,12 @@ int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
+int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain) noexcept
 {
     int idx_image = -1;
     
@@ -1276,7 +1276,7 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }

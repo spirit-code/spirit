@@ -4,7 +4,7 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
-int System_Get_Index(State * state)
+int System_Get_Index(State * state) noexcept
 {
     try
     {
@@ -12,12 +12,12 @@ int System_Get_Index(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return -1;
     }
 }
 
-int System_Get_NOS(State * state, int idx_image, int idx_chain)
+int System_Get_NOS(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -31,12 +31,12 @@ int System_Get_NOS(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-scalar * System_Get_Spin_Directions(State * state, int idx_image, int idx_chain)
+scalar * System_Get_Spin_Directions(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -50,12 +50,12 @@ scalar * System_Get_Spin_Directions(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
+scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -68,12 +68,12 @@ scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-float System_Get_Rx(State * state, int idx_image, int idx_chain)
+float System_Get_Rx(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -87,12 +87,12 @@ float System_Get_Rx(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-float System_Get_Energy(State * state, int idx_image, int idx_chain)
+float System_Get_Energy(State * state, int idx_image, int idx_chain) noexcept
 {    
     try
     {
@@ -106,12 +106,12 @@ float System_Get_Energy(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
-void System_Get_Energy_Array(State * state, float * energies, int idx_image, int idx_chain)
+void System_Get_Energy_Array(State * state, float * energies, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -128,11 +128,11 @@ void System_Get_Energy_Array(State * state, float * energies, int idx_image, int
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void System_Print_Energy_Array(State * state, int idx_image, int idx_chain)
+void System_Print_Energy_Array(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -155,11 +155,11 @@ void System_Print_Energy_Array(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void System_Update_Data(State * state, int idx_image, int idx_chain)
+void System_Update_Data(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -175,6 +175,6 @@ void System_Update_Data(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
