@@ -1,0 +1,12 @@
+#pragma once
+#ifndef UTILITY_VERSION_H
+#define UTILITY_VERSION_H
+
+namespace Utility
+{
+    const std::string version = "${VERSION_STRING}";
+    const std::string version_revision = "${VERSION_REVISION_STRING}";
+    const std::string version_full = "${VERSION_STRING} (${VERSION_REVISION_STRING})";
+}
+
+#endif

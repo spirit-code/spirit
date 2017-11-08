@@ -1,8 +1,8 @@
 #include <Spirit/State.h>
-#include <Spirit/Version.h>
 #include "Spirit_Defines.h"
 #include <data/State.hpp>
 #include <io/IO.hpp>
+#include <utility/Version.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Logging.hpp>
@@ -27,11 +27,11 @@ State * State_Setup(const char * config_file, bool quiet)
         // Log version info
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
-        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(VERSION));
+        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(version));
         
         // Log revision hash
         Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " + 
-             std::string(VERSION_REVISION));
+             std::string(version_revision));
         
         // Log if quiet mode
         if (state->quiet)
