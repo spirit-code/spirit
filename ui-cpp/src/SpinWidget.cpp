@@ -291,7 +291,7 @@ void SpinWidget::resizeGL(int width, int height)
 void SpinWidget::screenShot(std::string filename)
 {
 	auto pixmap = this->grab();
-	pixmap.save((filename+".bmp").c_str());
+	pixmap.save((filename + ".png").c_str());
 }
 
 void SpinWidget::updateData()
@@ -581,7 +581,7 @@ void SpinWidget::wheelEvent(QWheelEvent *event)
 	else
 	{
 		float wheel_delta = event->angleDelta().y();
-		m_view.mouseScroll(wheel_delta * 0.1 * scale);
+		m_view.mouseScroll(-wheel_delta * 0.1 * scale);
 		
 		QTimer::singleShot(1, this, SLOT(update()));
 	}

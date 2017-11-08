@@ -27,7 +27,7 @@
 struct State;
 
 // Send a Log message
-DLLEXPORT void Log_Send(State *state, int level, int sender, const char * message, int idx_image=-1, int idx_chain=-1);
+DLLEXPORT void Log_Send(State *state, int level, int sender, const char * message, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?
@@ -35,22 +35,22 @@ namespace Utility
 {
 	struct LogEntry;
 }
-std::vector<Utility::LogEntry> Log_Get_Entries(State *state);
+std::vector<Utility::LogEntry> Log_Get_Entries(State *state) noexcept;
 
 // Append the Log to it's file
-DLLEXPORT void Log_Append(State *state);
+DLLEXPORT void Log_Append(State *state) noexcept;
 
 // Dump the Log into it's file
-DLLEXPORT void Log_Dump(State *state);
+DLLEXPORT void Log_Dump(State *state) noexcept;
 
 // Get the number of Log entries
-DLLEXPORT int Log_Get_N_Entries(State *state);
+DLLEXPORT int Log_Get_N_Entries(State *state) noexcept;
 
 // Get the number of errors in the Log
-DLLEXPORT int Log_Get_N_Errors(State *state);
+DLLEXPORT int Log_Get_N_Errors(State *state) noexcept;
 
 // Get the number of warnings in the Log
-DLLEXPORT int Log_Get_N_Warnings(State *state);
+DLLEXPORT int Log_Get_N_Warnings(State *state) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

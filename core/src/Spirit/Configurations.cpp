@@ -111,7 +111,7 @@ std::string filter_to_string( const float position[3], const float r_cut_rectang
     return ret;
 }
 
-void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
+void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -127,13 +127,13 @@ void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_From_Clipboard( State *state, const float position[3], 
                                    const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                                   float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                                   float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -163,14 +163,14 @@ void Configuration_From_Clipboard( State *state, const float position[3],
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 bool Configuration_From_Clipboard_Shift( State *state, const float position_initial[3], 
                                          const float position_final[3], const float r_cut_rectangular[3], 
                                          float r_cut_cylindrical, float r_cut_spherical, bool inverted,
-                                         int idx_image, int idx_chain )
+                                         int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -226,14 +226,14 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
 void Configuration_Domain( State *state, const float direction[3], const float position[3], 
                            const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                           float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                           float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -265,12 +265,12 @@ void Configuration_Domain( State *state, const float direction[3], const float p
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // void Configuration_DomainWall( State *state, const float pos[3], float v[3], bool greater, 
-//                                int idx_image, int idx_chain)
+//                                int idx_image, int idx_chain) noexcept
 // {
 // 	std::shared_ptr<Data::Spin_System> image;
 // 	std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -291,7 +291,7 @@ void Configuration_Domain( State *state, const float direction[3], const float p
 
 void Configuration_PlusZ( State *state, const float position[3], const float r_cut_rectangular[3], 
                           float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                          int idx_image, int idx_chain )
+                          int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -322,13 +322,13 @@ void Configuration_PlusZ( State *state, const float position[3], const float r_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_MinusZ( State *state, const float position[3], const float r_cut_rectangular[3], 
                            float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                           int idx_image, int idx_chain )
+                           int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -359,13 +359,13 @@ void Configuration_MinusZ( State *state, const float position[3], const float r_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Random( State *state, const float position[3], const float r_cut_rectangular[3], 
                            float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                           bool external, int idx_image, int idx_chain )
+                           bool external, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -395,14 +395,14 @@ void Configuration_Random( State *state, const float position[3], const float r_
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Add_Noise_Temperature( State *state, float temperature, const float position[3], 
                                           const float r_cut_rectangular[3], float r_cut_cylindrical, 
                                           float r_cut_spherical, bool inverted, int idx_image, 
-                                          int idx_chain )
+                                          int idx_chain ) noexcept
 {
     try
     {
@@ -433,13 +433,13 @@ void Configuration_Add_Noise_Temperature( State *state, float temperature, const
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Hopfion( State *state, float r, int order, const float position[3], 
                             const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -475,14 +475,14 @@ void Configuration_Hopfion( State *state, float r, int order, const float positi
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Skyrmion( State *state, float r, float order, float phase, bool upDown,
                              bool achiral, bool rl, const float position[3],
                              const float r_cut_rectangular[3], float r_cut_cylindrical,
-                             float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                             float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -523,14 +523,14 @@ void Configuration_Skyrmion( State *state, float r, float order, float phase, bo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_SpinSpiral( State *state, const char * direction_type, float q[3], float axis[3], 
                                float theta, const float position[3], const float r_cut_rectangular[3], 
                                float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                               int idx_image, int idx_chain )
+                               int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -568,14 +568,14 @@ void Configuration_SpinSpiral( State *state, const char * direction_type, float 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_SpinSpiral_2q( State *state, const char * direction_type, float q1[3], 
                                   float q2[3], float axis[3], float theta, const float position[3], 
                                   const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                                  float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                                  float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -614,6 +614,6 @@ void Configuration_SpinSpiral_2q( State *state, const char * direction_type, flo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }

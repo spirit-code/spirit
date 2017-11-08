@@ -1,6 +1,5 @@
 ﻿#include <io/Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
-#include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
 #include <iostream>
@@ -16,15 +15,15 @@ using namespace Utility;
 
 namespace IO
 {
-	Filter_File_Handle::Filter_File_Handle( const std::string& filename, IO::VF_FileFormat format ):
-		filename(filename), iss("")
-	{
+    Filter_File_Handle::Filter_File_Handle( const std::string& filename, IO::VF_FileFormat format ):
+        filename(filename), iss("")
+    {
         this->ff = format;
         this->dump = "";
         this->line = "";
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
-                                                       std::ios::in | std::ios::binary ) );
+                                                        std::ios::in | std::ios::binary ) );
         
         // set the comment tag
         switch( this->ff )
@@ -41,13 +40,13 @@ namespace IO
         
         // if the file is not open
         if ( !this->myfile->is_open() )
-            throw Utility::Exception::File_not_Found;
-	}
+        spirit_throw(Exception_Classifier::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
+    }
 
-	Filter_File_Handle::~Filter_File_Handle()
-	{ 
-		myfile->close();
-	}
+    Filter_File_Handle::~Filter_File_Handle()
+    { 
+        myfile->close();
+    }
 
     bool Filter_File_Handle::GetLine_Handle()
     {
@@ -68,32 +67,32 @@ namespace IO
         return false;     // if there is no next line, return false
     }
 
-	bool Filter_File_Handle::GetLine()
-	{
-		if (Filter_File_Handle::GetLine_Handle())
-		{
-			return Filter_File_Handle::Find_in_Line("");
-		}
-		return false;
-	}
+    bool Filter_File_Handle::GetLine()
+    {
+        if (Filter_File_Handle::GetLine_Handle())
+        {
+            return Filter_File_Handle::Find_in_Line("");
+        }
+        return false;
+    }
 
-	void Filter_File_Handle::ResetStream()
-	{
-		myfile->clear();
-		myfile->seekg(0, std::ios::beg);
-	}
+    void Filter_File_Handle::ResetStream()
+    {
+        myfile->clear();
+        myfile->seekg(0, std::ios::beg);
+    }
 
-	bool Filter_File_Handle::Find(const std::string & s)
-	{
-		myfile->clear();
-		myfile->seekg(0, std::ios::beg);
+    bool Filter_File_Handle::Find(const std::string & s)
+    {
+        myfile->clear();
+        myfile->seekg(0, std::ios::beg);
 
-		while (GetLine())
-		{
-			if (Find_in_Line(s)) return true;
-		}
-		return false;
-	}
+        while (GetLine())
+        {
+            if (Find_in_Line(s)) return true;
+        }
+        return false;
+    }
 
     bool Filter_File_Handle::Find_in_Line( const std::string & s )
     {
@@ -117,14 +116,14 @@ namespace IO
         return false;
     }
 
-	void Filter_File_Handle::Remove_Chars_From_String(std::string &str, char* charsToRemove)
-	{
-		for (unsigned int i = 0; i < strlen(charsToRemove); ++i)
-		{
-			str.erase(std::remove(str.begin(), str.end(), charsToRemove[i]), str.end());
-		}
-	}
-    
+    void Filter_File_Handle::Remove_Chars_From_String(std::string &str, char* charsToRemove)
+    {
+        for (unsigned int i = 0; i < strlen(charsToRemove); ++i)
+        {
+            str.erase(std::remove(str.begin(), str.end(), charsToRemove[i]), str.end());
+        }
+    }
+
     bool Filter_File_Handle::Remove_Comments_From_String( std::string &str )
     {
         std::string::size_type start = this->line.find( this->comment_tag );
@@ -141,7 +140,7 @@ namespace IO
     }
 
     void Filter_File_Handle::Read_String( std::string& var, const std::string keyword, 
-                                          bool log_notfound )
+                                            bool log_notfound )
     {
         if ( Find( keyword ) )
         {
@@ -155,9 +154,9 @@ namespace IO
         }
         else if ( log_notfound )
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + keyword + 
-                 " not found. Using Default: " + fmt::format( "{}", var ) );
+                    " not found. Using Default: " + fmt::format( "{}", var ) );
     }
-    
+
     int Filter_File_Handle::Count_Words( const std::string& phrase )
     {
         std::istringstream phrase_stream( phrase );
@@ -166,6 +165,4 @@ namespace IO
         while( phrase_stream >> dump ) ++words;
         return words; 
     }
-    
-    
 }// end namespace IO

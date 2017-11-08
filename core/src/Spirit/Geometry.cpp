@@ -5,7 +5,7 @@
 #include <utility/Exception.hpp>
 
 
-void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
+void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
 {
     // The new number of spins
     auto n_cells = intfield{n_cells_i[0], n_cells_i[1], n_cells_i[2]};
@@ -100,24 +100,24 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3])
 	Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Set number of cells for all Systems: (" + std::to_string(n_cells[0]) + ", " + std::to_string(n_cells[1]) + ", " + std::to_string(n_cells[2]) + ")", -1, -1);
 }
 
-void Geometry_Set_Basis_Atoms(State *state, int n_atoms, float ** atoms)
+void Geometry_Set_Basis_Atoms(State *state, int n_atoms, float ** atoms) noexcept
 {
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Geometry_Set_Basis_Atoms is not yet implemented", -1, -1);
 }
 
-void Geometry_Set_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3])
+void Geometry_Set_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3]) noexcept
 {
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Geometry_Get_Translation_Vectors is not yet implemented", -1, -1);
 }
 
 
 
-int Geometry_Get_NOS(State * state)
+int Geometry_Get_NOS(State * state) noexcept
 {
     return state->nos;
 }
 
-scalar * Geometry_Get_Spin_Positions( State * state, int idx_image, int idx_chain )
+scalar * Geometry_Get_Spin_Positions( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -133,12 +133,12 @@ scalar * Geometry_Get_Spin_Positions( State * state, int idx_image, int idx_chai
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain )
+int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -154,12 +154,12 @@ int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain )
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-void Geometry_Get_Bounds( State *state, float min[3], float max[3], int idx_image, int idx_chain )
+void Geometry_Get_Bounds( State *state, float min[3], float max[3], int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -180,12 +180,12 @@ void Geometry_Get_Bounds( State *state, float min[3], float max[3], int idx_imag
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Get Center as array (x,y,z)
-void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_chain)
+void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -205,11 +205,11 @@ void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx_image, int idx_chain )
+void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -230,13 +230,13 @@ void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }   
 }
 
 // Get basis vectors ta, tb, tc
 void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3], 
-                                 int idx_image, int idx_chain )
+                                 int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -258,7 +258,7 @@ void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
@@ -270,7 +270,7 @@ void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3
 // }
 
 // Get number of atoms in a basis cell
-int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
+int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -286,13 +286,13 @@ int Geometry_Get_N_Basis_Atoms(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
 // Get number of basis cells in the three translation directions
-void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_chain)
+void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -311,13 +311,13 @@ void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // Get translation vectors ta, tb, tc
 void Geometry_Get_Translation_Vectors( State *state, float ta[3], float tb[3], float tc[3], 
-                                       int idx_image, int idx_chain )
+                                       int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -339,11 +339,11 @@ void Geometry_Get_Translation_Vectors( State *state, float ta[3], float tb[3], f
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
-int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
+int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -360,14 +360,14 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 
 int Geometry_Get_Triangulation( State * state, const int ** indices_ptr, int n_cell_step, 
-                                int idx_image, int idx_chain )
+                                int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -388,13 +388,13 @@ int Geometry_Get_Triangulation( State * state, const int ** indices_ptr, int n_c
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell_step, 
-                             int idx_image, int idx_chain )
+                             int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -411,7 +411,7 @@ int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;        
     }
 }

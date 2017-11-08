@@ -13,7 +13,7 @@
 
 bool Get_Method( State *state, const char * c_method_type, const char * c_solver_type, 
                  int n_iterations, int n_iterations_log, int idx_image, int idx_chain, 
-                 std::shared_ptr<Engine::Method> & method )
+                 std::shared_ptr<Engine::Method> & method ) noexcept
 {
     try
     {
@@ -222,14 +222,14 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     } 
 }
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -241,12 +241,12 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
 void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_solver_type,
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -258,11 +258,11 @@ void Simulation_PlayPause(State *state, const char * c_method_type, const char *
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
-void Simulation_Stop_All(State *state)
+void Simulation_Stop_All(State *state) noexcept
 {
     try
     {
@@ -298,12 +298,12 @@ void Simulation_Stop_All(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();        
+		spirit_handle_exception_api(-1, -1);
     }
 }
 
 
-float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain)
+float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -333,13 +333,13 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 
-float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
+float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -370,13 +370,13 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 
-const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -408,12 +408,12 @@ const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_cha
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -444,14 +444,14 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
 
 
-bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
+bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -467,12 +467,12 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Chain(State *state, int idx_chain)
+bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -492,12 +492,12 @@ bool Simulation_Running_Chain(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Collection(State *state)
+bool Simulation_Running_Collection(State *state) noexcept
 {
     try
     {
@@ -508,13 +508,13 @@ bool Simulation_Running_Collection(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return false;
     }
 }
 
 
-bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
+bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -538,12 +538,12 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+		spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Anywhere_Collection(State *state)
+bool Simulation_Running_Anywhere_Collection(State *state) noexcept
 {
     try
     {
@@ -558,7 +558,7 @@ bool Simulation_Running_Anywhere_Collection(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+		spirit_handle_exception_api(-1, -1);
         return false;        
     }
 }

@@ -354,13 +354,10 @@ namespace IO
 			}// end while getline
 			n_indices = i_field;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "External_Field_from_File: Unable to open file " + externalFieldFile);
-			else throw ex;
+			spirit_rethrow( fmt::format("Could not read external field from file  \"{}\"", externalFieldFile) );
 		}
-
 	}
 
 
@@ -492,11 +489,9 @@ namespace IO
 			}// end while getline
 			n_indices = i_anisotropy;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Anisotropy_from_File: Unable to open file " + anisotropyFile);
-			else throw ex;
+			spirit_rethrow(	fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
 		}
 	}
 
@@ -507,7 +502,7 @@ namespace IO
 		pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
 		pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
 	{
-		Log(Log_Level::Info, Log_Sender::IO, "Reading spin pairs from file " + pairsFile);
+		Log(Log_Level::Info, Log_Sender::IO, fmt::format("Reading spin pairs from file \"{}\"", pairsFile));
 		try
 		{
 			std::vector<std::string> columns(20);	// at least: 2 (indices) + 3 (J) + 3 (DMI)
@@ -649,15 +644,12 @@ namespace IO
 
 				++i_pair;
 			}// end while GetLine
-			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file {}", i_pair, pairsFile));
+			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file \"{}\"", i_pair, pairsFile));
 			nop = i_pair;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read pairs file " + pairsFile);
-			else
-				throw ex;
+			spirit_rethrow(fmt::format("Could not read pairs file \"{}\"", pairsFile));
 		}
 	}
 
@@ -794,9 +786,9 @@ namespace IO
 			Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file {}", i_quadruplet, quadrupletsFile));
 			noq = i_quadruplet;
 		}// end try
-		catch (Exception ex)
+		catch( ... )
 		{
-			throw ex;
+			spirit_rethrow( fmt::format("Could not read quadruplets from file  \"{}\"", quadrupletsFile) );
 		}
 	} // End Quadruplets_from_File
 
@@ -844,12 +836,9 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read defects file " + defectsFile);
-			else
-				throw ex;
+			spirit_rethrow(	fmt::format("Could not read defects file  \"{}\"", defectsFile) );
 		}
 	} // End Defects_from_File
 
@@ -898,12 +887,9 @@ namespace IO
 
 			Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
 		}
-		catch (Exception ex)
+		catch( ... )
 		{
-			if (ex == Exception::File_not_Found)
-				Log(Log_Level::Error, Log_Sender::IO, "Could not read pinned sites file " + pinnedFile);
-			else
-				throw ex;
+			spirit_rethrow(	fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
 		}
 	} // End Pinned_from_File
 
@@ -1008,9 +994,8 @@ namespace IO
             // TODO: Change the throw to something more meaningfull we don't need want termination
             if( ovf_meshtype != "rectangular" && ovf_meshtype != "irregular" )
             {
-                Log( Log_Level::Error, Log_Sender::IO, "Mesh type must be either \"rectangular\" "
-                     "or \"irregular\"" );
-                throw Exception::Bad_File_Content;
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    "Mesh type must be either \"rectangular\" or \"irregular\"");
             }
             
             // Emit Header to Log
@@ -1082,17 +1067,15 @@ namespace IO
             // check that representation and binary length valures are ok
             if( ovf_data_representation != "text" && ovf_data_representation != "binary" )
             {
-                Log( Log_Level::Error, Log_Sender::IO, "Data representation must be either "
-                     "\"text\' or \"binary\"" );
-                throw Exception::Bad_File_Content;
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    "Data representation must be either \"text\" or \"binary\"");
             }
             
             if( ovf_data_representation == "binary" && 
                  ovf_binary_length != 4 && ovf_binary_length != 8  )
             {
-                Log( Log_Level::Error, Log_Sender::IO, "Dinary representation can be either "
-                     "\"binary 8\" or \"binary 4\"");
-                throw Exception::Bad_File_Content;
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    "Binary representation can be either \"binary 8\" or \"binary 4\"");
             }
             
             // Read the data
@@ -1103,15 +1086,9 @@ namespace IO
                 OVF_Read_Text( myfile, vf ); 
         
         }
-        catch (Exception ex) 
+        catch (...) 
         {
-            if (ex == Exception::File_not_Found) 
-                Log( Log_Level::Error, Log_Sender::IO, "Log_Levels: Unable to read OVF File " + 
-                     ovfFileName + " Leaving values at default." );
-            if (ex == Exception::Bad_File_Content)
-                Log( Log_Level::Error, Log_Sender::IO, "Log_Levels: Unexpected argument or data"
-                     "in OVF File. Reading aborted" );
-            else throw ex;
+            spirit_rethrow(	fmt::format("Failed to read OVF file \"{}\".", ovfFileName) );
         }
     }
     
@@ -1125,7 +1102,8 @@ namespace IO
             
             // check if the initial check value of the binary data is valid
             if( !OVF_Check_Binary_Initial_Values( myfile, ovf_binary_length ) )
-                throw Exception::Bad_File_Content;
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    "The OVF initial binary value could not be read correctly");
             
             // comparison of datum size compared to scalar type
             if ( sizeof(scalar) == ovf_binary_length )
@@ -1160,8 +1138,7 @@ namespace IO
         }
         catch (...)
         {
-            Utility::Handle_Exception( -1, -1 );
-            return;
+            spirit_rethrow(	"Failed to read OVF binary data" );
         }
     }
     
@@ -1204,7 +1181,7 @@ namespace IO
         }
         catch (...)
         {
-            Utility::Handle_Exception( -1, -1 );
+            spirit_rethrow(	"Failed to check OVF initial binary value" );
             return false;
         }
     }

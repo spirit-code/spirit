@@ -134,8 +134,8 @@ namespace Engine
                     else
                     {
                         // Monolayer approximation
-                        Vectormath::add_c_a    ( -dtg * a_j * damping, s_c_vec, force_virtual);
-                        Vectormath::add_c_cross( -dtg * a_j, s_c_vec, image, force_virtual);
+                        Vectormath::add_c_a    ( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
+                        Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
                     }
                 }
 

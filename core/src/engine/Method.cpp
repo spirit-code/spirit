@@ -17,7 +17,7 @@ namespace Engine
         parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
     {
         // Sender name for log messages
-        this->SenderName = Utility::Log_Sender::All;
+        this->SenderName = Log_Sender::All;
 
         // Default history contains force_max_abs_component
         this->history = std::map<std::string, std::vector<scalar>>{
@@ -200,29 +200,30 @@ namespace Engine
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Pre_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Post_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Finalize()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
 
@@ -244,7 +245,7 @@ namespace Engine
     std::string Method::Name()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
         return "--";
     }
 

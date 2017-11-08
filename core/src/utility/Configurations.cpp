@@ -69,19 +69,14 @@ namespace Utility
 
 		void Domain(Data::Spin_System & s, Vector3 v, filterfunction filter)
 		{
-			try
+			if (v.norm() < 1e-8)
+			{
+				Log( Log_Level::Warning, Log_Sender::All, fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]) );
+				v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
+			}
+			else
 			{
 				v.normalize();
-			}
-			catch (Exception ex)
-			{
-				if (ex == Exception::Division_by_zero) 
-				{
-					std::string message = fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]);
-					Log(Log_Level::Warning, Log_Sender::All, message);
-					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
-				}
-				else { throw(ex); }
 			}
 
 			auto& spins = *s.spins;
