@@ -77,13 +77,13 @@ namespace Utility
             catch( const S_Exception & ex )
             {
                 Log( ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain );
-                Log( ex.level, Log_Sender::API, fmt::format("Exception caught in API function \'{}\'", function), idx_image, idx_chain );
+                std::string str_exception;
                 if (int(ex.level) > 1)
-                    Log( ex.level, Log_Sender::API, "Exception was not severe", idx_image, idx_chain );
+                    str_exception = "exception";
                 else
-                    Log( ex.level, Log_Sender::API, "SEVERE EXCEPTION", idx_image, idx_chain );
-                Log( ex.level, Log_Sender::API, "Exception backtrace:", idx_image, idx_chain );
-
+                    str_exception = "SEVERE exception";
+                Log(ex.level, Log_Sender::API, fmt::format("Caught {} in API function \'{}\'\n{:>49}Exception backtrace:", str_exception, function, " "), idx_image, idx_chain);
+                
                 // Create backtrace
                 Backtrace_Exception();
 				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
@@ -126,8 +126,7 @@ namespace Utility
 				int idx_image = -1, idx_chain = -1;
 
 				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
-				Log(ex.level, Log_Sender::API, fmt::format("{}:{}\n{:>49}{} \'{}\': {}", file, line, " ", "Exception caught in function", function, message), idx_image, idx_chain);
-				Log(ex.level, Log_Sender::API, "Exception backtrace:", idx_image, idx_chain);
+				Log(ex.level, Log_Sender::API, fmt::format("{}:{} in function \'{}\'\n{:>49}Caught exception: {}\n{:>49}Exception backtrace:", file, line, function, " ", message, " "), idx_image, idx_chain);
 
 				// Create backtrace
 				Backtrace_Exception();

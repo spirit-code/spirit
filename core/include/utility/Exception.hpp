@@ -35,7 +35,7 @@ namespace Utility
         S_Exception(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
             std::runtime_error(message)
         {
-            _message  = fmt::format("{}:{}\n{:>49}{} \'{}\': {}", file, line, " ", "in function", function, message);
+            _message  = fmt::format("{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message);
             _file     = file;
             _line     = line;
             _function = function;
