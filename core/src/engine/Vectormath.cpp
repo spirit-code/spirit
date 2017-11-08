@@ -324,7 +324,7 @@ namespace Engine
                 diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
 
 
-                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+                gradient[ispin] = (direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
             }
         }
 

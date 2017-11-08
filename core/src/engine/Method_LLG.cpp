@@ -32,6 +32,7 @@ namespace Engine
         this->forces_virtual    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->xi = vectorfield(this->nos, {0,0,0});
+        this->s_c_grad = vectorfield(this->nos, {0,0,0});
 
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
