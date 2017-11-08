@@ -21,6 +21,9 @@ namespace Engine
         // Constructor
         Method_GNEB(std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain);
 
+        // Return maximum force components of the images in the chain
+        std::vector<scalar> getForceMaxAbsComponent_All() override;
+
         // Method name as string
         std::string Name() override;
 

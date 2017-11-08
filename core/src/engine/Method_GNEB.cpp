@@ -42,6 +42,7 @@ namespace Engine
 
 		// We assume that the chain is not converged before the first iteration
 		this->force_max_abs_component = this->chain->gneb_parameters->force_convergence + 1.0;
+		this->force_max_abs_component_all = std::vector<scalar>(this->noi, 0);
 
 		// Create shared pointers to the method's systems' spin configurations
 		this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -55,6 +56,13 @@ namespace Engine
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 		this->chain->images[this->noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 	}
+
+	template <Solver solver>
+	std::vector<scalar> Method_GNEB<solver>::getForceMaxAbsComponent_All()
+	{
+		return this->force_max_abs_component_all;
+	}
+
 
 	template <Solver solver>
 	void Method_GNEB<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
@@ -204,11 +212,15 @@ namespace Engine
 	{
 		// --- Convergence Parameter Update
 		this->force_max_abs_component = 0;
+		std::fill(this->force_max_abs_component_all.begin(), this->force_max_abs_component_all.end(), 0);
+		
+		
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
 			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
-			// TODO: how to handle convergence??
-			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
+			// Set maximum per image
+			if (fmax > this->force_max_abs_component_all[img]) this->force_max_abs_component_all[img] = fmax;
+			// Set maximum overall
 			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
 
 			// Set the effective fields
