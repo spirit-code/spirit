@@ -1,4 +1,6 @@
-# <a href="http://yixuan.cos.name/spectra"><img src="http://yixuan.cos.name/spectra/img/logo.png" width="200px" /></a>
+# Spectra
+
+<a href="http://yixuan.cos.name/spectra"><img src="http://yixuan.cos.name/spectra/img/logo.png" width="200px" /></a>
 
 [![Build Status](https://travis-ci.org/yixuan/spectra.svg?branch=master)](https://travis-ci.org/yixuan/spectra)
 

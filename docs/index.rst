@@ -30,13 +30,14 @@ Spirit - Spin Simulation Framework
    C API Reference               <../core/docs/API>
    Python API Reference          <../core/docs/API_Python>
 
-.. .. toctree::
+.. toctree::
    :maxdepth: 1
-   :caption: Included Dependencies:
-   VFRendering        <../VFRendering/README>
-   Eigen3             <../core/thirdparty/Eigen/README>
-   Spectra            <../core/thirdparty/spectra/README>
-   QHull              <../thirdparty/qhull/README>
+   :caption: Further Information:
+
+   License                       <https://github.com/spirit-code/spirit/blob/master/LICENSE.txt>
+   Contributors                  <CONTRIBUTORS>
+   Referencing this Code         <REFERENCE>
+   Included Dependencies         <dependencies>
 
 
 Indices and tables

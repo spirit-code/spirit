@@ -94,7 +94,8 @@ control of parameters.
 * Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
 
 ### *Documentation*
-More details may be found in the [Reference section](docs/README.md) including
+More details may be found at [spirit-docs.readthedocs.io](http://spirit-docs.readthedocs.io)
+or in the [Reference section](docs/README.md) including
 * [Framework build instructions](docs/BUILD.md)
 * [Core build instructions](core/docs/BUILD.md)
 * [Core API Reference](core/docs/API.md)
