@@ -15,9 +15,7 @@
 #include "VFRendering/CoordinateSystemRenderer.hxx"
 
 namespace VFRendering {
-View::View() {
-    renderers({{std::make_shared<ArrowRenderer>(*this), {{0, 0, 1, 1}}}});
-}
+View::View() { }
 
 void View::initialize() {
     if (m_is_initialized) {
@@ -37,30 +35,22 @@ void View::initialize() {
 
 View::~View() {}
 
-void View::update(const Geometry& geometry, const std::vector<glm::vec3>& vectors) {
-    m_geometry = geometry;
-    m_vectors = vectors;
-    m_vectors_update_id++;
-    m_geometry_update_id++;
-}
-
-void View::updateVectors(const std::vector<glm::vec3>& vectors) {
-    m_vectors = vectors;
-    m_vectors_update_id++;
-}
-
 void View::draw() {
     initialize();
-    auto background_color = m_options.get<View::Option::BACKGROUND_COLOR>();
-    glClearColor(background_color.x, background_color.y, background_color.z, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (m_options.get<View::Option::CLEAR>()) {
+        auto background_color = m_options.get<View::Option::BACKGROUND_COLOR>();
+        glClearColor(background_color.x, background_color.y, background_color.z, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
     for (auto it : m_renderers) {
         auto renderer = it.first;
         auto viewport = it.second;
         float width = m_framebuffer_size.x;
         float height = m_framebuffer_size.y;
         glViewport((GLint)(viewport[0] * width), (GLint)(viewport[1] * height), (GLsizei)(viewport[2] * width), (GLsizei)(viewport[3] * height));
-        glClear(GL_DEPTH_BUFFER_BIT);
+        if (m_options.get<View::Option::CLEAR>()) {
+            glClear(GL_DEPTH_BUFFER_BIT);
+        }
         renderer->updateIfNecessary();
         renderer->draw(viewport[2] * width / viewport[3] / height);
     }
@@ -212,29 +202,5 @@ void View::optionsHaveChanged(const std::vector<int>& changed_options) {
         center_position = options().get<Option::SYSTEM_CENTER>();
         setCamera(camera_position, center_position, up_vector);
     }
-}
-
-unsigned long View::geometryUpdateId() const {
-    return m_geometry_update_id;
-}
-
-unsigned long View::vectorsUpdateId() const {
-    return m_vectors_update_id;
-}
-
-const std::vector<glm::vec3>& View::positions() const {
-    return m_geometry.positions();
-}
-
-const std::vector<glm::vec3>& View::directions() const {
-    return m_vectors;
-}
-
-const std::vector<std::array<Geometry::index_type, 3>>& View::surfaceIndices() const {
-    return m_geometry.surfaceIndices();
-}
-
-const std::vector<std::array<Geometry::index_type, 4>>& View::volumeIndices() const {
-    return m_geometry.volumeIndices();
 }
 }

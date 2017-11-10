@@ -25,12 +25,12 @@
 #include "Spirit/Hamiltonian.h"
 
 
-SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent)
+SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent), m_vf({},{}), m_vf_surf2D({},{})
 {
     this->state = state;
 	this->m_gl_initialized = false;
 	this->m_suspended = false;
-
+	
 	// QT Widget Settings
     setFocusPolicy(Qt::StrongFocus);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -121,6 +121,11 @@ const VFRendering::View * SpinWidget::view()
 	return &(this->m_view);
 }
 
+const VFRendering::VectorField * SpinWidget::vectorfield()
+{
+	return &(this->m_vf);
+}
+
 void SpinWidget::addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer)
 {
 	if (Geometry_Get_Dimensionality(this->state.get()) == 3)
@@ -201,6 +206,9 @@ void SpinWidget::initializeGL()
 		mouse_decoration->hide();
 	}
 
+	// Initialize VectorField data
+	this->updateVectorFieldGeometry();
+	this->updateVectorFieldDirections();
 
     // Get GL context
     makeCurrent();
@@ -218,7 +226,7 @@ void SpinWidget::initializeGL()
 
 	// Create renderers
 	//	System
-	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view);
+	this->m_renderer_arrows = std::make_shared<VFRendering::ArrowRenderer>(m_view, m_vf);
 
 	float indi_length = glm::length(bounds_max - bounds_min)*0.05;
 	int   indi_dashes = 5;
@@ -240,13 +248,13 @@ void SpinWidget::initializeGL()
 	{
 		// 2D Surface options
 		// No options yet...
-		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view);
+		this->m_renderer_surface_2D = std::make_shared<VFRendering::SurfaceRenderer>(m_view, m_vf_surf2D);
 		this->m_renderer_surface = m_renderer_surface_2D;
 	}
 	else if (Geometry_Get_Dimensionality(this->state.get()) == 3)
 	{
 		// 3D Surface options
-		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view);
+		this->m_renderer_surface_3D = std::make_shared<VFRendering::IsosurfaceRenderer>(m_view, m_vf);
 		this->m_renderer_surface_3D->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
 		auto mini_diff = glm::vec2{0.00001f, -0.00001f};
 		setSurface(x_range + mini_diff, y_range + mini_diff, z_range + mini_diff);
@@ -257,7 +265,7 @@ void SpinWidget::initializeGL()
 	this->m_system = std::make_shared<VFRendering::CombinedRenderer>(m_view, renderers);
 
 	//	Sphere
-	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view);
+	this->m_sphere = std::make_shared<VFRendering::VectorSphereRenderer>(m_view, m_vf);
 
 	//	Coordinate cross
 	this->m_coordinatesystem = std::make_shared<VFRendering::CoordinateSystemRenderer>(m_view);
@@ -294,7 +302,7 @@ void SpinWidget::screenShot(std::string filename)
 	pixmap.save((filename + ".png").c_str());
 }
 
-void SpinWidget::updateData()
+void SpinWidget::updateVectorFieldGeometry()
 {
 	int nos = System_Get_NOS(state.get());
 	int n_cells[3];
@@ -304,25 +312,16 @@ void SpinWidget::updateData()
 	int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
 	int nos_draw = n_basis_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
+	// Positions of the vectorfield
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos_draw);
-	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos_draw);
 
 	// ToDo: Update the pointer to our Data instead of copying Data?
-	// Positions and directions
+	// Positions
 	//		get pointer
-	scalar *spins, *spin_pos;
+	scalar *spin_pos;
 	int *atom_types;
 	spin_pos = Geometry_Get_Spin_Positions(state.get());
 	atom_types = Geometry_Get_Atom_Types(state.get());
-	if (this->m_source == 0)
-		spins = System_Get_Spin_Directions(state.get());
-	else if (this->m_source == 1)
-		spins = System_Get_Effective_Field(state.get());
-	else
-		spins = System_Get_Spin_Directions(state.get());
-	//		copy
-	/*positions.assign(spin_pos, spin_pos + 3*nos);
-	directions.assign(spins, spins + 3*nos);*/
 	int icell = 0;
 	for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
 	{
@@ -335,31 +334,15 @@ void SpinWidget::updateData()
 					int idx = ibasis + n_basis_atoms*cell_a*n_cell_step + n_basis_atoms*n_cells[0]*cell_b*n_cell_step + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
 					// std::cerr << idx << " " << icell << std::endl;
 					positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
-					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
-					if (atom_types[idx] < 0) directions[icell] *= 0;
 					++icell;
 				}
 			}
 		}
 	}
-	//		rescale if effective field
-	if (this->m_source == 1)
-	{
-		float max_length = 0;
-		for (auto direction : directions)
-		{
-			max_length = std::max(max_length, glm::length(direction));
-		}
-		if (max_length > 0)
-		{
-			for (auto& direction : directions)
-			{
-				direction /= max_length;
-			}
-		}
-	}
-	// Triangles and Tetrahedra
+	
+	// Generate the right geometry (triangles and tetrahedra)
 	VFRendering::Geometry geometry;
+	VFRendering::Geometry geometry_surf2D;
 	//		get tetrahedra
 	if (Geometry_Get_Dimensionality(state.get()) == 3)
 	{
@@ -396,6 +379,8 @@ void SpinWidget::updateData()
 			for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = positions[i*n_cells_draw[0]].y;
 			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
 			geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
+			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] -= 1.0;
+			geometry_surf2D = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
 		}
 		// All others
 		else
@@ -404,39 +389,111 @@ void SpinWidget::updateData()
 			int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
 			std::vector<std::array<VFRendering::Geometry::index_type, 3>>  triangle_indices(triangle_indices_ptr, triangle_indices_ptr + num_triangles);
 			geometry = VFRendering::Geometry(positions, triangle_indices, {}, true);
-			// std::cerr << "2D delaunay -------------------------------------" << std::endl;
-			// std::cerr << "size of triangulation = " << num_triangles << std::endl;
-			// std::cerr << triangle_indices[0][0] << " " << triangle_indices[0][1] << " " << triangle_indices[0][2] << std::endl;
-			// std::cerr << triangle_indices[1][0] << " " << triangle_indices[1][1] << " " << triangle_indices[1][2] << std::endl;
-			// std::cerr << triangle_indices[2][0] << " " << triangle_indices[2][1] << " " << triangle_indices[2][2] << std::endl;
-			// std::cerr << triangle_indices[3][0] << " " << triangle_indices[3][1] << " " << triangle_indices[3][2] << std::endl;
-			// std::cerr << triangle_indices[4][0] << " " << triangle_indices[4][1] << " " << triangle_indices[4][2] << std::endl;
-			// std::cerr << triangle_indices[5][0] << " " << triangle_indices[5][1] << " " << triangle_indices[5][2] << std::endl;
-			// std::cerr << triangle_indices[6][0] << " " << triangle_indices[6][1] << " " << triangle_indices[6][2] << std::endl;
-			// std::cerr << "----" << std::endl;
+			geometry_surf2D = VFRendering::Geometry(positions, triangle_indices, {}, true);
 		}
 
+		// Update the vectorfield geometry
+		this->m_vf_surf2D.updateGeometry(geometry_surf2D);
 	}
 	else
 	{
 		geometry = VFRendering::Geometry(positions, {}, {}, true);
 	}
-  
-	//		get bounds
+
+	// Update the vectorfield
+	this->m_vf.updateGeometry(geometry);
+}
+
+void SpinWidget::updateVectorFieldDirections()
+{
+	int nos = System_Get_NOS(state.get());
+	int n_cells[3];
+	Geometry_Get_N_Cells(this->state.get(), n_cells);
+	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(this->state.get());
+
+	int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
+	int nos_draw = n_basis_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+
+	// Directions of the vectorfield
+	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos_draw);
+
+	// ToDo: Update the pointer to our Data instead of copying Data?
+	// Directions
+	//		get pointer
+	scalar *spins;
+	int *atom_types;
+	atom_types = Geometry_Get_Atom_Types(state.get());
+	if (this->m_source == 0)
+		spins = System_Get_Spin_Directions(state.get());
+	else if (this->m_source == 1)
+		spins = System_Get_Effective_Field(state.get());
+	else
+		spins = System_Get_Spin_Directions(state.get());
+	//		copy
+	/*positions.assign(spin_pos, spin_pos + 3*nos);
+	directions.assign(spins, spins + 3*nos);*/
+	int icell = 0;
+	for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
+	{
+		for (int cell_b=0; cell_b<n_cells_draw[1]; cell_b++)
+		{
+			for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
+			{
+				for (int ibasis=0; ibasis < n_basis_atoms; ++ibasis)
+				{
+					int idx = ibasis + n_basis_atoms*cell_a*n_cell_step + n_basis_atoms*n_cells[0]*cell_b*n_cell_step + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
+					// std::cerr << idx << " " << icell << std::endl;
+					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
+					if (atom_types[idx] < 0) directions[icell] *= 0;
+					++icell;
+				}
+			}
+		}
+	}
+	//		rescale if effective field
+	if (this->m_source == 1)
+	{
+		float max_length = 0;
+		for (auto direction : directions)
+		{
+			max_length = std::max(max_length, glm::length(direction));
+		}
+		if (max_length > 0)
+		{
+			for (auto& direction : directions)
+			{
+				direction /= max_length;
+			}
+		}
+	}
+	
+	// Update the vectorfield
+	this->m_vf.updateVectors(directions);
+
+	if (Geometry_Get_Dimensionality(state.get()) == 2)
+		this->m_vf_surf2D.updateVectors(directions);
+}
+
+void SpinWidget::updateData()
+{
+	// Update the VectorField
+	this->updateVectorFieldDirections();
+	this->updateVectorFieldGeometry();
+	
+	// Update the View
 	float b_min[3], b_max[3];
 	Geometry_Get_Bounds(state.get(), b_min, b_max);
 	glm::vec3 bounds_min = glm::make_vec3(b_min);
 	glm::vec3 bounds_max = glm::make_vec3(b_max);
-    glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
-    m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
+	glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
+	m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
 	if (this->_reset_camera)
 	{
 		setCameraToDefault();
-    	this->_reset_camera = false;
+		this->_reset_camera = false;
 	}
-
-	m_view.update(geometry, directions);
 	
+	// Update Widget
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 
@@ -641,6 +698,7 @@ void SpinWidget::setVisualisationNCellSteps(int n_cell_steps)
 	float size_before = this->arrowSize();
 	this->n_cell_step = n_cell_steps;
 	this->setArrows(size_before, this->arrowLOD());
+	this->updateVectorFieldGeometry();
 	this->updateData();
 }
 
@@ -1353,6 +1411,9 @@ void SpinWidget::setupRenderers()
 	// Update View
 	m_view.renderers(renderers);
 	
+	// TODO: this should not be necessary...
+	this->updateVectorFieldGeometry();
+
 	QTimer::singleShot(1, this, SLOT(update()));
 }
 

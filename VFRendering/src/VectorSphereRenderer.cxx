@@ -13,7 +13,7 @@
 #include "shaders/sphere_background.frag.glsl.hxx"
 
 namespace VFRendering {
-VectorSphereRenderer::VectorSphereRenderer(const View& view) : RendererBase(view) {}
+VectorSphereRenderer::VectorSphereRenderer(const View& view, const VectorField& vf) : VectorFieldRenderer(view, vf) {}
 
 void VectorSphereRenderer::initialize() {
     if (m_is_initialized) {
@@ -134,7 +134,7 @@ void VectorSphereRenderer::draw(float aspect_ratio) {
         projection_matrix = glm::ortho(-1.0f, 1.0f, -1 / aspect_ratio, 1 / aspect_ratio, 2.0f, 0.0f);
     }
     glm::mat4 modelview_matrix = glm::lookAt(glm::normalize(camera_position - center_position), {0, 0, 0}, upVector);
-    glm::vec3 light_position = options().get<View::Option::LIGHT_POSITION>();
+    glm::vec4 light_position = modelview_matrix * glm::vec4(camera_position, 1.0f);
 
     glUniformMatrix4fv(glGetUniformLocation(m_sphere_points_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(glGetUniformLocation(m_sphere_points_program, "uModelviewMatrix"), 1, false, glm::value_ptr(modelview_matrix));

@@ -41,11 +41,14 @@ set(SOURCE_FILES
     src/CoordinateSystemRenderer.cxx
     src/FPSCounter.cxx
     src/Geometry.cxx
+    src/GlyphRenderer.cxx
     src/IsosurfaceRenderer.cxx
     src/Options.cxx
     src/RendererBase.cxx
     src/SurfaceRenderer.cxx
     src/Utilities.cxx
+    src/VectorField.cxx
+    src/VectorFieldRenderer.cxx
     src/VectorfieldIsosurface.cxx
     src/VectorSphereRenderer.cxx
     src/View.cxx
@@ -60,11 +63,14 @@ set(HEADER_FILES
     include/VFRendering/CoordinateSystemRenderer.hxx
     include/VFRendering/FPSCounter.hxx
     include/VFRendering/Geometry.hxx
+    include/VFRendering/GlyphRenderer.hxx
     include/VFRendering/IsosurfaceRenderer.hxx
     include/VFRendering/Options.hxx
     include/VFRendering/RendererBase.hxx
     include/VFRendering/SurfaceRenderer.hxx
     include/VFRendering/Utilities.hxx
+    include/VFRendering/VectorField.hxx
+    include/VFRendering/VectorFieldRenderer.hxx
     include/VFRendering/VectorSphereRenderer.hxx
     include/VFRendering/View.hxx
     include/shaders

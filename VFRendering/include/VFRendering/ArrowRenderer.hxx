@@ -1,10 +1,10 @@
 #ifndef VFRENDERING_ARROW_RENDERER_HXX
 #define VFRENDERING_ARROW_RENDERER_HXX
 
-#include <VFRendering/RendererBase.hxx>
+#include <VFRendering/GlyphRenderer.hxx>
 
 namespace VFRendering {
-class ArrowRenderer : public RendererBase {
+class ArrowRenderer : public GlyphRenderer {
 public:
     enum Option {
         CONE_RADIUS = 200,
@@ -14,26 +14,8 @@ public:
         LEVEL_OF_DETAIL
     };
 
-    ArrowRenderer(const View& view);
-    virtual ~ArrowRenderer();
-    virtual void update(bool keep_geometry) override;
-    virtual void draw(float aspect_ratio) override;
+    ArrowRenderer(const View& view, const VectorField& vf);
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;
-
-private:
-    void updateShaderProgram();
-    void updateVertexData();
-    void initialize();
-
-    bool m_is_initialized = false;
-    unsigned int m_program = 0;
-    unsigned int m_vao = 0;
-    unsigned int m_vbo = 0;
-    unsigned int m_ibo = 0;
-    unsigned int m_instance_position_vbo = 0;
-    unsigned int m_instance_direction_vbo = 0;
-    unsigned int m_num_indices = 0;
-    unsigned int m_num_instances = 0;
 };
 
 namespace Utilities {

@@ -12,7 +12,7 @@ IsosurfaceWidget::IsosurfaceWidget(std::shared_ptr<State> state, SpinWidget *spi
     this->setupUi(this);
 
 	// Create renderer pointer
-	this->m_renderer = std::make_shared<VFRendering::IsosurfaceRenderer>(*spinWidget->view());
+	this->m_renderer = std::make_shared<VFRendering::IsosurfaceRenderer>(*spinWidget->view(), *spinWidget->vectorfield());
 
 	// Defaults
 	this->setShowIsosurface(true);

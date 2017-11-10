@@ -19,7 +19,7 @@ public:
 
 unsigned int createProgram(const std::string& vertex_shader_source,
                            const std::string& fragment_shader_source,
-                           const std::vector<std::string>& attributes) throw(OpenGLException);
+                           const std::vector<std::string>& attributes);
 
 enum class Colormap {
     DEFAULT,

@@ -81,6 +81,8 @@ public:
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void setSuspended(bool suspended);
   void updateData();
+  void updateVectorFieldDirections();
+  void updateVectorFieldGeometry();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
@@ -91,6 +93,7 @@ public:
   int m_source;
 
   const VFRendering::View * view();
+  const VFRendering::VectorField * vectorfield();
 
   void addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer);
   void removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer>);
@@ -259,6 +262,8 @@ private:
   
   // Visualisation
   VFRendering::View m_view;
+  VFRendering::VectorField m_vf;
+  VFRendering::VectorField m_vf_surf2D;
 
   // Interaction mode
   InteractionMode m_interactionmode;

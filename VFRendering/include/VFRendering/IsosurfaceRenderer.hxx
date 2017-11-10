@@ -3,10 +3,10 @@
 
 #include <functional>
 
-#include <VFRendering/RendererBase.hxx>
+#include <VFRendering/VectorFieldRenderer.hxx>
 
 namespace VFRendering {
-class IsosurfaceRenderer : public RendererBase {
+class IsosurfaceRenderer : public VectorFieldRenderer {
 public:
 
     typedef float isovalue_type;
@@ -19,7 +19,7 @@ public:
         FLIP_NORMALS
     };
 
-    IsosurfaceRenderer(const View& view);
+    IsosurfaceRenderer(const View& view, const VectorField& vf);
     virtual ~IsosurfaceRenderer();
     virtual void draw(float aspect_ratio) override;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;
