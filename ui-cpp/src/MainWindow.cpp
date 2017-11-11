@@ -1187,7 +1187,7 @@ void MainWindow::save_SpinChain_Configuration()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Chain_Write(this->state.get(), file.c_str());
+		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_Regular );
 	}
 }
 
@@ -1255,7 +1255,7 @@ void MainWindow::save_System_Energy_Spins()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_System_Energy_per_Spin(this->state.get(), file.c_str());
+		IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str());
 	}
 }
 
@@ -1266,7 +1266,7 @@ void MainWindow::save_Chain_Energies()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_Chain_Energies(this->state.get(), file.c_str());
+		IO_Chain_Write_Energies(this->state.get(), file.c_str());
 	}
 }
 
@@ -1277,7 +1277,7 @@ void MainWindow::save_Chain_Energies_Interpolated()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_Chain_Energies_Interpolated(this->state.get(), file.c_str());
+		IO_Chain_Write_Energies_Interpolated(this->state.get(), file.c_str());
 	}
 }
 

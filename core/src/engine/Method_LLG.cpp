@@ -286,15 +286,15 @@ namespace Engine
                     std::ifstream f(energyFile);
                     if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
                     // Append Energy to File
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                 }
                 else
                 {
                     IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
                     }
                 }
             };

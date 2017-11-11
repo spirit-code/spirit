@@ -403,7 +403,7 @@ namespace Engine
 				std::ifstream f(energyFile);
 				if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
 				// Append Energy to File
-				//IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+				//IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
 
 				//
 				scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);

@@ -2,6 +2,7 @@
 #include <io/Fileformat.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -60,7 +61,7 @@ namespace IO
 		String_to_File(header, filename);
 	}
 
-	void Append_System_Energy( const Data::Spin_System & s, const int iteration, 
+	void Append_Image_Energy( const Data::Spin_System & s, const int iteration, 
                                const std::string filename, bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
@@ -82,7 +83,7 @@ namespace IO
 		Append_String_to_File(line, filename);
 	}
 
-	void Write_System_Energy( const Data::Spin_System & system, const std::string filename, 
+	void Write_Image_Energy( const Data::Spin_System & system, const std::string filename, 
                               bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
@@ -103,7 +104,7 @@ namespace IO
 		Append_String_to_File(line, filename);
 	}
 
-	void Write_System_Energy_per_Spin( const Data::Spin_System & s, const std::string filename, 
+	void Write_Image_Energy_per_Spin( const Data::Spin_System & s, const std::string filename, 
                                        bool normalize_by_nos )
 	{
 		bool readability_toggle = true;
@@ -122,7 +123,10 @@ namespace IO
 		for (int ispin=0; ispin<s.nos; ++ispin)
 		{
 			scalar E_spin=0;
-			for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
+            
+            // BUG: if the energy is not updated at least one this will raise a SIGSEGV
+			
+            for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
 			data += fmt::format(" {:^20} || {:^20.10f} |", ispin, E_spin * nd);
 			for (auto pair : contributions_spins)
 			{
@@ -257,7 +261,8 @@ namespace IO
             case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                Save_To_SPIRIT( vf, geometry, filename, format, comment, append );
+                Write_SPIRIT_Version( filename, append );
+                Save_To_SPIRIT( vf, geometry, filename, format, comment );
                 break;
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
@@ -274,46 +279,69 @@ namespace IO
         }        
 	}
 
-	void Write_Spin_Configuration_Chain( const std::shared_ptr<Data::Spin_System_Chain>& c, 
-                                         const int iteration, const std::string filename )
-	{
-		// Header
-		std::string output_to_file = "";
-		output_to_file.reserve(int(1E+08));
-		output_to_file += fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
-                                       "after iteration {}", c->noi, c->images[0]->nos, iteration );
-
-		// Data
-		for (int iimage = 0; iimage < c->noi; ++iimage)
-		{
-			output_to_file += fmt::format("\n Image No {}", iimage);
-
-			int nos = c->images[iimage]->nos;
-			auto& spins = *c->images[iimage]->spins;
-			for (int iatom = 0; iatom < nos; ++iatom)
-			{
-				#ifdef SPIRIT_ENABLE_DEFECTS
-				if (c->images[iimage]->geometry->atom_types[iatom] < 0)
-					output_to_file += fmt::format( "\n {:18.10f} {:18.10f} {:18.10f}", 
-                                                   0.0, 0.0, 0.0 );
-				else
-				#endif
-					output_to_file += fmt::format( "\n {:18.10f} {:18.10f} {:18.10f}", 
-                                                   spins[iatom][0], spins[iatom][1], 
-                                                   spins[iatom][2] );
-			}
-		}
-		Dump_to_File( output_to_file, filename );
-	}
+    void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& chain, 
+                                         const std::string filename, VF_FileFormat format, 
+                                         const std::string comment, bool append )
+    {
+        // except OVF format
+        if ( format == VF_FileFormat::OVF_BIN8 || 
+             format == VF_FileFormat::OVF_BIN4 ||
+             format == VF_FileFormat::OVF_TEXT )
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, fmt::format( "OVF "
+                 "Format does not support Chain write" ), -1, -1 );
+            return;
+        }
+        
+        // write version
+        Write_SPIRIT_Version( filename, append );
+        
+        // Header
+        std::string output_to_file;
+        output_to_file = fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
+                                      "after iteration {}\n#\n", chain->noi, chain->images[0]->nos, 
+                                      comment );
+        Append_String_to_File( output_to_file, filename );
+        
+        for (int image = 0; image < chain->noi; ++image )
+        {
+            //// NOTE: with that implementation we are dumping the output_to_file twice for every
+            // image. One for the image number header and one with the call to Save_To_SPIRIT(). 
+            // Maybe this will add an overhead for large enough chains. To change that the arguments
+            // of Save_To_SPIRIT() must be modified with a reference to output_to_file variable. So
+            // that the buffer will be supplied by the caller. In that case many changes will must
+            // be done in the code
+            
+            // Append the number of the image
+            output_to_file = fmt::format( "# Image No {}\n", image );
+            Append_String_to_File( output_to_file, filename );
+            
+            Save_To_SPIRIT( *chain->images[image]->spins, *chain->images[image]->geometry, 
+                            filename, format, comment );
+        }
+    }
+    
+    void Write_SPIRIT_Version( const std::string filename, bool append )
+    {
+        std::string output_to_file = fmt::format( "### SPIRIT Version {}\n", 
+                                                  Utility::version_full );
+        
+        // If data have to be appended then append SPIRIT's version and then everything else is 
+        // appended. If not the SPIRIT's version is dumped and then everything else is appended.
+        if ( append )
+            Append_String_to_File( output_to_file, filename );
+        else
+            Dump_to_File( output_to_file, filename );
+    }
     
     void Save_To_SPIRIT( const vectorfield& vf, const Data::Geometry& geometry, 
-                         const std::string filename, VF_FileFormat format,
-                         const std::string comment, bool append )
+                         const std::string filename, VF_FileFormat format, 
+                         const std::string comment )
     {
         // Header
         std::string output_to_file = "";
         output_to_file.reserve(int(1E+08));
-        output_to_file += fmt::format( "### Spin Configuration for NOS = {} comment: {}", 
+        output_to_file += fmt::format( "### Spin Configuration for NOS = {} comment: {}\n", 
                                        vf.size(), comment );
         
         // Delimiter
@@ -340,11 +368,11 @@ namespace IO
                 {
                     #ifdef SPIRIT_ENABLE_DEFECTS
                     if( geometry->atom_types[iatom] < 0 )
-                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
                                                        0.0, delimiter, 0.0, delimiter, 0.0 );
                     else
                     #endif
-                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
                                                         vf[iatom][0], delimiter, 
                                                         vf[iatom][1], delimiter, 
                                                         vf[iatom][2] );
@@ -357,16 +385,16 @@ namespace IO
                 {
                     #ifdef SPIRIT_ENABLE_DEFECTS
                     if( geometry->atom_types[iatom] < 0 )
-                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}{}"
-                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}",
+                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}\n",
                                                        geometry.spin_pos[iatom][0], delimiter,
                                                        geometry.spin_pos[iatom][1], delimiter,
                                                        geometry.spin_pos[iatom][2], delimiter,
                                                        0.0, delimiter, 0.0, delimiter, 0.0 );
                     else
                     #endif
-                        output_to_file += fmt::format( "\n{:20.10f}{}{:20.10f}{}{:20.10f}{}"
-                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}", 
+                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
                                                        geometry.spin_pos[iatom][0], delimiter,
                                                        geometry.spin_pos[iatom][1], delimiter,
                                                        geometry.spin_pos[iatom][2], delimiter,
@@ -376,13 +404,7 @@ namespace IO
                 }
                 break;
         }
-        
-        output_to_file.append("\n");
-        
-        if ( append )
-            Append_String_to_File( output_to_file, filename );
-        else
-            Dump_to_File( output_to_file, filename );
+        Append_String_to_File( output_to_file, filename );
     }
     
     // Save vectorfield and positions to file OVF in OVF format
@@ -417,14 +439,16 @@ namespace IO
         output_to_file += fmt::format( "# Begin: Header\n" );
         output_to_file += fmt::format( empty_line );
         
-        output_to_file += fmt::format( "# Title: \n" );                     //// TODO: find a Title
+        output_to_file += fmt::format( "# Title: SPIRIT Version {}\n", Utility::version_full );
         output_to_file += fmt::format( empty_line );
         
         output_to_file += fmt::format( "# Desc: {}\n", comment );
         output_to_file += fmt::format( empty_line );
         
         // The value dimension is always 1 in this implementation since we are writting only one vf
-        output_to_file += fmt::format( "# Valuedim: {} ##Value dimension\n", 1 );
+        output_to_file += fmt::format( "# valuedim: {} ##Value dimension\n", 1 );
+        output_to_file += fmt::format( "# valueunits: None\n" );
+        output_to_file += fmt::format( "# valuelabels: [unitary vector (spin)]\n" );
         output_to_file += fmt::format( empty_line );
         
         output_to_file += fmt::format( "## Fundamental mesh measurement unit. "

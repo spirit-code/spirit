@@ -205,7 +205,8 @@ void IO_Chain_Read( State *state, const char *file, int format, int starting_ima
     }
 }
 
-void IO_Chain_Write( State *state, const char *file, int format, int idx_chain ) noexcept
+void IO_Chain_Write( State *state, const char *file, int format, const char* comment, 
+                     int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -219,7 +220,8 @@ void IO_Chain_Write( State *state, const char *file, int format, int idx_chain )
         
         // Read the data
         chain->Lock();
-        IO::Write_Spin_Configuration_Chain(chain, 0, std::string(file));
+        IO::Write_Chain_Spin_Configuration( chain, std::string(file), (IO::VF_FileFormat)format, 
+                                            std::string(comment), false );
         chain->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -232,10 +234,33 @@ void IO_Chain_Write( State *state, const char *file, int format, int idx_chain )
     }
 }
 
-void IO_Chain_Append( State *state, const char *file, int format, int idx_chain ) noexcept
+void IO_Chain_Append( State *state, const char *file, int format, const char* comment, 
+                     int idx_chain ) noexcept
 {
-    // TODO: implementation
-    
+    int idx_image = -1;
+
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        // Read the data
+        chain->Lock();
+        IO::Write_Chain_Spin_Configuration( chain, std::string(file), (IO::VF_FileFormat)format, 
+                                            std::string(comment), true );
+        chain->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format("Wrote chain to file {} with format {}", file, format), 
+                idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
 }
 
 /*----------------------------------------------------------------------------------------------- */
@@ -257,10 +282,8 @@ void IO_Collection_Write(State * state, const char * file, int idx_image, int id
 /*----------------------------------------------------------------------------------------------- */
 
 //IO_Energies_Spins_Save
-void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_chain) noexcept
+void IO_Image_Write_Energy_per_Spin(State * state, const char * file, int idx_image, int idx_chain) noexcept
 {
-    int idx_image = -1;
-
     try
     {
     	std::shared_ptr<Data::Spin_System> image;
@@ -270,7 +293,7 @@ void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_c
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        IO::Write_System_Energy_per_Spin(*image, std::string(file));
+        IO::Write_Image_Energy_per_Spin(*image, std::string(file));
     }
     catch( ... )
     {
@@ -279,7 +302,7 @@ void IO_Write_System_Energy_per_Spin(State * state, const char * file, int idx_c
 }
 
 //IO_Energy_Spins_Save
-void IO_Write_System_Energy(State * state, const char * file, int idx_image, int idx_chain) noexcept
+void IO_Image_Write_Energy(State * state, const char * file, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -290,7 +313,7 @@ void IO_Write_System_Energy(State * state, const char * file, int idx_image, int
         from_indices( state, idx_image, idx_chain, image, chain );
         
     	// Write the data
-    	IO::Write_System_Energy(*image, std::string(file));
+    	IO::Write_Image_Energy(*image, std::string(file));
     }
     catch( ... )
     {
@@ -299,7 +322,7 @@ void IO_Write_System_Energy(State * state, const char * file, int idx_image, int
 }
 
 //IO_Energies_Save
-void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain) noexcept
+void IO_Chain_Write_Energies(State * state, const char * file, int idx_chain) noexcept
 {
     int idx_image = -1;
     
@@ -321,7 +344,7 @@ void IO_Write_Chain_Energies(State * state, const char * file, int idx_chain) no
 }
 
 //IO_Energies_Interpolated_Save
-void IO_Write_Chain_Energies_Interpolated(State * state, const char * file, int idx_chain) noexcept
+void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int idx_chain) noexcept
 {
     int idx_image = -1;
     

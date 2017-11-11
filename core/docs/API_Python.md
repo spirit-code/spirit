@@ -231,16 +231,28 @@ Transition
 Input/Output
 ------------
 
-| For Image                                                                     | Description                          |
-| ----------------------------------------------------------------------------- | ------------------------------------ |
-| `Image_Read(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`     | Read an image from disk              |
-| `Image_Write(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`    | Write an image to disk               |
-| `Image_Append(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`   | Append an image to an existing file  |
+| Macros of File Formats for Vector Fields | values  | Description                                       |
+| ---------------------------------------- | :-----: | --------------------------------------------------|
+| `IO_Fileformat_Regular`                  | 0       | sx sy sz (separated by whitespace)                |
+| `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
+| `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
+| `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
+| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
+| `IO_Fileformat_OVF_text`                 | 6       |                                                   |
+
+
+| For Image                                                                                 | Description                          |
+| ----------------------------------------------------------------------------------------- | ------------------------------------ |
+| `Image_Read(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`                 | Read an image from disk              |
+| `Image_Write(p_state, filename, fileformat=0, comment=" ", idx_image=-1, idx_chain=-1)`   | Write an image to disk               |
+| `Image_Append(p_state, filename, fileformat=0, comment=" ", idx_image=-1, idx_chain=-1)`  | Append an image to an existing file  |
 
 | For Chain                                                                     | Description                          |
 | ----------------------------------------------------------------------------- | ------------------------------------ |
 | `Chain_Read(p_state, filename, fileformat=0, idx_chain=-1)`                   | Read a chain of images from disk     |
-| `Chain_Write(p_state, filename, fileformat=0, idx_chain=-1)`                  | Write a chain of images to disk      |
+| `Chain_Write(p_state, filename, fileformat=0, comment=" ", idx_chain=-1)`     | Write a chain of images to disk      |
+| `Chain_Append(p_state, filename, fileformat=0, comment=" ", idx_chain=-1)`    | Append a chain of images to disk      |
+
 
 ---
 

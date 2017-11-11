@@ -973,12 +973,13 @@ namespace IO
             myfile.Read_Single( ovf_meshunit, "# meshunit:" );
             
             // value's dimensions
-            myfile.Read_Single( ovf_valuedim, "# valuedim:" );
+            myfile.Require_Single( ovf_valuedim, "# valuedim:" );
             
             // value's units
             myfile.Read_String( ovf_valueunits, "# valueunits:" );
             
             // value's labels
+            myfile.Read_String( ovf_valueunits, "# valuelabels:" );
             
             // {x,y,z} x {min,max}
             myfile.Require_Single( ovf_xyz_min[0], "# xmin:" );
