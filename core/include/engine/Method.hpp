@@ -37,6 +37,10 @@ namespace Engine
         // Maximum of the absolutes of all components of the force - needs to be updated at each calculation
         virtual scalar getForceMaxAbsComponent() final;
 
+        // Maximum of the absolutes of all components of the force for all images the method uses
+        // The default is that this returns simply {getForceMaxAbsComponent()}
+        virtual std::vector<scalar> getForceMaxAbsComponent_All();
+
         // Method name as string
         virtual std::string Name();
 
@@ -120,8 +124,10 @@ namespace Engine
 
         // Method name as enum
         Utility::Log_Sender SenderName;
-        // 
+        // Maximum force component of all images
         scalar force_max_abs_component;
+        // Maximum force component per image
+        std::vector<scalar> force_max_abs_component_all;
         // History of relevant quantities
         std::map<std::string, std::vector<scalar>> history;
         // The time at which this Solver's Iterate() was last called

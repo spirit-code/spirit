@@ -29,15 +29,16 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
 
-	// Fix text size on OSX
-    #ifdef Q_OS_MAC
-        this->setStyleSheet("QWidget{font-size:10pt}");
-    #else
-        this->setStyleSheet("QWidget{font-size:8pt}");
-    #endif
-    
+	// Fix text size
+	#ifdef Q_OS_MAC
+		this->setStyleSheet("QWidget{font-size:10pt}");
+	#else
+		this->setStyleSheet("QWidget{font-size:8pt}");
+	#endif
+
+	
 	// Setup User Interface
-    this->setupUi(this);
+	this->setupUi(this);
 
 	// DockWidgets: tabify for Plots and Debug
 	this->tabifyDockWidget(this->dockWidget_Plots, this->dockWidget_Debug);
@@ -118,6 +119,8 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
 
 	// Status Bar
+	//		Set a monospace font
+	Ui::MainWindow::statusBar->setStyleSheet("QWidget{font-family: \"Courier\"}");
 	//		Spacer
 	this->m_Spacer_5 = new QLabel("    |    ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_5);
@@ -768,7 +771,8 @@ void MainWindow::updateStatusBar()
 	this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
 	float F = Simulation_Get_MaxTorqueComponent(state.get());
-	this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
+	if (!Simulation_Running_Chain(state.get()))
+		this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
 	float E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
 	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
@@ -799,6 +803,10 @@ void MainWindow::updateStatusBar()
 		{
 			if (Simulation_Running_Chain(state.get(), ichain))
 			{
+				float * f = new float[Chain_Get_NOI(state.get())];
+				Simulation_Get_Chain_MaxTorqueComponents(state.get(), f);
+				float f_current = f[System_Get_Index(state.get())];
+				this->m_Label_Torque->setText(QString::fromLatin1("F_current: ") + QString::number(f_current, 'E', 2) + QString::fromLatin1("  F_max: ") + QString::number(F, 'E', 2));
 				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, ichain);
 				if (ips < 1) precision = 4;
 				else if (ips > 99) precision = 0;

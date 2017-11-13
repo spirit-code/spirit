@@ -12,7 +12,7 @@
 #include "shaders/isosurface.frag.glsl.hxx"
 
 namespace VFRendering {
-IsosurfaceRenderer::IsosurfaceRenderer(const View& view) : RendererBase(view), m_value_function_changed(true), m_isovalue_changed(true) {}
+IsosurfaceRenderer::IsosurfaceRenderer(const View& view, const VectorField& vf) : VectorFieldRenderer(view, vf), m_value_function_changed(true), m_isovalue_changed(true) {}
 
 void IsosurfaceRenderer::initialize() {
     if (m_is_initialized) {
@@ -71,7 +71,6 @@ void IsosurfaceRenderer::optionsHaveChanged(const std::vector<int>& changed_opti
             case Option::VALUE_FUNCTION:
                 m_value_function_changed = true;
                 break;
-			case Option::LIGHTING_IMPLEMENTATION:
             case View::Option::COLORMAP_IMPLEMENTATION:
             case View::Option::IS_VISIBLE_IMPLEMENTATION:
             update_shader = true;
@@ -110,7 +109,7 @@ void IsosurfaceRenderer::draw(float aspect_ratio) {
     auto projection_matrix = matrices.second;
 
     glm::vec3 camera_position = options().get<View::Option::CAMERA_POSITION>();
-    glm::vec3 light_position = options().get<View::Option::LIGHT_POSITION>();
+    glm::vec4 light_position = model_view_matrix * glm::vec4(camera_position, 1.0f);
 
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uModelviewMatrix"), 1, false, glm::value_ptr(model_view_matrix));

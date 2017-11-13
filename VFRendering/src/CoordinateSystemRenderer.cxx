@@ -95,19 +95,15 @@ void CoordinateSystemRenderer::draw(float aspect_ratio) {
     auto modelview_matrix = matrices.first;
     auto projection_matrix = matrices.second;
 
-    bool always_orthogonal = true;
-
     if (options().get<Option::NORMALIZE>()) {
-        float scale = 1;
-        if (options().get<View::Option::VERTICAL_FIELD_OF_VIEW>() == 0 || always_orthogonal) {
+        if (options().get<View::Option::VERTICAL_FIELD_OF_VIEW>() == 0) {
             if (aspect_ratio > 1) {
                 projection_matrix = glm::ortho(-0.5f*aspect_ratio, 0.5f*aspect_ratio, -0.5f, 0.5f, -10.0f, 10.0f);
             } else {
                 projection_matrix = glm::ortho(-0.5f, 0.5f, -0.5f/aspect_ratio, 0.5f/aspect_ratio, -10.0f, 10.0f);
             }
         }
-        else scale = glm::tan(glm::radians(45.0f)/2.0) / glm::tan(glm::radians(options().get<View::Option::VERTICAL_FIELD_OF_VIEW>())/2.0);
-        modelview_matrix = glm::lookAt(glm::normalize(camera_position - center_position)*scale, glm::vec3(0.0, 0.0, 0.0), up_vector);
+        modelview_matrix = glm::lookAt(glm::normalize(camera_position - center_position), glm::vec3(0.0, 0.0, 0.0), up_vector);
     }
 
     glUseProgram(m_program);

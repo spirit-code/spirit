@@ -1,11 +1,11 @@
 #ifndef VFRENDERING_VECTOR_SPHERE_RENDERER_HXX
 #define VFRENDERING_VECTOR_SPHERE_RENDERER_HXX
 
-#include <VFRendering/RendererBase.hxx>
+#include <VFRendering/VectorFieldRenderer.hxx>
 
 namespace VFRendering {
 
-class VectorSphereRenderer : public RendererBase {
+class VectorSphereRenderer : public VectorFieldRenderer {
 public:
     enum Option {
         POINT_SIZE_RANGE = 400,
@@ -13,7 +13,7 @@ public:
         USE_SPHERE_FAKE_PERSPECTIVE
     };
 
-    VectorSphereRenderer(const View& view);
+    VectorSphereRenderer(const View& view, const VectorField& vf);
     virtual ~VectorSphereRenderer();
     virtual void draw(float aspect_ratio) override;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;

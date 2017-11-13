@@ -5,23 +5,28 @@
 
 namespace Utility
 {
-	void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function)
-	{
-		try
-		{
-			std::rethrow_exception(std::current_exception());
-		}
-		catch( const S_Exception & ex )
-		{
-			auto ex2 = S_Exception(ex.classifier, ex.level, message, file, line, function);
-			std::throw_with_nested(ex2);
-		}
-		catch( ... )
-		{
-			auto ex = S_Exception(Exception_Classifier::Unknown_Exception, Log_Level::Error, message, file, line, function);
-			std::throw_with_nested(ex);
-		}
-	}
+    void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function)
+    {
+        try
+        {
+            std::rethrow_exception(std::current_exception());
+        }
+        catch( const S_Exception & ex )
+        {
+            auto ex2 = S_Exception(ex.classifier, ex.level, message, file, line, function);
+            std::throw_with_nested(ex2);
+        }
+        catch (const std::exception & ex)
+        {
+            auto ex2 = S_Exception(Exception_Classifier::Standard_Exception, Log_Level::Severe, message, file, line, function);
+            std::throw_with_nested(ex2);
+        }
+        catch (...)
+        {
+            auto ex = S_Exception(Exception_Classifier::Unknown_Exception, Log_Level::Severe, message, file, line, function);
+            std::throw_with_nested(ex);
+        }
+    }
 
 
     void Backtrace_Exception()
@@ -53,7 +58,7 @@ namespace Utility
         }
         catch ( const std::exception & ex )
         {
-            Log( Log_Level::Severe, Log_Sender::API, std::string(ex.what()));
+            Log( Log_Level::Severe, Log_Sender::API, fmt::format("Caught std::exception \"{}\"", ex.what()) );
             try
             {
                 rethrow_if_nested(ex);
@@ -65,7 +70,7 @@ namespace Utility
         }
     }
 
-    void Handle_Exception_API( const std::string & function, int idx_image, int idx_chain )
+    void Handle_Exception_API( const std::string & api_function, int idx_image, int idx_chain )
     {
         try
         {
@@ -82,20 +87,25 @@ namespace Utility
                     str_exception = "exception";
                 else
                     str_exception = "SEVERE exception";
-                Log(ex.level, Log_Sender::API, fmt::format("Caught {} in API function \'{}\'\n{:>49}Exception backtrace:", str_exception, function, " "), idx_image, idx_chain);
+                Log(ex.level, Log_Sender::API, fmt::format("Caught {} in API function \'{}\'\n{:>49}Exception backtrace:", str_exception, api_function, " "), idx_image, idx_chain);
                 
                 // Create backtrace
                 Backtrace_Exception();
-				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
-                Log.Append_to_File();
-    
+                Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
+
                 // Check if the exception was recoverable
-                if (int(ex.level) <= 1)
+                if (ex.classifier == Exception_Classifier::Unknown_Exception ||
+                    ex.classifier == Exception_Classifier::System_not_Initialized ||
+                    ex.classifier == Exception_Classifier::Simulated_domain_too_small ||
+                    int(ex.level) <= 1)
                 {
                     Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
 					Log.Append_to_File();
                     std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 }
+
+				// If it was recoverable we now write to Log
+				Log.Append_to_File();
             }
         }
         catch ( ... )
@@ -106,46 +116,49 @@ namespace Utility
     }
 
 
-	void Handle_Exception_Core(std::string message, const char * file, unsigned int line, const std::string & function)
-	{
-		// Rethrow in order to get an exception reference (instead of pointer)
-		try
-		{
-			std::rethrow_exception(std::current_exception());
-		}
-		catch (const S_Exception & ex)
-		{
-			bool can_handle = true;
-			if (ex.classifier == Exception_Classifier::Unknown_Exception ||
-				ex.classifier == Exception_Classifier::System_not_Initialized ||
-				ex.classifier == Exception_Classifier::Simulated_domain_too_small)
-				can_handle = false;
+    void Handle_Exception_Core(std::string message, const char * file, unsigned int line, const std::string & function)
+    {
+        // Rethrow in order to get an exception reference (instead of pointer)
+        try
+        {
+            std::rethrow_exception(std::current_exception());
+        }
+        catch (const S_Exception & ex)
+        {
+            bool can_handle = true;
+            if (ex.classifier == Exception_Classifier::Unknown_Exception ||
+                ex.classifier == Exception_Classifier::System_not_Initialized ||
+                ex.classifier == Exception_Classifier::Simulated_domain_too_small ||
+                int(ex.level) <= 1)
+                can_handle = false;
 
-			if (can_handle)
-			{
-				int idx_image = -1, idx_chain = -1;
+            if (can_handle)
+            {
+                int idx_image = -1, idx_chain = -1;
 
-				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
-				Log(ex.level, Log_Sender::API, fmt::format("{}:{} in function \'{}\'\n{:>49}Caught exception: {}\n{:>49}Exception backtrace:", file, line, function, " ", message, " "), idx_image, idx_chain);
+                Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
+                Log(ex.level, Log_Sender::API, fmt::format("{}:{} in function \'{}\'\n{:>49}Caught exception: {}\n{:>49}Exception backtrace:", file, line, function, " ", message, " "), idx_image, idx_chain);
+                
+                // Create backtrace
+                Backtrace_Exception();
+                Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
+                Log.Append_to_File();
+            }
+            else
+            {
+                auto ex2 = S_Exception(ex.classifier, ex.level, message, file, line, function);
+                std::throw_with_nested(ex2);
+            }
+        }
+        catch (...)
+        {
+            // If something cannot be handled in the core, we re-throw it
+            // so it will be handled in the API layer
+            spirit_rethrow(message);
+        }
+    }
 
-				// Create backtrace
-				Backtrace_Exception();
-				Log(ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain);
-				Log.Append_to_File();
-			}
-			else
-			{
-				auto ex2 = S_Exception(ex.classifier, ex.level, message, file, line, function);
-				std::throw_with_nested(ex2);
-			}
-		}
-		catch (...)
-		{
-			spirit_rethrow(message);
-		}
-	}
-    
-    
+
     // void Spirit_Exception( const Exception & ex, int idx_image, int idx_chain )
     // {
     //     switch ( ex ) 

@@ -31,7 +31,8 @@ public:
         CAMERA_POSITION,
         CENTER_POSITION,
         UP_VECTOR,
-        LIGHT_POSITION
+        LIGHT_POSITION,
+        CLEAR
     };
 
     View();
@@ -49,18 +50,7 @@ public:
     void options(const Options& options);
     const Options& options() const;
 
-    void update(const Geometry& geometry, const std::vector<glm::vec3>& vectors);
-    void updateVectors(const std::vector<glm::vec3>& vectors);
-
-    const std::vector<glm::vec3>& positions() const;
-    const std::vector<glm::vec3>& directions() const;
-    const std::vector<std::array<Geometry::index_type, 3>>& surfaceIndices() const;
-    const std::vector<std::array<Geometry::index_type, 4>>& volumeIndices() const;
-
     void renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers);
-
-    unsigned long geometryUpdateId() const;
-    unsigned long vectorsUpdateId() const;
     
 private:
     void setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::vec3 up_vector);
@@ -68,14 +58,10 @@ private:
     void initialize();
 
     bool m_is_initialized = false;
-    Geometry m_geometry;
-    std::vector<glm::vec3> m_vectors;
     std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>> m_renderers;
     Utilities::FPSCounter m_fps_counter;
     glm::vec2 m_framebuffer_size;
     bool m_is_centered = false;
-    unsigned long m_geometry_update_id = 0;
-    unsigned long m_vectors_update_id = 0;
 
     Options m_options;
 };
@@ -138,6 +124,12 @@ struct Options::Option<View::Option::UP_VECTOR> {
 template<>
 struct Options::Option<View::Option::LIGHT_POSITION> {
     glm::vec3 default_value = {0, 0, 1000};
+};
+
+/** Option to set whether or not the background needs to be cleared. */
+template<>
+struct Options::Option<View::Option::CLEAR> {
+    bool default_value = true;
 };
 }
 }
