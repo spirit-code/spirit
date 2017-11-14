@@ -9,6 +9,8 @@
 
 #include <fmt/format.h>
 
+#include <termcolors/termcolors.h>
+
 namespace Utility
 {
 	std::string SenderToString(Log_Sender sender, bool braces_separators=true)
@@ -158,9 +160,20 @@ namespace Utility
 		if (level == Log_Level::Warning)
 			n_warnings++;
 
+		// Determine message color in console
+		auto color = termcolors::color::reset;
+		if (level <= Log_Level::Warning)
+			color = termcolors::color::yellow;
+		if (level <= Log_Level::Error)
+			color = termcolors::color::red;
+		if (level == Log_Level::All)
+			color = termcolors::color::reset;
+
 		// If level <= verbosity, we print to console, but Error and Severe are always printed
 		if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-			std::cout << LogEntryToString(log_entries.back()) << std::endl;
+			std::cout << termcolors::foreground_color(color)
+					  << LogEntryToString(log_entries.back())
+					  << termcolors::foreground_color(termcolors::color::reset)<< std::endl;
 	}
 
 	void LoggingHandler::SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain)
@@ -179,13 +192,21 @@ namespace Utility
 			// Increment message count
 			n_entries++;
 
+			// Determine message color in console
+			auto color = termcolors::color::reset;
+			if (level <= Log_Level::Warning)
+				color = termcolors::color::yellow;
+			if (level <= Log_Level::Error)
+				color = termcolors::color::red;
+			if (level == Log_Level::All)
+				color = termcolors::color::reset;
+
 			// If level <= verbosity, we may print to console, but Error and Severe are always printed
 			if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-				std::cout << LogEntryToString(log_entries.back()) << std::endl;
+				std::cout << termcolors::foreground_color(color)
+						  << LogEntryToString(log_entries.back())
+						  << termcolors::foreground_color(termcolors::color::reset)<< std::endl;
 		}
-		// If level <= verbosity, we may print to console, but Error and Severe are always printed
-		// if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-		// 	std::cout << LogBlockToString(entries);
 	}
 
 	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
