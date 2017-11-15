@@ -214,6 +214,11 @@ namespace Utility
 		Send(level, sender, message, idx_image, idx_chain);
 	}
 
+	void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain)
+	{
+		SendBlock(level, sender, messages, idx_image, idx_chain);
+	}
+
 	std::vector<LogEntry> LoggingHandler::GetEntries()
 	{
 		return log_entries;

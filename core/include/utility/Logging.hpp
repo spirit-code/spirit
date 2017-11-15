@@ -42,13 +42,13 @@ namespace Utility
 	*/
 	enum class Log_Level
 	{
-		All = Log_Level_All,
-		Severe = Log_Level_Severe,
-		Error = Log_Level_Error,
-		Warning = Log_Level_Warning,
+		All       = Log_Level_All,
+		Severe    = Log_Level_Severe,
+		Error     = Log_Level_Error,
+		Warning   = Log_Level_Warning,
 		Parameter = Log_Level_Parameter,
-		Info = Log_Level_Info,
-		Debug = Log_Level_Debug
+		Info      = Log_Level_Info,
+		Debug     = Log_Level_Debug
 	};
 
 	/*
@@ -78,9 +78,10 @@ namespace Utility
 	{
 	public:
 		// Send Log messages
-		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 		void Send(Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 		void operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
+		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
+		void operator() (Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 
 		// Get the Log's entries
 		std::vector<LogEntry> GetEntries();
