@@ -86,14 +86,14 @@ namespace IO
 						// discard line if # is found
 				}// endif new line (while)
 			}
-			else if (format == VF_FileFormat::OVF_BIN8)
+			else if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
 			{
 				auto& spins = *s->spins;
 				auto& geometry = *s->geometry;
 
 				Read_From_OVF( spins, geometry, file );
 			}
-            else if (format == VF_FileFormat::OVF_BIN4 || format == VF_FileFormat::OVF_TEXT )
+            else if ( format == VF_FileFormat::OVF_TEXT )
             {
                 // TODO: remove after implementation
                 
@@ -1109,30 +1109,73 @@ namespace IO
             // comparison of datum size compared to scalar type
             if ( sizeof(scalar) == ovf_binary_length )
             {
-            
+                int index;
+                for( int k=0; k<ovf_xyz_nodes[2]; k++ )
+                {
+                    for( int j=0; j<ovf_xyz_nodes[1]; j++ )
+                    {
+                        for( int i=0; i<ovf_xyz_nodes[0]; i++ )
+                        {
+                            index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
+                            
+                            myfile.myfile->read( reinterpret_cast<char *>( &vf[index][0] ), 
+                                                 3*sizeof(scalar) );
+                        }
+                    }
+                }
+                
             }
             else if ( sizeof(scalar) == 8 && ovf_binary_length == 4 )
             {
-                // TODO: implement reading and converting from 
+                // In the case that Spirit is build with scalar==double and the OVF contains 4 bytes
+                // long data read floats in a buffer and cast them to doubles before copying them
+                // to vf
+                
+                std::vector<float> buffer(3);
+                
+                int index;
+                for( int k=0; k<ovf_xyz_nodes[2]; k++ )
+                {
+                    for( int j=0; j<ovf_xyz_nodes[1]; j++ )
+                    {
+                        for( int i=0; i<ovf_xyz_nodes[0]; i++ )
+                        {
+                            index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
+                            
+                            myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
+                                                 3 * sizeof(float) );
+                            
+                            vf[index][0] = (double)buffer[0];
+                            vf[index][1] = (double)buffer[1];
+                            vf[index][2] = (double)buffer[2];
+                        }
+                    }
+                }
             }
             else if ( sizeof(scalar) == 4 && ovf_binary_length == 8 )
             {
-                // TODO: implement reading and converting from 8 
-            }
-            
-            int index;
-            for( int k=0; k<ovf_xyz_nodes[2]; k++ )
-            {
-                for( int j=0; j<ovf_xyz_nodes[1]; j++ )
+                // In the case that Spirit is build with scalar==float and the OVF contains 8 bytes
+                // long data, read doubles in a buffer and cast them to floats before copying them
+                // to vf
+                
+                std::vector<double> buffer(3);
+                
+                int index;
+                for( int k=0; k<ovf_xyz_nodes[2]; k++ )
                 {
-                    for( int i=0; i<ovf_xyz_nodes[0]; i++ )
+                    for( int j=0; j<ovf_xyz_nodes[1]; j++ )
                     {
-                        index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
-                        
-                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][0] ), 8 );
-                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][1] ), 8 );
-                        myfile.myfile->read( reinterpret_cast<char *>( &vf[index][2] ), 8 );
-                    
+                        for( int i=0; i<ovf_xyz_nodes[0]; i++ )
+                        {
+                            index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
+                            
+                            myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
+                                                 3 * sizeof(double) );
+                            
+                            vf[index][0] = (float)buffer[0];
+                            vf[index][1] = (float)buffer[1];
+                            vf[index][2] = (float)buffer[2];
+                        }
                     }
                 }
             }

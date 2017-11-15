@@ -538,7 +538,7 @@ namespace IO
                 // write binary test value
                 outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
                 
-                // convert every vector of the vf into vector<float> and then write it out
+                // convert every vector of the vf into vector<double> and then write it out
                 for( unsigned int i; i<vf.size(); i++ )
                 {
                     std::vector<double> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
@@ -567,7 +567,7 @@ namespace IO
                 // write binary test value
                 outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
                 
-                // convert every vector of the vf into vector<double> and then write it out
+                // convert every vector of the vf into vector<float> and then write it out
                 for( unsigned int i; i<vf.size(); i++ )
                 {
                     std::vector<float> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
