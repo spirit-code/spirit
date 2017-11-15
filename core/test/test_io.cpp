@@ -52,13 +52,12 @@ TEST_CASE( "IO", "[io]" )
         
         // assure that the system read in corresponds to config minus z
         scalar* data = System_Get_Spin_Directions( state.get() );
-        scalar eps  = 1e-8;
         
         for (int i=0; i<nos; i++)
         {
-            REQUIRE( fabs( data[i*3] - 0 ) < eps );
-            REQUIRE( fabs( data[i*3+1] - 0 ) < eps );
-            REQUIRE( fabs( data[i*3+2] - (-1) ) < eps );
+            REQUIRE( data[i*3] == Approx( 0 ) );
+            REQUIRE( data[i*3+1] == Approx( 0 ) );
+            REQUIRE( data[i*3+2] == Approx( -1 ) );
         }
     }
     

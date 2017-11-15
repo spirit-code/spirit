@@ -346,64 +346,61 @@ namespace IO
         
         // Delimiter
         std::string delimiter;
-        switch( format ) 
+        if ( format == VF_FileFormat::SPIRIT_WHITESPACE_SPIN || 
+             format == VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN )
         {
-            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                delimiter = " ";
-                break;
-            case VF_FileFormat::SPIRIT_CSV_SPIN:
-            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                delimiter = ", ";
-                break;
+             delimiter = " ";
+        }
+        else if ( format == VF_FileFormat::SPIRIT_CSV_SPIN || 
+                  format == VF_FileFormat::SPIRIT_CSV_POS_SPIN )
+        {
+            delimiter = ", ";
         }
         
         // Data
-        switch( format )
+        if ( format == VF_FileFormat::SPIRIT_CSV_SPIN ||
+             format == VF_FileFormat::SPIRIT_WHITESPACE_SPIN ) 
         {
-            // Write only spin
-            case VF_FileFormat::SPIRIT_CSV_SPIN:
-            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                for (int iatom = 0; iatom < vf.size(); ++iatom)
-                {
-                    #ifdef SPIRIT_ENABLE_DEFECTS
-                    if( geometry->atom_types[iatom] < 0 )
-                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
-                                                       0.0, delimiter, 0.0, delimiter, 0.0 );
-                    else
-                    #endif
-                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
-                                                        vf[iatom][0], delimiter, 
-                                                        vf[iatom][1], delimiter, 
-                                                        vf[iatom][2] );
-                }
-                break;
-            // Write position and spin
-            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                for (int iatom = 0; iatom < vf.size(); ++iatom)
-                {
-                    #ifdef SPIRIT_ENABLE_DEFECTS
-                    if( geometry->atom_types[iatom] < 0 )
-                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
-                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}\n",
-                                                       geometry.spin_pos[iatom][0], delimiter,
-                                                       geometry.spin_pos[iatom][1], delimiter,
-                                                       geometry.spin_pos[iatom][2], delimiter,
-                                                       0.0, delimiter, 0.0, delimiter, 0.0 );
-                    else
-                    #endif
-                        output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
-                                                       "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
-                                                       geometry.spin_pos[iatom][0], delimiter,
-                                                       geometry.spin_pos[iatom][1], delimiter,
-                                                       geometry.spin_pos[iatom][2], delimiter,
-                                                       vf[iatom][0], delimiter, 
-                                                       vf[iatom][1], delimiter, 
-                                                       vf[iatom][2] );
-                }
-                break;
+            for (int iatom = 0; iatom < vf.size(); ++iatom)
+            {
+                #ifdef SPIRIT_ENABLE_DEFECTS
+                if( geometry->atom_types[iatom] < 0 )
+                    output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
+                                                   0.0, delimiter, 0.0, delimiter, 0.0 );
+                else
+                #endif
+                    output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
+                                                    vf[iatom][0], delimiter, 
+                                                    vf[iatom][1], delimiter, 
+                                                    vf[iatom][2] );
+            }
         }
+        else if ( format == VF_FileFormat::SPIRIT_CSV_POS_SPIN || 
+                  format == VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN )
+        {
+            for (int iatom = 0; iatom < vf.size(); ++iatom)
+            {
+                #ifdef SPIRIT_ENABLE_DEFECTS
+                if( geometry->atom_types[iatom] < 0 )
+                    output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                   "{:20.10f}{}{:20.10f}{}{:20.10f}\n",
+                                                   geometry.spin_pos[iatom][0], delimiter,
+                                                   geometry.spin_pos[iatom][1], delimiter,
+                                                   geometry.spin_pos[iatom][2], delimiter,
+                                                   0.0, delimiter, 0.0, delimiter, 0.0 );
+                else
+                #endif
+                    output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
+                                                   "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
+                                                   geometry.spin_pos[iatom][0], delimiter,
+                                                   geometry.spin_pos[iatom][1], delimiter,
+                                                   geometry.spin_pos[iatom][2], delimiter,
+                                                   vf[iatom][0], delimiter, 
+                                                   vf[iatom][1], delimiter, 
+                                                   vf[iatom][2] );
+            }
+        }
+        
         Append_String_to_File( output_to_file, filename );
     }
     
@@ -416,17 +413,15 @@ namespace IO
         output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
         
         std::string datatype = "";
-        switch ( format ) {
-            case VF_FileFormat::OVF_BIN8:
-                datatype = "binary 8";
-                break;
-            case VF_FileFormat::OVF_BIN4:
-                datatype = "binary 4";
-                break;
-            case VF_FileFormat::OVF_TEXT:
-                datatype = "text";
-                break;
-        }
+        
+        if ( format == VF_FileFormat::OVF_BIN8 ) 
+            datatype = "binary 8";
+        
+        if ( format == VF_FileFormat::OVF_BIN4 )
+            datatype = "binary 4";
+        
+        if ( format == VF_FileFormat::OVF_TEXT )
+            datatype = "text";
         
         // Header
         output_to_file += fmt::format( "# OOMMF OVF 2.0\n" );
@@ -518,7 +513,7 @@ namespace IO
                              const std::string filename, VF_FileFormat format )
     {
         // open the file to append binary
-        std::ofstream outputfile( filename, std::ios::out | std::ios::app ); 
+        std::ofstream outputfile( filename, std::ios::out | std::ios::app | std::ios::binary ); 
         outputfile.seekp( std::ios::end );                      // go to the end of the header
         
         // float test value
@@ -538,14 +533,17 @@ namespace IO
                 // write binary test value
                 outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
                 
+                double buffer[3];
+                
                 // convert every vector of the vf into vector<double> and then write it out
                 for( unsigned int i; i<vf.size(); i++ )
-                {
-                    std::vector<double> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
+                {                    
+                    buffer[0] = static_cast<double>(vf[i][0]);
+                    buffer[1] = static_cast<double>(vf[i][1]);
+                    buffer[2] = static_cast<double>(vf[i][2]);
                     
-                    outputfile.write( const_cast<char *>( 
-                                        reinterpret_cast<const char *>(&buffer[0]) ), 
-                                        buffer.size() * sizeof(double) ); 
+                    outputfile.write( reinterpret_cast<char *>(&buffer[0]), 
+                                      3 * sizeof(double) ); 
                 }
             }
             else
@@ -567,14 +565,17 @@ namespace IO
                 // write binary test value
                 outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
                 
+                float buffer[3];
+                
                 // convert every vector of the vf into vector<float> and then write it out
                 for( unsigned int i; i<vf.size(); i++ )
                 {
-                    std::vector<float> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
+                    buffer[0] = static_cast<float>(vf[i][0]);
+                    buffer[1] = static_cast<float>(vf[i][1]);
+                    buffer[2] = static_cast<float>(vf[i][2]);
                     
-                    outputfile.write( const_cast<char *>( 
-                                            reinterpret_cast<const char *>(&buffer[0]) ), 
-                                            buffer.size() * sizeof(float) ); 
+                    outputfile.write( reinterpret_cast<char *>( &buffer[0] ), 
+                                      3 * sizeof(float) ); 
                 }
             }
             else

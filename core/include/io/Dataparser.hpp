@@ -45,7 +45,8 @@ namespace IO
     void Pinned_from_File( const std::string pinnedFile, int& n_pinned,
                            intfield& pinned_indices, vectorfield& pinned_spins );
     // Read data from OVF file format
-    void Read_From_OVF( vectorfield& vf, const Data::Geometry& geometry, std::string inputfilename );
+    void Read_From_OVF( vectorfield& vf, const Data::Geometry& geometry, std::string inputfilename, 
+                        VF_FileFormat format );
     // Reads the OVF binary data to the vectorfield vf
     void OVF_Read_Binary( Filter_File_Handle& myfile, const int ovf_binary_length, 
                           const std::array<int, 3>& ovf_xyz_nodes, vectorfield& vf );

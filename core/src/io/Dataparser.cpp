@@ -91,7 +91,7 @@ namespace IO
 				auto& spins = *s->spins;
 				auto& geometry = *s->geometry;
 
-				Read_From_OVF( spins, geometry, file );
+				Read_From_OVF( spins, geometry, file, format );
 			}
             else if ( format == VF_FileFormat::OVF_TEXT )
             {
@@ -929,14 +929,13 @@ namespace IO
 		line[pos] = 0;
 	}
 
-    void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string ovfFileName )
+    void Read_From_OVF( vectorfield & vf, const Data::Geometry & geometry, std::string ovfFileName, 
+                        VF_FileFormat format )
     {
         try
         {
-            VF_FileFormat format = VF_FileFormat::OVF_BIN8;     // set the format to ovf
-            
             Log( Log_Level::Info, Log_Sender::IO, "Start reading OOMMF OVF file" );
-            Filter_File_Handle myfile( ovfFileName, VF_FileFormat::OVF_BIN8 );
+            Filter_File_Handle myfile( ovfFileName, format );
             
             // initialize strings
             std::string ovf_version = "";
@@ -1131,7 +1130,7 @@ namespace IO
                 // long data read floats in a buffer and cast them to doubles before copying them
                 // to vf
                 
-                std::vector<float> buffer(3);
+                float buffer[3];
                 
                 int index;
                 for( int k=0; k<ovf_xyz_nodes[2]; k++ )
@@ -1145,9 +1144,9 @@ namespace IO
                             myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
                                                  3 * sizeof(float) );
                             
-                            vf[index][0] = (double)buffer[0];
-                            vf[index][1] = (double)buffer[1];
-                            vf[index][2] = (double)buffer[2];
+                            vf[index][0] = static_cast<double>(buffer[0]);
+                            vf[index][1] = static_cast<double>(buffer[1]);
+                            vf[index][2] = static_cast<double>(buffer[2]);
                         }
                     }
                 }
@@ -1158,7 +1157,7 @@ namespace IO
                 // long data, read doubles in a buffer and cast them to floats before copying them
                 // to vf
                 
-                std::vector<double> buffer(3);
+                double buffer[3];
                 
                 int index;
                 for( int k=0; k<ovf_xyz_nodes[2]; k++ )
@@ -1172,9 +1171,9 @@ namespace IO
                             myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
                                                  3 * sizeof(double) );
                             
-                            vf[index][0] = (float)buffer[0];
-                            vf[index][1] = (float)buffer[1];
-                            vf[index][2] = (float)buffer[2];
+                            vf[index][0] = static_cast<float>(buffer[0]);
+                            vf[index][1] = static_cast<float>(buffer[1]);
+                            vf[index][2] = static_cast<float>(buffer[2]);
                         }
                     }
                 }

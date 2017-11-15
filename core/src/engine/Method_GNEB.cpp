@@ -276,10 +276,10 @@ namespace Engine
 			std::string preEnergiesFile;
             std::string fileTag;
             
-            if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
+            if (this->parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
-            else if (this->systems[0]->llg_parameters->output_file_tag != "")
-                fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
+            else if (this->parameters->output_file_tag != "")
+                fileTag = this->parameters->output_file_tag + "_";
             else 
                 fileTag = "";
             
@@ -294,7 +294,7 @@ namespace Engine
 				std::string chainFile = preChainFile + suffix + ".txt";
 
 				// Chain
-                std::string output_comment( "Iteration: " + iteration );
+                std::string output_comment = fmt::format( "Iteration: {}", iteration );
                 IO::Write_Chain_Spin_Configuration( this->chain, chainFile, 
                                                     IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
                                                     output_comment, append );
