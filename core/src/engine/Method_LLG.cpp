@@ -102,9 +102,9 @@ namespace Engine
             scalar a_j = parameters.stt_magnitude;
             Vector3 s_c_vec = parameters.stt_polarisation_normal;
             // - gradient
-            scalar b_j = 1.0;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
+            scalar b_j = a_j;    // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
             scalar beta = parameters.beta;  // non-adiabatic parameter of correction term
-            Vector3 je = { 1,0,0 }; // direction of current
+            Vector3 je = s_c_vec;// direction of current
             //////////
 
             // TODO: why the 0.5 everywhere??

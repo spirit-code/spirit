@@ -286,9 +286,6 @@ namespace Engine
             neigh_tmp.translations[2] = -1;
             neigh.push_back(neigh_tmp);
 
-            // difference quotients in different directions
-            Vector3 diffq, diffqx, diffqy, diffqz;
-
             // Loop over vectorfield
             for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
             {
@@ -296,35 +293,59 @@ namespace Engine
                 // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
                 scalar n = 0;
 
-                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
-                
+                gradient[ispin].setZero();
+
+                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
+                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+                Vector3 proj = {0, 0, 0};
+                Vector3 projection_inv = {0, 0, 0};
+
+                // TODO: both loops together.
+
+                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
                 for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
                     if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
-                        // index of neighbour
+                        // Index of neighbour
                         int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
-                        
-                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
-                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
-
-                        // difference quotient in direction of the neighbour
-                        diffq = ( vf[ineigh] - vf[ispin] ) / translationVec3.norm();
-
-                        // projection of difference quotient in euclidian space
-                        diffqx += translationVec3[0]*diffq;
-                        diffqy += translationVec3[1]*diffq;
-                        diffqz += translationVec3[2]*diffq;
-                        
-                        // boundary conditions considered
-                        n += 1;
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.spin_pos[ineigh] - geometry.spin_pos[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
+                            }
+                        }
+                    }
+                }
+                for (int dim=0; dim<3; ++dim)
+                {
+                    if (std::abs(proj[dim]) > 1e-10)
+                        projection_inv[dim] = 1.0/proj[dim];
+                }
+                // Loop over neighbours of this vector to calculate finite differences
+                for(unsigned int j = 0; j < neigh.size(); ++j)
+                {
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.spin_pos[ineigh] - geometry.spin_pos[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
+                            }
+                        }
                     }
                 }
 
-                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
-
-
-                gradient[ispin] = (direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+                for (int dim=0; dim<3; ++dim)
+                {
+                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
+                }
             }
         }
 
