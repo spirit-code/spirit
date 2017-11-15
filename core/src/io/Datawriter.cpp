@@ -489,17 +489,16 @@ namespace IO
         
         // Data
         output_to_file += fmt::format( "# Begin: data {}\n", datatype );
-                
-        switch ( format ) {
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-                Dump_to_File( output_to_file, filename );   // dump to file
-                output_to_file = "\n";                      // reset output string (start new line)
-                Write_OVF_bin_data( vf, geometry, filename, format ); // write the binary
-                break;
-            case VF_FileFormat::OVF_TEXT:
-                Write_OVF_text_data( vf, geometry, output_to_file );
-                break;
+        
+        if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+        {
+            Dump_to_File( output_to_file, filename );   // dump to file
+            output_to_file = "\n";                      // reset output string (start new line)
+            Write_OVF_bin_data( vf, geometry, filename, format ); // write the binary
+        }
+        else if ( format == VF_FileFormat::OVF_TEXT )
+        {
+            Write_OVF_text_data( vf, geometry, output_to_file );
         }
         
         output_to_file += fmt::format( "# End: data {}\n", datatype );
@@ -507,15 +506,11 @@ namespace IO
         output_to_file += fmt::format( "# End: Segment\n" );
         
         // after data writting append output if binary or dump output if text
-        switch ( format ) {
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-                Append_String_to_File( output_to_file, filename );
-                break;
-            case VF_FileFormat::OVF_TEXT:
-                Dump_to_File( output_to_file, filename );
-                break;
-        }
+        if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+            Append_String_to_File( output_to_file, filename );
+        else if ( format == VF_FileFormat::OVF_TEXT )
+            Dump_to_File( output_to_file, filename );
+        
     }
     
     // Writes the OVF bin data
@@ -526,31 +521,71 @@ namespace IO
         std::ofstream outputfile( filename, std::ios::out | std::ios::app ); 
         outputfile.seekp( std::ios::end );                      // go to the end of the header
         
+        // float test value
+        uint32_t hex_4b_test = 0x4996B438;
+        float ref_4b_test = *reinterpret_cast<float *>( &hex_4b_test );
+        
+        // double test value
+        uint64_t hex_8b_test = 0x42DC12218377DE40;
+        double ref_8b_test = *reinterpret_cast<double *>( &hex_8b_test );
+        
         if( format == VF_FileFormat::OVF_BIN8 )
         {
-            // write binary test value
-            uint64_t hex_8b_test = 0x42DC12218377DE40;
-            double ref_8b_test = *reinterpret_cast<double *>( &hex_8b_test );
-            outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
-            
-            //// TODO: in case that sizeof(scalar) != sizeof(double)
-            
-            // write data
-            outputfile.write( const_cast<char *>( reinterpret_cast<const char *>(&vf[0]) ), 
-                              vf.size() * vf[0].size() * sizeof(double) ); 
+            // check if the application is build with scalar==float. If yes cast to float vf (it 
+            // will copy data) 
+            if ( sizeof(scalar) == sizeof(float) )
+            {
+                // write binary test value
+                outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
+                
+                // convert every vector of the vf into vector<float> and then write it out
+                for( unsigned int i; i<vf.size(); i++ )
+                {
+                    std::vector<double> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
+                    
+                    outputfile.write( const_cast<char *>( 
+                                        reinterpret_cast<const char *>(&buffer[0]) ), 
+                                        buffer.size() * sizeof(double) ); 
+                }
+            }
+            else
+            {
+                // write binary test value
+                outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
+                
+                // just copy out the whole vf
+                outputfile.write( const_cast<char *>( reinterpret_cast<const char *>(&vf[0]) ), 
+                                   vf.size() * vf[0].size() * sizeof(double) ); 
+            }
         }
         else if( format == VF_FileFormat::OVF_BIN4 )
         {
-            // write binary test value
-            uint32_t hex_4b_test = 0x4996B438;
-            float ref_4b_test = *reinterpret_cast<float *>( &hex_4b_test );
-            outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
-            
-            //// TODO: in case that sizeof(scalar) != sizeof(double)
-            
-            //// TODO: implement that properly
-            
-            //outputfile.write( reinterpret_cast<char *>(vf[0]), vf.size() * sizeof(float) ); 
+            // check if the application is build with scalar==double. If yes cast to double vf (it 
+            // will copy data) 
+            if ( sizeof(scalar) == sizeof(double) )
+            {
+                // write binary test value
+                outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
+                
+                // convert every vector of the vf into vector<double> and then write it out
+                for( unsigned int i; i<vf.size(); i++ )
+                {
+                    std::vector<float> buffer( vf[i].data(), vf[i].data() + vf[i].size() );
+                    
+                    outputfile.write( const_cast<char *>( 
+                                            reinterpret_cast<const char *>(&buffer[0]) ), 
+                                            buffer.size() * sizeof(float) ); 
+                }
+            }
+            else
+            {
+                // write binary test value
+                outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
+                
+                // just copy out the whole vf
+                outputfile.write( const_cast<char *>( reinterpret_cast<const char *>(&vf[0]) ), 
+                                   vf.size() * vf[0].size() * sizeof(float) ); 
+            }
         }
         
         outputfile.close();
