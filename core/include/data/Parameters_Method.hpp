@@ -16,15 +16,15 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method(std::string output_folder, std::array<bool,4> output,
-			long int n_iterations, long int n_iterations_log, long int max_walltime_sec,
-			std::shared_ptr<Pinning> pinning, scalar force_convergence);
+		Parameters_Method(std::string output_folder, std::string output_file_tag,
+            std::array<bool,3> output, long int n_iterations, long int n_iterations_log, 
+            long int max_walltime_sec, std::shared_ptr<Pinning> pinning, scalar force_convergence );
 
 		// Data output folder
 		std::string output_folder;
 
-		// Put a time tag in front of output files
-		bool output_tag_time;
+		// Put a tag in front of output files (if "<time>" is used then the tag is the timestamp)
+		std::string output_file_tag;
 		// Save any output when logging
 		bool output_any;
 		// Save output at initial state

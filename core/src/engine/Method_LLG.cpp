@@ -246,25 +246,30 @@ namespace Engine
 
             std::string preSpinsFile;
             std::string preEnergyFile;
-            if (this->systems[0]->llg_parameters->output_tag_time)
-            {
-                preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Spins";
-                preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Energy";
-            }
+            std::string fileTag;
+            
+            if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->systems[0]->llg_parameters->output_file_tag != "")
+                fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
             else
-            {
-                preSpinsFile = this->parameters->output_folder + "/Image-" + s_img + "_Spins";
-                preEnergyFile = this->parameters->output_folder + "/_Image-" + s_img + "_Energy";
-            }
+                fileTag = "";
+                
+            preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
+            preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
+            
 
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                // File name
+                // File name and comment
                 std::string spinsFile = preSpinsFile + suffix + ".txt";
-
+                std::string comment = std::to_string( iteration );
                 // Spin Configuration
-                IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
+                                              *( this->systems[0] )->geometry, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
+                                              comment, append );
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -282,15 +287,15 @@ namespace Engine
                     std::ifstream f(energyFile);
                     if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
                     // Append Energy to File
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                 }
                 else
                 {
                     IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
                     }
                 }
             };

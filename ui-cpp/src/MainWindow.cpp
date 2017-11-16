@@ -1123,7 +1123,7 @@ void MainWindow::save_Spin_Configuration()
 		auto qs_type = fi.completeSuffix();
 		int type = IO_Fileformat_Regular;
 		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+		else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
 		// Write the file
 		auto file = string_q2std(fileName);
 		IO_Image_Write(this->state.get(), file.c_str(), type);
@@ -1154,7 +1154,7 @@ void MainWindow::load_Spin_Configuration()
 			auto qs_type = fi.suffix();
 			if (qs_type == "txt") type = IO_Fileformat_Regular;
 			else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-			else if (qs_type == "ovf") type = IO_Fileformat_OVF;
+			else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
 			else
 			{
 				Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
@@ -1195,7 +1195,7 @@ void MainWindow::save_SpinChain_Configuration()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Chain_Write(this->state.get(), file.c_str());
+		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_Regular );
 	}
 }
 
@@ -1263,7 +1263,7 @@ void MainWindow::save_System_Energy_Spins()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_System_Energy_per_Spin(this->state.get(), file.c_str());
+		IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str());
 	}
 }
 
@@ -1274,7 +1274,7 @@ void MainWindow::save_Chain_Energies()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_Chain_Energies(this->state.get(), file.c_str());
+		IO_Chain_Write_Energies(this->state.get(), file.c_str());
 	}
 }
 
@@ -1285,7 +1285,7 @@ void MainWindow::save_Chain_Energies_Interpolated()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Write_Chain_Energies_Interpolated(this->state.get(), file.c_str());
+		IO_Chain_Write_Energies_Interpolated(this->state.get(), file.c_str());
 	}
 }
 

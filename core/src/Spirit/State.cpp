@@ -1,8 +1,8 @@
 #include <Spirit/State.h>
-#include <Spirit/Version.h>
 #include "Spirit_Defines.h"
 #include <data/State.hpp>
 #include <io/IO.hpp>
+#include <utility/Version.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Logging.hpp>
@@ -28,11 +28,11 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Log version info
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
-        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(VERSION));
+        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(version));
         
         // Log revision hash
         Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " + 
-             std::string(VERSION_REVISION));
+             std::string(version_revision));
         
         // Log if quiet mode
         if (state->quiet)
@@ -194,8 +194,12 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         if (Log.save_input_initial)
         {
             std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
+            
+            if ( Log.file_tag == std::string("<time>") )
                 file += "_" + state->datetime_creation_string;
+            else if ( Log.file_tag != std::string("") )
+                file += "_" + Log.file_tag;
+            
             file += "_initial.cfg";
             State_To_Config(state, file.c_str(), state->config_file.c_str());
         }
@@ -245,8 +249,12 @@ void State_Delete(State * state) noexcept
         if (Log.save_input_final)
         {
             std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
+            
+            if ( Log.file_tag == std::string("<time>") )
                 file += "_" + state->datetime_creation_string;
+            else if ( Log.file_tag != std::string("") )
+                file += "_" + Log.file_tag;
+            
             file += "_final.cfg";
             State_To_Config(state, file.c_str(), state->config_file.c_str());
         }

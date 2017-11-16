@@ -363,25 +363,29 @@ namespace Engine
 
 			std::string preSpinsFile;
 			std::string preEnergyFile;
-			if (this->collection->parameters->output_tag_time)
-			{
-				preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img;
-				preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img;
-			}
-			else
-			{
-				preSpinsFile = this->parameters->output_folder + "/Spins_" + s_img;
-				preEnergyFile = this->parameters->output_folder + "/Energy_" + s_img;
-			}
-
+            std::string fileTag;
+            
+			if (this->collection->parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->collection->parameters->output_file_tag != "")
+                fileTag = this->collection->parameters->output_file_tag + "_";
+            else
+                fileTag = "";
+            
+			preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Spins_" + s_img;
+			preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Energy_" + s_img;
+			
 			// Function to write or append image and energy files
 			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
 			{
-				// File name
+				// File name and comment
 				std::string spinsFile = preSpinsFile + suffix + ".txt";
-
+                std::string comment = std::to_string( iteration );
 				// Spin Configuration
-				IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
+                                              *( this->systems[0] )->geometry, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
+                                              comment, append );
 			};
 
 			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -399,7 +403,7 @@ namespace Engine
 				std::ifstream f(energyFile);
 				if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
 				// Append Energy to File
-				//IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+				//IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
 
 				//
 				scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
@@ -492,7 +496,8 @@ namespace Engine
 			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
 			//		else
 			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
-			//		IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, true);
+			//		IO::Write_Spin_Configuration( *(this->systems[0])->spins, iteration, spinsFile, 
+            //                                     true );
 			//		
 			//		if (this->collection->parameters->output_energy)
 			//		{

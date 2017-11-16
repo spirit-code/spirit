@@ -90,8 +90,9 @@ namespace Utility
 		void Append_to_File();
 		void Dump_to_File();
 
-		// Wether to tag the time in front of the Log file name
-		bool tag_time;
+		// The file tag in from of the Log or Output files (if "<time>" is used then the tag is 
+        // the timestamp)
+		std::string file_tag;
 		// Output folder where to save the Log file
 		std::string output_folder;
 		// Save Log messages to file

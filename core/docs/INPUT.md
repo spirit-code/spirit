@@ -16,8 +16,8 @@ General Settings and Log <a name="General"></a>
 --------------------------------------------------
 
 ```Python
-### Add a time tag to output files
-output_tag_time         1
+### Add a tag to output files (for timestamp use "<time>")
+output_file_tag         some_tag
 ```
 
 ```Python

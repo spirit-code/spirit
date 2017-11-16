@@ -182,7 +182,7 @@ if ( SPIRIT_USE_THREADS )
 	set ( SPIRIT_DEFINE_THREADS "#define SPIRIT_USE_THREADS")
 endif()
 configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Spirit_Defines.h)
-configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.h.in ${PROJECT_SOURCE_DIR}/include/Spirit/Version.h)
+configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.hpp.in ${PROJECT_SOURCE_DIR}/include/utility/Version.hpp)
 #############################################
 
 
@@ -413,6 +413,7 @@ if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
     add_framework_test( test_api      test/test_api.cpp )
     add_framework_test( test_solvers  test/test_solvers.cpp )
     add_framework_test( test_physics  test/test_physics.cpp )
+    add_framework_test( test_io       test/test_io.cpp )
 endif()
 #############################################
 

@@ -12,9 +12,13 @@ spirit.js.mem
 ### Generated Files
 VERSION.txt
 python/LICENSE.txt
-Spirit_Defines.h
-Version.h
+include/Spirit_Defines.h
+include/utility/Version.hpp
 python/spirit/__init__.py
+python/test/io_test_files/*
+!python/test/io_test_files/.gitkeep
+test/io_test_files/*
+!test/io_test_files/.gitkeep
 scalar.py
 version.py
 

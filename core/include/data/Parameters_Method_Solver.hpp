@@ -17,11 +17,9 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method_Solver(std::string output_folder, std::array<bool,4> output,
-			long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec,
-			std::shared_ptr<Pinning> pinning,
-			scalar force_convergence,
+		Parameters_Method_Solver(std::string output_folder, std::string output_file_tag, 
+            std::array<bool,3> output, long int n_iterations, long int n_iterations_log,
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, scalar force_convergence,
 			scalar dt);
 
 		// Time step per iteration [ps]

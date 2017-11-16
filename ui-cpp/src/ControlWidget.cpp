@@ -372,7 +372,7 @@ void ControlWidget::save_Energies()
 	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
 	if (!fileName.isEmpty()) {
 		auto file = string_q2std(fileName);
-		IO_Write_Chain_Energies(this->state.get(), file.c_str());
+		IO_Chain_Write_Energies(this->state.get(), file.c_str());
 	}
 }
 
@@ -405,9 +405,9 @@ void ControlWidget::save_EPressed()
 	fullNameInterpolated.append(fileNameInterpolated);
 
 	// Save Energies and Energies_Spins
-	IO_Write_System_Energy_per_Spin(this->state.get(), fullNameSpins.c_str());
-	IO_Write_Chain_Energies(this->state.get(), fullName.c_str());
-	IO_Write_Chain_Energies_Interpolated(this->state.get(), fullNameInterpolated.c_str());
+	IO_Image_Write_Energy_per_Spin(this->state.get(), fullNameSpins.c_str());
+	IO_Chain_Write_Energies(this->state.get(), fullName.c_str());
+	IO_Chain_Write_Energies_Interpolated(this->state.get(), fullNameInterpolated.c_str());
 
 	// Update File name in LineEdit if it fits the schema
 	size_t found = fileName.find("Energies");

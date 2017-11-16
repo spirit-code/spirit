@@ -15,9 +15,12 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Parameters_Method_LLG(std::string output_folder, std::array<bool,10> output, scalar force_convergence, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, scalar temperature, scalar damping, scalar beta, scalar time_step, bool renorm_sd,
-			bool stt_use_gradient, scalar stt_magnitude, Vector3 stt_polarisation_normal);
+		Parameters_Method_LLG(std::string output_folder, std::string output_file_tag, 
+            std::array<bool,9> output, scalar force_convergence, long int n_iterations, 
+            long int n_iterations_log, long int max_walltime_sec, std::shared_ptr<Pinning> pinning, 
+            int rng_seed, scalar temperature, scalar damping, scalar beta, scalar time_step, 
+            bool renorm_sd, bool stt_use_gradient, scalar stt_magnitude, 
+            Vector3 stt_polarisation_normal);
 
 		// Damping
 		scalar damping;

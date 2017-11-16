@@ -14,8 +14,10 @@ namespace Data
 	class Parameters_Method_MC : public Parameters_Method
 	{
 	public:
-		Parameters_Method_MC(std::string output_folder, std::array<bool,10> output, long int n_iterations, long int n_iterations_log,
-			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, scalar temperature, scalar acceptance_ratio_target);
+		Parameters_Method_MC( std::string output_folder, std::string output_file_tag, 
+            std::array<bool,9> output, long int n_iterations, long int n_iterations_log,
+			long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int rng_seed, 
+            scalar temperature, scalar acceptance_ratio_target);
 
 		// Temperature [K]
 		scalar temperature;
