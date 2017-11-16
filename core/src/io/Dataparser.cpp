@@ -85,6 +85,7 @@ namespace IO
 					}// endif (# not found)
 						// discard line if # is found
 				}// endif new line (while)
+				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 			}
 			else if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
 			{
@@ -137,8 +138,8 @@ namespace IO
 					}// endif (# not found)
 						// discard line if # is found
 				}// endif new line (while)
+				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 			}
-			if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 			myfile.close();
 			Log(Log_Level::Info, Log_Sender::IO, "Done");
 		}
@@ -896,27 +897,27 @@ namespace IO
 
 	int ReadHeaderLine(FILE * fp, char * line)
 	{
-		char c;//single character 
+		char c;
 		int pos=0;
 		
 		do
 		{
-			c = (char)fgetc(fp); //get current char and move pointer to the next position
-			if (c != EOF && c != '\n') line[pos++] = c; //if it's not the end of the file
+			c = (char)fgetc(fp); // Get current char and move pointer to the next position
+			if (c != EOF && c != '\n') line[pos++] = c; // If it's not the end of the file
 		}
-		while(c != EOF && c != '\n'); //if it's not the end of the file or end of the line
+		while(c != EOF && c != '\n'); // If it's not the end of the file or end of the line
 		
-		line[pos] = 0; //complite the readed line
+		line[pos] = 0; // Complete the read line
 		if ((pos==0 || line[0]!='#') && c != EOF)
-			return ReadHeaderLine(fp, line);// recursive call for ReadHeaderLine if the current line is empty
+			return ReadHeaderLine(fp, line);// Recursive call for ReadHeaderLine if the current line is empty
 		
-		// the last symbol is the line end symbol
+		// The last symbol is the line end symbol
 		return pos-1;
 	}
 	
 	void ReadDataLine(FILE * fp, char * line)
 	{
-		char c;//single character 
+		char c;
 		int pos=0;
 
 		do
@@ -937,7 +938,7 @@ namespace IO
             Log( Log_Level::Info, Log_Sender::IO, "Start reading OOMMF OVF file" );
             Filter_File_Handle myfile( ovfFileName, format );
             
-            // initialize strings
+            // Initialize strings
             std::string ovf_version = "";
             std::string ovf_title = "";
             std::string ovf_meshunit = "";
@@ -947,13 +948,13 @@ namespace IO
             Vector3 ovf_xyz_min(0,0,0);
             //std::string valueunits_list = "";
             int ovf_valuedim = 0;
-            // irregular mesh attributes
+            // Irregular mesh attributes
             int ovf_pointcount = 0;
-            // rectangular mesh attributes
+            // Rectangular mesh attributes
             Vector3 ovf_xyz_base(0,0,0);
             Vector3 ovf_xyz_stepsize(0,0,0);
             std::array<int, 3> ovf_xyz_nodes{ {0,0,0} };
-            // raw data attributes
+            // Raw data attributes
             std::string ovf_data_representation = "";
             int ovf_binary_length = 0;
             
@@ -962,10 +963,10 @@ namespace IO
             // first line - OVF version
             myfile.Read_String( ovf_version, "# OOMMF " );
             if( ovf_version != "OVF 2.0" && ovf_version != "OVF 2" )
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, fmt::format( "{0} is not" 
-                "supported", ovf_version ) );
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO,
+					fmt::format( "{0} is not supported", ovf_version ) );
             
-            // title
+            // Title
             myfile.Read_String( ovf_title, "# Title:" );
             
             // mesh units 
@@ -981,12 +982,12 @@ namespace IO
             myfile.Read_String( ovf_valueunits, "# valuelabels:" );
             
             // {x,y,z} x {min,max}
-            myfile.Require_Single( ovf_xyz_min[0], "# xmin:" );
-            myfile.Require_Single( ovf_xyz_min[1], "# ymin:" );
-            myfile.Require_Single( ovf_xyz_min[2], "# zmin:" );
-            myfile.Require_Single( ovf_xyz_max[0], "# xmax:" );
-            myfile.Require_Single( ovf_xyz_max[1], "# ymax:" );
-            myfile.Require_Single( ovf_xyz_max[2], "# zmax:" );
+            myfile.Read_Single( ovf_xyz_min[0], "# xmin:" );
+            myfile.Read_Single( ovf_xyz_min[1], "# ymin:" );
+            myfile.Read_Single( ovf_xyz_min[2], "# zmin:" );
+            myfile.Read_Single( ovf_xyz_max[0], "# xmax:" );
+            myfile.Read_Single( ovf_xyz_max[1], "# ymax:" );
+            myfile.Read_Single( ovf_xyz_max[2], "# zmax:" );
             
             // meshtype
             myfile.Require_Single( ovf_meshtype, "# meshtype:" );
@@ -1014,7 +1015,7 @@ namespace IO
             Log( lvl, sender, fmt::format( "# OVF ymax                = {}", ovf_xyz_max[1] ) );
             Log( lvl, sender, fmt::format( "# OVF zmax                = {}", ovf_xyz_max[2] ) );
             
-            // for different mesh types
+            // For different mesh types
             if( ovf_meshtype == "rectangular" )
             {
                 // {x,y,z} x {base,stepsize,nodes} 
@@ -1054,34 +1055,34 @@ namespace IO
                 Log( lvl, sender, fmt::format( "# OVF point count = {}", ovf_pointcount ) );
             }
             
-            // raw data representation
-            myfile.Read_String( ovf_data_representation, "# Begin: data" );
+            // Raw data representation
+            myfile.Read_String( ovf_data_representation, "# Begin: Data" );
             std::istringstream repr( ovf_data_representation );
             repr >> ovf_data_representation;
-            if( ovf_data_representation == "binary" ) 
+            if( ovf_data_representation == "Binary" ) 
                 repr >> ovf_binary_length;
             
             Log( lvl, sender, fmt::format( "# OVF data representation = {}", ovf_data_representation ) );
             Log( lvl, sender, fmt::format( "# OVF binary length       = {}", ovf_binary_length ) );
             
-            // check that representation and binary length valures are ok
-            if( ovf_data_representation != "text" && ovf_data_representation != "binary" )
+            // Check that representation and binary length valures are ok
+            if( ovf_data_representation != "Text" && ovf_data_representation != "Binary" )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Data representation must be either \"text\" or \"binary\"");
+                    "Data representation must be either \"Text\" or \"Binary\"");
             }
             
-            if( ovf_data_representation == "binary" && 
+            if( ovf_data_representation == "Binary" && 
                  ovf_binary_length != 4 && ovf_binary_length != 8  )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Binary representation can be either \"binary 8\" or \"binary 4\"");
+                    "Binary representation can be either \"Binary 8\" or \"Binary 4\"");
             }
-            
+
             // Read the data
-            if( ovf_data_representation == "binary" )
+            if( ovf_data_representation == "Binary" )
                 OVF_Read_Binary( myfile, ovf_binary_length, ovf_xyz_nodes, vf );
-            else if( ovf_data_representation == "text" )
+            else if( ovf_data_representation == "Text" )
                 // TODO: function not implemented
                 OVF_Read_Text( myfile, vf ); 
         
@@ -1097,17 +1098,19 @@ namespace IO
     {
         try
         {        
-            // set the input stream indicator to the end of the line describing the data block
+            // Set the input stream indicator to the end of the line describing the data block
             myfile.iss.seekg( std::ios::end );
             
-            // check if the initial check value of the binary data is valid
+            // Check if the initial check value of the binary data is valid
             if( !OVF_Check_Binary_Initial_Values( myfile, ovf_binary_length ) )
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
                     "The OVF initial binary value could not be read correctly");
-            
-            // comparison of datum size compared to scalar type
-            if ( sizeof(scalar) == ovf_binary_length )
+
+            // Comparison of datum size compared to scalar type
+            if ( ovf_binary_length == 4 )
             {
+				int vectorsize = 3 * sizeof(float);
+				float buffer[3];
                 int index;
                 for( int k=0; k<ovf_xyz_nodes[2]; k++ )
                 {
@@ -1116,68 +1119,40 @@ namespace IO
                         for( int i=0; i<ovf_xyz_nodes[0]; i++ )
                         {
                             index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
-                            
-                            myfile.myfile->read( reinterpret_cast<char *>( &vf[index][0] ), 
-                                                 3*sizeof(scalar) );
+
+							myfile.myfile->read(reinterpret_cast<char *>(&buffer[0]), vectorsize);
+
+							vf[index][0] = static_cast<scalar>(buffer[0]);
+							vf[index][1] = static_cast<scalar>(buffer[1]);
+							vf[index][2] = static_cast<scalar>(buffer[2]);
                         }
                     }
                 }
                 
             }
-            else if ( sizeof(scalar) == 8 && ovf_binary_length == 4 )
-            {
-                // In the case that Spirit is build with scalar==double and the OVF contains 4 bytes
-                // long data read floats in a buffer and cast them to doubles before copying them
-                // to vf
-                
-                float buffer[3];
-                
-                int index;
-                for( int k=0; k<ovf_xyz_nodes[2]; k++ )
-                {
-                    for( int j=0; j<ovf_xyz_nodes[1]; j++ )
-                    {
-                        for( int i=0; i<ovf_xyz_nodes[0]; i++ )
-                        {
-                            index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
-                            
-                            myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
-                                                 3 * sizeof(float) );
-                            
-                            vf[index][0] = static_cast<double>(buffer[0]);
-                            vf[index][1] = static_cast<double>(buffer[1]);
-                            vf[index][2] = static_cast<double>(buffer[2]);
-                        }
-                    }
-                }
-            }
-            else if ( sizeof(scalar) == 4 && ovf_binary_length == 8 )
-            {
-                // In the case that Spirit is build with scalar==float and the OVF contains 8 bytes
-                // long data, read doubles in a buffer and cast them to floats before copying them
-                // to vf
-                
-                double buffer[3];
-                
-                int index;
-                for( int k=0; k<ovf_xyz_nodes[2]; k++ )
-                {
-                    for( int j=0; j<ovf_xyz_nodes[1]; j++ )
-                    {
-                        for( int i=0; i<ovf_xyz_nodes[0]; i++ )
-                        {
-                            index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0]*ovf_xyz_nodes[1];
-                            
-                            myfile.myfile->read( reinterpret_cast<char *>( &buffer[0] ), 
-                                                 3 * sizeof(double) );
-                            
-                            vf[index][0] = static_cast<float>(buffer[0]);
-                            vf[index][1] = static_cast<float>(buffer[1]);
-                            vf[index][2] = static_cast<float>(buffer[2]);
-                        }
-                    }
-                }
-            }
+			else if (ovf_binary_length == 8)
+			{
+				int vectorsize = 3 * sizeof(double);
+				double buffer[3];
+				int index;
+				for (int k = 0; k<ovf_xyz_nodes[2]; k++)
+				{
+					for (int j = 0; j<ovf_xyz_nodes[1]; j++)
+					{
+						for (int i = 0; i<ovf_xyz_nodes[0]; i++)
+						{
+							index = i + j*ovf_xyz_nodes[0] + k*ovf_xyz_nodes[0] * ovf_xyz_nodes[1];
+
+							myfile.myfile->read(reinterpret_cast<char *>(&buffer[0]), vectorsize);
+
+							vf[index][0] = static_cast<scalar>(buffer[0]);
+							vf[index][1] = static_cast<scalar>(buffer[1]);
+							vf[index][2] = static_cast<scalar>(buffer[2]);
+						}
+					}
+				}
+
+			}
         }
         catch (...)
         {
@@ -1192,11 +1167,11 @@ namespace IO
             // create initial check values for the binary data (see OVF specification)
             uint64_t hex_8byte = 0x42DC12218377DE40;
             double reference_8byte = *reinterpret_cast<double *>( &hex_8byte );
-            double read_8byte;
+            double read_8byte = 0;
             
             uint32_t hex_4byte = 0x4996B438;
             float reference_4byte = *reinterpret_cast<float *>( &hex_4byte );
-            float read_4byte;
+            float read_4byte = 0;
             
             // check the validity of the initial check value read with the reference one
             if ( ovf_binary_length == 4 )
@@ -1204,8 +1179,8 @@ namespace IO
                 myfile.myfile->read( reinterpret_cast<char *>( &read_4byte ), sizeof(float) );
                 if ( read_4byte != reference_4byte ) 
                 {
-                    Log( Log_Level::Error, Log_Sender::IO, "OVF initial check value of binary data "
-                         "is inconsistent" );
+                    Log( Log_Level::Error, Log_Sender::IO,
+						fmt::format("OVF initial check value of binary data is inconsistent. Expected {}, read {}", reference_4byte, read_4byte));
                     return false;
                 }
             }
@@ -1214,8 +1189,8 @@ namespace IO
                 myfile.myfile->read( reinterpret_cast<char *>( &read_8byte ), sizeof(double) );
                 if ( read_8byte != reference_8byte )
                 {
-                    Log( Log_Level::Error, Log_Sender::IO, "OVF initial check value of binary data "
-                         "is inconsistent" );
+                    Log( Log_Level::Error, Log_Sender::IO,
+						fmt::format("OVF initial check value of binary data is inconsistent. Expected {}, read {}", reference_8byte, read_8byte));
                     return false;
                 }
             }

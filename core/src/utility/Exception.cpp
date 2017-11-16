@@ -108,6 +108,11 @@ namespace Utility
 				Log.Append_to_File();
             }
         }
+		catch ( const std::exception & ex )
+		{
+			std::cerr << "Unable to handle std::exception \'" << ex.what() << "\'" << std::endl;
+			std::exit(EXIT_FAILURE);  // exit the application. may lead to data loss
+		}
         catch ( ... )
         {
             std::cerr << "Something went super-wrong! TERMINATING!" << std::endl;

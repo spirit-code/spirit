@@ -147,10 +147,10 @@ namespace IO
             getline( this->iss, var );
             
             // trim leading and trailing whitespaces
-            size_t start = var.find_first_not_of(" ");
-            size_t end = var.find_last_not_of(" ");
-            if ( start != std::string::npos )
-                var = var.substr( start, ( end - start + 1 ) );
+            size_t start = var.find_first_not_of(" \t\n\r\f\v");
+            size_t end = var.find_last_not_of(" \t\n\r\f\v");
+			if ( start != std::string::npos )
+				var = var.substr( start, ( end - start + 1 ) );
         }
         else if ( log_notfound )
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + keyword + 
