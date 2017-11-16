@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 
-#include <termcolors/termcolors.h>
+#include <termcolor/termcolor.hpp>
 
 namespace Utility
 {
@@ -161,19 +161,17 @@ namespace Utility
 			n_warnings++;
 
 		// Determine message color in console
-		auto color = termcolors::color::reset;
+		auto color = termcolor::reset;
 		if (level <= Log_Level::Warning)
-			color = termcolors::color::yellow;
+			color = termcolor::yellow;
 		if (level <= Log_Level::Error)
-			color = termcolors::color::red;
+			color = termcolor::red;
 		if (level == Log_Level::All)
-			color = termcolors::color::reset;
+			color = termcolor::reset;
 
 		// If level <= verbosity, we print to console, but Error and Severe are always printed
 		if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-			std::cout << termcolors::foreground_color(color)
-					  << LogEntryToString(log_entries.back())
-					  << termcolors::foreground_color(termcolors::color::reset)<< std::endl;
+			std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << std::endl;
 	}
 
 	void LoggingHandler::SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain)
@@ -193,19 +191,17 @@ namespace Utility
 			n_entries++;
 
 			// Determine message color in console
-			auto color = termcolors::color::reset;
+			auto color = termcolor::reset;
 			if (level <= Log_Level::Warning)
-				color = termcolors::color::yellow;
+				color = termcolor::yellow;
 			if (level <= Log_Level::Error)
-				color = termcolors::color::red;
+				color = termcolor::red;
 			if (level == Log_Level::All)
-				color = termcolors::color::reset;
+				color = termcolor::reset;
 
-			// If level <= verbosity, we may print to console, but Error and Severe are always printed
+			// If level <= verbosity, we print to console, but Error and Severe are always printed
 			if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-				std::cout << termcolors::foreground_color(color)
-						  << LogEntryToString(log_entries.back())
-						  << termcolors::foreground_color(termcolors::color::reset)<< std::endl;
+				std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << std::endl;
 		}
 	}
 
