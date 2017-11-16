@@ -568,7 +568,7 @@ namespace IO
                 float buffer[3];
                 
                 // convert every vector of the vf into vector<float> and then write it out
-                for( unsigned int i; i<vf.size(); i++ )
+                for( unsigned int i=0; i<vf.size(); i++ )
                 {
                     buffer[0] = static_cast<float>(vf[i][0]);
                     buffer[1] = static_cast<float>(vf[i][1]);
