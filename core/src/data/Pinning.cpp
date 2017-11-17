@@ -12,7 +12,7 @@ namespace Data
 		//this->mask_pinned = intfield(geometry->nos);
 		this->mask_unpinned = intfield(geometry->nos);
 		this->mask_pinned_cells = vectorfield(geometry->nos);
-		int N  = geometry->n_spins_basic_domain;
+		int N  = geometry->n_cell_atoms;
 		int Na = geometry->n_cells[0];
 		int Nb = geometry->n_cells[1];
 		int Nc = geometry->n_cells[2];
@@ -59,7 +59,7 @@ namespace Data
 
 	void Pinning::Apply(vectorfield & vf)
 	{
-		int N = geometry->n_spins_basic_domain;
+		int N = geometry->n_cell_atoms;
 		int Na = geometry->n_cells[0];
 		int Nb = geometry->n_cells[1];
 		int Nc = geometry->n_cells[2];

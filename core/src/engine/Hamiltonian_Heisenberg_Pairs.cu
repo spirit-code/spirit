@@ -126,12 +126,12 @@ namespace Engine
 		else this->idx_quadruplet = -1;
 	}
 
-	inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations)
+	inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
 	{
 		int Na = n_cells[0];
 		int Nb = n_cells[1];
 		int Nc = n_cells[2];
-		int N = n_spins_basic_domain;
+		int N = n_cell_atoms;
 
 		int da = translations[0];
 		int db = translations[1];
@@ -140,12 +140,12 @@ namespace Engine
 		return da*N + db*N*Na + dc*N*Na*Nb;
 	}
 
-	inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations_i, const int translations[3])
+	inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const int translations[3])
 	{
 		int Na = n_cells[0];
 		int Nb = n_cells[1];
 		int Nc = n_cells[2];
-		int N = n_spins_basic_domain;
+		int N = n_cell_atoms;
 
 		int da = translations_i[0] + translations[0];
 		int db = translations_i[1] + translations[1];
@@ -261,7 +261,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
 	}
 
@@ -294,7 +294,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
 	}
 
@@ -318,8 +318,8 @@ namespace Engine
 		// 					std::array<int, 3 > translations = { da, db, dc };
 		// 					// int idx_i = ddi_pairs[i_pair].i;
 		// 					// int idx_j = ddi_pairs[i_pair].j;
-		// 					int idx_i = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-		// 					int idx_j = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+		// 					int idx_i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+		// 					int idx_j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, ddi_pairs[i_pair].translations);
 		// 					Energy[idx_i] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
 		// 						(3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) - spins[idx_i].dot(spins[idx_j]));
 		// 					Energy[idx_j] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
@@ -347,10 +347,10 @@ namespace Engine
 		// 				// int j = quadruplets[iquad].j;
 		// 				// int k = quadruplets[iquad].k;
 		// 				// int l = quadruplets[iquad].l;
-		// 				int i = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-		// 				int j = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-		// 				int k = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-		// 				int l = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+		// 				int i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+		// 				int j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+		// 				int k = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+		// 				int l = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 		// 				Energy[i] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
 		// 				Energy[j] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
 		// 				Energy[k] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
@@ -463,7 +463,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
 	}
 
@@ -496,7 +496,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->dmi_pairs.size(),  this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
 	}
 
@@ -522,8 +522,8 @@ namespace Engine
 		// 					std::array<int, 3 > translations = { da, db, dc };
 		// 					if (Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_pairs[i_pair].translations))
 		// 					{
-		// 						int ispin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-		// 						int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_pairs[i_pair].translations);
+		// 						int ispin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+		// 						int jspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, ddi_pairs[i_pair].translations);
 		// 						gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
 		// 						gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
 		// 					}
@@ -550,10 +550,10 @@ namespace Engine
 		// 			for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 		// 			{
 		// 				std::array<int, 3 > translations = { da, db, dc };
-		// 				int ispin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-		// 				int jspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-		// 				int kspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-		// 				int lspin = idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+		// 				int ispin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+		// 				int jspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+		// 				int kspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+		// 				int lspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 		// 				gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
 		// 				gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
 		// 				gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
@@ -601,8 +601,8 @@ namespace Engine
 						{
 							// int idx_i = 3 * exchange_pairs[i_pair].i + alpha;
 							// int idx_j = 3 * exchange_pairs[i_pair].j + alpha;
-							int idx_i = 3 * idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations) + alpha;
-							int idx_j = 3 * idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations) + alpha;
+							int idx_i = 3 * idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations) + alpha;
+							int idx_j = 3 * idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, exchange_pairs[i_pair].translations) + alpha;
 							hessian(idx_i, idx_j) += -exchange_magnitudes[i_pair];
 							hessian(idx_j, idx_i) += -exchange_magnitudes[i_pair];
 						}
@@ -627,8 +627,8 @@ namespace Engine
 							{
 								// int idx_i = 3 * dmi_pairs[i_pair].i + alpha;
 								// int idx_j = 3 * dmi_pairs[i_pair].j + beta;
-								int idx_i = 3 * idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations) + alpha;
-								int idx_j = 3 * idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations) + alpha;
+								int idx_i = 3 * idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations) + alpha;
+								int idx_j = 3 * idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, dmi_pairs[i_pair].translations) + alpha;
 								if ((alpha == 0 && beta == 1))
 								{
 									hessian(idx_i, idx_j) +=

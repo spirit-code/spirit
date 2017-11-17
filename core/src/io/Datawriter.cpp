@@ -251,9 +251,9 @@ namespace IO
 	}
 
 
-    void Write_Spin_Positions( const Data::Geometry& geometry, 
-                               const std::string filename, VF_FileFormat format,
-                               const std::string comment, bool append )
+    void Write_Positions( const Data::Geometry& geometry, 
+                          const std::string filename, VF_FileFormat format,
+                          const std::string comment, bool append )
     {
         switch( format )
         {
@@ -262,12 +262,12 @@ namespace IO
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
                 Write_SPIRIT_Version( filename, append );
-                Save_To_SPIRIT( geometry.spin_pos, geometry, filename, format, comment );
+                Save_To_SPIRIT( geometry.positions, geometry, filename, format, comment );
                 break;
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
-                Save_To_OVF( geometry.spin_pos, geometry, filename, format, comment );
+                Save_To_OVF( geometry.positions, geometry, filename, format, comment );
                 break;
             default:
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
@@ -413,17 +413,17 @@ namespace IO
                 if( geometry->atom_types[iatom] < 0 )
                     output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
                                                    "{:20.10f}{}{:20.10f}{}{:20.10f}\n",
-                                                   geometry.spin_pos[iatom][0], delimiter,
-                                                   geometry.spin_pos[iatom][1], delimiter,
-                                                   geometry.spin_pos[iatom][2], delimiter,
+                                                   geometry.positions[iatom][0], delimiter,
+                                                   geometry.positions[iatom][1], delimiter,
+                                                   geometry.positions[iatom][2], delimiter,
                                                    0.0, delimiter, 0.0, delimiter, 0.0 );
                 else
                 #endif
                     output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
                                                    "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
-                                                   geometry.spin_pos[iatom][0], delimiter,
-                                                   geometry.spin_pos[iatom][1], delimiter,
-                                                   geometry.spin_pos[iatom][2], delimiter,
+                                                   geometry.positions[iatom][0], delimiter,
+                                                   geometry.positions[iatom][1], delimiter,
+                                                   geometry.positions[iatom][2], delimiter,
                                                    vf[iatom][0], delimiter, 
                                                    vf[iatom][1], delimiter, 
                                                    vf[iatom][2] );

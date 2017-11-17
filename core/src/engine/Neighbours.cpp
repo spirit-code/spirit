@@ -44,20 +44,20 @@ namespace Engine
 			{
 				current_radius = min_distance;
 				min_distance = 1e10;
-				for (int iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+				for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 				{
-					x0 = geometry.basis_atoms[iatom];
+					x0 = geometry.cell_atoms[iatom];
 					for (ii = imax; ii >= -imax; --ii)
 					{
 						for (jj = jmax; jj >= -jmax; --jj)
 						{
 							for (kk = kmax; kk >= -kmax; --kk)
 							{
-								for (int jatom = 0; jatom < geometry.n_spins_basic_domain; ++jatom)
+								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
 									if ( !( iatom==jatom && ii==0 && jj==0 && kk==0 ) )
 									{
-										x1 = geometry.basis_atoms[jatom] + ii*a + jj*b + kk*c;
+										x1 = geometry.cell_atoms[jatom] + ii*a + jj*b + kk*c;
 										dx = (x0-x1).norm();
 
 										if (dx - current_radius > 1e-6 && dx < min_distance)
@@ -99,9 +99,9 @@ namespace Engine
 			if (b.norm() == 0.0) jmax = 0;
 			if (c.norm() == 0.0) kmax = 0;
 
-			for (int iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+			for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 			{
-				x0 = geometry.basis_atoms[iatom];
+				x0 = geometry.cell_atoms[iatom];
 				for (int ishell = 0; ishell < nShells; ++ishell)
 				{
 					radius = shell_radius[ishell];
@@ -111,9 +111,9 @@ namespace Engine
 						{
 							for (k = kmax; k >= -kmax; --k)
 							{
-								for (int jatom = 0; jatom < geometry.n_spins_basic_domain; ++jatom)
+								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									x1 = geometry.basis_atoms[jatom] + i*a + j*b + k*c;
+									x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
 									dx = (x0-x1).norm();
 									delta = std::abs(dx - radius);
 									if (delta < 1e-6)
@@ -153,9 +153,9 @@ namespace Engine
 			if (b.norm() == 0.0) jmax = 0;
 			if (c.norm() == 0.0) kmax = 0;
 
-			for (int iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+			for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 			{
-				x0 = geometry.basis_atoms[iatom];
+				x0 = geometry.cell_atoms[iatom];
 				for (int ishell = 0; ishell < nShells; ++ishell)
 				{
 					radius = shell_radius[ishell];
@@ -165,9 +165,9 @@ namespace Engine
 						{
 							for (k = kmax; k >= -kmax; --k)
 							{
-								for (int jatom = 0; jatom < geometry.n_spins_basic_domain; ++jatom)
+								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									x1 = geometry.basis_atoms[jatom] + i*a + j*b + k*c;
+									x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
 									dx = (x0-x1).norm();
 									delta = std::abs(dx - radius);
 									if (delta < 1e-6)
@@ -226,18 +226,18 @@ namespace Engine
 				if (b.norm() == 0.0) jmax = 0;
 				if (c.norm() == 0.0) kmax = 0;
 
-				for (int iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+				for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 				{
-					x0 = geometry.basis_atoms[iatom];
+					x0 = geometry.cell_atoms[iatom];
 					for (i = imax; i >= -imax; --i)
 					{
 						for (j = jmax; j >= -jmax; --j)
 						{
 							for (k = kmax; k >= -kmax; --k)
 							{
-								for (int jatom = 0; jatom < geometry.n_spins_basic_domain; ++jatom)
+								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									x1 = geometry.basis_atoms[jatom] + i*a + j*b + k*c;
+									x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
 									dx = (x0-x1).norm();
 									if (dx < radius)
 									{
@@ -288,18 +288,18 @@ namespace Engine
 				if (b.norm() == 0.0) jmax = 0;
 				if (c.norm() == 0.0) kmax = 0;
 
-				for (int iatom = 0; iatom < geometry.n_spins_basic_domain; ++iatom)
+				for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 				{
-					x0 = geometry.basis_atoms[iatom];
+					x0 = geometry.cell_atoms[iatom];
 					for (i = imax; i >= -imax; --i)
 					{
 						for (j = jmax; j >= -jmax; --j)
 						{
 							for (k = kmax; k >= -kmax; --k)
 							{
-								for (int jatom = 0; jatom < geometry.n_spins_basic_domain; ++jatom)
+								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									x1 = geometry.basis_atoms[jatom] + i*a + j*b + k*c;
+									x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
 									dx = (x0 - x1).norm();
 									if (dx < radius)
 									{
@@ -333,8 +333,8 @@ namespace Engine
 			int db = pair.translations[1];
 			int dc = pair.translations[2];
 
-			Vector3 ipos = geometry.basis_atoms[pair.i];
-			Vector3 jpos = geometry.basis_atoms[pair.j] + da*ta + db*tb + dc*tc;
+			Vector3 ipos = geometry.cell_atoms[pair.i];
+			Vector3 jpos = geometry.cell_atoms[pair.j] + da*ta + db*tb + dc*tc;
 
 			if (chirality == 1)
 			{
@@ -372,8 +372,8 @@ namespace Engine
 			int db = pair.translations[1];
 			int dc = pair.translations[2];
 
-			Vector3 ipos = geometry.basis_atoms[pair.i];
-			Vector3 jpos = geometry.basis_atoms[pair.j] + da*ta + db*tb + dc*tc;
+			Vector3 ipos = geometry.cell_atoms[pair.i];
+			Vector3 jpos = geometry.cell_atoms[pair.j] + da*ta + db*tb + dc*tc;
 
 			// Calculate positions and difference vector
 			Vector3 vector_ij = jpos - ipos;

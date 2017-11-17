@@ -177,7 +177,7 @@ namespace IO
     }// End Spin_System_from_Config		
 
 
-    void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms, scalar & lattice_constant)
+    void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & cell_atoms, scalar & lattice_constant)
     {
         try
         {
@@ -186,10 +186,10 @@ namespace IO
             lattice_constant = 1.0;
             // Basis: vector {a, b, c}
             basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_basis_atoms]
-            basis_atoms = { Vector3{0,0,0} };
+            // Atoms in the basis [dim][n_cell_atoms]
+            cell_atoms = { Vector3{0,0,0} };
             // NoS in the basic domain (= unit cell for periodic lattices)
-            int n_spins_basic_domain = 0;
+            int n_cell_atoms = 0;
             
             Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
 
@@ -216,17 +216,17 @@ namespace IO
 
                         // Read no_spins_basic_domain and atoms in basis
                         myfile.GetLine();
-                        myfile.iss >> n_spins_basic_domain;
-                        basis_atoms = std::vector<Vector3>(n_spins_basic_domain);
+                        myfile.iss >> n_cell_atoms;
+                        cell_atoms = std::vector<Vector3>(n_cell_atoms);
 
                         // Read spins per basic domain
-                        for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
+                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
                         {
                             myfile.GetLine();
-                            myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
-                            // Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
-                            build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
-                            basis_atoms[iatom] = lattice_constant * build_array;
+                            myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                            // Get x,y,z of component of positions in unit of length (instead of in units of a,b,c)
+                            build_array = basis[0] * cell_atoms[iatom][0] + basis[1] * cell_atoms[iatom][1] + basis[2] * cell_atoms[iatom][2];
+                            cell_atoms[iatom] = lattice_constant * build_array;
                         }// endfor iatom
 
                     }// end find "basis"
@@ -253,9 +253,9 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
 
 
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_spins_basic_domain));
-            for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, basis_atoms[iatom].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
+            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, cell_atoms[iatom].transpose()));
             Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
         }
         catch( ... )
@@ -273,8 +273,8 @@ namespace IO
             std::string basis_file = "";
             // Basis: vector {a, b, c}
             std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_basis_atoms]
-            std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
+            // Atoms in the basis [dim][n_cell_atoms]
+            std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
             // Translation vectors [dim][nov]
@@ -283,7 +283,7 @@ namespace IO
             intfield n_cells = { 100, 100, 1 };
             // Number of Spins
             int nos;
-            vectorfield spin_pos;
+            vectorfield positions;
             // Atom types
             intfield atom_types;
             intfield defect_indices(0);
@@ -322,11 +322,11 @@ namespace IO
                     if (myfile.Find("basis_from_config"))
                     {
                         myfile.iss >> basis_file;
-                        Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
+                        Basis_from_Config(basis_file, basis, cell_atoms, lattice_constant);
                     }
                     else if (myfile.Find("basis"))
                     {
-                        Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
+                        Basis_from_Config(configFile, basis, cell_atoms, lattice_constant);
                     }
                     else {
                         Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
@@ -372,24 +372,23 @@ namespace IO
                 }
                 translation_vectors[dim] = build_array;
             }
-            // Calculate NOS
-            nos = basis_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
-
-            // Spin Positions
-            spin_pos = vectorfield(nos);
-            Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
 
             // Atom types (default: type 0, vacancy: < 0)
-            atom_types = intfield(nos, 0);
+            atom_types = intfield(cell_atoms.size(), 0);
+
+			// Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
             int n_defects = defect_indices.size();
+			intfield 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
             for (int i = 0; i < n_defects; ++i)
             {
                 if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
-                atom_types[defect_indices[i]] = defects[i];
             }
             #endif
+
+			// Calculate NOS
+			nos = cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
             // Log parameters
             Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
@@ -402,7 +401,12 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
             
             // Return geometry
-            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
+            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, cell_atoms, lattice_constant, atom_types));
+			#ifdef SPIRIT_ENABLE_DEFECTS
+			for (int i = 0; i < n_defects; ++i)
+				geometry.atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
+			#endif
+
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
             Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
             return geometry;
@@ -421,7 +425,7 @@ namespace IO
         int na = 0, na_left = 0, na_right = 0;
         int nb = 0, nb_left = 0, nb_right = 0;
         int nc = 0, nc_left = 0, nc_right = 0;
-        vectorfield pinned_cell(geometry->n_spins_basic_domain, Vector3{ 0,0,1 });
+        vectorfield pinned_cell(geometry->n_cell_atoms, Vector3{ 0,0,1 });
         // Additional pinned sites
         intfield pinned_indices(0);
         vectorfield pinned_spins(0);
@@ -476,7 +480,7 @@ namespace IO
                     {
                         if (myfile.Find("pinning_cell"))
                         {
-                            for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+                            for (int i = 0; i < geometry->n_cell_atoms; ++i)
                             {
                                 myfile.GetLine();
                                 myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
@@ -533,7 +537,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={0}, right={1}", na_left, na_right));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={0}, right={1}", nb_left, nb_right));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={0}, right={1}", nc_left, nc_right));
-            for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+            for (int i = 0; i < geometry->n_cell_atoms; ++i)
                 Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[0]      = ({0})", pinned_cell[0].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites: ", n_pinned));
             for (int i = 0; i < n_pinned; ++i)
@@ -1330,12 +1334,12 @@ namespace IO
                 mu_s = scalarfield(geometry->nos, 2.0);
                 if (myfile.Find("mu_s"))
                 {
-                    for (iatom = 0; iatom < geometry->n_spins_basic_domain; ++iatom)
+                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
                     {
                         myfile.iss >> mu_s[iatom];
-                        for (int ispin = 0; ispin < geometry->nos / geometry->n_spins_basic_domain; ++ispin)
+                        for (int ispin = 0; ispin < geometry->nos / geometry->n_cell_atoms; ++ispin)
                         {
-                            mu_s[ispin*geometry->n_spins_basic_domain + iatom] = mu_s[iatom];
+                            mu_s[ispin*geometry->n_cell_atoms + iatom] = mu_s[iatom];
                         }
                     }
                 }

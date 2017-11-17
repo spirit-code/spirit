@@ -57,7 +57,7 @@ void HamiltonianHeisenbergPairsWidget::updateData()
 void HamiltonianHeisenbergPairsWidget::Load_Contents()
 {
 	float d, vd[3];
-	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(state.get());
+	int n_basis_atoms = Geometry_Get_N_Cell_Atoms(state.get());
 	std::vector<float> mu_s(n_basis_atoms);
 
 	// Boundary conditions

@@ -23,14 +23,14 @@ namespace Utility
 {
 	namespace Configurations
 	{
-		void filter_to_mask(const vectorfield & spins, const vectorfield & spin_pos, filterfunction filter, intfield & mask)
+		void filter_to_mask(const vectorfield & spins, const vectorfield & positions, filterfunction filter, intfield & mask)
 		{
 			int nos = spins.size();
 			mask = intfield(nos, 0);
 
 			for (unsigned int iatom = 0; iatom < mask.size(); ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					mask[iatom] = 1;
 				}
@@ -39,7 +39,7 @@ namespace Utility
 
 		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc)
 		{
-			int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
+			int delta = geometry.n_cell_atoms*da + geometry.n_cell_atoms*geometry.n_cells[0] * db + geometry.n_cell_atoms*geometry.n_cells[0] * geometry.n_cells[1] * dc;
 			if (delta < 0)
 				delta += geometry.nos;
 			std::rotate(configuration.begin(), configuration.begin() + delta, configuration.end());
@@ -48,7 +48,7 @@ namespace Utility
 		void Insert(Data::Spin_System &s, const vectorfield& configuration, int shift, filterfunction filter)
 		{
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			int nos = s.nos;
 			if (shift < 0) shift += nos;
 
@@ -60,7 +60,7 @@ namespace Utility
 
 			for (int iatom = 0; iatom < nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					spins[iatom] = configuration[(iatom + shift) % nos];
 				}
@@ -80,11 +80,11 @@ namespace Utility
 			}
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					spins[iatom] = v;
 				}
@@ -94,13 +94,13 @@ namespace Utility
 		void Random(Data::Spin_System & s, filterfunction filter, bool external)
 		{
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
 			if (!external) {
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
-					if (filter(spins[iatom], spin_pos[iatom]))
+					if (filter(spins[iatom], positions[iatom]))
 					{
 						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
@@ -110,7 +110,7 @@ namespace Utility
 				std::mt19937 prng = std::mt19937(123456789);
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
-					if (filter(spins[iatom], spin_pos[iatom]))
+					if (filter(spins[iatom], positions[iatom]))
 					{
 						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
@@ -124,11 +124,11 @@ namespace Utility
 			if (temperature == 0.0) return;
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			vectorfield xi(spins.size());
 			intfield mask;
 
-			filter_to_mask(spins, spin_pos, filter, mask);
+			filter_to_mask(spins, positions, filter, mask);
 
 			scalar epsilon = std::sqrt(temperature*Constants::k_B);
 			
@@ -155,7 +155,7 @@ namespace Utility
 			using std::atan2;
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			if (r != 0.0)
 			{
@@ -164,9 +164,9 @@ namespace Utility
 				for (int n = 0; n<s.nos; n++)
 				{
 					// Distance of spin from center
-					if (filter(spins[n], spin_pos[n]))
+					if (filter(spins[n], positions[n]))
 					{
-						d = (spin_pos[n] - pos).norm();
+						d = (positions[n] - pos).norm();
 					
 						// Theta
 						if (d == 0)
@@ -175,7 +175,7 @@ namespace Utility
 						}
 						else
 						{
-							T = (spin_pos[n][2] - pos[2]) / d; // angle with respect to the main axis of toroid [0,0,1]
+							T = (positions[n][2] - pos[2]) / d; // angle with respect to the main axis of toroid [0,0,1]
 						}
 						T = acos(T);
 						// ...
@@ -185,7 +185,7 @@ namespace Utility
 						t = sin(tmp)*sin(T);
 						t = acos(1.0 - 2.0*t*t);
 						// ...
-						F = atan2(spin_pos[n][1] - pos[1], spin_pos[n][0] - pos[0]);
+						F = atan2(positions[n][1] - pos[1], positions[n][0] - pos[0]);
 						if (T > M_PI / 2.0)
 						{
 							f = F + atan(1.0 / (tan(tmp)*cos(T)));
@@ -208,7 +208,7 @@ namespace Utility
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 			
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			// skaled to fit with 
 			scalar r_new = r;
@@ -217,14 +217,14 @@ namespace Utility
 			scalar distance, phi_i, theta_i;
 			for (iatom = 0; iatom < s.nos; ++iatom)
 			{
-				distance = std::sqrt(std::pow(s.geometry->spin_pos[iatom][0] - pos[0], 2) + std::pow(s.geometry->spin_pos[iatom][1] - pos[1], 2));
+				distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
 				distance = distance / r_new;
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
-					double x = (s.geometry->spin_pos[iatom][0] - pos[0]) / distance / r_new;
+					double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
 					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
 					if (distance == 0) { phi_i = 0; }
-					if (s.geometry->spin_pos[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
+					if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
 					phi_i += phase / 180 * M_PI;
 					if (experimental) { theta_i = M_PI - 4 * std::asin(std::tanh(distance)); }
 					else { theta_i = M_PI - M_PI *distance; }
@@ -320,7 +320,7 @@ namespace Utility
 
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			if (direction_type == "Reciprocal Lattice")
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
@@ -348,10 +348,10 @@ namespace Utility
 			}
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					// Phase is scalar product of spin position and q
-					phase = s.geometry->spin_pos[iatom].dot(q);
+					phase = s.geometry->positions[iatom].dot(q);
 					//phase = phase / 180.0 * M_PI;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
@@ -447,7 +447,7 @@ namespace Utility
 
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			if (direction_type == "Reciprocal Lattice")
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
@@ -484,10 +484,10 @@ namespace Utility
 			
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					// Phase is scalar product of spin position and q
-					auto& r = s.geometry->spin_pos[iatom];
+					auto& r = s.geometry->positions[iatom];
 					//phase = phase / 180.0 * M_PI;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically

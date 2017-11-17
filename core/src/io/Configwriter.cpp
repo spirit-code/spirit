@@ -58,10 +58,10 @@ namespace IO
         config += "#################### Geometry ####################\n";
         config += "basis\n";
         config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0].transpose(), geometry->basis[1].transpose(), geometry->basis[2].transpose());
-        config += fmt::format("{}\n", geometry->n_spins_basic_domain);
-        for (int i=0; i<geometry->n_spins_basic_domain; ++i)
+        config += fmt::format("{}\n", geometry->n_cell_atoms);
+        for (int i=0; i<geometry->n_cell_atoms; ++i)
         {
-            config += fmt::format("{}\n", geometry->basis_atoms[i].transpose());
+            config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
         }
         config += "translation_vectors\n";
         for (int i=0; i<3; ++i)
@@ -211,7 +211,7 @@ namespace IO
         
         // Magnetic moment
         config += "mu_s                     ";
-        for (int i=0; i<geometry->n_spins_basic_domain; ++i)
+        for (int i=0; i<geometry->n_cell_atoms; ++i)
             config += fmt::format(" {}", ham->mu_s[i]);
         config += "\n";
 

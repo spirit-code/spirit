@@ -199,10 +199,10 @@ namespace Engine
 		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			// auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			// auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_neighbours[ineigh]);
+				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_neighbours[ineigh]);
 				if ( jspin >= 0 )
 				{
 					auto& ishell = exchange_neighbours[ineigh].idx_shell;
@@ -219,7 +219,7 @@ namespace Engine
 		{
 			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_neighbours[ineigh]);
+				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_neighbours[ineigh]);
 				if ( jspin >= 0 )
 				{
 					auto& ishell = dmi_neighbours[ineigh].idx_shell;
@@ -242,7 +242,7 @@ namespace Engine
 			{
 				if (ddi_magnitudes[ineigh] > 0.0)
 				{
-					int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_neighbours[ineigh]);
+					int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_neighbours[ineigh]);
 					if ( jspin >= 0 )
 					{
 						Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
@@ -307,7 +307,7 @@ namespace Engine
 		{
 			for (unsigned int ineigh = 0; ineigh < exchange_neighbours.size(); ++ineigh)
 			{
-				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_neighbours[ineigh]);
+				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_neighbours[ineigh]);
 				if ( jspin >= 0 )
 				{
 					auto& ishell = exchange_neighbours[ineigh].idx_shell;
@@ -322,10 +322,10 @@ namespace Engine
 		#pragma omp parallel for
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 			for (unsigned int ineigh = 0; ineigh < dmi_neighbours.size(); ++ineigh)
 			{
-				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_neighbours[ineigh]);
+				int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_neighbours[ineigh]);
 				if ( jspin >= 0 )
 				{
 					auto& ishell = dmi_neighbours[ineigh].idx_shell;
@@ -347,7 +347,7 @@ namespace Engine
 			{
 				if (ddi_magnitudes[ineigh] > 0.0)
 				{
-					int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_neighbours[ineigh]);
+					int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_neighbours[ineigh]);
 					if ( jspin >= 0 )
 					{
 						scalar skalar_contrib = mult / std::pow(ddi_magnitudes[ineigh], 3.0);
@@ -385,14 +385,14 @@ namespace Engine
 		// Exchange
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 			for (unsigned int ineigh = 0; ineigh < this->exchange_neighbours.size(); ++ineigh)
 			{
 				for (int alpha = 0; alpha < 3; ++alpha)
 				{
 					//int idx_i = 3 * exchange_neighbours[i_pair][0] + alpha;
 					//int idx_j = 3 * exchange_neighbours[i_pair][1] + alpha;
-					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+					int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, exchange_neighbours[ineigh].translations);
 					int ishell = exchange_neighbours[ineigh].idx_shell;
 					hessian(ispin, jspin) += -exchange_magnitudes[ineigh];
 					hessian(jspin, ispin) += -exchange_magnitudes[ineigh];
@@ -402,7 +402,7 @@ namespace Engine
 		// DMI
 		for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		{
-			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 			for (unsigned int ineigh = 0; ineigh < this->dmi_neighbours.size(); ++ineigh)
 			{
 				for (int alpha = 0; alpha < 3; ++alpha)

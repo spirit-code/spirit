@@ -199,8 +199,8 @@ namespace Engine
 					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[i_pair]);
+						int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
 						if (jspin >= 0)
 						{
 							Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
@@ -213,7 +213,7 @@ namespace Engine
 						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
 						//		neighbours implementation (in terms of the number of pairs)
 						#ifdef _OPENMP
-						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[i_pair], true);
+						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
 						if (jspin2 >= 0)
 						{
 							Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin2]);
@@ -241,8 +241,8 @@ namespace Engine
 					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_pairs[i_pair]);
+						int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
 						if (jspin >= 0)
 						{
 							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
@@ -255,7 +255,7 @@ namespace Engine
 						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
 						//		neighbours implementation (in terms of the number of pairs)
 						#ifdef _OPENMP
-						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_pairs[i_pair], true);
+						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
 						if (jspin2 >= 0)
 						{
 							Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin2]));
@@ -284,8 +284,8 @@ namespace Engine
 						for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 						{
 							std::array<int, 3 > translations = { da, db, dc };
-							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_pairs[i_pair]);
+							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
 							if (jspin >= 0)
 							{
 								Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
@@ -312,10 +312,10 @@ namespace Engine
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int ispin = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-						int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						int ispin = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+						int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 						
 						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
 							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
@@ -395,8 +395,8 @@ namespace Engine
 					std::array<int, 3> translations = { da, db, dc };
 					for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
 					{
-						int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[i_pair]);
+						int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
 						if (jspin >= 0)
 						{
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
@@ -409,7 +409,7 @@ namespace Engine
 						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
 						//		neighbours implementation (in terms of the number of pairs)
 						#ifdef _OPENMP
-						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, exchange_pairs[i_pair], true);
+						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
 						if (jspin2 >= 0)
 						{
 							gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin2];
@@ -437,8 +437,8 @@ namespace Engine
 					std::array<int, 3 > translations = { da, db, dc };
 					for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
 					{
-						int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_pairs[i_pair]);
+						int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
 						if (jspin >= 0)
 						{
 							gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
@@ -451,7 +451,7 @@ namespace Engine
 						//		instead, we need to also add the inverse pair to each spin, which makes it similar to the
 						//		neighbours implementation (in terms of the number of pairs)
 						#ifdef _OPENMP
-						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, dmi_pairs[i_pair], true);
+						int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
 						if (jspin2 >= 0)
 						{
 							gradient[ispin] += dmi_magnitudes[i_pair] * spins[jspin2].cross(dmi_normals[i_pair]);
@@ -481,8 +481,8 @@ namespace Engine
 							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
 							std::array<int, 3 > translations = { da, db, dc };
 							
-							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);	
-							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_pairs[i_pair]);
+							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);	
+							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
 							if (jspin >= 0)
 							{
 								gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
@@ -511,10 +511,10 @@ namespace Engine
 					for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
 					{
 						std::array<int, 3 > translations = { da, db, dc };
-						int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
-						int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
-						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
-						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
+						int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+						int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 						
 						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
 							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
@@ -570,8 +570,8 @@ namespace Engine
 						{
 							for (int alpha = 0; alpha < 3; ++alpha)
 							{
-								int ispin = 3 * (exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations)) + alpha;
-								int jspin = 3 * (exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_pairs[i_pair].translations)) + alpha;
+								int ispin = 3 * (exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations)) + alpha;
+								int jspin = 3 * (exchange_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, exchange_pairs[i_pair].translations)) + alpha;
 								hessian(ispin, jspin) += -exchange_magnitudes[i_pair];
 								hessian(jspin, ispin) += -exchange_magnitudes[i_pair];
 							}
@@ -597,8 +597,8 @@ namespace Engine
 							{
 								for (int beta = 0; beta < 3; ++beta)
 								{
-									int ispin = 3 * (dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations)) + alpha;
-									int jspin = 3 * (dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations)) + beta;
+									int ispin = 3 * (dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations)) + alpha;
+									int jspin = 3 * (dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, dmi_pairs[i_pair].translations)) + beta;
 							
 									if ((alpha == 0 && beta == 1))
 									{

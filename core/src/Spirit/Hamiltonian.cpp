@@ -526,13 +526,13 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
         if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_spins_basic_domain; ++i)
+            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
                 mu_s[i] = (float)ham->mu_s[i];
         }
         else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_spins_basic_domain; ++i)
+            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
                 mu_s[i] = (float)ham->mu_s[i];
         }
     }

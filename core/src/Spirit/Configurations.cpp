@@ -31,12 +31,12 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
         filter =
             [ position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                 no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical, no_cut_spherical ]
-            (const Vector3& spin, const Vector3& spin_pos)
+            (const Vector3& spin, const Vector3& positions)
         {
-            Vector3 r_rectangular = spin_pos - position;
-            scalar r_cylindrical = std::sqrt(std::pow(spin_pos[0] - position[0], 2) + 
-                                    std::pow(spin_pos[1] - position[1], 2));
-            scalar r_spherical   = (spin_pos-position).norm();
+            Vector3 r_rectangular = positions - position;
+            scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) + 
+                                    std::pow(positions[1] - position[1], 2));
+            scalar r_spherical   = (positions-position).norm();
             if (   ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
                 && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
                 && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
@@ -51,12 +51,12 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
         filter =
             [ position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x, 
                 no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical, no_cut_spherical]
-            (const Vector3& spin, const Vector3& spin_pos)
+            (const Vector3& spin, const Vector3& positions)
         {
-            Vector3 r_rectangular = spin_pos - position;
-            scalar r_cylindrical = std::sqrt(std::pow(spin_pos[0] - position[0], 2) +
-                                    std::pow(spin_pos[1] - position[1], 2));
-            scalar r_spherical   = (spin_pos-position).norm();
+            Vector3 r_rectangular = positions - position;
+            scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) +
+                                    std::pow(positions[1] - position[1], 2));
+            scalar r_spherical   = (positions-position).norm();
             if (!( ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
                 && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
                 && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
@@ -195,9 +195,9 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
             return false;
 
         auto& geometry = *image->geometry;
-        int delta = geometry.n_spins_basic_domain * da + 
-                    geometry.n_spins_basic_domain * geometry.n_cells[0] * db + 
-                    geometry.n_spins_basic_domain * geometry.n_cells[0] * geometry.n_cells[1] * dc;
+        int delta = geometry.n_cell_atoms * da + 
+                    geometry.n_cell_atoms * geometry.n_cells[0] * db + 
+                    geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
 
         // Create position filter
         auto filter = get_filter( pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, 
