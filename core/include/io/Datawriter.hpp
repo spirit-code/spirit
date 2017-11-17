@@ -13,14 +13,23 @@ namespace IO
     // that implements the Dump/Append mechanism. All the other functions are just appending data.
     void Write_SPIRIT_Version( const std::string filename, bool append );
     // =========================== Saving Configurations ===========================
-    // Append Spin_Configuration to file
+    // Write/Append spin positions to file
+    void Write_Spin_Positions( const Data::Geometry& geometry, 
+                               const std::string filename, VF_FileFormat format,
+                               const std::string comment, bool append = false );
+    // Write/Append Spin_System's spin configurations to file
     void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
                                    const std::string filename, VF_FileFormat format, 
                                    const std::string comment, bool append = false );
-    // Saves Spin_Chain_Configuration to file
+    // Write/Append Spin_System_Chain's spin configurations to file
     void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& c, 
                                          const std::string filename, VF_FileFormat format,
                                          const std::string comment, bool append = false );
+    
+    // Saves any SPIRIT format
+    void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
+                         const std::string filename, VF_FileFormat format, 
+                         const std::string comment );
     // Saves any OVF format 
     void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
                       VF_FileFormat format, const std::string comment );
@@ -30,10 +39,6 @@ namespace IO
     // Writes the OVF text data
     void Write_OVF_text_data( const vectorfield& vf, const Data::Geometry& geometry,
                               std::string& output_to_file );
-    // Saves any SPIRIT format
-    void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
-                         const std::string filename, VF_FileFormat format, 
-                         const std::string comment );
 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 

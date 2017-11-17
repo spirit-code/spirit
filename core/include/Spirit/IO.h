@@ -17,6 +17,10 @@ struct State;
 DLLEXPORT int IO_System_From_Config( State * state, const char * file, int idx_image=-1,
                                      int idx_chain=-1 ) noexcept;
 
+// Geometry
+DLLEXPORT void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_Regular, 
+                                   const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
+
 ///// TODO: give bool returns for these functions to indicate success??
 
 // Images

@@ -107,6 +107,11 @@ namespace Utility
 		bool save_input_initial;
 		// Save input at shutdown (config / defaults) - note this is done by State_Delete
 		bool save_input_final;
+		// Same for positions and neighbours
+		bool save_positions_initial;
+		bool save_positions_final;
+		bool save_neighbours_initial;
+		bool save_neighbours_final;
 		// Name of the Log file
 		std::string fileName;
 		// Number of Log entries

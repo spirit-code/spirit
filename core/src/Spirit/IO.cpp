@@ -67,6 +67,36 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
 }
 
 /*----------------------------------------------------------------------------------------------- */
+/*------------------------------------- Geometry ------------------------------------------------ */
+/*----------------------------------------------------------------------------------------------- */
+
+void IO_Positions_Write( State * state, const char *file, int format, 
+                         const char *comment, int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+    	std::shared_ptr<Data::Spin_System> image;
+    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+    	// Write the data
+        image->Lock();
+        IO::Write_Spin_Positions( *image->geometry, file, IO::VF_FileFormat(format), comment, false );
+        image->Unlock();
+        
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote positions to file "
+             "{} with format {}", file, format ), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+
+/*----------------------------------------------------------------------------------------------- */
 /*-------------------------------------- Images ------------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 

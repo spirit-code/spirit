@@ -12,9 +12,14 @@
 
 using namespace Utility;
 
+
+// Forward declaration of helper function
+void Save_Initial_Final( State * state, bool initial );
+
+
 State * State_Setup(const char * config_file, bool quiet) noexcept
 {
-	State *state = new State();
+    State *state = new State();
 
     //---------------------- initial state data and initial block of log messages ---
     try
@@ -32,37 +37,37 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         
         // Log revision hash
         Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " + 
-             std::string(version_revision));
+                std::string(version_revision));
         
         // Log if quiet mode
         if (state->quiet)
             Log( Log_Level::All, Log_Sender::All, std::string( "Going to run in QUIET mode" ) + 
-                 std::string( " (only Error messages, no output files)" ) );
+                    std::string( " (only Error messages, no output files)" ) );
         
         // Log Config file info
-		Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
-	//------------------------------------------------------------------------------------------
+        Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //------------------------------------------------------------------------------------------
 
-	//---------------------- initialize the log ------------------------------------------------
-	try
-	{
-		// Read Log Levels
-		IO::Log_from_Config(state->config_file, state->quiet);
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
-	//------------------------------------------------------------------------------------------
+    //---------------------- initialize the log ------------------------------------------------
+    try
+    {
+        // Read Log Levels
+        IO::Log_from_Config(state->config_file, state->quiet);
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //------------------------------------------------------------------------------------------
 
-	//----------------------- additional info log ----------------------------------------------
-	try
-	{
+    //----------------------- additional info log ----------------------------------------------
+    try
+    {
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
@@ -86,40 +91,40 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
         #endif
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
     //------------------------------------------------------------------------------------------
-    
-    
+
+
     //---------------------- initialize spin_system ---------------------------------
-	try
-	{
+    try
+    {
         // Create a system according to Config
         state->active_image = IO::Spin_System_from_Config(state->config_file);
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
     //-------------------------------------------------------------------------------
 
     //---------------------- set image configuration --------------------------------
-	try
-	{
+    try
+    {
         Configurations::Random(*state->active_image);
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
     //-------------------------------------------------------------------------------
 
     //----------------------- initialize spin system chain --------------------------
-	try
-	{
+    try
+    {
         // Get parameters
         auto params_gneb = 
             std::shared_ptr<Data::Parameters_Method_GNEB>(
@@ -131,21 +136,21 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         sv.push_back(state->active_image);
         state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(
             new Data::Spin_System_Chain(sv, params_gneb, false));
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
     //-------------------------------------------------------------------------------
 
     //----------------------- initialize spin system chain collection ---------------
-	try
-	{
+    try
+    {
         // Get parameters
         auto params_mmf = 
             std::shared_ptr<Data::Parameters_Method_MMF>(
                 IO::Parameters_Method_MMF_from_Config( state->config_file, 
-                                                       state->active_image->llg_parameters->pinning));
+                                                        state->active_image->llg_parameters->pinning));
         
         // Create the collection
         auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
@@ -153,66 +158,54 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         state->collection = 
             std::shared_ptr<Data::Spin_System_Chain_Collection>(
                 new Data::Spin_System_Chain_Collection( cv, params_mmf, false ) );
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
     //-------------------------------------------------------------------------------
 
-	//----------------------- fill in the state -------------------------------------
-	try
-	{
-		// active images
-		state->idx_active_chain = 0;
-		state->idx_active_image = 0;
+    //----------------------- fill in the state -------------------------------------
+    try
+    {
+        // active images
+        state->idx_active_chain = 0;
+        state->idx_active_image = 0;
 
-		// Info
-		state->noc = 1;
-		state->noi = 1;
-		state->nos = state->active_image->nos;
+        // Info
+        state->noc = 1;
+        state->noi = 1;
+        state->nos = state->active_image->nos;
 
-		// Methods
-		state->method_image = 
-			std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
-				std::vector<std::shared_ptr<Engine::Method>>(state->noi));
-		state->method_chain = 
-			std::vector<std::shared_ptr<Engine::Method>>(state->noc);
-		state->method_collection = std::shared_ptr<Engine::Method>();
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
-	//-------------------------------------------------------------------------------
+        // Methods
+        state->method_image = 
+            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
+                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
+        state->method_chain = 
+            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
+        state->method_collection = std::shared_ptr<Engine::Method>();
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-	//----------------------- generate re-useable config from input -----------------
-	try
-	{
+    //---------------- initial file writing (input, positions, neighbours) ----------
+    try
+    {
+        Save_Initial_Final( state, true );
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-        // Save the config
-        if (Log.save_input_initial)
-        {
-            std::string file = Log.output_folder + "/input";
-            
-            if ( Log.file_tag == std::string("<time>") )
-                file += "_" + state->datetime_creation_string;
-            else if ( Log.file_tag != std::string("") )
-                file += "_" + Log.file_tag;
-            
-            file += "_initial.cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
-        }
-	}
-	catch (...)
-	{
-		spirit_handle_exception_api(-1, -1);
-	}
-	//-------------------------------------------------------------------------------
 
-	//----------------------- final log ---------------------------------------------
-	try
-	{
+    //----------------------- final log ---------------------------------------------
+    try
+    {
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
@@ -245,20 +238,9 @@ void State_Delete(State * state) noexcept
         Log(Log_Level::All, Log_Sender::All,  "=====================================================");
         Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
         
-        // Save the config
-        if (Log.save_input_final)
-        {
-            std::string file = Log.output_folder + "/input";
-            
-            if ( Log.file_tag == std::string("<time>") )
-                file += "_" + state->datetime_creation_string;
-            else if ( Log.file_tag != std::string("") )
-                file += "_" + Log.file_tag;
-            
-            file += "_final.cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
-        }
-        
+        // Final file writing (input, positions, neighbours)
+        Save_Initial_Final( state, false );
+
         // Timing
         auto now = system_clock::now();
         auto diff = Timing::DateTimePassed(now - state->datetime_creation);
@@ -278,6 +260,7 @@ void State_Delete(State * state) noexcept
         spirit_handle_exception_api(-1, -1);
     }
 }
+
 
 void State_Update(State * state) noexcept
 {
@@ -309,6 +292,7 @@ void State_Update(State * state) noexcept
         spirit_handle_exception_api(-1, -1);
     }
 }
+
 
 void State_To_Config(State * state, const char * config_file, const char * original_config_file) noexcept
 {
@@ -365,6 +349,74 @@ const char * State_DateTime(State * state) noexcept
         return "00:00:00";
     }
 }
+
+
+// Helper function for file writing at setup and delete of State.
+//    Input, positions, neighbours.
+void Save_Initial_Final( State * state, bool initial )
+{
+    // Folder
+    std::string folder = Log.output_folder;
+
+    // Tag
+    std::string tag    = "";
+    if ( Log.file_tag == std::string("<time>") )
+        tag += state->datetime_creation_string + "_";
+    else if ( Log.file_tag != std::string("") )
+        tag += Log.file_tag + "_";
+
+    // Suffix
+    std::string suffix = "";
+    if (initial)
+        suffix += "initial";
+    else
+        suffix += "final";
+
+    // Save the config
+    try
+    {
+        if ( (Log.save_input_initial &&  initial) ||
+             (Log.save_input_final   && !initial) )
+        {
+            std::string file = folder + "/input/" + tag + suffix + ".cfg";
+            State_To_Config(state, file.c_str(), state->config_file.c_str());
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+
+    // Save the positions
+    try
+    {
+        if ( (Log.save_positions_initial &&  initial) ||
+             (Log.save_positions_final   && !initial) )
+        {
+            std::string file = folder + "/output/" + tag + "positions_" + suffix + ".txt";
+            IO_Positions_Write(state, file.c_str(), IO_Fileformat_Regular, state->config_file.c_str());
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+
+    // Save the neighbours
+    try
+    {
+        if ( (Log.save_neighbours_initial &&  initial) ||
+             (Log.save_neighbours_final   && !initial) )
+        {
+            std::string file = folder + "/output/" + tag + "neighbours_" + suffix + ".txt";
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
 
 void from_indices( const State * state, int & idx_image, int & idx_chain, 
                    std::shared_ptr<Data::Spin_System> & image, 

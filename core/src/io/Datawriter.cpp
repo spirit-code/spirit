@@ -251,10 +251,10 @@ namespace IO
 	}
 
 
-	void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
-                                   const std::string filename, VF_FileFormat format,
-                                   const std::string comment, bool append )
-	{
+    void Write_Spin_Positions( const Data::Geometry& geometry, 
+                               const std::string filename, VF_FileFormat format,
+                               const std::string comment, bool append )
+    {
         switch( format )
         {
             case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
@@ -262,22 +262,51 @@ namespace IO
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
                 Write_SPIRIT_Version( filename, append );
-                Save_To_SPIRIT( vf, geometry, filename, format, comment );
+                Save_To_SPIRIT( geometry.spin_pos, geometry, filename, format, comment );
                 break;
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
-                Save_To_OVF( vf, geometry, filename, format, comment );
+                Save_To_OVF( geometry.spin_pos, geometry, filename, format, comment );
                 break;
             default:
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                     "existent file format" ), -1, -1 );
-                     
+                        "existent file format" ), -1, -1 );
+                        
                 // TODO: throw some exception to avoid logging "success" by API function
-                     
+                        
                 break;
         }        
-	}
+    }
+
+
+    void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
+                                   const std::string filename, VF_FileFormat format,
+                                   const std::string comment, bool append )
+    {
+        switch( format )
+        {
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+            Write_SPIRIT_Version( filename, append );
+            Save_To_SPIRIT( vf, geometry, filename, format, comment );
+            break;
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+            Save_To_OVF( vf, geometry, filename, format, comment );
+            break;
+            default:
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+            "existent file format" ), -1, -1 );
+
+            // TODO: throw some exception to avoid logging "success" by API function
+
+            break;
+        }        
+    }
 
     void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& chain, 
                                          const std::string filename, VF_FileFormat format, 
