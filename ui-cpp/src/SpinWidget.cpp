@@ -360,26 +360,41 @@ void SpinWidget::updateVectorFieldGeometry()
 	}
 	else if (Geometry_Get_Dimensionality(state.get()) == 2)
 	{
-		// Determine orthogonality of translation vectors
-		float ta[3], tb[3], tc[3];
-		Geometry_Get_Translation_Vectors(state.get(), ta, tb, tc);
-		float tatb=0, tatc=0, tbtc=0;
-		for (int dim=0; dim<3; ++dim)
+		// Determine two basis vectors
+		std::array<glm::vec3, 2> basis;
+		float eps = 1e-6;
+		for (int i=1, j=0; i < nos && j < 2; ++i)
 		{
-			tatb += ta[dim] * tb[dim];
-			tatc += ta[dim] * tc[dim];
-			tbtc += tb[dim] * tc[dim];
+			if ( glm::length(positions[i] - positions[0]) > eps )
+			{
+				if ( j < 1 )
+				{
+					basis[j] = glm::normalize(positions[i] - positions[0]);
+					++j;
+				}
+				else
+				{
+					if ( 1-std::abs(glm::dot(basis[0], glm::normalize(positions[i] - positions[0]))) > eps )
+					{
+						basis[j] = glm::normalize(positions[i] - positions[0]);
+						++j;
+					}
+				}
+			}
 		}
+		glm::vec3 normal = this->arrowSize() * glm::normalize(glm::cross(basis[0], basis[1]));
 		// Rectilinear with one basis atom
 		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
-			std::abs(tatb) < 1e-8 && std::abs(tatc) < 1e-8 && std::abs(tbtc) < 1e-8)
+			std::abs(glm::dot(basis[0], basis[1])) < 1e-6)
 		{
 			std::vector<float> xs(n_cells_draw[0]), ys(n_cells_draw[1]), zs(n_cells_draw[2]);
 			for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = positions[i].x;
 			for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = positions[i*n_cells_draw[0]].y;
 			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
 			geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
-			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] -= 1.0;
+			for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = (positions[i] - normal).x;
+			for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = (positions[i*n_cells_draw[0]] - normal).y;
+			for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = (positions[i*n_cells_draw[0] * n_cells_draw[1]] - normal).z;
 			geometry_surf2D = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
 		}
 		// All others
@@ -389,6 +404,7 @@ void SpinWidget::updateVectorFieldGeometry()
 			int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
 			std::vector<std::array<VFRendering::Geometry::index_type, 3>>  triangle_indices(triangle_indices_ptr, triangle_indices_ptr + num_triangles);
 			geometry = VFRendering::Geometry(positions, triangle_indices, {}, true);
+			for (int i = 0; i < n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2]; ++i) positions[i] = positions[i] - normal;
 			geometry_surf2D = VFRendering::Geometry(positions, triangle_indices, {}, true);
 		}
 
