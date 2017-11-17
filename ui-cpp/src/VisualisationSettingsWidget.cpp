@@ -50,6 +50,10 @@ VisualisationSettingsWidget::VisualisationSettingsWidget(std::shared_ptr<State> 
 
 	// Connect signals and slots
 	this->Setup_Visualization_Slots();
+
+	auto camera_timer = new QTimer(this);
+	connect(camera_timer, &QTimer::timeout, this, &VisualisationSettingsWidget::read_camera);
+	camera_timer->start(200);
 }
 
 void VisualisationSettingsWidget::updateData()
@@ -274,10 +278,6 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
 
 	// Camera
 	this->read_camera();
-	if (this->spinWidget->getCameraRotationType())
-		this->radioButton_camera_rotate_free->setChecked(true);
-	else
-		this->radioButton_camera_rotate_bounded->setChecked(true);
 
 	// Light
 	auto angles = this->spinWidget->getLightPosition();
@@ -716,18 +716,11 @@ void VisualisationSettingsWidget::set_visualization_background()
 // --------------------- Camera ------------------------------------------------------
 // -----------------------------------------------------------------------------------
 
-void VisualisationSettingsWidget::set_camera()
-{
-	set_camera_position();
-	set_camera_focus();
-	set_camera_upvector();
-}
-
 void VisualisationSettingsWidget::read_camera()
 {
-	auto camera_position = spinWidget->getCameraPositon();
-	auto center_position = spinWidget->getCameraFocus();
-	auto up_vector = spinWidget->getCameraUpVector();
+	auto camera_position  = spinWidget->getCameraPositon();
+	auto center_position  = spinWidget->getCameraFocus();
+	auto camera_up_vector = spinWidget->getCameraUpVector();
 
 	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
 	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
@@ -735,9 +728,75 @@ void VisualisationSettingsWidget::read_camera()
 	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
 	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
 	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
-	this->lineEdit_camera_upvector_x->setText(QString::number(up_vector.x, 'f', 2));
-	this->lineEdit_camera_upvector_y->setText(QString::number(up_vector.y, 'f', 2));
-	this->lineEdit_camera_upvector_z->setText(QString::number(up_vector.z, 'f', 2));
+	this->lineEdit_camera_upvector_x->setText(QString::number(camera_up_vector.x, 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(camera_up_vector.y, 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(camera_up_vector.z, 'f', 2));
+}
+
+void VisualisationSettingsWidget::save_camera()
+{
+	QSettings settings("Spirit Code", "Spirit");
+	
+	auto camera_position  = spinWidget->getCameraPositon();
+	auto center_position  = spinWidget->getCameraFocus();
+	auto camera_up_vector = spinWidget->getCameraUpVector();
+
+	settings.beginGroup("Visualisation Settings Camera");
+	// Pos
+	settings.setValue("camera position x", camera_position.x);
+	settings.setValue("camera position y", camera_position.y);
+	settings.setValue("camera position z", camera_position.z);
+	// Focus
+	settings.setValue("camera focus x", center_position.x);
+	settings.setValue("camera focus y", center_position.y);
+	settings.setValue("camera focus z", center_position.z);
+	// Up
+	settings.setValue("camera up vector x", camera_up_vector.x);
+	settings.setValue("camera up vector y", camera_up_vector.y);
+	settings.setValue("camera up vector z", camera_up_vector.z);
+	settings.endGroup();
+}
+
+void VisualisationSettingsWidget::load_camera()
+{
+	glm::vec3 camera_position;
+	glm::vec3 center_position;
+	glm::vec3 camera_up_vector;
+
+    QSettings settings("Spirit Code", "Spirit");
+
+	settings.beginGroup("Visualisation Settings Camera");
+	// Pos
+	camera_position.x = settings.value("camera position x", 0).toFloat();
+	camera_position.y = settings.value("camera position y", 0).toFloat();
+	camera_position.z = settings.value("camera position z", 30).toFloat();
+	// Focus
+	center_position.x = settings.value("camera focus x", 0).toFloat();
+	center_position.y = settings.value("camera focus y", 0).toFloat();
+	center_position.z = settings.value("camera focus z", 0).toFloat();
+	// Up
+	camera_up_vector.x = settings.value("camera up vector x", 1).toFloat();
+	camera_up_vector.y = settings.value("camera up vector y", 0).toFloat();
+	camera_up_vector.z = settings.value("camera up vector z", 0).toFloat();
+	settings.endGroup();
+
+	// Set the line-edits
+	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
+	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
+	this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
+
+	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
+	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
+	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
+
+	this->lineEdit_camera_upvector_x->setText(QString::number(camera_up_vector.x, 'f', 2));
+	this->lineEdit_camera_upvector_y->setText(QString::number(camera_up_vector.y, 'f', 2));
+	this->lineEdit_camera_upvector_z->setText(QString::number(camera_up_vector.z, 'f', 2));
+
+	// Update the view
+	set_camera_position();
+	set_camera_focus();
+	set_camera_upvector();
 }
 
 void VisualisationSettingsWidget::set_camera_position()
@@ -776,14 +835,6 @@ void VisualisationSettingsWidget::set_camera_fov_lineedit()
 	float fov = this->lineEdit_camera_fov->text().toFloat();
 	horizontalSlider_camera_fov->setValue((int)(fov));
 	spinWidget->setVerticalFieldOfView(fov);
-}
-
-void VisualisationSettingsWidget::set_camera_rotation()
-{
-	if (this->radioButton_camera_rotate_free->isChecked())
-		this->spinWidget->setCameraRotationType(true);
-	else
-		this->spinWidget->setCameraRotationType(false);
 }
 
 
@@ -866,12 +917,10 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
 	connect(this->lineEdit_camera_upvector_x, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
 	connect(this->lineEdit_camera_upvector_y, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
 	connect(this->lineEdit_camera_upvector_z, SIGNAL(returnPressed()), this, SLOT(set_camera_upvector()));
-	connect(this->pushButton_set_camera, SIGNAL(clicked()), this, SLOT(set_camera()));
-	connect(this->pushButton_read_camera, SIGNAL(clicked()), this, SLOT(read_camera()));
+	connect(this->pushButton_save_camera, SIGNAL(clicked()), this, SLOT(save_camera()));
+	connect(this->pushButton_load_camera, SIGNAL(clicked()), this, SLOT(load_camera()));
 	connect(this->lineEdit_camera_fov, SIGNAL(returnPressed()), this, SLOT(set_camera_fov_lineedit()));
 	connect(horizontalSlider_camera_fov, SIGNAL(valueChanged(int)), this, SLOT(set_camera_fov_slider()));
-	connect(radioButton_camera_rotate_free, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
-	connect(radioButton_camera_rotate_bounded, SIGNAL(toggled(bool)), this, SLOT(set_camera_rotation()));
 	// Light
 	connect(horizontalSlider_light_theta, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));
 	connect(horizontalSlider_light_phi, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));

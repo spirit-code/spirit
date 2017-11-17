@@ -1131,118 +1131,6 @@
               <string>Camera</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_60">
-              <item row="3" column="0">
-               <layout class="QGridLayout" name="gridLayout_12">
-                <item row="0" column="2">
-                 <widget class="QSlider" name="horizontalSlider_camera_fov">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_49">
-                  <property name="text">
-                   <string>FOV</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_camera_fov">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>45</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayout_62">
-                <item row="0" column="1">
-                 <widget class="QPushButton" name="pushButton_read_camera">
-                  <property name="minimumSize">
-                   <size>
-                    <width>120</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Read Camera</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QPushButton" name="pushButton_set_camera">
-                  <property name="minimumSize">
-                   <size>
-                    <width>120</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Set Camera</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QPushButton" name="pushButton">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Save</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QPushButton" name="pushButton_2">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Load</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="4">
-               <spacer name="horizontalSpacer_19">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_63">
                 <item row="1" column="0">
@@ -1403,26 +1291,75 @@
                 </item>
                </layout>
               </item>
-              <item row="4" column="0">
-               <layout class="QGridLayout" name="gridLayout_81">
+              <item row="1" column="4">
+               <spacer name="horizontalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="0">
+               <layout class="QGridLayout" name="gridLayout_12">
+                <item row="0" column="2">
+                 <widget class="QSlider" name="horizontalSlider_camera_fov">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_64">
+                 <widget class="QLabel" name="label_49">
                   <property name="text">
-                   <string>Rotation type</string>
+                   <string>FOV</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QRadioButton" name="radioButton_camera_rotate_free">
+                 <widget class="QLineEdit" name="lineEdit_camera_fov">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
-                   <string>Free</string>
+                   <string>45</string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="2">
-                 <widget class="QRadioButton" name="radioButton_camera_rotate_bounded">
+               </layout>
+              </item>
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_62">
+                <item row="0" column="0">
+                 <widget class="QPushButton" name="pushButton_save_camera">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
-                   <string>Bounded</string>
+                   <string>Save</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="pushButton_load_camera">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Load</string>
                   </property>
                  </widget>
                 </item>
@@ -1950,12 +1887,8 @@
   <tabstop>horizontalSlider_surface_ymin</tabstop>
   <tabstop>horizontalSlider_surface_ymax</tabstop>
   <tabstop>horizontalSlider_camera_fov</tabstop>
-  <tabstop>radioButton_camera_rotate_bounded</tabstop>
-  <tabstop>pushButton_read_camera</tabstop>
-  <tabstop>pushButton_set_camera</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>pushButton_2</tabstop>
-  <tabstop>radioButton_camera_rotate_free</tabstop>
+  <tabstop>pushButton_save_camera</tabstop>
+  <tabstop>pushButton_load_camera</tabstop>
   <tabstop>lineEdit_camera_pos_x</tabstop>
   <tabstop>lineEdit_camera_pos_y</tabstop>
   <tabstop>lineEdit_camera_pos_z</tabstop>
@@ -1980,7 +1913,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>
