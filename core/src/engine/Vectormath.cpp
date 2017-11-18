@@ -43,40 +43,41 @@ namespace Engine
         
         /////////////////////////////////////////////////////////////////
         
-        void Build_Spins(vectorfield & positions, const std::vector<Vector3> & cell_atoms, 
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
                          const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
         {
-          // Check for erronous input placing two spins on the same location
-          int max_a = std::min(10, n_cells[0]);
-          int max_b = std::min(10, n_cells[1]);
-          int max_c = std::min(10, n_cells[2]);
-          Vector3 sp;
-          for (unsigned int i = 0; i < cell_atoms.size(); ++i)
-          {
-              for (unsigned int j = 0; j < cell_atoms.size(); ++j)
-              {
-                  for (int ka = -max_a; ka <= max_a; ++ka)
-                  {
-                      for (int k2 = -max_b; k2 <= max_b; ++k2)
-                      {
-                          for (int k3 = -max_c; k3 <= max_c; ++k3)
-                          {
-                              // Norm is zero if translated basis atom is at position of another basis atom
-                              sp = cell_atoms[i] - (cell_atoms[j]
-                                  + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
-                                  k3 * translation_vectors[2]);
-                              if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
-                                   std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
-                                   std::abs(sp[2]) < 1e-9 )
-                              {
-                                  spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-                                      "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-                              }
-                          }
-                      }
-                  }
-              }
-          }
+            // Check for erronous input placing two spins on the same location
+            int max_a = std::min(10, n_cells[0]);
+            int max_b = std::min(10, n_cells[1]);
+            int max_c = std::min(10, n_cells[2]);
+            Vector3 sp;
+            for (unsigned int i = 0; i < cell_atoms.size(); ++i)
+            {
+                for (unsigned int j = 0; j < cell_atoms.size(); ++j)
+                {
+                    for (int ka = -max_a; ka <= max_a; ++ka)
+                    {
+                        for (int k2 = -max_b; k2 <= max_b; ++k2)
+                        {
+                            for (int k3 = -max_c; k3 <= max_c; ++k3)
+                            {
+                                // Norm is zero if translated basis atom is at position of another basis atom
+                                sp = cell_atoms[i] - (cell_atoms[j]
+                                    + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
+                                    k3 * translation_vectors[2]);
+                                if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
+                                    std::abs(sp[2]) < 1e-9 )
+                                {
+                                    spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+                                        "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // Build up the spins array
             int i, j, k, s, ispin;
@@ -95,6 +96,7 @@ namespace Engine
                             //spins[dim*nos + ispin] = spins[dim*nos + s];
                             // calculate the spin positions
                             positions[ispin] = cell_atoms[s] + build_array;
+                            atom_types[ispin] = cell_atom_types[s];
                         }// endfor s
                     }// endfor k
                 }// endfor j

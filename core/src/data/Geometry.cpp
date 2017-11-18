@@ -23,32 +23,19 @@ namespace Data
 	{
 		// Generate positions and atom types
 		this->positions = vectorfield(nos);
-		Engine::Vectormath::Build_Spins(positions, cell_atoms, translation_vectors, n_cells);
-		this->atom_types = intfield(nos, 0);
-		for (int i = 0; i < n_cells[0]; ++i)
-		{
-			for (int j = 0; j < n_cells[1]; ++j)
-			{
-				for (int k = 0; k < n_cells[2]; ++k)
-				{
-					for (int i_in_cell = 0; i_in_cell < cell_atoms.size(); ++i_in_cell)
-					{
-						int iatom = i_in_cell + Engine::Vectormath::idx_from_translations(n_cells, n_cell_atoms, { i,j,k });
-						this->atom_types[iatom] = cell_atom_types[i_in_cell];
-					}
-				}
-			}
-		}
+        this->atom_types = intfield(nos, 0);
+		Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, translation_vectors, n_cells);
 
 		// Calculate some info
 		this->calculateBounds();
 		this->calculateUnitCellBounds();
 		this->calculateDimensionality();
 
-        // Calculate Center of the System
+		// Calculate center of the System
 		this->center = 0.5 *  (this->bounds_min + this->bounds_max);
 
-		// TODO: automatically try to determine GeometryType
+		// Calculate the type of geometry
+		this->calculateGeometryType();
 
         // For updates of triangulation and tetrahedra
         this->last_update_n_cell_step = -1;
@@ -449,5 +436,37 @@ namespace Data
         this->cell_bounds_min *= 0.5;
         this->cell_bounds_max *= 0.5;
     }
+
+	void Geometry::calculateGeometryType()
+	{
+		// Automatically try to determine GeometryType
+		// Single-atom unit cell
+		if (cell_atoms.size() == 1)
+		{
+			// If the basis vectors are orthogonal, it is a rectilinear lattice
+			if (std::abs(translation_vectors[0].dot(translation_vectors[1])) < 1e-6 &&
+				std::abs(translation_vectors[0].dot(translation_vectors[2])) < 1e-6)
+			{
+				// If equidistant it is simple cubic
+				if (translation_vectors[0].norm() == translation_vectors[1].norm() == translation_vectors[2].norm())
+					this->classifier = GeometryType::SC;
+				// Otherwise only rectilinear
+				else
+					this->classifier = GeometryType::Rectilinear;
+			}
+		}
+		// Regular unit cell with multiple atoms (e.g. bcc, fcc, hex)
+		//else if (n_cell_atoms == 2)
+		// Irregular unit cells arranged on a lattice (e.g. B20 or custom)
+		else if (n_cells[0] > 1 || n_cells[1] > 1 || n_cells[2] > 1)
+		{
+			this->classifier = GeometryType::Lattice;
+		}
+		// A single irregular unit cell
+		else
+		{
+			this->classifier = GeometryType::Irregular;
+		}
+	}
 }
 

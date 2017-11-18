@@ -106,8 +106,10 @@ namespace Data
         void calculateDimensionality();
         // Calculate and update bounds of the System
         void calculateBounds();
-        // Calculate and update unit cell bounds
-        void calculateUnitCellBounds();
+		// Calculate and update unit cell bounds
+		void calculateUnitCellBounds();
+		// Calculate and update the type lattice
+		void calculateGeometryType();
 
         // 
         std::vector<triangle_t>    _triangulation;

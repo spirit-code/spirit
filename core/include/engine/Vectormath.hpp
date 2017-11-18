@@ -340,7 +340,9 @@ namespace Engine
         //////// Vectorfield Math - special stuff
 
         // Build an array of spin positions
-        void Build_Spins(vectorfield & positions, const std::vector<Vector3> & cell_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
+                         const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
