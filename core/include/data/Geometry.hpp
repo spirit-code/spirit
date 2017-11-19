@@ -21,18 +21,16 @@ namespace Data
     typedef std::array<int, 3> triangle_t;
 
 
-    // A classifier for the kind of geometry defined here
-	enum class GeometryType
-	{
-		Irregular,   // Single irregular basis cell
-		Lattice,     // Lattice of irregular basis cells
-		Rectilinear, // Lattice of irregular basis cells
-		SC,          // Simple cubic lattice
-		Hex2D,       // 2D Hexagonal lattice
-		HCP,         // Hexagonal closely packed
-		BCC,         // Body-centered cubic
-		FCC          // Face-centered cubic
-	};
+    enum class BravaisLatticeType
+    {
+        Irregular,   // Arbitrary bravais vectors
+        Rectilinear, // Rectilinear (orthorombic) lattice
+        SC,          // Simple cubic lattice
+        Hex2D,       // 2D Hexagonal lattice
+        HCP,         // Hexagonal closely packed
+        BCC,         // Body-centered cubic
+        FCC          // Face-centered cubic
+    };
 
     // Geometry contains all geometric information of a system
     class Geometry
@@ -40,17 +38,8 @@ namespace Data
     public:
         // ---------- Constructor
         //  Build a regular lattice from a defined basis cell and translations
-        Geometry(std::vector<Vector3> basis, std::vector<Vector3> translation_vectors,
-            intfield n_cells, std::vector<Vector3> cell_atoms, scalar lattice_constant,
-            intfield cell_atom_types);
-
-
-        // ---------- Convenience Constructors
-
-        // Rectilinear lattice with one atom per unit cell (i.e. simple cubic or simple rectangular)
-        static Geometry Geometry_Rectilinear(intfield n_cells, Vector3 bounds_min, Vector3 bounds_max);
-        // Hexagonal lattice
-		static Geometry Geometry_Hex2D(intfield n_cells, scalar lattice_constant);
+        Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms, intfield cell_atom_types,
+            scalar lattice_constant);
 
 
         // ---------- Convenience functions
@@ -65,11 +54,9 @@ namespace Data
         // ---------- Basic information set, which (in theory) defines everything
 
         // Basis vectors {a, b, c} of the unit cell
-        std::vector<Vector3> basis;
+        std::vector<Vector3> bravais_vectors;
         // Lattice Constant [Angstrom] (scales the translations)
         scalar lattice_constant;
-        // Translation Vectors {ta, tb, tc} 
-        std::vector<Vector3> translation_vectors;
         // Number of cells {na, nb, nc}
         intfield n_cells;
         // Number of spins per basic domain
@@ -84,7 +71,7 @@ namespace Data
         // ---------- Inferrable information
 
         // The kind of geometry
-        GeometryType classifier;
+        BravaisLatticeType classifier;
 
         // Number of Spins total
         int nos;

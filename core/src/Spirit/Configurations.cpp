@@ -185,7 +185,7 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
         Vector3 pos_final{ position_final[0], position_final[1], position_final[2] };
         Vector3 shift = pos_initial - pos_final;
 
-        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->basis);
+        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->bravais_vectors);
         
         int da = (int)std::round(decomposed[0]);
         int db = (int)std::round(decomposed[1]);

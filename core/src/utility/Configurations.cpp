@@ -244,9 +244,9 @@ namespace Utility
 			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
 			Vector3 e1, e2;
 			
-			Vector3 a1 = s.geometry->translation_vectors[0];
-			Vector3 a2 = s.geometry->translation_vectors[1];
-			Vector3 a3 = s.geometry->translation_vectors[2];
+			Vector3 a1 = s.geometry->bravais_vectors[0];
+			Vector3 a2 = s.geometry->bravais_vectors[1];
+			Vector3 a3 = s.geometry->bravais_vectors[2];
 			
 			// -------------------- Preparation --------------------
 			axis.normalize();
@@ -370,9 +370,9 @@ namespace Utility
 			Vector3 e1, e2;
 			Vector3 qm, qk;
 			
-			Vector3 a1 = s.geometry->translation_vectors[0];
-			Vector3 a2 = s.geometry->translation_vectors[1];
-			Vector3 a3 = s.geometry->translation_vectors[2];
+			Vector3 a1 = s.geometry->bravais_vectors[0];
+			Vector3 a2 = s.geometry->bravais_vectors[1];
+			Vector3 a3 = s.geometry->bravais_vectors[2];
 			
 			// -------------------- Preparation --------------------
 			axis.normalize();

@@ -54,10 +54,11 @@ namespace IO
 
     void Geometry_to_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
     {
+        // TODO: this needs to be updated!
         std::string config = "";
         config += "#################### Geometry ####################\n";
         config += "basis\n";
-        config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0].transpose(), geometry->basis[1].transpose(), geometry->basis[2].transpose());
+        config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
         config += fmt::format("{}\n", geometry->n_cell_atoms);
         for (int i=0; i<geometry->n_cell_atoms; ++i)
         {
@@ -65,7 +66,7 @@ namespace IO
         }
         config += "translation_vectors\n";
         for (int i=0; i<3; ++i)
-            config += fmt::format("{} {}\n", geometry->translation_vectors[i].transpose(), geometry->n_cells[i]);
+            config += fmt::format("{} {}\n", geometry->bravais_vectors[i].transpose(), geometry->n_cells[i]);
         config += "################## End Geometry ##################";
         Append_String_to_File(config, configFile);
     }// end Geometry_to_Config

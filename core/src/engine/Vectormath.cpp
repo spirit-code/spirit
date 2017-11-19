@@ -241,9 +241,9 @@ namespace Engine
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
             auto& n_cells = geometry.n_cells;
 
-            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.translation_vectors[1];
-            Vector3 c = geometry.translation_vectors[2];
+            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.bravais_vectors[1];
+            Vector3 c = geometry.bravais_vectors[2];
 
             neighbourfield neigh;
 

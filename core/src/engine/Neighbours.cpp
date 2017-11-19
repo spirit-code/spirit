@@ -22,9 +22,9 @@ namespace Engine
 		{
 			auto shell_radius = std::vector<scalar>(n_shells);
 			
-			Vector3 a = geometry.basis[0];
-			Vector3 b = geometry.basis[1];
-			Vector3 c = geometry.basis[2];
+			Vector3 a = geometry.bravais_vectors[0];
+			Vector3 b = geometry.bravais_vectors[1];
+			Vector3 c = geometry.bravais_vectors[2];
 
 			scalar current_radius=0, dx, min_distance=0;
 			int i=0, j=0, k=0;
@@ -82,9 +82,9 @@ namespace Engine
 
 			auto shell_radius = Get_Shell_Radius(geometry, nShells);
 			
-			Vector3 a = geometry.translation_vectors[0];
-			Vector3 b = geometry.translation_vectors[1];
-			Vector3 c = geometry.translation_vectors[2];
+			Vector3 a = geometry.bravais_vectors[0];
+			Vector3 b = geometry.bravais_vectors[1];
+			Vector3 c = geometry.bravais_vectors[2];
 
 			// The nShells + 10 is a value that is big enough by experience to 
 			// produce enough needed shells, but is small enough to run sufficiently fast
@@ -136,9 +136,9 @@ namespace Engine
 
 			auto shell_radius = Get_Shell_Radius(geometry, nShells);
 			
-			Vector3 a = geometry.translation_vectors[0];
-			Vector3 b = geometry.translation_vectors[1];
-			Vector3 c = geometry.translation_vectors[2];
+			Vector3 a = geometry.bravais_vectors[0];
+			Vector3 b = geometry.bravais_vectors[1];
+			Vector3 c = geometry.bravais_vectors[2];
 
 			// The nShells + 10 is a value that is big enough by experience to 
 			// produce enough needed shells, but is small enough to run sufficiently fast
@@ -198,9 +198,9 @@ namespace Engine
 
 			if (radius > 1e-6)
 			{
-				Vector3 a = geometry.translation_vectors[0];
-				Vector3 b = geometry.translation_vectors[1];
-				Vector3 c = geometry.translation_vectors[2];
+				Vector3 a = geometry.bravais_vectors[0];
+				Vector3 b = geometry.bravais_vectors[1];
+				Vector3 c = geometry.bravais_vectors[2];
 
 				Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
 				Vector3 ratio = {
@@ -260,9 +260,9 @@ namespace Engine
 
 			if (radius > 1e-6)
 			{
-				Vector3 a = geometry.translation_vectors[0];
-				Vector3 b = geometry.translation_vectors[1];
-				Vector3 c = geometry.translation_vectors[2];
+				Vector3 a = geometry.bravais_vectors[0];
+				Vector3 b = geometry.bravais_vectors[1];
+				Vector3 c = geometry.bravais_vectors[2];
 
 				Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
 				Vector3 ratio = {
@@ -325,9 +325,9 @@ namespace Engine
 
 		Vector3 DMI_Normal_from_Pair(const Data::Geometry & geometry, const Pair & pair, int chirality)
 		{
-			Vector3 ta = geometry.translation_vectors[0];
-			Vector3 tb = geometry.translation_vectors[1];
-			Vector3 tc = geometry.translation_vectors[2];
+			Vector3 ta = geometry.bravais_vectors[0];
+			Vector3 tb = geometry.bravais_vectors[1];
+			Vector3 tc = geometry.bravais_vectors[2];
 
 			int da = pair.translations[0];
 			int db = pair.translations[1];
@@ -364,9 +364,9 @@ namespace Engine
 
 		void DDI_from_Pair(const Data::Geometry & geometry, const Pair & pair, scalar & magnitude, Vector3 & normal)
 		{
-			Vector3 ta = geometry.translation_vectors[0];
-			Vector3 tb = geometry.translation_vectors[1];
-			Vector3 tc = geometry.translation_vectors[2];
+			Vector3 ta = geometry.bravais_vectors[0];
+			Vector3 tb = geometry.bravais_vectors[1];
+			Vector3 tc = geometry.bravais_vectors[2];
 
 			int da = pair.translations[0];
 			int db = pair.translations[1];

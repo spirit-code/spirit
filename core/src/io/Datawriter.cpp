@@ -497,11 +497,11 @@ namespace IO
         output_to_file += fmt::format( "# zbase: {}\n", 0 );
         
         output_to_file += fmt::format( "# xstepsize: {}\n", 
-                                       geometry.lattice_constant * geometry.basis[0][0] );
+                                       geometry.lattice_constant * geometry.bravais_vectors[0][0] );
         output_to_file += fmt::format( "# ystepsize: {}\n", 
-                                       geometry.lattice_constant * geometry.basis[1][1] );
+                                       geometry.lattice_constant * geometry.bravais_vectors[1][1] );
         output_to_file += fmt::format( "# zstepsize: {}\n", 
-                                       geometry.lattice_constant * geometry.basis[2][2] );
+                                       geometry.lattice_constant * geometry.bravais_vectors[2][2] );
         
         output_to_file += fmt::format( "# xnodes: {}\n", geometry.n_cells[0] );
         output_to_file += fmt::format( "# ynodes: {}\n", geometry.n_cells[1] );

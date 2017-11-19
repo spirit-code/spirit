@@ -14,17 +14,23 @@
 
 namespace Data
 {
-	Geometry::Geometry(std::vector<Vector3> basis, std::vector<Vector3> translation_vectors,
-		intfield n_cells, std::vector<Vector3> cell_atoms, scalar lattice_constant,
-		intfield cell_atom_types) :
-		basis(basis), translation_vectors(translation_vectors), n_cells(n_cells),
+	Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
+        intfield cell_atom_types, scalar lattice_constant) :
+        bravais_vectors(bravais_vectors), n_cells(n_cells),
 		n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
 		nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types)
 	{
-		// Generate positions and atom types
-		this->positions = vectorfield(nos);
+        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+        {
+            // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
+            Vector3 build_array = bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1] + bravais_vectors[2] * cell_atoms[iatom][2];
+            cell_atoms[iatom] = lattice_constant * build_array;
+        }
+
+        // Generate positions and atom types
+        this->positions = vectorfield(nos);
         this->atom_types = intfield(nos, 0);
-		Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, translation_vectors, n_cells);
+		Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
 
 		// Calculate some info
 		this->calculateBounds();
@@ -41,39 +47,6 @@ namespace Data
         this->last_update_n_cell_step = -1;
         this->last_update_n_cells = intfield(3, -1);
     }
-
-    Geometry Geometry::Geometry_Rectilinear(intfield n_cells, Vector3 bounds_min, Vector3 bounds_max)
-    {
-		std::vector<Vector3> basis{ { 1,0,0 },{ 0,1,0 },{ 0,0,1 } };
-		std::vector<Vector3> translation_vectors{ { 1,0,0 },{ 0,1,0 },{ 0,0,1 } };
-		std::vector<Vector3> cell_atoms{ {0,0,0} };
-		scalar lattice_constant = (bounds_max[0] - bounds_min[0]) / n_cells[0];
-		std::vector<Vector3> positions{ { 0,0,0 } };
-
-        
-		Geometry result = Geometry(basis, translation_vectors, n_cells, cell_atoms, lattice_constant, { 0 });
-        result.classifier = GeometryType::Rectilinear;
-        return result;
-    }
-
-	Geometry Geometry::Geometry_Hex2D(intfield n_cells, scalar lattice_constant)
-	{
-		std::vector<Vector3> basis{
-			{ 1,   0,                      0 },
-			{ 0.5, 0.86602540378443864676, 0 },
-			{ 0,   0,                      1 } };
-
-		std::vector<Vector3> cell_atoms{
-			{ 0,0,0 },
-			{ 1,0,0 },
-			{ 0,1,0 } };
-
-		std::vector<Vector3> translation_vectors{ { 1,0,0 },{ 0,1,0 },{ 0,0,1 } };
-
-		Geometry result = Geometry(basis, translation_vectors, n_cells, cell_atoms, lattice_constant, { 0,0,0 });
-		result.classifier = GeometryType::Hex2D;
-		return result;
-	}
 
 
 
@@ -347,9 +320,9 @@ namespace Data
         // ----- Find dimensionality of the translations -----
         //		The following are zero if the corresponding pair is parallel
         double t01, t02, t12;
-        t01 = std::abs(translation_vectors[0].dot(translation_vectors[1]) - 1.0);
-        t02 = std::abs(translation_vectors[0].dot(translation_vectors[2]) - 1.0);
-        t12 = std::abs(translation_vectors[1].dot(translation_vectors[2]) - 1.0);
+        t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1]) - 1.0);
+        t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2]) - 1.0);
+        t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2]) - 1.0);
         //		Check if pairs are linearly independent
         int n_independent_pairs = 0;
         if (t01>1e-9 && n_cells[0] > 1 && n_cells[1] > 1) ++n_independent_pairs;
@@ -361,7 +334,7 @@ namespace Data
         {
             dims_translations = 1;
             // test vec is along the line
-            for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = translation_vectors[i];
+            for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = bravais_vectors[i];
         }
         else if (n_independent_pairs < 3)
         {
@@ -371,7 +344,7 @@ namespace Data
             std::vector<Vector3> plane(2);
             for (int i = 0; i < 3; ++i)
             {
-                if (n_cells[i] > 1) plane[n] = translation_vectors[i];
+                if (n_cells[i] > 1) plane[n] = bravais_vectors[i];
                 ++n;
             }
             test_vec_translations = plane[0].cross(plane[1]);
@@ -418,12 +391,12 @@ namespace Data
     {
         this->cell_bounds_max.setZero();
         this->cell_bounds_min.setZero();
-        for (unsigned int ivec = 0; ivec < translation_vectors.size(); ++ivec)
+        for (unsigned int ivec = 0; ivec < bravais_vectors.size(); ++ivec)
         {
             for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
             {
-                auto neighbour1 = cell_atoms[iatom] + translation_vectors[ivec];
-                auto neighbour2 = cell_atoms[iatom] - translation_vectors[ivec];
+                auto neighbour1 = cell_atoms[iatom] + bravais_vectors[ivec];
+                auto neighbour2 = cell_atoms[iatom] - bravais_vectors[ivec];
                 for (int dim = 0; dim < 3; ++dim)
                 {
                     if (neighbour1[dim] < this->cell_bounds_min[dim]) this->cell_bounds_min[dim] = neighbour1[dim];
@@ -444,28 +417,28 @@ namespace Data
 		if (cell_atoms.size() == 1)
 		{
 			// If the basis vectors are orthogonal, it is a rectilinear lattice
-			if (std::abs(translation_vectors[0].dot(translation_vectors[1])) < 1e-6 &&
-				std::abs(translation_vectors[0].dot(translation_vectors[2])) < 1e-6)
+			if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < 1e-6 &&
+				std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < 1e-6)
 			{
 				// If equidistant it is simple cubic
-				if (translation_vectors[0].norm() == translation_vectors[1].norm() == translation_vectors[2].norm())
-					this->classifier = GeometryType::SC;
+				if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
+					this->classifier = BravaisLatticeType::SC;
 				// Otherwise only rectilinear
 				else
-					this->classifier = GeometryType::Rectilinear;
+					this->classifier = BravaisLatticeType::Rectilinear;
 			}
 		}
 		// Regular unit cell with multiple atoms (e.g. bcc, fcc, hex)
 		//else if (n_cell_atoms == 2)
 		// Irregular unit cells arranged on a lattice (e.g. B20 or custom)
-		else if (n_cells[0] > 1 || n_cells[1] > 1 || n_cells[2] > 1)
+		/*else if (n_cells[0] > 1 || n_cells[1] > 1 || n_cells[2] > 1)
 		{
-			this->classifier = GeometryType::Lattice;
-		}
+			this->classifier = BravaisLatticeType::Lattice;
+		}*/
 		// A single irregular unit cell
 		else
 		{
-			this->classifier = GeometryType::Irregular;
+			this->classifier = BravaisLatticeType::Irregular;
 		}
 	}
 }

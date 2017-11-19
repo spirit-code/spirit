@@ -339,7 +339,7 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Vectorfield Math - special stuff
 
-        // Build an array of spin positions
+        // Build an array of spin positions and atom types. TODO: find a better name for this function
         void Build_Spins(vectorfield & positions, intfield & atom_types,
                          const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
                          const std::vector<Vector3> & translation_vectors, const intfield & n_cells);

@@ -326,9 +326,9 @@ namespace IO
 				// Anisotropy vector orientation
 				if (B_abc)
 				{
-					spin_B1 = B_temp.dot(geometry->basis[0]);
-					spin_B2 = B_temp.dot(geometry->basis[1]);
-					spin_B3 = B_temp.dot(geometry->basis[2]);
+					spin_B1 = B_temp.dot(geometry->bravais_vectors[0]);
+					spin_B2 = B_temp.dot(geometry->bravais_vectors[1]);
+					spin_B3 = B_temp.dot(geometry->bravais_vectors[2]);
 					B_temp = { spin_B1, spin_B2, spin_B3 };
 				}
 				// Anisotropy vector normalisation
@@ -457,9 +457,9 @@ namespace IO
 				// Anisotropy vector orientation
 				if (K_abc)
 				{
-					spin_K1 = K_temp.dot(geometry->basis[0]);
-					spin_K2 = K_temp.dot(geometry->basis[1]);
-					spin_K3 = K_temp.dot(geometry->basis[2]);
+					spin_K1 = K_temp.dot(geometry->bravais_vectors[0]);
+					spin_K2 = K_temp.dot(geometry->bravais_vectors[1]);
+					spin_K3 = K_temp.dot(geometry->bravais_vectors[2]);
 					K_temp = { spin_K1, spin_K2, spin_K3 };
 				}
 				// Anisotropy vector normalisation
@@ -604,9 +604,9 @@ namespace IO
 				if (DMI_abc)
 				{
 					pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-					pair_D1 = pair_D_temp.dot(geometry->basis[0]);
-					pair_D2 = pair_D_temp.dot(geometry->basis[1]);
-					pair_D3 = pair_D_temp.dot(geometry->basis[2]);
+					pair_D1 = pair_D_temp.dot(geometry->bravais_vectors[0]);
+					pair_D2 = pair_D_temp.dot(geometry->bravais_vectors[1]);
+					pair_D3 = pair_D_temp.dot(geometry->bravais_vectors[2]);
 				}
 				// DMI vector normalisation
 				if (Dij)

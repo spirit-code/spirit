@@ -177,90 +177,91 @@ namespace IO
     }// End Spin_System_from_Config		
 
 
-    void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & cell_atoms, scalar & lattice_constant)
+    void Bravais_Vectors_from_Config(const std::string configFile, std::vector<Vector3> & bravais_vectors, Data::BravaisLatticeType & bravais_lattice_type)
     {
         try
         {
-            // ---------- Default values
-            // Lattice constant [Angtrom]
-            lattice_constant = 1.0;
-            // Basis: vector {a, b, c}
-            basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_cell_atoms]
-            cell_atoms = { Vector3{0,0,0} };
-            // NoS in the basic domain (= unit cell for periodic lattices)
-            int n_cell_atoms = 0;
-            
-            Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
+            std::string bravais_lattice = "sc";
+            // Manually specified bravais vectors/matrix?
+            bool irregular = true;
 
-            if (configFile != "")
+            IO::Filter_File_Handle myfile(configFile);
+            // Bravais lattice type or manually specified vectors/matrix
+            if (myfile.Find("bravais_lattice"))
             {
-                try
+                myfile.iss >> bravais_lattice;
+
+                if (bravais_lattice == "sc")
                 {
-                    IO::Filter_File_Handle myfile(configFile);
-
-                    myfile.Read_Single(lattice_constant, "lattice_constant");
-
-                    // Utility 1D array to build vectors and use Vectormath
-                    Vector3 build_array = { 0, 0, 0 };
-
-                    if (myfile.Find("basis"))
-                    {
-                        // Read the basis vectors a, b, c
-                        myfile.GetLine();
-                        myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
-                        myfile.GetLine();
-                        myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
-                        myfile.GetLine();
-                        myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
-
-                        // Read no_spins_basic_domain and atoms in basis
-                        myfile.GetLine();
-                        myfile.iss >> n_cell_atoms;
-                        cell_atoms = std::vector<Vector3>(n_cell_atoms);
-
-                        // Read spins per basic domain
-                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                        {
-                            myfile.GetLine();
-                            myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
-                            // Get x,y,z of component of positions in unit of length (instead of in units of a,b,c)
-                            build_array = basis[0] * cell_atoms[iatom][0] + basis[1] * cell_atoms[iatom][1] + basis[2] * cell_atoms[iatom][2];
-                            cell_atoms[iatom] = lattice_constant * build_array;
-                        }// endfor iatom
-
-                    }// end find "basis"
-                    else {
-                        Log(Log_Level::Error, Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
-                    }
-                }// end try
-                catch( ... )
+                    bravais_lattice_type = Data::BravaisLatticeType::SC;
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: simple cubic");
+                    return;
+                }
+                else if (bravais_lattice == "fcc")
                 {
-                    spirit_rethrow(	fmt::format("Failed to read Basis from file \"{}\". Leaving values at default.", configFile) );
+                    bravais_lattice_type = Data::BravaisLatticeType::FCC;
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: face-centered cubic");
+                    bravais_vectors = {
+                        { 0.5,0.0,0.5 },
+                        { 0.5,0.5,0.0 },
+                        { 0.0,0.5,0.5 } };
+                }
+                else if (bravais_lattice == "bcc")
+                {
+                    bravais_lattice_type = Data::BravaisLatticeType::BCC;
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: body-centered cubic");
+                    bravais_vectors = {
+                        {  0.5, 0.5,-0.5 },
+                        { -0.5, 0.5,-0.5 },
+                        {  0.5,-0.5, 0.5 } };
+                }
+                else if (bravais_lattice == "hex2D60")
+                {
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 60deg angle");
+                    bravais_vectors = {
+                        { 1,0,0 },
+                        { 0.5, 0.86602540378443864676, 0 },
+                        { 0,0,1 } };
+                }
+                else if (bravais_lattice == "hex2D120")
+                {
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 120deg angle");
+                    bravais_vectors = {
+                        {  1,   0,                      0 },
+                        { -0.5, 0.86602540378443864676, 0 },
+                        {  0,   0,                      1 } };
+                }
+                else
+                {
                 }
             }
-            else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
-            
-            // Log the parameters
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()/lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()/lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()/lattice_constant));
-            Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
+            else if (myfile.Find("bravais_vectors"))
+            {
+                bravais_lattice_type = Data::BravaisLatticeType::Irregular;
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[0][1] >> bravais_vectors[0][2];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[1][0] >> bravais_vectors[1][1] >> bravais_vectors[1][2];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[2][0] >> bravais_vectors[2][1] >> bravais_vectors[2][2];
 
-
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
-            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, cell_atoms[iatom].transpose()));
-            Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
+            }
+            else if (myfile.Find("bravais_matrix"))
+            {
+                bravais_lattice_type = Data::BravaisLatticeType::Irregular;
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[1][0] >> bravais_vectors[2][0];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][1] >> bravais_vectors[1][1] >> bravais_vectors[2][1];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][2] >> bravais_vectors[1][2] >> bravais_vectors[2][2];
+            }
         }
         catch( ... )
         {
-            spirit_rethrow(	fmt::format("Unable to parse basis from config file  \"{}\"", configFile) );
+            spirit_rethrow(	fmt::format("Unable to parse bravais vectors from config file \"{}\"", configFile) );
         }
     }// End Basis_from_Config
 
@@ -271,19 +272,18 @@ namespace IO
             //-------------- Insert default values here -----------------------------
             // Basis from separate file?
             std::string basis_file = "";
-            // Basis: vector {a, b, c}
-            std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_cell_atoms]
+            // Bravais lattice type
+            std::string bravais_lattice = "sc";
+            // Bravais vectors {a, b, c}
+            Data::BravaisLatticeType bravais_lattice_type = Data::BravaisLatticeType::SC;
+            std::vector<Vector3> bravais_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
+            // Atoms in the basis
             std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
+            int n_cell_atoms = cell_atoms.size();
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
-            // Translation vectors [dim][nov]
-            std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
             // Number of translations nT for each basis direction
             intfield n_cells = { 100, 100, 1 };
-            // Number of Spins
-            int nos;
-            vectorfield positions;
             // Atom types
             intfield atom_types;
             intfield defect_indices(0);
@@ -303,34 +303,30 @@ namespace IO
                     Log(Log_Level::Info, Log_Sender::IO, "Reading Geometry Parameters");
                     IO::Filter_File_Handle myfile(configFile);
 
-                    // Read Shape of spins in term of the basis
-                    if (myfile.Find("translation_vectors"))
+                    // Lattice constant
+                    myfile.Read_Single(lattice_constant, "lattice_constant");
+
+                    // Get the bravais lattice type and vectors
+                    Bravais_Vectors_from_Config(configFile, bravais_vectors, bravais_lattice_type);
+
+                    // Read basis cell
+                    if (myfile.Find("basis"))
                     {
-                        // Read translation vectors into translation_vectors & nTa, nTb, nTc
+                        // Read number of atoms in the basis cell
                         myfile.GetLine();
-                        myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
-                        myfile.GetLine();
-                        myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
-                        myfile.GetLine();
-                        myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
-                    }// finish Reading Shape in terms of basis
-                    else {
-                        Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+                        myfile.iss >> n_cell_atoms;
+                        cell_atoms = std::vector<Vector3>(n_cell_atoms);
+
+                        // Read atom positions
+                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        {
+                            myfile.GetLine();
+                            myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                        }// endfor iatom
                     }
 
-                    // Read Basis
-                    if (myfile.Find("basis_from_config"))
-                    {
-                        myfile.iss >> basis_file;
-                        Basis_from_Config(basis_file, basis, cell_atoms, lattice_constant);
-                    }
-                    else if (myfile.Find("basis"))
-                    {
-                        Basis_from_Config(configFile, basis, cell_atoms, lattice_constant);
-                    }
-                    else {
-                        Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
-                    }// end Basis
+                    // Read number of basis cells
+                    myfile.Read_3Vector(n_cells, "n_basis_cells");
 
                     // Defects
                     #ifdef SPIRIT_ENABLE_DEFECTS
@@ -349,7 +345,6 @@ namespace IO
                             defect_indices, defects);
                     }
                     #endif
-
                 }// end try
                 catch( ... )
                 {
@@ -358,20 +353,21 @@ namespace IO
             }// end if file=""
             else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
 
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
+            // Log the parameters
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, "Bravais vectors in units of lattice constant");
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose() / lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose() / lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose() / lattice_constant));
+            Log(Log_Level::Parameter, Log_Sender::IO, "Bravais vectors");
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
+            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, cell_atoms[iatom].transpose()));
+            Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 
-            // Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
-            for (dim = 0; dim < 3; ++dim)
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    build_array[i] = basis[0][i] * translation_vectors[dim][0] + basis[1][i] * translation_vectors[dim][1] + basis[2][i] * translation_vectors[dim][2];
-                }
-                translation_vectors[dim] = build_array;
-            }
 
             // Atom types (default: type 0, vacancy: < 0)
             atom_types = intfield(cell_atoms.size(), 0);
@@ -387,26 +383,21 @@ namespace IO
             }
             #endif
 
-			// Calculate NOS
-			nos = cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
             // Log parameters
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
+            Log(Log_Level::Parameter, Log_Sender::IO, "Lattice: n_cells");
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
             
             // Return geometry
-            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, cell_atoms, lattice_constant, atom_types));
-			#ifdef SPIRIT_ENABLE_DEFECTS
-			for (int i = 0; i < n_defects; ++i)
-				geometry.atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
-			#endif
+            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(bravais_vectors, n_cells, cell_atoms, atom_types, lattice_constant));
 
+            #ifdef SPIRIT_ENABLE_DEFECTS
+            for (int i = 0; i < n_defects; ++i)
+                geometry.atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
+            #endif
+
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
             Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
             return geometry;

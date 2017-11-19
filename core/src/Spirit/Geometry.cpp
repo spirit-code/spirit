@@ -24,9 +24,8 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
 
             // Geometry
             auto ge = system->geometry;
-            *system->geometry = Data::Geometry(ge->basis, ge->translation_vectors,
-                n_cells, ge->cell_atoms, ge->lattice_constant,
-                ge->cell_atom_types);
+            *system->geometry = Data::Geometry(ge->bravais_vectors,
+                n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
             
             // Spins
             // TODO: ordering of spins should be considered and date potentially extrapolated -> write a function for this
@@ -62,9 +61,8 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
         
         // Geometry
         auto ge = system->geometry;
-        *system->geometry = Data::Geometry(ge->basis, ge->translation_vectors,
-            n_cells, ge->cell_atoms, ge->lattice_constant,
-            ge->cell_atom_types);
+        *system->geometry = Data::Geometry(ge->bravais_vectors,
+            n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
         
         // Spins
         // TODO: ordering of spins should be considered -> write a Configurations function for this
@@ -243,9 +241,9 @@ void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3
         auto g = image->geometry;
         for (int dim=0; dim<3; ++dim)
         {
-            a[dim] = (float)g->basis[dim][0];
-            b[dim] = (float)g->basis[dim][1];
-            c[dim] = (float)g->basis[dim][2];
+            a[dim] = (float)g->bravais_vectors[dim][0];
+            b[dim] = (float)g->bravais_vectors[dim][1];
+            c[dim] = (float)g->bravais_vectors[dim][2];
         }
     }
     catch( ... )
@@ -324,9 +322,9 @@ void Geometry_Get_Translation_Vectors( State *state, float ta[3], float tb[3], f
         auto g = image->geometry;
         for (int dim=0; dim<3; ++dim)
         {
-            ta[dim] = (float)g->translation_vectors[0][dim];
-            tb[dim] = (float)g->translation_vectors[1][dim];
-            tc[dim] = (float)g->translation_vectors[2][dim];
+            ta[dim] = (float)g->bravais_vectors[0][dim];
+            tb[dim] = (float)g->bravais_vectors[1][dim];
+            tc[dim] = (float)g->bravais_vectors[2][dim];
         }
     }
     catch( ... )
