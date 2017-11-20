@@ -20,20 +20,17 @@ namespace Engine
 	class Hamiltonian_Heisenberg_Pairs : public Hamiltonian
 	{
 	public:
-		// Constructor
-		Hamiltonian_Heisenberg_Pairs(
-			scalarfield mu_s,
-			intfield external_field_index, scalarfield external_field_magnitude, vectorfield external_field_normal,
-			intfield anisotropy_index, scalarfield anisotropy_magnitude, vectorfield anisotropy_normal,
-			pairfield exchange_pair, scalarfield exchange_magnitude,
-			pairfield dmi_pair, scalarfield dmi_magnitude, vectorfield dmi_normal,
-			scalar ddi_radius,
-			quadrupletfield quadruplet, scalarfield quadruplet_magnitude,
-			std::shared_ptr<Data::Geometry> geometry,
-			intfield boundary_conditions
-		);
-
-		void Update_From_Geometry() override;
+        Hamiltonian_Heisenberg_Pairs(
+            scalarfield mu_s,
+            scalar external_field_magnitude, Vector3 external_field_normal,
+            intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+            pairfield exchange_pairs, scalarfield exchange_magnitudes,
+            pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
+            scalar ddi_radius,
+            quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+            std::shared_ptr<Data::Geometry> geometry,
+            intfield boundary_conditions
+        );
 
 		void Update_Energy_Contributions() override;
 
@@ -45,29 +42,33 @@ namespace Engine
 		const std::string& Name() override;
 		
 		// ------------ Single Spin Interactions ------------
-		// Spin moment
-		scalarfield mu_s;									// [nos]
-		// External Magnetic Field
-		intfield external_field_indices;
-		scalarfield external_field_magnitudes;	// [nos]
-		vectorfield external_field_normals;		// [nos] (x, y, z)
-		// Anisotropy
+		// Spin moments of basis cell atoms
+		scalarfield mu_s;
+        // External magnetic field across the sample
+        scalar external_field_magnitude;
+        Vector3 external_field_normal;
+		// External magnetic field - for now external magnetic field is homogeneous
+        // If required, an additional, inhomogeneous external field should be added
+		//   scalarfield external_field_magnitudes;
+		//   vectorfield external_field_normals;
+		// Anisotropy axes of a basis cell
+        // (indexed, as any atom of the basis cell can have one or more anisotropy axes)
 		intfield anisotropy_indices;
-		scalarfield anisotropy_magnitudes;		// [nos]
-		vectorfield anisotropy_normals;			// [nos] (x, y, z)
+		scalarfield anisotropy_magnitudes;
+		vectorfield anisotropy_normals;
 
 		// ------------ Pair Interactions ------------
 		// Exchange interaction
-		pairfield   exchange_pairs;		// [periodicity][nop][2] (i,j)
-		scalarfield exchange_magnitudes;	// [periodicity][nop]    J_ij
+		pairfield   exchange_pairs;
+		scalarfield exchange_magnitudes;
 		// DMI
-		pairfield   dmi_pairs;			// [periodicity][nop][2] (i,j)
-		scalarfield dmi_magnitudes;			// [periodicity][nop]    D_ij
-		vectorfield dmi_normals;			// [periodicity][nop][3] (Dx,Dy,Dz)
+		pairfield   dmi_pairs;
+		scalarfield dmi_magnitudes;
+        vectorfield dmi_normals;
 		// Dipole Dipole interaction
-		pairfield   ddi_pairs;			// [periodicity][nop][2] (i,j)
-		scalarfield ddi_magnitudes;			// [periodicity][nop]    r_ij (distance)
-		vectorfield ddi_normals;			// [periodicity][nop][4] (nx,ny,nz)
+		pairfield   ddi_pairs;
+		scalarfield ddi_magnitudes;
+		vectorfield ddi_normals;
 
 		// ------------ Quadruplet Interactions ------------
 		quadrupletfield quadruplets;

@@ -5,11 +5,37 @@
 #include <utility/Exception.hpp>
 
 
+
+void Helper_System_Set_N_Cells(std::shared_ptr<Data::Spin_System> system, const intfield & n_cells)
+{
+    // Geometry
+    auto ge = system->geometry;
+    *system->geometry = Data::Geometry(ge->bravais_vectors,
+        n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
+
+    // Spins
+    int nos_old = system->nos;
+    int nos = ge->nos;
+    system->nos = nos;
+    // TODO: ordering of spins should be considered and date potentially extrapolated -> write a function for this
+    system->spins->resize(nos);
+    system->effective_field.resize(nos);
+    for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
+    for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
+
+    // Parameters
+    // TODO: properly re-generate pinning
+    system->llg_parameters->pinning->mask_unpinned = intfield(nos, 1);
+
+    // Hamiltonian
+    // TODO: the Hamiltonian update is still incomplete! DDI is not yet updated.
+    //system->hamiltonian->Update_From_Geometry();
+}
+
 void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
 {
     // The new number of spins
     auto n_cells = intfield{n_cells_i[0], n_cells_i[1], n_cells_i[2]};
-    int nos = n_cells[0]*n_cells[1]*n_cells[2]*Geometry_Get_N_Cell_Atoms(state);
 
     // Deal with all systems in all chains
     for (auto& chain : state->collection->chains)
@@ -19,73 +45,36 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
 		// Modify all systems in the chain
         for (auto& system : chain->images)
         {
-            int nos_old = system->nos;
-            system->nos = nos;
-
-            // Geometry
-            auto ge = system->geometry;
-            *system->geometry = Data::Geometry(ge->bravais_vectors,
-                n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
-            
-            // Spins
-            // TODO: ordering of spins should be considered and date potentially extrapolated -> write a function for this
-			system->spins->resize(nos);
-			system->effective_field.resize(nos);
-			for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
-			for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
-
-            // Parameters
-            // TODO: properly re-generate pinning
-            system->llg_parameters->pinning->mask_unpinned = intfield(nos, 1);
-
-            // Hamiltonian
-            // TODO: can we do this nicer than resizing everything?
-			// TODO: how to resize with correct ordering of data?
-			system->hamiltonian->Update_From_Geometry();
+            Helper_System_Set_N_Cells(system, n_cells);
         }
 		// Unlock again
 		chain->Unlock();
     }
 
-    // Update convenience integers across everywhere
+    // Retrieve total number of spins
+    int nos = state->active_image->nos;
+
+    // Update convenience integerin State
     state->nos = nos;
+
     // Deal with clipboard image of State
-    if (state->clipboard_image)
+    auto& system = state->clipboard_image;
+    if (system)
     {
-        auto& system = state->clipboard_image;
-        int nos_old = system->nos;
-        system->nos = nos;
-
-		// Lock to avoid memory errors
-		system->Lock();
-        
-        // Geometry
-        auto ge = system->geometry;
-        *system->geometry = Data::Geometry(ge->bravais_vectors,
-            n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
-        
-        // Spins
-        // TODO: ordering of spins should be considered -> write a Configurations function for this
-        system->spins->resize(nos);
-		system->effective_field.resize(nos);
-		for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
-		for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
-        
-        // Parameters
-        // TODO: properly re-generate pinning
-        system->llg_parameters->pinning->mask_unpinned = intfield(nos, 1);
-
+        // Lock to avoid memory errors
+        system->Lock();
+        // Modify
+        Helper_System_Set_N_Cells(system, n_cells);
 		// Unlock
 		system->Unlock();
 	}
+
     // Deal with clipboard configuration of State
 	if (state->clipboard_spins)
 	{
 		// TODO: the previous configuration should be extended, not overwritten
 		state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(nos, { 0, 0, 1 }));
 	}
-
-    // TODO: the Hamiltonians may contain arrays that depend on system size
 
 	Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Set number of cells for all Systems: (" + std::to_string(n_cells[0]) + ", " + std::to_string(n_cells[1]) + ", " + std::to_string(n_cells[2]) + ")", -1, -1);
 }

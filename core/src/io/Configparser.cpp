@@ -193,45 +193,33 @@ namespace IO
 
                 if (bravais_lattice == "sc")
                 {
-                    bravais_lattice_type = Data::BravaisLatticeType::SC;
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: simple cubic");
-                    return;
+                    bravais_lattice_type = Data::BravaisLatticeType::SC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsSC();
                 }
                 else if (bravais_lattice == "fcc")
                 {
-                    bravais_lattice_type = Data::BravaisLatticeType::FCC;
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: face-centered cubic");
-                    bravais_vectors = {
-                        { 0.5,0.0,0.5 },
-                        { 0.5,0.5,0.0 },
-                        { 0.0,0.5,0.5 } };
+                    bravais_lattice_type = Data::BravaisLatticeType::FCC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsFCC();
                 }
                 else if (bravais_lattice == "bcc")
                 {
-                    bravais_lattice_type = Data::BravaisLatticeType::BCC;
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: body-centered cubic");
-                    bravais_vectors = {
-                        {  0.5, 0.5,-0.5 },
-                        { -0.5, 0.5,-0.5 },
-                        {  0.5,-0.5, 0.5 } };
+                    bravais_lattice_type = Data::BravaisLatticeType::BCC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsBCC();
                 }
                 else if (bravais_lattice == "hex2D60")
                 {
-                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 60deg angle");
-                    bravais_vectors = {
-                        { 1,0,0 },
-                        { 0.5, 0.86602540378443864676, 0 },
-                        { 0,0,1 } };
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
                 }
                 else if (bravais_lattice == "hex2D120")
                 {
-                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 120deg angle");
-                    bravais_vectors = {
-                        {  1,   0,                      0 },
-                        { -0.5, 0.86602540378443864676, 0 },
-                        {  0,   0,                      1 } };
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
                 }
                 else
                 {
@@ -239,6 +227,7 @@ namespace IO
             }
             else if (myfile.Find("bravais_vectors"))
             {
+                Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular");
                 bravais_lattice_type = Data::BravaisLatticeType::Irregular;
                 myfile.GetLine();
                 myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[0][1] >> bravais_vectors[0][2];
@@ -250,6 +239,7 @@ namespace IO
             }
             else if (myfile.Find("bravais_matrix"))
             {
+                Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular");
                 bravais_lattice_type = Data::BravaisLatticeType::Irregular;
                 myfile.GetLine();
                 myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[1][0] >> bravais_vectors[2][0];
@@ -365,7 +355,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
             for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, cell_atoms[iatom].transpose()));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {0} at {1}", iatom, cell_atoms[iatom].transpose()));
             Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 
 
@@ -384,7 +374,7 @@ namespace IO
             #endif
 
             // Log parameters
-            Log(Log_Level::Parameter, Log_Sender::IO, "Lattice: n_cells");
+            Log(Log_Level::Parameter, Log_Sender::IO, "Lattice: n_basis_cells");
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
@@ -994,48 +984,20 @@ namespace IO
         intfield boundary_conditions = { false, false, false };
 
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
+        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
+
         // External Magnetic Field
-        std::string external_field_file = "";
-        scalar B = 24;
+        scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
-        bool external_field_from_file = false;
-        intfield    external_field_index(geometry->nos);				// [nos]
-        scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
-        vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
-        // Fill in defaults
-        B_normal.normalize();
-        if (B != 0)
-        {
-            // Fill the arrays
-            for (int i = 0; i < geometry->nos; ++i)
-            {
-                external_field_index[i] = i;
-                external_field_magnitude[i] = B;
-                external_field_normal[i] = B_normal;
-            }
-        }
-        
+
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);				// [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
-        // Fill in defaults
-        K_normal.normalize();
-        if (K != 0)
-        {
-            // Fill the arrays
-            for (int i = 0; i < geometry->nos; ++i)
-            {
-                anisotropy_index[i] = i;
-                anisotropy_magnitude[i] = K;
-                anisotropy_normal[i] = K_normal;
-            }
-        }
+        intfield    anisotropy_index(geometry->n_cell_atoms);
+        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
+        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
 
         // Number of shells in which we calculate neighbours
         // Jij
@@ -1073,41 +1035,14 @@ namespace IO
                 IO::Filter_File_Handle myfile(configFile);
 
                 // External Field
-                if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
-                if (external_field_file.length() > 0)
+                // Read parameters from config if available
+                myfile.Read_Single(B, "external_field_magnitude");
+                myfile.Read_Vector3(B_normal, "external_field_normal");
+                B_normal.normalize();
+                if (B_normal.norm() < 1e-8)
                 {
-                    int n;
-                    // The file name should be valid so we try to read it
-                    External_Field_from_File(external_field_file, geometry, n,
-                        external_field_index, external_field_magnitude, external_field_normal);
-                    
-                    external_field_from_file = true;
-                    B = external_field_magnitude[0];
-                    B_normal = external_field_normal[0];
-                }
-                else
-                {
-                    // Read parameters from config if available
-                    myfile.Read_Single(B, "external_field_magnitude");
-                    myfile.Read_Vector3(B_normal, "external_field_normal");
-                    B_normal.normalize();
-
-                    if (B != 0)
-                    {
-                        // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
-                        {
-                            external_field_index[i] = i;
-                            external_field_magnitude[i] = B;
-                            external_field_normal[i] = B_normal;
-                        }
-                    }
-                    else
-                    {
-                        external_field_index = intfield(0);
-                        external_field_magnitude = scalarfield(0);
-                        external_field_normal = vectorfield(0);
-                    }
+                    B_normal = { 0,0,1 };
+                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
                 }
             }// end try
             catch( ... )
@@ -1142,7 +1077,7 @@ namespace IO
                     if (K != 0)
                     {
                         // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
+                        for (int i = 0; i < anisotropy_index.size(); ++i)
                         {
                             anisotropy_index[i] = i;
                             anisotropy_magnitude[i] = K;
@@ -1224,8 +1159,6 @@ namespace IO
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        if (external_field_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
@@ -1242,7 +1175,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", dd_radius));
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
-                mu_s, external_field_index, external_field_magnitude, external_field_normal,
+                mu_s, B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 jij,
                 dij, dm_chirality,
@@ -1262,25 +1195,22 @@ namespace IO
         // Boundary conditions (a, b, c)
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
         intfield boundary_conditions = { false, false, false };
+
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
+        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
+
         // External Magnetic Field
-        std::string external_field_file = "";
         scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
-        bool external_field_from_file = false;
-        intfield    external_field_index(geometry->nos);				// [nos]
-        scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
-        vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
         
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);				// [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
+        intfield    anisotropy_index(geometry->n_cell_atoms);
+        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
+        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
 
         // ------------ Pair Interactions ------------
         int n_pairs = 0;
@@ -1322,16 +1252,11 @@ namespace IO
                 IO::Filter_File_Handle myfile(configFile);
 
                 // Spin moment
-                mu_s = scalarfield(geometry->nos, 2.0);
                 if (myfile.Find("mu_s"))
                 {
                     for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
                     {
-                        myfile.iss >> mu_s[iatom];
-                        for (int ispin = 0; ispin < geometry->nos / geometry->n_cell_atoms; ++ispin)
-                        {
-                            mu_s[ispin*geometry->n_cell_atoms + iatom] = mu_s[iatom];
-                        }
+                        myfile.iss >> mu_s[iatom];  // TODO: need to catch when user has not input enough mu_s values
                     }
                 }
                 else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
@@ -1345,52 +1270,14 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                // External Field
-                if (myfile.Find("n_external_field"))
-                    external_field_file = configFile;
-                else if (myfile.Find("external_field_file"))
-                    myfile.iss >> external_field_file;
-                if (external_field_file.length() > 0)
+                // Read parameters from config if available
+                myfile.Read_Single(B, "external_field_magnitude");
+                myfile.Read_Vector3(B_normal, "external_field_normal");
+                B_normal.normalize();
+                if (B_normal.norm() < 1e-8)
                 {
-                    // The file name should be valid so we try to read it
-                    External_Field_from_File(external_field_file, geometry, n_pairs,
-                        external_field_index, external_field_magnitude, external_field_normal);
-                    
-                    external_field_from_file = true;
-                    if (external_field_index.size() != 0)
-                    {
-                        B = external_field_magnitude[0];
-                        B_normal = external_field_normal[0];
-                    }
-                    else
-                    {
-                        B = 0;
-                        B_normal = { 0,0,0 };
-                    }
-                }
-                else
-                {
-                    // Read parameters from config if available
-                    myfile.Read_Single(B, "external_field_magnitude");
-                    myfile.Read_Vector3(B_normal, "external_field_normal");
-                    B_normal.normalize();
-
-                    if (B != 0)
-                    {
-                        // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
-                        {
-                            external_field_index[i] = i;
-                            external_field_magnitude[i] = B;
-                            external_field_normal[i] = B_normal;
-                        }
-                    }
-                    else
-                    {
-                        external_field_index = intfield(0);
-                        external_field_magnitude = scalarfield(0);
-                        external_field_normal = vectorfield(0);
-                    }
+                    B_normal = { 0,0,1 };
+                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
                 }
             }// end try
             catch( ... )
@@ -1435,7 +1322,7 @@ namespace IO
                     if (K != 0)
                     {
                         // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
+                        for (int i = 0; i < anisotropy_index.size(); ++i)
                         {
                             anisotropy_index[i] = i;
                             anisotropy_magnitude[i] = K;
@@ -1524,9 +1411,7 @@ namespace IO
         
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        if (external_field_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
@@ -1537,7 +1422,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
             mu_s,
-            external_field_index, external_field_magnitude, external_field_normal,
+            B, B_normal,
             anisotropy_index, anisotropy_magnitude, anisotropy_normal,
             exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals,

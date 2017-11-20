@@ -173,6 +173,14 @@ dij			       6.0
 dd_radius		  0.0
 ```
 
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
+
 **Pair-wise Heisenberg Hamiltonian**:
 
 Interactions are specified pair-wise. Single-threaded applications can thus
@@ -211,15 +219,30 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
 ```
 
-*Pairs*: Leaving out either exchange or DMI in the pairs is allowed and columns can
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
+
+*Pairs:*
+Leaving out either exchange or DMI in the pairs is allowed and columns can
 be placed in arbitrary order.
 Note that instead of specifying the DM-vector as `Dx Dy Dz`, you may specify it as
 `Da Db Dc` if you prefer, you may also specify the magnitude separately as a column `Dij`.
 
-*Quadruplets*: Columns for these may also be placed in arbitrary order.
+*Quadruplets:*
+Columns for these may also be placed in arbitrary order.
 
-*Separate files*: The pairs and quadruplets can be placed into separate files.
-If the pairs or quadruplets are at the top of the respective file, it is not necessary to specify `n_interaction_pairs` or `n_interaction_quadruplets` respectively.
+*Separate files:*
+The anisotropy, pairs and quadruplets can be placed into separate files,
+you can use `anisotropy_from_file`, `pairs_from_file` and `quadruplets_from_file`.
+
+If the headers for anisotropies, pairs or quadruplets are at the top of the respective file,
+it is not necessary to specify `n_anisotropy`, `n_interaction_pairs` or `n_interaction_quadruplets`
+respectively.
 
 ```Python
 ### Pairs

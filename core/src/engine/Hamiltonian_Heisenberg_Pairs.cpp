@@ -22,61 +22,38 @@ using Engine::Vectormath::idx_from_pair;
 
 namespace Engine
 {
-	Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
-		scalarfield mu_s,
-		intfield external_field_indices, scalarfield external_field_magnitudes, vectorfield external_field_normals,
-		intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-		pairfield exchange_pairs, scalarfield exchange_magnitudes,
-		pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-		scalar ddi_radius,
-		quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
-		std::shared_ptr<Data::Geometry> geometry,
-		intfield boundary_conditions
-	) :
-		Hamiltonian(boundary_conditions), geometry(geometry),
-		mu_s(mu_s),
-		external_field_indices(external_field_indices), external_field_magnitudes(external_field_magnitudes), external_field_normals(external_field_normals),
-		anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-		exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
-		dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
-		quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
-	{
-		// Renormalize the external field from Tesla to whatever
-		for (unsigned int i = 0; i < external_field_magnitudes.size(); ++i)
-		{
-			this->external_field_magnitudes[i] = this->external_field_magnitudes[i] * Constants::mu_B * mu_s[i];
-		}
+    Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
+        scalarfield mu_s,
+        scalar external_field_magnitude, Vector3 external_field_normal,
+        intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+        pairfield exchange_pairs, scalarfield exchange_magnitudes,
+        pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
+        scalar ddi_radius,
+        quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+        std::shared_ptr<Data::Geometry> geometry,
+        intfield boundary_conditions
+    ) :
+        Hamiltonian(boundary_conditions), geometry(geometry),
+        mu_s(mu_s),
+        external_field_magnitude(external_field_magnitude * Constants::mu_B), external_field_normal(external_field_normal),
+        anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
+        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
+    {
+        // Generate DDI pairs, magnitudes, normals
+        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
+        scalar magnitude;
+        Vector3 normal;
+        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
+        {
+            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, ddi_pairs[i].translations }, magnitude, normal);
+            this->ddi_magnitudes.push_back(magnitude);
+            this->ddi_normals.push_back(normal);
+        }
 
-		// Generate DDI pairs, magnitudes, normals
-		this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-		scalar magnitude;
-		Vector3 normal;
-		for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
-		{
-			Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, ddi_pairs[i].translations }, magnitude, normal);
-			this->ddi_magnitudes.push_back(magnitude);
-			this->ddi_normals.push_back(normal);
-		}
-
-		this->Update_Energy_Contributions();
-	}
-
-
-	void Hamiltonian_Heisenberg_Pairs::Update_From_Geometry()
-	{
-		// TODO: data needs to be scaled and ordered correctly
-		// TODO: there should be a basic set of info given through the constructor,
-		//       i.e. per basis cell, which can then be extrapolated. This needs to
-		//       redesigned.
-
-		this->anisotropy_indices.resize(this->geometry->nos);
-		this->anisotropy_magnitudes.resize(this->geometry->nos);
-		this->anisotropy_normals.resize(this->geometry->nos);
-
-		this->external_field_indices.resize(this->geometry->nos);
-		this->external_field_magnitudes.resize(this->geometry->nos);
-		this->external_field_normals.resize(this->geometry->nos);
-	}
+        this->Update_Energy_Contributions();
+    }
 
 
 	void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
@@ -84,7 +61,7 @@ namespace Engine
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
 		// External field
-		if (this->external_field_indices.size() > 0)
+		if (this->external_field_magnitude > 0)
 		{
 			this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
 			this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
@@ -161,26 +138,34 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		#pragma omp parallel for
-		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
-		{
-			int ispin = external_field_indices[i];
-			if ( check_atom_type(this->geometry->atom_types[ispin]) )
-				#pragma omp atomic
-				Energy[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i].dot(spins[ispin]);
+        const int N = geometry->n_cell_atoms;
+
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (int ibasis = 0; ibasis < N; ++ibasis)
+            {
+                int ispin = icell*N + ibasis;
+                if (check_atom_type(this->geometry->atom_types[ispin]))
+                    Energy[ispin] -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+            }
 		}
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
 	{
-		#pragma omp parallel for
-		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
-		{
-			int ispin = anisotropy_indices[i];
-			if ( check_atom_type(this->geometry->atom_types[ispin]) )
-				#pragma omp atomic
-				Energy[ispin] -= this->anisotropy_magnitudes[i] * std::pow(anisotropy_normals[i].dot(spins[ispin]), 2.0);
-		}
+        const int N = geometry->n_cell_atoms;
+
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            {
+                int ispin = icell*N + anisotropy_indices[iani];
+                if (check_atom_type(this->geometry->atom_types[ispin]))
+                    Energy[ispin] -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin]), 2.0);
+            }
+        }
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
@@ -357,26 +342,34 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
 	{
-		#pragma omp parallel for
-		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
-		{
-			int ispin = external_field_indices[i];
-			if ( check_atom_type(this->geometry->atom_types[ispin]) )
-				#pragma omp critical
-				gradient[ispin] -= this->external_field_magnitudes[i] * this->external_field_normals[i];
-		}
+        const int N = geometry->n_cell_atoms;
+
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (int ibasis = 0; ibasis < N; ++ibasis)
+            {
+                int ispin = icell*N + ibasis;
+                if (check_atom_type(this->geometry->atom_types[ispin]))
+                    gradient[ispin] -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal;
+            }
+        }
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
-		#pragma omp parallel for
-		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
-		{
-			int ispin = anisotropy_indices[i];
-			if ( check_atom_type(this->geometry->atom_types[ispin]) )
-				#pragma omp critical
-				gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[i] * this->anisotropy_normals[i] * anisotropy_normals[i].dot(spins[ispin]);
-		}
+        const int N = geometry->n_cell_atoms;
+
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            {
+                int ispin = icell*N + anisotropy_indices[iani];
+                if (check_atom_type(this->geometry->atom_types[ispin]))
+                    gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani] * anisotropy_normals[iani].dot(spins[ispin]);
+            }
+        }
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)

@@ -49,6 +49,11 @@ namespace Data
         const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
         // Introduce disorder into the atom types
         // void disorder(scalar mixing);
+        static std::vector<Vector3> BravaisVectorsSC();
+        static std::vector<Vector3> BravaisVectorsFCC();
+        static std::vector<Vector3> BravaisVectorsBCC();
+        static std::vector<Vector3> BravaisVectorsHex2D60();
+        static std::vector<Vector3> BravaisVectorsHex2D120();
 
 
         // ---------- Basic information set, which (in theory) defines everything
@@ -75,6 +80,8 @@ namespace Data
 
         // Number of Spins total
         int nos;
+        // Number of basis cells total
+        int n_cells_total;
         // Positions of all the atoms
         vectorfield positions;
         // Atom types of all the atoms: type index 0..n or or vacancy (type < 0)

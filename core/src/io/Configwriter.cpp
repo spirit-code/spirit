@@ -183,8 +183,8 @@ namespace IO
     {
         std::string config = "";
         Engine::Hamiltonian_Heisenberg_Neighbours * ham = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
-        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitudes[0]/Constants::mu_B/ham->mu_s[0]);
-        config += fmt::format("{:<25} {}\n", "external_field_normal",    ham->external_field_normals[0].transpose());
+        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude/Constants::mu_B);
+        config += fmt::format("{:<25} {}\n", "external_field_normal",    ham->external_field_normal.transpose());
         config += fmt::format("{:<25} {}\n", "mu_s",                     ham->mu_s[0]);
         config += fmt::format("{:<25} {}\n", "anisotropy_magnitude",     ham->anisotropy_magnitudes[0]);
         config += fmt::format("{:<25} {}\n", "anisotropy_normal",        ham->anisotropy_normals[0].transpose());
@@ -218,15 +218,8 @@ namespace IO
 
         // External Field
         config += "###    External Field:\n";
-        scalar B = 0;
-        Vector3 B_normal{ 0,0,0 };
-        if (ham->external_field_indices.size() > 0)
-        {
-            B = ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B;
-            B_normal = ham->external_field_normals[0];
-        }
-        config += fmt::format("{:<25} {}\n", "external_field_magnitude", B);
-        config += fmt::format("{:<25} {}\n", "external_field_normal",    B_normal.transpose());
+        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude / Constants::mu_B);
+        config += fmt::format("{:<25} {}\n", "external_field_normal", ham->external_field_normal.transpose());
         
         // Anisotropy
         config += "###    Anisotropy:\n";

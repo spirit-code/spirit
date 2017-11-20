@@ -18,7 +18,8 @@ namespace Data
         intfield cell_atom_types, scalar lattice_constant) :
         bravais_vectors(bravais_vectors), n_cells(n_cells),
 		n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
-		nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types)
+		nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
+        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2])
 	{
         for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
         {
@@ -264,6 +265,43 @@ namespace Data
         return _tetrahedra;
     }
 
+
+    std::vector<Vector3> Geometry::BravaisVectorsSC()
+    {
+        return { { 1,0,0 },
+                 { 0,1,0 },
+                 { 0,0,1 } };
+    }
+
+    std::vector<Vector3> Geometry::BravaisVectorsFCC()
+    {
+        return { { 0.5,0.0,0.5 },
+                 { 0.5,0.5,0.0 },
+                 { 0.0,0.5,0.5 } };
+    }
+
+    std::vector<Vector3> Geometry::BravaisVectorsBCC()
+    {
+        return { { 0.5, 0.5,-0.5 },
+                 { -0.5, 0.5,-0.5 },
+                 { 0.5,-0.5, 0.5 } };
+    }
+
+    std::vector<Vector3> Geometry::BravaisVectorsHex2D60()
+    {
+        return { { 1,   0,                0 },
+                 { 0.5, 0.5*std::sqrt(3), 0 },
+                 { 0,   0,                1 } };
+    }
+
+    std::vector<Vector3> Geometry::BravaisVectorsHex2D120()
+    {
+        return { {  1,   0,                0 },
+                 { -0.5, 0.5*std::sqrt(3), 0 },
+                 {  0,   0,                1 } };
+    }
+
+
     void Geometry::calculateDimensionality()
     {
         int dims_basis = 0, dims_translations = 0;
@@ -312,7 +350,11 @@ namespace Data
                 {
                     dims_basis = 2;
                 }
-                else this->dimensionality = 3;
+                else
+                {
+                    this->dimensionality = 3;
+                    return;
+                }
             }
         }
 
@@ -349,27 +391,59 @@ namespace Data
             }
             test_vec_translations = plane[0].cross(plane[1]);
         }
-        else this->dimensionality = 3;
+        else
+        {
+            this->dimensionality = 3;
+            return;
+        }
 
 
         // ----- Calculate dimensionality of system -----
         test_vec_basis.normalize();
         test_vec_translations.normalize();
         //		If one dimensionality is zero, only the other counts
-        if (dims_basis == 0) this->dimensionality = dims_translations;
-        else if (dims_translations == 0) this->dimensionality = dims_basis;
+        if (dims_basis == 0)
+        {
+            this->dimensionality = dims_translations;
+            return;
+        }
+        else if (dims_translations == 0)
+        {
+            this->dimensionality = dims_basis;
+            return;
+        }
         //		If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
         else if (dims_basis == dims_translations)
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < 1e-9) this->dimensionality = dims_basis;
-            else if (dims_basis == 1) this->dimensionality = 2;
-            else if (dims_basis == 2) this->dimensionality = 3;
+            if (std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < 1e-9)
+            {
+                this->dimensionality = dims_basis;
+                return;
+            }
+            else if (dims_basis == 1)
+            {
+                this->dimensionality = 2;
+                return;
+            }
+            else if (dims_basis == 2)
+            {
+                this->dimensionality = 3;
+                return;
+            }
         }
         //		If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
         else if ( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations)) < 1e-9) this->dimensionality = 2;
-            else this->dimensionality = 3;
+            if (std::abs(test_vec_basis.dot(test_vec_translations)) < 1e-9)
+            {
+                this->dimensionality = 2;
+                return;
+            }
+            else
+            {
+                this->dimensionality = 3;
+                return;
+            }
         }
     }
     

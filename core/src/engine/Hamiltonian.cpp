@@ -17,13 +17,6 @@ namespace Engine
         delta = 1e-3;
     }
 
-    void Hamiltonian::Update_From_Geometry()
-    {
-        // Not Implemented!
-        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
-            "Tried to use  Hamiltonian::Update_From_Geometry() of the Hamiltonian base class!");
-    }
-
 
     void Hamiltonian::Update_Energy_Contributions()
     {
