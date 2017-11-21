@@ -54,7 +54,7 @@ matrix:
           - sourceline: 'ppa:beineri/opt-qt571-trusty'
     # Linux, GCC 5.1 CUDA build
     - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNSCRIPTS=false USE_CUDA=true CMAKE_OPTIONS="-DSPIRIT_USE_CUDA=ON" PYPI=false
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -65,6 +65,22 @@ matrix:
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
           - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # Linux, GCC 6 OpenMP build
+    - os: linux
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-6
+          - qt57base
+          - qt57charts-no-lgpl
+          - ca-certificates
+          - python2.7
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+          - sourceline: 'ppa:jonathonf/python-2.7'
 
     # - compiler: clang
     #   addons:
@@ -141,43 +157,44 @@ install:
   - if [ "$USE_CUDA" != "true" ]; then ./make.sh -j2; else ./make.sh; fi
 
 
+before_script:
+  # Test everything
+  # Do not run this section if flag was set to false
+  - if [ "$RUNTESTS" != "false" ]; then ./ctest.sh; fi
+
+
 script:
-  - | # Do not run this section if flag was set to false
-    if [[ "$RUNSCRIPTS" != "false" ]]; then
-      # Run all tests
-      ./ctest.sh
+  - |
+    # Build the python package
+    - echo "Python package build"
+    - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
+    - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
+    - cd core/python
+    - python setup.py sdist bdist_wheel;
 
-      # Build the python package
-      echo "Python package build"
-      if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
-      echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-      cd core/python
-      python setup.py sdist bdist_wheel;
+    # Specify account details for PyPI
+    - echo "[distutils]"                                 > ~/.pypirc
+    - echo "index-servers ="                            >> ~/.pypirc
+    - echo "    testpypi"                               >> ~/.pypirc
+    - echo "    pypi"                                   >> ~/.pypirc
+    - echo "[pypi]"                                     >> ~/.pypirc
+    - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+    - echo "username=$PYPIUSER"                         >> ~/.pypirc
+    - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+    - echo "[testpypi]"                                 >> ~/.pypirc
+    - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
+    - echo "username=$PYPIUSER"                         >> ~/.pypirc
+    - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
 
-      # Specify account details for PyPI
-      echo "[distutils]"                                 > ~/.pypirc
-      echo "index-servers ="                            >> ~/.pypirc
-      echo "    testpypi"                               >> ~/.pypirc
-      echo "    pypi"                                   >> ~/.pypirc
-      echo "[pypi]"                                     >> ~/.pypirc
-      echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
-      echo "username=$PYPIUSER"                         >> ~/.pypirc
-      echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-      echo "[testpypi]"                                 >> ~/.pypirc
-      echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
-      echo "username=$PYPIUSER"                         >> ~/.pypirc
-      echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-
-      # Publish python package
-      echo "PYPI deployment:"
-      if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
-      # Do not build pull requests
-      if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
-      if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
-      # Upload to pypi on master commits (if PYPI == true)
-      if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
-      if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
-      # Upload to testpypi on all commits (if PYPI == true)
-      if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
-      if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
-    fi
+    # Publish python package
+    - echo "PYPI deployment:"
+    - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
+    # Do not build pull requests
+    - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
+    - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
+    # Upload to pypi on master commits (if PYPI == true)
+    - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
+    - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
+    # Upload to testpypi on all commits (if PYPI == true)
+    - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
+    - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
