@@ -164,37 +164,36 @@ before_script:
 
 
 script:
-  - |
-    # Build the python package
-    - echo "Python package build"
-    - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
-    - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-    - cd core/python
-    - python setup.py sdist bdist_wheel;
+  # Build the python package
+  - echo "Python package build"
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
+  - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
+  - cd core/python
+  - python setup.py sdist bdist_wheel;
 
-    # Specify account details for PyPI
-    - echo "[distutils]"                                 > ~/.pypirc
-    - echo "index-servers ="                            >> ~/.pypirc
-    - echo "    testpypi"                               >> ~/.pypirc
-    - echo "    pypi"                                   >> ~/.pypirc
-    - echo "[pypi]"                                     >> ~/.pypirc
-    - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
-    - echo "username=$PYPIUSER"                         >> ~/.pypirc
-    - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-    - echo "[testpypi]"                                 >> ~/.pypirc
-    - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
-    - echo "username=$PYPIUSER"                         >> ~/.pypirc
-    - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  # Specify account details for PyPI
+  - echo "[distutils]"                                 > ~/.pypirc
+  - echo "index-servers ="                            >> ~/.pypirc
+  - echo "    testpypi"                               >> ~/.pypirc
+  - echo "    pypi"                                   >> ~/.pypirc
+  - echo "[pypi]"                                     >> ~/.pypirc
+  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  - echo "[testpypi]"                                 >> ~/.pypirc
+  - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
+  - echo "username=$PYPIUSER"                         >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
 
-    # Publish python package
-    - echo "PYPI deployment:"
-    - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
-    # Do not build pull requests
-    - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
-    - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
-    # Upload to pypi on master commits (if PYPI == true)
-    - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
-    - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
-    # Upload to testpypi on all commits (if PYPI == true)
-    - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
-    - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
+  # Publish python package
+  - echo "PYPI deployment:"
+  - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
+  # Do not build pull requests
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
+  # Upload to pypi on master commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
+  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
+  # Upload to testpypi on all commits (if PYPI == true)
+  - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
+  - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
