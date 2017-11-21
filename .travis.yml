@@ -22,10 +22,10 @@ matrix:
     # OSX, xcode 8
     - os: osx
       osx_image: xcode8
-      env: USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
+      env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
     # Linux, GCC 6
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
       compiler: g++
       addons:
         apt:
@@ -41,7 +41,20 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 5.1
     - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-5
+          - qt57base
+          - qt57charts-no-lgpl
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # Linux, GCC 5.1 CUDA build
+    - os: linux
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNSCRIPTS=false USE_CUDA=true CMAKE_OPTIONS="-DSPIRIT_USE_CUDA=ON" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -95,20 +108,26 @@ before_install:
       brew link --force qt@5.7
       export PATH=/usr/local/opt/qt@5.7/bin:${PATH}
     fi
-#   # Install CUDA
-#   - |
-#     if [[ "${USE_CUDA}" == "true" ]]; then
-#       echo "Installing CUDA"
-#       wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/cuda-repo-ubuntu1204_7.0-28_amd64.deb
-#       sudo dpkg -i cuda-repo-ubuntu1204_7.0-28_amd64.deb
-#     fi
-#   - |
-#     if [[ "${USE_CUDA}" == "true" ]]; then
-#       cd ${TRAVIS_BUILD_DIR}
-#       sudo apt-get update
-#       sudo apt-get install cuda-drivers cuda-core-7-0 cuda-cudart-dev-7-0
-#       CMAKE_OPTIONS+="  -DUSE_CUDA=OFF -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda"
-#     fi
+  # Install CUDA
+  - |
+    if [[ "$USE_CUDA" == "true" ]]; then
+      export CUDA=8.0.61-1
+      # get cuda-repo-ubuntu1404
+      travis_retry wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_${CUDA}_amd64.deb
+      travis_retry sudo dpkg -i cuda-repo-ubuntu1404_${CUDA}_amd64.deb
+      # install
+      travis_retry sudo apt-get update -qq
+      export CUDA_APT=${CUDA:0:3}
+      export CUDA_APT=${CUDA_APT/./-}
+      travis_retry sudo apt-get install -y cuda-drivers cuda-core-${CUDA_APT} cuda-cudart-dev-${CUDA_APT} cuda-curand-dev-${CUDA_APT} cuda-cufft-dev-${CUDA_APT}
+      travis_retry sudo apt-get clean
+      # export
+      export CUDA_HOME=/usr/local/cuda-${CUDA:0:3}
+      export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+      export PATH=${CUDA_HOME}/bin:${PATH}
+      export CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_C_COMPILER=${COMPILER_C} -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_HOME}"
+      ls -a ${CUDA_HOME} ${CUDA_HOME}/bin ${CUDA_HOME}/include
+    fi
 
 
 install:
@@ -119,43 +138,46 @@ install:
     cd build
     cmake ${CMAKE_OPTIONS} ..
     cd ..
-  - ./make.sh -j8
+  - if [ "$USE_CUDA" != "true" ]; then ./make.sh -j2; else ./make.sh; fi
 
 
 script:
-  # Run all tests
-  - ./ctest.sh
+  - | # Do not run this section if flag was set to false
+    if [[ "$RUNSCRIPTS" != "false" ]]; then
+      # Run all tests
+      ./ctest.sh
 
-  # Build the python package
-  - echo "Python package build"
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
-  - echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-  - cd core/python
-  - python setup.py sdist bdist_wheel;
+      # Build the python package
+      echo "Python package build"
+      if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
+      echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
+      cd core/python
+      python setup.py sdist bdist_wheel;
 
-  # Specify account details for PyPI
-  - echo "[distutils]"                                 > ~/.pypirc
-  - echo "index-servers ="                            >> ~/.pypirc
-  - echo "    testpypi"                               >> ~/.pypirc
-  - echo "    pypi"                                   >> ~/.pypirc
-  - echo "[pypi]"                                     >> ~/.pypirc
-  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
-  - echo "username=$PYPIUSER"                         >> ~/.pypirc
-  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-  - echo "[testpypi]"                                 >> ~/.pypirc
-  - echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
-  - echo "username=$PYPIUSER"                         >> ~/.pypirc
-  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+      # Specify account details for PyPI
+      echo "[distutils]"                                 > ~/.pypirc
+      echo "index-servers ="                            >> ~/.pypirc
+      echo "    testpypi"                               >> ~/.pypirc
+      echo "    pypi"                                   >> ~/.pypirc
+      echo "[pypi]"                                     >> ~/.pypirc
+      echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+      echo "username=$PYPIUSER"                         >> ~/.pypirc
+      echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+      echo "[testpypi]"                                 >> ~/.pypirc
+      echo "repository=https://test.pypi.org/legacy/"   >> ~/.pypirc
+      echo "username=$PYPIUSER"                         >> ~/.pypirc
+      echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
 
-  # Publish python package
-  - echo "PYPI deployment:"
-  - if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
-  # Do not build pull requests
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
-  # Upload to pypi on master commits (if PYPI == true)
-  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
-  - if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
-  # Upload to testpypi on all commits (if PYPI == true)
-  - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
-  - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
+      # Publish python package
+      echo "PYPI deployment:"
+      if [ "$PYPI" != "true" ]; then echo "Not going to deploy because not configured to."; fi
+      # Do not build pull requests
+      if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Not going to deploy because pull request."; fi
+      if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then PYPI=false; fi
+      # Upload to pypi on master commits (if PYPI == true)
+      if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "Deploying to pypi because on master branch."; else echo "Not deploying to pypi."; fi
+      if [ "$PYPI" == "true" ] && [ "$TRAVIS_BRANCH" == "master" ]; then twine upload --skip-existing -r pypi dist/*; fi
+      # Upload to testpypi on all commits (if PYPI == true)
+      if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
+      if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
+    fi
