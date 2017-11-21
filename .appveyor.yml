@@ -21,25 +21,25 @@ environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       configuration: Release
-      QTDIR:  "C:\\Qt\\5.9.1\\msvc2017_64"
+      QTDIR:  "C:\\Qt\\5.9.2\\msvc2017_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS:
       PYPI: true
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       configuration: Debug
-      QTDIR:  "C:\\Qt\\5.9.1\\msvc2017_64"
+      QTDIR:  "C:\\Qt\\5.9.2\\msvc2017_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS: solver
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Release
-      QTDIR:  "C:\\Qt\\5.9.1\\msvc2015_64"
+      QTDIR:  "C:\\Qt\\5.9.2\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS:
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Debug
-      QTDIR:  "C:\\Qt\\5.9.1\\msvc2015_64"
+      QTDIR:  "C:\\Qt\\5.9.2\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS: solver
       PYPI:
