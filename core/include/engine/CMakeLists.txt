@@ -5,6 +5,7 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp

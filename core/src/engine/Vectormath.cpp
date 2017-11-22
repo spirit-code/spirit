@@ -20,6 +20,11 @@ namespace Engine
 {
     namespace Vectormath
     {
+        scalar angle(const Vector3 & v1, const Vector3 & v2)
+        {
+            scalar cosa = v1.dot(v2);
+            return std::acos(cosa);
+        }
         
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
         {

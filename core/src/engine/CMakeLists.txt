@@ -1,12 +1,13 @@
 set(SOURCE_SPIRIT_ENGINE
-    ${SOURCE_SPIRIT_ENGINE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
+	${SOURCE_SPIRIT_ENGINE}
+	${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.cpp
@@ -16,6 +17,6 @@ set(SOURCE_SPIRIT_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cu
-    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-    PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+	PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
 )
