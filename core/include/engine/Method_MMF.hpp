@@ -26,9 +26,6 @@ namespace Engine
         // Calculate Forces onto Systems
         void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces) override;
         
-        // Functions for getting the minimum mode of a Hessian
-        void Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
-        
         // Check if the Forces are converged
         bool Converged() override;
 
@@ -63,7 +60,11 @@ namespace Engine
         // Which minimum mode function to use
         // ToDo: move into parameters
         std::string mm_function;
-    };
+
+        // Functions for getting the minimum mode of a Hessian
+        void Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
+        void Calculate_Force_Lanczos(const std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
+	};
 }
 
 #endif

@@ -153,11 +153,6 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             }
             else if (method_type == "MMF")
             {
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                        "MMF is not yet implemented!" );
-                chain->Unlock();
-                return false;
-                
                 if (Simulation_Running_Anywhere_Collection(state))
                 {
                     Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
