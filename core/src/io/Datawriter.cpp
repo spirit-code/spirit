@@ -599,8 +599,8 @@ namespace IO
     {
         for (int iatom = 0; iatom < vf.size(); ++iatom)
         {
-                output_to_file += fmt::format( "\n{:20.10f} {:20.10f} {:20.10f}", 
-                                                vf[iatom][0], vf[iatom][1], vf[iatom][2] );
+                output_to_file += fmt::format( "{:20.10f} {:20.10f} {:20.10f}\n", 
+                                               vf[iatom][0], vf[iatom][1], vf[iatom][2] );
         }
     }
     

@@ -35,10 +35,18 @@ namespace IO
 	}
     
     // Helper function to read configuration in column vector from text in file
+    //// NOTE: that function assumes that the nos in the OVF file is equal to nos of the system
     void Read_ColumnVector_Configuration( Filter_File_Handle& myfile, const char delimiter,
                                           const int stride, vectorfield& vf,
                                           const Data::Geometry& geometry )
     {
+        for (int i=0; i<geometry.nos; i++)
+        {
+            myfile.GetLine();
+            myfile.iss >> vf[i][stride];
+            myfile.iss >> vf[i][stride+1];
+            myfile.iss >> vf[i][stride+2];
+        }
     }
     
 	/*
@@ -94,22 +102,15 @@ namespace IO
 				}// endif new line (while)
 				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 			}
-			else if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+			else if ( format == VF_FileFormat::OVF_BIN8 || 
+                      format == VF_FileFormat::OVF_BIN4 || 
+                      format == VF_FileFormat::OVF_TEXT )
 			{
 				auto& spins = *s->spins;
 				auto& geometry = *s->geometry;
 
 				Read_From_OVF( spins, geometry, file, format );
 			}
-            else if ( format == VF_FileFormat::OVF_TEXT )
-            {
-                // TODO: remove after implementation
-                
-                Log( Log_Level::Warning, Log_Sender::IO, fmt::format( "OVF file format {} is not "
-                     "supported yet. Aborting", (int)format ) ); 
-                myfile.close(); 
-                return; 
-            }
 			else
 			{
 				auto& spins = *s->spins;

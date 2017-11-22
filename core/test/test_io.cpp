@@ -21,7 +21,7 @@ TEST_CASE( "IO", "[io]" )
         //{ "core/test/io_test_files/image_regular_pos.data", IO_Fileformat_Regular_Pos },  
         //{ "core/test/io_test_files/image_csv.data",         IO_Fileformat_CSV         },
         { "core/test/io_test_files/image_csv_pos.data",     IO_Fileformat_CSV_Pos     },
-        //{ "core/test/io_test_files/image_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
+        { "core/test/io_test_files/image_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
         { "core/test/io_test_files/image_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
         { "core/test/io_test_files/image_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
     
@@ -40,7 +40,6 @@ TEST_CASE( "IO", "[io]" )
         // set config to minus z and write the system out
         Configuration_MinusZ( state.get() );
         IO_Image_Write( state.get(), filename, filetype, "io test" );
-        IO_Image_Append( state.get(), filename, filetype, "io test" );
         
         // set config to plus z and read the previously saved system
         Configuration_PlusZ( state.get() );
@@ -104,8 +103,6 @@ TEST_CASE( "IO-CHAIN", "[io-chain]" )
         
         // Log the filename
         INFO( "IO chain" + file.first );
-        IO_Chain_Write( state.get(), filename, filetype );      // this must be overwritten
         IO_Chain_Write( state.get(), filename, filetype );
-        IO_Chain_Append( state.get(), filename, filetype );
     }
 }
