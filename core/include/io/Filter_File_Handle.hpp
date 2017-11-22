@@ -7,6 +7,7 @@
 #include <istream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -51,18 +52,21 @@ namespace IO
         void Remove_Chars_From_String(std::string &str, char* charsToRemove);
         // Removes comments from a string
         bool Remove_Comments_From_String( std::string &str );
-        // Read a string (separeated by whitespaces) into var
-        void Read_String( std::string& var, const std::string keyword, bool log_notfound = true );
+        // Read a string (separeated by whitespaces) into var. Capitalization is ignored.
+        void Read_String( std::string& var, std::string keyword, bool log_notfound = true );
         // Count the words of a string
         int Count_Words( const std::string& str );
         // get name 
         
         // Reads a single variable into var, with optional logging in case of failure.
-        template <typename T> bool Read_Single( T & var, const std::string name,  
+        // Capitalization is ignored
+        template <typename T> bool Read_Single( T & var, std::string name,  
                                                 bool log_notfound = true )
         {
             try
             {
+                std::transform( name.begin(), name.end(), name.begin(), ::tolower );
+                
                 if (Find(name))
                 {
                     iss >> var;
@@ -79,8 +83,12 @@ namespace IO
             return false;
         };
         
-        template <typename T> void Require_Single( T& var, const std::string name )
+        // Require a single field. In case that it is not found an execption is thrown. 
+        // Capitalization is ignored.
+        template <typename T> void Require_Single( T& var, std::string name )
         {
+            std::transform( name.begin(), name.end(), name.begin(), ::tolower );
+            
             if( !Read_Single( var, name, false ) )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,

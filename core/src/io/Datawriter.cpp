@@ -470,9 +470,10 @@ namespace IO
         output_to_file += fmt::format( empty_line );
         
         // The value dimension is always 3 in this implementation since we are writting Vector3-data
-        output_to_file += fmt::format( "# valuedim: {} ##Value dimension\n", 1 );
-        output_to_file += fmt::format( "# valueunits: None\n" );
-        output_to_file += fmt::format( "# valuelabels: [unitary vector (spin)]\n" );
+        output_to_file += fmt::format( "# valuedim: {} ##Value dimension\n", 3 );
+        output_to_file += fmt::format( "# valueunits: None None None\n" );
+        output_to_file += fmt::format( "# valuelabels: spin_x_component spin_y_component "
+                                       "spin_z_component \n" );
         output_to_file += fmt::format( empty_line );
         
         output_to_file += fmt::format( "## Fundamental mesh measurement unit. "

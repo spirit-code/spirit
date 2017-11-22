@@ -10,6 +10,7 @@
 #include <cstring>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 using namespace Utility;
 
@@ -71,6 +72,9 @@ namespace IO
     {
         if (Filter_File_Handle::GetLine_Handle())
         {
+            // decapitalize line
+            std::transform( this->line.begin(), this->line.end(), this->line.begin(), ::tolower );
+            
             return Filter_File_Handle::Find_in_Line("");
         }
         return false;
@@ -139,9 +143,10 @@ namespace IO
         return true;
     }
 
-    void Filter_File_Handle::Read_String( std::string& var, const std::string keyword, 
-                                            bool log_notfound )
+    void Filter_File_Handle::Read_String( std::string& var, std::string keyword, bool log_notfound )
     {
+        std::transform( keyword.begin(), keyword.end(), keyword.begin(), ::tolower );
+        
         if ( Find( keyword ) )
         {
             getline( this->iss, var );
