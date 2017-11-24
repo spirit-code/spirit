@@ -155,78 +155,90 @@ namespace IO
 			std::string line = "";
 			std::istringstream iss(line);
 			std::size_t found;
-			int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
-			Vector3 spin;
-			while (getline(myfile, line))
-			{
-				found = line.find("#");
-				if (found == std::string::npos)		// Read the line if # is not found (# marks a comment)
+            std::size_t image_no;
+            int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+            Vector3 spin;
+            
+            while (getline(myfile, line))
+            {
+                // First we check if the line declares a new image
+                
+                image_no = line.find("Image No"); 
+                
+                // if there is a "Image No" in that line increment the indeces appropriately
+                if ( image_no != std::string::npos )
+                {
+                    if (ispin < nos && iimage>0)	// Check if less than NOS spins were read for the image before
+                    {
+                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
+                    }
+                    ++iimage;
+                    ispin = 0;
+                    if (iimage >= noi)
+                    {
+                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
+                    }
+                    else
+                    {
+                        nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
+                    }
+                }//endif "Image No"
+                
+                // Then check if the line contains "#" charachter which means that is a comment.
+                // This will not affect the "Image No" since is already been done.
+                
+                found = line.find("#");
+                
+                // Read the line if # is not found (# marks a comment)
+				if (found == std::string::npos)
 				{
-					found = line.find("Image No");
-					if (found == std::string::npos)	// The line should contain a spin
-					{
-						if (iimage < 0) iimage = 0;
+					if (iimage < 0) iimage = 0;
 
-						if (iimage >= noi)
-						{
-							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}. Appending image {}", iimage+1, noi, iimage+1));
-							// Copy Image
-							auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
-							new_system->Lock();
-							// Add to chain
-							c->noi++;
-							c->images.push_back(new_system);
-							c->image_type.push_back(Data::GNEB_Image_Type::Normal);
-							noi = c->noi;
-						}
-						nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-
-						if (ispin >= nos)
-						{
-							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
-							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", nos, ispin+1));
-							//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
-							//myfile.close();
-							//return;
-						}
-						else
-						{
-							iss.clear();
-							iss.str(line);
-							auto& spins = *c->images[iimage]->spins;
-							//iss >> x >> y >> z;
-							iss >> spin[0] >> spin[1] >> spin[2];
-							if (spin.norm() < 1e-5)
-							{
-								spin = {0, 0, 1};
-								#ifdef SPIRIT_ENABLE_DEFECTS
-								c->images[iimage]->geometry->atom_types[ispin] = -1;
-								#endif
-							}
-							spins[ispin] = spin;
-						}
-						++ispin;
-					}//end else
-					else	// Set counters if 'Image No' was found
+					if (iimage >= noi)
 					{
-						if (ispin < nos && iimage>0)	// Check if less than NOS spins were read for the image before
+						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}. Appending image {}", iimage+1, noi, iimage+1));
+						// Copy Image
+						auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
+						new_system->Lock();
+						// Add to chain
+						c->noi++;
+						c->images.push_back(new_system);
+						c->image_type.push_back(Data::GNEB_Image_Type::Normal);
+						noi = c->noi;
+					}
+					nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
+
+					if (ispin >= nos)
+					{
+						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
+						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", nos, ispin+1));
+						//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
+						//myfile.close();
+						//return;
+					}
+					else
+					{
+						iss.clear();
+						iss.str(line);
+						auto& spins = *c->images[iimage]->spins;
+						//iss >> x >> y >> z;
+						iss >> spin[0] >> spin[1] >> spin[2];
+						if (spin.norm() < 1e-5)
 						{
-							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
+							spin = {0, 0, 1};
+							#ifdef SPIRIT_ENABLE_DEFECTS
+							c->images[iimage]->geometry->atom_types[ispin] = -1;
+							#endif
 						}
-						++iimage;
-						ispin = 0;
-						if (iimage >= noi)
-						{
-							Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
-						}
-						else
-						{
-							nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-						}
-					}//endif "Image No"
+						spins[ispin] = spin;
+					}
+					++ispin;
 				}// endif (# not found)
-					// discard line if # is found
-			}// endif new line (while)
+                
+                // Discard line if # is found. This will work also in the case of finding "Image No"
+                // keyword since a line like that would containi "#"
+                
+            }// endif new line (while)
 			if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
 			if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(chain) = {} > NOI(file) = {}", noi, iimage+1));
 			myfile.close();
