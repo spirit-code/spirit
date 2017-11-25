@@ -12,6 +12,8 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+using namespace Utility;
+
 // CUDA Version
 namespace Engine
 {
@@ -237,58 +239,64 @@ namespace Engine
 		/////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
-		{
-			// Check for erronous input placing two spins on the same location
-			int max_a = std::min(10, n_cells[0]);
-			int max_b = std::min(10, n_cells[1]);
-			int max_c = std::min(10, n_cells[2]);
-			Vector3 sp;
-			for (unsigned int i = 0; i < basis_atoms.size(); ++i)
-			{
-				for (unsigned int j = 0; j < basis_atoms.size(); ++j)
-				{
-					for (int ka = -max_a; ka <= max_a; ++ka)
-					{
-						for (int kb = -max_b; kb <= max_b; ++kb)
-						{
-							for (int kc = -max_c; kc <= max_c; ++kc)
-							{
-								// Norm is zero if translated basis atom is at position of another basis atom
-								sp = basis_atoms[i] - (basis_atoms[j]
-									+ ka*translation_vectors[0] + kb*translation_vectors[1] + kc*translation_vectors[2]);
-								if ((i != j || ka != 0 || kb != 0 || kc != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
+		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, 
+            const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
+        {
+            // Check for erronous input placing two spins on the same location
+            int max_a = std::min(10, n_cells[0]);
+            int max_b = std::min(10, n_cells[1]);
+            int max_c = std::min(10, n_cells[2]);
+            Vector3 sp;
+            for (unsigned int i = 0; i < basis_atoms.size(); ++i)
+            {
+                for (unsigned int j = 0; j < basis_atoms.size(); ++j)
+                {
+                    for (int ka = -max_a; ka <= max_a; ++ka)
+                    {
+                        for (int k2 = -max_b; k2 <= max_b; ++k2)
+                        {
+                            for (int k3 = -max_c; k3 <= max_c; ++k3)
+                            {
+                                // Norm is zero if translated basis atom is at position of another basis atom
+                                sp = basis_atoms[i] - (basis_atoms[j]
+                                    + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
+                                    k3 * translation_vectors[2]);
+                                if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
+                                    std::abs(sp[2]) < 1e-9 )
                                 {
                                     spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
                                         "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
                                 }
-							}
-						}
-					}
-				}
-			}
+                            }
+                        }
+                    }
+                }
+            }
 
-			// Build up the spins array
-			int i, j, k, s, ispin;
-			int nos_basic = basis_atoms.size();
-			//int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
-			Vector3 build_array;
-			for (k = 0; k < n_cells[2]; ++k) {
-				for (j = 0; j < n_cells[1]; ++j) {
-					for (i = 0; i < n_cells[0]; ++i) {
-						for (s = 0; s < nos_basic; ++s) {
-							ispin = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
-							build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
-							// paste initial spin orientations across the lattice translations
-							//spins[dim*nos + ispin] = spins[dim*nos + s];
-							// calculate the spin positions
-							spin_pos[ispin] = basis_atoms[s] + build_array;
-						}// endfor s
-					}// endfor k
-				}// endfor j
-			}// endfor dim
+            // Build up the spins array
+            int i, j, k, s, ispin;
+            int nos_basic = basis_atoms.size();
+            //int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+            Vector3 build_array;
+            for (k = 0; k < n_cells[2]; ++k) {
+                for (j = 0; j < n_cells[1]; ++j) {
+                    for (i = 0; i < n_cells[0]; ++i) {
+                        for (s = 0; s < nos_basic; ++s) {
+                            ispin = k * n_cells[1] * n_cells[0] * nos_basic + 
+                                    j * n_cells[0] * nos_basic + i * nos_basic + s;
+                            build_array = i * translation_vectors[0] + j * translation_vectors[1] + 
+                                            k * translation_vectors[2];
+                            // paste initial spin orientations across the lattice translations
+                            //spins[dim*nos + ispin] = spins[dim*nos + s];
+                            // calculate the spin positions
+                            spin_pos[ispin] = basis_atoms[s] + build_array;
+                        }// endfor s
+                    }// endfor k
+                }// endfor j
+            }// endfor dim
 
-		};// end Build_Spins
+        }// end Build_Spins
 
 
 		std::array<scalar, 3> Magnetization(const vectorfield & vf)

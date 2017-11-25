@@ -65,7 +65,7 @@ TEST_CASE( "IO", "[io]" )
     IO_Image_Write_Energy( state.get(), "core/test/io_test_files/Energy.data" );
 }
 
-TEST_CASE( "IO-CHAIN", "[io-chain]" )
+TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
 {    
     // TODO: Diferent OVF test for text, 8 and 4 byte raw data
     
@@ -104,5 +104,41 @@ TEST_CASE( "IO-CHAIN", "[io-chain]" )
         // Log the filename
         INFO( "IO chain" + file.first );
         IO_Chain_Write( state.get(), filename, filetype );
+    }
+}
+
+TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
+{
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+    
+    std::vector<std::pair< std::string, int >>  filetypes { 
+        { "core/test/io_test_files/chain_regular.data",     IO_Fileformat_Regular     }, 
+        //{ "core/test/io_test_files/chain_regular_pos.data", IO_Fileformat_Regular_Pos },  
+        //{ "core/test/io_test_files/chain_csv.data",         IO_Fileformat_CSV         },
+        { "core/test/io_test_files/chain_csv_pos.data",     IO_Fileformat_CSV_Pos     } };
+    
+    // buffer variables for better readability
+    const char *filename;
+    int filetype;
+    
+    for ( auto file: filetypes )
+    {
+        filename = file.first.c_str();      // get the filename from pair
+        filetype = file.second;             // fet the filetype from pair
+        
+        // Log the filename
+        INFO( "IO chain" + file.first );
+        IO_Chain_Read( state.get(), filename, filetype );
+        
+        // Now the state must have 3 images
+        REQUIRE( Chain_Get_NOI( state.get() ) == 3 );
+        
+        // create a name for printing the read in chain for validation purposes
+        std::string cur_name = file.first;                    // get current name
+        cur_name.erase( cur_name.end()-5, cur_name.end() );     // strip ending (".data")
+        std::string validation_filename = cur_name + "_validate_reading.data"; // expand name
+        
+        // write the read in chain for visual inspection
+        IO_Chain_Write( state.get(), validation_filename.c_str(), filetype );
     }
 }

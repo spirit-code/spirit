@@ -22,10 +22,10 @@ matrix:
     # OSX, xcode 8
     - os: osx
       osx_image: xcode8
-      env: USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
+      env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
     # Linux, GCC 6
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
       compiler: g++
       addons:
         apt:
@@ -41,7 +41,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 5.1
     - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 USE_CUDA="false" CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -52,6 +52,35 @@ matrix:
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
           - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # Linux, GCC 5.1 CUDA build
+    - os: linux
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-5
+          - qt57base
+          - qt57charts-no-lgpl
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # Linux, GCC 6 OpenMP build
+    - os: linux
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-6
+          - qt57base
+          - qt57charts-no-lgpl
+          - ca-certificates
+          - python2.7
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+          - sourceline: 'ppa:jonathonf/python-2.7'
 
     # - compiler: clang
     #   addons:
@@ -95,20 +124,26 @@ before_install:
       brew link --force qt@5.7
       export PATH=/usr/local/opt/qt@5.7/bin:${PATH}
     fi
-#   # Install CUDA
-#   - |
-#     if [[ "${USE_CUDA}" == "true" ]]; then
-#       echo "Installing CUDA"
-#       wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/cuda-repo-ubuntu1204_7.0-28_amd64.deb
-#       sudo dpkg -i cuda-repo-ubuntu1204_7.0-28_amd64.deb
-#     fi
-#   - |
-#     if [[ "${USE_CUDA}" == "true" ]]; then
-#       cd ${TRAVIS_BUILD_DIR}
-#       sudo apt-get update
-#       sudo apt-get install cuda-drivers cuda-core-7-0 cuda-cudart-dev-7-0
-#       CMAKE_OPTIONS+="  -DUSE_CUDA=OFF -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda"
-#     fi
+  # Install CUDA
+  - |
+    if [[ "$USE_CUDA" == "true" ]]; then
+      export CUDA=8.0.61-1
+      # get cuda-repo-ubuntu1404
+      travis_retry wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_${CUDA}_amd64.deb
+      travis_retry sudo dpkg -i cuda-repo-ubuntu1404_${CUDA}_amd64.deb
+      # install
+      travis_retry sudo apt-get update -qq
+      export CUDA_APT=${CUDA:0:3}
+      export CUDA_APT=${CUDA_APT/./-}
+      travis_retry sudo apt-get install -y cuda-drivers cuda-core-${CUDA_APT} cuda-cudart-dev-${CUDA_APT} cuda-curand-dev-${CUDA_APT} cuda-cufft-dev-${CUDA_APT}
+      travis_retry sudo apt-get clean
+      # export
+      export CUDA_HOME=/usr/local/cuda-${CUDA:0:3}
+      export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+      export PATH=${CUDA_HOME}/bin:${PATH}
+      export CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_C_COMPILER=${COMPILER_C} -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_HOME}"
+      ls -a ${CUDA_HOME} ${CUDA_HOME}/bin ${CUDA_HOME}/include
+    fi
 
 
 install:
@@ -119,13 +154,16 @@ install:
     cd build
     cmake ${CMAKE_OPTIONS} ..
     cd ..
-  - ./make.sh -j8
+  - if [ "$USE_CUDA" != "true" ]; then ./make.sh -j2; else ./make.sh; fi
+
+
+before_script:
+  # Test everything
+  # Do not run this section if flag was set to false
+  - if [ "$RUNTESTS" != "false" ]; then ./ctest.sh; fi
 
 
 script:
-  # Run all tests
-  - ./ctest.sh
-
   # Build the python package
   - echo "Python package build"
   - if [ "$TRAVIS_BRANCH" != "master" ]; then export SPIRIT_ADD_VERSION_SUFFIX=true; else export SPIRIT_ADD_VERSION_SUFFIX=false; fi
