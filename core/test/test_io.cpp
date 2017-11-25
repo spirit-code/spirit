@@ -6,6 +6,9 @@
 #include <Spirit/Chain.h>
 #include <utility>
 #include <vector>
+#include <iostream>
+#include <algorithm>
+#include <string>
 
 const char inputfile[] = "core/test/input/fd_neighbours.cfg";
 
@@ -141,4 +144,47 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
         // write the read in chain for visual inspection
         IO_Chain_Write( state.get(), validation_filename.c_str(), filetype );
     }
+}
+
+TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
+{
+    // That test is checking that the IO_Image_Read() would deal properly with capitalization for 
+    // every file that uses Filter_File_Handle(). We are testing the OVF_TEXT format. For that 
+    // reason first (1) we have to parse in the io_test_file, convert every char to upper and then
+    // rewrite it. Then (2) if we try to read in the capilized file test should NOT fail.
+    
+    // 1. Create the upper case file
+    
+    std::ifstream ifile( "core/test/io_test_files/image_ovf_txt.ovf", std::ios::in );
+    std::ofstream ofile( "core/test/io_test_files/image_ovf_txt_CAP.ovf", std::ios::out );
+    std::string line;
+    
+    while( std::getline( ifile,line ) )
+    {
+        std::transform( line.begin(), line.end(), line.begin(), ::toupper );
+        ofile << line << std::endl;
+    }
+    
+    ifile.close();
+    ofile.close();
+    
+    // 2. Read the upper case file
+    
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+    
+    IO_Image_Read( state.get(), "core/test/io_test_files/image_ovf_txt_CAP.ovf", 
+                   IO_Fileformat_OVF_text );
+                   
+   scalar* data = System_Get_Spin_Directions( state.get() );
+   
+   // make sure that the read in has the same nos
+   int nos = System_Get_NOS( state.get() );
+   REQUIRE( nos == 4 );
+   
+   for (int i=0; i<nos; i++)
+   {
+       REQUIRE( data[i*3] == Approx( 0 ) );
+       REQUIRE( data[i*3+1] == Approx( 0 ) );
+       REQUIRE( data[i*3+2] == Approx( -1 ) );
+   }
 }

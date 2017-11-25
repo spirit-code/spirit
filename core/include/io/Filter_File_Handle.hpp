@@ -59,7 +59,9 @@ namespace IO
         // get name 
         
         // Reads a single variable into var, with optional logging in case of failure.
-        // Capitalization is ignored
+        //
+        //// NOTE: Capitalization is ignored (expected).
+        //
         template <typename T> bool Read_Single( T & var, std::string name,  
                                                 bool log_notfound = true )
         {
@@ -84,7 +86,9 @@ namespace IO
         };
         
         // Require a single field. In case that it is not found an execption is thrown. 
-        // Capitalization is ignored.
+        //
+        //// NOTE: Capitalization is ignored (expected).
+        //
         template <typename T> void Require_Single( T& var, std::string name )
         {
             std::transform( name.begin(), name.end(), name.begin(), ::tolower );
