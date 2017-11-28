@@ -33,7 +33,22 @@ namespace IO
 
         return result;
 	}
-	
+    
+    // Helper function to read configuration in column vector from text in file
+    //// NOTE: that function assumes that the nos in the OVF file is equal to nos of the system
+    void Read_ColumnVector_Configuration( Filter_File_Handle& myfile, const char delimiter,
+                                          const int stride, vectorfield& vf,
+                                          const Data::Geometry& geometry )
+    {
+        for (int i=0; i<geometry.nos; i++)
+        {
+            myfile.GetLine();
+            myfile.iss >> vf[i][stride];
+            myfile.iss >> vf[i][stride+1];
+            myfile.iss >> vf[i][stride+2];
+        }
+    }
+    
 	/*
 	Reads a configuration file into an existing Spin_System
 	*/
@@ -87,22 +102,15 @@ namespace IO
 				}// endif new line (while)
 				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 			}
-			else if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+			else if ( format == VF_FileFormat::OVF_BIN8 || 
+                      format == VF_FileFormat::OVF_BIN4 || 
+                      format == VF_FileFormat::OVF_TEXT )
 			{
 				auto& spins = *s->spins;
 				auto& geometry = *s->geometry;
 
 				Read_From_OVF( spins, geometry, file, format );
 			}
-            else if ( format == VF_FileFormat::OVF_TEXT )
-            {
-                // TODO: remove after implementation
-                
-                Log( Log_Level::Warning, Log_Sender::IO, fmt::format( "OVF file format {} is not "
-                     "supported yet. Aborting", (int)format ) ); 
-                myfile.close(); 
-                return; 
-            }
 			else
 			{
 				auto& spins = *s->spins;
@@ -973,10 +981,13 @@ namespace IO
             // OVF Header Block
             
             // first line - OVF version
-            myfile.Read_String( ovf_version, "# OOMMF " );
-            if( ovf_version != "OVF 2.0" && ovf_version != "OVF 2" )
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO,
-					fmt::format( "{0} is not supported", ovf_version ) );
+            myfile.Read_String( ovf_version, "# OOMMF OVF" );
+            if( ovf_version != "2.0" && ovf_version != "2" )
+            {
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error,
+                              fmt::format( "OVF {0} is not supported", ovf_version ) );
+            }
             
             // Title
             myfile.Read_String( ovf_title, "# Title:" );
@@ -1071,32 +1082,31 @@ namespace IO
             myfile.Read_String( ovf_data_representation, "# Begin: Data" );
             std::istringstream repr( ovf_data_representation );
             repr >> ovf_data_representation;
-            if( ovf_data_representation == "Binary" ) 
+            if( ovf_data_representation == "binary" ) 
                 repr >> ovf_binary_length;
             
             Log( lvl, sender, fmt::format( "# OVF data representation = {}", ovf_data_representation ) );
             Log( lvl, sender, fmt::format( "# OVF binary length       = {}", ovf_binary_length ) );
             
             // Check that representation and binary length valures are ok
-            if( ovf_data_representation != "Text" && ovf_data_representation != "Binary" )
+            if( ovf_data_representation != "text" && ovf_data_representation != "binary" )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Data representation must be either \"Text\" or \"Binary\"");
+                    "Data representation must be either \"text\" or \"binary\"");
             }
             
-            if( ovf_data_representation == "Binary" && 
+            if( ovf_data_representation == "binary" && 
                  ovf_binary_length != 4 && ovf_binary_length != 8  )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Binary representation can be either \"Binary 8\" or \"Binary 4\"");
+                    "Binary representation can be either \"binary 8\" or \"binary 4\"");
             }
 
             // Read the data
-            if( ovf_data_representation == "Binary" )
+            if( ovf_data_representation == "binary" )
                 OVF_Read_Binary( myfile, ovf_binary_length, ovf_xyz_nodes, vf );
-            else if( ovf_data_representation == "Text" )
-                // TODO: function not implemented
-                OVF_Read_Text( myfile, vf ); 
+            else if( ovf_data_representation == "text" )
+                OVF_Read_Text( myfile, geometry, vf ); 
         
         }
         catch (...) 
@@ -1191,9 +1201,9 @@ namespace IO
                 myfile.myfile->read( reinterpret_cast<char *>( &read_4byte ), sizeof(float) );
                 if ( read_4byte != reference_4byte ) 
                 {
-                    Log( Log_Level::Error, Log_Sender::IO,
-						fmt::format("OVF initial check value of binary data is inconsistent. Expected {}, read {}", reference_4byte, read_4byte));
-                    return false;
+                    spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                                  Utility::Log_Level::Error,
+                                  "OVF initial check value of binary data is inconsistent" );
                 }
             }
             else if ( ovf_binary_length == 8 )
@@ -1201,9 +1211,9 @@ namespace IO
                 myfile.myfile->read( reinterpret_cast<char *>( &read_8byte ), sizeof(double) );
                 if ( read_8byte != reference_8byte )
                 {
-                    Log( Log_Level::Error, Log_Sender::IO,
-						fmt::format("OVF initial check value of binary data is inconsistent. Expected {}, read {}", reference_8byte, read_8byte));
-                    return false;
+                    spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                                  Utility::Log_Level::Error,
+                                  "OVF initial check value of binary data is inconsistent" );
                 }
             }
             
@@ -1216,9 +1226,18 @@ namespace IO
         }
     }
     
-    void OVF_Read_Text( Filter_File_Handle& myfile, vectorfield & vf )
+    //// TODO: this function should extended in a way that reads an OVF file with valuedimen larger
+    // than 3. Right now it is reading only the configurarion components.
+    void OVF_Read_Text( Filter_File_Handle& myfile, const Data::Geometry& geometry, vectorfield& vf )
     {
-        
+        try
+        {
+            Read_ColumnVector_Configuration( myfile, ' ', 0, vf, geometry );
+        }
+        catch (...)
+        {
+            spirit_rethrow(	"Failed to check OVF initial binary value" );
+        }
     }
-
+    
 }// end namespace IO
