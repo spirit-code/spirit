@@ -393,7 +393,7 @@ namespace IO
             for (int iatom = 0; iatom < vf.size(); ++iatom)
             {
                 #ifdef SPIRIT_ENABLE_DEFECTS
-                if( geometry->atom_types[iatom] < 0 )
+                if( geometry.atom_types[iatom] < 0 )
                     output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}\n", 
                                                    0.0, delimiter, 0.0, delimiter, 0.0 );
                 else
@@ -410,7 +410,7 @@ namespace IO
             for (int iatom = 0; iatom < vf.size(); ++iatom)
             {
                 #ifdef SPIRIT_ENABLE_DEFECTS
-                if( geometry->atom_types[iatom] < 0 )
+                if( geometry.atom_types[iatom] < 0 )
                     output_to_file += fmt::format( "{:20.10f}{}{:20.10f}{}{:20.10f}{}"
                                                    "{:20.10f}{}{:20.10f}{}{:20.10f}\n",
                                                    geometry.spin_pos[iatom][0], delimiter,
