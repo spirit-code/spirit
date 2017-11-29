@@ -18,6 +18,9 @@
 
 namespace IO
 {
+    void Read_ColumnVector_Configuration( Filter_File_Handle& myfile, const char delimiter,
+                                          const int stride, vectorfield& vf,
+                                          const Data::Geometry& geometry );
     void Read_Spin_Configuration_CSV( std::shared_ptr<Data::Spin_System> s, const std::string file );
     void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
                                   VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_POS_SPIN );
@@ -53,7 +56,6 @@ namespace IO
     // Checking the initial check values of OVF binary data
     bool OVF_Check_Binary_Initial_Values( Filter_File_Handle& myfile, const int ovf_binary_length );
     // Read the OVF text data to the vectorfield vf 
-    // TODO: Not implemented
-    void OVF_Read_Text( Filter_File_Handle& myfile, vectorfield& vf );
+    void OVF_Read_Text( Filter_File_Handle& myfile, const Data::Geometry& geometry, vectorfield& vf );
 };// end namespace IO
 #endif
