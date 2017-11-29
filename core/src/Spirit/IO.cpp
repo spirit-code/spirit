@@ -110,15 +110,13 @@ int IO_N_Images_In_File( State *state, const char *file, int format, int idx_cha
 void IO_Image_Read( State *state, const char *file, int format, int idx_image_infile, 
                     int idx_image_inchain, int idx_chain ) noexcept
 {
-    int idx_image = -1;
-    
     try
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
+        from_indices( state, idx_image_inchain, idx_chain, image, chain );
         
         // Read the data
         image->Lock();
@@ -127,11 +125,11 @@ void IO_Image_Read( State *state, const char *file, int format, int idx_image_in
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Read spins from file {} with format {}", file, format),
-            idx_image, idx_chain );
+            idx_image_inchain, idx_chain );
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api(idx_image_inchain, idx_chain);
     }
 }
 
