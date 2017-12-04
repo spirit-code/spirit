@@ -244,7 +244,7 @@ namespace IO
         if (ham->exchange_pairs.size() + ham->dmi_pairs.size() > 0)
         {
             config += fmt::format("{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n",
-                "i", "j", "da", "db", "dc", "J", "Dij", "Dx", "Dy", "Dz");
+                "i", "j", "da", "db", "dc", "Jij", "Dij", "Dijx", "Dijy", "Dijz");
             // Exchange
             for (unsigned int i=0; i<ham->exchange_pairs.size(); ++i)
             {

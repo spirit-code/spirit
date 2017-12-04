@@ -149,10 +149,10 @@ You may specify shell-wise interaction parameters.
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
 hamiltonian                   heisenberg_pairs
 
-### boundary_conditions (in a b c) = 0(open), 1(periodical)
+### Boundary_conditions (in a b c) = 0(open), 1(periodical)
 boundary_conditions           1 1 0
 
-### external magnetic field vector[T]
+### External magnetic field vector[T]
 external_field_magnitude      25.0
 external_field_normal         0.0 0.0 1.0
 ### µSpin
@@ -166,10 +166,11 @@ anisotropy_normal             0.0 0.0 1.0
 dd_radius                     0.0
 
 ### Pairs
-n_interaction_pairs 2
-i  j    da  db  dc    Dx  Dy  Dz     J
-0  0    1   0   0     6.0 0.0 0.0    10.0
-0  0    0   1   0     0.0 6.0 0.0    10.0
+n_interaction_pairs 3
+i j   da db dc    Jij   Dij  Dijx Dijy Dijz
+0 0    1  0  0   10.0   6.0   1.0  0.0  0.0
+0 0    0  1  0   10.0   6.0   0.0  1.0  0.0
+0 0    0  0  1   10.0   6.0   0.0  0.0  1.0
 
 ### Quadruplets
 n_interaction_quadruplets 1
@@ -179,8 +180,9 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 
 *Pairs*: Leaving out either exchange or DMI in the pairs is allowed and columns can
 be placed in arbitrary order.
-Note that instead of specifying the DM-vector as `Dx Dy Dz`, you may specify it as
-`Da Db Dc` if you prefer, you may also specify the magnitude separately as a column `Dij`.
+Note that instead of specifying the DM-vector as `Dijx Dijy Dijz`, you may specify it as
+`Dija Dijb Dijc` if you prefer. You may also specify the magnitude separately as a column
+`Dij`, but note that if you do, the vector (e.g. `Dijx Dijy Dijz`) will be normalized.
 
 *Quadruplets*: Columns for these may also be placed in arbitrary order.
 

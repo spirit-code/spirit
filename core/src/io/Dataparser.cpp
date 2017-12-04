@@ -179,9 +179,13 @@ namespace IO
                     if (ispin < nos && iimage>0)	// Check if less than NOS spins were read for the image before
                     {
                         Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
-                    }
-                    ++iimage;
-                    ispin = 0;
+					}
+					// set new image index
+					++iimage;
+					// re-set spin counter
+					ispin = 0;
+					// jump to next line
+					getline(myfile, line);
                     if (iimage >= noi)
                     {
                         Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
@@ -189,12 +193,11 @@ namespace IO
                     else
                     {
                         nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-                    }
+					}
                 }//endif "Image No"
                 
                 // Then check if the line contains "#" charachter which means that is a comment.
                 // This will not affect the "Image No" since is already been done.
-                
                 found = line.find("#");
                 
                 // Read the line if # is not found (# marks a comment)
@@ -219,7 +222,7 @@ namespace IO
 					if (ispin >= nos)
 					{
 						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
-						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", nos, ispin+1));
+						Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", ispin+1, nos));
 						//Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
 						//myfile.close();
 						//return;
@@ -542,7 +545,7 @@ namespace IO
 			{
 				// Read n interaction pairs
 				file.iss >> n_pairs;
-				Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} pairs", pairsFile, n_pairs));
+				Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("File {} should have {} pairs", pairsFile, n_pairs));
 			}
 			else
 			{
@@ -557,26 +560,26 @@ namespace IO
 			for (unsigned int i = 0; i < columns.size(); ++i)
 			{
 				file.iss >> columns[i];
-				if      (!columns[i].compare(0, 1, "i"))	col_i = i;
-				else if (!columns[i].compare(0, 1, "j"))	col_j = i;
-				else if (!columns[i].compare(0, 2, "da"))	col_da = i;
-				else if (!columns[i].compare(0, 2, "db"))	col_db = i;
-				else if (!columns[i].compare(0, 2, "dc"))	col_dc = i;
-				else if (!columns[i].compare(0, 2, "J"))	{ col_J = i;	J = true; }
-				else if (!columns[i].compare(0, 3, "Dij"))	{ col_Dij = i;	Dij = true; }
-				else if (!columns[i].compare(0, 2, "Dx"))	col_DMIx = i;
-				else if (!columns[i].compare(0, 2, "Dy"))	col_DMIy = i;
-				else if (!columns[i].compare(0, 2, "Dz"))	col_DMIz = i;
-				else if (!columns[i].compare(0, 2, "Da"))	col_DMIx = i;
-				else if (!columns[i].compare(0, 2, "Db"))	col_DMIy = i;
-				else if (!columns[i].compare(0, 2, "Dc"))	col_DMIz = i;
+				if      (columns[i] == "i")    col_i = i;
+				else if (columns[i] == "j")    col_j = i;
+				else if (columns[i] == "da")   col_da = i;
+				else if (columns[i] == "db")   col_db = i;
+				else if (columns[i] == "dc")   col_dc = i;
+				else if (columns[i] == "jij")  { col_J = i;	J = true; }
+				else if (columns[i] == "dij")  { col_Dij = i;	Dij = true; }
+				else if (columns[i] == "dijx") col_DMIx = i;
+				else if (columns[i] == "dijy") col_DMIy = i;
+				else if (columns[i] == "dijz") col_DMIz = i;
+				else if (columns[i] == "dija") col_DMIx = i;
+				else if (columns[i] == "dijb") col_DMIy = i;
+				else if (columns[i] == "dijc") col_DMIz = i;
 
 				if (col_DMIx >= 0 && col_DMIy >= 0 && col_DMIz >= 0) DMI_xyz = true;
 				if (col_DMIa >= 0 && col_DMIb >= 0 && col_DMIc >= 0) DMI_abc = true;
 			}
 
 			// Check if interactions have been found in header
-			if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in header of pairs file " + pairsFile);
+			if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in pairs file " + pairsFile);
 
 			// Pair Indices
 			int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
@@ -719,20 +722,20 @@ namespace IO
 			for (unsigned int i = 0; i < columns.size(); ++i)
 			{
 				file.iss >> columns[i];
-				if      (!columns[i].compare(0, 1, "i"))	col_i = i;
-				else if (!columns[i].compare(0, 1, "j"))	col_j = i;
-				else if (!columns[i].compare(0, 4, "da_j"))	col_da_j = i;
-				else if (!columns[i].compare(0, 4, "db_j"))	col_db_j = i;
-				else if (!columns[i].compare(0, 4, "dc_j"))	col_dc_j = i;
-				else if (!columns[i].compare(0, 1, "k"))	col_k = i;
-				else if (!columns[i].compare(0, 4, "da_k"))	col_da_k = i;
-				else if (!columns[i].compare(0, 4, "db_k"))	col_db_k = i;
-				else if (!columns[i].compare(0, 4, "dc_k"))	col_dc_k = i;
-				else if (!columns[i].compare(0, 1, "l"))	col_l = i;
-				else if (!columns[i].compare(0, 4, "da_l"))	col_da_l = i;
-				else if (!columns[i].compare(0, 4, "db_l"))	col_db_l = i;
-				else if (!columns[i].compare(0, 4, "dc_l"))	col_dc_l = i;
-				else if (!columns[i].compare(0, 1, "Q"))	{ col_Q = i;	Q = true; }
+				if      (columns[i] == "i")	col_i = i;
+				else if (columns[i] == "j")	col_j = i;
+				else if (columns[i] == "da_j")	col_da_j = i;
+				else if (columns[i] == "db_j")	col_db_j = i;
+				else if (columns[i] == "dc_j")	col_dc_j = i;
+				else if (columns[i] == "k")	col_k = i;
+				else if (columns[i] == "da_k")	col_da_k = i;
+				else if (columns[i] == "db_k")	col_db_k = i;
+				else if (columns[i] == "dc_k")	col_dc_k = i;
+				else if (columns[i] == "l")	col_l = i;
+				else if (columns[i] == "da_l")	col_da_l = i;
+				else if (columns[i] == "db_l")	col_db_l = i;
+				else if (columns[i] == "dc_l")	col_dc_l = i;
+				else if (columns[i] == "q")	{ col_Q = i;	Q = true; }
 			}
 
 			// Check if interactions have been found in header
