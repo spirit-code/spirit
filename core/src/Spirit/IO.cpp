@@ -83,7 +83,7 @@ void IO_Positions_Write( State * state, const char *file, int format,
         
     	// Write the data
         image->Lock();
-        IO::Write_Spin_Positions( *image->geometry, file, IO::VF_FileFormat(format), comment, false );
+        IO::Write_Positions( *image->geometry, file, IO::VF_FileFormat(format), comment, false );
         image->Unlock();
         
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote positions to file "

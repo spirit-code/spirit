@@ -43,44 +43,45 @@ namespace Engine
         
         /////////////////////////////////////////////////////////////////
         
-        void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, 
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
                          const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
         {
-          // Check for erronous input placing two spins on the same location
-          int max_a = std::min(10, n_cells[0]);
-          int max_b = std::min(10, n_cells[1]);
-          int max_c = std::min(10, n_cells[2]);
-          Vector3 sp;
-          for (unsigned int i = 0; i < basis_atoms.size(); ++i)
-          {
-              for (unsigned int j = 0; j < basis_atoms.size(); ++j)
-              {
-                  for (int ka = -max_a; ka <= max_a; ++ka)
-                  {
-                      for (int k2 = -max_b; k2 <= max_b; ++k2)
-                      {
-                          for (int k3 = -max_c; k3 <= max_c; ++k3)
-                          {
-                              // Norm is zero if translated basis atom is at position of another basis atom
-                              sp = basis_atoms[i] - (basis_atoms[j]
-                                  + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
-                                  k3 * translation_vectors[2]);
-                              if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
-                                   std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
-                                   std::abs(sp[2]) < 1e-9 )
-                              {
-                                  spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-                                      "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-                              }
-                          }
-                      }
-                  }
-              }
-          }
+            // Check for erronous input placing two spins on the same location
+            int max_a = std::min(10, n_cells[0]);
+            int max_b = std::min(10, n_cells[1]);
+            int max_c = std::min(10, n_cells[2]);
+            Vector3 sp;
+            for (unsigned int i = 0; i < cell_atoms.size(); ++i)
+            {
+                for (unsigned int j = 0; j < cell_atoms.size(); ++j)
+                {
+                    for (int ka = -max_a; ka <= max_a; ++ka)
+                    {
+                        for (int k2 = -max_b; k2 <= max_b; ++k2)
+                        {
+                            for (int k3 = -max_c; k3 <= max_c; ++k3)
+                            {
+                                // Norm is zero if translated basis atom is at position of another basis atom
+                                sp = cell_atoms[i] - (cell_atoms[j]
+                                    + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
+                                    k3 * translation_vectors[2]);
+                                if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
+                                    std::abs(sp[2]) < 1e-9 )
+                                {
+                                    spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+                                        "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // Build up the spins array
             int i, j, k, s, ispin;
-            int nos_basic = basis_atoms.size();
+            int nos_basic = cell_atoms.size();
             //int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
             Vector3 build_array;
             for (k = 0; k < n_cells[2]; ++k) {
@@ -94,7 +95,8 @@ namespace Engine
                             // paste initial spin orientations across the lattice translations
                             //spins[dim*nos + ispin] = spins[dim*nos + s];
                             // calculate the spin positions
-                            spin_pos[ispin] = basis_atoms[s] + build_array;
+                            positions[ispin] = cell_atoms[s] + build_array;
+                            atom_types[ispin] = cell_atom_types[s];
                         }// endfor s
                     }// endfor k
                 }// endfor j
@@ -239,9 +241,9 @@ namespace Engine
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
             auto& n_cells = geometry.n_cells;
 
-            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.translation_vectors[1];
-            Vector3 c = geometry.translation_vectors[2];
+            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.bravais_vectors[1];
+            Vector3 c = geometry.bravais_vectors[2];
 
             neighbourfield neigh;
 
@@ -289,8 +291,8 @@ namespace Engine
             // Loop over vectorfield
             for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
             {
-                auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
-                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
+                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
                 scalar n = 0;
 
                 gradient[ispin].setZero();
@@ -308,10 +310,10 @@ namespace Engine
                     if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
                         // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
                         if (ineigh >= 0)
                         {
-                            auto d = geometry.spin_pos[ineigh] - geometry.spin_pos[ispin];
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
                             for (int dim=0; dim<3; ++dim)
                             {
                                 proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
@@ -330,10 +332,10 @@ namespace Engine
                     if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
                         // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
                         if (ineigh >= 0)
                         {
-                            auto d = geometry.spin_pos[ineigh] - geometry.spin_pos[ispin];
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
                             for (int dim=0; dim<3; ++dim)
                             {
                                 contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );

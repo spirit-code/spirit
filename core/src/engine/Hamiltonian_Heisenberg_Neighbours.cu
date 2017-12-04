@@ -229,7 +229,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Neighbours::E_Exchange(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		HNeigh_CU_E_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		HNeigh_CU_E_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->exchange_neighbours.size(), this->exchange_neighbours.data(), this->exchange_magnitudes.data(), Energy.data(), size );
 	}
 
@@ -257,7 +257,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Neighbours::E_DMI(const vectorfield & spins, scalarfield & Energy)
 	{
 		int size = spins.size();
-		HNeigh_CU_E_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		HNeigh_CU_E_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->dmi_neighbours.size(), this->dmi_neighbours.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size );
 	}
 
@@ -273,10 +273,10 @@ namespace Engine
 		// 	{
 		// 		if (ddi_magnitudes[ineigh] > 0.0)
 		// 		{
-		// 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+		// 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 		// 			if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_neighbours[ineigh].translations) )
 		// 			{
-		// 				int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
+		// 				int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, ddi_neighbours[ineigh].translations);
 
 		// 				Energy[ispin] -= mult / std::pow(ddi_magnitudes[ineigh], 3.0) *
 		// 					(3 * spins[jspin].dot(ddi_normals[ineigh]) * spins[ispin].dot(ddi_normals[ineigh]) - spins[ispin].dot(spins[jspin]));
@@ -382,7 +382,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		HNeigh_CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		HNeigh_CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->exchange_neighbours.size(), this->exchange_neighbours.data(), this->exchange_magnitudes.data(), gradient.data(), size );
 	}
 
@@ -413,7 +413,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Neighbours::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = spins.size();
-		HNeigh_CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_spins_basic_domain,
+		HNeigh_CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
 				this->dmi_neighbours.size(), this->dmi_neighbours.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
 	}
 
@@ -429,10 +429,10 @@ namespace Engine
 		// 		if (ddi_magnitudes[ineigh] > 0.0)
 		// 		{
 		// 			// std::cerr << ineigh << std::endl;
-		// 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+		// 			auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 		// 			if ( Vectormath::boundary_conditions_fulfilled(geometry->n_cells, boundary_conditions, translations, ddi_neighbours[ineigh].translations) )
 		// 			{
-		// 				int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, ddi_neighbours[ineigh].translations);
+		// 				int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, ddi_neighbours[ineigh].translations);
 
 		// 				if (ddi_magnitudes[ineigh] > 0.0)
 		// 				{
@@ -472,14 +472,14 @@ namespace Engine
 		// // Exchange
 		// for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		// {
-		// 	auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+		// 	auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 		// 	for (unsigned int ineigh = 0; ineigh < this->exchange_neighbours.size(); ++ineigh)
 		// 	{
 		// 		for (int alpha = 0; alpha < 3; ++alpha)
 		// 		{
 		// 			//int idx_i = 3 * exchange_neighbours[i_pair][0] + alpha;
 		// 			//int idx_j = 3 * exchange_neighbours[i_pair][1] + alpha;
-		// 			int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, exchange_neighbours[ineigh].translations);
+		// 			int jspin = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, exchange_neighbours[ineigh].translations);
 		// 			int ishell = exchange_neighbours[ineigh].idx_shell;
 		// 			hessian(ispin, jspin) += -exchange_magnitudes[ineigh];
 		// 			hessian(jspin, ispin) += -exchange_magnitudes[ineigh];
@@ -489,7 +489,7 @@ namespace Engine
 		// // DMI
 		// for (unsigned int ispin = 0; ispin < spins.size(); ++ispin)
 		// {
-		// 	auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_spins_basic_domain, ispin);
+		// 	auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, ispin);
 		// 	for (unsigned int ineigh = 0; ineigh < this->dmi_neighbours.size(); ++ineigh)
 		// 	{
 		// 		for (int alpha = 0; alpha < 3; ++alpha)

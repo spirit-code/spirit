@@ -38,12 +38,12 @@ namespace Engine
                 (boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
         }
 
-        inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations)
+        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
         {
             int Na = n_cells[0];
             int Nb = n_cells[1];
             int Nc = n_cells[2];
-            int N = n_spins_basic_domain;
+            int N = n_cell_atoms;
 
             int da = translations[0];
             int db = translations[1];
@@ -52,12 +52,12 @@ namespace Engine
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
 
-        inline int idx_from_translations(const intfield & n_cells, const int n_spins_basic_domain, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
+        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
         {
             int Na = n_cells[0];
             int Nb = n_cells[1];
             int Nc = n_cells[2];
-            int N = n_spins_basic_domain;
+            int N = n_cell_atoms;
 
             int da = translations_i[0] + translations[0];
             int db = translations_i[1] + translations[1];
@@ -75,13 +75,13 @@ namespace Engine
             return idx;
         }
 
-        inline std::array<int, 3> translations_from_idx(const intfield & n_cells, const int n_spins_basic_domain, int idx)
+        inline std::array<int, 3> translations_from_idx(const intfield & n_cells, const int n_cell_atoms, int idx)
         {
             std::array<int, 3> ret;
             int Na = n_cells[0];
             int Nb = n_cells[1];
             int Nc = n_cells[2];
-            int N = n_spins_basic_domain;
+            int N = n_cell_atoms;
 
             ret[2] = idx / (N*Na*Nb);
             ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
@@ -339,8 +339,10 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Vectorfield Math - special stuff
 
-        // Build an array of spin positions
-        void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
+        // Build an array of spin positions and atom types. TODO: find a better name for this function
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
+                         const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield

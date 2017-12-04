@@ -105,23 +105,13 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
             auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
             int nos = image->nos;
 
-            // Indices and Magnitudes
-            intfield new_indices(nos);
-            scalarfield new_magnitudes(nos);
-            for (int i=0; i<nos; ++i)
-            {
-                new_indices[i] = i;
-                new_magnitudes[i] = magnitude *  ham->mu_s[i] * Constants::mu_B;
-            }
             // Normals
             Vector3 new_normal{normal[0], normal[1], normal[2]};
             new_normal.normalize();
-            vectorfield new_normals(nos, new_normal);
             
             // Into the Hamiltonian
-            ham->external_field_indices = new_indices;
-            ham->external_field_magnitudes = new_magnitudes;
-            ham->external_field_normals = new_normals;
+            ham->external_field_magnitude = magnitude * Constants::mu_B;
+            ham->external_field_normal = new_normal;
 
             // Update Energies
             ham->Update_Energy_Contributions();
@@ -135,23 +125,13 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
             auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
             int nos = image->nos;
 
-            // Indices and Magnitudes
-            intfield new_indices(nos);
-            scalarfield new_magnitudes(nos);
-            for (int i=0; i<nos; ++i)
-            {
-                new_indices[i] = i;
-                new_magnitudes[i] = magnitude *  ham->mu_s[i] * Constants::mu_B;
-            }
             // Normals
             Vector3 new_normal{normal[0], normal[1], normal[2]};
             new_normal.normalize();
-            vectorfield new_normals(nos, new_normal);
             
             // Into the Hamiltonian
-            ham->external_field_indices = new_indices;
-            ham->external_field_magnitudes = new_magnitudes;
-            ham->external_field_normals = new_normals;
+            ham->external_field_magnitude = magnitude * Constants::mu_B;
+            ham->external_field_normal = new_normal;
 
             // Update Energies
             ham->Update_Energy_Contributions();
@@ -526,13 +506,13 @@ void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_cha
         if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_spins_basic_domain; ++i)
+            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
                 mu_s[i] = (float)ham->mu_s[i];
         }
         else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_spins_basic_domain; ++i)
+            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
                 mu_s[i] = (float)ham->mu_s[i];
         }
     }
@@ -556,15 +536,15 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
 
-            if (ham->external_field_indices.size() > 0)
+            if (ham->external_field_magnitude > 0)
             {
                 // Magnitude
-                *magnitude = (float)(ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B);
+                *magnitude = (float)(ham->external_field_magnitude / Constants::mu_B);
                 
                 // Normal
-                normal[0] = (float)ham->external_field_normals[0][0];
-                normal[1] = (float)ham->external_field_normals[0][1];
-                normal[2] = (float)ham->external_field_normals[0][2];
+                normal[0] = (float)ham->external_field_normal[0];
+                normal[1] = (float)ham->external_field_normal[1];
+                normal[2] = (float)ham->external_field_normal[2];
             }
             else
             {
@@ -578,15 +558,15 @@ void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int 
         {
             auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
 
-            if (ham->external_field_indices.size() > 0)
+            if (ham->external_field_magnitude > 0)
             {
                 // Magnitude
-                *magnitude = (float)(ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B);
+                *magnitude = (float)(ham->external_field_magnitude / Constants::mu_B);
 
                 // Normal
-                normal[0] = (float)ham->external_field_normals[0][0];
-                normal[1] = (float)ham->external_field_normals[0][1];
-                normal[2] = (float)ham->external_field_normals[0][2];
+                normal[0] = (float)ham->external_field_normal[0];
+                normal[1] = (float)ham->external_field_normal[1];
+                normal[2] = (float)ham->external_field_normal[2];
             }
             else
             {

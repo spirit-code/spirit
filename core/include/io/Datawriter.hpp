@@ -14,9 +14,9 @@ namespace IO
     void Write_SPIRIT_Version( const std::string filename, bool append );
     // =========================== Saving Configurations ===========================
     // Write/Append spin positions to file
-    void Write_Spin_Positions( const Data::Geometry& geometry, 
-                               const std::string filename, VF_FileFormat format,
-                               const std::string comment, bool append = false );
+    void Write_Positions( const Data::Geometry& geometry, 
+                          const std::string filename, VF_FileFormat format,
+                          const std::string comment, bool append = false );
     // Write/Append Spin_System's spin configurations to file
     void Write_Spin_Configuration( const vectorfield& vf, const Data::Geometry& geometry, 
                                    const std::string filename, VF_FileFormat format, 

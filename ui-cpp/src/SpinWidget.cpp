@@ -307,10 +307,10 @@ void SpinWidget::updateVectorFieldGeometry()
 	int nos = System_Get_NOS(state.get());
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
-	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(this->state.get());
+	int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
 
 	int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
-	int nos_draw = n_basis_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+	int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
 	// Positions of the vectorfield
 	std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos_draw);
@@ -320,7 +320,7 @@ void SpinWidget::updateVectorFieldGeometry()
 	//		get pointer
 	scalar *spin_pos;
 	int *atom_types;
-	spin_pos = Geometry_Get_Spin_Positions(state.get());
+	spin_pos = Geometry_Get_Positions(state.get());
 	atom_types = Geometry_Get_Atom_Types(state.get());
 	int icell = 0;
 	for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
@@ -329,10 +329,9 @@ void SpinWidget::updateVectorFieldGeometry()
 		{
 			for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
 			{
-				for (int ibasis=0; ibasis < n_basis_atoms; ++ibasis)
+				for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
 				{
-					int idx = ibasis + n_basis_atoms*cell_a*n_cell_step + n_basis_atoms*n_cells[0]*cell_b*n_cell_step + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
-					// std::cerr << idx << " " << icell << std::endl;
+					int idx = ibasis + n_cell_atoms*cell_a*n_cell_step + n_cell_atoms*n_cells[0]*cell_b*n_cell_step + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
 					positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
 					++icell;
 				}
@@ -384,7 +383,7 @@ void SpinWidget::updateVectorFieldGeometry()
 		}
 		glm::vec3 normal = this->arrowSize() * glm::normalize(glm::cross(basis[0], basis[1]));
 		// Rectilinear with one basis atom
-		if (Geometry_Get_N_Basis_Atoms(state.get()) == 1 &&
+		if (Geometry_Get_N_Cell_Atoms(state.get()) == 1 &&
 			std::abs(glm::dot(basis[0], basis[1])) < 1e-6)
 		{
 			std::vector<float> xs(n_cells_draw[0]), ys(n_cells_draw[1]), zs(n_cells_draw[2]);
@@ -425,10 +424,10 @@ void SpinWidget::updateVectorFieldDirections()
 	int nos = System_Get_NOS(state.get());
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
-	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(this->state.get());
+	int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
 
 	int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
-	int nos_draw = n_basis_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+	int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
 	// Directions of the vectorfield
 	std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos_draw);
@@ -455,9 +454,9 @@ void SpinWidget::updateVectorFieldDirections()
 		{
 			for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
 			{
-				for (int ibasis=0; ibasis < n_basis_atoms; ++ibasis)
+				for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
 				{
-					int idx = ibasis + n_basis_atoms*cell_a*n_cell_step + n_basis_atoms*n_cells[0]*cell_b*n_cell_step + n_basis_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
+					int idx = ibasis + n_cell_atoms*cell_a*n_cell_step + n_cell_atoms*n_cells[0]*cell_b*n_cell_step + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
 					// std::cerr << idx << " " << icell << std::endl;
 					directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
 					if (atom_types[idx] < 0) directions[icell] *= 0;

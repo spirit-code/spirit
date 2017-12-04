@@ -54,18 +54,19 @@ namespace IO
 
     void Geometry_to_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
     {
+        // TODO: this needs to be updated!
         std::string config = "";
         config += "#################### Geometry ####################\n";
         config += "basis\n";
-        config += fmt::format("{0}\n{1}\n{2}\n", geometry->basis[0].transpose(), geometry->basis[1].transpose(), geometry->basis[2].transpose());
-        config += fmt::format("{}\n", geometry->n_spins_basic_domain);
-        for (int i=0; i<geometry->n_spins_basic_domain; ++i)
+        config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
+        config += fmt::format("{}\n", geometry->n_cell_atoms);
+        for (int i=0; i<geometry->n_cell_atoms; ++i)
         {
-            config += fmt::format("{}\n", geometry->basis_atoms[i].transpose());
+            config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
         }
         config += "translation_vectors\n";
         for (int i=0; i<3; ++i)
-            config += fmt::format("{} {}\n", geometry->translation_vectors[i].transpose(), geometry->n_cells[i]);
+            config += fmt::format("{} {}\n", geometry->bravais_vectors[i].transpose(), geometry->n_cells[i]);
         config += "################## End Geometry ##################";
         Append_String_to_File(config, configFile);
     }// end Geometry_to_Config
@@ -182,8 +183,8 @@ namespace IO
     {
         std::string config = "";
         Engine::Hamiltonian_Heisenberg_Neighbours * ham = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
-        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitudes[0]/Constants::mu_B/ham->mu_s[0]);
-        config += fmt::format("{:<25} {}\n", "external_field_normal",    ham->external_field_normals[0].transpose());
+        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude/Constants::mu_B);
+        config += fmt::format("{:<25} {}\n", "external_field_normal",    ham->external_field_normal.transpose());
         config += fmt::format("{:<25} {}\n", "mu_s",                     ham->mu_s[0]);
         config += fmt::format("{:<25} {}\n", "anisotropy_magnitude",     ham->anisotropy_magnitudes[0]);
         config += fmt::format("{:<25} {}\n", "anisotropy_normal",        ham->anisotropy_normals[0].transpose());
@@ -211,21 +212,14 @@ namespace IO
         
         // Magnetic moment
         config += "mu_s                     ";
-        for (int i=0; i<geometry->n_spins_basic_domain; ++i)
+        for (int i=0; i<geometry->n_cell_atoms; ++i)
             config += fmt::format(" {}", ham->mu_s[i]);
         config += "\n";
 
         // External Field
         config += "###    External Field:\n";
-        scalar B = 0;
-        Vector3 B_normal{ 0,0,0 };
-        if (ham->external_field_indices.size() > 0)
-        {
-            B = ham->external_field_magnitudes[0] / ham->mu_s[0] / Constants::mu_B;
-            B_normal = ham->external_field_normals[0];
-        }
-        config += fmt::format("{:<25} {}\n", "external_field_magnitude", B);
-        config += fmt::format("{:<25} {}\n", "external_field_normal",    B_normal.transpose());
+        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude / Constants::mu_B);
+        config += fmt::format("{:<25} {}\n", "external_field_normal", ham->external_field_normal.transpose());
         
         // Anisotropy
         config += "###    Anisotropy:\n";

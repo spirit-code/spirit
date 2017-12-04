@@ -57,43 +57,77 @@ at all.
 Geometry <a name="Geometry"></a>
 --------------------------------------------------
 
-The lattice constant scales everything you specify in basis and translations.
+The Geometry of a spin system is specified in form of a bravais lattice
+and a basis cell of atoms. The number of basis cells along each principal
+direction of the basis can be specified.
+*Note:* the default basis is a single atom at (0,0,0).
+
+**3D simple cubic example:**
 
 ```Python
-lattice_constant 1.0
+### The bravais lattice type
+bravais_lattice sc
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells 100 100 10
 ```
 
-The basis is apecified as three basis vectors `a`, `b` and `c`, together
-with the number of atoms in the basis and their positions in terms of
-the basis vectors.
+**2D honeycomb example:**
 
 ```Python
-#### a.x a.y a.z
-#### b.x b.y b.z
-#### c.x c.y c.z
-#### n		     No of spins in the basic domain
-#### 1.x 1.y 1.z     position of spins within basic
-#### 2.x 2.y 2.z     domain in terms of basis vectors
+### The bravais lattice type
+bravais_lattice hex2d
+
+### n            No of spins in the basis cell
+### 1.x 1.y 1.z  position of spins within basis
+### 2.x 2.y 2.z  cell in terms of bravais vectors
 basis
+2
+0   0                      0
+0.86602540378443864676 0.5 0
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells 100 100 1
+```
+
+The bravais lattice can be one of the following:
+
+| Bravais Lattice Type     | Keyword  | Comment                     |
+| ------------------------ | -------- | --------------------------- |
+| Simple cubic             | sc       |                             |
+| Body-centered cubic      | bcc      |                             |
+| Face-centered cubic      | fcc      |                             |
+| Hexagonal (2D)           | hex2d    |  60deg angle                |
+| Hexagonal (2D)           | hex2d60  |  60deg angle                |
+| Hexagonal (2D)           | hex2d120 | 120deg angle                |
+| Hexagonal closely packed | hcp      | 120deg, not yet implemented |
+| Hexagonal densely packed | hdp      |  60deg, not yet implemented |
+| Rhombohedral             | rho      | not yet implemented         |
+| Simple-tetragonal        | stet     | not yet implemented         |
+| Simple-orthorhombic      | so       | not yet implemented         |
+| Simple-monoclinic        | sm       | not yet implemented         |
+| Simple triclinic         | stri     | not yet implemented         |
+
+Alternatively it can be input manually, either through vectors
+or as the bravais matrix:
+
+```Python
+### bravais_vectors or bravais_matrix
+###   a.x a.y a.z       a.x b.x c.x
+###   b.x b.y b.z       a.y b.y c.y
+###   c.x c.y c.z       a.z b.z c.z
+bravais_vectors
 1.0 0.0 0.0
 0.0 1.0 0.0
 0.0 0.0 1.0
-1
-0 0 0
 ```
 
-The translations of the basis are specified as three vectors `(a,b,c)`, i.e.
-they are given in terms of the basis vectors.
-
+A lattice constant can be used for scaling:
 ```Python
-### Keyword translation_vectors ###
-###   t1.a t1.b t1.c nCells(t1)
-###   t2.a t2.b t2.c nCells(t2)
-###   t3.a t3.b t3.c nCells(t3)
-translation_vectors
-1 0 0 100
-0 1 0 100
-0 0 1 1
+### Scaling constant
+lattice_constant 1.0
 ```
 
 
@@ -139,6 +173,14 @@ dij			       6.0
 dd_radius		  0.0
 ```
 
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
+
 **Pair-wise Heisenberg Hamiltonian**:
 
 Interactions are specified pair-wise. Single-threaded applications can thus
@@ -178,16 +220,31 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
 ```
 
-*Pairs*: Leaving out either exchange or DMI in the pairs is allowed and columns can
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
+
+*Pairs:*
+Leaving out either exchange or DMI in the pairs is allowed and columns can
 be placed in arbitrary order.
 Note that instead of specifying the DM-vector as `Dijx Dijy Dijz`, you may specify it as
 `Dija Dijb Dijc` if you prefer. You may also specify the magnitude separately as a column
 `Dij`, but note that if you do, the vector (e.g. `Dijx Dijy Dijz`) will be normalized.
 
-*Quadruplets*: Columns for these may also be placed in arbitrary order.
+*Quadruplets:*
+Columns for these may also be placed in arbitrary order.
 
-*Separate files*: The pairs and quadruplets can be placed into separate files.
-If the pairs or quadruplets are at the top of the respective file, it is not necessary to specify `n_interaction_pairs` or `n_interaction_quadruplets` respectively.
+*Separate files:*
+The anisotropy, pairs and quadruplets can be placed into separate files,
+you can use `anisotropy_from_file`, `pairs_from_file` and `quadruplets_from_file`.
+
+If the headers for anisotropies, pairs or quadruplets are at the top of the respective file,
+it is not necessary to specify `n_anisotropy`, `n_interaction_pairs` or `n_interaction_quadruplets`
+respectively.
 
 ```Python
 ### Pairs

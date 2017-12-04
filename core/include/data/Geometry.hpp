@@ -20,72 +20,99 @@ namespace Data
     typedef std::array<int, 4> tetrahedron_t;
     typedef std::array<int, 3> triangle_t;
 
-    // Geometry contains all geometric information about the spin_system
-    // The members are const, as a spin system has to be created new whenever one of these members is changed.
+
+    enum class BravaisLatticeType
+    {
+        Irregular,   // Arbitrary bravais vectors
+        Rectilinear, // Rectilinear (orthorombic) lattice
+        SC,          // Simple cubic lattice
+        Hex2D,       // 2D Hexagonal lattice
+        HCP,         // Hexagonal closely packed
+        BCC,         // Body-centered cubic
+        FCC          // Face-centered cubic
+    };
+
+    // Geometry contains all geometric information of a system
     class Geometry
     {
-
     public:
-        // Constructor
-        Geometry(std::vector<Vector3> basis, std::vector<Vector3> translation_vectors,
-            intfield n_cells, std::vector<Vector3> basis_atoms, scalar lattice_constant,
-            vectorfield spin_pos, intfield atom_types);
-        // Destructor
-        //~Geometry();
+        // ---------- Constructor
+        //  Build a regular lattice from a defined basis cell and translations
+        Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms, intfield cell_atom_types,
+            scalar lattice_constant);
 
-		const std::vector<triangle_t>&    triangulation(int n_cell_step=1);
-		const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
-        int calculateDimensionality() const;
 
-        // -------------------- Input constants ------------------
-        // Basis [dim][basis_vec]
-        std::vector<Vector3> basis;
-        // Lattice Constant [Angstrom]
+        // ---------- Convenience functions
+        // Retrieve triangulation, if 2D
+        const std::vector<triangle_t>&    triangulation(int n_cell_step=1);
+        // Retrieve tetrahedra, if 3D
+        const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
+        // Introduce disorder into the atom types
+        // void disorder(scalar mixing);
+        static std::vector<Vector3> BravaisVectorsSC();
+        static std::vector<Vector3> BravaisVectorsFCC();
+        static std::vector<Vector3> BravaisVectorsBCC();
+        static std::vector<Vector3> BravaisVectorsHex2D60();
+        static std::vector<Vector3> BravaisVectorsHex2D120();
+
+
+        // ---------- Basic information set, which (in theory) defines everything
+
+        // Basis vectors {a, b, c} of the unit cell
+        std::vector<Vector3> bravais_vectors;
+        // Lattice Constant [Angstrom] (scales the translations)
         scalar lattice_constant;
-        // Translation Vectors [dim][transl_vec]
-        std::vector<Vector3> translation_vectors;
-        // Number of Translations {nta, ntb, ntc}
+        // Number of cells {na, nb, nc}
         intfield n_cells;
         // Number of spins per basic domain
-        int n_spins_basic_domain;
-        // Array of basis atom positions [3][n_basis_atoms]
-        std::vector<Vector3> basis_atoms;
+        int n_cell_atoms;
+        // Array of basis atom positions
+        std::vector<Vector3> cell_atoms;
+        // Atom types of the atoms in a unit cell:
+        // type index 0..n or or vacancy (type < 0)
+        std::vector<int> cell_atom_types;
+
+
+        // ---------- Inferrable information
+
+        // The kind of geometry
+        BravaisLatticeType classifier;
+
         // Number of Spins total
         int nos;
+        // Number of basis cells total
+        int n_cells_total;
+        // Positions of all the atoms
+        vectorfield positions;
+        // Atom types of all the atoms: type index 0..n or or vacancy (type < 0)
+        intfield atom_types;
 
+        // Dimensionality of the points
+        int dimensionality;
         // Center and Bounds
         Vector3 center, bounds_min, bounds_max;
         // Unit Cell Bounds
         Vector3 cell_bounds_min, cell_bounds_max;
 
-        // -------------------- Calculated Geometry ------------------
-        // number of boundary vectors
-        //const int number_boundary_vectors;
-        // Boundary vectors: boundary_vectors[dim][number_b_vectors]
-        //const std::vector<std::vector<scalar>> boundary_vectors;
-
-        // Positions of the Spins: spin_pos[dim][nos]
-        vectorfield spin_pos;
-
-        // Atom types: type index 0..n or or vacancy (type < 0)
-        intfield atom_types;
-
-        // //////  What are the segments used for??
-        // segments[nos][4]
-        //const std::vector<std::vector<int>> segments;
-        // Position of the Segments: segments_pos[dim][nos][4]
-        //const std::vector<std::vector<std::vector<scalar>>> segments_pos;
-
-        int dimensionality;
         
-	private:
-		std::vector<triangle_t>    _triangulation;
-		std::vector<tetrahedron_t> _tetrahedra;
-		
-		// Temporaries to tell wether the triangulation or tetrahedra
-		// need to be updated when the corresponding function is called
-		int last_update_n_cell_step;
-		intfield last_update_n_cells;
+    private:
+        // Calculate and update the dimensionality of the points in this geometry
+        void calculateDimensionality();
+        // Calculate and update bounds of the System
+        void calculateBounds();
+		// Calculate and update unit cell bounds
+		void calculateUnitCellBounds();
+		// Calculate and update the type lattice
+		void calculateGeometryType();
+
+        // 
+        std::vector<triangle_t>    _triangulation;
+        std::vector<tetrahedron_t> _tetrahedra;
+        
+        // Temporaries to tell wether the triangulation or tetrahedra
+        // need to be updated when the corresponding function is called
+        int last_update_n_cell_step;
+        intfield last_update_n_cells;
     };
 }
 #endif

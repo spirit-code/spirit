@@ -10,7 +10,7 @@ struct State;
 // Set the number of basis cells in the three translation directions
 DLLEXPORT void Geometry_Set_N_Cells(State * state, int n_cells[3]) noexcept;
 // Set the number and positions of atoms in a basis cell
-DLLEXPORT void Geometry_Set_Basis_Atoms(State *state, int n_atoms, float ** atoms) noexcept;
+DLLEXPORT void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) noexcept;
 // Set the three translation vectors
 DLLEXPORT void Geometry_Set_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3]) noexcept;
 
@@ -19,7 +19,7 @@ DLLEXPORT void Geometry_Set_Translation_Vectors(State *state, float ta[3], float
 DLLEXPORT int Geometry_Get_NOS(State * state) noexcept;
 
 // Get positions of spins
-DLLEXPORT scalar * Geometry_Get_Spin_Positions(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT scalar * Geometry_Get_Positions(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get atom types of lattice sites
 DLLEXPORT int * Geometry_Get_Atom_Types(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -34,9 +34,9 @@ DLLEXPORT void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3]
 // Get basis vectors ta, tb, tc
 DLLEXPORT void Geometry_Get_Basis_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image=-1, int idx_chain=-1) noexcept;
 // Get number of atoms in a basis cell
-DLLEXPORT int Geometry_Get_N_Basis_Atoms(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT int Geometry_Get_N_Cell_Atoms(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 // TODO: Get basis atoms
-// DLLEXPORT void Geometry_Get_Basis_Atoms(State *state, float ** atoms);
+// DLLEXPORT void Geometry_Get_Cell_Atoms(State *state, float ** atoms);
 
 // Get number of basis cells in the three translation directions
 DLLEXPORT void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image=-1, int idx_chain=-1) noexcept;
