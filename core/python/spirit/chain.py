@@ -132,14 +132,11 @@ _Get_Rx_Interpolated          = _spirit.Chain_Get_Rx_Interpolated
 _Get_Rx_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Rx_Interpolated.restype  = None
 def Get_Rx_Interpolated(p_state, idx_chain=-1):
-    noi = Get_NOI(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
-    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(ctypes.c_void_p(p_state), 
-                                                           ctypes.c_int(idx_chain))
+    noi = Get_NOI(p_state, idx_chain)
+    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
     len_Rx = noi + (noi-1)*n_interp
-    arrayX = ctypes.c_float * len_Rx
-    Rx = [0]*len_Rx
-    _Rx = arrayX(*Rx)
-    _Get_Rx_Interpolated(ctypes.c_void_p(p_state), _Rx, ctypes.c_int(idx_chain))
+    Rx = (len_Rx*ctypes.c_float)()
+    _Get_Rx_Interpolated(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
     for i in range(len_Rx):
         Rx[i] = _Rx[i]
     return Rx
@@ -149,13 +146,9 @@ _Get_Energy          = _spirit.Chain_Get_Energy
 _Get_Energy.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Energy.restype  = None
 def Get_Energy(p_state, idx_chain=-1):
-    noi = Get_NOI(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
-    arrayX = ctypes.c_float * noi
-    Energy = [0]*noi
-    _Energy = arrayX(*Energy)
-    _Get_Energy(ctypes.c_void_p(p_state), _Energy, ctypes.c_int(idx_chain))
-    for i in range(noi):
-        Energy[i] = _Energy[i]
+    noi = Get_NOI(p_state, idx_chain)
+    Energy = (noi*ctypes.c_float)()
+    _Get_Energy(ctypes.c_void_p(p_state), Energy, ctypes.c_int(idx_chain))
     return Energy
 
 ### Get Energy Interpolated
@@ -163,13 +156,9 @@ _Get_Energy_Interpolated          = _spirit.Chain_Get_Energy_Interpolated
 _Get_Energy_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Energy_Interpolated.restype  = None
 def Get_Energy_Interpolated(p_state, idx_chain=-1):
-    noi = Get_NOI(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
-    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
-    len_Energy = noi + (noi-1)*n_interp #this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations
-    arrayX = ctypes.c_float * len_Energy
-    Energy_interp = [0]*len_Energy
-    _Energy = arrayX(*Energy_interp)
-    _Get_Energy_Interpolated(ctypes.c_void_p(p_state), _Energy, ctypes.c_int(idx_chain))
-    for i in range(len_Energy):
-        Energy_interp[i] = _Energy[i]
+    noi = Get_NOI(p_state, idx_chain)
+    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
+    len_Energy = noi + (noi-1)*n_interp
+    Energy_interp = (len_Energy*ctypes.c_float)()
+    _Get_Energy_Interpolated(ctypes.c_void_p(p_state), Energy_interp, ctypes.c_int(idx_chain))
     return Energy_interp
