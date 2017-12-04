@@ -362,10 +362,9 @@ namespace IO
             // Atom types (default: type 0, vacancy: < 0)
             atom_types = intfield(cell_atoms.size(), 0);
 
-			// Defects
+            // Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
             int n_defects = defect_indices.size();
-			intfield 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
             for (int i = 0; i < n_defects; ++i)
             {
@@ -384,7 +383,7 @@ namespace IO
 
             #ifdef SPIRIT_ENABLE_DEFECTS
             for (int i = 0; i < n_defects; ++i)
-                geometry.atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
+                geometry->atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
             #endif
 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));

@@ -64,11 +64,11 @@ namespace Engine
                             {
                                 // Norm is zero if translated basis atom is at position of another basis atom
                                 sp = cell_atoms[i] - (cell_atoms[j]
-                                    + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
-                                    k3 * translation_vectors[2]);
+                                    + ka * translation_vectors[0]
+                                    + k2 * translation_vectors[1]
+                                    + k3 * translation_vectors[2]);
                                 if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
-                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
-                                    std::abs(sp[2]) < 1e-9 )
+                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9 )
                                 {
                                     spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
                                         "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");

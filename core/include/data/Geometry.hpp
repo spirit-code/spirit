@@ -70,7 +70,7 @@ namespace Data
         std::vector<Vector3> cell_atoms;
         // Atom types of the atoms in a unit cell:
         // type index 0..n or or vacancy (type < 0)
-        std::vector<int> cell_atom_types;
+        intfield cell_atom_types;
 
 
         // ---------- Inferrable information

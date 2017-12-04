@@ -27,16 +27,6 @@ namespace Engine
 
         /////////////////////////////////////////////////////////////////
         //////// Translating across the lattice
-        #ifndef USE_CUDA
-        inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations_j)
-        {
-            int da = translations_i[0] + translations_j[0];
-            int db = translations_i[1] + translations_j[1];
-            int dc = translations_i[2] + translations_j[2];
-            return ((boundary_conditions[0] || (0 <= da && da < n_cells[0])) &&
-                (boundary_conditions[1] || (0 <= db && db < n_cells[1])) &&
-                (boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
-        }
 
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
         {
@@ -51,6 +41,8 @@ namespace Engine
 
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
+
+        #ifndef USE_CUDA
 
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
         {
@@ -75,22 +67,51 @@ namespace Engine
             return idx;
         }
 
-        inline std::array<int, 3> translations_from_idx(const intfield & n_cells, const int n_cell_atoms, int idx)
+        inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations_j)
         {
-            std::array<int, 3> ret;
+            int da = translations_i[0] + translations_j[0];
+            int db = translations_i[1] + translations_j[1];
+            int dc = translations_i[2] + translations_j[2];
+            return ((boundary_conditions[0] || (0 <= da && da < n_cells[0])) &&
+                    (boundary_conditions[1] || (0 <= db && db < n_cells[1])) &&
+                    (boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
+        }
+
+        #endif
+        #ifdef USE_CUDA
+    
+        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const int translations[3])
+        {
             int Na = n_cells[0];
             int Nb = n_cells[1];
             int Nc = n_cells[2];
             int N = n_cell_atoms;
-
-            ret[2] = idx / (N*Na*Nb);
-            ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
-            ret[0] = (idx - ret[2] * N*Na*Nb - ret[1] * N*Na) / N;
-            return ret;
+    
+            int da = translations_i[0] + translations[0];
+            int db = translations_i[1] + translations[1];
+            int dc = translations_i[2] + translations[2];
+    
+            if (translations[0] < 0)
+                da += N*Na;
+            if (translations[1] < 0)
+                db += N*Na*Nb;
+            if (translations[2] < 0)
+                dc += N*Na*Nb*Nc;
+    
+            int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
+    
+            return idx;
         }
-        #endif
 
-        #ifdef USE_CUDA
+        inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const int translations_j[3])
+        {
+            int da = translations_i[0] + translations_j[0];
+            int db = translations_i[1] + translations_j[1];
+            int dc = translations_i[2] + translations_j[2];
+            return ((boundary_conditions[0] || (0 <= da && da < n_cells[0])) &&
+                    (boundary_conditions[1] || (0 <= db && db < n_cells[1])) &&
+                    (boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
+        }
 
         __inline__ __device__ bool cu_check_atom_type(int atom_type)
         {
@@ -214,32 +235,45 @@ namespace Engine
 
         #endif
 
+        inline std::array<int, 3> translations_from_idx(const intfield & n_cells, const int n_cell_atoms, int idx)
+        {
+            std::array<int, 3> ret;
+            int Na = n_cells[0];
+            int Nb = n_cells[1];
+            int Nc = n_cells[2];
+            int N = n_cell_atoms;
 
-		// Check atom types
-		inline bool check_atom_type(int atom_type)
-		{
-			#ifdef SPIRIT_ENABLE_DEFECTS
-				// If defects are enabled we check for
-				//		vacancies (type < 0)
-				if (atom_type >= 0) return true;
-				else return false;
-			#else
-				// Else we just return true
-				return true;
-			#endif
-		}
-		inline bool check_atom_type(int atom_type, int reference_type)
-		{
-			#ifdef SPIRIT_ENABLE_DEFECTS
-				// If defects are enabled we do a check if
-				//		atom types match.
-				if (atom_type == reference_type) return true;
-				else return false;
-			#else
-				// Else we just return true
-				return true;
-			#endif
-		}
+            ret[2] = idx / (N*Na*Nb);
+            ret[1] = (idx - ret[2] * N*Na*Nb) / (N*Na);
+            ret[0] = (idx - ret[2] * N*Na*Nb - ret[1] * N*Na) / N;
+            return ret;
+        }
+
+        // Check atom types
+        inline bool check_atom_type(int atom_type)
+        {
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                // If defects are enabled we check for
+                //		vacancies (type < 0)
+                if (atom_type >= 0) return true;
+                else return false;
+            #else
+                // Else we just return true
+                return true;
+            #endif
+        }
+        inline bool check_atom_type(int atom_type, int reference_type)
+        {
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                // If defects are enabled we do a check if
+                //		atom types match.
+                if (atom_type == reference_type) return true;
+                else return false;
+            #else
+                // Else we just return true
+                return true;
+            #endif
+        }
 
         // Calculates, for a spin i, a pair spin's index j.
         // This function takes into account boundary conditions and atom types and returns `-1` if any condition is not met.

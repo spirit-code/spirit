@@ -20,14 +20,14 @@ using Engine::Vectormath::idx_from_pair;
 namespace Engine
 {
 	Hamiltonian_Heisenberg_Neighbours::Hamiltonian_Heisenberg_Neighbours(
-        scalarfield mu_s,
-        scalar external_field_magnitude, Vector3 external_field_normal,
-        intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-        scalarfield exchange_magnitudes,
-        scalarfield dmi_magnitudes, int dm_chirality,
-        scalar ddi_radius,
-        std::shared_ptr<Data::Geometry> geometry,
-        intfield boundary_conditions
+		scalarfield mu_s,
+		scalar external_field_magnitude, Vector3 external_field_normal,
+		intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+		scalarfield exchange_magnitudes,
+		scalarfield dmi_magnitudes, int dm_chirality,
+		scalar ddi_radius,
+		std::shared_ptr<Data::Geometry> geometry,
+		intfield boundary_conditions
 	) :
 		Hamiltonian(boundary_conditions),
 		geometry(geometry),
@@ -54,7 +54,7 @@ namespace Engine
 		Vector3 normal;
 		for (unsigned int i=0; i<ddi_neighbours.size(); ++i)
 		{
-		    Engine::Neighbours::DDI_from_Pair(*this->geometry, ddi_neighbours[i], magnitude, normal);
+			Engine::Neighbours::DDI_from_Pair(*this->geometry, ddi_neighbours[i], magnitude, normal);
 			this->ddi_magnitudes.push_back(magnitude);
 			this->ddi_normals.push_back(normal);
 		}
