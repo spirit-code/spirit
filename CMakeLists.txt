@@ -72,6 +72,14 @@ if( SPIRIT_USE_CUDA )
 	elseif( WIN32 )
 		# MESSAGE( STATUS ">> We are on Windows... CUDA untested" )
 	endif( )
+#############################################
+elseif ( SPIRIT_USE_OPENMP )
+	include( FindOpenMP )
+    if( OPENMP_FOUND )
+        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+    endif( )
 endif( )
 #############################################
 
@@ -123,15 +131,6 @@ if( SPIRIT_BUILD_TEST )
 	enable_testing()
 endif()
 #############################################
-if ( SPIRIT_USE_OPENMP )
-	include( FindOpenMP )
-    if( OPENMP_FOUND )
-        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-    endif( )
-endif( )
-#############################################
 
 
 
@@ -178,6 +177,7 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 #############################################
 
 
+
 ######### Add Subdirectory Projects #########
 ### Spirit library is built in any case
 add_subdirectory( core )
@@ -196,6 +196,7 @@ endif()
 #############################################
 
 
+
 ################ Install ####################
 install(DIRECTORY docs        DESTINATION docs/Spirit)
 install(FILES   LICENSE.txt
@@ -205,6 +206,7 @@ if( SPIRIT_BUILD_FOR_CXX )
 	install(DIRECTORY input   DESTINATION bin)
 endif( )
 #############################################
+
 
 
 ######### Write VERSION.txt #################
