@@ -14,13 +14,13 @@
 
 namespace Data
 {
-	Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
+    Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
         intfield cell_atom_types, scalar lattice_constant) :
         bravais_vectors(bravais_vectors), n_cells(n_cells),
-		n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
-		nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
+        n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
+        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2])
-	{
+    {
         for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
         {
             // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
@@ -31,18 +31,18 @@ namespace Data
         // Generate positions and atom types
         this->positions = vectorfield(nos);
         this->atom_types = intfield(nos, 0);
-		Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
+        Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
 
-		// Calculate some info
-		this->calculateBounds();
-		this->calculateUnitCellBounds();
-		this->calculateDimensionality();
+        // Calculate some info
+        this->calculateBounds();
+        this->calculateUnitCellBounds();
+        this->calculateDimensionality();
 
-		// Calculate center of the System
-		this->center = 0.5 *  (this->bounds_min + this->bounds_max);
+        // Calculate center of the System
+        this->center = 0.5 *  (this->bounds_min + this->bounds_max);
 
-		// Calculate the type of geometry
-		this->calculateGeometryType();
+        // Calculate the type of geometry
+        this->calculateGeometryType();
 
         // For updates of triangulation and tetrahedra
         this->last_update_n_cell_step = -1;
@@ -446,7 +446,7 @@ namespace Data
             }
         }
     }
-    
+
     void Geometry::calculateBounds()
     {
         this->bounds_max.setZero();
@@ -484,36 +484,36 @@ namespace Data
         this->cell_bounds_max *= 0.5;
     }
 
-	void Geometry::calculateGeometryType()
-	{
-		// Automatically try to determine GeometryType
-		// Single-atom unit cell
-		if (cell_atoms.size() == 1)
-		{
-			// If the basis vectors are orthogonal, it is a rectilinear lattice
-			if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < 1e-6 &&
-				std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < 1e-6)
-			{
-				// If equidistant it is simple cubic
-				if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
-					this->classifier = BravaisLatticeType::SC;
-				// Otherwise only rectilinear
-				else
-					this->classifier = BravaisLatticeType::Rectilinear;
-			}
-		}
-		// Regular unit cell with multiple atoms (e.g. bcc, fcc, hex)
-		//else if (n_cell_atoms == 2)
-		// Irregular unit cells arranged on a lattice (e.g. B20 or custom)
-		/*else if (n_cells[0] > 1 || n_cells[1] > 1 || n_cells[2] > 1)
-		{
-			this->classifier = BravaisLatticeType::Lattice;
-		}*/
-		// A single irregular unit cell
-		else
-		{
-			this->classifier = BravaisLatticeType::Irregular;
-		}
-	}
+    void Geometry::calculateGeometryType()
+    {
+        // Automatically try to determine GeometryType
+        // Single-atom unit cell
+        if (cell_atoms.size() == 1)
+        {
+            // If the basis vectors are orthogonal, it is a rectilinear lattice
+            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < 1e-6 &&
+                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < 1e-6)
+            {
+                // If equidistant it is simple cubic
+                if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
+                    this->classifier = BravaisLatticeType::SC;
+                // Otherwise only rectilinear
+                else
+                    this->classifier = BravaisLatticeType::Rectilinear;
+            }
+        }
+        // Regular unit cell with multiple atoms (e.g. bcc, fcc, hex)
+        //else if (n_cell_atoms == 2)
+        // Irregular unit cells arranged on a lattice (e.g. B20 or custom)
+        /*else if (n_cells[0] > 1 || n_cells[1] > 1 || n_cells[2] > 1)
+        {
+            this->classifier = BravaisLatticeType::Lattice;
+        }*/
+        // A single irregular unit cell
+        else
+        {
+            this->classifier = BravaisLatticeType::Irregular;
+        }
+    }
 }
 

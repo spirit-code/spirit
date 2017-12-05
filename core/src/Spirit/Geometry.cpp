@@ -4,14 +4,14 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 
-void Helper_System_Set_N_Cells(std::shared_ptr<Data::Spin_System> system, const intfield & n_cells)
+void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const Data::Geometry & new_geometry)
 {
-    // Geometry
+    *system->geometry = new_geometry;
     auto ge = system->geometry;
-    *system->geometry = Data::Geometry(ge->bravais_vectors,
-        n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
 
     // Spins
     int nos_old = system->nos;
@@ -32,23 +32,20 @@ void Helper_System_Set_N_Cells(std::shared_ptr<Data::Spin_System> system, const 
     //system->hamiltonian->Update_From_Geometry();
 }
 
-void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
+void Helper_State_Set_Geometry(State * state, const Data::Geometry & new_geometry)
 {
-    // The new number of spins
-    auto n_cells = intfield{n_cells_i[0], n_cells_i[1], n_cells_i[2]};
-
     // Deal with all systems in all chains
     for (auto& chain : state->collection->chains)
     {
-		// Lock to avoid memory errors
-		chain->Lock();
-		// Modify all systems in the chain
+        // Lock to avoid memory errors
+        chain->Lock();
+        // Modify all systems in the chain
         for (auto& system : chain->images)
         {
-            Helper_System_Set_N_Cells(system, n_cells);
+            Helper_System_Set_Geometry(system, new_geometry);
         }
-		// Unlock again
-		chain->Unlock();
+        // Unlock again
+        chain->Unlock();
     }
 
     // Retrieve total number of spins
@@ -64,29 +61,179 @@ void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
         // Lock to avoid memory errors
         system->Lock();
         // Modify
-        Helper_System_Set_N_Cells(system, n_cells);
-		// Unlock
-		system->Unlock();
-	}
+        Helper_System_Set_Geometry(system, new_geometry);
+        // Unlock
+        system->Unlock();
+    }
 
     // Deal with clipboard configuration of State
-	if (state->clipboard_spins)
-	{
-		// TODO: the previous configuration should be extended, not overwritten
-		state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(nos, { 0, 0, 1 }));
-	}
+    if (state->clipboard_spins)
+    {
+        // TODO: the previous configuration should be extended, not overwritten
+        state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(nos, { 0, 0, 1 }));
+    }
+}
 
-	Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Set number of cells for all Systems: (" + std::to_string(n_cells[0]) + ", " + std::to_string(n_cells[1]) + ", " + std::to_string(n_cells[2]) + ")", -1, -1);
+void Geometry_Set_Bravais_Lattice(State *state, const char * c_bravais_lattice) noexcept
+{
+    try
+    {
+        std::string bravais_lattice = c_bravais_lattice;
+        std::vector<Vector3> bravais_vectors;
+        if (bravais_lattice == "sc")
+            bravais_vectors = Data::Geometry::BravaisVectorsSC();
+        else if (bravais_lattice == "fcc")
+            bravais_vectors = Data::Geometry::BravaisVectorsFCC();
+        else if (bravais_lattice == "bcc")
+            bravais_vectors = Data::Geometry::BravaisVectorsBCC();
+        else if (bravais_lattice == "hex2d60")
+            bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
+        else if (bravais_lattice == "hex2d120")
+            bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
+        else
+        {
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format("Invalid input to Geometry_Set_Bravais_Lattice: '{}'", bravais_lattice), -1, -1);
+        }
+        
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(bravais_vectors,
+            ge->n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            fmt::format("Set Bravais lattice type to {} for all Systems", bravais_lattice), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
+}
+
+void Geometry_Set_N_Cells(State * state, int n_cells_i[3]) noexcept
+{
+    try
+    {
+        // The new number of basis cells
+        auto n_cells = intfield{n_cells_i[0], n_cells_i[1], n_cells_i[2]};
+
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(ge->bravais_vectors,
+            n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set number of cells for all Systems: ({}, {}, {})", n_cells[0], n_cells[1], n_cells[2]), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
 }
 
 void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) noexcept
 {
-    Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Geometry_Set_Cell_Atoms is not yet implemented", -1, -1);
+    try
+    {
+        // The new cell atoms
+        std::vector<Vector3> cell_atoms(0);
+        for (int i=0; i<n_atoms; ++i)
+        {
+            cell_atoms.push_back({atoms[i][0], atoms[i][1], atoms[i][2]});
+        }
+
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(ge->bravais_vectors,
+            ge->n_cells, cell_atoms, ge->cell_atom_types, ge->lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set {} cell atoms for all Systems. cell_atom[0]={}", n_atoms, cell_atoms[0]), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
 }
 
-void Geometry_Set_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3]) noexcept
+void Geometry_Set_Cell_Atom_Types(State *state, int n_atoms, int * atom_types) noexcept
 {
-    Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, "Geometry_Get_Translation_Vectors is not yet implemented", -1, -1);
+    try
+    {
+        // The new atom types
+        intfield cell_atom_types(0);
+        for (int i=0; i<n_atoms; ++i)
+        {
+            cell_atom_types.push_back(atom_types[i]);
+        }
+
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(ge->bravais_vectors,
+            ge->n_cells, ge->cell_atoms, cell_atom_types, ge->lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set {} types of basis cell atoms for all Systems. type[0]={}", n_atoms, cell_atom_types[0]), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
+}
+
+void Geometry_Set_Bravais_Vectors(State *state, float ta[3], float tb[3], float tc[3]) noexcept
+{
+    try
+    {
+        // The new Bravais vectors
+        std::vector<Vector3> bravais_vectors{
+            Vector3{ta[0], ta[1], ta[2]},
+            Vector3{tb[0], tb[1], tb[2]},
+            Vector3{tc[0], tc[1], tc[2]}};
+
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(bravais_vectors,
+            ge->n_cells, ge->cell_atoms, ge->cell_atom_types, ge->lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            fmt::format("Set Bravais vectors for all Systems: ({}), ({}), ({})", bravais_vectors[0], bravais_vectors[1], bravais_vectors[2]), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
+}
+
+void Geometry_Set_Lattice_Constant(State *state, float lattice_constant) noexcept
+{
+    try
+    {
+        // The new geometry
+        auto ge = state->active_image->geometry;
+        auto new_geometry = Data::Geometry(ge->bravais_vectors,
+            ge->n_cells, ge->cell_atoms, ge->cell_atom_types, lattice_constant);
+
+        // Update the State
+        Helper_State_Set_Geometry(state, new_geometry);
+
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set lattice constant for all Systems to {}", lattice_constant), -1, -1);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(0, 0);
+    }
 }
 
 
