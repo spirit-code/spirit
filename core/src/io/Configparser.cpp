@@ -1033,6 +1033,30 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
+                // Spin moment
+                if (myfile.Find("mu_s"))
+                {
+                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
+                    {
+                        if ( !(myfile.iss >> mu_s[iatom]) )
+                        {
+                            Log(Log_Level::Warning, Log_Sender::IO,
+                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
+                            mu_s[iatom] = mu_s[0];
+                        }
+                    }
+                }
+                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+            }// end try
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+            }
+
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
                 // External Field
                 // Read parameters from config if available
                 myfile.Read_Single(B, "external_field_magnitude");
@@ -1255,7 +1279,12 @@ namespace IO
                 {
                     for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
                     {
-                        myfile.iss >> mu_s[iatom];  // TODO: need to catch when user has not input enough mu_s values
+                        if ( !(myfile.iss >> mu_s[iatom]) )
+                        {
+                            Log(Log_Level::Warning, Log_Sender::IO,
+                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
+                            mu_s[iatom] = mu_s[0];
+                        }
                     }
                 }
                 else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
