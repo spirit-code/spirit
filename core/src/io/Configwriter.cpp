@@ -57,16 +57,36 @@ namespace IO
         // TODO: this needs to be updated!
         std::string config = "";
         config += "#################### Geometry ####################\n";
-        config += "basis\n";
-        config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
-        config += fmt::format("{}\n", geometry->n_cell_atoms);
-        for (int i=0; i<geometry->n_cell_atoms; ++i)
+
+        // Bravais lattice/vectors
+        if (geometry->classifier == Data::BravaisLatticeType::SC)
+            config += "bravais_lattice sc\n";
+        else if (geometry->classifier == Data::BravaisLatticeType::FCC)
+            config += "bravais_lattice fcc\n";
+        else if (geometry->classifier == Data::BravaisLatticeType::BCC)
+            config += "bravais_lattice bcc\n";
+        else if (geometry->classifier == Data::BravaisLatticeType::Hex2D)
+            config += "bravais_lattice hex2d120\n";
+        else
         {
-            config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
+            config += "bravais_vectors\n";
+            config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
         }
-        config += "translation_vectors\n";
-        for (int i=0; i<3; ++i)
-            config += fmt::format("{} {}\n", geometry->bravais_vectors[i].transpose(), geometry->n_cells[i]);
+        // Number of cells
+        config += fmt::format("n_basis_cells {} {} {}\n", geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]);
+        // Optionally basis
+        if (geometry->n_cell_atoms > 1)
+        {
+            config += "basis\n";
+            config += fmt::format("{}\n", geometry->n_cell_atoms);
+            for (int i=0; i<geometry->n_cell_atoms; ++i)
+            {
+                config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
+            }
+        }
+        // Optionally lattice constant
+        if (std::abs(geometry->lattice_constant-1) > 1e-6)
+            config += fmt::format("lattice_constant {}\n", geometry->lattice_constant);
         config += "################## End Geometry ##################";
         Append_String_to_File(config, configFile);
     }// end Geometry_to_Config

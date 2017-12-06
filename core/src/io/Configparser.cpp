@@ -1199,7 +1199,7 @@ namespace IO
         scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
 
         // External Magnetic Field
-        scalar B = 0;
+        scalar B = 25;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
         
         // Anisotropy
