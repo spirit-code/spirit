@@ -37,11 +37,11 @@ namespace Engine
             std::cerr << "    Evaluation of the gradient..." << std::endl;
             auto& image_minimum = *system_minimum->spins;
             int nos = image_minimum.size();
-            vectorfield gradient_minimum(nos);
+            vectorfield gradient_minimum(nos, {0,0,0});
             system_minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
 
             // Evaluation of the Hessian...
-            MatrixX hessian_minimum(3*nos,3*nos);
+            MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
             std::cerr << "    Evaluation of the Hessian..." << std::endl;
             system_minimum->hamiltonian->Hessian(image_minimum, hessian_minimum);
 
@@ -49,8 +49,8 @@ namespace Engine
             std::cerr << "    Eigendecomposition..." << std::endl;
             MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
             MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
-            VectorX eigenvalues_minimum;
-            MatrixX eigenvectors_minimum;
+            VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
+            MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
             Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
                 hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
 
@@ -84,7 +84,6 @@ namespace Engine
                     volume_minimum = Calculate_Zero_Volume(system_minimum);
             }
 
-
             ////////////////////////////////////////////////////////////////////////
             // Saddle point
             std::cerr << std::endl << "Calculation for the Saddle Point" << std::endl;
@@ -92,11 +91,11 @@ namespace Engine
             // The gradient (unprojected)
             std::cerr << "    Evaluation of the gradient..." << std::endl;
             auto& image_sp = *system_sp->spins;
-            vectorfield gradient_sp(nos);
+            vectorfield gradient_sp(nos, {0,0,0});
             system_sp->hamiltonian->Gradient(image_sp, gradient_sp);
 
             // Evaluation of the Hessian...
-            MatrixX hessian_sp(3*nos,3*nos);
+            MatrixX hessian_sp = MatrixX::Zero(3*nos,3*nos);
             std::cerr << "    Evaluation of the Hessian..." << std::endl;
             system_sp->hamiltonian->Hessian(image_sp, hessian_sp);
 
@@ -104,8 +103,8 @@ namespace Engine
             std::cerr << "    Eigendecomposition..." << std::endl;
             MatrixX hessian_geodesic_sp_3N(3*nos, 3*nos);
             MatrixX hessian_geodesic_sp_2N(2*nos, 2*nos);
-            VectorX eigenvalues_sp;
-            MatrixX eigenvectors_sp;
+            VectorX eigenvalues_sp = VectorX::Zero(2*nos);
+            MatrixX eigenvectors_sp = MatrixX::Zero(2*nos, 2*nos);
             Geodesic_Eigen_Decomposition(image_sp, gradient_sp, hessian_sp,
                 hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, eigenvalues_sp, eigenvectors_sp);
             
@@ -151,12 +150,14 @@ namespace Engine
             }
 
             ////////////////////////////////////////////////////////////////////////
-            std::cerr << "Calculating 'a' factor..." << std::endl;
+            std::cerr << "Calculating 'a' factors..." << std::endl;
             // Calculation of the 'a' parameters...
             VectorX a_sp(2*nos);
             MatrixX basis_sp(3*nos, 2*nos);
             Manifoldmath::tangent_basis_spherical(image_sp, basis_sp);
+            // Manifoldmath::tangent_basis(image_sp, basis_sp);
             // TODO
+            // Calculate_a_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, a_sp);
             Calculate_a(image_sp, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, a_sp);
             // QUESTION: is scaling a_sp with mub/mry necessary?
             
@@ -317,10 +318,13 @@ namespace Engine
 
             // QUESTION: is this maybe just eigenbasis^T * velocity_projected * eigenbasis ?
             // Something
-            a = (eigenbasis.transpose()*velocity_projected)*eigenbasis.col(0);
+            a = eigenbasis.col(0).transpose() * (velocity_projected*eigenbasis);
+
+            // std::cerr << "  calculate_a: sorting" << std::endl;
             // std::sort(a.data(),a.data()+a.size());
-            for (int i=0; i<10; ++i)
-                std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
+
+            // for (int i=0; i<10; ++i)
+            //     std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
         }
 
 
@@ -340,34 +344,105 @@ namespace Engine
                     velocity(3*i, 3*j+1)   = 0.5 * (spins[i][1]*(hessian(3*j+1,3*i+2)+hessian(3*i+2,3*j+1)) - spins[i][2]*(hessian(3*j+1,3*i+1)+hessian(3*i+1,3*j+1)));
                     velocity(3*i, 3*j+2)   = 0.5 * (spins[i][1]*(hessian(3*j+2,3*i+2)+hessian(3*i+2,3*j+2)) - spins[i][2]*(hessian(3*j+2,3*i+1)+hessian(3*i+1,3*j+2)));
 
-                    velocity(3*i+1, 3*j)   = 0.5 * (spins[i][2]*(hessian(3*j,  3*i)+hessian(3*i,3*j))   - spins[i][0]*(hessian(3*j,  3*i+2)+hessian(3*i+2,3*j)));
-                    velocity(3*i+1, 3*j+1) = 0.5 * (spins[i][2]*(hessian(3*j+1,3*i)+hessian(3*i,3*j+1)) - spins[i][0]*(hessian(3*j+1,3*i+2)+hessian(3*i+2,3*j+1)));
-                    velocity(3*i+1, 3*j+2) = 0.5 * (spins[i][2]*(hessian(3*j+2,3*i)+hessian(3*i,3*j+2)) - spins[i][0]*(hessian(3*j+2,3*i+2)+hessian(3*i+2,3*j+2)));
+                    velocity(3*i+1, 3*j)   = 0.5 * (spins[i][2]*(hessian(3*j,  3*i)+hessian(3*i,3*j))       - spins[i][0]*(hessian(3*j,  3*i+2)+hessian(3*i+2,3*j)));
+                    velocity(3*i+1, 3*j+1) = 0.5 * (spins[i][2]*(hessian(3*j+1,3*i)+hessian(3*i,3*j+1))     - spins[i][0]*(hessian(3*j+1,3*i+2)+hessian(3*i+2,3*j+1)));
+                    velocity(3*i+1, 3*j+2) = 0.5 * (spins[i][2]*(hessian(3*j+2,3*i)+hessian(3*i,3*j+2))     - spins[i][0]*(hessian(3*j+2,3*i+2)+hessian(3*i+2,3*j+2)));
 
-                    velocity(3*i+2, 3*j)   = 0.5 * (spins[i][0]*(hessian(3*j,  3*i+1)+hessian(3*i+1,3*j))   - spins[i][1]*(hessian(3*j,  3*i)+hessian(3*i+0,3*j)));
-                    velocity(3*i+2, 3*j+1) = 0.5 * (spins[i][0]*(hessian(3*j+1,3*i+1)+hessian(3*i+1,3*j+1)) - spins[i][1]*(hessian(3*j+1,3*i)+hessian(3*i+0,3*j+1)));
-                    velocity(3*i+2, 3*j+2) = 0.5 * (spins[i][0]*(hessian(3*j+2,3*i+1)+hessian(3*i+1,3*j+2)) - spins[i][1]*(hessian(3*j+2,3*i)+hessian(3*i+0,3*j+2)));
+                    velocity(3*i+2, 3*j)   = 0.5 * (spins[i][0]*(hessian(3*j,  3*i+1)+hessian(3*i+1,3*j))   - spins[i][1]*(hessian(3*j,  3*i)+hessian(3*i,3*j)));
+                    velocity(3*i+2, 3*j+1) = 0.5 * (spins[i][0]*(hessian(3*j+1,3*i+1)+hessian(3*i+1,3*j+1)) - spins[i][1]*(hessian(3*j+1,3*i)+hessian(3*i,3*j+1)));
+                    velocity(3*i+2, 3*j+2) = 0.5 * (spins[i][0]*(hessian(3*j+2,3*i+1)+hessian(3*i+1,3*j+2)) - spins[i][1]*(hessian(3*j+2,3*i)+hessian(3*i,3*j+2)));
 
-                    beff -= (hessian.block<3, 3>(3*i, 3*j) + hessian.block<3, 3>(3*j, 3*i).transpose()) * spins[i];
+                    // ////////
+                    // velocity(3*i, 3*j)     = spins[i][1]*hessian(3*i+2,3*j)   - spins[i][2]*hessian(3*i+1,3*j);
+                    // velocity(3*i, 3*j+1)   = spins[i][1]*hessian(3*i+2,3*j+1) - spins[i][2]*hessian(3*i+1,3*j+1);
+                    // velocity(3*i, 3*j+2)   = spins[i][1]*hessian(3*i+2,3*j+2) - spins[i][2]*hessian(3*i+1,3*j+2);
+
+                    // velocity(3*i+1, 3*j)   = spins[i][2]*hessian(3*i,3*j)     - spins[i][0]*hessian(3*i+2,3*j);
+                    // velocity(3*i+1, 3*j+1) = spins[i][2]*hessian(3*i,3*j+1)   - spins[i][0]*hessian(3*i+2,3*j+1);
+                    // velocity(3*i+1, 3*j+2) = spins[i][2]*hessian(3*i,3*j+2)   - spins[i][0]*hessian(3*i+2,3*j+2);
+
+                    // velocity(3*i+2, 3*j)   = spins[i][0]*hessian(3*i+1,3*j)   - spins[i][1]*hessian(3*i,3*j);
+                    // velocity(3*i+2, 3*j+1) = spins[i][0]*hessian(3*i+1,3*j+1) - spins[i][1]*hessian(3*i,3*j+1);
+                    // velocity(3*i+2, 3*j+2) = spins[i][0]*hessian(3*i+1,3*j+2) - spins[i][1]*hessian(3*i,3*j+2);
+                    // ////////
+
+                    beff -= (hessian.block<3, 3>(3*i, 3*j) + hessian.transpose().block<3, 3>(3*i, 3*j)) * spins[i];
                 }
 
                 beff = 0.5*beff;
+                // if ( beff.norm() > 1e-7 && !(beff.normalized()).isApprox(spins[i].normalized()))
+                //     std::cerr << "$$$$$$$$$$$$ " << i << ": " << beff.normalized().transpose() << " --- " << spins[i].normalized().transpose() << std::endl;
 
-                velocity(3*i+1, 3*i+2) = velocity(3*i, 3*i+1) - beff[0];
-                velocity(3*i,   3*i+2) = velocity(3*i, 3*i+1) + beff[1];
-                velocity(3*i,   3*i+1) = velocity(3*i, 3*i+1) - beff[2];
+                velocity(3*i,   3*i+1) -= beff[2];
+                velocity(3*i,   3*i+2) += beff[1];
+                velocity(3*i+1, 3*i)   += beff[2];
+                velocity(3*i+1, 3*i+2) -= beff[0];
+                velocity(3*i+2, 3*i)   -= beff[1];
+                velocity(3*i+2, 3*i+1) += beff[0];
+            }
+        }
 
-                velocity(3*i+2, 3*i+1) = velocity(3*i, 3*i+1) + beff[0];
-                velocity(3*i+2, 3*i)   = velocity(3*i, 3*i+1) - beff[1];
-                velocity(3*i+1, 3*i)   = velocity(3*i, 3*i+1) + beff[2];
+
+        void Calculate_a_2N(const vectorfield & spins, const MatrixX & hessian,
+            const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a)
+        {
+            int nos = spins.size();
+            // a = VectorX(2*nos);
+
+            std::cerr << "  calculate_a: calculate dynamical matrix" << std::endl;
+
+            // Calculate the dynamical matrix in the 2N-basis
+            MatrixX dynamical(2*nos, 2*nos);
+            Calculate_Dynamical_Matrix_2N(hessian, dynamical);
+            
+            std::cerr << "  calculate_a: calculate a" << std::endl;
+
+            // QUESTION: is this maybe just eigenbasis^T * velocity_projected * eigenbasis ?
+            // Something
+            a = eigenbasis.col(0).transpose() * (dynamical*eigenbasis);
+            // a = (eigenbasis.transpose()*dynamical)*eigenbasis.col(0);
+
+            // std::cerr << "  calculate_a: sorting" << std::endl;
+            // std::sort(a.data(),a.data()+a.size());
+
+            // for (int i=0; i<10; ++i)
+            //     std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
+        }
+        
+        void Calculate_Dynamical_Matrix_2N(const MatrixX & hessian, MatrixX & dynamical)
+        {
+            int nos = hessian.rows()/2;
+            dynamical = MatrixX(2*nos, 2*nos);
+
+            for (int i=0; i < nos; ++i)
+            {
+                for (int j=0; j < nos; ++j)
+                {
+                    dynamical(2*i,   2*j)   = -hessian(2*i+1, 2*j);
+                    dynamical(2*i,   2*j+1) = -hessian(2*i+1, 2*j+1);
+                    dynamical(2*i+1, 2*j)   =  hessian(2*i,   2*j);
+                    dynamical(2*i+1, 2*j+1) =  hessian(2*i,   2*j+1);
+
+                    // velocity(2*i, 2*j)     =   - spins[i][2]*hessian(2*i+1,2*j);
+                    // velocity(2*i, 2*j+1)   =  - spins[i][2]*hessian(2*i+1,2*j+1);
+
+                    // velocity(2*i+1, 2*j)   = spins[i][2]*hessian(2*i,2*j)     
+                    // velocity(2*i+1, 2*j+1) = spins[i][2]*hessian(2*i,2*j+1)   
+                }
             }
         }
 
 
         // If all needed values are known the prefactor can be calculated with this function
         void Calculate_Prefactor(int nos, int n_zero_modes_minimum, int n_zero_modes_sp, scalar volume_minimum, scalar volume_sp,
-            const VectorX & eig_min, const VectorX & eig_sp, const VectorX & a, scalar & prefactor, scalar & exponent)
+            const VectorX & _eig_min, const VectorX & _eig_sp, const VectorX & _a, scalar & prefactor, scalar & exponent)
         {
+            // This implements (I think) the nu from eq. (3) from Pavel F. Bessarab - Size and Shape Dependence of Thermal Spin Transitions in Nanoislands - PRL 110, 020604 (2013)
+            
+            auto eig_min = 1e-3*_eig_min;
+            auto eig_sp  = 1e-3*_eig_sp;
+            auto a       = 1e-3*_a;
+
             // Calculate the exponent
             //      The exponent depends on the number of zero modes at the different states
             exponent = 0.5 * (n_zero_modes_minimum - n_zero_modes_sp);
@@ -394,13 +469,12 @@ namespace Engine
                 for (int i = 0; i<(n_zero_modes_sp+1-n_zero_modes_minimum); ++i)
                     m *= eig_min[i+n_zero_modes_minimum];
             }
-            std::cerr << "m first    = " << m << std::endl;
+
             int j = std::max(n_zero_modes_minimum, n_zero_modes_sp+1);
             for (int i=j; i < 2*nos; ++i)
                 m *= eig_min[i]/eig_sp[i];
-            std::cerr << "m second    = " << m << std::endl;
             m = std::sqrt(m);
-            
+
             // Calculate "s" - QUESTION: what is it?
             scalar s = 0;
             for (int i = n_zero_modes_sp+1; i < 2*nos; ++i)
@@ -408,7 +482,7 @@ namespace Engine
             s = std::sqrt(s);
 
             // Calculate the prefactor
-            prefactor = g_e* m*s *me*volume_sp/(2*M_PI*Utility::Constants::hbar*1e-12*volume_minimum);
+            prefactor = g_e * m * s * me * volume_sp / ( 2*M_PI * Utility::Constants::hbar * 1e-12 * volume_minimum);
 
             std::cerr << "exponent    = " << exponent << std::endl;
             std::cerr << "me =          " << me << std::endl;
@@ -435,19 +509,17 @@ namespace Engine
             // making the result a 2Nx2N matrix. The bordered Hessian's Lagrange multipliers assume a local extremum.
 
             int nos = image.size();
+            hessian_out = hessian;
 
             VectorX lambda(nos);
-
             for (int i=0; i<nos; ++i)
-                lambda[i] = image[i].dot(gradient[i]);
-            
-            hessian_out = hessian;
+                lambda[i] = image[i].normalized().dot(gradient[i]);
 
             for (int i=0; i<nos; ++i)
             {
                 for (int j=0; j<3; ++j)
                 {
-                    hessian_out(3*i+j,3*i+j) -= lambda(i);
+                    hessian_out(3*i+j,3*i+j) -= lambda[i];
                 }
             }
         }
@@ -492,7 +564,7 @@ namespace Engine
             MatrixX & hessian_geodesic_3N, MatrixX & hessian_geodesic_2N, VectorX & eigenvalues, MatrixX & eigenvectors)
         {
             std::cerr << "---------- Geodesic Eigen Decomposition" << std::endl;
-
+            
             int nos = image.size();
 
             // Calculate geodesic Hessian in 3N-representation
@@ -502,19 +574,27 @@ namespace Engine
             // Transform into geodesic Hessian
             std::cerr << "    Transforming Hessian into geodesic Hessian..." << std::endl;
             hessian_geodesic_2N = MatrixX::Zero(2*nos, 2*nos);
-            Manifoldmath::hessian_bordered(image, gradient, hessian, hessian_geodesic_2N);
+            // Manifoldmath::hessian_bordered(image, gradient, hessian, hessian_geodesic_2N);
             // Manifoldmath::hessian_projected(image, gradient, hessian, hessian_geodesic_2N);
             // Manifoldmath::hessian_weingarten(image, gradient, hessian, hessian_geodesic_2N);
             // Manifoldmath::hessian_spherical(image, gradient, hessian, hessian_geodesic_2N);
             // Manifoldmath::hessian_covariant(image, gradient, hessian, hessian_geodesic_2N);
 
+            // Do this manually
+            MatrixX basis = MatrixX::Zero(3*nos, 2*nos);
+            Manifoldmath::tangent_basis_spherical(image, basis);
+            // Manifoldmath::tangent_basis(image, basis);
+            hessian_geodesic_2N = basis.transpose() * hessian_geodesic_3N * basis;
+
+
             // Calculate full eigenspectrum
             std::cerr << "    Calculation of full eigenspectrum..." << std::endl;
-            eigenvalues(2*nos);
-            eigenvectors(2*nos, 2*nos);
+            // std::cerr << hessian_geodesic_2N.cols() << "   " << hessian_geodesic_2N.rows() << std::endl;
+            eigenvalues = VectorX::Zero(2*nos);
+            eigenvectors = MatrixX::Zero(2*nos, 2*nos);
             Eigen_Decomposition(hessian_geodesic_2N, eigenvalues, eigenvectors);
             // Eigen_Decomposition_Spectra(hessian_geodesic_2N, eigenvalues, eigenvectors);
-
+            
             std::cerr << "---------- Geodesic Eigen Decomposition Done" << std::endl;
         }
 

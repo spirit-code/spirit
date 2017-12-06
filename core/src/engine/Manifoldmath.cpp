@@ -195,13 +195,13 @@ namespace Engine
             {
                 if (vf[i][2] > 1-1e-8)
                 {
-                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1, 0, 0};
-                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{0, 1, 0};
+                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1+vf[i][0], vf[i][1], 0}.normalized();
+                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{vf[i][0], 1+vf[i][1], 0}.normalized();
                 }
                 else if (vf[i][2] < -1+1e-8)
                 {
-                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1, 0, 0};
-                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{0, -1, 0};
+                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1+vf[i][0],  vf[i][1], 0}.normalized();
+                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{vf[i][0], -1+vf[i][1], 0}.normalized();
                 }
                 else
                 {
@@ -277,28 +277,27 @@ namespace Engine
             // making the result a 2Nx2N matrix. The bordered Hessian's Lagrange multipliers assume a local extremum.
 
             int nos = image.size();
+            MatrixX tmp_3N = hessian;
 
             VectorX lambda(nos);
-
             for (int i=0; i<nos; ++i)
                 lambda[i] = image[i].dot(gradient[i]);
-            
-            hessian_out = hessian;
 
             for (int i=0; i<nos; ++i)
             {
                 for (int j=0; j<3; ++j)
                 {
-                    hessian_out(3*i+j,3*i+j) -= lambda(i);
+                    tmp_3N(3*i+j,3*i+j) -= lambda(i);
                 }
             }
 
             // Calculate the basis transformation matrix
             MatrixX basis = MatrixX::Zero(3*nos, 2*nos);
             tangent_basis_spherical(image, basis);
+            // tangent_basis(image, basis);
 
             // Result is a 2Nx2N matrix
-            hessian_out = basis.transpose() * hessian_out * basis;
+            hessian_out = basis.transpose() * tmp_3N * basis;
         }
 
 

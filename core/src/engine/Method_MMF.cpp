@@ -136,7 +136,7 @@ namespace Engine
 
                 // Extract the minimum mode (transform evec_lowest_2N back to 3N)
                 MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
-                Manifoldmath::tangent_basis_spherical(image, basis_3Nx2N); // Important to choose the right matrix here!
+                Manifoldmath::tangent_basis_spherical(image, basis_3Nx2N); // Important to choose the right matrix here! It should especially be consistent with the matrix chosen in the Hessian calculation!
                 VectorX evec_lowest_3N = basis_3Nx2N * evec_lowest_2N;
                 for (int n=0; n<nos; ++n)
                     this->minimum_mode[ichain][n] = {evec_lowest_3N[3*n], evec_lowest_3N[3*n+1], evec_lowest_3N[3*n+2]};
@@ -159,12 +159,12 @@ namespace Engine
 
 
                 ////////////////////////////////////////////////////////////////
-                // Get the gradient in 2N-representation
-                Eigen::Ref<VectorX> grad_3N = Eigen::Map<VectorX>(grad[0].data(), 3 * nos);
-                VectorX grad_2N             = basis_3Nx2N.transpose() * grad_3N;
                 // For one of the tests
                 auto grad_tangential = grad;
                 Manifoldmath::project_tangential(grad_tangential, image);
+                // Get the tangential gradient in 2N-representation
+                Eigen::Ref<VectorX> grad_tangent_3N = Eigen::Map<VectorX>(grad_tangential[0].data(), 3 * nos);
+                VectorX grad_tangent_2N             = basis_3Nx2N.transpose() * grad_tangent_3N;
                 /////////
                 // Norms
                 scalar image_norm           = Manifoldmath::norm(image);
@@ -174,20 +174,22 @@ namespace Engine
                 scalar mode_norm_2N         = evec_lowest_2N.norm();
                 // Scalar products
                 scalar mode_dot_image       = std::abs(Vectormath::dot(minimum_mode[ichain], image) / mode_norm); // mode should be orthogonal to image in 3N-space
-                scalar mode_dot_grad        = std::abs(evec_lowest_3N.dot(grad_3N) / evec_lowest_3N.norm() / grad_3N.norm());
-                scalar mode_dot_grad_2N     = std::abs(evec_lowest_2N.dot(grad_2N) / evec_lowest_2N.norm() / grad_2N.norm());
+                scalar mode_grad_angle      = std::abs(evec_lowest_3N.dot(grad_tangent_3N) / evec_lowest_3N.norm() / grad_tangent_3N.norm());
+                scalar mode_grad_angle_2N   = std::abs(evec_lowest_2N.dot(grad_tangent_2N) / evec_lowest_2N.norm() / grad_tangent_2N.norm());
                 // Do some more checks to ensure the mode fulfills our requirements
                 bool bad_image_norm         = 1e-8  < std::abs( image_norm - std::sqrt((scalar)nos) ); // image norm should be sqrt(nos)
                 bool bad_grad_norm          = 1e-8  > grad_norm;         // gradient should not be a zero vector
                 bool bad_grad_tangent_norm  = 1e-8  > grad_tangent_norm; // gradient should not be a zero vector in tangent space
                 bool bad_mode_norm          = 1e-8  > mode_norm;         // mode should not be a zero vector
                 /////////
-                bool bad_mode_dot_image     = 1e-10 < mode_dot_image;    // mode should be orthogonal to image in 3N-space
-                bool bad_mode_dot_grad      = 1e-8  > mode_dot_grad;     // mode should not be orthogonal to gradient in 3N-space
-                bool bad_mode_dot_grad_2N   = 1e-8  > mode_dot_grad_2N;  // mode should not be orthogonal to gradient in 2N-space
+                bool bad_mode_dot_image     = 1e-10 < mode_dot_image;     // mode should be orthogonal to image in 3N-space
+                bool bad_mode_grad_angle    = 1e-8  > mode_grad_angle;    // mode should not be orthogonal to gradient in 3N-space
+                bool bad_mode_grad_angle_2N = 1e-8  > mode_grad_angle_2N; // mode should not be orthogonal to gradient in 2N-space
                 /////////
-                if ( bad_image_norm     || bad_mode_norm     || bad_grad_norm        || bad_grad_tangent_norm ||
-                     bad_mode_dot_image || bad_mode_dot_grad || bad_mode_dot_grad_2N )
+                bool eval_nonzero           = 1e-8  < std::abs(eval_lowest);
+                /////////
+                if ( bad_image_norm     || bad_mode_norm       || bad_grad_norm          || bad_grad_tangent_norm ||
+                     bad_mode_dot_image || ( eval_nonzero && (bad_mode_grad_angle || bad_mode_grad_angle_2N) ) )
                 {
                     // scalar theta, phi;
                     // Manifoldmath::spherical_from_cartesian(image[1], theta, phi);
@@ -210,10 +212,10 @@ namespace Engine
                         std::cerr << "   mode NOT TANGENTIAL to SPINS: "         << mode_dot_image << std::endl;
                         std::cerr << "             >>> check the (3N x 2N) spherical basis matrix" << std::endl;
                     }
-                    if (bad_mode_dot_grad || bad_mode_dot_grad_2N)
+                    if ( eval_nonzero && (bad_mode_grad_angle || bad_mode_grad_angle_2N) )
                     {
-                        std::cerr << "   mode is ORTHOGONAL to GRADIENT: 3N = " << mode_dot_grad << std::endl;
-                        std::cerr << "                              >>>  2N = " << mode_dot_grad_2N << std::endl;
+                        std::cerr << "   mode is ORTHOGONAL to GRADIENT: 3N = " << mode_grad_angle << std::endl;
+                        std::cerr << "                              >>>  2N = " << mode_grad_angle_2N << std::endl;
                     }
                     std::cerr << "-------------------------" << std::endl;
                 }
@@ -226,10 +228,14 @@ namespace Engine
                 // Normalize the mode vector in 3N dimensions
                 Manifoldmath::normalize(this->minimum_mode[ichain]);
                 
+                // std::cerr << "eval ref: " << hessian_spectrum_reference.eigenvalues().transpose() << std::endl;
                 // Check if the lowest eigenvalue is negative
-                if (eval_lowest <= 0 && mode_dot_grad > 1e-8)// -1e-6)// || switched2)
+                if (eval_lowest <= 0 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
                 {
-                    std::cerr << "negative region " << evalues.transpose() << std::endl;//<< "    lowest " << eval_lowest << std::endl;
+                    // Scalar product of mode and gradient
+                    scalar lambda_F = Vectormath::dot(this->minimum_mode[ichain], grad);
+
+                    std::cerr << fmt::format("negative region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", evalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(lambda_F)) << std::endl;
 
                     // Invert the gradient force along the minimum mode
                     Manifoldmath::invert_parallel(grad, minimum_mode[ichain]);
@@ -238,12 +244,12 @@ namespace Engine
                     Vectormath::set_c_a(-1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
                 }
                 // Otherwise we seek for the lowest nonzero eigenvalue
-                else if (mode_dot_grad > 1e-8)
+                else if (mode_grad_angle > 1e-8)
                 {
                     // Scalar product of mode and gradient
                     scalar lambda_F = Vectormath::dot(this->minimum_mode[ichain], grad);
 
-                    std::cerr << "positive region " << evalues.transpose() << "  lambda*F=" << lambda_F << std::endl;//<< "    lowest " << eval_lowest << std::endl;
+                    std::cerr << fmt::format("positive region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", evalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(lambda_F)) << std::endl;
 
                     // Calculate the force
                     Vectormath::set_c_a(lambda_F, this->minimum_mode[ichain], forces[ichain], collection->parameters->pinning->mask_unpinned);
@@ -253,8 +259,15 @@ namespace Engine
                 }
                 else
                 {
-                    std::cerr << "bad region " << evalues.transpose() << std::endl;
-                    // Copy out the forces
+                    // Scalar product of mode and gradient
+                    scalar lambda_F = Vectormath::dot(this->minimum_mode[ichain], grad);
+
+                    if (std::abs(eval_lowest) > 1e-8)
+                        std::cerr << fmt::format("bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", evalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(lambda_F)) << std::endl;
+                    else
+                        std::cerr << fmt::format("zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", evalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(lambda_F)) << std::endl;
+
+                        // Copy out the forces
                     Vectormath::set_c_a(1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
                 }
             }

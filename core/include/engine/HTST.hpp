@@ -16,9 +16,13 @@ namespace Engine
         // Calculate the 'a' component of the prefactor
         void Calculate_a(const vectorfield & spins, const MatrixX & hessian,
             const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a);
+        void Calculate_a_2N(const vectorfield & spins, const MatrixX & hessian,
+            const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a);
 
         // Calculate the Velocity matrix
         void Calculate_Velocity_Matrix(const vectorfield & spins, const MatrixX & hessian, MatrixX & velocity);
+        // Transform the Hessian into a dynamical matrix
+        void Calculate_Dynamical_Matrix_2N(const MatrixX & hessian, MatrixX & dynamical);
 
         // Prefactor Calculation from intermediate values (mode volume, eigenvalues, ...)
         void Calculate_Prefactor(int nos, int n_zero_modes_minimum, int n_zero_modes_sp, scalar volume_minimum, scalar volume_sp,
