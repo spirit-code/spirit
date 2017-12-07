@@ -103,9 +103,9 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
 	// 		Read persistent settings
 	this->readSettings();
-	this->show_arrows = this->user_show_arrows;
-	this->show_surface = this->user_show_surface;
-	this->show_isosurface = this->user_show_isosurface;
+	this->show_arrows      = this->user_show_arrows;
+	this->show_surface     = this->user_show_surface;
+	this->show_isosurface  = this->user_show_isosurface;
 	this->show_boundingbox = this->user_show_boundingbox;
 }
 
@@ -2060,27 +2060,24 @@ void SpinWidget::readSettings()
 	makeCurrent();
 	QSettings settings("Spirit Code", "Spirit");
 
-	if (settings.childGroups().contains("General"))
-	{
-		settings.beginGroup("General");
-		// VisMode
-		this->visMode = VisualizationMode(settings.value("Mode").toInt());
-		// Sphere Point Size
-		this->setSpherePointSizeRange({ (settings.value("SpherePointSize1").toInt() / 100.0f), (settings.value("SpherePointSize2").toInt() / 100.0f) });
-		// System
-		this->idx_cycle = 0;//settings.value("Cycle Index").toInt();
-		this->user_show_arrows = settings.value("Show Arrows").toBool();
-		this->user_show_boundingbox = settings.value("Show Bounding Box").toBool();
-		this->user_show_surface = settings.value("Show Surface").toBool();
-		this->user_show_isosurface = settings.value("Show Isosurface").toBool();
-		// MiniView
-		this->show_miniview = settings.value("Show MiniView").toBool();
-		this->m_location_miniview = WidgetLocation(settings.value("MiniView Position").toInt());
-		// Coordinate System
-		this->show_coordinatesystem = settings.value("Show Coordinate System").toBool();
-		this->m_location_coordinatesystem = WidgetLocation(settings.value("Coordinate System Position").toInt());
-		settings.endGroup();
-	}
+	settings.beginGroup("General");
+	// VisMode
+	this->visMode = VisualizationMode(settings.value("Mode", 0).toInt());
+	// Sphere Point Size
+	this->setSpherePointSizeRange({ (settings.value("SpherePointSize1", 100).toInt() / 100.0f), (settings.value("SpherePointSize2", 100).toInt() / 100.0f) });
+	// System
+	this->idx_cycle             = 0;//settings.value("Cycle Index").toInt();
+	this->user_show_arrows      = settings.value("Show Arrows",       true).toBool();
+	this->user_show_boundingbox = settings.value("Show Bounding Box", true).toBool();
+	this->user_show_surface     = settings.value("Show Surface",      false).toBool();
+	this->user_show_isosurface  = settings.value("Show Isosurface",   false).toBool();
+	// MiniView
+	this->show_miniview         = settings.value("Show MiniView",      true).toBool();
+	this->m_location_miniview   = WidgetLocation(settings.value("MiniView Position", (int)WidgetLocation::BOTTOM_LEFT).toInt());
+	// Coordinate System
+	this->show_coordinatesystem = settings.value("Show Coordinate System", true).toBool();
+	this->m_location_coordinatesystem = WidgetLocation(settings.value("Coordinate System Position", (int)WidgetLocation::BOTTOM_RIGHT).toInt());
+	settings.endGroup();
 
 	// Arrows
 	if (settings.childGroups().contains("Arrows"))
@@ -2111,15 +2108,18 @@ void SpinWidget::readSettings()
 	}
 
 	// Camera
+	settings.beginGroup("Camera");
+	this->user_fov = (float)(settings.value("FOV", 45*100).toInt() / 100.0f);
+	this->m_camera_projection_perspective = settings.value("perspective projection", true).toBool();
+	this->regular_mode_perspective = this->m_camera_projection_perspective;
+	this->m_camera_rotate_free = settings.value("free rotation", 0).toBool();
+	m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->m_camera_projection_perspective*this->user_fov);
+	glm::vec3 camera_position, center_position, up_vector;
+	settings.endGroup();
+	this->setCameraToDefault();
 	if (settings.childGroups().contains("Camera"))
 	{
 		settings.beginGroup("Camera");
-		this->user_fov = (float)(settings.value("FOV").toInt() / 100.0f);
-		this->m_camera_projection_perspective = settings.value("perspective projection").toBool();
-		this->regular_mode_perspective = this->m_camera_projection_perspective;
-		this->m_camera_rotate_free = settings.value("free rotation").toBool();
-		m_view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(this->m_camera_projection_perspective*this->user_fov);
-		glm::vec3 camera_position, center_position, up_vector;
 		settings.beginReadArray("position");
 		for(int dim=0; dim<3; ++dim)
 		{
