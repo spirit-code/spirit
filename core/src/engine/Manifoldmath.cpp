@@ -104,12 +104,36 @@ namespace Engine
         //      of a unit sphere, represented in 3N, as the two columns of the matrix.
         void tangent_basis_spherical(const vectorfield & vf, MatrixX & basis)
         {
-            spherical_to_cartesian_jacobian(vf, basis);
-
+            Vector3 tmp, etheta, ephi;
+            basis.setZero();
             for (unsigned int i=0; i < vf.size(); ++i)
             {
-                basis.block<3,1>(3*i,2*i).normalize();
-                basis.block<3,1>(3*i,2*i+1).normalize();
+                if (vf[i][2] > 1-1e-8)
+                {
+                    tmp = Vector3{1, 0, 0};
+                    basis.block<3,1>(3*i,2*i)   = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    tmp = Vector3{0, 1, 0};
+                    basis.block<3,1>(3*i,2*i+1) = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                }
+                else if (vf[i][2] < -1+1e-8)
+                {
+                    tmp = Vector3{1, 0, 0};
+                    basis.block<3,1>(3*i,2*i)   = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    tmp = Vector3{0, -1, 0};
+                    basis.block<3,1>(3*i,2*i+1) = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                }
+                else
+                {
+                    scalar rxy = std::sqrt( 1 - vf[i][2]*vf[i][2] );
+                    scalar z_rxy = vf[i][2] / rxy;
+
+                    // Note: these are not unit vectors, but derivatives!
+                    etheta = Vector3{  vf[i][0]*z_rxy, vf[i][1]*z_rxy, -rxy };
+                    ephi   = Vector3{ -vf[i][1]/rxy,   vf[i][0]/rxy,    0   };
+
+                    basis.block<3,1>(3*i,2*i)   = (etheta - etheta.dot(vf[i])*vf[i]).normalized();
+                    basis.block<3,1>(3*i,2*i+1) = (ephi   - ephi.dot(vf[i])*vf[i]).normalized();
+                }
             }
         }
 
@@ -190,18 +214,23 @@ namespace Engine
         // and d/d_phi as the two columns of the matrix.
         void spherical_to_cartesian_jacobian(const vectorfield & vf, MatrixX & jacobian)
         {
+            Vector3 tmp, etheta, ephi;
             jacobian.setZero();
             for (unsigned int i=0; i < vf.size(); ++i)
             {
                 if (vf[i][2] > 1-1e-8)
                 {
-                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1+vf[i][0], vf[i][1], 0}.normalized();
-                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{vf[i][0], 1+vf[i][1], 0}.normalized();
+                    tmp = Vector3{1, 0, 0};
+                    jacobian.block<3,1>(3*i,2*i)   = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    tmp = Vector3{0, 1, 0};
+                    jacobian.block<3,1>(3*i,2*i+1) = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
                 }
                 else if (vf[i][2] < -1+1e-8)
                 {
-                    jacobian.block<3,1>(3*i,2*i)   = Vector3{1+vf[i][0],  vf[i][1], 0}.normalized();
-                    jacobian.block<3,1>(3*i,2*i+1) = Vector3{vf[i][0], -1+vf[i][1], 0}.normalized();
+                    tmp = Vector3{1, 0, 0};
+                    jacobian.block<3,1>(3*i,2*i)   = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    tmp = Vector3{0, -1, 0};
+                    jacobian.block<3,1>(3*i,2*i+1) = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
                 }
                 else
                 {
@@ -209,11 +238,11 @@ namespace Engine
                     scalar z_rxy = vf[i][2] / rxy;
 
                     // Note: these are not unit vectors, but derivatives!
-                    Vector3 etheta {  vf[i][0]*z_rxy, vf[i][1]*z_rxy, -rxy };
-                    Vector3 ephi   { -vf[i][1],       vf[i][0],        0   };
+                    etheta = Vector3{  vf[i][0]*z_rxy, vf[i][1]*z_rxy, -rxy };
+                    ephi   = Vector3{ -vf[i][1],       vf[i][0],        0   };
 
-                    jacobian.block<3,1>(3*i,2*i)   = etheta;
-                    jacobian.block<3,1>(3*i,2*i+1) = ephi;
+                    jacobian.block<3,1>(3*i,2*i)   = etheta - etheta.dot(vf[i])*vf[i];
+                    jacobian.block<3,1>(3*i,2*i+1) = ephi   - ephi.dot(vf[i])*vf[i];
                 }
             }
         }
