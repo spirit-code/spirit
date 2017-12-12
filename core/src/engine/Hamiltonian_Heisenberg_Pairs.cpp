@@ -398,6 +398,7 @@ namespace Engine
 
 		//Energy contribution inside the macro-cell  (for squared mc should be zero)
 		scalar E_in=0.0;            //energy inside mc
+		Vector3 grad_E_in{0,0,0};
 		Matrix3 D;	  			//dipole dipole matrix inside mc
 		//scalar D[3][3]={0};
 		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
@@ -431,6 +432,9 @@ namespace Engine
 
 						//Sum of the energy contributions
 						E_in = E_in + spins[id_i].dot(D*spins[id_j]);
+
+						//Gradient
+						grad_E_in += D*spins[id_i];
 					}
 				}//end loop over atom_j
 		}//end loop over atom_i
@@ -438,6 +442,7 @@ namespace Engine
 
 		//Energy contribution of the mc - mc interation
 		scalar E_dip_mc = 0.0;
+		Vector3 grad_E_mc{0,0,0};
     std::vector<Matrix3> D_tmp(total_mc, Matrix3::Zero());
 		std::vector<Matrix3> D_inter(total_mc, Matrix3::Zero());
 
@@ -462,14 +467,15 @@ namespace Engine
 									scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5));  //check parameters
 
 									//Get Effective dipole matrix -> fancy D
-									D_tmp[q_mc] << term*((3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
-											       					 (3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
-											       					 (3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r));
+									D_tmp[q_mc] << ((3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
+											       			(3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
+											       			(3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r));
 
 									D_inter[q_mc] += D_tmp[q_mc]/64;
 								} // end loop over atom_j in p_mc
 						 }//end loop atom_i in q_mc
 					   E_dip_mc = E_dip_mc +  macrospins[q_mc].dot(D_inter[q_mc]*macrospins[p_mc]);
+						 grad_E_mc += D_inter[q_mc]*macrospins[q_mc];
 					}
 				}//end loop over macro-cells p
 			}//end loop over macro-cells q
@@ -480,6 +486,29 @@ namespace Engine
 			outfile <<" --Get energy-- "<<std::endl;
 			outfile <<-0.5*E_dip_mc<<" + "<<-0.5*E_in<<" = "<<Etotal<<std::endl;
 			outfile.close();
+
+			//gra
+
+			//Gradient
+			Vector3 grad_E{0,0,0};
+			grad_E = -2*grad_E_mc - grad_E_in;
+
+			/*for (unsigned int q_mc = 0; q_mc < total_mc; ++q_mc) //loop over q macro cell
+			{
+				for (unsigned int p_mc = 0; p_mc < total_mc; ++p_mc) //loop over q macro cell
+				{
+					if (p_mc != q_mc)
+					{
+							grad_E1 += -2*macrospins[q_mc].dot(D_inter[p_mc]);
+					}
+				}
+				for (int atom_i = 0; atom_i < mc_atoms; ++atom_i) //loop over atom_i in q_mc
+				{
+						for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)//loop over atom_j in p_mc
+						{
+						}
+					}
+			}*/
 	}// end Dipole-Dipole method
 
 
