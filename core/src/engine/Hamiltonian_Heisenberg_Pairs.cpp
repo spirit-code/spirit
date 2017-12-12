@@ -314,12 +314,14 @@ namespace Engine
 		const int total_mc = (na/2)*(nb/2)*(nc/2);  //total number of macro cells
 
 		double p_mc[total_mc][3];                   //position macro cell
-		double M_mc[total_mc][3];										//momentum macro cell
-		double vec_mu_s[3];
+		double atom_id_mc[total_mc][mc_atoms];
 
 		double idx_mc[total_mc][mc_atoms];					//position x atoms in mc
 		double idy_mc[total_mc][mc_atoms];					//position y atoms in mc
 		double idz_mc[total_mc][mc_atoms];					//position z atoms in mc
+
+		Vector3 macrospin{0,0,0};
+		vectorfield macrospins(total_mc, Vector3::Zero());
 
 		std::ofstream outfile ("Prints_file.txt");
 		outfile <<"#mc: "<<total_mc << std::endl;
@@ -334,6 +336,7 @@ namespace Engine
 				 double p_mc_x = 0.0;
 				 double p_mc_y = 0.0;
 				 double p_mc_z = 0.0;
+				 macrospin = {0,0,0};
 
 				 //outfile <<" "<< std::endl;
 				 //outfile <<"cnt:"<<cnt <<"   cnt_z:"<< cnt_z << std::endl;
@@ -344,24 +347,15 @@ namespace Engine
 						if(atom_mc == 3 || atom_mc == 7)  atom_id -= 1;
 						if(atom_mc == 4)                  atom_id += -na + na*nb;
 
+						atom_id_mc[i_mc][atom_mc] = atom_id;
+
 						//save the positions for all the atoms in the corresponded mc
  			  		idx_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][0];
 			  		idy_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][1];
 	  	  		idz_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][2];
 
-						//printing atom ids
-						//outfile << i_mc <<"	 atom_id:	"<< atom_id << std::endl;
-
-						Vector3 vec_mu_s{ mu_s[0], mu_s[1], mu_s[2] };
-			  		norm_mu_s = vec_mu_s.norm();
-
-						// Get spin moments
-						Vector3 S{ mu_s[0]/norm_mu_s, mu_s[1]/norm_mu_s, mu_s[2]/norm_mu_s };
-
 						//Calculate macro cell momemtum components
-						mc_x += mu_s[0]*S[0];
-						mc_y += mu_s[0]*S[1];
-						mc_z += mu_s[0]*S[2];
+						macrospin += mu_s[0]*spins[atom_id];
 
 						//Calculate macro cell possition coordinates
   					p_mc_x += mu_s[0]*geometry->spin_pos[atom_id][0];
@@ -379,14 +373,12 @@ namespace Engine
 				p_mc[i_mc][2] = p_mc_z/mu_sum;
 
 				//Get momentum macro-cell
-				M_mc[i_mc][0] = mc_x;
-				M_mc[i_mc][1] = mc_y;
-				M_mc[i_mc][2] = mc_z;
+				macrospins[i_mc] = macrospin;
 
 				//Go back position 0 in the macro cell and jump 2 in x
 			  atom_id += -na-na*nb + 2;
 
-				//do the correspoded jump to the next mc
+				//do the corresponded jump to the next mc
 			 	if( atom_id > na-1 + 2*cnt*na + 2*cnt_z*na*nb) //end row
 			 	{
 				 	 cnt ++;
@@ -406,11 +398,10 @@ namespace Engine
 
 		//Energy contribution inside the macro-cell  (for squared mc should be zero)
 		scalar E_in=0.0;            //energy inside mc
-		scalar D[3][3]={0};	  			//dipole dipole matrix inside mc
-
+		Matrix3 D;	  			//dipole dipole matrix inside mc
+		//scalar D[3][3]={0};
 		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
 		{
-			scalar D[3][3]={0};
 			for (int atom_i = 0; atom_i < mc_atoms; ++atom_i)
 			{
 				for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)
@@ -424,51 +415,39 @@ namespace Engine
 
 						Vector3 r_vec{ xij, yij, zij };
 						scalar  r = r_vec.norm();
+						//outfile << Constants::mu_B <<r<< std::endl;
 
 						scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5)); //Check this constants!!
 
 						// Get dipole-dipole matrix for the atoms in the macro-cell
-						D[0][0] = term*(3*xij*xij - r*r);
-						D[1][1] = term*(3*yij*yij - r*r);
-						D[2][2] = term*(3*zij*zij - r*r);
-						D[0][1] = term*(3 * xij * yij);
-						D[0][2] = term*(3 * xij * zij);
-						D[1][2] = term*(3 * yij * zij);
-						D[1][0] = D[0][1];
-						D[2][0] = D[0][2];
-						D[2][1] = D[1][2];
-
-						//Get the energy atoms inside mc
-						Vector3 D_row_0{ D[0][0], D[0][1], D[0][2] };
-						Vector3 D_row_1{ D[1][0], D[1][1], D[1][2] };
-						Vector3 D_row_2{ D[2][0], D[2][1], D[2][2] };
+						D << (3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
+								 (3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
+								 (3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r);
 
 						//Get dipole moment
-						Vector3 dm{ mu_s[0]/norm_mu_s, mu_s[1]/norm_mu_s, mu_s[2]/norm_mu_s };
-						Vector3 D_rows{D_row_0.dot(dm), D_row_1.dot(dm), D_row_2.dot(dm) };
+						int  id_i = atom_id_mc[i_mc][atom_i];
+						int  id_j = atom_id_mc[i_mc][atom_j];
+						//Vector3 D_rows{D_row_0.dot(spins[id]), D_row_1.dot(spins[id]), D_row_2.dot(spins[id]) };
 
 						//Sum of the energy contributions
-						E_in = E_in + ( dm.dot(D_rows) );
+						E_in = E_in + spins[id_i].dot(D*spins[id_j]);
 					}
 				}//end loop over atom_j
 		}//end loop over atom_i
 	}//end loop over macro cell
 
 		//Energy contribution of the mc - mc interation
-		scalar D_inter[total_mc][3][3]  = {0};
 		scalar E_dip_mc = 0.0;
-		for (unsigned int q_mc = 0; q_mc < total_mc; ++ q_mc) //loop over q macro cell
-		{
-			scalar  Dd_inter[total_mc][3][3] = {0};
-			//q macro cell moment vector
-			Vector3 mq{ M_mc[q_mc][0], M_mc[q_mc][1], M_mc[q_mc][2] };
+    std::vector<Matrix3> D_tmp(total_mc, Matrix3::Zero());
+		std::vector<Matrix3> D_inter(total_mc, Matrix3::Zero());
 
+		for (unsigned int q_mc = 0; q_mc < total_mc; ++q_mc) //loop over q macro cell
+		{
+			D_inter[q_mc].setZero();
 			for (unsigned int p_mc = 0; p_mc < total_mc; ++p_mc) //loop over p macro cell
 			{
 					if (q_mc != p_mc) //do not take the interation with itsefl
 					{
-						//p macro cell momment vector
-						Vector3 mp{ M_mc[p_mc][0], M_mc[p_mc][1], M_mc[p_mc][2] };
 						for (int atom_i = 0; atom_i < mc_atoms; ++atom_i) //loop over atom_i in q_mc
 						{
 								for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)//loop over atom_j in p_mc
@@ -483,27 +462,14 @@ namespace Engine
 									scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5));  //check parameters
 
 									//Get Effective dipole matrix -> fancy D
-									Dd_inter[q_mc][0][0] += term*(3*xij*xij - r*r);
-									Dd_inter[q_mc][1][1] += term*(3*yij*yij - r*r);
-									Dd_inter[q_mc][2][2] += term*(3*zij*zij - r*r);
-									Dd_inter[q_mc][0][1] += term*(3 * xij * yij);
-									Dd_inter[q_mc][0][2] += term*(3 * xij * zij);
-									Dd_inter[q_mc][1][2] += term*(3 * yij * zij);
-									Dd_inter[q_mc][1][0] = Dd_inter[q_mc][0][1];
-									Dd_inter[q_mc][2][0] = Dd_inter[q_mc][0][2];
-									Dd_inter[q_mc][2][1] = Dd_inter[q_mc][1][2];
+									D_tmp[q_mc] << term*((3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
+											       					 (3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
+											       					 (3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r));
+
+									D_inter[q_mc] += D_tmp[q_mc]/64;
 								} // end loop over atom_j in p_mc
 						 }//end loop atom_i in q_mc
-						 for (unsigned int i = 0; i < 3; ++i)
-								 for (unsigned int j = 0; j < 3; ++j)
-											D_inter[q_mc][i][j] = Dd_inter[q_mc][i][j]/64; //normalization
-
-					 Vector3 row_0{ D_inter[q_mc][0][0], D_inter[q_mc][0][1], D_inter[q_mc][0][2] };
-					 Vector3 row_1{ D_inter[q_mc][1][0], D_inter[q_mc][1][1], D_inter[q_mc][1][2] };
-					 Vector3 row_2{ D_inter[q_mc][2][0], D_inter[q_mc][2][1], D_inter[q_mc][2][2] };
-					 Vector3 rows {row_0.dot(mp), row_1.dot(mp), row_2.dot(mp) };
-
-					 E_dip_mc = E_dip_mc + ( mq.dot(rows) );
+					   E_dip_mc = E_dip_mc +  macrospins[q_mc].dot(D_inter[q_mc]*macrospins[p_mc]);
 					}
 				}//end loop over macro-cells p
 			}//end loop over macro-cells q
@@ -678,6 +644,13 @@ namespace Engine
 				}
 			}
 		}
+
+		scalar grad_E1 = 0.0;
+		scalar grad_E2 = 0.0;
+		scalar Grad_E;
+
+
+
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
