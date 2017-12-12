@@ -3,6 +3,9 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <iostream>
+#include <fstream>
+
 #include <Eigen/Dense>
 
 #include <Spirit_Defines.h>
@@ -133,7 +136,7 @@ namespace Engine
 		{
 			contributions = this->energy_contributions_per_spin;
 		}
-		
+
 		int nos = spins.size();
 		for (auto& contrib : contributions)
 		{
@@ -161,7 +164,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
 	{
-		#pragma omp parallel for
+		#pragma omp parallel for //print at start
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = external_field_indices[i];
@@ -188,7 +191,7 @@ namespace Engine
 		const int Na = geometry->n_cells[0];
 		const int Nb = geometry->n_cells[1];
 		const int Nc = geometry->n_cells[2];
-
+		//print at start
 		#pragma omp parallel for collapse(3)
 		for (int da = 0; da < Na; ++da)
 		{
@@ -230,7 +233,7 @@ namespace Engine
 		const int Na = geometry->n_cells[0];
 		const int Nb = geometry->n_cells[1];
 		const int Nc = geometry->n_cells[2];
-
+		//print at start
 		#pragma omp parallel for collapse(3)
 		for (int da = 0; da < Na; ++da)
 		{
@@ -272,7 +275,7 @@ namespace Engine
 		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
-
+		//Print after set the radius on spirit
 		for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
 		{
 			if (ddi_magnitudes[i_pair] > 0.0)
@@ -298,7 +301,220 @@ namespace Engine
 				}
 			}
 		}
-	}// end DipoleDipole
+
+		//void Hamiltonian_Heisenberg_Pairs::MC_E_DDI(const vectorfield & spins, scalarfield & Energy)
+		int    mc_atoms=8; //cubic macro cell
+		int    cnt=0,  cnt_z=0, atom_id=0;
+		double mc_x=0, mc_y=0,  mc_z=0;
+		double norm_mu_s;
+
+		const int na = geometry->n_cells[0];
+		const int nb = geometry->n_cells[1];
+		const int nc = geometry->n_cells[2];
+		const int total_mc = (na/2)*(nb/2)*(nc/2);  //total number of macro cells
+
+		double p_mc[total_mc][3];                   //position macro cell
+		double M_mc[total_mc][3];										//momentum macro cell
+		double vec_mu_s[3];
+
+		double idx_mc[total_mc][mc_atoms];					//position x atoms in mc
+		double idy_mc[total_mc][mc_atoms];					//position y atoms in mc
+		double idz_mc[total_mc][mc_atoms];					//position z atoms in mc
+
+		std::ofstream outfile ("Prints_file.txt");
+		outfile <<"#mc: "<<total_mc << std::endl;
+		outfile <<"na:  "<< na << std::endl;
+		outfile <<"nb:  "<< nb << std::endl;
+		outfile <<"nc:  "<< nc << std::endl;
+		outfile <<"     "<< std::endl;
+
+		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
+		{
+				 double mu_sum = 0.0;
+				 double p_mc_x = 0.0;
+				 double p_mc_y = 0.0;
+				 double p_mc_z = 0.0;
+
+				 //outfile <<" "<< std::endl;
+				 //outfile <<"cnt:"<<cnt <<"   cnt_z:"<< cnt_z << std::endl;
+				for (int atom_mc = 0; atom_mc < mc_atoms; ++atom_mc) //loop over atoms in the mc
+				{
+						if(atom_mc == 1 || atom_mc == 5)  atom_id += 1;
+						if(atom_mc == 2 || atom_mc == 6)  atom_id += na;
+						if(atom_mc == 3 || atom_mc == 7)  atom_id -= 1;
+						if(atom_mc == 4)                  atom_id += -na + na*nb;
+
+						//save the positions for all the atoms in the corresponded mc
+ 			  		idx_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][0];
+			  		idy_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][1];
+	  	  		idz_mc[i_mc][atom_mc] = geometry->spin_pos[atom_id][2];
+
+						//printing atom ids
+						//outfile << i_mc <<"	 atom_id:	"<< atom_id << std::endl;
+
+						Vector3 vec_mu_s{ mu_s[0], mu_s[1], mu_s[2] };
+			  		norm_mu_s = vec_mu_s.norm();
+
+						// Get spin moments
+						Vector3 S{ mu_s[0]/norm_mu_s, mu_s[1]/norm_mu_s, mu_s[2]/norm_mu_s };
+
+						//Calculate macro cell momemtum components
+						mc_x += mu_s[0]*S[0];
+						mc_y += mu_s[0]*S[1];
+						mc_z += mu_s[0]*S[2];
+
+						//Calculate macro cell possition coordinates
+  					p_mc_x += mu_s[0]*geometry->spin_pos[atom_id][0];
+						p_mc_y += mu_s[0]*geometry->spin_pos[atom_id][1];
+						p_mc_z += mu_s[0]*geometry->spin_pos[atom_id][2];
+
+						//mu summation
+						mu_sum += mu_s[0];
+
+			  } //end loop atoms in macro-cell----------------------------------------
+
+				//Get possition macro-cell
+				p_mc[i_mc][0] = p_mc_x/mu_sum;
+				p_mc[i_mc][1] = p_mc_y/mu_sum;
+				p_mc[i_mc][2] = p_mc_z/mu_sum;
+
+				//Get momentum macro-cell
+				M_mc[i_mc][0] = mc_x;
+				M_mc[i_mc][1] = mc_y;
+				M_mc[i_mc][2] = mc_z;
+
+				//Go back position 0 in the macro cell and jump 2 in x
+			  atom_id += -na-na*nb + 2;
+
+				//do the correspoded jump to the next mc
+			 	if( atom_id > na-1 + 2*cnt*na + 2*cnt_z*na*nb) //end row
+			 	{
+				 	 cnt ++;
+					 atom_id = 2*cnt*na + 2*cnt_z*na*nb;
+					 if( atom_id > na*nb-1 + 2*cnt_z*na*nb) //end plane
+					 {
+						   cnt_z ++;
+							 cnt = 0;
+							 atom_id = 2*cnt_z*na*nb;
+							 if(atom_id > na*nb*nc - 1) //end system
+							 {
+								 break;
+							 }
+					 }
+			  }
+	  }//end loop over macro-cells------------------------------------------------
+
+		//Energy contribution inside the macro-cell  (for squared mc should be zero)
+		scalar E_in=0.0;            //energy inside mc
+		scalar D[3][3]={0};	  			//dipole dipole matrix inside mc
+
+		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
+		{
+			scalar D[3][3]={0};
+			for (int atom_i = 0; atom_i < mc_atoms; ++atom_i)
+			{
+				for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)
+				{
+					if (atom_i != atom_j) //do not take interations with itsefl
+					{
+						//relative distances between atom_i and atom_j in the mc
+						scalar xij = idx_mc[i_mc][atom_i] - idx_mc[i_mc][atom_j];
+						scalar yij = idy_mc[i_mc][atom_i] - idy_mc[i_mc][atom_j];
+						scalar zij = idz_mc[i_mc][atom_i] - idz_mc[i_mc][atom_j];
+
+						Vector3 r_vec{ xij, yij, zij };
+						scalar  r = r_vec.norm();
+
+						scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5)); //Check this constants!!
+
+						// Get dipole-dipole matrix for the atoms in the macro-cell
+						D[0][0] = term*(3*xij*xij - r*r);
+						D[1][1] = term*(3*yij*yij - r*r);
+						D[2][2] = term*(3*zij*zij - r*r);
+						D[0][1] = term*(3 * xij * yij);
+						D[0][2] = term*(3 * xij * zij);
+						D[1][2] = term*(3 * yij * zij);
+						D[1][0] = D[0][1];
+						D[2][0] = D[0][2];
+						D[2][1] = D[1][2];
+
+						//Get the energy atoms inside mc
+						Vector3 D_row_0{ D[0][0], D[0][1], D[0][2] };
+						Vector3 D_row_1{ D[1][0], D[1][1], D[1][2] };
+						Vector3 D_row_2{ D[2][0], D[2][1], D[2][2] };
+
+						//Get dipole moment
+						Vector3 dm{ mu_s[0]/norm_mu_s, mu_s[1]/norm_mu_s, mu_s[2]/norm_mu_s };
+						Vector3 D_rows{D_row_0.dot(dm), D_row_1.dot(dm), D_row_2.dot(dm) };
+
+						//Sum of the energy contributions
+						E_in = E_in + ( dm.dot(D_rows) );
+					}
+				}//end loop over atom_j
+		}//end loop over atom_i
+	}//end loop over macro cell
+
+		//Energy contribution of the mc - mc interation
+		scalar D_inter[total_mc][3][3]  = {0};
+		scalar E_dip_mc = 0.0;
+		for (unsigned int q_mc = 0; q_mc < total_mc; ++ q_mc) //loop over q macro cell
+		{
+			scalar  Dd_inter[total_mc][3][3] = {0};
+			//q macro cell moment vector
+			Vector3 mq{ M_mc[q_mc][0], M_mc[q_mc][1], M_mc[q_mc][2] };
+
+			for (unsigned int p_mc = 0; p_mc < total_mc; ++p_mc) //loop over p macro cell
+			{
+					if (q_mc != p_mc) //do not take the interation with itsefl
+					{
+						//p macro cell momment vector
+						Vector3 mp{ M_mc[p_mc][0], M_mc[p_mc][1], M_mc[p_mc][2] };
+						for (int atom_i = 0; atom_i < mc_atoms; ++atom_i) //loop over atom_i in q_mc
+						{
+								for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)//loop over atom_j in p_mc
+								{
+									scalar xij = idx_mc[q_mc][atom_i] - idx_mc[p_mc][atom_j];
+									scalar yij = idy_mc[q_mc][atom_i] - idy_mc[p_mc][atom_j];
+									scalar zij = idz_mc[q_mc][atom_i] - idz_mc[p_mc][atom_j];
+
+									Vector3 r_vec{ xij, yij, zij };
+									scalar  r = r_vec.norm();
+
+									scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5));  //check parameters
+
+									//Get Effective dipole matrix -> fancy D
+									Dd_inter[q_mc][0][0] += term*(3*xij*xij - r*r);
+									Dd_inter[q_mc][1][1] += term*(3*yij*yij - r*r);
+									Dd_inter[q_mc][2][2] += term*(3*zij*zij - r*r);
+									Dd_inter[q_mc][0][1] += term*(3 * xij * yij);
+									Dd_inter[q_mc][0][2] += term*(3 * xij * zij);
+									Dd_inter[q_mc][1][2] += term*(3 * yij * zij);
+									Dd_inter[q_mc][1][0] = Dd_inter[q_mc][0][1];
+									Dd_inter[q_mc][2][0] = Dd_inter[q_mc][0][2];
+									Dd_inter[q_mc][2][1] = Dd_inter[q_mc][1][2];
+								} // end loop over atom_j in p_mc
+						 }//end loop atom_i in q_mc
+						 for (unsigned int i = 0; i < 3; ++i)
+								 for (unsigned int j = 0; j < 3; ++j)
+											D_inter[q_mc][i][j] = Dd_inter[q_mc][i][j]/64; //normalization
+
+					 Vector3 row_0{ D_inter[q_mc][0][0], D_inter[q_mc][0][1], D_inter[q_mc][0][2] };
+					 Vector3 row_1{ D_inter[q_mc][1][0], D_inter[q_mc][1][1], D_inter[q_mc][1][2] };
+					 Vector3 row_2{ D_inter[q_mc][2][0], D_inter[q_mc][2][1], D_inter[q_mc][2][2] };
+					 Vector3 rows {row_0.dot(mp), row_1.dot(mp), row_2.dot(mp) };
+
+					 E_dip_mc = E_dip_mc + ( mq.dot(rows) );
+					}
+				}//end loop over macro-cells p
+			}//end loop over macro-cells q
+
+			//Total dipole dipole energy
+			double Etotal = -0.5*E_dip_mc - 0.5*E_in;
+			outfile <<" "<<std::endl;
+			outfile <<" --Get energy-- "<<std::endl;
+			outfile <<-0.5*E_dip_mc<<" + "<<-0.5*E_in<<" = "<<Etotal<<std::endl;
+			outfile.close();
+	}// end Dipole-Dipole method
 
 
 	void Hamiltonian_Heisenberg_Pairs::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
@@ -316,7 +532,7 @@ namespace Engine
 						int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
 						int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
 						int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
-						
+
 						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
 							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
 						{
@@ -358,6 +574,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
 	{
 		#pragma omp parallel for
+		//Print during the running
 		for (unsigned int i = 0; i < this->external_field_indices.size(); ++i)
 		{
 			int ispin = external_field_indices[i];
@@ -369,7 +586,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
-		#pragma omp parallel for
+		#pragma omp parallel for //Print during the running
 		for (unsigned int i = 0; i < this->anisotropy_indices.size(); ++i)
 		{
 			int ispin = anisotropy_indices[i];
@@ -426,7 +643,7 @@ namespace Engine
 		const int Na = geometry->n_cells[0];
 		const int Nb = geometry->n_cells[1];
 		const int Nc = geometry->n_cells[2];
-
+		//print during running
 		#pragma omp parallel for collapse(3)
 		for (int da = 0; da < Na; ++da)
 		{
@@ -467,7 +684,7 @@ namespace Engine
 	{
 		//scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
 		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-		
+    //print during the running
 		for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
 		{
 			if (ddi_magnitudes[i_pair] > 0.0)
@@ -480,8 +697,8 @@ namespace Engine
 						{
 							scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
 							std::array<int, 3 > translations = { da, db, dc };
-							
-							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);	
+
+							int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations);
 							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_pairs[i_pair]);
 							if (jspin >= 0)
 							{
@@ -515,7 +732,7 @@ namespace Engine
 						int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_j);
 						int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_k);
 						int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, quadruplets[iquad].d_l);
-						
+
 						if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
 							 check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
 						{
@@ -548,8 +765,8 @@ namespace Engine
 					int idx_i = 3 * anisotropy_indices[i] + alpha;
 					int idx_j = 3 * anisotropy_indices[i] + beta;
 					// scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
-					hessian( idx_i, idx_j ) += -2.0 * this->anisotropy_magnitudes[i] * 
-												this->anisotropy_normals[i][alpha] * 
+					hessian( idx_i, idx_j ) += -2.0 * this->anisotropy_magnitudes[i] *
+												this->anisotropy_normals[i][alpha] *
 												this->anisotropy_normals[i][beta];
 				}
 			}
@@ -599,7 +816,7 @@ namespace Engine
 								{
 									int ispin = 3 * (dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations)) + alpha;
 									int jspin = 3 * (dmi_pairs[i_pair].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_spins_basic_domain, translations, dmi_pairs[i_pair].translations)) + beta;
-							
+
 									if ((alpha == 0 && beta == 1))
 									{
 										hessian(ispin, jspin) +=
@@ -649,8 +866,6 @@ namespace Engine
 				}
 			}
 		}
-
-		//// Dipole-Dipole
 		//for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
 		//{
 		//	// indices
@@ -672,7 +887,6 @@ namespace Engine
 		//		}
 		//	}
 		//}
-
 		// Quadruplets
 	}
 
