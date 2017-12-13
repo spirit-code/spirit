@@ -303,7 +303,7 @@ namespace Engine
 		}
 
 		//void Hamiltonian_Heisenberg_Pairs::MC_E_DDI(const vectorfield & spins, scalarfield & Energy)
-		int    mc_atoms=8; //cubic macro cell
+		int    mc_atoms=8; //atoms in the macro cell -> cubic macro cell
 		int    cnt=0,  cnt_z=0, atom_id=0;
 		double mc_x=0, mc_y=0,  mc_z=0;
 		double norm_mu_s;
@@ -397,10 +397,11 @@ namespace Engine
 	  }//end loop over macro-cells------------------------------------------------
 
 		//Energy contribution inside the macro-cell  (for squared mc should be zero)
+		Matrix3 D;	  			//dipole dipole matrix inside mc
 		scalar E_in=0.0;            //energy inside mc
 		Vector3 grad_E_in{0,0,0};
-		Matrix3 D;	  			//dipole dipole matrix inside mc
-		//scalar D[3][3]={0};
+
+
 		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
 		{
 			for (int atom_i = 0; atom_i < mc_atoms; ++atom_i)
@@ -410,25 +411,26 @@ namespace Engine
 					if (atom_i != atom_j) //do not take interations with itsefl
 					{
 						//relative distances between atom_i and atom_j in the mc
-						scalar xij = idx_mc[i_mc][atom_i] - idx_mc[i_mc][atom_j];
-						scalar yij = idy_mc[i_mc][atom_i] - idy_mc[i_mc][atom_j];
-						scalar zij = idz_mc[i_mc][atom_i] - idz_mc[i_mc][atom_j];
+						scalar x = idx_mc[i_mc][atom_j] - idx_mc[i_mc][atom_i];
+						scalar y = idy_mc[i_mc][atom_j] - idy_mc[i_mc][atom_i];
+						scalar z = idz_mc[i_mc][atom_j] - idz_mc[i_mc][atom_i];
 
-						Vector3 r_vec{ xij, yij, zij };
+						Vector3 r_vec{ x, y, z };
 						scalar  r = r_vec.norm();
 						//outfile << Constants::mu_B <<r<< std::endl;
 
 						scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5)); //Check this constants!!
 
 						// Get dipole-dipole matrix for the atoms in the macro-cell
-						D << (3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
-								 (3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
-								 (3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r);
+						D << (3*x*x-r*r), (3*x*y),     (3*x*z),
+								 (3*x*y),     (3*y*y-r*r), (3*y*z),
+								 (3*x*z),     (3*y*z),     (3*z*z-r*r);
+
+						D = term*D;
 
 						//Get dipole moment
 						int  id_i = atom_id_mc[i_mc][atom_i];
 						int  id_j = atom_id_mc[i_mc][atom_j];
-						//Vector3 D_rows{D_row_0.dot(spins[id]), D_row_1.dot(spins[id]), D_row_2.dot(spins[id]) };
 
 						//Sum of the energy contributions
 						E_in = E_in + spins[id_i].dot(D*spins[id_j]);
@@ -443,6 +445,7 @@ namespace Engine
 		//Energy contribution of the mc - mc interation
 		scalar E_dip_mc = 0.0;
 		Vector3 grad_E_mc{0,0,0};
+		//Matrix3 D_tmp;
     std::vector<Matrix3> D_tmp(total_mc, Matrix3::Zero());
 		std::vector<Matrix3> D_inter(total_mc, Matrix3::Zero());
 
@@ -457,21 +460,22 @@ namespace Engine
 						{
 								for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)//loop over atom_j in p_mc
 								{
-									scalar xij = idx_mc[q_mc][atom_i] - idx_mc[p_mc][atom_j];
-									scalar yij = idy_mc[q_mc][atom_i] - idy_mc[p_mc][atom_j];
-									scalar zij = idz_mc[q_mc][atom_i] - idz_mc[p_mc][atom_j];
+									scalar x = idx_mc[p_mc][atom_j] - idx_mc[q_mc][atom_i];
+									scalar y = idy_mc[p_mc][atom_j] - idy_mc[q_mc][atom_i];
+									scalar z = idz_mc[p_mc][atom_j] - idz_mc[q_mc][atom_i];
 
-									Vector3 r_vec{ xij, yij, zij };
+									Vector3 r_vec{ x, y, z };
 									scalar  r = r_vec.norm();
 
 									scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5));  //check parameters
 
 									//Get Effective dipole matrix -> fancy D
-									D_tmp[q_mc] << ((3*xij*xij-r*r), (3*xij*yij),     (3*xij*zij),
-											       			(3*xij*yij),     (3*yij*yij-r*r), (3*yij*zij),
-											       			(3*xij*zij),     (3*yij*zij),     (3*zij*zij-r*r));
+									D_tmp[q_mc]<< (3*x*x-r*r), (3*x*y),     (3*x*z),
+											          (3*x*y),     (3*y*y-r*r), (3*y*z),
+											          (3*x*z),     (3*y*z),     (3*z*z-r*r);
 
 									D_inter[q_mc] += D_tmp[q_mc]/64;
+
 								} // end loop over atom_j in p_mc
 						 }//end loop atom_i in q_mc
 					   E_dip_mc = E_dip_mc +  macrospins[q_mc].dot(D_inter[q_mc]*macrospins[p_mc]);
