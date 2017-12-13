@@ -6,6 +6,7 @@
 #include <engine/Method_LLG.hpp>
 #include <engine/Method_MC.hpp>
 #include <engine/Method_GNEB.hpp>
+#include <engine/Method_EMA.hpp>
 #include <engine/Method_MMF.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -108,6 +109,15 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_MC( image, idx_image, idx_chain ) );
             }
+            else if (method_type == "EMA")
+            {
+                image->iteration_allowed = true;
+                if (n_iterations > 0) image->ema_parameters->n_iterations = n_iterations;
+                if (n_iterations_log > 0) image->ema_parameters->n_iterations_log = n_iterations_log;
+                
+                method = std::shared_ptr<Engine::Method>(
+                    new Engine::Method_EMA(image,idx_image,idx_chain));
+            }
             else if (method_type == "GNEB")
             {
                 if (Simulation_Running_Anywhere_Chain(state, idx_chain))
@@ -205,6 +215,8 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
         {
             state->method_image[idx_chain][idx_image] = info;
         }
+        else if (method_type == "EMA")
+            state->method_image[idx_chain][idx_image] = info;
         else if (method_type == "GNEB")
             state->method_chain[idx_chain] = info;
         else if (method_type == "MMF")
