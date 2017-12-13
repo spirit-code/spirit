@@ -15,6 +15,8 @@
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
+//#include <dco.hpp>
+
 using std::vector;
 using std::function;
 
@@ -338,9 +340,7 @@ namespace Engine
 				 double p_mc_z = 0.0;
 				 macrospin = {0,0,0};
 
-				 //outfile <<" "<< std::endl;
-				 //outfile <<"cnt:"<<cnt <<"   cnt_z:"<< cnt_z << std::endl;
-				for (int atom_mc = 0; atom_mc < mc_atoms; ++atom_mc) //loop over atoms in the mc
+			  for (int atom_mc = 0; atom_mc < mc_atoms; ++atom_mc) //loop over atoms in the mc
 				{
 						if(atom_mc == 1 || atom_mc == 5)  atom_id += 1;
 						if(atom_mc == 2 || atom_mc == 6)  atom_id += na;
@@ -474,7 +474,7 @@ namespace Engine
 											          (3*x*y),     (3*y*y-r*r), (3*y*z),
 											          (3*x*z),     (3*y*z),     (3*z*z-r*r);
 
-									D_inter[q_mc] += D_tmp[q_mc]/64;
+									D_inter[q_mc] += term*D_tmp[q_mc]/64;
 
 								} // end loop over atom_j in p_mc
 						 }//end loop atom_i in q_mc
@@ -483,36 +483,18 @@ namespace Engine
 					}
 				}//end loop over macro-cells p
 			}//end loop over macro-cells q
+			Vector3 grad_E{0,0,0};
+			grad_E = -2*grad_E_mc - grad_E_in;
 
 			//Total dipole dipole energy
 			double Etotal = -0.5*E_dip_mc - 0.5*E_in;
 			outfile <<" "<<std::endl;
 			outfile <<" --Get energy-- "<<std::endl;
 			outfile <<-0.5*E_dip_mc<<" + "<<-0.5*E_in<<" = "<<Etotal<<std::endl;
+
+			outfile <<-2*grad_E_mc<<" + "<<-grad_E_in<<" = "<<grad_E <<std::endl;
 			outfile.close();
 
-			//gra
-
-			//Gradient
-			Vector3 grad_E{0,0,0};
-			grad_E = -2*grad_E_mc - grad_E_in;
-
-			/*for (unsigned int q_mc = 0; q_mc < total_mc; ++q_mc) //loop over q macro cell
-			{
-				for (unsigned int p_mc = 0; p_mc < total_mc; ++p_mc) //loop over q macro cell
-				{
-					if (p_mc != q_mc)
-					{
-							grad_E1 += -2*macrospins[q_mc].dot(D_inter[p_mc]);
-					}
-				}
-				for (int atom_i = 0; atom_i < mc_atoms; ++atom_i) //loop over atom_i in q_mc
-				{
-						for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)//loop over atom_j in p_mc
-						{
-						}
-					}
-			}*/
 	}// end Dipole-Dipole method
 
 
