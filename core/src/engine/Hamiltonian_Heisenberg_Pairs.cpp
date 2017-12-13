@@ -494,7 +494,6 @@ namespace Engine
 
 			outfile <<-2*grad_E_mc<<" + "<<-grad_E_in<<" = "<<grad_E <<std::endl;
 			outfile.close();
-
 	}// end Dipole-Dipole method
 
 
