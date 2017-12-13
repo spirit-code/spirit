@@ -11,6 +11,7 @@ set(HEADER_SPIRIT_DATA
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MC.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_EMA.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Pinning.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE

@@ -23,6 +23,7 @@
 #define Log_Sender_MMF  5
 #define Log_Sender_API  6
 #define Log_Sender_UI   7
+#define Log_Sender_EMA  8
 
 struct State;
 

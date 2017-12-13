@@ -32,7 +32,8 @@ namespace Utility
 		MC   = Log_Sender_MC,
 		MMF  = Log_Sender_MMF,
 		API  = Log_Sender_API,
-		UI   = Log_Sender_UI
+		UI   = Log_Sender_UI,
+        EMA  = Log_Sender_EMA
 	};
 
 	// Unfortunately, we must ensure the equivalence of the defines and
