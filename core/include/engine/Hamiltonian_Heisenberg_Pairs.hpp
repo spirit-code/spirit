@@ -43,7 +43,7 @@ namespace Engine
 
 		// Hamiltonian name as string
 		const std::string& Name() override;
-		
+
 		// ------------ Single Spin Interactions ------------
 		// Spin moment
 		scalarfield mu_s;									// [nos]
@@ -75,6 +75,23 @@ namespace Engine
 
 	private:
 		std::shared_ptr<Data::Geometry> geometry;
+
+		int total_mc; //number macro cell
+		int mc_atoms; //number of atoms in the macro cell
+		std::vector<std::vector <double> >atom_id_mc;
+		std::vector< vectorfield > xyz_atoms_mc;
+		Vector3 grad_E_in;
+		scalar E_in;
+		Matrix3 D;
+		std::vector<Matrix3> D;
+		std::vector< std::vector <Matrix3>  > D_inter;
+		scalar E_dip_mc;
+		Vector3 grad_E_mc;
+
+		void Prepare_MacroCells();
+		void Energies_MacroCells(const vectorfield & spins,
+			                       std::vector<std::vector <double> > & atom_id_mc,
+														 std::vector< vectorfield > & xyz_atoms_mc );
 
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
