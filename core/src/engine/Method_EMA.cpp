@@ -28,60 +28,35 @@ namespace Engine
         
         this->parameters_ema = system->ema_parameters;
         
-        Vector3 dis_vec({0.1,0,0});
-        this->n_init = dis_vec;
-        this->n_iter = this->n_init;
+        this->spins_initial = *this->systems[0]->spins;
+        this->axis = vectorfield(this->nos);
+        this->mode = vectorfield(this->nos, Vector3{1,0,0});
+        
         this->steps_per_period = 50;
         this->timestep = 1./this->steps_per_period;
         this->counter = 0;
+        this->amplitude = 0.2;
         
+        // Find the axes of rotation
+        for (int idx=0; idx<nos; idx++)
+            this->axis[idx] = spins_initial[idx].cross(this->mode[idx]).normalized();
     }
     
     void Method_EMA::Iteration()
     {
         int nos = this->systems[0]->spins->size();
-        
-        // auto& spins_initial = *this->systems[0]->spins;
-        Vector3 spin;
-        
-        // calculate n for that iteration based on the initial n displacement vector
-        this->n_iter = this->n_init * cos(2*M_PI*this->counter*this->timestep);
-        
-        for (int sp=0; sp<nos; sp++)
-        {
-            spin = (*this->systems[0]->spins)[sp];
-            
-            // find the axis of rotation
-            this->axis = spin.cross(this->n_iter);
-            this->axis /= this->axis.norm();
-            
-            // calculate the angle of rotation
-            this->angle = atan2( this->n_iter.norm(), spin.norm() );
-            
-            // rotate S
-            Vectormath::rotate( spin, this->axis, this->angle, spin );
-            
-            // set the new spin
-            (*this->systems[0]->spins)[sp] = spin;
-        }
+
+        auto& image = *this->systems[0]->spins;
+
+        // Calculate n for that iteration based on the initial n displacement vector
+        scalar angle = this->amplitude * std::cos(2*M_PI*this->counter*this->timestep);
+
+        // Rotate the spins
+        for (int idx=0; idx<nos; idx++)
+            Vectormath::rotate( this->spins_initial[idx], this->axis[idx], angle, image[idx] );
+
         // normalize all spins
         Vectormath::normalize_vectors( *this->systems[0]->spins );
-        
-        // rotate the initial displacement vector
-        
-        //// XXX: Should we rotate also the initial vector
-        // Vectormath::rotate( this->n_init, this->axis, this->angle, this->n_init );
-        
-        // // Spin displacement by addition
-        // 
-        // for (int sp=0; sp<nos; sp++)
-        // {
-        //     (*this->systems[0]->spins)[sp] += 
-        //         this->n_init * cos(2*M_PI*this->counter*this->timestep);
-        // }
-        // 
-        // Vectormath::normalize_vectors( *this->systems[0]->spins );
-        
     }
     
     bool Method_EMA::Converged()

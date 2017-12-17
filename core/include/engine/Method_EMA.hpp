@@ -54,12 +54,10 @@ namespace Engine
         int steps_per_period;
         scalar timestep;
         int counter;
-        
-        Vector3 n_init;
-        Vector3 n_iter;
-        Vector3 axis;
-        scalar angle;
-        
+        scalar amplitude;
+        vectorfield mode;
+        vectorfield axis;
+        vectorfield spins_initial;
     };
 }
 
