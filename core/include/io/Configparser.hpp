@@ -21,6 +21,7 @@ namespace IO
     std::shared_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
     std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
     std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
+    std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
     std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
     std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
     std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);

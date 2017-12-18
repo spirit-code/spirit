@@ -226,6 +226,11 @@
        </item>
        <item>
         <property name="text">
+         <string>EMA</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>GNEB</string>
         </property>
        </item>

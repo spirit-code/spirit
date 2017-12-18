@@ -158,10 +158,13 @@ namespace IO
             auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
             // MC Parameters
             auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
+            // EMA Parameters
+            auto ema_params = Parameters_Method_EMA_from_Config(configFile, pinning);
             // Hamiltonian
             auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
             // Spin System
-            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
+            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), 
+                std::move(geometry), std::move(llg_params), std::move(mc_params), std::move(ema_params), false));
             // ----------------------------------------------------------------------------------------------
             Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
@@ -452,7 +455,7 @@ namespace IO
                     // N_b
                     myfile.Read_Single(nb_left, "pin_nb_left", false);
                     myfile.Read_Single(nb_right, "pin_nb_right", false);
-                    myfile.Read_Single(nb, "pin_nb ",  false);
+                    myfile.Read_Single(nb, "pin_nb ", false);
                     if (nb > 0 && (nb_left == 0 || nb_right == 0))
                     {
                         nb_left = nb;
@@ -462,7 +465,7 @@ namespace IO
                     // N_c
                     myfile.Read_Single(nc_left, "pin_nc_left", false);
                     myfile.Read_Single(nc_right, "pin_nc_right", false);
-                    myfile.Read_Single(nc, "pin_nc ",  false);
+                    myfile.Read_Single(nc, "pin_nc ", false);
                     if (nc > 0 && (nc_left == 0 || nc_right == 0))
                     {
                         nc_left = nc;
@@ -683,6 +686,48 @@ namespace IO
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
         return llg_params;
     }// end Parameters_Method_LLG_from_Config
+
+    std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    {
+        //-------------- Insert default values here -----------------------------
+        // Output folder for results
+        std::string output_folder = "output_ema";
+        // Save output when logging
+        std::string output_file_tag; 
+        // Save output when logging
+        bool output_any = true, 
+                output_initial = true, 
+                output_final = true;
+        bool output_energy_divide_by_nspins = true, 
+                output_energy_spin_resolved = true, 
+                output_energy_step = true, 
+                output_energy_archive = true;
+        bool output_configuration_step = false, 
+                output_configuration_archive = false;
+        // Maximum walltime in seconds
+        long int max_walltime = 0;
+        std::string str_max_walltime;
+        // number of iterations carried out when pressing "play" or calling "iterate"
+        int n_iterations = (int)1E+9;
+        // Number of iterations after which the system is logged to file
+        int n_iterations_log = 1000;
+        
+        int n_modes;
+        int n_mode_follow;
+        
+        //------------------------------- Parser --------------------------------
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
+        
+        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+        auto mc_params = std::unique_ptr<Data::Parameters_Method_EMA>(
+            new Data::Parameters_Method_EMA(output_folder, output_file_tag, { output_any, 
+                output_initial, output_final, output_energy_step, output_energy_archive, 
+                output_energy_spin_resolved, output_energy_divide_by_nspins, 
+                output_configuration_step, output_configuration_archive }, n_iterations, 
+                n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow));
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
+        return mc_params;
+    }
 
     std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
     {
@@ -999,7 +1044,7 @@ namespace IO
         intfield boundary_conditions = { false, false, false };
 
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
+        scalarfield mu_s = scalarfield(geometry->nos, 2);    // [nos]
         // External Magnetic Field
         std::string external_field_file = "";
         scalar B = 24;
@@ -1026,9 +1071,9 @@ namespace IO
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);				// [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
+        intfield    anisotropy_index(geometry->nos);                // [nos]
+        scalarfield anisotropy_magnitude(geometry->nos, 0.0);    // [nos]
+        vectorfield anisotropy_normal(geometry->nos, K_normal);    // [nos][3]
         // Fill in defaults
         K_normal.normalize();
         if (K != 0)
@@ -1268,24 +1313,24 @@ namespace IO
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
         intfield boundary_conditions = { false, false, false };
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);	// [nos]
+        scalarfield mu_s = scalarfield(geometry->nos, 2);    // [nos]
         // External Magnetic Field
         std::string external_field_file = "";
         scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
         bool external_field_from_file = false;
-        intfield    external_field_index(geometry->nos);				// [nos]
-        scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
-        vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
+        intfield    external_field_index(geometry->nos);                // [nos]
+        scalarfield external_field_magnitude(geometry->nos, 0);    // [nos]
+        vectorfield external_field_normal(geometry->nos, B_normal);    // [3][nos]
         
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);				// [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);	// [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);	// [nos][3]
+        intfield    anisotropy_index(geometry->nos);                // [nos]
+        scalarfield anisotropy_magnitude(geometry->nos, 0.0);    // [nos]
+        vectorfield anisotropy_normal(geometry->nos, K_normal);    // [nos][3]
 
         // ------------ Pair Interactions ------------
         int n_pairs = 0;

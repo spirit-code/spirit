@@ -13,6 +13,7 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_MC.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
+#include <data/Parameters_Method_EMA.hpp>
 
 namespace Data
 {
@@ -24,7 +25,10 @@ namespace Data
 	{
 	public:
 		// Constructor
-		Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry, std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params, bool iteration_allowed);
+		Spin_System(std::unique_ptr<Engine::Hamiltonian> hamiltonian, 
+            std::shared_ptr<Geometry> geometry, std::unique_ptr<Parameters_Method_LLG> llg_params, 
+            std::unique_ptr<Parameters_Method_MC> mc_params, 
+            std::unique_ptr<Parameters_Method_EMA> ema_params, bool iteration_allowed);
 		// Copy Constructor
 		Spin_System(Spin_System const & other);
 		// Assignment operator
@@ -50,6 +54,8 @@ namespace Data
 		std::shared_ptr<Parameters_Method_LLG> llg_parameters;
 		// Parameters for MC iterations
 		std::shared_ptr<Parameters_Method_MC> mc_parameters;
+        // Parameters for EMA iteration
+        std::shared_ptr<Parameters_Method_EMA> ema_parameters;
 		// Is it allowed to iterate on this system?
 		bool iteration_allowed;
 
