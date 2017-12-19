@@ -303,10 +303,10 @@ namespace Engine
 			}
 		}
 		Prepare_MacroCells();
-		Energies_MacroCells(spins, atom_id_mc, xyz_atoms_mc);
+		Energies_MacroCells(spins);
 	}
 
-	void Hamiltonian_Heisenberg_Pairs::Prepare_MacroCells()
+	void Hamiltonian_Heisenberg_Pairs::Prepare_MacroCells( )
 	{
 	  mc_atoms = 8; //number of atoms in the macro cell
 		              //(e.g 8 is a cubic macro cell)
@@ -317,15 +317,8 @@ namespace Engine
 		const int nc = geometry->n_cells[2];
 	  total_mc = (na/2)*(nb/2)*(nc/2);  //total number of macro cells
 
-		std::vector<std::vector <int> > atom_id_mc(total_mc, vector<int>(mc_atoms) );
-	  std::vector< vectorfield > xyz_atoms_mc(total_mc, vectorfield(mc_atoms, Vector3::Zero()) );
-
-		std::ofstream outfile ("Prints_file.txt");
-		outfile <<"#mc: "<<total_mc << std::endl;
-		outfile <<"na:  "<< na << std::endl;
-		outfile <<"nb:  "<< nb << std::endl;
-		outfile <<"nc:  "<< nc << std::endl;
-		outfile <<"     "<< std::endl;
+		this->atom_id_mc = std::vector<std::vector <int> > (total_mc, vector<int>(mc_atoms) );
+		this->xyz_atoms_mc = std::vector< vectorfield > (total_mc, vectorfield(mc_atoms, Vector3::Zero()) );
 
 		for (unsigned int i_mc = 0; i_mc < total_mc; ++i_mc) //loop over macro cells
 		{
@@ -343,12 +336,7 @@ namespace Engine
 																					 geometry->spin_pos[atom_id][1],
 																			     geometry->spin_pos[atom_id][2];
 
-						outfile<<i_mc <<"  atom_id: "<<atom_id_mc[i_mc][atom_mc]
-									 <<"   "<<"   x:"<<xyz_atoms_mc[i_mc][atom_mc][0]
-			 									  <<"   y:"<<xyz_atoms_mc[i_mc][atom_mc][1]
-			 									  <<"   z:"<<xyz_atoms_mc[i_mc][atom_mc][2]<<std::endl;
 				} //end loop atoms in macro-cell----------------------------------------
-				outfile<<" "<<std::endl;
 				//Go back position 0 in the macro cell and jump 2 in x
 				atom_id += -na-na*nb + 2;
 
@@ -366,8 +354,7 @@ namespace Engine
 					}
 				}
 		}//end loop over macro-cells------------------------------------------------
-		outfile.close();
-	 }
+	}
 
 	void Hamiltonian_Heisenberg_Pairs::Energies_MacroCells(const vectorfield & spins)
 	{
@@ -383,14 +370,11 @@ namespace Engine
 			for (int atom_i = 0; atom_i < mc_atoms; ++atom_i)
 			{
 				int  id_i = atom_id_mc[i_mc][atom_i];
-
 				for (int atom_j = 0; atom_j < mc_atoms; ++atom_j)
 				{
 					if (atom_i != atom_j) //do not take interations with itsefl
 					{
-						//Get dipole moment
-
-						int  id_j = atom_id_mc[i_mc][atom_j];
+					  int  id_j = atom_id_mc[i_mc][atom_j];
 
 						//relative distances between atom_i and atom_j in the mc
 						scalar x = xyz_atoms_mc[i_mc][atom_j][0] - xyz_atoms_mc[i_mc][atom_i][0];
@@ -400,11 +384,16 @@ namespace Engine
 						Vector3 r_vec{ x, y, z };
 						scalar  r = r_vec.norm();
 
-						scalar term = Constants::mu_B / (4*M_PI*std::pow(r,5)); //Check this constants!!
+						//outfile<<"i_mc: "<<i_mc<<std::endl;
+						//outfile<<"id_i: "<<id_i<<" id_j:"<<id_j<<std::endl;
+						//outfile<<"   x:"<<x<<" y:"<<y<<" z:"<<z<<" r:"<<r<<std::endl;
+						//outfile<<" "<<std::endl;
+
+						scalar term = Constants:: mu_B / (4*M_PI*std::pow(r,5)); //Check this constants!!
 
 						// Get dipole-dipole matrix for the atoms in the macro-cell
 						D[i_mc] << (3*x*x-r*r), (3*x*y),     (3*x*z),
-								 			 (3*x*y),     (3*y*y-r*r), (3*y*z),
+						    			 (3*x*y),     (3*y*y-r*r), (3*y*z),
 								 		 	 (3*x*z),     (3*y*z),     (3*z*z-r*r);
 
 						D[i_mc] = term*D[i_mc];
@@ -419,7 +408,7 @@ namespace Engine
 			}//end loop over atom_i
 		}//end loop over macro cell
 
-/*
+
 		Vector3 macrospin{0,0,0};
 		vectorfield macrospins(total_mc, Vector3::Zero());
 
@@ -437,7 +426,7 @@ namespace Engine
 
 		//Energy contribution inside the macro-cell  (for squared mc should be zero)
 		Matrix3 D_tmp;
-		std::vector< std::vector <Matrix3>  > D_inter (total_mc, vector<Matrix3>(total_mc, Matrix3::Zero()) );
+		std::vector< std::vector <Matrix3>  > D_inter(total_mc, vector<Matrix3>(total_mc, Matrix3::Zero()) );
 
 		for (unsigned int q_mc = 0; q_mc < total_mc; ++q_mc) //loop over q macro cell
 		{
@@ -462,6 +451,14 @@ namespace Engine
 						 D_tmp<< (3*x*x-r*r), (3*x*y),     (3*x*z),
 						  	     (3*x*y),     (3*y*y-r*r), (3*y*z),
 									   (3*x*z),     (3*y*z),     (3*z*z-r*r);
+
+						//outfile<<"q_mc: "<<q_mc<<"p_mc: "<<p_mc<<std::endl;
+				 		//outfile<<"term: "<<term<<std::endl;
+						//outfile<<"x:"<<x<<" y:"<<y<<" z:"<<z<<" r:"<<r<<std::endl;
+				 		//outfile<<D_tmp(0,0)<<" "<<D_tmp(0,1)<<" "<<D_tmp(0,2)<<std::endl;
+				 		//outfile<<D_tmp(1,0)<<" "<<D_tmp(1,1)<<" "<<D_tmp(1,2)<<std::endl;
+				 		//outfile<<D_tmp(2,0)<<" "<<D_tmp(2,1)<<" "<<D_tmp(2,2)<<std::endl;
+				 		//outfile<<" "<<std::endl;
 
 				     D_inter[q_mc][p_mc] += term*D_tmp/(mc_atoms*mc_atoms);
  						} // end loop over atom_j in p_mc
@@ -497,7 +494,7 @@ namespace Engine
 
 	 outfile <<-2*grad_E_mc<<" + "<<-grad_E_in<<" = "<<grad_E <<std::endl;
 	 outfile.close();
-*/
+
  }// end Dipole-Dipole method
 
 
