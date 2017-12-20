@@ -998,12 +998,17 @@ namespace IO
             // Check that nos is smaller or equal to the nos of the current image
             int ovf_nos = ovf_xyz_nodes[0] * ovf_xyz_nodes[1] * ovf_xyz_nodes[2];
             if ( ovf_nos > geometry.nos )
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, 
+                    Utility::Log_Level::Error,"NOS of the OVF file is greater than the NOS in the "
+                    "current image");
+            
+            // Check if the geometry of the ovf file is the same with the one of the current image
+            if ( ovf_xyz_nodes[0] != geometry.n_cells[0] ||
+                 ovf_xyz_nodes[1] != geometry.n_cells[1] ||
+                 ovf_xyz_nodes[2] != geometry.n_cells[2] )
             {
-                Log( Log_Level::Warning, sender, fmt::format( "NOS of the OVF file is greater "
-                    "than the NOS in the current image") );
-                Log( Log_Level::Warning, sender, fmt::format( "Try to increase the geometry of the "
-                    "current image ") );
-                return;
+                Log(Log_Level::Warning, sender, fmt::format("The geometry of the OVF file "
+                    "does not much the geometry of the current image") );
             }
             
             // Raw data representation
