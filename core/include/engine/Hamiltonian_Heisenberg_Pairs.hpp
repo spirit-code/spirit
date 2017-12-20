@@ -76,19 +76,21 @@ namespace Engine
 	private:
 		std::shared_ptr<Data::Geometry> geometry;
 
-		int total_mc; //number macro cell
-		int mc_atoms; //number of atoms in the macro cell
-		std::vector<std::vector <int> >atom_id_mc;
-		std::vector< vectorfield > xyz_atoms_mc;
+		int total_mc; //Number macro cell
+		int mc_atoms; //Number of atoms in the macro cell
+		std::vector<std::vector <int> >atom_id_mc; //id atoms in each macro cell
+		std::vector< vectorfield > xyz_atoms_mc;   //Position atoms in each macro cell
+		vectorfield macrospins; //Total moment in each macro cell
+		scalar E_in;            //Energy contribution inside the macro-cell
+		std::vector<Matrix3> D; //Dipole-dipole matrix inside mc
+		scalar E_dip_mc;				//Energy contribution inter macro-cells
+		std::vector< std::vector <Matrix3>  > D_inter; //Inter dipole dipole matrix
 		Vector3 grad_E_in;
-		scalar E_in;
-		std::vector<Matrix3> D;
-		std::vector< std::vector <Matrix3>  > D_inter;
-		scalar E_dip_mc;
 		Vector3 grad_E_mc;
 
-		void Prepare_MacroCells();
+		void Prepare_MacroCells(const vectorfield & spins);
 		void Energies_MacroCells(const vectorfield & spins);
+		void Gradient_MacroCells(const vectorfield & spins);
 
 		// ------------ Effective Field Functions ------------
 		// Calculate the Zeeman effective field of a single Spin
