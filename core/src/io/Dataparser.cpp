@@ -13,6 +13,7 @@
 #include <algorithm>
 
 using namespace Utility;
+using namespace Engine;
 
 namespace IO
 {
@@ -33,6 +34,27 @@ namespace IO
 
         return result;
 	}
+    
+    // A helper function 
+    void check_defects( std::shared_ptr<Data::Spin_System> s )
+    {
+        auto& spins = *s->spins;
+        int nos = s->geometry->nos;
+        
+        // Detecet the defects 
+        for (int i=0; i<nos; i++)
+        {
+            if (spins[i].norm() < 1e-5)
+            {
+                spins[i] = {0, 0, 1};
+                
+                // in case of spin vector close to zero we have a vacancy
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                s->geometry->atom_types[i] = -1;
+            #endif
+            }            
+        }
+    }
     
     // Helper function to read configuration in column vector from text in file
     //// NOTE: that function assumes that the nos in the OVF file is equal to nos of the system
@@ -74,99 +96,108 @@ namespace IO
                              "Configuration - Aborting" ); 
                         myfile.close(); 
                         return; 
-                    }
-					found = line.find("#");
-					// Read the line if # is not found (# marks a comment)
-					if (found == std::string::npos)
-					{
-						auto x = split_string_to_scalar(line, ",");
-
-						if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
-						{
-							spins[i][0] = 0;
-							spins[i][1] = 0;
-							spins[i][2] = 1;
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							s->geometry->atom_types[i] = -1;
-							#endif
-						}
-						else
-						{
-							spins[i][0] = x[3];
-							spins[i][1] = x[4];
-							spins[i][2] = x[5];
-						}
-						++i;
-					}// endif (# not found)
-						// discard line if # is found
-				}// endif new line (while)
-				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-			}
-			else if ( format == VF_FileFormat::OVF_BIN8 || 
-                      format == VF_FileFormat::OVF_BIN4 || 
-                      format == VF_FileFormat::OVF_TEXT )
-			{
-				auto& spins = *s->spins;
-				auto& geometry = *s->geometry;
-
-				Read_From_OVF( spins, geometry, file, format );
-			}
-			else
-			{
-				auto& spins = *s->spins;
-				Vector3 spin;
-				while (getline(myfile, line))
+                }
+				found = line.find("#");
+				// Read the line if # is not found (# marks a comment)
+				if (found == std::string::npos)
 				{
-					if (i >= s->nos) 
-                    { 
-                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
-                             "Configuration - Aborting"); 
-                        myfile.close(); 
-                        return; 
-                    }
-					found = line.find("#");
-					// Read the line if # is not found (# marks a comment)
-					if (found == std::string::npos)
+					auto x = split_string_to_scalar(line, ",");
+
+					if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
 					{
-						//scalar x, y, z;
-						iss.clear();
-						iss.str(line);
-						//iss >> x >> y >> z;
-						iss >> spin[0] >> spin[1] >> spin[2];
-						if (spin.norm() < 1e-5)
-						{
-							spin = {0, 0, 1};
-                            // in case of spin vector close to zero we have a vacancy
-							#ifdef SPIRIT_ENABLE_DEFECTS
-							s->geometry->atom_types[i] = -1;
-							#endif
-						}
-						spins[i] = spin;
-						++i;
-					}// endif (# not found)
-						// discard line if # is found
-				}// endif new line (while)
-				if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-			}
-			myfile.close();
-			Log(Log_Level::Info, Log_Sender::IO, "Done");
+						spins[i][0] = 0;
+						spins[i][1] = 0;
+						spins[i][2] = 1;
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						s->geometry->atom_types[i] = -1;
+						#endif
+					}
+					else
+					{
+						spins[i][0] = x[3];
+						spins[i][1] = x[4];
+						spins[i][2] = x[5];
+					}
+					++i;
+				}// endif (# not found)
+					// discard line if # is found
+			}// endif new line (while)
+			if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
 		}
-	}
-
-
-	void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
-	{
-		std::ifstream myfile(file);
-		if (myfile.is_open())
+		else if ( format == VF_FileFormat::OVF_BIN8 || 
+                  format == VF_FileFormat::OVF_BIN4 || 
+                  format == VF_FileFormat::OVF_TEXT )
 		{
-			Log(Log_Level::Info, Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
-			std::string line = "";
-			std::istringstream iss(line);
-			std::size_t found;
-            std::size_t image_no;
-            int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
-            Vector3 spin;
-            
+			auto& spins = *s->spins;
+			auto& geometry = *s->geometry;
+
+			Read_From_OVF( spins, geometry, file, format );
+		}
+		else
+		{
+			auto& spins = *s->spins;
+			Vector3 spin;
+			while (getline(myfile, line))
+			{
+				if (i >= s->nos) 
+                { 
+                    Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
+                         "Configuration - Aborting"); 
+                    myfile.close(); 
+                    return; 
+                }
+				found = line.find("#");
+				// Read the line if # is not found (# marks a comment)
+				if (found == std::string::npos)
+				{
+					//scalar x, y, z;
+					iss.clear();
+					iss.str(line);
+					//iss >> x >> y >> z;
+					iss >> spin[0] >> spin[1] >> spin[2];
+					if (spin.norm() < 1e-5)
+					{
+						spin = {0, 0, 1};
+                        // in case of spin vector close to zero we have a vacancy
+						#ifdef SPIRIT_ENABLE_DEFECTS
+						s->geometry->atom_types[i] = -1;
+						#endif
+					}
+					spins[i] = spin;
+					++i;
+				}// endif (# not found)
+					// discard line if # is found
+			}// endif new line (while)
+			if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
+		}
+        
+    #ifdef SPIRIT_ENABLE_DEFECTS
+        // assure that defects are treated right
+        check_defects(s);
+    #endif
+        
+        // normalize read in spins
+        Vectormath::normalize_vectors(*s->spins);
+        
+		myfile.close();
+		Log(Log_Level::Info, Log_Sender::IO, "Done");
+	}
+}
+
+
+void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
+{
+	std::ifstream myfile(file);
+	if (myfile.is_open())
+	{
+		Log(Log_Level::Info, Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
+		std::string line = "";
+		std::istringstream iss(line);
+		std::size_t found;
+        std::size_t image_no;
+        int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
+        Vector3 spin;
+        
             while (getline(myfile, line))
             {
                 // First we check if the line declares a new image
@@ -250,9 +281,23 @@ namespace IO
                 // keyword since a line like that would containi "#"
                 
             }// endif new line (while)
-			if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
+            
+            // for every image of the chain
+            for (int i=0; i<iimage; i++)
+            {
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                // assure that defects are treated right
+                check_defects(c->images[iimage]);
+            #endif
+                
+                // normalize read in spins
+                Vectormath::normalize_vectors(*c->images[iimage]->spins);
+            }
+            
+            if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
 			if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(chain) = {} > NOI(file) = {}", noi, iimage+1));
-			myfile.close();
+			
+            myfile.close();
 			Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
 		}
 	}
