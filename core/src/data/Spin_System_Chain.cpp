@@ -1,4 +1,5 @@
 #include <data/Spin_System_Chain.hpp>
+#include <utility/Exception.hpp>
 
 namespace Data
 {
@@ -22,13 +23,29 @@ namespace Data
 
 	void Spin_System_Chain::Lock() const
 	{
-		this->mutex.lock();
-		for (auto& image : this->images) image->Lock();
+		try
+		{
+			this->mutex.lock();
+			for (auto& image : this->images)
+				image->Lock();
+		}
+		catch( ... )
+		{
+			spirit_handle_exception_core("Unlocking the Spin_System failed!");
+		}
 	}
 
 	void Spin_System_Chain::Unlock() const
 	{
-		for (auto& image : this->images) image->Unlock();
-		this->mutex.unlock();
+		try
+		{
+			for (auto& image : this->images)
+				image->Unlock();
+			this->mutex.unlock();
+		}
+		catch( ... )
+		{
+			spirit_handle_exception_core("Unlocking the Spin_System failed!");
+		}
 	}
 }

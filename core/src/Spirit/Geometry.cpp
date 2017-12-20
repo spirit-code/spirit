@@ -39,10 +39,17 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & new_geometr
     {
         // Lock to avoid memory errors
         chain->Lock();
-        // Modify all systems in the chain
-        for (auto& system : chain->images)
+        try
         {
-            Helper_System_Set_Geometry(system, new_geometry);
+            // Modify all systems in the chain
+            for (auto& system : chain->images)
+            {
+                Helper_System_Set_Geometry(system, new_geometry);
+            }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(-1, -1);
         }
         // Unlock again
         chain->Unlock();
@@ -60,8 +67,15 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & new_geometr
     {
         // Lock to avoid memory errors
         system->Lock();
-        // Modify
-        Helper_System_Set_Geometry(system, new_geometry);
+        try
+        {
+            // Modify
+            Helper_System_Set_Geometry(system, new_geometry);
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(-1, -1);
+        }
         // Unlock
         system->Unlock();
     }
