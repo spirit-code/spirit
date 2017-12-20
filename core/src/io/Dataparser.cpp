@@ -980,6 +980,7 @@ void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, co
                 Log( lvl, sender, fmt::format( "# znodes     = {}", ovf_xyz_nodes[2] ) );
             }
             
+            // Check mesh type
             if ( ovf_meshtype == "irregular" )
             {
                 // pointcount
@@ -988,6 +989,17 @@ void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, co
                 // Write to Log
                 Log( lvl, sender, fmt::format( "# OVF meshtype <{}>", ovf_meshtype ) );
                 Log( lvl, sender, fmt::format( "# OVF point count = {}", ovf_pointcount ) );
+            }
+            
+            // Check that nos is smaller or equal to the nos of the current image
+            int ovf_nos = ovf_xyz_nodes[0] * ovf_xyz_nodes[1] * ovf_xyz_nodes[2];
+            if ( ovf_nos > geometry.nos )
+            {
+                Log( Log_Level::Warning, sender, fmt::format( "NOS of the OVF file is greater "
+                    "than the NOS in the current image") );
+                Log( Log_Level::Warning, sender, fmt::format( "Try to increase the geometry of the "
+                    "current image ") );
+                return;
             }
             
             // Raw data representation
