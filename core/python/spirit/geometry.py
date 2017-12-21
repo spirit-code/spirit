@@ -88,7 +88,7 @@ def Get_Positions(p_state, idx_image=-1, idx_chain=-1):
     Data = _Get_Positions(ctypes.c_void_p(p_state), 
                                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
-    array = np.frombuffer(array_pointer.contents)
+    array = np.frombuffer(array_pointer.contents, dtype=scalar)
     array_view = array.view()
     array_view.shape = (nos, 3)
     return array_view

@@ -32,7 +32,7 @@ def Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1):
     Data = _Get_Spin_Directions(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
                                 ctypes.c_int(idx_chain))
     array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
-    array = frombuffer(array_pointer.contents)
+    array = frombuffer(array_pointer.contents, dtype=scalar)
     array_view = array.view()
     array_view.shape = (nos, 3)
     return array_view
