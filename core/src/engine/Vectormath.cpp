@@ -234,6 +234,18 @@ namespace Engine
             }
         }
 
+        void get_gradient_distribution(Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, bool allow_negative)
+        {
+            fill(distribution, gradient_start);
+
+            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            if (!allow_negative)
+            {
+
+            }
+        }
+
         
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
         {
@@ -365,12 +377,19 @@ namespace Engine
             for (unsigned int i=0; i<sf.size(); ++i)
                 sf[i] = mask[i]*s;
         }
-
+        
         void scale(scalarfield & sf, scalar s)
         {
             #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
                 sf[i] *= s;
+        }
+
+        void add(scalarfield & sf, scalar s)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] += s;
         }
 
         scalar sum(const scalarfield & sf)
@@ -620,6 +639,13 @@ namespace Engine
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*a[idx].cross(b[idx]);
+        }
+        // out[i] += c[i] * a[i] x b[i]
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += c[idx] * a[idx].cross(b[idx]);
         }
         
         // out[i] = c * a x b[i]
