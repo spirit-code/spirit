@@ -482,6 +482,18 @@ namespace Engine
             }
         }
 
+        void get_gradient_distribution(Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, bool allow_negative)
+        {
+            fill(distribution, gradient_start);
+
+            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            if (!allow_negative)
+            {
+
+            }
+        }
+
 
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
         {
@@ -645,6 +657,21 @@ namespace Engine
         {
             int n = sf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            cudaDeviceSynchronize();
+        }
+
+        __global__ void cu_add(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                sf[idx] += s;
+            }
+        }
+        void add(scalarfield & sf, scalar s)
+        {
+            int n = sf.size();
+            cu_add<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
             cudaDeviceSynchronize();
         }
 
@@ -1121,6 +1148,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            cudaDeviceSynchronize();
+        }
+        
+        // out[i] += c * a[i] x b[i]
+        __global__ void cu_add_c_cross(const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c[idx]*a[idx].cross(b[idx]);
+            }
+        }
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 

@@ -31,8 +31,8 @@ namespace Engine
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
                      vectorfield & v_out )
         {
-          for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
+            for( unsigned int i=0; i<v_out.size(); i++)
+                rotate( v[i], axis[i], angle[i], v_out[i] );
         }
         
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
@@ -213,14 +213,14 @@ namespace Engine
 
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-			scalar v_z = distribution(prng);
-			scalar phi = distribution(prng);
+            scalar v_z = distribution(prng);
+            scalar phi = distribution(prng);
 
-			scalar r_xy = std::sqrt(1 - v_z*v_z);
+            scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-			vec[0] = r_xy * std::cos(2*M_PI*phi);
-			vec[1] = r_xy * std::sin(2 * M_PI*phi);
-			vec[2] = v_z;
+            vec[0] = r_xy * std::cos(2*M_PI*phi);
+            vec[1] = r_xy * std::sin(2 * M_PI*phi);
+            vec[2] = v_z;
         }
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
         {
@@ -230,7 +230,7 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-				get_random_vector_unitsphere(distribution, prng, xi[i]);
+                get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
         }
 
@@ -429,8 +429,8 @@ namespace Engine
         
         void norm( const vectorfield & vf, scalarfield & norm )
         {
-          for (unsigned int i=0; i<vf.size(); ++i)
-            norm[i] = vf[i].norm();
+            for (unsigned int i=0; i<vf.size(); ++i)
+                norm[i] = vf[i].norm();
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
@@ -544,12 +544,12 @@ namespace Engine
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*vf[idx];
         }
-		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
-		{
-			#pragma omp parallel for
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-				out[idx] += mask[idx] * c*vf[idx];
-		}
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += mask[idx] * c*vf[idx];
+        }
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
