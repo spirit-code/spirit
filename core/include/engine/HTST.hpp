@@ -14,13 +14,13 @@ namespace Engine
         scalar Get_Prefactor(std::shared_ptr<Data::Spin_System> system_minimum, std::shared_ptr<Data::Spin_System> system_sp);
 
         // Calculate the 'a' component of the prefactor
-        void Calculate_a(const vectorfield & spins, const MatrixX & hessian,
+        void Calculate_a(const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian,
             const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a);
         void Calculate_a_2N(const vectorfield & spins, const MatrixX & hessian,
             const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a);
 
         // Calculate the Velocity matrix
-        void Calculate_Velocity_Matrix(const vectorfield & spins, const MatrixX & hessian, MatrixX & velocity);
+        void Calculate_Velocity_Matrix(const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian, MatrixX & velocity);
         // Transform the Hessian into a dynamical matrix
         void Calculate_Dynamical_Matrix_2N(const MatrixX & hessian, MatrixX & dynamical);
 

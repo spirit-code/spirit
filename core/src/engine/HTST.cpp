@@ -1,6 +1,7 @@
 #include <engine/HTST.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -158,7 +159,8 @@ namespace Engine
             // Manifoldmath::tangent_basis(image_sp, basis_sp);
             // TODO
             // Calculate_a_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, a_sp);
-            Calculate_a(image_sp, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, a_sp);
+            auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)system_sp->hamiltonian.get();
+            Calculate_a(image_sp, ham->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, a_sp);
             // QUESTION: is scaling a_sp with mub/mry necessary?
             
             ////////////////////////////////////////////////////////////////////////
@@ -178,7 +180,7 @@ namespace Engine
             int   nos      = system->geometry->nos;
             auto& n_cells  = system->geometry->n_cells;
             auto& spins    = *system->spins;
-            auto& spin_pos = system->geometry->spin_pos;
+            auto& spin_pos = system->geometry->positions;
             auto& bc       = system->hamiltonian->boundary_conditions;
             
             // QUESTION: what 3x3 basis should this be? The translations? The basis of the unit cells? -> translation vectors
@@ -297,7 +299,7 @@ namespace Engine
         }
 
 
-        void Calculate_a(const vectorfield & spins, const MatrixX & hessian,
+        void Calculate_a(const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian,
             const MatrixX & basis, const MatrixX & eigenbasis, VectorX & a)
         {
             int nos = spins.size();
@@ -306,7 +308,7 @@ namespace Engine
 
             // Calculate the velocity matrix in the 3N-basis
             MatrixX velocity(3*nos, 3*nos);
-            Calculate_Velocity_Matrix(spins, hessian, velocity);
+            Calculate_Velocity_Matrix(spins, mu_s, hessian, velocity);
             
             std::cerr << "  calculate_a: project velocity matrix" << std::endl;
 
@@ -323,55 +325,39 @@ namespace Engine
             // std::cerr << "  calculate_a: sorting" << std::endl;
             // std::sort(a.data(),a.data()+a.size());
 
+            for (int i=0; i<10; ++i)
+                std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
+            // std::cerr << "without units:" << std::endl;
             // for (int i=0; i<10; ++i)
-            //     std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
+            //     std::cerr << "  a[" << i << "] = " << a[i]/Utility::Constants::mu_B << std::endl;
         }
 
 
-        void Calculate_Velocity_Matrix(const vectorfield & spins, const MatrixX & hessian, MatrixX & velocity)
+        void Calculate_Velocity_Matrix(const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian, MatrixX & velocity)
         {
             velocity.setZero();
             int nos = spins.size();
-
+            
             for (int i=0; i < nos; ++i)
             {
                 Vector3 beff{0, 0, 0};
                 
                 for (int j=0; j < nos; ++j)
                 {
-                    // QUESTION: is there a nicer formula for this?
-                    velocity(3*i, 3*j)     = 0.5 * (spins[i][1]*(hessian(3*j,  3*i+2)+hessian(3*i+2,3*j))   - spins[i][2]*(hessian(3*j,  3*i+1)+hessian(3*i+1,3*j)));
-                    velocity(3*i, 3*j+1)   = 0.5 * (spins[i][1]*(hessian(3*j+1,3*i+2)+hessian(3*i+2,3*j+1)) - spins[i][2]*(hessian(3*j+1,3*i+1)+hessian(3*i+1,3*j+1)));
-                    velocity(3*i, 3*j+2)   = 0.5 * (spins[i][1]*(hessian(3*j+2,3*i+2)+hessian(3*i+2,3*j+2)) - spins[i][2]*(hessian(3*j+2,3*i+1)+hessian(3*i+1,3*j+2)));
+                    velocity(3*i, 3*j)     = spins[i][1]*hessian(3*i+2,3*j)   - spins[i][2]*hessian(3*i+1,3*j);
+                    velocity(3*i, 3*j+1)   = spins[i][1]*hessian(3*i+2,3*j+1) - spins[i][2]*hessian(3*i+1,3*j+1);
+                    velocity(3*i, 3*j+2)   = spins[i][1]*hessian(3*i+2,3*j+2) - spins[i][2]*hessian(3*i+1,3*j+2);
 
-                    velocity(3*i+1, 3*j)   = 0.5 * (spins[i][2]*(hessian(3*j,  3*i)+hessian(3*i,3*j))       - spins[i][0]*(hessian(3*j,  3*i+2)+hessian(3*i+2,3*j)));
-                    velocity(3*i+1, 3*j+1) = 0.5 * (spins[i][2]*(hessian(3*j+1,3*i)+hessian(3*i,3*j+1))     - spins[i][0]*(hessian(3*j+1,3*i+2)+hessian(3*i+2,3*j+1)));
-                    velocity(3*i+1, 3*j+2) = 0.5 * (spins[i][2]*(hessian(3*j+2,3*i)+hessian(3*i,3*j+2))     - spins[i][0]*(hessian(3*j+2,3*i+2)+hessian(3*i+2,3*j+2)));
+                    velocity(3*i+1, 3*j)   = spins[i][2]*hessian(3*i,3*j)     - spins[i][0]*hessian(3*i+2,3*j);
+                    velocity(3*i+1, 3*j+1) = spins[i][2]*hessian(3*i,3*j+1)   - spins[i][0]*hessian(3*i+2,3*j+1);
+                    velocity(3*i+1, 3*j+2) = spins[i][2]*hessian(3*i,3*j+2)   - spins[i][0]*hessian(3*i+2,3*j+2);
 
-                    velocity(3*i+2, 3*j)   = 0.5 * (spins[i][0]*(hessian(3*j,  3*i+1)+hessian(3*i+1,3*j))   - spins[i][1]*(hessian(3*j,  3*i)+hessian(3*i,3*j)));
-                    velocity(3*i+2, 3*j+1) = 0.5 * (spins[i][0]*(hessian(3*j+1,3*i+1)+hessian(3*i+1,3*j+1)) - spins[i][1]*(hessian(3*j+1,3*i)+hessian(3*i,3*j+1)));
-                    velocity(3*i+2, 3*j+2) = 0.5 * (spins[i][0]*(hessian(3*j+2,3*i+1)+hessian(3*i+1,3*j+2)) - spins[i][1]*(hessian(3*j+2,3*i)+hessian(3*i,3*j+2)));
+                    velocity(3*i+2, 3*j)   = spins[i][0]*hessian(3*i+1,3*j)   - spins[i][1]*hessian(3*i,3*j);
+                    velocity(3*i+2, 3*j+1) = spins[i][0]*hessian(3*i+1,3*j+1) - spins[i][1]*hessian(3*i,3*j+1);
+                    velocity(3*i+2, 3*j+2) = spins[i][0]*hessian(3*i+1,3*j+2) - spins[i][1]*hessian(3*i,3*j+2);
 
-                    // ////////
-                    // velocity(3*i, 3*j)     = spins[i][1]*hessian(3*i+2,3*j)   - spins[i][2]*hessian(3*i+1,3*j);
-                    // velocity(3*i, 3*j+1)   = spins[i][1]*hessian(3*i+2,3*j+1) - spins[i][2]*hessian(3*i+1,3*j+1);
-                    // velocity(3*i, 3*j+2)   = spins[i][1]*hessian(3*i+2,3*j+2) - spins[i][2]*hessian(3*i+1,3*j+2);
-
-                    // velocity(3*i+1, 3*j)   = spins[i][2]*hessian(3*i,3*j)     - spins[i][0]*hessian(3*i+2,3*j);
-                    // velocity(3*i+1, 3*j+1) = spins[i][2]*hessian(3*i,3*j+1)   - spins[i][0]*hessian(3*i+2,3*j+1);
-                    // velocity(3*i+1, 3*j+2) = spins[i][2]*hessian(3*i,3*j+2)   - spins[i][0]*hessian(3*i+2,3*j+2);
-
-                    // velocity(3*i+2, 3*j)   = spins[i][0]*hessian(3*i+1,3*j)   - spins[i][1]*hessian(3*i,3*j);
-                    // velocity(3*i+2, 3*j+1) = spins[i][0]*hessian(3*i+1,3*j+1) - spins[i][1]*hessian(3*i,3*j+1);
-                    // velocity(3*i+2, 3*j+2) = spins[i][0]*hessian(3*i+1,3*j+2) - spins[i][1]*hessian(3*i,3*j+2);
-                    // ////////
-
-                    beff -= (hessian.block<3, 3>(3*i, 3*j) + hessian.transpose().block<3, 3>(3*i, 3*j)) * spins[i];
+                    beff -= hessian.block<3, 3>(3*i, 3*j) * spins[j];
                 }
-
-                beff = 0.5*beff;
-                // if ( beff.norm() > 1e-7 && !(beff.normalized()).isApprox(spins[i].normalized()))
-                //     std::cerr << "$$$$$$$$$$$$ " << i << ": " << beff.normalized().transpose() << " --- " << spins[i].normalized().transpose() << std::endl;
 
                 velocity(3*i,   3*i+1) -= beff[2];
                 velocity(3*i,   3*i+2) += beff[1];
@@ -379,6 +365,10 @@ namespace Engine
                 velocity(3*i+1, 3*i+2) -= beff[0];
                 velocity(3*i+2, 3*i)   -= beff[1];
                 velocity(3*i+2, 3*i+1) += beff[0];
+
+                velocity.row(3*i)   /= mu_s[0];
+                velocity.row(3*i+1) /= mu_s[0];
+                velocity.row(3*i+2) /= mu_s[0];
             }
         }
 
@@ -435,13 +425,9 @@ namespace Engine
 
         // If all needed values are known the prefactor can be calculated with this function
         void Calculate_Prefactor(int nos, int n_zero_modes_minimum, int n_zero_modes_sp, scalar volume_minimum, scalar volume_sp,
-            const VectorX & _eig_min, const VectorX & _eig_sp, const VectorX & _a, scalar & prefactor, scalar & exponent)
+            const VectorX & eig_min, const VectorX & eig_sp, const VectorX & a, scalar & prefactor, scalar & exponent)
         {
             // This implements (I think) the nu from eq. (3) from Pavel F. Bessarab - Size and Shape Dependence of Thermal Spin Transitions in Nanoislands - PRL 110, 020604 (2013)
-            
-            auto eig_min = 1e-3*_eig_min;
-            auto eig_sp  = 1e-3*_eig_sp;
-            auto a       = 1e-3*_a;
 
             // Calculate the exponent
             //      The exponent depends on the number of zero modes at the different states
