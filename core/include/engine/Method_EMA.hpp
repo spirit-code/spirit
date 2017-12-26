@@ -56,6 +56,8 @@ namespace Engine
         int counter;
         scalar amplitude;
         vectorfield mode;
+        scalarfield angle;
+        scalarfield angle_initial;
         vectorfield axis;
         vectorfield spins_initial;
     };

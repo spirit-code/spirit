@@ -35,7 +35,10 @@ namespace Engine
         this->steps_per_period = 50;
         this->timestep = 1./this->steps_per_period;
         this->counter = 0;
-        this->amplitude = 0.2;
+        this->amplitude = 1;
+
+        this->angle = scalarfield(this->nos);
+        this->angle_initial = scalarfield(this->nos);
 
         this->spins_initial = *this->systems[0]->spins;
         this->axis = vectorfield(this->nos);
@@ -80,7 +83,10 @@ namespace Engine
 
             // Set the mode
             for (int n=0; n<this->nos; ++n)
+            {
                 this->mode[n] = {evec_3N[3*n], evec_3N[3*n+1], evec_3N[3*n+2]};
+                this->angle_initial[n] = this->mode[n].norm();
+            }
         }
 
         // Find the axes of rotation
@@ -95,14 +101,12 @@ namespace Engine
         auto& image = *this->systems[0]->spins;
 
         // Calculate n for that iteration based on the initial n displacement vector
-        scalar angle = this->amplitude * std::cos(2*M_PI*this->counter*this->timestep);
+        scalar t_angle = this->amplitude * std::cos(2*M_PI*this->counter*this->timestep);
+        this->angle = this->angle_initial;
+        Vectormath::scale(this->angle, t_angle);
 
         // Rotate the spins
-        for (int idx=0; idx<nos; idx++)
-            Vectormath::rotate( this->spins_initial[idx], this->axis[idx], angle, image[idx] );
-
-        // normalize all spins
-        Vectormath::normalize_vectors( *this->systems[0]->spins );
+        Vectormath::rotate(this->spins_initial, this->axis, this->angle, image);
     }
     
     bool Method_EMA::Converged()
