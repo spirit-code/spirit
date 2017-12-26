@@ -138,7 +138,6 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
         state->active_image->hamiltonian->Hessian( vf, hessian );
         
-        for( int i=0; i<state->nos; i++)
-            REQUIRE( hessian_fd.isApprox( hessian ) );
+        REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }

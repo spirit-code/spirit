@@ -139,9 +139,16 @@ void Chain_Image_to_Clipboard( State * state, int idx_image, int idx_chain ) noe
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Copy the image to clipboard
-    	image->Lock();
-        state->clipboard_image = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*image));
-    	image->Unlock();
+        image->Lock();
+        try
+        {
+            state->clipboard_image = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*image));
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image, idx_chain);
+        }
+        image->Unlock();
         
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Copied image to clipboard.", idx_image, idx_chain);
@@ -166,15 +173,15 @@ void Chain_Replace_Image( State * state, int idx_image, int idx_chain ) noexcept
         if (state->clipboard_image.get())
         {
             // Copy the clipboard image
-    	    state->clipboard_image->Lock();
+            state->clipboard_image->Lock();
             auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
-    	    state->clipboard_image->Unlock();
+            state->clipboard_image->Unlock();
             
             chain->Lock();
-    		copy->Lock();
+            copy->Lock();
 
             // Replace in chain
-    		chain->images[idx_image]->Unlock();
+            chain->images[idx_image]->Unlock();
             chain->images[idx_image] = copy;
             
             // Update state
@@ -437,25 +444,30 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
         {
             if (running)
             {
-        	    chain->iteration_allowed = false;
+                chain->iteration_allowed = false;
             }
 
             chain->Lock();
+            try
+            {
+                chain->noi--;
+                if (idx_image == chain->noi)
+                    Chain_prev_Image(state, idx_chain);
 
-            chain->noi--;
-            if (idx_image == chain->noi)
-                Chain_prev_Image(state, idx_chain);
+                state->noi = state->active_chain->noi;
+                
+                chain->images[idx_image]->Unlock();
+                chain->images.erase(chain->images.begin() + idx_image);
+                chain->image_type.erase(chain->image_type.begin() + idx_image);
 
-            state->noi = state->active_chain->noi;
-            
-            chain->images[idx_image]->Unlock();
-            chain->images.erase(chain->images.begin() + idx_image);
-            chain->image_type.erase(chain->image_type.begin() + idx_image);
-
-            // Remove from state
-            state->method_image[idx_chain].erase(
-                state->method_image[idx_chain].begin() + idx_image );
-            
+                // Remove from state
+                state->method_image[idx_chain].erase(
+                    state->method_image[idx_chain].begin() + idx_image );
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_api(idx_image, idx_chain);
+            }
             chain->Unlock();
             
             // Update State
@@ -465,13 +477,13 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
             Chain_Setup_Data(state, idx_chain);
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format("Deleted image {} of {}", idx_image+1, chain->noi+1),
-                 -1, idx_chain );
+                    fmt::format("Deleted image {} of {}", idx_image+1, chain->noi+1),
+                    -1, idx_chain );
 
             if (running)
             {
-        	    Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
-                                      idx_image, idx_chain );
+                Simulation_PlayPause( state, method.c_str(), solver.c_str(), -1, -1, 
+                                        idx_image, idx_chain );
             }
 
             return true;
@@ -493,7 +505,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
 bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
 {
     int idx_image = -1;
-    
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -511,25 +523,30 @@ bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
         {
             if (running)
             {
-        	    chain->iteration_allowed = false;
+                chain->iteration_allowed = false;
             }
 
             chain->Lock();
+            try
+            {
+                // Add to chain
+                chain->noi--;
+                if (idx_image == chain->noi)
+                    Chain_prev_Image(state, idx_chain);
+                    
+                state->noi = state->active_chain->noi;
 
-            // Add to chain
-            chain->noi--;
-            if (idx_image == chain->noi)
-                Chain_prev_Image(state, idx_chain);
-                
-            state->noi = state->active_chain->noi;
-
-    		chain->images.back()->Unlock();
-            chain->images.pop_back();
-            chain->image_type.pop_back();
-                
-            // Add to state
-            state->method_image[idx_chain].pop_back();
-
+                chain->images.back()->Unlock();
+                chain->images.pop_back();
+                chain->image_type.pop_back();
+                    
+                // Add to state
+                state->method_image[idx_chain].pop_back();
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_api(idx_image, idx_chain);
+            }
             chain->Unlock();
 
             // Update state
@@ -569,16 +586,16 @@ void Chain_Get_Rx( State * state, float * Rx, int idx_chain ) noexcept
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-    	for (unsigned int i = 0; i < chain->Rx.size(); ++i)
-    	{
-    		Rx[i] = (float)chain->Rx[i];
-    	}
+        for (unsigned int i = 0; i < chain->Rx.size(); ++i)
+        {
+            Rx[i] = (float)chain->Rx[i];
+        }
     }
     catch( ... )
     {
@@ -589,7 +606,7 @@ void Chain_Get_Rx( State * state, float * Rx, int idx_chain ) noexcept
 void Chain_Get_Rx_Interpolated( State * state, float * Rx_interpolated, int idx_chain ) noexcept
 {
     int idx_image = -1;
-    
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -615,16 +632,16 @@ void Chain_Get_Energy( State * state, float * Energy, int idx_chain ) noexcept
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-    	for (int i = 0; i < chain->noi; ++i)
-    	{
-    		Energy[i] = (float)chain->images[i]->E;
-    	}
+        for (int i = 0; i < chain->noi; ++i)
+        {
+            Energy[i] = (float)chain->images[i]->E;
+        }
     }
     catch( ... )
     {
@@ -638,16 +655,16 @@ void Chain_Get_Energy_Interpolated( State * state, float * E_interpolated, int i
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-    	for (unsigned int i = 0; i < chain->E_interpolated.size(); ++i)
-    	{
-    		E_interpolated[i] = (float)chain->E_interpolated[i];
-    	}
+        for (unsigned int i = 0; i < chain->E_interpolated.size(); ++i)
+        {
+            E_interpolated[i] = (float)chain->E_interpolated[i];
+        }
     }
     catch( ... )
     {
@@ -661,8 +678,8 @@ std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated( State * sta
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         std::vector<std::vector<float>> E_arr_interpolated ( chain->E_array_interpolated.size() );
         for (unsigned int i=0; i < chain->E_array_interpolated.size(); i++ )
@@ -675,7 +692,7 @@ std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated( State * sta
             for ( unsigned int j=0; j < chain->E_array_interpolated[i].size(); j++)
                 E_arr_interpolated[i][j] = (float) chain->E_array_interpolated[i][j];
                 
-    	return E_arr_interpolated;
+        return E_arr_interpolated;
     }
     catch( ... )
     {
@@ -707,12 +724,19 @@ void Chain_Update_Data( State * state, int idx_chain ) noexcept
             //chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
             
             chain->images[i]->Lock();
-            chain->images[i]->UpdateEnergy();
-            if (i > 0) 
-                chain->Rx[i] = chain->Rx[i-1] + 
-                    Engine::Manifoldmath::dist_geodesic( *chain->images[i-1]->spins, 
-                                                         *chain->images[i]->spins );
-    	    chain->images[i]->Unlock();
+            try
+            {
+                chain->images[i]->UpdateEnergy();
+                if (i > 0) 
+                    chain->Rx[i] = chain->Rx[i-1] + 
+                        Engine::Manifoldmath::dist_geodesic( *chain->images[i-1]->spins, 
+                                                            *chain->images[i]->spins );
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_api(idx_image, idx_chain);
+            }
+            chain->images[i]->Unlock();
         }
     }
     catch( ... )
@@ -735,14 +759,21 @@ void Chain_Setup_Data( State * state, int idx_chain ) noexcept
 
         chain->Lock();
 
-        // Apply
-        chain->Rx = std::vector<scalar>(state->noi, 0);
-        chain->Rx_interpolated = std::vector<scalar>( state->noi + 
-            (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-        chain->E_interpolated = std::vector<scalar>( state->noi + 
-            (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
-        chain->E_array_interpolated = std::vector<std::vector<scalar>>( 7, 
-            std::vector<scalar>( state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+        try
+        {
+            // Apply
+            chain->Rx = std::vector<scalar>(state->noi, 0);
+            chain->Rx_interpolated = std::vector<scalar>( state->noi + 
+                (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+            chain->E_interpolated = std::vector<scalar>( state->noi + 
+                (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0);
+            chain->E_array_interpolated = std::vector<std::vector<scalar>>( 7, 
+                std::vector<scalar>( state->noi + (state->noi - 1)*chain->gneb_parameters->n_E_interpolations, 0));
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image, idx_chain);
+        }
 
         chain->Unlock();
         

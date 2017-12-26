@@ -107,12 +107,19 @@ namespace Utility
 				// If it was recoverable we now write to Log
 				Log.Append_to_File();
             }
+            catch ( const std::exception & ex )
+            {
+                std::cerr << "Caught exception in API function \'" << api_function << "\'" << std::endl;
+                std::cerr << "Unable to handle std::exception \'" << ex.what() << "\'! TERMINATING!" << std::endl;
+                std::exit(EXIT_FAILURE);  // exit the application. may lead to data loss
+            }
+            catch ( ... )
+            {
+                std::cerr << "Caught unknown exception in API function \'" << api_function << "\'" << std::endl;
+                std::cerr << "Unable to handle! TERMINATING!" << std::endl;
+                std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
+            }
         }
-		catch ( const std::exception & ex )
-		{
-			std::cerr << "Unable to handle std::exception \'" << ex.what() << "\'" << std::endl;
-			std::exit(EXIT_FAILURE);  // exit the application. may lead to data loss
-		}
         catch ( ... )
         {
             std::cerr << "Something went super-wrong! TERMINATING!" << std::endl;

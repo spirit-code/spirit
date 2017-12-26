@@ -354,7 +354,7 @@ include( CPack )
 
 
 #--------------------------------------------------------------------------------
-IF( APPLE )
+IF( APPLE AND BUNDLE_APP )
     execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app" )
     execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}" )
 endif( )

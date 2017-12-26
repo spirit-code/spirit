@@ -180,90 +180,81 @@ namespace IO
     }// End Spin_System_from_Config		
 
 
-    void Basis_from_Config(const std::string configFile, std::vector<Vector3> & basis, std::vector<Vector3> & basis_atoms, scalar & lattice_constant)
+    void Bravais_Vectors_from_Config(const std::string configFile, std::vector<Vector3> & bravais_vectors, Data::BravaisLatticeType & bravais_lattice_type)
     {
         try
         {
-            // ---------- Default values
-            // Lattice constant [Angtrom]
-            lattice_constant = 1.0;
-            // Basis: vector {a, b, c}
-            basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_basis_atoms]
-            basis_atoms = { Vector3{0,0,0} };
-            // NoS in the basic domain (= unit cell for periodic lattices)
-            int n_spins_basic_domain = 0;
-            
-            Log(Log_Level::Info, Log_Sender::IO, "Basis: building");
+            std::string bravais_lattice = "sc";
+            // Manually specified bravais vectors/matrix?
+            bool irregular = true;
 
-            if (configFile != "")
+            IO::Filter_File_Handle myfile(configFile);
+            // Bravais lattice type or manually specified vectors/matrix
+            if (myfile.Find("bravais_lattice"))
             {
-                try
+                myfile.iss >> bravais_lattice;
+
+                if (bravais_lattice == "sc")
                 {
-                    IO::Filter_File_Handle myfile(configFile);
-
-                    myfile.Read_Single(lattice_constant, "lattice_constant");
-
-                    // Utility 1D array to build vectors and use Vectormath
-                    Vector3 build_array = { 0, 0, 0 };
-
-                    if (myfile.Find("basis"))
-                    {
-                        // Read the basis vectors a, b, c
-                        myfile.GetLine();
-                        myfile.iss >> basis[0][0] >> basis[0][1] >> basis[0][2];
-                        myfile.GetLine();
-                        myfile.iss >> basis[1][0] >> basis[1][1] >> basis[1][2];
-                        myfile.GetLine();
-                        myfile.iss >> basis[2][0] >> basis[2][1] >> basis[2][2];
-
-                        // Read no_spins_basic_domain and atoms in basis
-                        myfile.GetLine();
-                        myfile.iss >> n_spins_basic_domain;
-                        basis_atoms = std::vector<Vector3>(n_spins_basic_domain);
-
-                        // Read spins per basic domain
-                        for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
-                        {
-                            myfile.GetLine();
-                            myfile.iss >> basis_atoms[iatom][0] >> basis_atoms[iatom][1] >> basis_atoms[iatom][2];
-                            // Get x,y,z of component of spin_pos in unit of length (instead of in units of a,b,c)
-                            build_array = basis[0] * basis_atoms[iatom][0] + basis[1] * basis_atoms[iatom][1] + basis[2] * basis_atoms[iatom][2];
-                            basis_atoms[iatom] = lattice_constant * build_array;
-                        }// endfor iatom
-
-                    }// end find "basis"
-                    else {
-                        Log(Log_Level::Error, Log_Sender::IO, "Keyword 'basis' not found. Using Default (sc)");
-                    }
-                }// end try
-                catch( ... )
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: simple cubic");
+                    bravais_lattice_type = Data::BravaisLatticeType::SC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsSC();
+                }
+                else if (bravais_lattice == "fcc")
                 {
-                    spirit_rethrow(	fmt::format("Failed to read Basis from file \"{}\". Leaving values at default.", configFile) );
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: face-centered cubic");
+                    bravais_lattice_type = Data::BravaisLatticeType::FCC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsFCC();
+                }
+                else if (bravais_lattice == "bcc")
+                {
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: body-centered cubic");
+                    bravais_lattice_type = Data::BravaisLatticeType::BCC;
+                    bravais_vectors = Data::Geometry::BravaisVectorsBCC();
+                }
+                else if (bravais_lattice == "hex2D60")
+                {
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 60deg angle");
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
+                }
+                else if (bravais_lattice == "hex2D120")
+                {
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 120deg angle");
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
+                }
+                else
+                {
                 }
             }
-            else Log(Log_Level::Warning, Log_Sender::IO, "Basis: No config file specified. Leaving values at default.");
-            
-            // Log the parameters
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, "Basis: vectors in units of lattice constant");
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()/lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()/lattice_constant));
-            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()/lattice_constant));
-            Log(Log_Level::Parameter, Log_Sender::IO, "Basis: vectors");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", basis[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", basis[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", basis[2].transpose()));
+            else if (myfile.Find("bravais_vectors"))
+            {
+                Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular");
+                bravais_lattice_type = Data::BravaisLatticeType::Irregular;
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[0][1] >> bravais_vectors[0][2];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[1][0] >> bravais_vectors[1][1] >> bravais_vectors[1][2];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[2][0] >> bravais_vectors[2][1] >> bravais_vectors[2][2];
 
-
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_spins_basic_domain));
-            for (int iatom = 0; iatom < n_spins_basic_domain; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("            {0} = {1}", iatom, basis_atoms[iatom].transpose()));
-            Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
+            }
+            else if (myfile.Find("bravais_matrix"))
+            {
+                Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular");
+                bravais_lattice_type = Data::BravaisLatticeType::Irregular;
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[1][0] >> bravais_vectors[2][0];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][1] >> bravais_vectors[1][1] >> bravais_vectors[2][1];
+                myfile.GetLine();
+                myfile.iss >> bravais_vectors[0][2] >> bravais_vectors[1][2] >> bravais_vectors[2][2];
+            }
         }
         catch( ... )
         {
-            spirit_rethrow(	fmt::format("Unable to parse basis from config file  \"{}\"", configFile) );
+            spirit_rethrow(	fmt::format("Unable to parse bravais vectors from config file \"{}\"", configFile) );
         }
     }// End Basis_from_Config
 
@@ -274,19 +265,18 @@ namespace IO
             //-------------- Insert default values here -----------------------------
             // Basis from separate file?
             std::string basis_file = "";
-            // Basis: vector {a, b, c}
-            std::vector<Vector3> basis = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
-            // Atoms in the basis [dim][n_basis_atoms]
-            std::vector<Vector3> basis_atoms = { Vector3{0,0,0} };
+            // Bravais lattice type
+            std::string bravais_lattice = "sc";
+            // Bravais vectors {a, b, c}
+            Data::BravaisLatticeType bravais_lattice_type = Data::BravaisLatticeType::SC;
+            std::vector<Vector3> bravais_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
+            // Atoms in the basis
+            std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
+            int n_cell_atoms = cell_atoms.size();
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
-            // Translation vectors [dim][nov]
-            std::vector<Vector3> translation_vectors = { Vector3{1,0,0}, Vector3{0,1,0}, Vector3{0,0,1} };
             // Number of translations nT for each basis direction
             intfield n_cells = { 100, 100, 1 };
-            // Number of Spins
-            int nos;
-            vectorfield spin_pos;
             // Atom types
             intfield atom_types;
             intfield defect_indices(0);
@@ -306,34 +296,30 @@ namespace IO
                     Log(Log_Level::Info, Log_Sender::IO, "Reading Geometry Parameters");
                     IO::Filter_File_Handle myfile(configFile);
 
-                    // Read Shape of spins in term of the basis
-                    if (myfile.Find("translation_vectors"))
+                    // Lattice constant
+                    myfile.Read_Single(lattice_constant, "lattice_constant");
+
+                    // Get the bravais lattice type and vectors
+                    Bravais_Vectors_from_Config(configFile, bravais_vectors, bravais_lattice_type);
+
+                    // Read basis cell
+                    if (myfile.Find("basis"))
                     {
-                        // Read translation vectors into translation_vectors & nTa, nTb, nTc
+                        // Read number of atoms in the basis cell
                         myfile.GetLine();
-                        myfile.iss >> translation_vectors[0][0] >> translation_vectors[0][1] >> translation_vectors[0][2] >> n_cells[0];
-                        myfile.GetLine();
-                        myfile.iss >> translation_vectors[1][0] >> translation_vectors[1][1] >> translation_vectors[1][2] >> n_cells[1];
-                        myfile.GetLine();
-                        myfile.iss >> translation_vectors[2][0] >> translation_vectors[2][1] >> translation_vectors[2][2] >> n_cells[2];
-                    }// finish Reading Shape in terms of basis
-                    else {
-                        Log(Log_Level::Warning, Log_Sender::IO, "Keyword 'translation_vectors' not found. Using default. (sc 30x30x0)");
+                        myfile.iss >> n_cell_atoms;
+                        cell_atoms = std::vector<Vector3>(n_cell_atoms);
+
+                        // Read atom positions
+                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        {
+                            myfile.GetLine();
+                            myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                        }// endfor iatom
                     }
 
-                    // Read Basis
-                    if (myfile.Find("basis_from_config"))
-                    {
-                        myfile.iss >> basis_file;
-                        Basis_from_Config(basis_file, basis, basis_atoms, lattice_constant);
-                    }
-                    else if (myfile.Find("basis"))
-                    {
-                        Basis_from_Config(configFile, basis, basis_atoms, lattice_constant);
-                    }
-                    else {
-                        Log(Log_Level::Warning, Log_Sender::IO, "Neither Keyword 'basis_from_config', nor Keyword 'basis' found. Using Default (sc)");
-                    }// end Basis
+                    // Read number of basis cells
+                    myfile.Read_3Vector(n_cells, "n_basis_cells");
 
                     // Defects
                     #ifdef SPIRIT_ENABLE_DEFECTS
@@ -352,7 +338,6 @@ namespace IO
                             defect_indices, defects);
                     }
                     #endif
-
                 }// end try
                 catch( ... )
                 {
@@ -361,51 +346,50 @@ namespace IO
             }// end if file=""
             else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
 
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
+            // Log the parameters
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, "Bravais vectors in units of lattice constant");
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose() / lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose() / lattice_constant));
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose() / lattice_constant));
+            Log(Log_Level::Parameter, Log_Sender::IO, "Bravais vectors");
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
+            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {0} at {1}", iatom, cell_atoms[iatom].transpose()));
+            Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 
-            // Get x,y,z of component of translation_vectors in unit of length (instead of in units of a,b,c)
-            for (dim = 0; dim < 3; ++dim)
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    build_array[i] = basis[0][i] * translation_vectors[dim][0] + basis[1][i] * translation_vectors[dim][1] + basis[2][i] * translation_vectors[dim][2];
-                }
-                translation_vectors[dim] = build_array;
-            }
-            // Calculate NOS
-            nos = basis_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2];
-
-            // Spin Positions
-            spin_pos = vectorfield(nos);
-            Engine::Vectormath::Build_Spins(spin_pos, basis_atoms, translation_vectors, n_cells);
 
             // Atom types (default: type 0, vacancy: < 0)
-            atom_types = intfield(nos, 0);
+            atom_types = intfield(cell_atoms.size(), 0);
+
+            // Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
             int n_defects = defect_indices.size();
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
             for (int i = 0; i < n_defects; ++i)
             {
                 if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
-                atom_types[defect_indices[i]] = defects[i];
             }
             #endif
+
             // Log parameters
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: vectors transformed by basis");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       ta = {}", translation_vectors[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tb = {}", translation_vectors[1].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       tc = {}", translation_vectors[2].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, "Translation: n_cells");
+            Log(Log_Level::Parameter, Log_Sender::IO, "Lattice: n_basis_cells");
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", nos));
             
             // Return geometry
-            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(basis, translation_vectors, n_cells, basis_atoms, lattice_constant, spin_pos, atom_types));
+            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(bravais_vectors, n_cells, cell_atoms, atom_types, lattice_constant));
+
+            #ifdef SPIRIT_ENABLE_DEFECTS
+            for (int i = 0; i < n_defects; ++i)
+                geometry->atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
+            #endif
+
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
             Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
             return geometry;
@@ -424,7 +408,7 @@ namespace IO
         int na = 0, na_left = 0, na_right = 0;
         int nb = 0, nb_left = 0, nb_right = 0;
         int nc = 0, nc_left = 0, nc_right = 0;
-        vectorfield pinned_cell(geometry->n_spins_basic_domain, Vector3{ 0,0,1 });
+        vectorfield pinned_cell(geometry->n_cell_atoms, Vector3{ 0,0,1 });
         // Additional pinned sites
         intfield pinned_indices(0);
         vectorfield pinned_spins(0);
@@ -479,7 +463,7 @@ namespace IO
                     {
                         if (myfile.Find("pinning_cell"))
                         {
-                            for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+                            for (int i = 0; i < geometry->n_cell_atoms; ++i)
                             {
                                 myfile.GetLine();
                                 myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
@@ -536,7 +520,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={0}, right={1}", na_left, na_right));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={0}, right={1}", nb_left, nb_right));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={0}, right={1}", nc_left, nc_right));
-            for (int i = 0; i < geometry->n_spins_basic_domain; ++i)
+            for (int i = 0; i < geometry->n_cell_atoms; ++i)
                 Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[0]      = ({0})", pinned_cell[0].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites: ", n_pinned));
             for (int i = 0; i < n_pinned; ++i)
@@ -1044,48 +1028,20 @@ namespace IO
         intfield boundary_conditions = { false, false, false };
 
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);    // [nos]
+        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
+
         // External Magnetic Field
-        std::string external_field_file = "";
-        scalar B = 24;
+        scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
-        bool external_field_from_file = false;
-        intfield    external_field_index(geometry->nos);				// [nos]
-        scalarfield external_field_magnitude(geometry->nos, 0);	// [nos]
-        vectorfield external_field_normal(geometry->nos, B_normal);	// [3][nos]
-        // Fill in defaults
-        B_normal.normalize();
-        if (B != 0)
-        {
-            // Fill the arrays
-            for (int i = 0; i < geometry->nos; ++i)
-            {
-                external_field_index[i] = i;
-                external_field_magnitude[i] = B;
-                external_field_normal[i] = B_normal;
-            }
-        }
-        
+
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);                // [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);    // [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);    // [nos][3]
-        // Fill in defaults
-        K_normal.normalize();
-        if (K != 0)
-        {
-            // Fill the arrays
-            for (int i = 0; i < geometry->nos; ++i)
-            {
-                anisotropy_index[i] = i;
-                anisotropy_magnitude[i] = K;
-                anisotropy_normal[i] = K_normal;
-            }
-        }
+        intfield    anisotropy_index(geometry->n_cell_atoms);
+        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
+        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
 
         // Number of shells in which we calculate neighbours
         // Jij
@@ -1122,42 +1078,39 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                // External Field
-                if (myfile.Find("external_field_file")) myfile.iss >> external_field_file;
-                if (external_field_file.length() > 0)
+                // Spin moment
+                if (myfile.Find("mu_s"))
                 {
-                    int n;
-                    // The file name should be valid so we try to read it
-                    External_Field_from_File(external_field_file, geometry, n,
-                        external_field_index, external_field_magnitude, external_field_normal);
-                    
-                    external_field_from_file = true;
-                    B = external_field_magnitude[0];
-                    B_normal = external_field_normal[0];
-                }
-                else
-                {
-                    // Read parameters from config if available
-                    myfile.Read_Single(B, "external_field_magnitude");
-                    myfile.Read_Vector3(B_normal, "external_field_normal");
-                    B_normal.normalize();
-
-                    if (B != 0)
+                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
                     {
-                        // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
+                        if ( !(myfile.iss >> mu_s[iatom]) )
                         {
-                            external_field_index[i] = i;
-                            external_field_magnitude[i] = B;
-                            external_field_normal[i] = B_normal;
+                            Log(Log_Level::Warning, Log_Sender::IO,
+                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
+                            mu_s[iatom] = mu_s[0];
                         }
                     }
-                    else
-                    {
-                        external_field_index = intfield(0);
-                        external_field_magnitude = scalarfield(0);
-                        external_field_normal = vectorfield(0);
-                    }
+                }
+                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+            }// end try
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+            }
+
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                // External Field
+                // Read parameters from config if available
+                myfile.Read_Single(B, "external_field_magnitude");
+                myfile.Read_Vector3(B_normal, "external_field_normal");
+                B_normal.normalize();
+                if (B_normal.norm() < 1e-8)
+                {
+                    B_normal = { 0,0,1 };
+                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
                 }
             }// end try
             catch( ... )
@@ -1192,7 +1145,7 @@ namespace IO
                     if (K != 0)
                     {
                         // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
+                        for (int i = 0; i < anisotropy_index.size(); ++i)
                         {
                             anisotropy_index[i] = i;
                             anisotropy_magnitude[i] = K;
@@ -1274,8 +1227,6 @@ namespace IO
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        if (external_field_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
@@ -1292,7 +1243,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", dd_radius));
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
-                mu_s, external_field_index, external_field_magnitude, external_field_normal,
+                mu_s, B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 jij,
                 dij, dm_chirality,
@@ -1312,25 +1263,22 @@ namespace IO
         // Boundary conditions (a, b, c)
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
         intfield boundary_conditions = { false, false, false };
+
         // Spin moment
-        scalarfield mu_s = scalarfield(geometry->nos, 2);    // [nos]
+        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
+
         // External Magnetic Field
-        std::string external_field_file = "";
-        scalar B = 0;
+        scalar B = 25;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
-        bool external_field_from_file = false;
-        intfield    external_field_index(geometry->nos);                // [nos]
-        scalarfield external_field_magnitude(geometry->nos, 0);    // [nos]
-        vectorfield external_field_normal(geometry->nos, B_normal);    // [3][nos]
         
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->nos);                // [nos]
-        scalarfield anisotropy_magnitude(geometry->nos, 0.0);    // [nos]
-        vectorfield anisotropy_normal(geometry->nos, K_normal);    // [nos][3]
+        intfield    anisotropy_index(geometry->n_cell_atoms);
+        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
+        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
 
         // ------------ Pair Interactions ------------
         int n_pairs = 0;
@@ -1372,15 +1320,15 @@ namespace IO
                 IO::Filter_File_Handle myfile(configFile);
 
                 // Spin moment
-                mu_s = scalarfield(geometry->nos, 2.0);
                 if (myfile.Find("mu_s"))
                 {
-                    for (iatom = 0; iatom < geometry->n_spins_basic_domain; ++iatom)
+                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
                     {
-                        myfile.iss >> mu_s[iatom];
-                        for (int ispin = 0; ispin < geometry->nos / geometry->n_spins_basic_domain; ++ispin)
+                        if ( !(myfile.iss >> mu_s[iatom]) )
                         {
-                            mu_s[ispin*geometry->n_spins_basic_domain + iatom] = mu_s[iatom];
+                            Log(Log_Level::Warning, Log_Sender::IO,
+                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
+                            mu_s[iatom] = mu_s[0];
                         }
                     }
                 }
@@ -1395,52 +1343,14 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                // External Field
-                if (myfile.Find("n_external_field"))
-                    external_field_file = configFile;
-                else if (myfile.Find("external_field_file"))
-                    myfile.iss >> external_field_file;
-                if (external_field_file.length() > 0)
+                // Read parameters from config if available
+                myfile.Read_Single(B, "external_field_magnitude");
+                myfile.Read_Vector3(B_normal, "external_field_normal");
+                B_normal.normalize();
+                if (B_normal.norm() < 1e-8)
                 {
-                    // The file name should be valid so we try to read it
-                    External_Field_from_File(external_field_file, geometry, n_pairs,
-                        external_field_index, external_field_magnitude, external_field_normal);
-                    
-                    external_field_from_file = true;
-                    if (external_field_index.size() != 0)
-                    {
-                        B = external_field_magnitude[0];
-                        B_normal = external_field_normal[0];
-                    }
-                    else
-                    {
-                        B = 0;
-                        B_normal = { 0,0,0 };
-                    }
-                }
-                else
-                {
-                    // Read parameters from config if available
-                    myfile.Read_Single(B, "external_field_magnitude");
-                    myfile.Read_Vector3(B_normal, "external_field_normal");
-                    B_normal.normalize();
-
-                    if (B != 0)
-                    {
-                        // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
-                        {
-                            external_field_index[i] = i;
-                            external_field_magnitude[i] = B;
-                            external_field_normal[i] = B_normal;
-                        }
-                    }
-                    else
-                    {
-                        external_field_index = intfield(0);
-                        external_field_magnitude = scalarfield(0);
-                        external_field_normal = vectorfield(0);
-                    }
+                    B_normal = { 0,0,1 };
+                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
                 }
             }// end try
             catch( ... )
@@ -1485,7 +1395,7 @@ namespace IO
                     if (K != 0)
                     {
                         // Fill the arrays
-                        for (int i = 0; i < geometry->nos; ++i)
+                        for (int i = 0; i < anisotropy_index.size(); ++i)
                         {
                             anisotropy_index[i] = i;
                             anisotropy_magnitude[i] = K;
@@ -1574,9 +1484,7 @@ namespace IO
         
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        if (external_field_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        B                     from file");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
@@ -1587,7 +1495,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
             mu_s,
-            external_field_index, external_field_magnitude, external_field_normal,
+            B, B_normal,
             anisotropy_index, anisotropy_magnitude, anisotropy_normal,
             exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals,

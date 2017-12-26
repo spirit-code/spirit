@@ -79,16 +79,16 @@ def Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1):
 
 ### Get Pointer to Spin Positions
 # NOTE: Changing the values of the array_view one can alter the value of the data of the state
-_Get_Spin_Positions            = _spirit.Geometry_Get_Spin_Positions
-_Get_Spin_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Spin_Positions.restype    = ctypes.POINTER(scalar)
-def Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1):
+_Get_Positions            = _spirit.Geometry_Get_Positions
+_Get_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Positions.restype    = ctypes.POINTER(scalar)
+def Get_Positions(p_state, idx_image=-1, idx_chain=-1):
     nos = system.Get_NOS(p_state, idx_image, idx_chain)
     ArrayType = scalar*3*nos
-    Data = _Get_Spin_Positions(ctypes.c_void_p(p_state), 
+    Data = _Get_Positions(ctypes.c_void_p(p_state), 
                                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
-    array = np.frombuffer(array_pointer.contents)
+    array = np.frombuffer(array_pointer.contents, dtype=scalar)
     array_view = array.view()
     array_view.shape = (nos, 3)
     return array_view

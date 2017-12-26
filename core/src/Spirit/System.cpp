@@ -169,9 +169,16 @@ void System_Update_Data(State * state, int idx_image, int idx_chain) noexcept
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
-        image->UpdateEnergy();
-    	image->Unlock();
+        image->Lock();
+        try
+        {
+            image->UpdateEnergy();
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image, idx_chain);
+        }
+        image->Unlock();
     }
     catch( ... )
     {

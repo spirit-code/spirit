@@ -23,7 +23,7 @@ namespace Engine
 		// Constructor
 		Hamiltonian_Heisenberg_Neighbours(
 			scalarfield mu_s,
-			intfield external_field_indices, scalarfield external_field_magnitudes, vectorfield external_field_normals,
+			scalar external_field_magnitude, Vector3 external_field_normal,
 			intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
 			scalarfield exchange_magnitudes,
 			scalarfield dmi_magnitudes, int dm_chirality,
@@ -31,8 +31,6 @@ namespace Engine
 			std::shared_ptr<Data::Geometry> geometry,
 			intfield boundary_conditions
 		);
-
-		void Update_From_Geometry() override;
 
 		void Update_Energy_Contributions() override;
 
@@ -49,27 +47,26 @@ namespace Engine
 		// Spin moment
 		scalarfield mu_s;									// [nos]
 		// External Magnetic Field
-		intfield external_field_indices;
-		scalarfield external_field_magnitudes;	// [nos]
-		vectorfield external_field_normals;		// [nos] (x, y, z)
+		scalar external_field_magnitude;
+		Vector3 external_field_normal;
 		// Anisotropy
 		intfield anisotropy_indices;
-		scalarfield anisotropy_magnitudes;		// [nos]
-		vectorfield anisotropy_normals;			// [nos] (x, y, z)
+		scalarfield anisotropy_magnitudes;
+		vectorfield anisotropy_normals;
 
 		// ------------ Pair Interactions ------------
 		// Exchange interaction
-		neighbourfield exchange_neighbours;		// [periodicity][nop][2] (i,j)
-		scalarfield exchange_magnitudes;	// [periodicity][nop]    J_ij
+		neighbourfield exchange_neighbours;
+		scalarfield exchange_magnitudes;
 		// DMI
-		neighbourfield dmi_neighbours;			// [periodicity][nop][2] (i,j)
-		scalarfield dmi_magnitudes;			// [periodicity][nop]    D_ij
-		vectorfield dmi_normals;			// [periodicity][nop][3] (Dx,Dy,Dz)
+		neighbourfield dmi_neighbours;
+		scalarfield dmi_magnitudes;
+		vectorfield dmi_normals;
 		// Dipole Dipole interaction
 		scalar ddi_radius;
-		neighbourfield ddi_neighbours;			// [periodicity][nop][2] (i,j)
-		scalarfield ddi_magnitudes;			// [periodicity][nop]    r_ij (distance)
-		vectorfield ddi_normals;			// [periodicity][nop][4] (nx,ny,nz)
+		neighbourfield ddi_neighbours;
+		scalarfield ddi_magnitudes;
+		vectorfield ddi_normals;
 
 	private:
 		std::shared_ptr<Data::Geometry> geometry;
