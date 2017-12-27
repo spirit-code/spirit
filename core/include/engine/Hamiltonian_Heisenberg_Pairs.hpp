@@ -76,8 +76,9 @@ namespace Engine
 	private:
 		std::shared_ptr<Data::Geometry> geometry;
 
-		int total_mc; //Number macro cell
-		int mc_atoms; //Number of atoms in the macro cell
+		int n_mc_total; // Total number macro cell
+		int n_mc_atoms; // Total number of atoms in a macro cell
+        intfield n_cells_macro; // Number of macrocells
 		std::vector<std::vector <int> >atom_id_mc; //id atoms in each macro cell
 		std::vector< vectorfield > xyz_atoms_mc;   //Position atoms in each macro cell
 		vectorfield macrospins; //Total moment in each macro cell
@@ -88,7 +89,8 @@ namespace Engine
 		Vector3 grad_E_in;
 		Vector3 grad_E_mc;
 
-		void Prepare_MacroCells(const vectorfield & spins);
+        void Prepare_MacroCells();
+        void Update_MacroSpins(const vectorfield & spins);
 		void Energies_MacroCells(const vectorfield & spins);
 		void Gradient_MacroCells(const vectorfield & spins);
 
