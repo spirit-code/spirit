@@ -82,7 +82,7 @@ namespace Engine
 		std::vector<std::vector <int> >atom_id_mc; //id atoms in each macro cell
 		std::vector< vectorfield > xyz_atoms_mc;   //Position atoms in each macro cell
 		vectorfield macrospins; //Total moment in each macro cell
-		scalar E_in;            //Energy contribution inside the macro-cell
+		scalar E_intra;            //Energy contribution inside the macro-cell
 		std::vector<Matrix3> D; //Dipole-dipole matrix inside mc
 		scalar E_dip_mc;				//Energy contribution inter macro-cells
 		std::vector< std::vector <Matrix3>  > D_inter; //Inter dipole dipole matrix
