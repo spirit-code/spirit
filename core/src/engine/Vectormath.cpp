@@ -234,16 +234,23 @@ namespace Engine
             }
         }
 
-        void get_gradient_distribution(Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, bool allow_negative)
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
         {
-            fill(distribution, gradient_start);
+            // Ensure a normalized direction vector
+            gradient_direction.normalize();
 
-            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+            // Basic linear gradient distribution
+            set_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
 
-            if (!allow_negative)
-            {
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, gradient_start - gradient_inclination*dist_min);
 
-            }
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
         }
 
         
@@ -405,6 +412,13 @@ namespace Engine
         {
             scalar ret = sum(sf)/sf.size();
             return ret;
+        }
+
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
         }
 
         void fill(vectorfield & vf, const Vector3 & v)

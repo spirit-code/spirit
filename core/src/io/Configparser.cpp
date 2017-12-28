@@ -622,6 +622,7 @@ namespace IO
                 myfile.Read_Single(dt, "llg_dt");
                 myfile.Read_Single(temperature, "llg_temperature");
                 myfile.Read_Vector3(temperature_gradient_direction, "llg_temperature_gradient_direction");
+                temperature_gradient_direction.normalize();
                 myfile.Read_Single(temperature_gradient_start, "llg_temperature_gradient_start");
                 myfile.Read_Single(temperature_gradient_inclination, "llg_temperature_gradient_inclination");
                 myfile.Read_Single(damping, "llg_damping");

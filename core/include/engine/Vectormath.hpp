@@ -391,7 +391,7 @@ namespace Engine
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi);
 
         // Calculate a gradient scalar distribution according to a starting value, direction and inclination
-        void get_gradient_distribution(Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, bool allow_negative=false);
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max);
 
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
@@ -419,6 +419,9 @@ namespace Engine
 
         // Calculate the mean of a scalarfield
         scalar mean(const scalarfield & sf);
+
+        // Cut off all values to remain in a certain range
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max);
 
         // sets vf := v
         // vf is a vectorfield
