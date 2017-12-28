@@ -276,6 +276,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
 	{
 		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+        // factor 0.5 in mult because we have each pair twice in our list, 0.5 below in the energy because we add the term twice
 		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 		//Print after set the radius on spirit
@@ -294,9 +295,9 @@ namespace Engine
 							int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_spins_basic_domain, geometry->atom_types, ddi_pairs[i_pair]);
 							if (jspin >= 0)
 							{
-								Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) * mu_s[0] * mu_s[0] *
+								Energy[ispin] -= 0.5*mult / std::pow(ddi_magnitudes[i_pair], 3.0) * mu_s[0] * mu_s[0] *
 									(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[jspin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[jspin]));
-								Energy[jspin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) * mu_s[0] * mu_s[0] *
+								Energy[jspin] -= 0.5*mult / std::pow(ddi_magnitudes[i_pair], 3.0) * mu_s[0] * mu_s[0] *
 									(3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[jspin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[jspin]));
 							}
 						}
@@ -436,9 +437,9 @@ namespace Engine
                             scalar term = Constants::mu_B / (4 * M_PI*std::pow(r, 5));
 
                             // Get Effective dipole matrix
-                            D_tmp << (3 * x*x - r * r), (3 * x*y), (3 * x*z),
-                                     (3 * x*y), (3 * y*y - r * r), (3 * y*z),
-                                     (3 * x*z), (3 * y*z), (3 * z*z - r * r);
+                            D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
+                                     (3*x*y), (3*y*y - r*r), (3*y*z),
+                                     (3*x*z), (3*y*z), (3*z*z - r*r);
 
                             // Add it to the inter dipole dipole matrix
                             this->D_inter[q_mc][p_mc] += term / (n_mc_atoms*n_mc_atoms) * D_tmp;
@@ -476,7 +477,7 @@ namespace Engine
 
         // --- Energy inside mc (intra)
         E_intra = 0.0;
-        scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         Matrix3 D_tmp;
         // Loop over macro cells
         for (unsigned int p_mc = 0; p_mc < n_mc_total; ++p_mc)
@@ -502,26 +503,26 @@ namespace Engine
                         scalar term = mu_s[0] * mu_s[0] * Constants::mu_B / (4 * M_PI*std::pow(r, 5));
 
                         //Get dipole-dipole matrix for the atoms in the macro-cell
-                        D_tmp << (3 * x*x - r * r), (3 * x*y), (3 * x*z),
-                                 (3 * x*y), (3 * y*y - r * r), (3 * y*z),
-                                 (3 * x*z), (3 * y*z), (3 * z*z - r * r);
+                        D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
+                                 (3*x*y), (3*y*y - r*r), (3*y*z),
+                                 (3*x*z), (3*y*z), (3*z*z - r*r);
 
                         //Sum of the energy contributions
                         E_intra += term * spins[id_i].dot(D_tmp * spins[id_j]);
 
-                        // Alternative implementation:
-                        //Vector3 ipos = geometry->spin_pos[id_i];
-                        //Vector3 jpos = geometry->spin_pos[id_j];
+                        // // Alternative implementation:
+                        // Vector3 ipos = geometry->spin_pos[id_i];
+                        // Vector3 jpos = geometry->spin_pos[id_j];
 
-                        //// Calculate positions and difference vector
-                        //Vector3 vector_ij = jpos - ipos;
+                        // // Calculate positions and difference vector
+                        // Vector3 vector_ij = jpos - ipos;
 
-                        //// Length of difference vector
-                        //scalar magnitude = vector_ij.norm();
-                        //Vector3 normal = vector_ij.normalized();
+                        // // Length of difference vector
+                        // scalar magnitude = vector_ij.norm();
+                        // Vector3 normal = vector_ij.normalized();
 
-                        //E_intra += mult / std::pow(magnitude, 3.0) * mu_s[0] * mu_s[0] *
-                        //    (3 * spins[id_i].dot(normal) * spins[id_j].dot(normal) - spins[id_i].dot(spins[id_j]));
+                        // E_intra += mult / std::pow(magnitude, 3.0) * mu_s[0] * mu_s[0] *
+                        //     (3 * spins[id_i].dot(normal) * spins[id_j].dot(normal) - spins[id_i].dot(spins[id_j]));
                     }
                 }
             }
@@ -547,7 +548,7 @@ namespace Engine
         double Etotal = -0.5*E_dip_mc - 0.5*E_intra;
         std::cout << std::endl;
         std::cout << " --Get energy-- " << std::endl;
-        std::cout << -0.5*E_dip_mc << " + " << -0.5*E_intra << " = " << Etotal << std::endl;
+        std::cout << -0.5*E_dip_mc/geometry->nos << " + " << -0.5*E_intra/geometry->nos << " = " << Etotal/geometry->nos << std::endl;
         std::cout << std::endl;
     }// end Dipole-Dipole Energy
 
