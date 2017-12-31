@@ -107,12 +107,13 @@ namespace Engine
             Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // TODO: why the 0.5 everywhere??
-            if (parameters.direct_minimization)
+            // Direct minimisation
+            if (parameters.direct_minimization || solver == Solver::VP)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
+            // Dynamics simulation
             else
             {
                 Vectormath::set_c_a( dtg, force, force_virtual);
@@ -121,7 +122,6 @@ namespace Engine
                 // STT
                 if (a_j > 0)
                 {
-
                     if (parameters.stt_use_gradient)
                     {
                         auto& geometry = *this->systems[0]->geometry;
