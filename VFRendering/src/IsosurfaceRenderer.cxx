@@ -112,7 +112,7 @@ void IsosurfaceRenderer::draw(float aspect_ratio) {
     auto projection_matrix = matrices.second;
 
     glm::vec3 camera_position = options().get<View::Option::CAMERA_POSITION>();
-    glm::vec4 light_position = model_view_matrix * glm::vec4(camera_position, 1.0f);
+    glm::vec3 light_position = options().get<View::Option::LIGHT_POSITION>();
 
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uModelviewMatrix"), 1, false, glm::value_ptr(model_view_matrix));
