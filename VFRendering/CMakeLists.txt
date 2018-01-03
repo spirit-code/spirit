@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VFRendering VERSION 0.7.0)
+file(STRINGS "Version.txt" VFRENDERING_VERSION)
+project(VFRendering VERSION ${VFRENDERING_VERSION})
 
 option(BUILD_DEMO "Whether or not a demo executable should be built" OFF)
+option(BUILD_PYTHON_BINDINGS "Whether or not a binary python module should be built" OFF)
 
 if((NOT qhull_LIBS) OR (NOT qhull_INCLUDE_DIRS))
 
@@ -13,23 +15,40 @@ if(qhull_INCLUDE_DIRS)
 message(WARNING "qhull_INCLUDE_DIRS is set, but qhull_LIBS is missing.")
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(ExternalProject)
 ExternalProject_add(qhull
-	GIT_REPOSITORY https://github.com/qhull/qhull.git
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install"
-	PREFIX qhull-prefix
+    GIT_REPOSITORY https://github.com/qhull/qhull.git
+    CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/thirdparty-install;-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
+    PREFIX qhull-prefix
 )
 
+### qhullstatic reentrant library
 add_library(libqhullstatic_r STATIC IMPORTED)
 set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+if ( WIN32 )
+    foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+        string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER )
+        set_property(TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_${OUTPUTCONFIG_UPPER} ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${OUTPUTCONFIG}/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+endif ( WIN32 )
 add_dependencies(libqhullstatic_r qhull)
 
+### qhullcpp library
 add_library(libqhullcpp STATIC IMPORTED)
 set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+if ( WIN32 )
+    foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+        string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER )
+        set_property(TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_${OUTPUTCONFIG_UPPER} ${PROJECT_BINARY_DIR}/qhull-prefix/src/qhull-build/${OUTPUTCONFIG}/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+endif ( WIN32 )
 set_property(TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r)
 add_dependencies(libqhullcpp qhull)
 
 set(qhull_LIBS libqhullcpp)
+### Add corresponding include directories
 set(qhull_INCLUDE_DIRS "${PROJECT_BINARY_DIR}/thirdparty-install/include;${PROJECT_BINARY_DIR}/thirdparty-install/include/libqhullcpp")
 endif()
 
@@ -45,6 +64,7 @@ set(SOURCE_FILES
     src/IsosurfaceRenderer.cxx
     src/Options.cxx
     src/RendererBase.cxx
+    src/SphereRenderer.cxx
     src/SurfaceRenderer.cxx
     src/Utilities.cxx
     src/VectorField.cxx
@@ -62,11 +82,12 @@ set(HEADER_FILES
     include/VFRendering/CombinedRenderer.hxx
     include/VFRendering/CoordinateSystemRenderer.hxx
     include/VFRendering/FPSCounter.hxx
-    include/VFRendering/Geometry.hxx
     include/VFRendering/GlyphRenderer.hxx
+    include/VFRendering/Geometry.hxx
     include/VFRendering/IsosurfaceRenderer.hxx
     include/VFRendering/Options.hxx
     include/VFRendering/RendererBase.hxx
+    include/VFRendering/SphereRenderer.hxx
     include/VFRendering/SurfaceRenderer.hxx
     include/VFRendering/Utilities.hxx
     include/VFRendering/VectorField.hxx
@@ -74,8 +95,8 @@ set(HEADER_FILES
     include/VFRendering/VectorSphereRenderer.hxx
     include/VFRendering/View.hxx
     include/shaders
-    include/shaders/arrows.frag.glsl.hxx
-    include/shaders/arrows.vert.glsl.hxx
+    include/shaders/glyphs.frag.glsl.hxx
+    include/shaders/glyphs.vert.glsl.hxx
     include/shaders/boundingbox.frag.glsl.hxx
     include/shaders/boundingbox.vert.glsl.hxx
     include/shaders/colormap.bluegreenred.glsl.hxx
@@ -95,6 +116,10 @@ set(HEADER_FILES
     include/shaders/isosurface.frag.glsl.hxx
     include/shaders/isosurface.vert.glsl.hxx
 )
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX")
+endif()
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${qhull_LIBS})
@@ -127,4 +152,21 @@ set_property(TARGET ${PROJECT_NAME}Demo PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET ${PROJECT_NAME}Demo PROPERTY CXX_EXTENSIONS OFF)
 
 target_include_directories(${PROJECT_NAME}Demo PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/glad/include)
+endif()
+
+# Build Python bindings
+if (BUILD_PYTHON_BINDINGS)
+set(MODULE_NAME py${PROJECT_NAME})
+add_subdirectory(thirdparty/pybind11)
+pybind11_add_module(${MODULE_NAME} python/vfrendering_bindings.cpp)
+
+target_compile_definitions(${MODULE_NAME} PUBLIC "-D${PROJECT_NAME}_VERSION=\"${${PROJECT_NAME}_VERSION}${MODULE_DEV_TAG}\"")
+
+target_include_directories(${MODULE_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(${MODULE_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/pybind11/include)
+target_include_directories(${MODULE_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/glm/include)
+target_include_directories(${MODULE_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/glad/include)
+target_include_directories(${MODULE_NAME} PRIVATE ${qhull_INCLUDE_DIRS})
+
+target_link_libraries(${MODULE_NAME} PRIVATE ${PROJECT_NAME})
 endif()

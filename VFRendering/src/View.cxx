@@ -151,11 +151,13 @@ void View::setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::
     m_is_centered = false;
 }
 
-void View::renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers) {
+void View::renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers, bool update_renderer_options) {
     m_renderers = renderers;
-    for (auto it : m_renderers) {
-        auto renderer = it.first;
-        renderer->updateOptions(options());
+    if (update_renderer_options) {
+        for (auto it : m_renderers) {
+            auto renderer = it.first;
+            renderer->updateOptions(options());
+        }
     }
 }
 
