@@ -1,6 +1,7 @@
 #include <Spirit_Defines.h>
 #include <engine/Method_EMA.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Eigenmodes.hpp>
 #include <data/Spin_System.hpp>
 #include <io/IO.hpp>
 #include <utility/Logging.hpp>
@@ -41,6 +42,7 @@ namespace Engine
         this->angle_initial = scalarfield(this->nos);
 
         this->spins_initial = *this->systems[0]->spins;
+        this->mode = vectorfield(this->nos, Vector3{1, 0, 0});
         this->axis = vectorfield(this->nos);
 
         // Calculate the Eigenmodes
@@ -57,29 +59,17 @@ namespace Engine
         // The Hessian (unprojected)
         system->hamiltonian->Hessian(spins_initial, hessian);
 
-        // Calculate the final Hessian to use for the minimum mode
-        MatrixX hessian_final = MatrixX::Zero(2*this->nos, 2*this->nos);
-        Manifoldmath::hessian_bordered(spins_initial, gradient, hessian, hessian_final);
-        
-        Spectra::DenseGenMatProd<scalar> op(hessian_final);
-        Spectra::GenEigsSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<scalar> > hessian_spectrum(&op, n_modes, 2*this->nos);
-        hessian_spectrum.init();
-        // Compute the specified spectrum
-        int nconv = hessian_spectrum.compute(1000, 1e-10, int(Spectra::SMALLEST_REAL));
+        // Get the eigenspectrum
+        MatrixX hessian_constrained = MatrixX::Zero(2*nos, 2*nos);
+        MatrixX tangent_basis = MatrixX::Zero(3*nos, 2*nos);
+        VectorX eigenvalues;
+        MatrixX eigenvectors;
+        bool successful = Eigenmodes::Hessian_Partial_Spectrum(spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
 
-        this->mode = vectorfield(this->nos, Vector3{1, 0, 0});
-        if (hessian_spectrum.info() == Spectra::SUCCESSFUL)
+        if (successful)
         {
-            // Retrieve the eigenvalues
-            // VectorX evalues = hessian_spectrum.eigenvalues().real();
-
-            // Retrieve the eigenmode
-            VectorX evec_2N = hessian_spectrum.eigenvectors().real().col(selected_mode);
-
             // Extract the minimum mode (transform evec_lowest_2N back to 3N)
-            MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
-            Manifoldmath::tangent_basis_spherical(spins_initial, basis_3Nx2N); // Important to choose the right matrix here! It should especially be consistent with the matrix chosen in the Hessian calculation!
-            VectorX evec_3N = basis_3Nx2N * evec_2N;
+            VectorX evec_3N = tangent_basis * eigenvectors.col(selected_mode);
 
             // Set the mode
             for (int n=0; n<this->nos; ++n)
@@ -87,11 +77,15 @@ namespace Engine
                 this->mode[n] = {evec_3N[3*n], evec_3N[3*n+1], evec_3N[3*n+2]};
                 this->angle_initial[n] = this->mode[n].norm();
             }
-        }
 
-        // Find the axes of rotation
-        for (int idx=0; idx<nos; idx++)
-            this->axis[idx] = spins_initial[idx].cross(this->mode[idx]).normalized();
+            // Find the axes of rotation
+            for (int idx=0; idx<nos; idx++)
+                this->axis[idx] = spins_initial[idx].cross(this->mode[idx]).normalized();
+        }
+        else
+        {
+            // What to do then?
+        }
     }
     
     void Method_EMA::Iteration()

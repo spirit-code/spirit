@@ -7,6 +7,7 @@ set(SOURCE_SPIRIT_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.cpp

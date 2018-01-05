@@ -76,11 +76,11 @@ namespace Engine
 
 
         // Calculate Hessian for a vectorfield constrained to unit length, at any extremum (i.e. where vectors || gradient)
-        void hessian_bordered(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out);
+        void hessian_bordered(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out);
         // Calculate tangential derivatives and correction terms according to the projector approach
-        void hessian_projected(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out);
+        void hessian_projected(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out);
         // Calculate tangential derivatives and correction terms according to the projector and Weingarten map approach
-        void hessian_weingarten(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out);
+        void hessian_weingarten(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out);
         // Calculate spherical derivatives using coordinate transformations via jacobians
         void hessian_spherical(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out);
         // Calculate spherical derivates and correction terms using jacobians and christoffel symbols

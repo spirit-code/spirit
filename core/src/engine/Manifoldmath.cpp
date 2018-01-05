@@ -300,7 +300,7 @@ namespace Engine
 
 
 
-        void hessian_bordered(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out)
+        void hessian_bordered(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out)
         {
             // Calculates a 3Nx3N matrix in the bordered Hessian approach and transforms it into the tangent basis,
             // making the result a 2Nx2N matrix. The bordered Hessian's Lagrange multipliers assume a local extremum.
@@ -321,16 +321,15 @@ namespace Engine
             }
 
             // Calculate the basis transformation matrix
-            MatrixX basis = MatrixX::Zero(3*nos, 2*nos);
-            tangent_basis_spherical(image, basis);
-            // tangent_basis(image, basis);
+            tangent_basis = MatrixX::Zero(3*nos, 2*nos);
+            tangent_basis_spherical(image, tangent_basis);
 
             // Result is a 2Nx2N matrix
-            hessian_out = basis.transpose() * tmp_3N * basis;
+            hessian_out = tangent_basis.transpose() * tmp_3N * tangent_basis;
         }
 
 
-        void hessian_projected(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out)
+        void hessian_projected(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out)
         {
             // Calculates a 3Nx3N matrix in the projector approach and transforms it into the tangent basis,
             // making the result a 2Nx2N matrix
@@ -352,15 +351,15 @@ namespace Engine
             }
 
             // Calculate the basis transformation matrix
-            MatrixX basis = MatrixX::Zero(3*nos, 2*nos);
-            Engine::Manifoldmath::tangent_basis_spherical(image, basis);
+            tangent_basis = MatrixX::Zero(3*nos, 2*nos);
+            Engine::Manifoldmath::tangent_basis_spherical(image, tangent_basis);
 
             // Result is a 2Nx2N matrix
-            hessian_out = basis.transpose() * hessian_out * basis;
+            hessian_out = tangent_basis.transpose() * hessian_out * tangent_basis;
         }
 
 
-        void hessian_weingarten(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out)
+        void hessian_weingarten(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_out)
         {
             // Calculates a 3Nx3N matrix in the Weingarten map approach and transforms it into the tangent basis,
             // making the result a 2Nx2N matrix
@@ -382,11 +381,11 @@ namespace Engine
             }
 
             // Calculate the basis transformation matrix
-            MatrixX basis = MatrixX::Zero(3*nos, 2*nos);
-            tangent_basis_spherical(image, basis);
+            tangent_basis = MatrixX::Zero(3*nos, 2*nos);
+            tangent_basis_spherical(image, tangent_basis);
 
             // Result is a 2Nx2N matrix
-            hessian_out = basis.transpose() * hessian_out * basis;
+            hessian_out = tangent_basis.transpose() * hessian_out * tangent_basis;
         }
 
 
