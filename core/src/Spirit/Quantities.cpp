@@ -133,9 +133,10 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
 
     // Calculate the final Hessian to use for the minimum mode
     MatrixX hessian_final = MatrixX::Zero(2*nos, 2*nos);
+    MatrixX tangent_basis = MatrixX::Zero(3*nos, 2*nos);
     // Manifoldmath::hessian_bordered(image, gradient, hessian, hessian_final);
     // Manifoldmath::hessian_projected(image, gradient, hessian, hessian_final);
-    Manifoldmath::hessian_weingarten(image, gradient, hessian, hessian_final);
+    Manifoldmath::hessian_weingarten(image, gradient, hessian, tangent_basis, hessian_final);
     // Manifoldmath::hessian_spherical(image, gradient, hessian, hessian_final);
     // Manifoldmath::hessian_covariant(image, gradient, hessian, hessian_final);
 

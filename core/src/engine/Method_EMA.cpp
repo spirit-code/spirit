@@ -46,7 +46,7 @@ namespace Engine
         this->axis = vectorfield(this->nos);
 
         // Calculate the Eigenmodes
-        int n_modes = 10;
+        int n_modes = 2*nos-2;
         int selected_mode = 0;
 
         vectorfield gradient(this->nos);

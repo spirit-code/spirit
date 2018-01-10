@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <sstream>
 
-auto inputfile = "core/test/input/fd_neighbours.cfg";
+auto inputfile = "core/test/input/fd_pairs.cfg";
 auto method = "EMA";
 auto solver = "Heun"; //// NOTE: choise of solver doesn't matter
 // auto testfile = "method_EMA_test.txt";
