@@ -695,22 +695,72 @@ namespace IO
         int n_iterations = (int)1E+9;
         // Number of iterations after which the system is logged to file
         int n_iterations_log = 1000;
-        
-        int n_modes;
-        int n_mode_follow;
+        // Number of eigenmodes to be calculated for a given image
+        int n_modes = 10;
+        // Which eigenmode to visualize
+        int n_mode_follow = 0;
         
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
         
+        if (configFile != "")
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                myfile.Read_Single(output_folder,  "ema_output_folder");
+                myfile.Read_Single(output_file_tag,"output_file_tag");
+                myfile.Read_Single(output_any,     "ema_output_any");
+                myfile.Read_Single(output_initial, "ema_output_initial");
+                myfile.Read_Single(output_final,   "ema_output_final");
+                myfile.Read_Single(output_energy_divide_by_nspins, "ema_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_spin_resolved,    "ema_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,             "ema_output_energy_step");
+                myfile.Read_Single(output_energy_archive,          "ema_output_energy_archive");
+                myfile.Read_Single(output_configuration_step,    "ema_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive, "ema_output_configuration_archive");
+                myfile.Read_Single(str_max_walltime, "ema_max_walltime");
+                myfile.Read_Single(n_iterations, "ema_n_iterations");
+                myfile.Read_Single(n_iterations_log, "ema_n_iterations_log");
+                myfile.Read_Single(n_modes, "ema_n_modes");
+                myfile.Read_Single(n_mode_follow, "ema_n_mode_follow");
+            }// end try
+            catch (...)
+            {
+                spirit_handle_exception_core(fmt::format("Unable to parse EMA parameters from "
+                    "config file \"{}\"", configFile));
+            }
+        }
+        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters EMA: Using default configuration!");
+        
+        // Return
+        Log(Log_Level::Parameter, Log_Sender::IO, "Parameters EMA:");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_modes", n_modes));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_mode_follow", n_mode_follow));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
+        
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto mc_params = std::unique_ptr<Data::Parameters_Method_EMA>(
+        auto ema_params = std::unique_ptr<Data::Parameters_Method_EMA>(
             new Data::Parameters_Method_EMA(output_folder, output_file_tag, { output_any, 
                 output_initial, output_final, output_energy_step, output_energy_archive, 
                 output_energy_spin_resolved, output_energy_divide_by_nspins, 
                 output_configuration_step, output_configuration_archive }, n_iterations, 
                 n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
-        return mc_params;
+        return ema_params;
     }
 
     std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)

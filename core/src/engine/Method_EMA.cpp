@@ -44,11 +44,32 @@ namespace Engine
         this->spins_initial = *this->systems[0]->spins;
         this->mode = vectorfield(this->nos, Vector3{1, 0, 0});
         this->axis = vectorfield(this->nos);
-
+        
+        //// XXX: In case of illegal n_modes and n_mode_follow values do we have to just set the 
+        // proper values localy or the systems values in EMA_Parameters?
+        
+        // Check and set the total number of nodes
+        int n_modes = system->ema_parameters->n_modes; 
+        if (n_modes > 2*this->nos-2)
+        {
+            n_modes = 2*this->nos-2;
+            Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Number of eigenmodes declared in "
+                "EMA Parameters is too large. The number is set to {}", n_modes), 
+                -1, this->idx_chain);
+        }
+        
+        // Check and set the mode to be visualized
+        int selected_mode = system->ema_parameters->n_mode_follow;
+        if (selected_mode > n_modes-1)
+        {
+            Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Eigenmode number {} is not "
+                "available. The largest eigenmode ({}) is used instead", selected_mode, n_modes-1),
+                -1, this->idx_chain);
+            selected_mode = n_modes-1;
+        }
+        
         // Calculate the Eigenmodes
-        int n_modes = 2*nos-2;
-        int selected_mode = 0;
-
+        
         vectorfield gradient(this->nos);
         MatrixX hessian(3*this->nos, 3*this->nos);
 
