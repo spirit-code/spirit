@@ -10,4 +10,25 @@ from spirit import log
 
 import unittest
 
+#########
+
+class TestLog(unittest.TestCase):
+
+    def test_log_message(self):
+        with state.State() as p_state:
+            log.Send(p_state, 1, 0, "Test Message")
+
 ##########
+
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest( unittest.makeSuite(TestLog) )
+    return suite
+
+if __name__ == '__main__':
+    suite = suite()
+
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
+
+    sys.exit(not success)

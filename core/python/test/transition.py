@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = "input/input.cfg"                 # Input File
+cfgfile = spirit_py_dir + "/../../input/input.cfg"                 # Input File
 p_state = state.setup(cfgfile)              # State setup
 chain.Image_to_Clipboard(p_state)         # Copy p_state to Clipboard
 
@@ -47,11 +47,12 @@ def suite():
     suite.addTest(unittest.makeSuite(trivialTestTransition))
     return suite
 
-suite = suite()
+if __name__ == '__main__':
+    suite = suite()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-state.delete( p_state )                         # Delete State
+    state.delete( p_state )                         # Delete State
 
-sys.exit(not success)
+    sys.exit(not success)
