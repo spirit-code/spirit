@@ -25,7 +25,7 @@ matrix:
       env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt@5.7/5.7.1" PYPI=true
     # Linux, GCC 6
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true COVERALLS=true
       compiler: g++
       addons:
         apt:
@@ -119,7 +119,7 @@ matrix:
 
 
 before_install:
-  - sudo pip install numpy wheel twine
+  - sudo pip install numpy wheel twine coveralls
   # Run homebrew on osx
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
@@ -213,3 +213,11 @@ script:
   # Upload to testpypi on all commits (if PYPI == true)
   - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
   - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
+
+  # Run coverage report generation and upload to coveralls
+  - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_BRANCH" != "develop" ]; then COVERALLS=false; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then COVERALLS=false; fi
+  - if [ "$COVERALLS" == "true" ]; then coverage run --source spirit setup.py test > cov.txt; fi
+  - if [ "$COVERALLS" == "true" ]; then head cov.txt; fi
+  - if [ "$COVERALLS" == "true" ]; then coverage report -m; fi
+  - if [ "$COVERALLS" == "true" ]; then coveralls; fi
