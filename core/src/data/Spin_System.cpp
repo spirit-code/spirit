@@ -23,9 +23,16 @@ namespace Data
 
 		// Get Number of Spins
 		this->nos = this->geometry->nos;
+        this->nem = this->ema_parameters->n_modes;
+        
+        // The check is also be done by EMA method and checks/sets the value in ema_parameters
+        if( this->nem > 2*this->nos-2 ) this->nem = 2*this->nos-2;
 
 		// Initialize Spins Array
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(nos));
+        
+        // Initialize Modes container
+        this->modes = std::vector<std::shared_ptr<vectorfield>>(nem, NULL);
 
 		// ...
 		this->E = 0;

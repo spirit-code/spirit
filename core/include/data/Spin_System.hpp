@@ -44,6 +44,10 @@ namespace Data
 
 		// Number of spins
 		int nos;
+        // Number of eigenmodes
+        int nem;
+        // Eigenmodes of the system: modes[nem][dim][nos]
+        std::vector<std::shared_ptr<vectorfield>> modes;
 		// Orientations of the Spins: spins[dim][nos]
 		std::shared_ptr<vectorfield> spins;
 		// Spin Hamiltonian
