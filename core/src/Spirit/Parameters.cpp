@@ -698,6 +698,68 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) n
     }
 }
 
+/*------------------------------------------------------------------------------------------------------ */
+/*---------------------------------- Set EMA  ---------------------------------------------------------- */
+/*------------------------------------------------------------------------------------------------------ */
+
+// Get EMA Calculation Parameters
+void Parameters_Set_EMA_N_Modes(State *state, int n_modes, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if ( n_modes < 1 || n_modes > 2*image->nos )
+        {
+            Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
+                fmt::format("Illegal value of number of modes (max value is {})", 2*image->nos),
+                idx_image, idx_chain );
+        }
+        else
+        {
+            image->Lock();
+            image->ema_parameters->n_modes = n_modes;
+            image->Unlock();            
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void Parameters_Set_EMA_N_Mode_Follow(State *state, int n_mode_follow, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if ( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes-1 )
+        {
+            Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
+                fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
+        }
+        else
+        {
+            image->Lock();
+            image->ema_parameters->n_mode_follow = n_mode_follow;
+            image->Unlock();            
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get LLG ----------------------------------------------------------- */
@@ -1273,6 +1335,45 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain) noe
         
         auto p = chain->gneb_parameters;
         return p->n_E_interpolations;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+// Get EMA Calculation Parameters
+int Parameters_Get_EMA_N_Modes(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        return image->ema_parameters->n_modes;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+int Parameters_Get_EMA_N_Mode_Follow(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        return image->ema_parameters->n_mode_follow;
     }
     catch( ... )
     {

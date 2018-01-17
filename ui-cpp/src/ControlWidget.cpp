@@ -6,6 +6,7 @@
 #include "Spirit/Chain.h"
 #include "Spirit/Collection.h"
 #include "Spirit/Simulation.h"
+#include <Spirit/Parameters.h>
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
@@ -44,6 +45,10 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     connect(this->pushButton_Y, SIGNAL(clicked()), this, SLOT(yPressed()));
     connect(this->pushButton_Z, SIGNAL(clicked()), this, SLOT(zPressed()));
 	connect(this->comboBox_Method, SIGNAL(currentIndexChanged(int)), this, SLOT(set_solver_enabled()));
+    connect(this->pushButton_PreviousMode, SIGNAL(clicked()), this, SLOT(prev_mode()));
+    connect(this->pushButton_NextMode, SIGNAL(clicked()), this, SLOT(next_mode()));
+    connect(this->lineEdit_ModeNumber, SIGNAL(returnPressed()), this, SLOT(jump_to_mode()));
+    connect(this->pushButton_Calculate, SIGNAL(clicked()), this, SLOT(calculate()));
 
 	// Image number
 	// We use a regular expression (regex) to filter the input into the lineEdits
@@ -51,6 +56,8 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
 	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
+    this->lineEdit_ModeNumber->setValidator(number_validator);
+    this->lineEdit_ModeNumber->setText(QString::number(1));
 
 	// Read persistent settings
 	this->readSettings();
@@ -75,8 +82,12 @@ void ControlWidget::updateData()
 
 	// Update Image number
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+    // Update Mode number
+    this->lineEdit_ModeNumber->setText(QString::number(Parameters_Get_EMA_N_Mode_Follow(state.get())+1));
 	// Update NOI counter
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+    // Update NEM counter
+    this->label_NEM->setText("/ " + QString::number(Parameters_Get_EMA_N_Modes(state.get())));
 
 	// Update thread arrays
 	if (Chain_Get_NOI(state.get()) > (int)threads_llg.size())
@@ -192,6 +203,7 @@ void ControlWidget::play_pause()
 		// New button text
 		this->pushButton_PlayPause->setText("Pause");
 	}
+    this->spinWidget->updateData();
 }
 
 void ControlWidget::stop_all()
@@ -351,6 +363,55 @@ void ControlWidget::delete_image()
 	this->updateOthers();
 }
 
+void ControlWidget::next_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: nextmode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+ 
+    // Change mode
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode+1 );
+    
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::prev_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: previousmode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+     
+    // Change mode
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode-1 );
+    
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::jump_to_mode()
+{
+    // Change active image
+    int mode_idx = this->lineEdit_ModeNumber->text().toInt()-1;
+
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), mode_idx-1 );	
+
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::calculate()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: calculate");
+    
+    // int idx = System_Get_Index(state.get());
+    // if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+    // this->threads_llg[System_Get_Index(state.get())] =
+    //     std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+}
 
 void ControlWidget::resetPressed()
 {

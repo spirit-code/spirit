@@ -59,6 +59,8 @@ namespace Engine
         int steps_per_period;
         scalar timestep;
         int counter;
+        int following_mode;
+        
         scalar amplitude;
         vectorfield mode;
         scalarfield angle;

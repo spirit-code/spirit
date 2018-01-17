@@ -138,15 +138,36 @@ namespace Engine
         this->mode = *system->modes[selected_mode];
 
         // Find the axes of rotation for the mode to visualize
-        for (int idx=0; idx<nos; idx++)
+        for (int idx=0; idx<this->nos; idx++)
         {
             this->angle_initial[idx] = this->mode[idx].norm();
-            this->axis[idx] = spins_initial[idx].cross(this->mode[idx]).normalized();
+            this->axis[idx] = this->spins_initial[idx].cross(this->mode[idx]).normalized();
         }
+        
+        // for checking if the parameteres have been updated during iterations
+        this->following_mode = this->parameters_ema->n_mode_follow;
     }
     
     void Method_EMA::Iteration()
     {
+        // if the mode has change
+        if ( this->following_mode != this->parameters_ema->n_mode_follow )
+        {
+            // reset local attribute for following mode
+            this->following_mode = this->parameters_ema->n_mode_follow;
+            // restore the initial spin configuration
+            (*this->systems[0]->spins) = this->spins_initial;
+            // set the new mode
+            this->mode = *this->systems[0]->modes[following_mode];
+            
+            // Find the axes of rotation for the mode to visualize
+            for (int idx=0; idx<this->nos; idx++)
+            {
+                this->angle_initial[idx] = this->mode[idx].norm();
+                this->axis[idx] = this->spins_initial[idx].cross(this->mode[idx]).normalized();
+            }
+        }
+
         auto& image = *this->systems[0]->spins;
 
         // Calculate n for that iteration based on the initial n displacement vector
@@ -160,7 +181,6 @@ namespace Engine
     
     bool Method_EMA::Converged()
     {
-        //// TODO: Needs proper implementation
         return false;
     }
     

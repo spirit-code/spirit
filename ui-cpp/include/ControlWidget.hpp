@@ -42,6 +42,10 @@ public slots:
 	void cut_image();
 	void paste_image(std::string where="current");
 	void delete_image();
+    void next_mode();
+    void prev_mode();
+    void jump_to_mode();
+    void calculate();
 
 private slots:
     void resetPressed();
