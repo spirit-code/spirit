@@ -313,7 +313,7 @@ namespace Engine
     {
         // --- Hard-coded macro-cell structure
         // Number of basis cells in a macrocell (along a b c)
-        intfield n_cells_in_mc = intfield({ 2,2,2 });
+        intfield n_cells_in_mc = intfield({ 4,4,4 });
         // Number of atoms in the macro cell (e.g 8 is a cubic macro cell)
         this->n_mc_atoms = this->geometry->n_spins_basic_domain * n_cells_in_mc[0] * n_cells_in_mc[1] * n_cells_in_mc[2];
 
@@ -332,7 +332,7 @@ namespace Engine
         // --- Initialization
         this->atom_id_mc   = std::vector<intfield>    ( n_mc_total, intfield(n_mc_atoms, -1) );
         this->xyz_atoms_mc = std::vector<vectorfield> ( n_mc_total, vectorfield(n_mc_atoms, Vector3::Zero()) );
-        
+
         // --- Determine the indices and positions of atoms in the macrocells
         // Loop over macro cells
         for (unsigned int p_mc = 0; p_mc < n_mc_total; ++p_mc)
@@ -411,6 +411,7 @@ namespace Engine
         // --- Calculate the dipole-dipole matrices between macrocell pairs (inter)
         this->D_inter = std::vector<std::vector<Matrix3>>(n_mc_total, vector<Matrix3>(n_mc_total, Matrix3::Zero()));
         Matrix3 D_tmp;
+				scalar mult = 0.0536814951168;
         // Loop over q macro cell
         for (unsigned int q_mc = 0; q_mc < n_mc_total; ++q_mc)
         {
@@ -434,7 +435,8 @@ namespace Engine
                             scalar z = r_vec[2];
 
                             // TODO: check parameters
-                            scalar term = Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+                            //scalar term = Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+														scalar term = mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
 
                             // Get Effective dipole matrix
                             D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
@@ -446,8 +448,15 @@ namespace Engine
                         }
                     }
                 }
+								//std::cout<< " inter " <<"   q_mc:" <<q_mc<<" p_mc:" <<p_mc <<'\n';
+								//std::cout<< " " << D_inter[q_mc][p_mc](0,0)/0.214726<< " " << D_inter[q_mc][p_mc](0,1)/0.214726 << " " << D_inter[q_mc][p_mc](0,2)/0.214726 <<'\n';
+								//std::cout<< " " << D_inter[q_mc][p_mc](1,0)/0.214726<< " " << D_inter[q_mc][p_mc](1,1)/0.214726 << " " << D_inter[q_mc][p_mc](1,2)/0.214726 <<'\n';
+								//std::cout<< " " << D_inter[q_mc][p_mc](2,0)/0.214726<< " " << D_inter[q_mc][p_mc](2,1)/0.214726 << " " << D_inter[q_mc][p_mc](2,2)/0.214726 <<'\n';
+								//std::cout << " " <<'\n';
             }//End loop over macro-cells p
         }//End loop over macro-cells q
+
+
     }//End Prepare_MacroCells
 
     void Hamiltonian_Heisenberg_Pairs::Update_MacroSpins(const vectorfield & spins)
@@ -500,7 +509,8 @@ namespace Engine
                         scalar y = r_vec[1];
                         scalar z = r_vec[2];
 
-                        scalar term = mu_s[0] * mu_s[0] * Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+                        //scalar term = mu_s[0] * mu_s[0] * Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+												scalar term = mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
 
                         //Get dipole-dipole matrix for the atoms in the macro-cell
                         D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
@@ -522,10 +532,16 @@ namespace Engine
                         // Vector3 normal = vector_ij.normalized();
 
                         // E_intra += mult / std::pow(magnitude, 3.0) * mu_s[0] * mu_s[0] *
-                        //     (3 * spins[id_i].dot(normal) * spins[id_j].dot(normal) - spins[id_i].dot(spins[id_j]));
+                          //   (3 * spins[id_i].dot(normal) * spins[id_j].dot(normal) - spins[id_i].dot(spins[id_j]));
                     }
                 }
             }
+
+						//std::cout<< " intra " <<'\n';
+						//std::cout<< " " << D_tmp(0,0)/0.214726<< " " << D_tmp(0,1)/0.214726 << " " << D_tmp(0,2)/0.214726 <<'\n';
+						//std::cout<< " " << D_tmp(1,0)/0.214726<< " " << D_tmp(1,1)/0.214726 << " " << D_tmp(1,2)/0.214726 <<'\n';
+						//std::cout<< " " << D_tmp(2,0)/0.214726<< " " << D_tmp(2,1)/0.214726 << " " << D_tmp(2,2)/0.214726 <<'\n';
+						//std::cout<< " " <<'\n';
         }//End loop over macro cell
 
         // --- Energy contribution between macro-cells (inter)
@@ -561,6 +577,7 @@ namespace Engine
         // Contribution inside the macro-cell  (for squared mc should be zero)
         Vector3 grad_E_in{0,0,0};
         Matrix3 D_tmp;
+				scalar mult = 0.0536814951168;
         // Loop over macro cells
         for (unsigned int i_mc = 0; i_mc < n_mc_total; ++i_mc)
         {
@@ -582,7 +599,8 @@ namespace Engine
                         scalar y = r_vec[1];
                         scalar z = r_vec[2];
 
-                        scalar term = mu_s[0] * mu_s[0] * Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+                        //scalar term = mu_s[0] * mu_s[0] * Constants::mu_B / (4 * M_PI*std::pow(r, 5));
+												scalar term = mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
 
                         //Get dipole-dipole matrix for the atoms in the macro-cell
                         D_tmp << (3 * x*x - r * r), (3 * x*y), (3 * x*z),
@@ -785,13 +803,6 @@ namespace Engine
 				}
 			}
 		}
-
-		scalar grad_E1 = 0.0;
-		scalar grad_E2 = 0.0;
-		scalar Grad_E;
-
-
-
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
