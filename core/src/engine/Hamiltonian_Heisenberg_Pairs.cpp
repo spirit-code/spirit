@@ -536,12 +536,6 @@ namespace Engine
                     }
                 }
             }
-
-						//std::cout<< " intra " <<'\n';
-						//std::cout<< " " << D_tmp(0,0)/0.214726<< " " << D_tmp(0,1)/0.214726 << " " << D_tmp(0,2)/0.214726 <<'\n';
-						//std::cout<< " " << D_tmp(1,0)/0.214726<< " " << D_tmp(1,1)/0.214726 << " " << D_tmp(1,2)/0.214726 <<'\n';
-						//std::cout<< " " << D_tmp(2,0)/0.214726<< " " << D_tmp(2,1)/0.214726 << " " << D_tmp(2,2)/0.214726 <<'\n';
-						//std::cout<< " " <<'\n';
         }//End loop over macro cell
 
         // --- Energy contribution between macro-cells (inter)
@@ -575,24 +569,25 @@ namespace Engine
         this->Update_MacroSpins(spins);
 
         // Contribution inside the macro-cell  (for squared mc should be zero)
-        Vector3 grad_E_in{0,0,0};
+				this->grad_E_in = vectorfield(geometry->nos, Vector3::Zero());
+        //Vector3 grad_E_in{0,0,0};
         Matrix3 D_tmp;
 				scalar mult = 0.0536814951168;
         // Loop over macro cells
-        for (unsigned int i_mc = 0; i_mc < n_mc_total; ++i_mc)
+        for (unsigned int p_mc = 0; p_mc < n_mc_total; ++p_mc)
         {
-            for (int atom_j = 0; atom_j < n_mc_atoms; ++atom_j)
+            for (int atom_i = 0; atom_i < n_mc_atoms; ++atom_i)
             {
-                int  id_i = atom_id_mc[i_mc][atom_j];
-                for (int atom_i = 0; atom_i < n_mc_atoms; ++atom_i)
+                int  id_i = atom_id_mc[p_mc][atom_i];
+                for (int atom_j = 0; atom_j < n_mc_atoms; ++atom_j)
                 {
                     // Exclude self-interactions
-                    if (atom_j != atom_i)
+                    if (atom_i != atom_j)
                     {
-                        int  id_j = atom_id_mc[i_mc][atom_i];
+                        int  id_j = atom_id_mc[p_mc][atom_j];
 
                         // Relative distances between atom_i and atom_j in the mc
-                        Vector3 r_vec = xyz_atoms_mc[i_mc][atom_j] - xyz_atoms_mc[i_mc][atom_i];
+                        Vector3 r_vec = xyz_atoms_mc[p_mc][atom_j] - xyz_atoms_mc[p_mc][atom_i];
                         scalar  r = r_vec.norm();
 
                         scalar x = r_vec[0];
@@ -603,18 +598,19 @@ namespace Engine
 												scalar term = mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
 
                         //Get dipole-dipole matrix for the atoms in the macro-cell
-                        D_tmp << (3 * x*x - r * r), (3 * x*y), (3 * x*z),
-                                 (3 * x*y), (3 * y*y - r * r), (3 * y*z),
-                                 (3 * x*z), (3 * y*z), (3 * z*z - r * r);
+                        D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
+                                 (3*x*y), (3*y*y - r*r), (3*y*z),
+                                 (3*x*z), (3*y*z), (3*z*z - r*r);
 
                         //Gradient
-                        grad_E_in += D_tmp*spins[id_i];
+                        grad_E_in[id_i] += term * D_tmp * spins[id_j];
                     }
                 }//end loop over atom_i
             }//end loop over atom_i
         }//end loop over macro cell
 
-        Vector3 grad_E_mc{0,0,0};
+        //Vector3 grad_E_mc{0,0,0};
+				this-> grad_E_mc = vectorfield(geometry->nos, Vector3::Zero());
 
         // Loop over q macro cell
         for (unsigned int q_mc = 0; q_mc < n_mc_total; ++q_mc)
@@ -625,20 +621,40 @@ namespace Engine
                 // Exclude self-interactions
                 if (q_mc != p_mc)
                 {
-                    grad_E_mc += D_inter[q_mc][p_mc]*macrospins[q_mc];
+									for (int atom_i = 0; atom_i < n_mc_atoms; ++atom_i)
+	                {
+										int  id_i = atom_id_mc[q_mc][atom_i];
+                    grad_E_mc[id_i] += D_inter[q_mc][p_mc]*macrospins[p_mc];
+									}
                 }
             }//end loop over macro-cells p
         }//end loop over macro-cells q
 
-        Vector3 grad_E;
-        grad_E = -2*grad_E_mc - grad_E_in;
+        //Vector3 grad_E;
+				this-> grad_E = vectorfield(n_mc_total, Vector3::Zero());
 
-        std::cout << std::endl;
-        std::cout << " --Get gradient-- " << std::endl;
-        std::cout << -2*grad_E_mc[0] <<" + " << -grad_E_in[0] << " = " << grad_E[0] << std::endl;
-        std::cout << -2*grad_E_mc[1] <<" + " << -grad_E_in[1] << " = " << grad_E[1] << std::endl;
-        std::cout << -2*grad_E_mc[2] <<" + " << -grad_E_in[2] << " = " << grad_E[2] << std::endl;
-        std::cout << std::endl;
+				for (unsigned int q_mc = 0; q_mc < n_mc_total; ++q_mc)
+        {
+						for (int atom_i = 0; atom_i < n_mc_atoms; ++atom_i)
+        		{
+					  		int  id_i = atom_id_mc[q_mc][atom_i];
+        				grad_E[id_i] = -2*grad_E_mc[id_i] - grad_E_in[id_i];
+						}
+				}
+        		std::cout << std::endl;
+        		std::cout << " --Get gradient-- "<< std::endl;
+						std::cerr << grad_E_in[0].transpose() << std::endl;
+						std::cerr << grad_E_mc[0].transpose() << std::endl;
+						std::cerr << grad_E[0].transpose() << std::endl;
+        		//std::cout << -2*grad_E_mc[i_mc][0] <<" + " << -grad_E_in[i_mc][0] << " = " << grad_E[i_mc][0] << std::endl;
+        		//std::cout << -2*grad_E_mc[i_mc][1] <<" + " << -grad_E_in[i_mc][1] << " = " << grad_E[i_mc][1] << std::endl;
+        		//std::cout << -2*grad_E_mc[i_mc][2] <<" + " << -grad_E_in[i_mc][2] << " = " << grad_E[i_mc][2] << std::endl;
+        		std::cout << std::endl;
+						Vectormath::fill(grad_E, {0,0,0});
+						this->Gradient_DDI(spins, grad_E);
+        		std::cout << " --Get gradient GIDEON-- "<< std::endl;
+						std::cerr << grad_E[0].transpose() << std::endl;
+
     }
 
 
@@ -835,6 +851,8 @@ namespace Engine
 				}
 			}
 		}
+		std::cout << " --Get gradient GIDEON-- "<< std::endl;
+		std::cerr << gradient[0].transpose() << std::endl;
 	}//end Field_DipoleDipole
 
 

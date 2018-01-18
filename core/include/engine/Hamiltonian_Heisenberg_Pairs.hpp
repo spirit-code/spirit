@@ -86,11 +86,14 @@ namespace Engine
 		std::vector<Matrix3> D; //Dipole-dipole matrix inside mc
 		scalar E_dip_mc;				//Energy contribution inter macro-cells
 		std::vector< std::vector <Matrix3>  > D_inter; //Inter dipole dipole matrix
-		Vector3 grad_E_in;
-		Vector3 grad_E_mc;
+		//Vector3 grad_E_in;
+		//Vector3 grad_E_mc;
+		vectorfield grad_E_in;
+		vectorfield grad_E_mc;
+		vectorfield grad_E;
 
-        void Prepare_MacroCells();
-        void Update_MacroSpins(const vectorfield & spins);
+    void Prepare_MacroCells();
+    void Update_MacroSpins(const vectorfield & spins);
 		void Energies_MacroCells(const vectorfield & spins);
 		void Gradient_MacroCells(const vectorfield & spins);
 
