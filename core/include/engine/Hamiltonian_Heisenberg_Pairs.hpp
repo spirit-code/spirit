@@ -108,12 +108,14 @@ namespace Engine
 		void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
 		void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
+		// Calculates the Dipole-Dipole gradient using macrocell approximation
+		void Gradient_DDI_MacroCells(const vectorfield& spins, vectorfield & gradient);
 		// Quadruplet
 		void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_ddi_mc, idx_quadruplet;
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
@@ -122,8 +124,10 @@ namespace Engine
 		void E_Exchange(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the DMI energy of a Spin System
 		void E_DMI(const vectorfield & spins, scalarfield & Energy);
-		// calculates the Dipole-Dipole Energy
+		// Calculates the Dipole-Dipole Energy
 		void E_DDI(const vectorfield& spins, scalarfield & Energy);
+		// Calculates the Dipole-Dipole Energy using macrocell approximation
+		void E_DDI_MacroCells(const vectorfield& spins, scalarfield & Energy);
 		// Quadruplet
 		void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
 
