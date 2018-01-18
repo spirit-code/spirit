@@ -277,7 +277,7 @@ namespace Engine
 	{
 		//scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
         // factor 0.5 in mult because we have each pair twice in our list, 0.5 below in the energy because we add the term twice
-		scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+		scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		scalar result = 0.0;
 		//Print after set the radius on spirit
 		for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
@@ -313,7 +313,7 @@ namespace Engine
     {
         // --- Hard-coded macro-cell structure
         // Number of basis cells in a macrocell (along a b c)
-        intfield n_cells_in_mc = intfield({ 4,4,4 });
+        intfield n_cells_in_mc = intfield({ 2,2,2 });
         // Number of atoms in the macro cell (e.g 8 is a cubic macro cell)
         this->n_mc_atoms = this->geometry->n_spins_basic_domain * n_cells_in_mc[0] * n_cells_in_mc[1] * n_cells_in_mc[2];
 
@@ -436,7 +436,7 @@ namespace Engine
 
                             // TODO: check parameters
                             //scalar term = Constants::mu_B / (4 * M_PI*std::pow(r, 5));
-														scalar term = mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
+														scalar term = 0.5*mult / std::pow(r, 5.0) * mu_s[0] * mu_s[0];
 
                             // Get Effective dipole matrix
                             D_tmp << (3*x*x - r*r), (3*x*y), (3*x*z),
@@ -561,10 +561,10 @@ namespace Engine
         }//end loop over macro-cells q
 
         //Total dipole dipole energy
-        double Etotal = -0.5*E_dip_mc - 0.5*E_intra;
+        double Etotal = -0.5*E_dip_mc - E_intra;
         std::cout << std::endl;
         std::cout << " --Get energy-- " << std::endl;
-        std::cout << -0.5*E_dip_mc/geometry->nos << " + " << -0.5*E_intra/geometry->nos << " = " << Etotal/geometry->nos << std::endl;
+        std::cout << -0.5*E_dip_mc/geometry->nos << " + " << -E_intra/geometry->nos << " = " << Etotal/geometry->nos << std::endl;
         std::cout << std::endl;
     }// end Dipole-Dipole Energy
 
