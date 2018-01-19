@@ -11,9 +11,8 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../../input/input.cfg"                 # Input File
-p_state = state.setup(cfgfile)              # State setup
-chain.Image_to_Clipboard(p_state)         # Copy p_state to Clipboard
+p_state = state.setup()           # State setup
+chain.Image_to_Clipboard(p_state) # Copy p_state to Clipboard
 
 class TestTransition(unittest.TestCase):
     
