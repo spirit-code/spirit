@@ -122,13 +122,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//		Set a monospace font
 	Ui::MainWindow::statusBar->setStyleSheet("QWidget{font-family: \"Courier\"}");
 	//		Spacer
-	this->m_Spacer_5 = new QLabel("    |    ");
+	this->m_Spacer_5 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_5);
 	//		Torque
 	this->m_Label_Torque = new QLabel("F_max: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Torque);
 	//		Spacer
-	this->m_Spacer_4 = new QLabel("    |    ");
+	this->m_Spacer_4 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
 	//		Energy
 	this->m_Label_E = new QLabel("E: -  ");
@@ -137,19 +137,19 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_Mz = new QLabel("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
 	//		Spacer
-	this->m_Spacer_3 = new QLabel("    |    ");
+	this->m_Spacer_3 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
 	//		FPS
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
 	//		Spacer
-	this->m_Spacer_2 = new QLabel("    |    ");
+	this->m_Spacer_2 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
 	//		N_Cells
 	this->m_Label_Dims = new QLabel("Dims: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 	//		Spacer
-	this->m_Spacer_1 = new QLabel("    |    ");
+	this->m_Spacer_1 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_1);
 	//		NOS
 	this->m_Label_NOS = new QLabel("NOS: -  ");
@@ -649,7 +649,7 @@ void MainWindow::createStatusBar()
 				if (Simulation_Running_Chain(state.get(), ichain))
 				{
 					this->m_Labels_IPS.push_back(new QLabel);
-					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+					this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 				}
 				else
@@ -659,7 +659,7 @@ void MainWindow::createStatusBar()
 						if (Simulation_Running_Image(state.get(), img, ichain))
 						{
 							this->m_Labels_IPS.push_back(new QLabel);
-							this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+							this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 							Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 						}
 					}
@@ -667,13 +667,13 @@ void MainWindow::createStatusBar()
 			}
 		}
 		//		Spacer
-		this->m_Spacer_5 = new QLabel("  |    ");
+		this->m_Spacer_5 = new QLabel("|  ");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_5);
 		//		Torque
 		this->m_Label_Torque = new QLabel("F_max: -");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Torque);
 		//		Spacer
-		this->m_Spacer_4 = new QLabel("    |    ");
+		this->m_Spacer_4 = new QLabel("  |  ");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
 	}
 
@@ -692,7 +692,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
-	this->m_Spacer_3 = new QLabel("    |    ");
+	this->m_Spacer_3 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
 
 
@@ -704,7 +704,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
-	this->m_Spacer_2 = new QLabel("    |    ");
+	this->m_Spacer_2 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
 
 	//		Dims
@@ -713,8 +713,8 @@ void MainWindow::createStatusBar()
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 	int nth = this->spinWidget->visualisationNCellSteps();
-	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
-		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1("x") +
+		QString::number(n_cells[1]) + QString::fromLatin1("x") + QString::number(n_cells[2]);
 	if (nth == 2)
 	{
 		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
@@ -733,7 +733,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_1);
-	this->m_Spacer_1 = new QLabel("    |    ");
+	this->m_Spacer_1 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_1);
 
 
@@ -746,19 +746,19 @@ void MainWindow::createStatusBar()
 		nosqstring = QString::number(nos);
 	else
 		nosqstring = QString::number((float)nos, 'E', 2);
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + nosqstring + QString::fromLatin1("  "));
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + nosqstring + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
 	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1("  "));
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 
 	//		NOC
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
 	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1("  "));
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 
 	// Update contents
@@ -813,7 +813,7 @@ void MainWindow::updateStatusBar()
 				else precision = 2;
 				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+				v_str.push_back(QString::fromLatin1("IPS[") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 			}
 			else
 			{
@@ -827,7 +827,7 @@ void MainWindow::updateStatusBar()
 						else precision = 2;
 						if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 						else qstr_ips = QString::fromLatin1("> 100k");
-						v_str.push_back(QString::fromLatin1("IPS [") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+						v_str.push_back(QString::fromLatin1("IPS[") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 					}
 				}
 			}
@@ -847,8 +847,8 @@ void MainWindow::updateStatusBar()
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 	int nth = this->spinWidget->visualisationNCellSteps();
-	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
-		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1("x") +
+		QString::number(n_cells[1]) + QString::fromLatin1("x") + QString::number(n_cells[2]);
 	if (nth == 2)
 	{
 		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
