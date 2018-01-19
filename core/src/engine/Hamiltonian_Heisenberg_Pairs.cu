@@ -245,7 +245,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
 	{
-		// //scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		// //scalar mult = -mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
 		// scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		// // scalar result = 0.0;
 
@@ -453,7 +453,7 @@ namespace Engine
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
 	{
-		// //scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
+		// //scalar mult = mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
 		// scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
 		
 		// for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)

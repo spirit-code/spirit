@@ -7,6 +7,8 @@
 
 // The Bohr Magneton [meV / T]
 DLLEXPORT scalar Constants_mu_B() noexcept;
+// The vacuum permeability [T^2 m^3 / meV]
+DLLEXPORT scalar Constants_mu_0() noexcept;
 // The Boltzmann constant [meV / K]
 DLLEXPORT scalar Constants_k_B() noexcept;
 // Planck constant [meV*ps / rad]
@@ -17,6 +19,8 @@ DLLEXPORT scalar Constants_mRy() noexcept;
 DLLEXPORT scalar Constants_gamma() noexcept;
 // Electron g-factor [unitless]
 DLLEXPORT scalar Constants_g_e() noexcept;
+// Pi [rad]
+DLLEXPORT scalar Constants_Pi() noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

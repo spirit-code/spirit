@@ -2,6 +2,7 @@
 
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -10,11 +11,8 @@
 #include <array>
 #include <algorithm>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 using namespace Utility;
+using Utility::Constants::Pi;
 
 namespace Engine
 {
@@ -169,7 +167,7 @@ namespace Engine
                 // charge += sign * solid_angle_1(v1, v2, v3);
                 charge += sign * solid_angle_2(v1, v2, v3);
             }
-            return charge / (4*M_PI);
+            return charge / (4*Pi);
         }
 
         // Utility function for the SIB Solver
@@ -218,8 +216,8 @@ namespace Engine
 
 			scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-			vec[0] = r_xy * std::cos(2*M_PI*phi);
-			vec[1] = r_xy * std::sin(2 * M_PI*phi);
+			vec[0] = r_xy * std::cos(2*Pi*phi);
+			vec[1] = r_xy * std::sin(2*Pi*phi);
 			vec[2] = v_z;
         }
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)

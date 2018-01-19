@@ -1,8 +1,10 @@
 #ifdef USE_CUDA
 
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -13,6 +15,7 @@
 #include <curand_kernel.h>
 
 using namespace Utility;
+using Utility::Constants::Pi;
 
 // CUDA Version
 namespace Engine
@@ -366,7 +369,7 @@ namespace Engine
                 // charge += sign * solid_angle_1(v1, v2, v3);
                 charge += sign * solid_angle_2(v1, v2, v3);
             }
-            return charge / (4*M_PI);
+            return charge / (4*Pi);
         }
 
         // Utility function for the SIB Solver
@@ -437,8 +440,8 @@ namespace Engine
 
             scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-            vec[0] = r_xy * std::cos(2*M_PI*phi);
-            vec[1] = r_xy * std::sin(2 * M_PI*phi);
+            vec[0] = r_xy * std::cos(2*Pi*phi);
+            vec[1] = r_xy * std::sin(2*Pi*phi);
             vec[2] = v_z;
         }
         // __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
@@ -458,8 +461,8 @@ namespace Engine
 
         // 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-        //         xi[idx][0] = r_xy * std::cos(2*M_PI*phi);
-        //         xi[idx][1] = r_xy * std::sin(2 * M_PI*phi);
+        //         xi[idx][0] = r_xy * std::cos(2*Pi*phi);
+        //         xi[idx][1] = r_xy * std::sin(2*Pi*phi);
         //         xi[idx][2] = v_z;
         //     }
         // }

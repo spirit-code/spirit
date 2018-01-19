@@ -3,16 +3,11 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Configurations.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
 #include <fmt/format.h>
-
-#include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 
 std::function<bool(const Vector3&, const Vector3&)> 
@@ -454,7 +449,7 @@ void Configuration_Hopfion( State *state, float r, int order, const float positi
         Vector3 vpos = image->geometry->center + _pos;
         
         // Set cutoff radius
-        if (r_cut_spherical < 0) r_cut_spherical = r * (float)M_PI;
+        if (r_cut_spherical < 0) r_cut_spherical = r * (float)Utility::Constants::Pi;
         
         // Create position filter
         auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);

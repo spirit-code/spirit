@@ -18,8 +18,8 @@ namespace Utility
         Non_existing_Chain,
         Input_parse_failed,
         Bad_File_Content,
-		Standard_Exception,
-		Unknown_Exception
+        Standard_Exception,
+        Unknown_Exception
         // TODO: from Chain.cpp
         // Last image deletion ?
         // Empty clipboard     ?
@@ -37,15 +37,15 @@ namespace Utility
         S_Exception(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
             std::runtime_error(message)
         {
-			this->classifier = classifier;
-			this->level      = level;
-			this->message  = message;
-			this->file     = file;
-			this->line     = line;
-			this->function = function;
+            this->classifier = classifier;
+            this->level      = level;
+            this->message  = message;
+            this->file     = file;
+            this->line     = line;
+            this->function = function;
 
-			// The complete description
-			this->_what = fmt::format("{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message);
+            // The complete description
+            this->_what = fmt::format("{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message);
         }
 
         ~S_Exception() throw() {}
@@ -57,13 +57,13 @@ namespace Utility
         
         Exception_Classifier classifier;
         Log_Level level;
-		std::string  message;
-		std::string  file;
-		unsigned int line;
-		std::string  function;
+        std::string  message;
+        std::string  file;
+        unsigned int line;
+        std::string  function;
 
     private:
-		std::string  _what;
+        std::string  _what;
     };
 
 
