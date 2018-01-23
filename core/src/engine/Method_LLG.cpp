@@ -53,6 +53,9 @@ namespace Engine
         // Allocate force array
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
         // Initial force calculation s.t. it does not seem to be already converged
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);

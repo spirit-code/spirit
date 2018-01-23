@@ -8,6 +8,7 @@
 ### Executables and Libraries ###
 spirit.js
 spirit.js.mem
+spirit.wasm
 
 ### Generated Files
 VERSION.txt

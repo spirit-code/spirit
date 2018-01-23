@@ -142,6 +142,8 @@ endif( )
 set (       CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install")
 list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
 list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_AR=${CMAKE_AR}")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_RANLIB=${CMAKE_RANLIB}")
 include(ExternalProject)
 ExternalProject_add(qhull
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
@@ -185,17 +187,16 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 ######### Add Subdirectory Projects #########
 ### Spirit library is built in any case
 add_subdirectory( core )
+### Web UI
+if( SPIRIT_BUILD_FOR_JS )
+	add_subdirectory( ui-web )
 ### CXX UI
-if( SPIRIT_BUILD_FOR_CXX )
+elseif( SPIRIT_BUILD_FOR_CXX )
 	if ( UI_CXX_USE_QT )
 		add_subdirectory( VFRendering )
 		add_definitions( -DUI_CXX_USE_QT )
 	endif()
 	add_subdirectory( ui-cpp )
-endif()
-### Web UI
-if( SPIRIT_BUILD_FOR_JS )
-	add_subdirectory( ui-web )
 endif()
 #############################################
 

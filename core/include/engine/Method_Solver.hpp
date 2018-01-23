@@ -46,6 +46,8 @@ namespace Engine
         Method_Solver(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
             Method(parameters, idx_img, idx_chain)
         {
+            //---- Initialise Solver-specific variables
+            this->Initialize();
         }
 
         // // `Iterate` uses the `Solver_Iteration` function to evolve given systems according to the
