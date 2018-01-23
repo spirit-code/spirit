@@ -122,8 +122,8 @@ namespace Engine
         this->spins_initial = *this->systems[0]->spins;
         
         // get number of modes and mode to visualize
-        auto& n_modes = system->ema_parameters->n_modes;
-        auto& selected_mode = system->ema_parameters->n_mode_follow;
+        auto& n_modes = this->systems[0]->ema_parameters->n_modes;
+        auto& selected_mode = this->systems[0]->ema_parameters->n_mode_follow;
         
         // Check and set (if it is required) the total number of nodes
         Check_n_modes(n_modes, nos, idx_img, idx_chain);
@@ -131,11 +131,13 @@ namespace Engine
         // Check and set (if it is required) the mode to visualize
         Check_selected_mode(selected_mode, n_modes, idx_img, idx_chain);
 
-        //// TODO: calculate the eigenmodes if they are not yet caluclated (check for NULL)
-        Calculate_Eigenmodes(system, idx_img, idx_chain);
+        // calculated eigenmodes only in case that the selected mode to follow is not computed yet.
+        // this functionality is associated with the UI button "Play" and not with the "Calculate"
+        if ( this->systems[0]->modes[selected_mode] == NULL )
+            Calculate_Eigenmodes(system, idx_img, idx_chain); 
 
         // set the selected mode after checks and calculation (if needed)
-        this->mode = *system->modes[selected_mode];
+        this->mode = *this->systems[0]->modes[selected_mode];
 
         // Find the axes of rotation for the mode to visualize
         for (int idx=0; idx<this->nos; idx++)

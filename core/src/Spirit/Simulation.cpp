@@ -601,3 +601,35 @@ bool Simulation_Running_Anywhere_Collection(State *state) noexcept
         return false;        
     }
 }
+
+void Simulation_Calculate_Eigenmodes(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if( Simulation_Running_Image(state, idx_image, idx_chain) )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, 
+                "Eigenmodes cannot be calculated while a simulation is running on the image" );
+                return;
+        }
+        else
+        {
+            image->Lock();
+            Engine::Calculate_Eigenmodes(image, idx_image, idx_chain );
+            image->Unlock();
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+

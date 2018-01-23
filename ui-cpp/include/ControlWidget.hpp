@@ -3,6 +3,9 @@
 #define CONTROLWIDGET_H
 
 #include <QWidget>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include <memory>
 #include <thread>
@@ -46,6 +49,10 @@ public slots:
     void prev_mode();
     void jump_to_mode();
     void calculate();
+    void calculate_disable_widget();
+    void calculate_enable_widget();
+    void ema_buttons_show();
+    void ema_buttons_hide();
 
 private slots:
     void resetPressed();
@@ -74,6 +81,8 @@ private:
 	// Temporary string storage
 	std::string s_method;
 	std::string s_solver;
+
+    QFutureWatcher<void> watcher;
 
 	// ...
 	void save_Energies();
