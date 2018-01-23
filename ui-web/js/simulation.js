@@ -85,6 +85,10 @@ Module.ready(function() {
         }
     };
 
+    Module.Spirit_Version_Full = Module.cwrap('Spirit_Version_Full', 'string', []);
+    Simulation.prototype.spiritVersion = function() {
+        return Module.Spirit_Version_Full();
+    };
     Module.getSpinDirections = Module.cwrap('System_Get_Spin_Directions', 'number', ['number']);
     Module.getSpinPositions = Module.cwrap('Geometry_Get_Positions', 'number', ['number']);
     Simulation.prototype.update = function() {

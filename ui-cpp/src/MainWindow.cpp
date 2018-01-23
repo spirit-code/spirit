@@ -11,6 +11,7 @@
 #include "Spirit/Simulation.h"
 #include "Spirit/Configurations.h"
 #include "Spirit/Quantities.h"
+#include "Spirit/Version.h"
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
@@ -1030,6 +1031,7 @@ void MainWindow::view_cycle_camera()
 void MainWindow::about()
 {
 	QMessageBox::about(this, tr("About Spirit"),
+		QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
 		QString::fromLatin1(
 			"The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
 			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"

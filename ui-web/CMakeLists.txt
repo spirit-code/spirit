@@ -82,6 +82,7 @@ set(SOURCE_UI_WEB_ROOT)
 ######## Set export functions for Web UI #############################
 ### Place all functions which should be exported by emcc into this list
 set( INTERFACE_EXPORT_FUNCTIONS
+    '_Spirit_Version' '_Spirit_Version_Revision' '_Spirit_Version_Full'
     # State
     '_State_Setup'
     # System
