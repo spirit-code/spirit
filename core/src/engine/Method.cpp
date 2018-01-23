@@ -43,9 +43,6 @@ namespace Engine
         #else
             this->print_precision = 12;
         #endif
-
-        //---- Initialise Method-specific variables
-        this->Initialize();
     }
 
 
