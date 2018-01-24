@@ -699,6 +699,10 @@ namespace IO
         int n_modes = 10;
         // Which eigenmode to visualize
         int n_mode_follow = 0;
+        // Frequency of the applied eigenmodes
+        scalar frequency = 1./50;
+        // Amplitude of the applied eigenmodes
+        scalar amplitude = 1;
         
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
@@ -725,6 +729,8 @@ namespace IO
                 myfile.Read_Single(n_iterations_log, "ema_n_iterations_log");
                 myfile.Read_Single(n_modes, "ema_n_modes");
                 myfile.Read_Single(n_mode_follow, "ema_n_mode_follow");
+                myfile.Read_Single(frequency, "ema_frequency");
+                myfile.Read_Single(amplitude, "ema_amplitude");
             }// end try
             catch (...)
             {
@@ -738,6 +744,8 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, "Parameters EMA:");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_modes", n_modes));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_mode_follow", n_mode_follow));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "frequency", frequency));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "amplitude", amplitude));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
@@ -758,7 +766,7 @@ namespace IO
                 output_initial, output_final, output_energy_step, output_energy_archive, 
                 output_energy_spin_resolved, output_energy_divide_by_nspins, 
                 output_configuration_step, output_configuration_archive }, n_iterations, 
-                n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow));
+                n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow, frequency, amplitude));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
         return ema_params;
     }

@@ -56,12 +56,9 @@ namespace Engine
 
         std::shared_ptr<Data::Parameters_Method_EMA> parameters_ema;
         
-        int steps_per_period;
-        scalar timestep;
         int counter;
         int following_mode;
         
-        scalar amplitude;
         vectorfield mode;
         scalarfield angle;
         scalarfield angle_initial;

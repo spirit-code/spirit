@@ -110,10 +110,7 @@ namespace Engine
         this->noi = this->systems.size();
         this->nos = this->systems[0]->nos;
         
-        this->steps_per_period = 50;
-        this->timestep = 1./this->steps_per_period;
         this->counter = 0;
-        this->amplitude = 1;
 
         // attributes needed for applying a mode the spins
         this->angle = scalarfield(this->nos);
@@ -173,7 +170,8 @@ namespace Engine
         auto& image = *this->systems[0]->spins;
 
         // Calculate n for that iteration based on the initial n displacement vector
-        scalar t_angle = this->amplitude * std::cos(2*M_PI*this->counter*this->timestep);
+        scalar t_angle = this->parameters_ema->amplitude * 
+            std::cos(2*M_PI*this->counter*this->parameters_ema->frequency);
         this->angle = this->angle_initial;
         Vectormath::scale(this->angle, t_angle);
 

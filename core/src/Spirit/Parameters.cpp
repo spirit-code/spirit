@@ -723,7 +723,9 @@ void Parameters_Set_EMA_N_Modes(State *state, int n_modes, int idx_image, int id
         {
             image->Lock();
             image->ema_parameters->n_modes = n_modes;
-            image->Unlock();            
+            image->modes.resize(n_modes);
+            image->ema_parameters->n_mode_follow = std::min(image->ema_parameters->n_mode_follow, n_modes);
+            image->Unlock();
         }
     }
     catch( ... )
@@ -742,7 +744,8 @@ void Parameters_Set_EMA_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if ( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes-1 )
+        if ( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes-1 ||
+            n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
         {
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
                 fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
@@ -760,6 +763,45 @@ void Parameters_Set_EMA_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
     }
 }
 
+void Parameters_Set_EMA_Frequency(State *state, float frequency, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        image->Lock();
+        image->ema_parameters->frequency = frequency;
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void Parameters_Set_EMA_Amplitude(State *state, float amplitude, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        image->Lock();
+        image->ema_parameters->amplitude = amplitude;
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get LLG ----------------------------------------------------------- */
@@ -1374,6 +1416,44 @@ int Parameters_Get_EMA_N_Mode_Follow(State *state, int idx_image, int idx_chain)
         from_indices( state, idx_image, idx_chain, image, chain );
         
         return image->ema_parameters->n_mode_follow;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+float Parameters_Get_EMA_Frequency(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        return image->ema_parameters->frequency;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+float Parameters_Get_EMA_Amplitude(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        return image->ema_parameters->amplitude;
     }
     catch( ... )
     {

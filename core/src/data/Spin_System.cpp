@@ -80,6 +80,7 @@ namespace Data
 		{
 			this->nos = other.nos;
 			this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
+            this->modes = other.modes;
 
 			this->E = other.E;
 			this->E_array = other.E_array;
