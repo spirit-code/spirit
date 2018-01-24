@@ -146,6 +146,14 @@ void ParametersWidget::Load_Parameters_Contents()
 		this->radioButton_FallingImage->setChecked(true);
 	else if (image_type == 3)
 		this->radioButton_Stationary->setChecked(true);
+
+    //      EMA
+    // modes to calculate and visualize
+   i1 = Parameters_Get_EMA_N_Modes(state.get());
+   this->spinBox_ema_n_modes->setValue(i1);
+   i2 = Parameters_Get_EMA_N_Mode_Follow(state.get());
+   this->spinBox_ema_n_mode_follow->setValue(i2+1);
+   this->spinBox_ema_n_mode_follow->setMaximum(i1);
 }
 
 
@@ -358,6 +366,17 @@ void ParametersWidget::set_parameters_mmf()
 	}*/
 }
 
+void ParametersWidget::set_parameters_ema()
+{
+    int i1 = this->spinBox_ema_n_modes->value();
+    int i2 = this->spinBox_ema_n_mode_follow->value();
+    
+    Parameters_Set_EMA_N_Modes(state.get(), i1);
+    Parameters_Set_EMA_N_Mode_Follow(state.get(), i2-1);
+    
+    this->spinBox_ema_n_mode_follow->setMaximum(i1);
+}
+
 
 void ParametersWidget::Setup_Parameters_Slots()
 {
@@ -415,6 +434,10 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    
+    //      EMA
+    connect(this->spinBox_ema_n_modes, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
+    connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
 }
 
 
