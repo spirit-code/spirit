@@ -240,7 +240,7 @@ script:
   - if [ "$COVERAGE" == "true" ]; then lcov -c --no-external --directory . --base-directory ../core -o after_test.info; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -a baseline.info -a after_test.info -o total_test.info; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -r total_test.info \*thirdparty\* \*/test/\* -o coverage.info; fi
-  - if [ "$COVERAGE" == "true" ]; then bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"; fi
+  - if [ "$COVERAGE" == "true" ]; then bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"; fi
 
   # Run Python coverage report generation and upload to coveralls
   - cd ../core/python
