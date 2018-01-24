@@ -1,4 +1,6 @@
 #include <QtWidgets>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
 
 #include "ControlWidget.hpp"
 
@@ -6,6 +8,7 @@
 #include "Spirit/Chain.h"
 #include "Spirit/Collection.h"
 #include "Spirit/Simulation.h"
+#include <Spirit/Parameters.h>
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
@@ -44,6 +47,11 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     connect(this->pushButton_Y, SIGNAL(clicked()), this, SLOT(yPressed()));
     connect(this->pushButton_Z, SIGNAL(clicked()), this, SLOT(zPressed()));
 	connect(this->comboBox_Method, SIGNAL(currentIndexChanged(int)), this, SLOT(set_solver_enabled()));
+    connect(this->pushButton_PreviousMode, SIGNAL(clicked()), this, SLOT(prev_mode()));
+    connect(this->pushButton_NextMode, SIGNAL(clicked()), this, SLOT(next_mode()));
+    connect(this->lineEdit_ModeNumber, SIGNAL(returnPressed()), this, SLOT(jump_to_mode()));
+    connect(this->pushButton_Calculate, SIGNAL(clicked()), this, SLOT(calculate()));
+    connect(&this->watcher, SIGNAL(finished()), this, SLOT(calculate_enable_widget()));
 
 	// Image number
 	// We use a regular expression (regex) to filter the input into the lineEdits
@@ -51,7 +59,11 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 	QRegularExpressionValidator *number_validator = new QRegularExpressionValidator(re);
 	this->lineEdit_ImageNumber->setValidator(number_validator);
 	this->lineEdit_ImageNumber->setText(QString::number(1));
+    this->lineEdit_ModeNumber->setValidator(number_validator);
+    this->lineEdit_ModeNumber->setText(QString::number(1));
 
+    ema_buttons_hide(); // hide EMA methods buttons
+    
 	// Read persistent settings
 	this->readSettings();
 }
@@ -75,8 +87,12 @@ void ControlWidget::updateData()
 
 	// Update Image number
 	this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+    // Update Mode number
+    this->lineEdit_ModeNumber->setText(QString::number(Parameters_Get_EMA_N_Mode_Follow(state.get())+1));
 	// Update NOI counter
 	this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
+    // Update NEM counter
+    this->label_NumberOfModes->setText("/ " + QString::number(Parameters_Get_EMA_N_Modes(state.get())));
 
 	// Update thread arrays
 	if (Chain_Get_NOI(state.get()) > (int)threads_llg.size())
@@ -192,6 +208,7 @@ void ControlWidget::play_pause()
 		// New button text
 		this->pushButton_PlayPause->setText("Pause");
 	}
+    this->spinWidget->updateData();
 }
 
 void ControlWidget::stop_all()
@@ -351,6 +368,109 @@ void ControlWidget::delete_image()
 	this->updateOthers();
 }
 
+void ControlWidget::next_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: nextmode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+ 
+    // Change mode
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode+1 );
+    
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::prev_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: previousmode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+     
+    // Change mode
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode-1 );
+    
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::jump_to_mode()
+{
+    // Change active image
+    int mode_idx = this->lineEdit_ModeNumber->text().toInt()-1;
+
+    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), mode_idx-1 );	
+
+    // Update
+    this->updateData();
+    this->updateOthers();
+}
+
+void ControlWidget::calculate()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: calculate");
+    
+    calculate_disable_widget();
+    
+    int idx = System_Get_Index(state.get());
+    if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+        this->threads_llg[System_Get_Index(state.get())] =
+            std::thread(&Simulation_Calculate_Eigenmodes, this->state.get(), -1, -1);
+            
+    QFuture<void> future = QtConcurrent::run( 
+        &threads_llg[System_Get_Index(state.get())], &std::thread::join );
+    this->watcher.setFuture(future);
+}
+
+void ControlWidget::calculate_disable_widget()
+{
+    this->lineEdit_Save_E->setEnabled(false);
+    this->pushButton_Save_E->setEnabled(false);
+    this->pushButton_StopAll->setEnabled(false);
+    
+    this->pushButton_PlayPause->setEnabled(false);
+    this->pushButton_PreviousImage->setEnabled(false);
+    this->lineEdit_ImageNumber->setEnabled(false);
+    this->pushButton_NextImage->setEnabled(false);
+    
+    this->comboBox_Method->setEnabled(false);
+    this->comboBox_Solver->setEnabled(false);
+    
+    this->pushButton_X->setEnabled(false);
+    this->pushButton_Y->setEnabled(false);
+    this->pushButton_Z->setEnabled(false);
+    this->pushButton_Reset->setEnabled(false);
+    
+    this->pushButton_PreviousMode->setEnabled(false);
+    this->lineEdit_ModeNumber->setEnabled(false);
+    this->pushButton_NextMode->setEnabled(false);
+}
+
+void ControlWidget::calculate_enable_widget()
+{
+    this->lineEdit_Save_E->setEnabled(true);
+    this->pushButton_Save_E->setEnabled(true);
+    this->pushButton_StopAll->setEnabled(true);
+    
+    this->pushButton_PlayPause->setEnabled(true);
+    this->pushButton_PreviousImage->setEnabled(true);
+    this->lineEdit_ImageNumber->setEnabled(true);
+    this->pushButton_NextImage->setEnabled(true);
+    
+    this->comboBox_Method->setEnabled(true);
+    this->comboBox_Solver->setEnabled(true);
+    
+    this->pushButton_X->setEnabled(true);
+    this->pushButton_Y->setEnabled(true);
+    this->pushButton_Z->setEnabled(true);
+    this->pushButton_Reset->setEnabled(true);
+    
+    this->pushButton_PreviousMode->setEnabled(true);
+    this->lineEdit_ModeNumber->setEnabled(true);
+    this->pushButton_NextMode->setEnabled(true);
+}
 
 void ControlWidget::resetPressed()
 {
@@ -385,11 +505,38 @@ void ControlWidget::save_Energies()
 
 void ControlWidget::set_solver_enabled()
 {
-	if (this->comboBox_Method->currentText() == "MC" || 
-        this->comboBox_Method->currentText() == "EMA")
-		this->comboBox_Solver->setEnabled(false);
-	else
-		this->comboBox_Solver->setEnabled(true);
+	if (this->comboBox_Method->currentText() == "MC" )
+    {
+        this->comboBox_Solver->setEnabled(false);
+    }
+    else if ( this->comboBox_Method->currentText() == "EMA" )
+    {
+        this->comboBox_Solver->setEnabled(false);
+        ema_buttons_show();
+    }
+    else
+    {
+        this->comboBox_Solver->setEnabled(true);
+        ema_buttons_hide();
+    }
+}
+
+void ControlWidget::ema_buttons_hide()
+{
+    this->pushButton_Calculate->setVisible(false);
+    this->pushButton_NextMode->setVisible(false);
+    this->pushButton_PreviousMode->setVisible(false);
+    this->lineEdit_ModeNumber->setVisible(false);
+    this->label_NumberOfModes->setVisible(false);
+}
+
+void ControlWidget::ema_buttons_show()
+{
+    this->pushButton_Calculate->setVisible(true);
+    this->pushButton_NextMode->setVisible(true);
+    this->pushButton_PreviousMode->setVisible(true);
+    this->lineEdit_ModeNumber->setVisible(true);
+    this->label_NumberOfModes->setVisible(true);
 }
 
 void ControlWidget::save_EPressed()

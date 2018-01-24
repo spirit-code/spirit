@@ -21,81 +21,157 @@ using namespace Utility;
 
 namespace Engine
 {
+    /* helper function */
+    void Check_n_modes(int& n_modes, const int nos, const int idx_img, const int idx_chain)
+    {
+        if (n_modes > 2*nos-2)
+        {
+            n_modes = 2*nos-2;
+            Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Number of eigenmodes declared in "
+            "EMA Parameters is too large. The number is set to {}", n_modes), idx_img, idx_chain);
+        }
+    }
+    
+    /* helper function */
+    void Check_selected_mode(int& selected_mode, const int n_modes, const int idx_img, 
+        const int idx_chain)
+    {
+        if (selected_mode > n_modes-1)
+        {
+            Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Eigenmode number {} is not "
+            "available. The largest eigenmode ({}) is used instead", selected_mode, n_modes-1),
+            idx_img, idx_chain);
+            selected_mode = n_modes-1;
+        }
+    }
+    
+    void Calculate_Eigenmodes(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain)
+    {
+        int nos = system->nos;
+        
+        // vectorfield mode(nos, Vector3{1, 0, 0});
+        vectorfield spins_initial = *system->spins;
+        
+        // get number of modes
+        auto& n_modes = system->ema_parameters->n_modes; 
+        
+        // Check and set (if it is required) the total number of nodes
+        Check_n_modes(n_modes, nos, idx_img, idx_chain);
+        
+        // Calculate the Eigenmodes
+        vectorfield gradient(nos);
+        MatrixX hessian(3*nos, 3*nos);
+        
+        // The gradient (unprojected)
+        system->hamiltonian->Gradient(spins_initial, gradient);
+        Vectormath::set_c_a(1, gradient, gradient, system->ema_parameters->pinning->mask_unpinned);
+        
+        // The Hessian (unprojected)
+        system->hamiltonian->Hessian(spins_initial, hessian);
+        
+        // Get the eigenspectrum
+        MatrixX hessian_constrained = MatrixX::Zero(2*nos, 2*nos);
+        MatrixX tangent_basis = MatrixX::Zero(3*nos, 2*nos);
+        VectorX eigenvalues;
+        MatrixX eigenvectors;
+        bool successful = Eigenmodes::Hessian_Partial_Spectrum(spins_initial, gradient, hessian, 
+            n_modes, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
+        
+        if (successful)
+        {
+            // get every mode and save it to system->modes
+            for (int i=0; i<n_modes; i++)
+            {
+                // Extract the minimum mode (transform evec_lowest_2N back to 3N)
+                VectorX evec_3N = tangent_basis * eigenvectors.col(i);
+                
+                // dynamically allocate the system->modes
+                system->modes[i] = std::shared_ptr<vectorfield>(new vectorfield(nos, Vector3{1,0,0}));
+                
+                // Set the modes
+                for (int j=0; j<nos; j++)
+                    (*system->modes[i])[j] = {evec_3N[3*j], evec_3N[3*j+1], evec_3N[3*j+2]};
+            }
+        }
+        else
+        {
+            //// TODO: What to do then?
+        }
+    }
+    
     Method_EMA::Method_EMA(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
         Method(system->ema_parameters, idx_img, idx_chain)
     {
         // Currently we only support a single image being iterated at once:
         this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
         this->SenderName = Utility::Log_Sender::EMA;
+        this->parameters_ema = system->ema_parameters;
         
         this->noi = this->systems.size();
         this->nos = this->systems[0]->nos;
         
-        this->parameters_ema = system->ema_parameters;
-
-        this->steps_per_period = 50;
-        this->timestep = 1./this->steps_per_period;
         this->counter = 0;
-        this->amplitude = 1;
 
+        // attributes needed for applying a mode the spins
         this->angle = scalarfield(this->nos);
         this->angle_initial = scalarfield(this->nos);
-
+        this->axis = vectorfield(this->nos);        
         this->spins_initial = *this->systems[0]->spins;
-        this->mode = vectorfield(this->nos, Vector3{1, 0, 0});
-        this->axis = vectorfield(this->nos);
+        
+        // get number of modes and mode to visualize
+        auto& n_modes = this->systems[0]->ema_parameters->n_modes;
+        auto& selected_mode = this->systems[0]->ema_parameters->n_mode_follow;
+        
+        // Check and set (if it is required) the total number of nodes
+        Check_n_modes(n_modes, nos, idx_img, idx_chain);
+        
+        // Check and set (if it is required) the mode to visualize
+        Check_selected_mode(selected_mode, n_modes, idx_img, idx_chain);
 
-        // Calculate the Eigenmodes
-        int n_modes = 10;
-        int selected_mode = 0;
+        // calculated eigenmodes only in case that the selected mode to follow is not computed yet.
+        // this functionality is associated with the UI button "Play" and not with the "Calculate"
+        if ( this->systems[0]->modes[selected_mode] == NULL )
+            Calculate_Eigenmodes(system, idx_img, idx_chain); 
 
-        vectorfield gradient(this->nos);
-        MatrixX hessian(3*this->nos, 3*this->nos);
+        // set the selected mode after checks and calculation (if needed)
+        this->mode = *this->systems[0]->modes[selected_mode];
 
-        // The gradient (unprojected)
-        system->hamiltonian->Gradient(spins_initial, gradient);
-        Vectormath::set_c_a(1, gradient, gradient, this->parameters->pinning->mask_unpinned);
-
-        // The Hessian (unprojected)
-        system->hamiltonian->Hessian(spins_initial, hessian);
-
-        // Get the eigenspectrum
-        MatrixX hessian_constrained = MatrixX::Zero(2*nos, 2*nos);
-        MatrixX tangent_basis = MatrixX::Zero(3*nos, 2*nos);
-        VectorX eigenvalues;
-        MatrixX eigenvectors;
-        bool successful = Eigenmodes::Hessian_Partial_Spectrum(spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
-
-        if (successful)
+        // Find the axes of rotation for the mode to visualize
+        for (int idx=0; idx<this->nos; idx++)
         {
-            // Extract the minimum mode (transform evec_lowest_2N back to 3N)
-            VectorX evec_3N = tangent_basis * eigenvectors.col(selected_mode);
-
-            // Set the mode
-            for (int n=0; n<this->nos; ++n)
-            {
-                this->mode[n] = {evec_3N[3*n], evec_3N[3*n+1], evec_3N[3*n+2]};
-                this->angle_initial[n] = this->mode[n].norm();
-            }
-
-            // Find the axes of rotation
-            for (int idx=0; idx<nos; idx++)
-                this->axis[idx] = spins_initial[idx].cross(this->mode[idx]).normalized();
+            this->angle_initial[idx] = this->mode[idx].norm();
+            this->axis[idx] = this->spins_initial[idx].cross(this->mode[idx]).normalized();
         }
-        else
-        {
-            // What to do then?
-        }
+        
+        // for checking if the parameteres have been updated during iterations
+        this->following_mode = this->parameters_ema->n_mode_follow;
     }
     
     void Method_EMA::Iteration()
     {
-        int nos = this->systems[0]->spins->size();
+        // if the mode has change
+        if ( this->following_mode != this->parameters_ema->n_mode_follow )
+        {
+            // reset local attribute for following mode
+            this->following_mode = this->parameters_ema->n_mode_follow;
+            // restore the initial spin configuration
+            (*this->systems[0]->spins) = this->spins_initial;
+            // set the new mode
+            this->mode = *this->systems[0]->modes[following_mode];
+            
+            // Find the axes of rotation for the mode to visualize
+            for (int idx=0; idx<this->nos; idx++)
+            {
+                this->angle_initial[idx] = this->mode[idx].norm();
+                this->axis[idx] = this->spins_initial[idx].cross(this->mode[idx]).normalized();
+            }
+        }
 
         auto& image = *this->systems[0]->spins;
 
         // Calculate n for that iteration based on the initial n displacement vector
-        scalar t_angle = this->amplitude * std::cos(2*M_PI*this->counter*this->timestep);
+        scalar t_angle = this->parameters_ema->amplitude * 
+            std::cos(2*M_PI*this->counter*this->parameters_ema->frequency);
         this->angle = this->angle_initial;
         Vectormath::scale(this->angle, t_angle);
 
@@ -105,7 +181,6 @@ namespace Engine
     
     bool Method_EMA::Converged()
     {
-        //// TODO: Needs proper implementation
         return false;
     }
     
@@ -129,6 +204,10 @@ namespace Engine
     
     void Method_EMA::Finalize()
     {
+        this->Lock();
+        // The initial spin configuration must be restored
+        (*this->systems[0]->spins) = this->spins_initial;
+        this->Unlock();
     }
     
     void Method_EMA::Message_Start()

@@ -26,6 +26,9 @@ namespace Data
 
 		// Initialize Spins Array
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(nos));
+        
+        // Initialize Modes container
+        this->modes = std::vector<std::shared_ptr<vectorfield>>(this->ema_parameters->n_modes, NULL);
 
 		// ...
 		this->E = 0;
@@ -40,6 +43,7 @@ namespace Data
 	{
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
+        this->modes = other.modes;
 
 		this->E = other.E;
 		this->E_array = other.E_array;
@@ -76,6 +80,7 @@ namespace Data
 		{
 			this->nos = other.nos;
 			this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
+            this->modes = other.modes;
 
 			this->E = other.E;
 			this->E_array = other.E_array;

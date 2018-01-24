@@ -3,6 +3,9 @@
 #define CONTROLWIDGET_H
 
 #include <QWidget>
+#include <QFutureWatcher>
+
+
 
 #include <memory>
 #include <thread>
@@ -42,6 +45,14 @@ public slots:
 	void cut_image();
 	void paste_image(std::string where="current");
 	void delete_image();
+    void next_mode();
+    void prev_mode();
+    void jump_to_mode();
+    void calculate();
+    void calculate_disable_widget();
+    void calculate_enable_widget();
+    void ema_buttons_show();
+    void ema_buttons_hide();
 
 private slots:
     void resetPressed();
@@ -70,6 +81,8 @@ private:
 	// Temporary string storage
 	std::string s_method;
 	std::string s_solver;
+
+    QFutureWatcher<void> watcher;
 
 	// ...
 	void save_Energies();

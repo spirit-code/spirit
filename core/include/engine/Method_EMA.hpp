@@ -11,6 +11,11 @@
 
 namespace Engine
 {
+    /* 
+        Method for calculating the Eigenmodes of a system
+    */
+    void Calculate_Eigenmodes(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
+    
     /*
         The Eigenmode Analysis method
     */
@@ -51,10 +56,9 @@ namespace Engine
 
         std::shared_ptr<Data::Parameters_Method_EMA> parameters_ema;
         
-        int steps_per_period;
-        scalar timestep;
         int counter;
-        scalar amplitude;
+        int following_mode;
+        
         vectorfield mode;
         scalarfield angle;
         scalarfield angle_initial;

@@ -46,6 +46,12 @@ DLLEXPORT void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type
 //    Maxima are set to climbing, minima to falling, others are not changed.
 DLLEXPORT void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain=-1) noexcept;
 
+//      Set EMA
+// Simulation Parameters
+DLLEXPORT void Parameters_Set_EMA_N_Modes(State *state, int n_modes, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_EMA_N_Mode_Follow(State *state, int n_mode_follow, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_EMA_Frequency(State *state, float frequency, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_EMA_Amplitude(State *state, float amplitude, int idx_image=-1, int idx_chain=-1) noexcept;
 
 //      Get LLG
 // Output
@@ -86,6 +92,13 @@ DLLEXPORT float Parameters_Get_GNEB_Convergence(State *state, int idx_image=-1, 
 DLLEXPORT float Parameters_Get_GNEB_Spring_Constant(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT int Parameters_Get_GNEB_Climbing_Falling(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain=-1) noexcept;
+
+//      Get EMA
+// Simulation Parameters
+DLLEXPORT int Parameters_Get_EMA_N_Modes(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT int Parameters_Get_EMA_N_Mode_Follow(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT float Parameters_Get_EMA_Frequency(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT float Parameters_Get_EMA_Amplitude(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

@@ -36,6 +36,7 @@ private slots:
 	//    Maxima are set to climbing and minima to falling.
 	void set_gneb_auto_image_type();
 	void set_parameters_mmf();
+    void set_parameters_ema();
    
 private:
 	void Setup_Input_Validators();
