@@ -3,9 +3,9 @@
 #define CONTROLWIDGET_H
 
 #include <QWidget>
-#include <QFuture>
 #include <QFutureWatcher>
-#include <QtConcurrent/QtConcurrentRun>
+
+
 
 #include <memory>
 #include <thread>

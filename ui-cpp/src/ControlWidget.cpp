@@ -1,4 +1,6 @@
 #include <QtWidgets>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
 
 #include "ControlWidget.hpp"
 

@@ -154,6 +154,10 @@ void ParametersWidget::Load_Parameters_Contents()
    i2 = Parameters_Get_EMA_N_Mode_Follow(state.get());
    this->spinBox_ema_n_mode_follow->setValue(i2+1);
    this->spinBox_ema_n_mode_follow->setMaximum(i1);
+   d = Parameters_Get_EMA_Frequency(state.get());
+   this->doubleSpinBox_ema_frequency->setValue(d);
+   d = Parameters_Get_EMA_Amplitude(state.get());
+   this->doubleSpinBox_ema_amplitude->setValue(d);
 }
 
 
@@ -370,9 +374,13 @@ void ParametersWidget::set_parameters_ema()
 {
     int i1 = this->spinBox_ema_n_modes->value();
     int i2 = this->spinBox_ema_n_mode_follow->value();
+    float d1 = this->doubleSpinBox_ema_frequency->value();
+    float d2 = this->doubleSpinBox_ema_amplitude->value();
     
     Parameters_Set_EMA_N_Modes(state.get(), i1);
     Parameters_Set_EMA_N_Mode_Follow(state.get(), i2-1);
+    Parameters_Set_EMA_Frequency(state.get(), d1);
+    Parameters_Set_EMA_Amplitude(state.get(), d2);
     
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
 }
@@ -438,6 +446,8 @@ void ParametersWidget::Setup_Parameters_Slots()
     //      EMA
     connect(this->spinBox_ema_n_modes, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
+    connect(this->doubleSpinBox_ema_frequency, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
+    connect(this->doubleSpinBox_ema_amplitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
 }
 
 
