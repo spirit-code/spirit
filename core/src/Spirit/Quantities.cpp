@@ -198,7 +198,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
     {
         for (int dim=0; dim<3; ++dim)
         {
-            f_grad[3*_i+dim] = (float)-gradient[_i][dim];
+            f_grad[3*_i+dim] = (float)-grad[_i][dim];
         }
     }
 
@@ -263,7 +263,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
             for (int n=0; n<nos; ++n)
                 minimum_mode[n] = {mode_3N[3*n], mode_3N[3*n+1], mode_3N[3*n+2]};
         }
-        
+
         // Get the scalar product of mode and gradient
         scalar mode_grad       = mode_3N.dot(grad_3N);
         // Get the angle between mode and gradient (in the tangent plane!)

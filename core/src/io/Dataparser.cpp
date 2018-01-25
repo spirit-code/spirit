@@ -331,7 +331,7 @@ namespace IO
             {
                 // Read n interaction pairs
                 file.iss >> n_anisotropy;
-                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy));
+                Log(Log_Level::Info, Log_Sender::IO, fmt::format("Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy));
             }
             else
             {
@@ -348,13 +348,13 @@ namespace IO
             {
                 file.iss >> columns[i];
                 if (!columns[i].compare(0, 1, "i"))    col_i = i;
-                else if (!columns[i].compare(0, 2, "K")) { col_K = i;    K_magnitude = true; }
-                else if (!columns[i].compare(0, 2, "Kx"))    col_Kx = i;
-                else if (!columns[i].compare(0, 2, "Ky"))    col_Ky = i;
-                else if (!columns[i].compare(0, 2, "Kz"))    col_Kz = i;
-                else if (!columns[i].compare(0, 2, "Ka"))    col_Ka = i;
-                else if (!columns[i].compare(0, 2, "Kb"))    col_Kb = i;
-                else if (!columns[i].compare(0, 2, "Kc"))    col_Kc = i;
+                else if (!columns[i].compare(0, 2, "k")) { col_K = i;    K_magnitude = true; }
+                else if (!columns[i].compare(0, 2, "kx"))    col_Kx = i;
+                else if (!columns[i].compare(0, 2, "ky"))    col_Ky = i;
+                else if (!columns[i].compare(0, 2, "kz"))    col_Kz = i;
+                else if (!columns[i].compare(0, 2, "ka"))    col_Ka = i;
+                else if (!columns[i].compare(0, 2, "kb"))    col_Kb = i;
+                else if (!columns[i].compare(0, 2, "kc"))    col_Kc = i;
 
                 if (col_Kx >= 0 && col_Ky >= 0 && col_Kz >= 0) K_xyz = true;
                 if (col_Ka >= 0 && col_Kb >= 0 && col_Kc >= 0) K_abc = true;
@@ -398,8 +398,7 @@ namespace IO
                         file.iss >> sdump;
                 }
                 K_temp = { spin_K1, spin_K2, spin_K3 };
-                // K_temp.normalize();
-                // spin_K1 = K_temp[0]; spin_K2 = K_temp[1]; spin_K3 = K_temp[2];
+
                 // Anisotropy vector orientation
                 if (K_abc)
                 {
@@ -408,18 +407,27 @@ namespace IO
                     spin_K3 = K_temp.dot(geometry->bravais_vectors[2]);
                     K_temp = { spin_K1, spin_K2, spin_K3 };
                 }
+
                 // Anisotropy vector normalisation
                 if (K_magnitude)
                 {
-                    scalar dnorm = K_temp.norm();
-                    if (dnorm != 0)
-                        K_temp.normalize();
+                    K_temp.normalize();
+                    if (K_temp.norm() == 0)
+                        K_temp = Vector3{0, 0, 1};
                 }
                 else
                 {
                     spin_K = K_temp.norm();
                     if (spin_K != 0)
                         K_temp.normalize();
+                }
+
+                // Add the index and parameters to the corresponding lists
+                if (spin_K != 0)
+                {
+                    anisotropy_index.push_back(spin_i);
+                    anisotropy_magnitude.push_back(spin_K);
+                    anisotropy_normal.push_back(K_temp);
                 }
 
                 ++i_anisotropy;

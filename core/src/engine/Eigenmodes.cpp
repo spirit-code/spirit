@@ -31,7 +31,7 @@ namespace Engine
             // Extract real eigenvalues
             eigenvalues = hessian_spectrum.eigenvalues().real();
             // Retrieve the real eigenvectors
-            eigenvalues = hessian_spectrum.eigenvectors().real();
+            eigenvectors = hessian_spectrum.eigenvectors().real();
 
             // Return whether the calculation was successful
             return true;
@@ -41,17 +41,23 @@ namespace Engine
             MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues, MatrixX & eigenvectors)
         {
             int nos = spins.size();
+
+            // Restrict number of calculated modes to [1,2N)
             n_modes = std::max(0, std::min(2*nos-1, n_modes));
+
+            // If we have only one spin, we can only calculate the full spectrum
+            if (n_modes == nos)
+                return Hessian_Full_Spectrum(spins, gradient, hessian, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
 
             // Calculate the final Hessian to use for the minimum mode
             // TODO: add option to choose different Hessian calculation
             hessian_constrained = MatrixX::Zero(2*nos, 2*nos);
             tangent_basis       = MatrixX::Zero(3*nos, 2*nos);
             Manifoldmath::hessian_bordered(spins, gradient, hessian, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_projected(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_weingarten(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_spherical(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_covariant(spins, grad, hess, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_projected(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_weingarten(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
             
             // Create the Spectra Matrix product operation
             Spectra::DenseGenMatProd<scalar> op(hessian_constrained);
