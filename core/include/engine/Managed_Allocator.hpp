@@ -22,6 +22,8 @@ static void CudaHandleError( cudaError_t err, const char *file, int line, const 
 
 #define CU_CHECK_ERROR( ) (CudaHandleError( cudaGetLastError(), __FILE__, __LINE__, __func__ ))
 
+#define CU_CHECK_AND_SYNC( ) CU_CHECK_ERROR(); CU_HANDLE_ERROR( cudaDeviceSynchronize() )
+
 
 template<class T>
 class managed_allocator : public std::allocator<T>

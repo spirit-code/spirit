@@ -193,7 +193,7 @@ if ( SPIRIT_USE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks
-    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60 --expt-relaxed-constexpr" )
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=sm_60 --expt-relaxed-constexpr" )
 	message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
 endif()
 #############################################
