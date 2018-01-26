@@ -146,6 +146,9 @@ namespace Engine
 		if (this->idx_dmi >=0 )        E_DMI(spins, energy_contributions_per_spin[idx_dmi].second);
 		// DDI
 		if (this->idx_ddi >=0 )        E_DDI(spins, energy_contributions_per_spin[idx_ddi].second);
+
+		CU_CHECK_ERROR();
+		CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 	}
 
 
@@ -159,7 +162,7 @@ namespace Engine
 			{
 				int ispin = idx + ibasis;
 				if ( cu_check_atom_type(atom_types[ispin]) )
-					atomicAdd(&Energy[ispin], - mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]));
+					Energy[ispin] -= mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
 			}
 		}
 	}
@@ -179,7 +182,7 @@ namespace Engine
 			{
 				int ispin = idx + anisotropy_indices[iani];
 				if ( cu_check_atom_type(atom_types[ispin]) )
-					atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
+					Energy[ispin] -= anisotropy_magnitude[iani] * std::pow(anisotropy_normal[iani].dot(spins[ispin]), 2.0);
 			}
 		}
 	}
@@ -291,6 +294,9 @@ namespace Engine
 		this->Gradient_DMI(spins, gradient);
 		// DD
 		this->Gradient_DDI(spins, gradient);
+
+		CU_CHECK_ERROR();
+		CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 	}
 
 	__global__ void HNeigh_CU_Gradient_Zeeman( const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total)
@@ -304,10 +310,7 @@ namespace Engine
 				int ispin = idx + ibasis;
 				if ( cu_check_atom_type(atom_types[ispin]) )
 				{
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], - mu_s[ibasis] * external_field_magnitude*external_field_normal[idx]);
-					}
+					gradient[ispin] -= mu_s[ibasis] * external_field_magnitude*external_field_normal;
 				}
 			}
 		}
@@ -330,10 +333,7 @@ namespace Engine
 				if ( cu_check_atom_type(atom_types[ispin]) )
 				{
 					scalar sc = -2 * anisotropy_magnitude[iani] * anisotropy_normal[iani].dot(spins[ispin]);
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], sc*anisotropy_normal[iani][dim]);
-					}
+					gradient[ispin] += sc*anisotropy_normal[iani];
 				}
 			}
 		}

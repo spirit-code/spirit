@@ -53,7 +53,8 @@ namespace Engine
             scalar proj=Vectormath::dot(vf1, vf2);
             // Project vf1
             cu_project_orthogonal<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), proj, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_ERROR();
+            CU_HANDLE_ERROR( cudaDeviceSynchronize() );
         }
 
         void invert_parallel(vectorfield & vf1, const vectorfield & vf2)
@@ -82,7 +83,8 @@ namespace Engine
 		{
             int n = vf1.size();
             cu_project_tangential<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_ERROR();
+            CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 		}
 
 
@@ -124,7 +126,8 @@ namespace Engine
 			scalarfield sf(n);
 
             cu_dist_geodesic_2<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), sf.data(), n);
-			cudaDeviceSynchronize();
+            CU_CHECK_ERROR();
+            CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 			scalar dist = Vectormath::sum(sf);
 
 			return sqrt(dist);

@@ -18,8 +18,9 @@ namespace Utility
         Non_existing_Chain,
         Input_parse_failed,
         Bad_File_Content,
-        Standard_Exception,
-        Unknown_Exception
+		Standard_Exception,
+		CUDA_Error,
+		Unknown_Exception
         // TODO: from Chain.cpp
         // Last image deletion ?
         // Empty clipboard     ?

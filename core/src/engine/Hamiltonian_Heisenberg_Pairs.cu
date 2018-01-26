@@ -131,7 +131,8 @@ namespace Engine
 		// Quadruplets
 		if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
 		
-		cudaDeviceSynchronize();
+		CU_CHECK_ERROR();
+		CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 	}
 
 
@@ -145,7 +146,7 @@ namespace Engine
 			{
 				int ispin = idx + ibasis;
 				if ( cu_check_atom_type(atom_types[ispin]) )
-					atomicAdd(&Energy[ispin], - mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]));
+					Energy[ispin] -= mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
 			}
 		}
 	}
@@ -166,7 +167,7 @@ namespace Engine
 			{
 				int ispin = idx + anisotropy_indices[iani];
 				if ( cu_check_atom_type(atom_types[ispin]) )
-					atomicAdd(&Energy[ispin], - anisotropy_magnitude[idx] * std::pow(anisotropy_normal[idx].dot(spins[ispin]), 2.0));
+					Energy[ispin] -= anisotropy_magnitude[iani] * std::pow(anisotropy_normal[iani].dot(spins[ispin]), 2.0);
 			}
 		}
 	}
@@ -328,7 +329,8 @@ namespace Engine
 		//    Quadruplet
 		this->Gradient_Quadruplet(spins, gradient);
 
-		cudaDeviceSynchronize();
+		CU_CHECK_ERROR();
+		CU_HANDLE_ERROR( cudaDeviceSynchronize() );
 	}
 
 
@@ -343,10 +345,7 @@ namespace Engine
 				int ispin = idx + ibasis;
 				if ( cu_check_atom_type(atom_types[ispin]) )
 				{
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], - mu_s[ibasis] * external_field_magnitude*external_field_normal[idx]);
-					}
+					gradient[ispin] -= mu_s[ibasis] * external_field_magnitude*external_field_normal;
 				}
 			}
 		}
@@ -370,10 +369,7 @@ namespace Engine
 				if ( cu_check_atom_type(atom_types[ispin]) )
 				{
 					scalar sc = -2 * anisotropy_magnitude[iani] * anisotropy_normal[iani].dot(spins[ispin]);
-					for (int dim=0; dim<3 ; dim++)
-					{
-						atomicAdd(&gradient[ispin][dim], sc*anisotropy_normal[iani][dim]);
-					}
+					gradient[ispin] += sc*anisotropy_normal[iani];
 				}
 			}
 		}

@@ -100,7 +100,7 @@ namespace Engine
                 }// endfor j
             }// endfor dim
 
-        };// end Build_Spins
+        }// end Build_Spins
 
 
         std::array<scalar,3> Magnetization(const vectorfield & vf)
