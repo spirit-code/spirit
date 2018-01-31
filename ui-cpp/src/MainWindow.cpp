@@ -61,6 +61,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->view_fullscreen = false;
 	this->m_spinWidgetActive = true;
 	this->m_InfoWidgetActive = true;
+	Ui::MainWindow::statusBar->hide();
 	readSettings();
 
 
@@ -1088,6 +1089,7 @@ void MainWindow::keyBindings()
 			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
 			" - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
 			" - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
+			" - <b>i</b>:       Toggle large visualisation<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"
