@@ -21,12 +21,12 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// State
 	this->state = state;
 	// Widgets
-	this->spinWidget = new SpinWidget(this->state);
-	this->infoWidget = new InfoWidget(this->state, this->spinWidget);
+	this->spinWidget     = new SpinWidget(this->state);
 	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
-	this->plotsWidget = new PlotsWidget(this->state);
-	this->debugWidget = new DebugWidget(this->state);
-	this->controlWidget = new ControlWidget(this->state, this->spinWidget, this->settingsWidget);
+	this->plotsWidget    = new PlotsWidget(this->state);
+	this->debugWidget    = new DebugWidget(this->state);
+	this->controlWidget  = new ControlWidget(this->state, this->spinWidget, this->settingsWidget);
+	this->infoWidget     = new InfoWidget(this->state, this->spinWidget, this->controlWidget);
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
@@ -289,11 +289,13 @@ void MainWindow::toggleInfoWidget()
 	if (this->m_InfoWidgetActive)
 	{
 		this->infoWidget->hide();
+		Ui::MainWindow::statusBar->show();
 		this->m_InfoWidgetActive = false;
 	}
 	else
 	{
 		this->infoWidget->show();
+		Ui::MainWindow::statusBar->hide();
 		this->m_InfoWidgetActive = true;
 	}
 }

@@ -90,14 +90,14 @@ font-family: \&quot;Courier\&quot;</string>
          </widget>
         </item>
         <item row="10" column="0">
-         <widget class="QLabel" name="m_Label_Force">
+         <widget class="QLabel" name="m_Label_Force_Max">
           <property name="styleSheet">
            <string notr="true">color:white;
 background: transparent;
 font-family: &quot;Courier&quot;</string>
           </property>
           <property name="text">
-           <string>Force =</string>
+           <string>Force (max) =</string>
           </property>
          </widget>
         </item>
@@ -118,10 +118,13 @@ font-family: &quot;Courier&quot;</string>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>40</height>
+            <height>30</height>
            </size>
           </property>
          </spacer>
@@ -173,6 +176,18 @@ font-family: &quot;Courier&quot;</string>
           </property>
          </widget>
         </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="m_Label_Force_Current">
+          <property name="styleSheet">
+           <string notr="true">color:white;
+background: transparent;
+font-family: &quot;Courier&quot;</string>
+          </property>
+          <property name="text">
+           <string>Force (current) = </string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -200,7 +215,7 @@ font-family: &quot;Courier&quot;</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0">
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="m_Label_Solver">
           <property name="styleSheet">
            <string notr="true">color:white;
 background: transparent;
@@ -212,7 +227,7 @@ font-family: &quot;Courier&quot;</string>
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="m_Label_Method">
           <property name="styleSheet">
            <string notr="true">color:white;
 background: transparent;
@@ -235,7 +250,7 @@ font-family: &quot;Courier&quot;</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="m_Label_Dims">
           <property name="styleSheet">
            <string notr="true">color:white;
@@ -248,7 +263,7 @@ font-family: &quot;Courier&quot;</string>
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_8">
+         <widget class="QLabel" name="m_Label_IPS">
           <property name="styleSheet">
            <string notr="true">color:white;
 background: transparent;
@@ -260,7 +275,7 @@ font-family: &quot;Courier&quot;</string>
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="m_Label_Iteration">
           <property name="styleSheet">
            <string notr="true">color:white;
 background: transparent;
@@ -271,19 +286,6 @@ font-family: &quot;Courier&quot;</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item row="5" column="0">
          <widget class="QLabel" name="m_Label_NOI">
           <property name="styleSheet">
@@ -293,6 +295,34 @@ font-family: &quot;Courier&quot;</string>
           </property>
           <property name="text">
            <string>NOI =</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>30</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="m_Label_NBasis">
+          <property name="styleSheet">
+           <string notr="true">color:white;
+background: transparent;
+font-family: &quot;Courier&quot;</string>
+          </property>
+          <property name="text">
+           <string>N Basis =</string>
           </property>
          </widget>
         </item>
