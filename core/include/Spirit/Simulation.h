@@ -35,6 +35,8 @@ DLLEXPORT void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * t
 //		IF a MMF simulation is running this returns the IPS on the current collection.
 DLLEXPORT float Simulation_Get_IterationsPerSecond(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
+// Get number of done iterations
+DLLEXPORT int Simulation_Get_Iteration(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get name of the currently used solver
 //		If an LLG simulation is running this returns the Solver name on the current image.

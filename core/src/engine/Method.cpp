@@ -122,6 +122,12 @@ namespace Engine
     }
 
 
+    int Method::getNIterations()
+    {
+        return this->iteration;
+    }
+
+
     scalar Method::getForceMaxAbsComponent()
     {
         return this->force_max_abs_component;
