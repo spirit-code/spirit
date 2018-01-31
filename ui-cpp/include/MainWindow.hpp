@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "SpinWidget.hpp"
+#include "InfoWidget.hpp"
 #include "ControlWidget.hpp"
 #include "SettingsWidget.hpp"
 #include "PlotsWidget.hpp"
@@ -59,6 +60,7 @@ private slots:
 	void view_toggle_spins_only();
 	void view_toggle_fullscreen();
 	void toggleSpinWidget();
+	void toggleInfoWidget();
 	void view_toggleDragMode();
     void about();
 	void keyBindings();
@@ -88,6 +90,7 @@ private:
 	std::shared_ptr<State> state;
 	// Widgets
 	SpinWidget *spinWidget;
+	InfoWidget *infoWidget;
 	ControlWidget * controlWidget;
 	SettingsWidget * settingsWidget;
 	PlotsWidget * plotsWidget;
@@ -120,6 +123,7 @@ private:
 	bool   view_spins_only;
 	bool   view_fullscreen;
 	bool   m_spinWidgetActive;
+	bool   m_InfoWidgetActive;
 	bool   pre_spins_only_settings_hidden;
 	QSize  pre_spins_only_settings_size;
 	QPoint pre_spins_only_settings_pos;

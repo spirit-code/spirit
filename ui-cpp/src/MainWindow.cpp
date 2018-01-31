@@ -22,6 +22,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->state = state;
 	// Widgets
 	this->spinWidget = new SpinWidget(this->state);
+	this->infoWidget = new InfoWidget(this->state, this->spinWidget);
 	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
 	this->plotsWidget = new PlotsWidget(this->state);
 	this->debugWidget = new DebugWidget(this->state);
@@ -52,12 +53,14 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Add Widgets to UIs grids
 	this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
+	this->gridLayout->addWidget(this->infoWidget, 0, 0, 1, 1);
 	this->gridLayout_2->addWidget(this->controlWidget, 0, 0, 1, 1);
 
 	// Read Window settings of last session
 	this->view_spins_only = false;
 	this->view_fullscreen = false;
 	this->m_spinWidgetActive = true;
+	this->m_InfoWidgetActive = true;
 	readSettings();
 
 
@@ -281,6 +284,21 @@ void MainWindow::toggleSpinWidget()
 }
 
 
+void MainWindow::toggleInfoWidget()
+{
+	if (this->m_InfoWidgetActive)
+	{
+		this->infoWidget->hide();
+		this->m_InfoWidgetActive = false;
+	}
+	else
+	{
+		this->infoWidget->show();
+		this->m_InfoWidgetActive = true;
+	}
+}
+
+
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
 	// Image index
@@ -415,6 +433,10 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Return:
 				if (this->hasFocus() || this->spinWidget->hasFocus())
 					this->control_insertconfiguration();
+				break;
+			// Display info widget
+			case Qt::Key_I:
+				this->toggleInfoWidget();
 				break;
 			// WASDQE
 			case Qt::Key_W:
@@ -775,7 +797,7 @@ void MainWindow::updateStatusBar()
 	if (!Simulation_Running_Chain(state.get()))
 		this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
-	float E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
+	double E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
 	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
 
 	float M[3];
@@ -882,6 +904,9 @@ void MainWindow::updateMenuBar()
 		this->actionShow_Debug->setChecked(true);
 	else
 		this->actionShow_Debug->setChecked(false);
+
+	// Info Widget
+	this->actionToggle_infowidget->setChecked(this->m_InfoWidgetActive);
 
 	// Visualisation
 	this->actionToggle_visualisation->setChecked(this->m_spinWidgetActive);
@@ -1300,6 +1325,8 @@ void MainWindow::readSettings()
 	if (spins_only) this->view_toggle_spins_only();
 	bool fullscreen = settings.value("fullscreen").toBool();
 	if (fullscreen) this->view_toggle_fullscreen();
+	bool show_infoWidget = settings.value("show infoWidget", true).toBool();
+	if (!show_infoWidget) this->toggleInfoWidget();
 
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -1336,6 +1363,7 @@ void MainWindow::writeSettings()
     settings.setValue("windowState", saveState());
 	settings.setValue("fullscreenSpins", this->view_spins_only);
 	settings.setValue("fullscreen", this->view_fullscreen);
+	settings.setValue("show infoWidget", this->m_InfoWidgetActive);
 	
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -1373,6 +1401,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	writeSettings();
 	this->spinWidget->close();
 	this->controlWidget->close();
+	this->infoWidget->close();
 
 	event->accept();
 }
