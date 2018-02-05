@@ -681,6 +681,9 @@ $(document).ready(function() {
   };
   Module.ready(function() {
     new Simulation(updateSimulation);
+
+    var version = window.currentSimulation.spiritVersion();
+    document.getElementById("spirit-version").textContent="Version" + version;
   });
   $("#btn-extended-controls").click(function() {
     $("#webgl-extended-controls").toggleClass("hidden");

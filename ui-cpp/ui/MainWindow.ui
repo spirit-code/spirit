@@ -127,6 +127,7 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionToggle_infowidget"/>
     <addaction name="actionShow_Settings"/>
     <addaction name="actionShow_Plots"/>
     <addaction name="actionShow_Debug"/>
@@ -543,6 +544,14 @@
    </property>
    <property name="text">
     <string>Toggle Geometry</string>
+   </property>
+  </action>
+  <action name="actionToggle_infowidget">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Info-Widget</string>
    </property>
   </action>
  </widget>

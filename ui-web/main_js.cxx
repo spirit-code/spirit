@@ -22,8 +22,8 @@ int main(void)
 extern "C" void JS_LLG_Iteration(State *state)
 {
     // LLG Method
-    static std::shared_ptr<Engine::Method_LLG> method =
-        std::shared_ptr<Engine::Method>( new Engine::Method_LLG<Engine::Solver::SIB>( state->active_image ) );
+    static std::shared_ptr<Engine::Method_LLG<Engine::Solver::SIB>> method =
+        std::shared_ptr<Engine::Method_LLG<Engine::Solver::SIB>>( new Engine::Method_LLG<Engine::Solver::SIB>( state->active_image, 0, 0 ) );
 
     // Iterate
     method->Iteration();

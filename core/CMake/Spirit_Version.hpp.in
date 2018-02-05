@@ -2,11 +2,17 @@
 #ifndef UTILITY_VERSION_H
 #define UTILITY_VERSION_H
 
+#include <string>
+
 namespace Utility
 {
-    const std::string version = "${VERSION_STRING}";
-    const std::string version_revision = "${VERSION_REVISION_STRING}";
-    const std::string version_full = "${VERSION_STRING} (${VERSION_REVISION_STRING})";
+    const int version_major = ${META_VERSION_MAJOR};
+    const int version_minor = ${META_VERSION_MINOR};
+    const int version_patch = ${META_VERSION_PATCH};
+
+    const std::string version          = "${META_VERSION}";
+    const std::string version_revision = "${META_VERSION_REVISION}";
+    const std::string version_full     = "${META_VERSION} (${META_VERSION_REVISION})";
 }
 
 #endif

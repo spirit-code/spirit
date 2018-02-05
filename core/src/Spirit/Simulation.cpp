@@ -408,6 +408,43 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
 }
 
 
+int Simulation_Get_Iteration(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        {
+            if (state->method_image[idx_chain][idx_image])
+                return (float)state->method_image[idx_chain][idx_image]->getNIterations();
+        }
+        else if (Simulation_Running_Chain(state, idx_chain))
+        {
+            if (state->method_chain[idx_chain])
+                return (float)state->method_chain[idx_chain]->getNIterations();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return (float)state->method_collection->getNIterations();
+        }
+
+        return 0;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+
 const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try

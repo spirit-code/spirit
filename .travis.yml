@@ -83,14 +83,29 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 pinning and defects build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON" PYPI=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON" PYPI=false
       compiler: g++
       addons:
         apt:
           packages:
           - g++-6
           - qt57base
-          - qt57charts-no-lgpl
+          - ca-certificates
+          - python2.7
+          sources:
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+          - sourceline: 'ppa:jonathonf/python-2.7'
+    # Linux, GCC 6 coverage build
+    - os: linux
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON" PYPI=false COVERAGE=true RUNTESTS=false
+      compiler: g++
+      addons:
+        apt:
+          packages:
+          - g++-6
+          - lcov
+          - qt57base
           - ca-certificates
           - python2.7
           sources:
@@ -119,7 +134,7 @@ matrix:
 
 
 before_install:
-  - sudo pip install numpy wheel twine
+  - sudo pip install numpy wheel twine coveralls
   # Run homebrew on osx
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
@@ -213,3 +228,24 @@ script:
   # Upload to testpypi on all commits (if PYPI == true)
   - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
   - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
+
+  # Don't run coverage on branches other than master or develop
+  - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_BRANCH" != "develop" ]; then COVERAGE=false; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then COVERAGE=false; fi
+
+  # Run C++ coverage report generation and upload to codecov
+  - cd ../../build
+  - if [ "$COVERAGE" == "true" ]; then lcov -c -i --no-external --directory . --base-directory ../core -o baseline.info; fi
+  - if [ "$COVERAGE" == "true" ]; then make test; fi
+  - if [ "$COVERAGE" == "true" ]; then lcov -c --no-external --directory . --base-directory ../core -o after_test.info; fi
+  - if [ "$COVERAGE" == "true" ]; then lcov -a baseline.info -a after_test.info -o total_test.info; fi
+  - if [ "$COVERAGE" == "true" ]; then lcov -r total_test.info \*thirdparty\* \*/test/\* -o coverage.info; fi
+  - if [ "$COVERAGE" == "true" ]; then bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"; fi
+
+  # Run Python coverage report generation and upload to coveralls
+  - cd ../core/python
+  - if [ "$COVERAGE" == "true" ]; then coverage run --source spirit setup.py test > cov.txt; fi
+  - if [ "$COVERAGE" == "true" ]; then head cov.txt; fi
+  - if [ "$COVERAGE" == "true" ]; then coverage report -m; fi
+  - if [ "$COVERAGE" == "true" ]; then coverage xml; fi
+  - if [ "$COVERAGE" == "true" ]; then coveralls; fi

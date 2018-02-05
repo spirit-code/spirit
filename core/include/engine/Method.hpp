@@ -34,6 +34,9 @@ namespace Engine
         // Calculate a smooth but current IPS value
         virtual scalar getIterationsPerSecond() final;
 
+        // Get the number of iterations passed
+        virtual int getNIterations() final;
+
         // Maximum of the absolutes of all components of the force - needs to be updated at each calculation
         virtual scalar getForceMaxAbsComponent() final;
 

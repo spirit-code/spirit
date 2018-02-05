@@ -55,6 +55,9 @@ namespace Engine
 		// Force function
 		// ToDo: move into parameters
 		this->mm_function = "Spectra Matrix"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
+
+        //---- Initialise Solver-specific variables
+        this->Initialize();
     }
 	
 

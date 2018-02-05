@@ -13,11 +13,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cmath>
 #include <algorithm>
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+
+using Utility::Constants::Pi;
 
 namespace Utility
 {
@@ -181,18 +179,18 @@ namespace Utility
 						// ...
 						t = d / r;	// r is a big radius of the torus
 						t = 1.0 + 4.22 / (t*t);
-						tmp = M_PI*(1.0 - 1.0 / sqrt(t));
+						tmp = Pi*(1.0 - 1.0 / sqrt(t));
 						t = sin(tmp)*sin(T);
 						t = acos(1.0 - 2.0*t*t);
 						// ...
 						F = atan2(positions[n][1] - pos[1], positions[n][0] - pos[0]);
-						if (T > M_PI / 2.0)
+						if (T > Pi / 2.0)
 						{
 							f = F + atan(1.0 / (tan(tmp)*cos(T)));
 						}
 						else
 						{
-							f = F + atan(1.0 / (tan(tmp)*cos(T))) + M_PI;
+							f = F + atan(1.0 / (tan(tmp)*cos(T))) + Pi;
 						}
 						// Spin orientation
 						spins[n][0] = sin(t)*cos(order * f);
@@ -225,12 +223,12 @@ namespace Utility
 					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
 					if (distance == 0) { phi_i = 0; }
 					if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
-					phi_i += phase / 180 * M_PI;
-					if (experimental) { theta_i = M_PI - 4 * std::asin(std::tanh(distance)); }
-					else { theta_i = M_PI - M_PI *distance; }
+					phi_i += phase / 180 * Pi;
+					if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
+					else { theta_i = Pi - Pi *distance; }
 
 					spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
-					spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * M_PI));
+					spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * Pi));
 					spins[iatom][2] = std::cos(theta_i) * -dir;
 				}
 			}
@@ -288,7 +286,7 @@ namespace Utility
 			}
 
 			// Some normalisations
-			theta = theta / 180.0 * M_PI;
+			theta = theta / 180.0 * Pi;
 			scalar qnorm = q.norm();
 			scalar axnorm = axis.norm();
 			axis.normalize();
@@ -325,9 +323,9 @@ namespace Utility
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 				Vector3 b1, b2, b3;
-				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
-				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
-				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				b1 = 2.0 * Pi * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * Pi * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * Pi * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 				// The q-vector is specified in units of the reciprocal lattice
 				Vector3 projBQ = q[0]*b1 + q[1]*b2 + q[2]*b3;
 				q = projBQ;
@@ -352,7 +350,7 @@ namespace Utility
 				{
 					// Phase is scalar product of spin position and q
 					phase = s.geometry->positions[iatom].dot(q);
-					//phase = phase / 180.0 * M_PI;// / period;
+					//phase = phase / 180.0 * Pi;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
 					scalar norms = 0.0;
@@ -414,7 +412,7 @@ namespace Utility
 			}
 
 			// Some normalisations
-			theta = theta / 180.0 * M_PI;
+			theta = theta / 180.0 * Pi;
 			scalar q1norm = q1.norm();
 			scalar q2norm = q2.norm();
 			scalar axnorm = axis.norm();
@@ -452,9 +450,9 @@ namespace Utility
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 				Vector3 b1, b2, b3;
-				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
-				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
-				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				b1 = 2.0 * Pi * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * Pi * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * Pi * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 
 				// The q-vectors are specified in units of the reciprocal lattice
 				Vector3 projBQ = q1[0]*b1 + q1[1]*b2 + q1[2]*b3;
@@ -488,7 +486,7 @@ namespace Utility
 				{
 					// Phase is scalar product of spin position and q
 					auto& r = s.geometry->positions[iatom];
-					//phase = phase / 180.0 * M_PI;// / period;
+					//phase = phase / 180.0 * Pi;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
 					scalar norms = 0.0;

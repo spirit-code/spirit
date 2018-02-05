@@ -11,9 +11,9 @@ import unittest
 
 ##########
 
-cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
-io_image_test = "core/python/test/io_test_files/io_image_test"
-io_chain_test = "core/python/test/io_test_files/io_chain_test"
+cfgfile       = spirit_py_dir + "/../test/input/fd_neighbours.cfg"   # Input File
+io_image_test = spirit_py_dir + "/test/io_test_files/io_image_test"
+io_chain_test = spirit_py_dir + "/test/io_test_files/io_chain_test"
 
 p_state = state.setup(cfgfile)                  # State setup
 
@@ -84,11 +84,12 @@ def suite():
     suite.addTest(unittest.makeSuite(Chain_IO))
     return suite
 
-suite = suite()
+if __name__ == '__main__':
+    suite = suite()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-state.delete( p_state )                         # Delete State
+    state.delete( p_state )                         # Delete State
 
-sys.exit(not success)
+    sys.exit(not success)

@@ -52,6 +52,9 @@ namespace Engine
         // Allocate force array
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
         // Initial force calculation s.t. it does not seem to be already converged
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
@@ -105,13 +108,13 @@ namespace Engine
             Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // If we want direct minimization, the virtual force is just spin x force
-            if (parameters.direct_minimization)
+            // Direct minimisation
+            if (parameters.direct_minimization || solver == Solver::VP)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
-            // Otherwise we also consider damping, spin current and temperature
+            // Dynamics simulation
             else
             {
                 Vectormath::set_c_a( dtg, force, force_virtual);

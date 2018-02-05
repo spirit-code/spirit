@@ -21,6 +21,7 @@ option( SPIRIT_ENABLE_PINNING    "Enable pinning individual or rows of spins."  
 option( SPIRIT_ENABLE_DEFECTS    "Enable defects and disorder in the lattice."    OFF )
 ### Options for Spirit
 option( SPIRIT_BUILD_TEST        "Build unit tests for the Spirit library."                ON  )
+option( SPIRIT_TEST_COVERAGE     "Build in debug with special flags for coverage checks."  OFF )
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
 option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the code."       OFF )
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
@@ -166,8 +167,6 @@ endif()
 
 
 ######### Generate Spirit_Defines.h ################
-set(VERSION_STRING "${META_VERSION}")
-set(VERSION_REVISION_STRING "${META_VERSION_REVISION}")
 string(TOUPPER ${SPIRIT_SCALAR_TYPE} SPIRIT_SCALAR_TYPE_UPPERCASE)
 if ( SPIRIT_ENABLE_DEFECTS )
 	set ( SPIRIT_DEFINE_DEFECTS "#define SPIRIT_ENABLE_DEFECTS")
@@ -194,7 +193,7 @@ if ( SPIRIT_USE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks
-    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60 --expt-relaxed-constexpr" )
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=sm_60 --expt-relaxed-constexpr" )
 	message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
 endif()
 #############################################
@@ -217,23 +216,39 @@ if ( SPIRIT_USE_OPENMP )
 endif( )
 #############################################
 
+
+######### Coverage ##########################
+if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
+    set( CMAKE_CXX_FLAGS_COVERAGE
+        ${CMAKE_CXX_FLAGS_DEBUG}
+        --coverage
+        -fno-inline
+        -fno-inline-small-functions
+        -fno-default-inline )
+    string(REPLACE ";" " " CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_COVERAGE}")
+endif( )
+
+#############################################
+
+
 ### flag for fmt to be header-only
 add_definitions( -DFMT_HEADER_ONLY )
+
 
 ######### Where to search for library headers
 set( EIGEN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty )
 set( SPECTRA_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty ${PROJECT_SOURCE_DIR}/thirdparty/spectra/include )
 set( SPIRIT_INCLUDE_DIRS
-	 ${PROJECT_SOURCE_DIR}/include
-	 ${PROJECT_SOURCE_DIR}/include/data
-	 ${PROJECT_SOURCE_DIR}/include/engine
-	 ${PROJECT_SOURCE_DIR}/include/io
-	 ${PROJECT_SOURCE_DIR}/include/Spirit
-	 ${PROJECT_SOURCE_DIR}/include/utility
-	 ${PROJECT_SOURCE_DIR}/src/utility
-	 ${EIGEN_INCLUDE_DIRS}
-	 ${SPECTRA_INCLUDE_DIRS}
-	 ${qhull_INCLUDE_DIRS} )
+     ${PROJECT_SOURCE_DIR}/include
+     ${PROJECT_SOURCE_DIR}/include/data
+     ${PROJECT_SOURCE_DIR}/include/engine
+     ${PROJECT_SOURCE_DIR}/include/io
+     ${PROJECT_SOURCE_DIR}/include/Spirit
+     ${PROJECT_SOURCE_DIR}/include/utility
+     ${PROJECT_SOURCE_DIR}/src/utility
+     ${EIGEN_INCLUDE_DIRS}
+     ${SPECTRA_INCLUDE_DIRS}
+     ${qhull_INCLUDE_DIRS} )
 include_directories( ${SPIRIT_INCLUDE_DIRS} )
 #############################################
 
@@ -282,95 +297,113 @@ source_group("src\\spirit" FILES ${SOURCE_SPIRIT})
 
 #############################################
 set( SPIRIT_LIBRARY_SOURCES 
-	${HEADER_SPIRIT_ROOT}
+    ${HEADER_SPIRIT_ROOT}
     ${HEADER_SPIRIT_DATA}
     ${HEADER_SPIRIT_ENGINE}
-	${HEADER_SPIRIT}
-	${HEADER_SPIRIT_IO}
-	${HEADER_SPIRIT_UTILITY}
-	${SOURCE_SPIRIT_ROOT}
-	${SOURCE_SPIRIT_DATA}
-	${SOURCE_SPIRIT_ENGINE}
-	${SOURCE_SPIRIT}
-	${SOURCE_SPIRIT_IO}
-	${SOURCE_SPIRIT_UTILITY} )
+    ${HEADER_SPIRIT}
+    ${HEADER_SPIRIT_IO}
+    ${HEADER_SPIRIT_UTILITY}
+    ${SOURCE_SPIRIT_ROOT}
+    ${SOURCE_SPIRIT_DATA}
+    ${SOURCE_SPIRIT_ENGINE}
+    ${SOURCE_SPIRIT}
+    ${SOURCE_SPIRIT_IO}
+    ${SOURCE_SPIRIT_UTILITY} )
 
 if( NOT SPIRIT_USE_CUDA )
-	######### Tell CMake to create the object files
-	add_library( ${META_PROJECT_NAME} OBJECT ${SPIRIT_LIBRARY_SOURCES} )
-	set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_STANDARD 11)
-	set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-	set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
-	add_dependencies(${META_PROJECT_NAME} ${qhull_LIBS})
-	######### Tell CMake to create the static spirit library for the QT UI
-	if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS)
-		MESSAGE( STATUS ">> Building static cxx library ${META_PROJECT_NAME}_static" )
-		add_library( ${META_PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
-    	target_include_directories( ${META_PROJECT_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty)
-		target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} )
-		# set_target_properties( ${META_PROJECT_NAME}_static PROPERTIES OUTPUT_NAME "${META_PROJECT_NAME}" )
-	endif()
+    ######### Tell CMake to create the object files
+    add_library( ${META_PROJECT_NAME} OBJECT ${SPIRIT_LIBRARY_SOURCES} )
+    set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+    set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+    set_property(TARGET ${META_PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
+    add_dependencies(${META_PROJECT_NAME} ${qhull_LIBS})
+    # Coverage flags and linking if needed
+    if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
+        set_property(TARGET ${META_PROJECT_NAME} PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
+        set_property(TARGET ${META_PROJECT_NAME} PROPERTY LINK_FLAGS    ${CMAKE_CXX_FLAGS_COVERAGE} )
+    endif()
+    ######### Tell CMake to create the static spirit library for the QT UI
+    if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS)
+        MESSAGE( STATUS ">> Building static cxx library ${META_PROJECT_NAME}_static" )
+        add_library( ${META_PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
+        target_include_directories( ${META_PROJECT_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty)
+        # Coverage flags and linking if needed
+        if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
+            set_property(TARGET ${META_PROJECT_NAME}_static PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
+            target_link_libraries( ${META_PROJECT_NAME}_static PUBLIC ${qhull_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} )
+        # Normal linking
+        else()
+            target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} )
+        endif()
+    endif()
 else()
-	include_directories( ${META_PROJECT_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
-	if( SPIRIT_BUILD_FOR_CXX )
-		cuda_add_library( ${META_PROJECT_NAME}_static STATIC ${SPIRIT_LIBRARY_SOURCES} )
-		add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
-		target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${CUDA_LIBRARIES} )
-	endif()
+    include_directories( ${META_PROJECT_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+    if( SPIRIT_BUILD_FOR_CXX )
+        cuda_add_library( ${META_PROJECT_NAME}_static STATIC ${SPIRIT_LIBRARY_SOURCES} )
+        add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
+        target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${CUDA_LIBRARIES} )
+    endif()
 endif()
 #############################################
 
 ######### Tell CMake to create the shared library for the Python UI
 if( SPIRIT_BUILD_FOR_PYTHON )
-	set( SPIRIT_PYDIR ${PROJECT_SOURCE_DIR}/python )
-	set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/spirit )
-	### Utility python files
-	configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
-	configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
-	file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
-	file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"")
-	###
-	if( NOT SPIRIT_USE_CUDA )
-		MESSAGE( STATUS ">> Building shared library for Python" )
-		#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-		add_library( ${META_PROJECT_NAME}_python SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
-		target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} )
-	else()
-		MESSAGE( STATUS ">> Building shared CUDA library for Python" )
-		include_directories( ${META_PROJECT_NAME}_python PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
-		cuda_add_library( ${META_PROJECT_NAME}_python SHARED ${SPIRIT_LIBRARY_SOURCES} )
-		add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
-		target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${CUDA_LIBRARIES} )
-	endif()
-	### We want it to be called spirit, not spirit_python
-	set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES OUTPUT_NAME "${META_PROJECT_NAME}" )
-	### We want it to be placed under python/Spirit/ s.t. it is directly part of the python Spirit bindings module/package
-	set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
-	if ( MSVC )
-		foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-			string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-			set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
-		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-	endif ( MSVC )
+    set( SPIRIT_PYDIR ${PROJECT_SOURCE_DIR}/python )
+    set( PYLIB_OUTPUT_DIR ${SPIRIT_PYDIR}/spirit )
+    ### Utility python files
+    configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
+    configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
+    file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
+    file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"")
+    ###
+    if( NOT SPIRIT_USE_CUDA )
+        MESSAGE( STATUS ">> Building shared library for Python" )
+        #SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
+        add_library( ${META_PROJECT_NAME}_python SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
+        # Coverage flags and linking if needed
+        if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
+            set_property(TARGET ${META_PROJECT_NAME}_python PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
+            target_link_libraries( ${META_PROJECT_NAME}_python PUBLIC ${qhull_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} )
+        else()
+        # Normal linking
+            target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} )
+        endif()
+    else()
+        MESSAGE( STATUS ">> Building shared CUDA library for Python" )
+        include_directories( ${META_PROJECT_NAME}_python PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
+        cuda_add_library( ${META_PROJECT_NAME}_python SHARED ${SPIRIT_LIBRARY_SOURCES} )
+        add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
+        target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${CUDA_LIBRARIES} )
+    endif()
+    ### We want it to be called spirit, not spirit_python
+    set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES OUTPUT_NAME "${META_PROJECT_NAME}" )
+    ### We want it to be placed under python/Spirit/ s.t. it is directly part of the python Spirit bindings module/package
+    set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
+    if ( MSVC )
+        foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+            string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+            set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
+        endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+    endif ( MSVC )
 endif()
 #############################################
 
 ######### Tell CMake to create the shared library for the Julia UI
 if( SPIRIT_BUILD_FOR_JULIA )
-	MESSAGE( STATUS ">> Building shared library for Julia" )
-	#SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
-	add_library( ${META_PROJECT_NAME}_julia SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
-	target_link_libraries( ${META_PROJECT_NAME}_julia ${qhull_LIBS})
-	### We want it to be called ${META_PROJECT_NAME}, not ${META_PROJECT_NAME}_julia
-	set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES OUTPUT_NAME "spirit" )
-	### We want it to be placed under julia/Spirit/ s.t. it is directly part of the julia spirit bindings module/package
-	set( JLLIB_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/julia/Spirit/ )
+    MESSAGE( STATUS ">> Building shared library for Julia" )
+    #SET( CMAKE_SHARED_LIBRARY_SUFFIX ".so" )
+    add_library( ${META_PROJECT_NAME}_julia SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
+    target_link_libraries( ${META_PROJECT_NAME}_julia ${qhull_LIBS})
+    ### We want it to be called ${META_PROJECT_NAME}, not ${META_PROJECT_NAME}_julia
+    set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES OUTPUT_NAME "spirit" )
+    ### We want it to be placed under julia/Spirit/ s.t. it is directly part of the julia spirit bindings module/package
+    set( JLLIB_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/julia/Spirit/ )
     set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
     if ( MSVC )
-		foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-			string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-        	set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${JLLIB_OUTPUT_DIR} )
-		endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+        foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+            string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+            set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${JLLIB_OUTPUT_DIR} )
+        endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
     endif ( MSVC )
 endif()
 #############################################
@@ -393,16 +426,21 @@ macro( add_framework_test testName testSrc )
     set_property(TARGET ${testName} PROPERTY CXX_EXTENSIONS OFF)
     # Include Directories
     target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/test)
+    # Coverage flags and linking if needed
+    if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
+        set_property(TARGET ${testName} PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
+        set_property(TARGET ${testName} PROPERTY LINK_FLAGS    ${CMAKE_CXX_FLAGS_COVERAGE} )
+    endif()
     # Add the test
     add_test( NAME        ${testName}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-		COMMAND           ${testName} --use-colour=yes )
-	# Add to list
-	set( TEST_EXECUTABLES ${TEST_EXECUTABLES} ${testName} )
+        COMMAND           ${testName} --use-colour=yes )
+    # Add to list
+    set( TEST_EXECUTABLES ${TEST_EXECUTABLES} ${testName} )
 endmacro( add_framework_test testName testSrc )
 ### Create tests if needed
 if ( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_CXX )
-	MESSAGE( STATUS ">> Building unit tests for Spirit" )
+    MESSAGE( STATUS ">> Building unit tests for Spirit" )
 
     ### Enable CTest testing
     enable_testing()
@@ -421,22 +459,22 @@ endif()
 ######### Python Test #######################
 set( PYTHON_TEST_EXECUTABLES )
 macro(add_python_test test_name src)
-	# Add the test
-	add_test(
-		NAME                ${test_name}
-		WORKING_DIRECTORY   ${CMAKE_SOURCE_DIR}
-		COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYDIR}/test/${src}")
-	# Properties
-	set_tests_properties(${test_name}
-		PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
-	# Add to list
-	set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name} )
+    # Add the test
+    add_test(
+        NAME                ${test_name}
+        WORKING_DIRECTORY   ${CMAKE_SOURCE_DIR}
+        COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYDIR}/test/${src}")
+    # Properties
+    set_tests_properties(${test_name}
+        PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYDIR}:$PYTHONPATH")
+    # Add to list
+    set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name} )
 endmacro(add_python_test)
 ### Create tests if needed
 if( SPIRIT_BUILD_TEST AND SPIRIT_BUILD_FOR_PYTHON )
-	MESSAGE( STATUS ">> Setting up unit tests for python bindings" )
-	# find_package( PythonInterp 2.7 REQUIRED )
-	find_package( PythonInterp REQUIRED )
+    MESSAGE( STATUS ">> Setting up unit tests for python bindings" )
+    # find_package( PythonInterp 2.7 REQUIRED )
+    find_package( PythonInterp REQUIRED )
 
     ### Enable CTest testing
     enable_testing()
@@ -464,37 +502,37 @@ endif( )
 install(DIRECTORY docs             DESTINATION docs/Spirit/core)
 ### Include folder
 install(DIRECTORY include/Spirit   DESTINATION include
-		PATTERN   "CMakeLists.txt" EXCLUDE)
+        PATTERN   "CMakeLists.txt" EXCLUDE)
 
 ### Static library and tests
 if( SPIRIT_BUILD_FOR_CXX )
-	install(TARGETS ${META_PROJECT_NAME}_static DESTINATION lib)
-	if( SPIRIT_BUILD_TEST )
-		install(TARGETS ${TEST_EXECUTABLES} DESTINATION test)
-	endif( )
+    install(TARGETS ${META_PROJECT_NAME}_static DESTINATION lib)
+    if( SPIRIT_BUILD_TEST )
+        install(TARGETS ${TEST_EXECUTABLES} DESTINATION test)
+    endif( )
 endif( )
 
 ### Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
-	install(TARGETS   ${META_PROJECT_NAME}_python DESTINATION bin)
-	install(DIRECTORY python/spirit               DESTINATION python)
-	# if( SPIRIT_BUILD_TEST )
-	# 	install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test)
-	# endif( )
+    install(TARGETS   ${META_PROJECT_NAME}_python DESTINATION bin)
+    install(DIRECTORY python/spirit               DESTINATION python)
+    # if( SPIRIT_BUILD_TEST )
+    #   install(TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test)
+    # endif( )
 endif( )
 
 ### Shared library and julia tests
 if( SPIRIT_BUILD_FOR_JULIA )
-	install(TARGETS   ${META_PROJECT_NAME}_julia DESTINATION bin)
-	install(DIRECTORY julia/Spirit               DESTINATION julia)
-	# if( SPIRIT_BUILD_TEST )
-	# 	install(TARGETS ${JULIA_TEST_EXECUTABLES} DESTINATION julia/test)
-	# endif( )
+    install(TARGETS   ${META_PROJECT_NAME}_julia DESTINATION bin)
+    install(DIRECTORY julia/Spirit               DESTINATION julia)
+    # if( SPIRIT_BUILD_TEST )
+    #   install(TARGETS ${JULIA_TEST_EXECUTABLES} DESTINATION julia/test)
+    # endif( )
 endif( )
 
 ### Input files for tests
 if( SPIRIT_BUILD_TEST )
-	install(DIRECTORY test/input DESTINATION test)
+    install(DIRECTORY test/input DESTINATION test)
 endif( )
 #############################################
 
@@ -506,12 +544,12 @@ set(SPIRIT_LIBRARIES_STATIC ${META_PROJECT_NAME}_static	PARENT_SCOPE)
 set(SPIRIT_INCLUDE_DIRS     ${SPIRIT_INCLUDE_DIRS}      PARENT_SCOPE)
 set(HEADER_SPIRIT_DATA      ${HEADER_SPIRIT_DATA}       PARENT_SCOPE)
 set(HEADER_SPIRIT_ENGINE    ${HEADER_SPIRIT_ENGINE}     PARENT_SCOPE)
-set(HEADER_SPIRIT 			${HEADER_SPIRIT} 		    PARENT_SCOPE)
+set(HEADER_SPIRIT           ${HEADER_SPIRIT}            PARENT_SCOPE)
 set(HEADER_SPIRIT_IO        ${HEADER_SPIRIT_IO}         PARENT_SCOPE)
 set(HEADER_SPIRIT_UTILITY   ${HEADER_SPIRIT_UTILITY}    PARENT_SCOPE)
 set(SOURCE_SPIRIT_DATA      ${SOURCE_SPIRIT_DATA}       PARENT_SCOPE)
 set(SOURCE_SPIRIT_ENGINE    ${SOURCE_SPIRIT_ENGINE}     PARENT_SCOPE)
-set(SOURCE_SPIRIT 			${SOURCE_SPIRIT} 		    PARENT_SCOPE)
+set(SOURCE_SPIRIT           ${SOURCE_SPIRIT}            PARENT_SCOPE)
 set(SOURCE_SPIRIT_IO        ${SOURCE_SPIRIT_IO}         PARENT_SCOPE)
 set(SOURCE_SPIRIT_UTILITY   ${SOURCE_SPIRIT_UTILITY}    PARENT_SCOPE)
 ######### Export  Meta ######################
@@ -528,11 +566,13 @@ set(META_VERSION_REVISION    ${META_VERSION_REVISION}    PARENT_SCOPE)
 
 ######### Header and Source messages ########
 if ( PRINT_SOURCES )
-	MESSAGE( STATUS ">> Headers:                    ${HEADER_SPIRIT_ROOT} ${HEADER_SPIRIT_DATA} ${HEADER_SPIRIT_ENGINE} ${HEADER_SPIRIT} ${HEADER_SPIRIT_UTILITY}" )
-	MESSAGE( STATUS ">> Sources:                    ${SOURCE_SPIRIT_ROOT} ${SOURCE_SPIRIT_DATA} ${SOURCE_SPIRIT_ENGINE} ${SOURCE_SPIRIT} ${SOURCE_SPIRIT_UTILITY}" )
+    MESSAGE( STATUS ">> Headers:                    ${HEADER_SPIRIT_ROOT} ${HEADER_SPIRIT_DATA} ${HEADER_SPIRIT_ENGINE} ${HEADER_SPIRIT} ${HEADER_SPIRIT_UTILITY}" )
+    MESSAGE( STATUS ">> Sources:                    ${SOURCE_SPIRIT_ROOT} ${SOURCE_SPIRIT_DATA} ${SOURCE_SPIRIT_ENGINE} ${SOURCE_SPIRIT} ${SOURCE_SPIRIT_UTILITY}" )
 endif ()
 #############################################
 
 
 MESSAGE( STATUS ">> --------------------- Spirit done ---------------------------------- <<" )
+
+message( STATUS ">> CMake CXX Flags:        ${CMAKE_CXX_FLAGS_COVERAGE}" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
