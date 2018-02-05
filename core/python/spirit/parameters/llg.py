@@ -69,9 +69,12 @@ _Set_LLG_Temperature_Gradient             = _spirit.Parameters_Set_LLG_Temperatu
 _Set_LLG_Temperature_Gradient.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(3*ctypes.c_float),
                                              ctypes.c_int, ctypes.c_int]
 _Set_LLG_Temperature_Gradient.restype     = None
-def setTemperature(p_state, temperature, gradient_inclination=0, gradient_direction=[1,0,0], idx_image=-1, idx_chain=-1):
+def setTemperature(p_state, temperature, gradient_inclination=0, gradient_direction=[1.0,0.0,0.0], idx_image=-1, idx_chain=-1):
     _Set_LLG_Temperature(ctypes.c_void_p(p_state), ctypes.c_float(temperature), 
                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    vec3 = ctypes.c_float * 3
+    gradient_direction = vec3(*gradient_direction)
+    ctypes.cast( gradient_direction, ctypes.POINTER(vec3))
     _Set_LLG_Temperature_Gradient(ctypes.c_void_p(p_state), ctypes.c_float(gradient_inclination), gradient_direction,
                                   ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
                          

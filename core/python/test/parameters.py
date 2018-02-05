@@ -73,7 +73,7 @@ class LLG_set_get(TestParameters):
     def test_LLG_temperature(self):
         temp_set = 100
         parameters.llg.setTemperature(self.p_state, temp_set)      # try set
-        temp_get = parameters.llg.getTemperature(self.p_state)     # try get
+        temp_get, t_gradient_inclination, t_gradient_direction = parameters.llg.getTemperature(self.p_state)     # try get
         self.assertAlmostEqual(temp_set, temp_get)
 
 class GNEB_set_get(TestParameters):

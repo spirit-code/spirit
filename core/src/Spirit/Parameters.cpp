@@ -272,7 +272,7 @@ void Parameters_Set_LLG_Temperature_Gradient(State *state, float inclination, co
         image->llg_parameters->temperature_gradient_direction = v_direction;
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Set LLG temperature gradient to inclination={}, direction={}", inclination, v_direction), idx_image, idx_chain);
+            fmt::format("Set LLG temperature gradient to inclination={}, direction={}", inclination, v_direction.transpose()), idx_image, idx_chain);
 
         image->Unlock();
     }
