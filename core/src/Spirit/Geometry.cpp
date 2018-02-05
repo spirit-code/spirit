@@ -303,20 +303,20 @@ void Geometry_Get_Bounds( State *state, float min[3], float max[3], int idx_imag
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-            
+
         auto g = image->geometry;
         for (int dim=0; dim<3; ++dim)
         {
             min[dim] = (float)g->bounds_min[dim];
             max[dim] = (float)g->bounds_max[dim];
-        }   
+        }
     }
     catch( ... )
     {
@@ -329,8 +329,8 @@ void Geometry_Get_Center(State *state, float center[3], int idx_image, int idx_c
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -353,8 +353,8 @@ void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -371,7 +371,7 @@ void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx
     catch( ... )
     {
         spirit_handle_exception_api(idx_image, idx_chain);
-    }   
+    }
 }
 
 // Get basis vectors ta, tb, tc
@@ -380,8 +380,8 @@ void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -414,8 +414,8 @@ int Geometry_Get_N_Cell_Atoms(State *state, int idx_image, int idx_chain) noexce
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -436,8 +436,8 @@ void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_c
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -446,8 +446,8 @@ void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image, int idx_c
         
         auto g = image->geometry;
         n_cells[0] = g->n_cells[0];
-    	n_cells[1] = g->n_cells[1];
-    	n_cells[2] = g->n_cells[2];
+        n_cells[1] = g->n_cells[1];
+        n_cells[2] = g->n_cells[2];
     }
     catch( ... )
     {
@@ -461,8 +461,8 @@ void Geometry_Get_Translation_Vectors( State *state, float ta[3], float tb[3], f
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -487,16 +487,16 @@ int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain) noe
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
         
-    	auto g = image->geometry;
-    	return g->dimensionality;
+        auto g = image->geometry;
+        return g->dimensionality;
     }
     catch( ... )
     {
@@ -552,6 +552,6 @@ int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell
     catch( ... )
     {
         spirit_handle_exception_api(idx_image, idx_chain);
-        return 0;        
+        return 0;
     }
 }

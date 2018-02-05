@@ -25,11 +25,11 @@ void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         image->llg_parameters->output_folder = folder;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              "Set LLG Output Folder = " + std::string(folder), idx_image, idx_chain );
     }
     catch( ... )
@@ -49,11 +49,11 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         image->llg_parameters->output_any = any;
         image->llg_parameters->output_initial = initial;
         image->llg_parameters->output_final = final;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -73,12 +73,12 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->llg_parameters->output_energy_step = energy_step;
         image->llg_parameters->output_energy_archive = energy_archive;
         image->llg_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->llg_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -97,10 +97,10 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->llg_parameters->output_configuration_step = configuration_step;
         image->llg_parameters->output_configuration_archive = configuration_archive;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -119,10 +119,10 @@ void Parameters_Set_LLG_N_Iterations( State *state, int n_iterations, int n_iter
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->llg_parameters->n_iterations = n_iterations;
         image->llg_parameters->n_iterations_log = n_iterations_log;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -140,22 +140,22 @@ void Parameters_Set_LLG_Direct_Minimization( State *state, bool direct, int idx_
         std::shared_ptr<Data::Spin_System_Chain> chain;
         from_indices(state, idx_image, idx_chain, image, chain);
 
-    	image->Lock();
+        image->Lock();
         auto p = image->llg_parameters;
         p->direct_minimization = direct;
-    	image->Unlock();
+        image->Unlock();
 
         if (direct)
-    	    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, 
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, 
                  "Set LLG solver to direct minimization", idx_image, idx_chain );
         else
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set LLG solver to dynamics", 
                  idx_image, idx_chain );
-         }
-     catch( ... )
-     {
-		 spirit_handle_exception_api(idx_image, idx_chain);
-     }    
+        }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
 }
 
 void Parameters_Set_LLG_Convergence(State *state, float convergence, int idx_image, int idx_chain) noexcept
@@ -192,12 +192,12 @@ void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_image, int idx
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         auto p = image->llg_parameters;
         p->dt = dt;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Set LLG dt = {}", dt), idx_image, idx_chain);
     }
     catch( ... )
@@ -316,11 +316,11 @@ void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         image->mc_parameters->output_folder = folder;
-    	image->Unlock();
+        image->Unlock();
 
-    	Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              "Set MC Output Folder = " + std::string(folder), idx_image, idx_chain );
     }
     catch( ... )
@@ -340,11 +340,11 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	image->Lock();
+        image->Lock();
         image->mc_parameters->output_any = any;
         image->mc_parameters->output_initial = initial;
         image->mc_parameters->output_final = final;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -364,12 +364,12 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->mc_parameters->output_energy_step = energy_step;
         image->mc_parameters->output_energy_archive = energy_archive;
         image->mc_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->mc_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -388,10 +388,10 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->mc_parameters->output_configuration_step = configuration_step;
         image->mc_parameters->output_configuration_archive = configuration_archive;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -410,10 +410,10 @@ void Parameters_Set_MC_N_Iterations( State *state, int n_iterations, int n_itera
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
             
-    	image->Lock();
+        image->Lock();
         image->mc_parameters->n_iterations = n_iterations;
         image->mc_parameters->n_iterations_log = n_iterations_log;
-    	image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -480,7 +480,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
 // Set GNEB Output
 void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain) noexcept
 {
-	int idx_image = -1;
+    int idx_image = -1;
 
     try
     {
@@ -490,9 +490,9 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	chain->Lock();
+        chain->Lock();
         chain->gneb_parameters->output_folder = folder;
-    	chain->Unlock();
+        chain->Unlock();
     }
     catch( ... )
     {
@@ -502,7 +502,7 @@ void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int id
 
 void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, bool final, int idx_chain ) noexcept
 {
-	int idx_image = -1;
+    int idx_image = -1;
 
     try
     {
@@ -511,12 +511,12 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-    
-    	chain->Lock();
+
+        chain->Lock();
         chain->gneb_parameters->output_any = any;
         chain->gneb_parameters->output_initial = initial;
         chain->gneb_parameters->output_final = final;
-    	chain->Unlock();
+        chain->Unlock();
     }
     catch( ... )
     {
@@ -527,7 +527,7 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
 void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, 
                                           bool energies_divide_by_nos, int idx_chain ) noexcept
 {
-	int idx_image = -1;
+    int idx_image = -1;
 
     try
     {
@@ -536,12 +536,12 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
             
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-    
-    	chain->Lock();
+
+        chain->Lock();
         chain->gneb_parameters->output_energies_step = energies_step;
         chain->gneb_parameters->output_energies_interpolated = energies_interpolated;
         chain->gneb_parameters->output_energies_divide_by_nspins = energies_divide_by_nos;
-    	chain->Unlock();
+        chain->Unlock();
     }
     catch( ... )
     {
@@ -551,7 +551,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
 
 void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain) noexcept
 {
-	int idx_image = -1;
+    int idx_image = -1;
 
     try
     {
@@ -561,9 +561,9 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	chain->Lock();
+        chain->Lock();
         chain->gneb_parameters->output_chain_step = chain_step;
-    	chain->Unlock();
+        chain->Unlock();
     }
     catch( ... )
     {
@@ -574,8 +574,8 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
 void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
                                        int idx_chain ) noexcept
 {
-	int idx_image = -1;
-    
+    int idx_image = -1;
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -584,10 +584,10 @@ void Parameters_Set_GNEB_N_Iterations( State *state, int n_iterations, int n_ite
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	chain->Lock();
+        chain->Lock();
         chain->gneb_parameters->n_iterations = n_iterations;
         chain->gneb_parameters->n_iterations_log = n_iterations_log;
-    	chain->Unlock();
+        chain->Unlock();
     }
     catch( ... )
     {

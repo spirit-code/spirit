@@ -110,15 +110,15 @@ void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain) noex
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-    	state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		"Copied spin configuration to clipboard.", idx_image, idx_chain);
+        state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Copied spin configuration to clipboard.", idx_image, idx_chain);
     }
     catch( ... )
     {
@@ -267,21 +267,21 @@ void Configuration_Domain( State *state, const float direction[3], const float p
 // void Configuration_DomainWall( State *state, const float pos[3], float v[3], bool greater, 
 //                                int idx_image, int idx_chain) noexcept
 // {
-// 	std::shared_ptr<Data::Spin_System> image;
-// 	std::shared_ptr<Data::Spin_System_Chain> chain;
-// 	from_indices(state, idx_image, idx_chain, image, chain);
+//     std::shared_ptr<Data::Spin_System> image;
+//     std::shared_ptr<Data::Spin_System_Chain> chain;
+//     from_indices(state, idx_image, idx_chain, image, chain);
 
-// 	// Create position filter
-// 	Vector3 vpos{pos[0], pos[1], pos[2]};
-// 	std::function< bool( const Vector3&, const Vector3&) > filter = [vpos](const Vector3& spin, 
-//                       const Vector3& position)
-// 	{
-// 		scalar r = std::sqrt(std::pow(position[0] - vpos[0], 2) + std::pow(position[1] - vpos[1], 2));
-// 		if ( r < 3) return true;
-// 		return false;
-// 	};
-// 	// Apply configuration
-// 	Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
+//     // Create position filter
+//     Vector3 vpos{pos[0], pos[1], pos[2]};
+//     std::function< bool( const Vector3&, const Vector3&) > filter = [vpos](const Vector3& spin, 
+//                         const Vector3& position)
+//     {
+//         scalar r = std::sqrt(std::pow(position[0] - vpos[0], 2) + std::pow(position[1] - vpos[1], 2));
+//         if ( r < 3) return true;
+//         return false;
+//     };
+//     // Apply configuration
+//     Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
 // }
 
 void Configuration_PlusZ( State *state, const float position[3], const float r_cut_rectangular[3], 
@@ -313,7 +313,7 @@ void Configuration_PlusZ( State *state, const float position[3], const float r_c
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
                                               r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    	     "Set PlusZ configuration. " + filterstring, idx_image, idx_chain );
+             "Set PlusZ configuration. " + filterstring, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -348,7 +348,7 @@ void Configuration_MinusZ( State *state, const float position[3], const float r_
         image->Unlock();
 
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
-                                                r_cut_spherical, inverted );
+                                              r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 "Set MinusZ configuration. " + filterstring, idx_image, idx_chain);
     }
@@ -384,7 +384,7 @@ void Configuration_Random( State *state, const float position[3], const float r_
         image->Unlock();
 
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
-                                                r_cut_spherical, inverted );
+                                              r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 "Set random configuration. " + filterstring, idx_image, idx_chain );
     }

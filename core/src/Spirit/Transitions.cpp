@@ -39,12 +39,12 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain) n
         chain->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                fmt::format("Set homogeneous transition between images {} and {}", idx_1+1, idx_2+1), -1, idx_chain );
-        }
-        catch( ... )
-        {
-        spirit_handle_exception_api(idx_image, idx_chain);
-        }
+             fmt::format("Set homogeneous transition between images {} and {}", idx_1+1, idx_2+1), -1, idx_chain );
+    }
+    catch( ... )
+    {
+    spirit_handle_exception_api(idx_image, idx_chain);
+    }
 }
 
 void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_1, int idx_2, int idx_chain ) noexcept
@@ -52,7 +52,7 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
     int idx_image = -1;
     
     try
-    {    
+    {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
         
