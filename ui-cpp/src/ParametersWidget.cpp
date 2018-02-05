@@ -82,6 +82,11 @@ void ParametersWidget::Load_Parameters_Contents()
 	d = Parameters_Get_LLG_Temperature(state.get());
 	this->doubleSpinBox_llg_temperature->setValue(d);
 	if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
+	Parameters_Get_LLG_Temperature_Gradient(state.get(), &d, vd);
+	this->lineEdit_llg_temperature_inclination->setText(QString::number(d));
+	this->lineEdit_llg_temperature_dir_x->setText(QString::number(vd[0]));
+	this->lineEdit_llg_temperature_dir_y->setText(QString::number(vd[1]));
+	this->lineEdit_llg_temperature_dir_z->setText(QString::number(vd[2]));
 	// Convergence
 	d = Parameters_Get_LLG_Convergence(state.get());
 	this->spinBox_llg_convergence->setValue(std::log10(d));
@@ -154,7 +159,7 @@ void ParametersWidget::set_parameters_llg()
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
-		float d, vd[3];
+		float d, d2, vd[3];
 		int i1, i2;
 		bool b1, b2, b3, b4;
 
@@ -204,10 +209,23 @@ void ParametersWidget::set_parameters_llg()
 
 		// Temperature
 		if (this->checkBox_llg_temperature->isChecked())
+		{
 			d = this->doubleSpinBox_llg_temperature->value();
+			d2 = this->lineEdit_llg_temperature_inclination->text().toFloat();
+			vd[0] = this->lineEdit_llg_temperature_dir_x->text().toFloat();
+			vd[1] = this->lineEdit_llg_temperature_dir_y->text().toFloat();
+			vd[2] = this->lineEdit_llg_temperature_dir_z->text().toFloat();
+		}
 		else
-			d = 0.0;
+		{
+			d = 0;
+			d2 = 0;
+			vd[0] = 0;
+			vd[1] = 0;
+			vd[2] = 0;
+		}
 		Parameters_Set_LLG_Temperature(state.get(), d, idx_image, idx_chain);
+		Parameters_Set_LLG_Temperature_Gradient(state.get(), d2, vd, idx_image, idx_chain);
 
 		// Output
 		i1 = this->lineEdit_llg_n_iterations->text().toInt();
@@ -367,6 +385,10 @@ void ParametersWidget::Setup_Parameters_Slots()
 	// Temperature
 	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+	connect(this->lineEdit_llg_temperature_inclination, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+	connect(this->lineEdit_llg_temperature_dir_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+	connect(this->lineEdit_llg_temperature_dir_y, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+	connect(this->lineEdit_llg_temperature_dir_z, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
 	// STT
 	connect(this->radioButton_stt_gradient, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
 	connect(this->radioButton_stt_monolayer, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
@@ -423,6 +445,10 @@ void ParametersWidget::Setup_Input_Validators()
 	//		LLG
 	this->lineEdit_Damping->setValidator(this->number_validator_unsigned);
 	this->lineEdit_dt->setValidator(this->number_validator_unsigned);
+	this->lineEdit_llg_temperature_inclination->setValidator(this->number_validator);
+	this->lineEdit_llg_temperature_dir_x->setValidator(this->number_validator);
+	this->lineEdit_llg_temperature_dir_y->setValidator(this->number_validator);
+	this->lineEdit_llg_temperature_dir_z->setValidator(this->number_validator);
 	//		GNEB
 	this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
 }

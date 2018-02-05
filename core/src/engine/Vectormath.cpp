@@ -29,8 +29,8 @@ namespace Engine
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
                      vectorfield & v_out )
         {
-          for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
+            for( unsigned int i=0; i<v_out.size(); i++)
+                rotate( v[i], axis[i], angle[i], v_out[i] );
         }
         
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
@@ -211,14 +211,14 @@ namespace Engine
 
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-			scalar v_z = distribution(prng);
-			scalar phi = distribution(prng);
+            scalar v_z = distribution(prng);
+            scalar phi = distribution(prng);
 
-			scalar r_xy = std::sqrt(1 - v_z*v_z);
+            scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-			vec[0] = r_xy * std::cos(2*Pi*phi);
-			vec[1] = r_xy * std::sin(2*Pi*phi);
-			vec[2] = v_z;
+            vec[0] = r_xy * std::cos(2*Pi*phi);
+            vec[1] = r_xy * std::sin(2*Pi*phi);
+            vec[2] = v_z;
         }
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
         {
@@ -228,8 +228,27 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-				get_random_vector_unitsphere(distribution, prng, xi[i]);
+                get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
+        }
+
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Ensure a normalized direction vector
+            gradient_direction.normalize();
+
+            // Basic linear gradient distribution
+            set_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, gradient_start - gradient_inclination*dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
         }
 
         
@@ -363,12 +382,19 @@ namespace Engine
             for (unsigned int i=0; i<sf.size(); ++i)
                 sf[i] = mask[i]*s;
         }
-
+        
         void scale(scalarfield & sf, scalar s)
         {
             #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
                 sf[i] *= s;
+        }
+
+        void add(scalarfield & sf, scalar s)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] += s;
         }
 
         scalar sum(const scalarfield & sf)
@@ -384,6 +410,13 @@ namespace Engine
         {
             scalar ret = sum(sf)/sf.size();
             return ret;
+        }
+
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
         }
 
         void fill(vectorfield & vf, const Vector3 & v)
@@ -408,8 +441,8 @@ namespace Engine
         
         void norm( const vectorfield & vf, scalarfield & norm )
         {
-          for (unsigned int i=0; i<vf.size(); ++i)
-            norm[i] = vf[i].norm();
+            for (unsigned int i=0; i<vf.size(); ++i)
+                norm[i] = vf[i].norm();
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
@@ -523,12 +556,12 @@ namespace Engine
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*vf[idx];
         }
-		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
-		{
-			#pragma omp parallel for
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-				out[idx] += mask[idx] * c*vf[idx];
-		}
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += mask[idx] * c*vf[idx];
+        }
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
@@ -618,6 +651,13 @@ namespace Engine
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*a[idx].cross(b[idx]);
+        }
+        // out[i] += c[i] * a[i] x b[i]
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += c[idx] * a[idx].cross(b[idx]);
         }
         
         // out[i] = c * a x b[i]

@@ -483,6 +483,25 @@ namespace Engine
             }
         }
 
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Starting value
+            fill(distribution, gradient_start);
+
+            // Basic linear gradient distribution
+            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, -dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
+        }
+
 
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
         {
@@ -649,6 +668,21 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        __global__ void cu_add(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                sf[idx] += s;
+            }
+        }
+        void add(scalarfield & sf, scalar s)
+        {
+            int n = sf.size();
+            cu_add<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            cudaDeviceSynchronize();
+        }
+
         scalar sum(const scalarfield & sf)
         {
             int N = sf.size();
@@ -693,6 +727,12 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
+        }
 
         __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
         {
@@ -1127,6 +1167,22 @@ namespace Engine
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             CU_CHECK_AND_SYNC();
+        }
+        
+        // out[i] += c * a[i] x b[i]
+        __global__ void cu_add_c_cross(const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c[idx]*a[idx].cross(b[idx]);
+            }
+        }
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), b.data(), out.data(), n);
+            cudaDeviceSynchronize();
         }
 
 

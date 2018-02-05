@@ -143,34 +143,34 @@ You may specify shell-wise interaction parameters:
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian                heisenberg_neighbours
+hamiltonian              heisenberg_neighbours
 
 ### boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions        1 1 0
+boundary_conditions      1 1 0
 
 ### external magnetic field vector[T]
-external_field_magnitude   25.0
-external_field_normal      0.0 0.0 1.0
+external_field_magnitude 25.0
+external_field_normal    0.0 0.0 1.0
 ### µSpin
-mu_s                       2.0
+mu_s                     2.0
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude       0.0
-anisotropy_normal          0.0 0.0 1.0
+anisotropy_magnitude     0.0
+anisotropy_normal        0.0 0.0 1.0
 
 ### Exchange constants [meV] for the respective shells
 ### Jij should appear after the >Number_of_neighbour_shells<
-n_neigh_shells_exchange   2
-jij 			  10.0  1.0
+n_neigh_shells_exchange 2
+jij                     10.0  1.0
 
 ### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
 dm_chirality       2
 ### DM constant [meV]
 n_neigh_shells_dmi 1
-dij			       6.0
+dij	               6.0
 
 ### Dipole-Dipole radius
-dd_radius		  0.0
+dd_radius          0.0
 ```
 
 If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
@@ -189,23 +189,23 @@ You may specify shell-wise interaction parameters.
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian                   heisenberg_pairs
+hamiltonian                 heisenberg_pairs
 
 ### Boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions           1 1 0
+boundary_conditions         1 1 0
 
 ### External magnetic field vector[T]
-external_field_magnitude      25.0
-external_field_normal         0.0 0.0 1.0
+external_field_magnitude    25.0
+external_field_normal       0.0 0.0 1.0
 ### µSpin
-mu_s                          2.0
+mu_s                        2.0
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude          0.0
-anisotropy_normal             0.0 0.0 1.0
+anisotropy_magnitude        0.0
+anisotropy_normal           0.0 0.0 1.0
 
 ### Dipole-Dipole radius
-dd_radius                     0.0
+dd_radius                   0.0
 
 ### Pairs
 n_interaction_pairs 3
@@ -338,7 +338,7 @@ llg_max_walltime        0:0:0
 llg_force_convergence   10e-9
 
 ### Number of iterations
-llg_n_iterations		2000000
+llg_n_iterations        2000000
 ### Number of iterations after which to save
 llg_n_iterations_log    2000
 ```
@@ -346,19 +346,21 @@ llg_n_iterations_log    2000
 **LLG**:
 ```Python
 ### Seed for Random Number Generator
-llg_seed			    20006
+llg_seed            20006
 
 ### Damping [none]
-llg_damping				0.3E+0
+llg_damping         0.3E+0
 
 ### Time step dt
-llg_dt					1.0E-3
+llg_dt              1.0E-3
 
 ### Temperature [K]
-llg_temperature			0
+llg_temperature	    0
+llg_temperature_gradient_direction   1 0 0
+llg_temperature_gradient_inclination 0.0
 
 ### Spin transfer torque parameter proportional to injected current density
-llg_stt_magnitude           0.0
+llg_stt_magnitude  0.0
 ### Spin current polarisation normal vector
 llg_stt_polarisation_normal	1.0 0.0 0.0
 ```
@@ -366,10 +368,10 @@ llg_stt_polarisation_normal	1.0 0.0 0.0
 **MC**:
 ```Python
 ### Seed for Random Number Generator
-mc_seed			    20006
+mc_seed	            20006
 
 ### Temperature [K]
-mc_temperature	    0
+mc_temperature      0
 
 ### Acceptance ratio
 mc_acceptance_ratio 0.5
@@ -378,7 +380,7 @@ mc_acceptance_ratio 0.5
 **GNEB**:
 ```Python
 ### Constant for the spring force
-gneb_spring_constant     1.0
+gneb_spring_constant 1.0
 
 ### Number of energy interpolations between images
 gneb_n_energy_interpolations 10
@@ -404,7 +406,7 @@ pin_na_left 2
 # Pin top and bottom sides (2 rows each)
 pin_nb      2
 # Pin the atoms to x-direction
-pinning_cell    
+pinning_cell
 1 0 0
 ```
 

@@ -255,6 +255,33 @@ void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image, int id
     }
 }
 
+void Parameters_Set_LLG_Temperature_Gradient(State *state, float inclination, const float direction[3], int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        image->Lock();
+
+        Vector3 v_direction = Vector3{ direction[0], direction[1], direction[2] };
+        image->llg_parameters->temperature_gradient_inclination = inclination;
+        image->llg_parameters->temperature_gradient_direction = v_direction;
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Set LLG temperature gradient to inclination={}, direction={}", inclination, v_direction), idx_image, idx_chain);
+
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, const float normal[3],
                              int idx_image, int idx_chain ) noexcept
 {
@@ -904,6 +931,29 @@ float Parameters_Get_LLG_Temperature(State *state, int idx_image, int idx_chain)
     {
         spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
+    }
+}
+
+void Parameters_Get_LLG_Temperature_Gradient(State *state, float * inclination, float direction[3], int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        // Inclination
+        *inclination = (float)image->llg_parameters->temperature_gradient_inclination;
+        // Direction
+        direction[0] = (float)image->llg_parameters->temperature_gradient_direction[0];
+        direction[1] = (float)image->llg_parameters->temperature_gradient_direction[1];
+        direction[2] = (float)image->llg_parameters->temperature_gradient_direction[2];
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
