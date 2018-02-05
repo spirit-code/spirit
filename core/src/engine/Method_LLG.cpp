@@ -158,10 +158,6 @@ namespace Engine
                             parameters.temperature_gradient_inclination,
                             temperature_distribution, 0, 1e30);
 
-                        // Add homogeneous component
-                        if (parameters.temperature > 0)
-                            Vectormath::add(temperature_distribution, parameters.temperature);
-
                         scalar epsilon = sqrtdtg * Utility::Constants::k_B;
                         Vectormath::scale(temperature_distribution, epsilon);
 
