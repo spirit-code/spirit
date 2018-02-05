@@ -577,7 +577,6 @@ namespace IO
         scalar temperature = 0.0;
         // Temperature gradient
         Vector3 temperature_gradient_direction = Vector3{ 1,0,0 };
-        scalar temperature_gradient_start = 0;
         scalar temperature_gradient_inclination = 0;
         // Damping constant
         scalar damping = 0.5;
@@ -623,7 +622,6 @@ namespace IO
                 myfile.Read_Single(temperature, "llg_temperature");
                 myfile.Read_Vector3(temperature_gradient_direction, "llg_temperature_gradient_direction");
                 temperature_gradient_direction.normalize();
-                myfile.Read_Single(temperature_gradient_start, "llg_temperature_gradient_start");
                 myfile.Read_Single(temperature_gradient_inclination, "llg_temperature_gradient_inclination");
                 myfile.Read_Single(damping, "llg_damping");
                 myfile.Read_Single(beta, "llg_beta");
@@ -648,8 +646,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "seed", seed));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "time step [ps]", dt));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature [K]", temperature));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient start", temperature_gradient_start));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient direction", temperature_gradient_direction));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient direction", temperature_gradient_direction.transpose()));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient inclination", temperature_gradient_inclination));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "damping", damping));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "beta", beta));
@@ -676,7 +673,7 @@ namespace IO
             output_folder, output_file_tag,
             { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive},
             force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
-            temperature, temperature_gradient_direction, temperature_gradient_start, temperature_gradient_inclination,
+            temperature, temperature_gradient_direction, temperature_gradient_inclination,
             damping, beta, dt, renorm_sd, stt_use_gradient, stt_magnitude, stt_polarisation_normal));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
         return llg_params;

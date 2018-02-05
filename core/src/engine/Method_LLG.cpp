@@ -139,19 +139,19 @@ namespace Engine
                 }
 
                 // Temperature
-                if (parameters.temperature > 0 || parameters.temperature_gradient_start > 0)
+                if (parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0)
                 {
                     // Generate random directions
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
 
                     // If we have a temperature gradient, we use the distribution (scalarfield)
-                    if (parameters.temperature_gradient_start > 0)
+                    if (parameters.temperature_gradient_inclination != 0)
                     {
                         // Calculate distribution
                         Vectormath::get_gradient_distribution(
                             *this->systems[i]->geometry,
                             parameters.temperature_gradient_direction,
-                            parameters.temperature_gradient_start,
+                            parameters.temperature,
                             parameters.temperature_gradient_inclination,
                             temperature_distribution, 0, 1e30);
 
