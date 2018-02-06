@@ -117,7 +117,6 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
             if (image->hamiltonian->Name() == "Heisenberg (Neighbours)")
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
-                int nos = image->nos;
 
                 // Normals
                 Vector3 new_normal{normal[0], normal[1], normal[2]};
@@ -137,7 +136,6 @@ void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, 
             else if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
-                int nos = image->nos;
 
                 // Normals
                 Vector3 new_normal{normal[0], normal[1], normal[2]};
@@ -191,11 +189,12 @@ void Hamiltonian_Set_Anisotropy( State *state, float magnitude, const float * no
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg_Neighbours*)image->hamiltonian.get();
                 int nos = image->nos;
+                int n_cell_atoms = image->geometry->n_cell_atoms;
 
                 // Indices and Magnitudes
-                intfield new_indices(nos);
-                scalarfield new_magnitudes(nos);
-                for (int i = 0; i<nos; ++i)
+                intfield new_indices(n_cell_atoms);
+                scalarfield new_magnitudes(n_cell_atoms);
+                for (int i = 0; i<n_cell_atoms; ++i)
                 {
                     new_indices[i] = i;
                     new_magnitudes[i] = magnitude;
@@ -221,11 +220,12 @@ void Hamiltonian_Set_Anisotropy( State *state, float magnitude, const float * no
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)image->hamiltonian.get();
                 int nos = image->nos;
+                int n_cell_atoms = image->geometry->n_cell_atoms;
 
                 // Indices and Magnitudes
-                intfield new_indices(nos);
-                scalarfield new_magnitudes(nos);
-                for (int i = 0; i<nos; ++i)
+                intfield new_indices(n_cell_atoms);
+                scalarfield new_magnitudes(n_cell_atoms);
+                for (int i = 0; i<n_cell_atoms; ++i)
                 {
                     new_indices[i] = i;
                     new_magnitudes[i] = magnitude;
