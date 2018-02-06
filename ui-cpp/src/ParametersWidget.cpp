@@ -94,8 +94,8 @@ void ParametersWidget::Load_Parameters_Contents()
 	Parameters_Get_LLG_N_Iterations(state.get(), &i1, &i2);
 	this->lineEdit_llg_n_iterations->setText(QString::number(i1));
 	this->lineEdit_llg_log_steps->setText(QString::number(i2));
-	auto folder = Parameters_Get_LLG_Output_Folder(state.get());
-	this->lineEdit_llg_output_folder->setText(folder);
+	auto folder_llg = Parameters_Get_LLG_Output_Folder(state.get());
+	this->lineEdit_llg_output_folder->setText(folder_llg);
 	Parameters_Get_LLG_Output_General(state.get(), &b1, &b2, &b3);
 	this->checkBox_llg_output_any->setChecked(b1);
 	this->checkBox_llg_output_initial->setChecked(b2);
@@ -121,8 +121,8 @@ void ParametersWidget::Load_Parameters_Contents()
 	Parameters_Get_GNEB_N_Iterations(state.get(), &i1, &i2);
 	this->lineEdit_gneb_n_iterations->setText(QString::number(i1));
 	this->lineEdit_gneb_log_steps->setText(QString::number(i2));
-	folder = Parameters_Get_GNEB_Output_Folder(state.get());
-	this->lineEdit_gneb_output_folder->setText(folder);
+	auto folder_gneb = Parameters_Get_GNEB_Output_Folder(state.get());
+	this->lineEdit_gneb_output_folder->setText(folder_gneb);
 	Parameters_Get_GNEB_Output_General(state.get(), &b1, &b2, &b3);
 	this->checkBox_gneb_output_any->setChecked(b1);
 	this->checkBox_gneb_output_initial->setChecked(b2);
@@ -163,6 +163,32 @@ void ParametersWidget::Load_Parameters_Contents()
    this->doubleSpinBox_ema_frequency->setValue(d);
    d = Parameters_Get_EMA_Amplitude(state.get());
    this->doubleSpinBox_ema_amplitude->setValue(d);
+
+   //       MMF
+   // Parameters
+   i1 = Parameters_Get_MMF_N_Modes(state.get());
+   this->spinBox_mmf_n_modes->setValue(i1);
+   i2 = Parameters_Get_MMF_N_Mode_Follow(state.get());
+   this->spinBox_mmf_n_mode_follow->setValue(i2+1);
+   this->spinBox_mmf_n_mode_follow->setMaximum(i1);
+    // Output
+    Parameters_Get_MMF_N_Iterations(state.get(), &i1, &i2);
+    this->lineEdit_mmf_output_n_iterations->setText(QString::number(i1));
+    this->lineEdit_mmf_output_log_steps->setText(QString::number(i2));
+    auto folder_mmf = Parameters_Get_MMF_Output_Folder(state.get());
+    this->lineEdit_mmf_output_folder->setText(folder_mmf);
+    Parameters_Get_MMF_Output_General(state.get(), &b1, &b2, &b3);
+    this->checkBox_mmf_output_any->setChecked(b1);
+    this->checkBox_mmf_output_initial->setChecked(b2);
+    this->checkBox_mmf_output_final->setChecked(b3);
+    Parameters_Get_MMF_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+    this->checkBox_mmf_output_energy_step->setChecked(b1);
+    this->checkBox_mmf_output_energy_archive->setChecked(b2);
+    this->checkBox_mmf_output_energy_spin_resolved->setChecked(b3);
+    this->checkBox_mmf_output_energy_divide->setChecked(b4);
+    Parameters_Get_MMF_Output_Configuration(state.get(), &b1, &b2);
+    this->checkBox_mmf_output_configuration_step->setChecked(b1);
+    this->checkBox_mmf_output_configuration_archive->setChecked(b2);
 }
 
 
@@ -360,10 +386,42 @@ void ParametersWidget::set_gneb_auto_image_type()
 
 void ParametersWidget::set_parameters_mmf()
 {
-	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
-	{
-	};
+    // Closure to set the parameters of a specific spin system
+    auto apply = [this](int idx_image, int idx_chain) -> void
+    {
+        int i1, i2;
+        bool b1, b2, b3, b4;
+
+        // Parameters
+        i1 = this->spinBox_mmf_n_modes->value();
+        Parameters_Set_MMF_N_Modes(state.get(), i1, idx_image, idx_chain);
+        i1 = this->spinBox_mmf_n_mode_follow->value();
+        Parameters_Set_MMF_N_Mode_Follow(state.get(), i1-1, idx_image, idx_chain);
+
+        // Output
+        i1 = this->lineEdit_mmf_output_n_iterations->text().toInt();
+        i2 = this->lineEdit_mmf_output_log_steps->text().toInt();
+        Parameters_Set_MMF_N_Iterations(state.get(), i1, i2, idx_image, idx_chain);
+        std::string folder = this->lineEdit_mmf_output_folder->text().toStdString();
+        Parameters_Set_MMF_Output_Folder(state.get(), folder.c_str(), idx_image, idx_chain);
+        b1 = this->checkBox_mmf_output_any->isChecked();
+        b2 = this->checkBox_mmf_output_initial->isChecked();
+        b3 = this->checkBox_mmf_output_final->isChecked();
+        Parameters_Set_MMF_Output_General(state.get(), b1, b2, b3, idx_image, idx_chain);
+        b1 = this->checkBox_mmf_output_energy_step->isChecked();
+        b2 = this->checkBox_mmf_output_energy_archive->isChecked();
+        b3 = this->checkBox_mmf_output_energy_spin_resolved->isChecked();
+        b4 = this->checkBox_mmf_output_energy_divide->isChecked();
+        Parameters_Set_MMF_Output_Energy(state.get(), b1, b2, b3, b4, idx_image, idx_chain);
+        b1 = this->checkBox_mmf_output_configuration_step->isChecked();
+        b2 = this->checkBox_mmf_output_configuration_archive->isChecked();
+        Parameters_Set_MMF_Output_Configuration(state.get(), b1, b2, idx_image, idx_chain);
+    };
+
+    for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
+    {
+        apply(img, Chain_Get_Index(state.get()));
+    }
 
 	/*if (this->comboBox_MMF_ApplyTo->currentText() == "Current Image")
 	{
@@ -406,70 +464,85 @@ void ParametersWidget::set_parameters_ema()
 
 void ParametersWidget::Setup_Parameters_Slots()
 {
-	//		LLG
-	// Direct minimization
-	connect(this->checkBox_llg_direct, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	// Temperature
-	connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_temperature_inclination, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_temperature_dir_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_temperature_dir_y, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_temperature_dir_z, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	// STT
-	connect(this->radioButton_stt_gradient, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
-	connect(this->radioButton_stt_monolayer, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_y, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	connect(this->doubleSpinBox_llg_stt_polarisation_z, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	// Damping
-	connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
-	// Convergence criterion
-	connect(this->spinBox_llg_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
-	// Output
-	connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
-	connect(this->lineEdit_llg_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_energy_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_energy_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_energy_spin_resolved, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_energy_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_configuration_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
-	connect(this->checkBox_llg_output_configuration_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    //      LLG
+    // Direct minimization
+    connect(this->checkBox_llg_direct, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    // Temperature
+    connect(this->checkBox_llg_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->doubleSpinBox_llg_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_temperature_inclination, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_temperature_dir_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_temperature_dir_y, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_temperature_dir_z, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    // STT
+    connect(this->radioButton_stt_gradient, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
+    connect(this->radioButton_stt_monolayer, SIGNAL(clicked()), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_stt, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->doubleSpinBox_llg_stt_magnitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->doubleSpinBox_llg_stt_polarisation_x, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->doubleSpinBox_llg_stt_polarisation_y, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    connect(this->doubleSpinBox_llg_stt_polarisation_z, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    // Damping
+    connect(this->lineEdit_Damping, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_dt, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+    // Convergence criterion
+    connect(this->spinBox_llg_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_llg()));
+    // Output
+    connect(this->lineEdit_llg_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+    connect(this->lineEdit_llg_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_energy_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_energy_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_energy_spin_resolved, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_energy_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_configuration_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
+    connect(this->checkBox_llg_output_configuration_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_llg()));
 
-	//		GNEB
-	// Spring Constant
-	connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
-	// Image type
-	connect(this->pushButton_auto_image_type, SIGNAL(clicked()), this, SLOT(set_gneb_auto_image_type()));
-	connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
-	connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
-	connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
-	connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
-	// Convergence criterion
-	connect(this->spinBox_gneb_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_gneb()));
-	// Output
-	connect(this->lineEdit_gneb_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
-	connect(this->lineEdit_gneb_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
-	connect(this->lineEdit_gneb_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-	connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    //      GNEB
+    // Spring Constant
+    connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    // Image type
+    connect(this->pushButton_auto_image_type, SIGNAL(clicked()), this, SLOT(set_gneb_auto_image_type()));
+    connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
+    connect(this->radioButton_ClimbingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
+    connect(this->radioButton_FallingImage, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
+    connect(this->radioButton_Stationary, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
+    // Convergence criterion
+    connect(this->spinBox_gneb_convergence, SIGNAL(editingFinished()), this, SLOT(set_parameters_gneb()));
+    // Output
+    connect(this->lineEdit_gneb_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    connect(this->lineEdit_gneb_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    connect(this->lineEdit_gneb_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
     
     //      EMA
     connect(this->spinBox_ema_n_modes, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_frequency, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_amplitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
+
+    //      MMF
+    // Output
+    connect(this->lineEdit_mmf_output_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));
+    connect(this->lineEdit_mmf_output_log_steps, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));
+    connect(this->lineEdit_mmf_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_energy_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_energy_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_energy_spin_resolved, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_energy_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_configuration_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
+    connect(this->checkBox_mmf_output_configuration_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mmf()));
 }
 
 
