@@ -11,6 +11,7 @@
 #include "Spirit/Simulation.h"
 #include "Spirit/Configurations.h"
 #include "Spirit/Quantities.h"
+#include "Spirit/Version.h"
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
@@ -20,11 +21,12 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// State
 	this->state = state;
 	// Widgets
-	this->spinWidget = new SpinWidget(this->state);
+	this->spinWidget     = new SpinWidget(this->state);
 	this->settingsWidget = new SettingsWidget(this->state, this->spinWidget);
-	this->plotsWidget = new PlotsWidget(this->state);
-	this->debugWidget = new DebugWidget(this->state);
-	this->controlWidget = new ControlWidget(this->state, this->spinWidget, this->settingsWidget);
+	this->plotsWidget    = new PlotsWidget(this->state);
+	this->debugWidget    = new DebugWidget(this->state);
+	this->controlWidget  = new ControlWidget(this->state, this->spinWidget, this->settingsWidget);
+	this->infoWidget     = new InfoWidget(this->state, this->spinWidget, this->controlWidget);
 
 	//this->setFocus(Qt::StrongFocus);
 	this->setFocusPolicy(Qt::StrongFocus);
@@ -51,12 +53,15 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Add Widgets to UIs grids
 	this->gridLayout->addWidget(this->spinWidget, 0, 0, 1, 1);
+	this->gridLayout->addWidget(this->infoWidget, 0, 0, 1, 1);
 	this->gridLayout_2->addWidget(this->controlWidget, 0, 0, 1, 1);
 
 	// Read Window settings of last session
 	this->view_spins_only = false;
 	this->view_fullscreen = false;
 	this->m_spinWidgetActive = true;
+	this->m_InfoWidgetActive = true;
+	Ui::MainWindow::statusBar->hide();
 	readSettings();
 
 
@@ -122,13 +127,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//		Set a monospace font
 	Ui::MainWindow::statusBar->setStyleSheet("QWidget{font-family: \"Courier\"}");
 	//		Spacer
-	this->m_Spacer_5 = new QLabel("    |    ");
+	this->m_Spacer_5 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_5);
 	//		Torque
 	this->m_Label_Torque = new QLabel("F_max: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Torque);
 	//		Spacer
-	this->m_Spacer_4 = new QLabel("    |    ");
+	this->m_Spacer_4 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_4);
 	//		Energy
 	this->m_Label_E = new QLabel("E: -  ");
@@ -137,19 +142,19 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	this->m_Label_Mz = new QLabel("M_z: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_Mz);
 	//		Spacer
-	this->m_Spacer_3 = new QLabel("    |    ");
+	this->m_Spacer_3 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_3);
 	//		FPS
 	this->m_Label_FPS = new QLabel("FPS: -");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Label_FPS);
 	//		Spacer
-	this->m_Spacer_2 = new QLabel("    |    ");
+	this->m_Spacer_2 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_2);
 	//		N_Cells
 	this->m_Label_Dims = new QLabel("Dims: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Dims);
 	//		Spacer
-	this->m_Spacer_1 = new QLabel("    |    ");
+	this->m_Spacer_1 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(m_Spacer_1);
 	//		NOS
 	this->m_Label_NOS = new QLabel("NOS: -  ");
@@ -276,6 +281,23 @@ void MainWindow::toggleSpinWidget()
 	{
 		this->spinWidget->setSuspended(false);
 		this->m_spinWidgetActive = true;
+	}
+}
+
+
+void MainWindow::toggleInfoWidget()
+{
+	if (this->m_InfoWidgetActive)
+	{
+		this->infoWidget->hide();
+		Ui::MainWindow::statusBar->show();
+		this->m_InfoWidgetActive = false;
+	}
+	else
+	{
+		this->infoWidget->show();
+		Ui::MainWindow::statusBar->hide();
+		this->m_InfoWidgetActive = true;
 	}
 }
 
@@ -414,6 +436,10 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_Return:
 				if (this->hasFocus() || this->spinWidget->hasFocus())
 					this->control_insertconfiguration();
+				break;
+			// Display info widget
+			case Qt::Key_I:
+				this->toggleInfoWidget();
 				break;
 			// WASDQE
 			case Qt::Key_W:
@@ -649,7 +675,7 @@ void MainWindow::createStatusBar()
 				if (Simulation_Running_Chain(state.get(), ichain))
 				{
 					this->m_Labels_IPS.push_back(new QLabel);
-					this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+					this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 				}
 				else
@@ -659,7 +685,7 @@ void MainWindow::createStatusBar()
 						if (Simulation_Running_Image(state.get(), img, ichain))
 						{
 							this->m_Labels_IPS.push_back(new QLabel);
-							this->m_Labels_IPS.back()->setText("IPS [-]: -  ");
+							this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 							Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 						}
 					}
@@ -667,13 +693,13 @@ void MainWindow::createStatusBar()
 			}
 		}
 		//		Spacer
-		this->m_Spacer_5 = new QLabel("  |    ");
+		this->m_Spacer_5 = new QLabel("|  ");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_5);
 		//		Torque
 		this->m_Label_Torque = new QLabel("F_max: -");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_Torque);
 		//		Spacer
-		this->m_Spacer_4 = new QLabel("    |    ");
+		this->m_Spacer_4 = new QLabel("  |  ");
 		Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_4);
 	}
 
@@ -692,7 +718,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_3);
-	this->m_Spacer_3 = new QLabel("    |    ");
+	this->m_Spacer_3 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_3);
 
 
@@ -704,7 +730,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_2);
-	this->m_Spacer_2 = new QLabel("    |    ");
+	this->m_Spacer_2 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_2);
 
 	//		Dims
@@ -713,8 +739,8 @@ void MainWindow::createStatusBar()
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 	int nth = this->spinWidget->visualisationNCellSteps();
-	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
-		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1("x") +
+		QString::number(n_cells[1]) + QString::fromLatin1("x") + QString::number(n_cells[2]);
 	if (nth == 2)
 	{
 		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
@@ -733,7 +759,7 @@ void MainWindow::createStatusBar()
 
 	//		Spacer
 	Ui::MainWindow::statusBar->removeWidget(this->m_Spacer_1);
-	this->m_Spacer_1 = new QLabel("    |    ");
+	this->m_Spacer_1 = new QLabel("  |  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Spacer_1);
 
 
@@ -746,19 +772,19 @@ void MainWindow::createStatusBar()
 		nosqstring = QString::number(nos);
 	else
 		nosqstring = QString::number((float)nos, 'E', 2);
-	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + nosqstring + QString::fromLatin1("  "));
+	this->m_Label_NOS->setText(QString::fromLatin1("NOS: ") + nosqstring + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOS);
 
 	//		NOI
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOI);
 	this->m_Label_NOI = new QLabel;
-	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1("  "));
+	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 
 	//		NOC
 	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
 	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1("  "));
+	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 
 	// Update contents
@@ -774,7 +800,7 @@ void MainWindow::updateStatusBar()
 	if (!Simulation_Running_Chain(state.get()))
 		this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
-	float E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
+	double E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
 	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
 
 	float M[3];
@@ -813,7 +839,7 @@ void MainWindow::updateStatusBar()
 				else precision = 2;
 				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS [") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+				v_str.push_back(QString::fromLatin1("IPS[") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 			}
 			else
 			{
@@ -827,7 +853,7 @@ void MainWindow::updateStatusBar()
 						else precision = 2;
 						if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 						else qstr_ips = QString::fromLatin1("> 100k");
-						v_str.push_back(QString::fromLatin1("IPS [") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
+						v_str.push_back(QString::fromLatin1("IPS[") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 					}
 				}
 			}
@@ -847,8 +873,8 @@ void MainWindow::updateStatusBar()
 	int n_cells[3];
 	Geometry_Get_N_Cells(this->state.get(), n_cells);
 	int nth = this->spinWidget->visualisationNCellSteps();
-	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1(" x ") +
-		QString::number(n_cells[1]) + QString::fromLatin1(" x ") + QString::number(n_cells[2]);
+	QString text = QString::fromLatin1("Dims: ") + QString::number(n_cells[0]) + QString::fromLatin1("x") +
+		QString::number(n_cells[1]) + QString::fromLatin1("x") + QString::number(n_cells[2]);
 	if (nth == 2)
 	{
 		text += QString::fromLatin1("    (using every ") + QString::number(nth) + QString::fromLatin1("nd)");
@@ -881,6 +907,9 @@ void MainWindow::updateMenuBar()
 		this->actionShow_Debug->setChecked(true);
 	else
 		this->actionShow_Debug->setChecked(false);
+
+	// Info Widget
+	this->actionToggle_infowidget->setChecked(this->m_InfoWidgetActive);
 
 	// Visualisation
 	this->actionToggle_visualisation->setChecked(this->m_spinWidgetActive);
@@ -1030,6 +1059,7 @@ void MainWindow::view_cycle_camera()
 void MainWindow::about()
 {
 	QMessageBox::about(this, tr("About Spirit"),
+		QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
 		QString::fromLatin1(
 			"The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
 			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
@@ -1059,6 +1089,7 @@ void MainWindow::keyBindings()
 			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
 			" - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
 			" - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
+			" - <b>i</b>:       Toggle large visualisation<br>"
 			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
 			"<br>"
 			"<i>Camera controls</i><br>"
@@ -1298,6 +1329,8 @@ void MainWindow::readSettings()
 	if (spins_only) this->view_toggle_spins_only();
 	bool fullscreen = settings.value("fullscreen").toBool();
 	if (fullscreen) this->view_toggle_fullscreen();
+	bool show_infoWidget = settings.value("show infoWidget", true).toBool();
+	if (!show_infoWidget) this->toggleInfoWidget();
 
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -1334,6 +1367,7 @@ void MainWindow::writeSettings()
     settings.setValue("windowState", saveState());
 	settings.setValue("fullscreenSpins", this->view_spins_only);
 	settings.setValue("fullscreen", this->view_fullscreen);
+	settings.setValue("show infoWidget", this->m_InfoWidgetActive);
 	
 	// Settings Dock
 	settings.beginGroup("SettingsDock");
@@ -1371,6 +1405,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	writeSettings();
 	this->spinWidget->close();
 	this->controlWidget->close();
+	this->infoWidget->close();
 
 	event->accept();
 }

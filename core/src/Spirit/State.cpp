@@ -226,9 +226,9 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         spirit_handle_exception_api(-1, -1);
     }
 
-	// This should never happen
-	std::exit(EXIT_FAILURE);
-	return nullptr;
+    // This should never happen
+    std::exit(EXIT_FAILURE);
+    return nullptr;
 }
 
 void State_Delete(State * state) noexcept

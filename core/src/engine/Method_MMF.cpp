@@ -55,10 +55,12 @@ namespace Engine
         // ToDo: move into parameters
         this->mm_function = "Spectra Matrix"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
 
-
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
+
+        //---- Initialise Solver-specific variables
+        this->Initialize();
     }
 
 

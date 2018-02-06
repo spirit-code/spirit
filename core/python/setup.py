@@ -72,6 +72,12 @@ def get_git_commit_datetime():
         print(cpe.output)
         return "00000000000000"
 
+import unittest
+def my_test_suite():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('test', pattern='*.py')
+    return test_suite
+
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
         from sys import platform as _platform
@@ -128,5 +134,6 @@ if __name__ == "__main__":
         package_data     = {
             'spirit': ['libSpirit.dylib', 'libSpirit.so', 'libSpirit.dll'],
         },
-        cmdclass = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
+        cmdclass         = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
+        test_suite       = 'setup.my_test_suite',
     )

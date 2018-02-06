@@ -392,6 +392,9 @@ namespace Engine
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi);
 
+        // Calculate a gradient scalar distribution according to a starting value, direction and inclination
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max);
+
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
@@ -410,11 +413,17 @@ namespace Engine
         // Scale a scalarfield by a given value
         void scale(scalarfield & sf, scalar s);
 
+        // Add a scalar to all entries of a scalarfield
+        void add(scalarfield & sf, scalar s);
+
         // Sum over a scalarfield
         scalar sum(const scalarfield & sf);
 
         // Calculate the mean of a scalarfield
         scalar mean(const scalarfield & sf);
+
+        // Cut off all values to remain in a certain range
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max);
 
         // sets vf := v
         // vf is a vectorfield
@@ -494,6 +503,8 @@ namespace Engine
         void add_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
         // out[i] += c * a[i] x b[i]
         void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
+        // out[i] += c[i] * a[i] x b[i]
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
         
         // out[i] = c * a x b[i]
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);

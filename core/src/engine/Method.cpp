@@ -26,10 +26,10 @@ namespace Engine
         // TODO: is this a good idea?
         this->n_iterations     = this->parameters->n_iterations;
         this->n_iterations_log = this->parameters->n_iterations_log;
-		if (this->n_iterations_log > 0)
-			this->n_log        = this->n_iterations / this->n_iterations_log;
-		else
-			this->n_log        = 0;
+        if (this->n_iterations_log > 0)
+            this->n_log        = this->n_iterations / this->n_iterations_log;
+        else
+            this->n_log        = 0;
 
         // Setup timings
         for (int i = 0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
@@ -48,9 +48,6 @@ namespace Engine
 
     void Method::Iterate()
     {
-        //---- Initialise Solver-specific variables
-        this->Initialize();
-
         //---- Start timings
         this->starttime = Timing::CurrentDateTime();
         this->t_start = system_clock::now();
@@ -88,9 +85,9 @@ namespace Engine
             this->t_iterations.push_back(system_clock::now());
 
             // Log Output every n_iterations_log steps
-			bool log = false;
-			if (this->n_iterations_log > 0)
-				log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
+            bool log = false;
+            if (this->n_iterations_log > 0)
+                log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
             if ( log )
             {
                 ++step;
@@ -122,6 +119,12 @@ namespace Engine
         }
         this->ips = 1.0 / (l_ips / (t_iterations.size() - 1));
         return this->ips;
+    }
+
+
+    int Method::getNIterations()
+    {
+        return this->iteration;
     }
 
 

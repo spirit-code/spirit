@@ -13,6 +13,9 @@ namespace Utility
         // The Bohr Magneton [meV/T]
         double const mu_B = 0.057883817555;
 
+        // The vacuum permeability [T^2 m^3 / meV]
+        double const mu_0 = 2.0133545*1e-28;
+
         // The Boltzmann constant [meV/K]
         double const k_B  = 0.08617330350;
 

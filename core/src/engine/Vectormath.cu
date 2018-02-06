@@ -1,8 +1,10 @@
 #ifdef USE_CUDA
 
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -13,6 +15,7 @@
 #include <curand_kernel.h>
 
 using namespace Utility;
+using Utility::Constants::Pi;
 
 // CUDA Version
 namespace Engine
@@ -202,11 +205,11 @@ namespace Engine
             Vectormath::fill(out_max, 0);
             static scalarfield temp(1, 0);
             Vectormath::fill(temp, 0);
-
+            
             cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
             cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
             cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
 
             return std::pair<scalar, scalar>{out_min[0], out_max[0]};
         }
@@ -303,9 +306,7 @@ namespace Engine
 
         std::array<scalar, 3> Magnetization(const vectorfield & vf)
         {
-            
             auto M = mean(vf);
-            cudaDeviceSynchronize();
             return std::array<scalar,3>{M[0], M[1], M[2]};
         }
 
@@ -366,7 +367,7 @@ namespace Engine
                 // charge += sign * solid_angle_1(v1, v2, v3);
                 charge += sign * solid_angle_2(v1, v2, v3);
             }
-            return charge / (4*M_PI);
+            return charge / (4*Pi);
         }
 
         // Utility function for the SIB Solver
@@ -395,7 +396,7 @@ namespace Engine
         {
             int n = spins.size();
             cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
@@ -427,7 +428,7 @@ namespace Engine
         {
             int n = xi.size();
             cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
@@ -437,8 +438,8 @@ namespace Engine
 
             scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-            vec[0] = r_xy * std::cos(2*M_PI*phi);
-            vec[1] = r_xy * std::sin(2 * M_PI*phi);
+            vec[0] = r_xy * std::cos(2*Pi*phi);
+            vec[1] = r_xy * std::sin(2*Pi*phi);
             vec[2] = v_z;
         }
         // __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
@@ -458,8 +459,8 @@ namespace Engine
 
         // 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-        //         xi[idx][0] = r_xy * std::cos(2*M_PI*phi);
-        //         xi[idx][1] = r_xy * std::sin(2 * M_PI*phi);
+        //         xi[idx][0] = r_xy * std::cos(2*Pi*phi);
+        //         xi[idx][1] = r_xy * std::sin(2*Pi*phi);
         //         xi[idx][2] = v_z;
         //     }
         // }
@@ -467,7 +468,7 @@ namespace Engine
         // {
         //     int n = xi.size();
         //     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
-        //     cudaDeviceSynchronize();
+        //     CU_CHECK_AND_SYNC();
         // }
         // The above CUDA implementation does not work correctly.
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
@@ -480,6 +481,25 @@ namespace Engine
             {
                 get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
+        }
+
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Starting value
+            fill(distribution, gradient_start);
+
+            // Basic linear gradient distribution
+            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, -dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
         }
 
 
@@ -616,7 +636,7 @@ namespace Engine
         {
             int n = sf.size();
             cu_fill<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_fill_mask(scalar *sf, scalar s, const int * mask, size_t N)
         {
@@ -630,7 +650,7 @@ namespace Engine
         {
             int n = sf.size();
             cu_fill_mask<<<(n+1023)/1024, 1024>>>(sf.data(), s, mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_scale(scalar *sf, scalar s, size_t N)
@@ -645,6 +665,21 @@ namespace Engine
         {
             int n = sf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            CU_CHECK_AND_SYNC();
+        }
+
+        __global__ void cu_add(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                sf[idx] += s;
+            }
+        }
+        void add(scalarfield & sf, scalar s)
+        {
+            int n = sf.size();
+            cu_add<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
             cudaDeviceSynchronize();
         }
 
@@ -657,7 +692,7 @@ namespace Engine
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
@@ -669,8 +704,10 @@ namespace Engine
 
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
+
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
+
             ret[0] = ret[0]/N;
             return ret[0];
         }
@@ -687,9 +724,15 @@ namespace Engine
         {
             int n = numerator.size();
             cu_divide<<<(n+1023)/1024, 1024>>>(numerator.data(), denominator.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
+        }
 
         __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
         {
@@ -703,7 +746,7 @@ namespace Engine
         {
             int n = vf.size();
             cu_fill<<<(n+1023)/1024, 1024>>>(vf.data(), v, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_fill_mask(Vector3 *vf1, Vector3 v2, const int * mask, size_t N)
         {
@@ -717,7 +760,7 @@ namespace Engine
         {
             int n = vf.size();
             cu_fill_mask<<<(n+1023)/1024, 1024>>>(vf.data(), v, mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_normalize_vectors(Vector3 *vf, size_t N)
@@ -732,7 +775,7 @@ namespace Engine
         {
             int n = vf.size();
             cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_norm(const Vector3 * vf, scalar * norm, size_t N)
@@ -747,10 +790,10 @@ namespace Engine
         {
             int n = vf.size();
             cu_norm<<<(n+1023)/1024, 1024>>>(vf.data(), norm.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
-        scalar  max_abs_component(const vectorfield & vf)
+        scalar max_abs_component(const vectorfield & vf)
         {
             // We want the Maximum of Absolute Values of all force components on all images
             // Find minimum and maximum values
@@ -773,7 +816,7 @@ namespace Engine
         {
             int n = vf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sc, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         Vector3 sum(const vectorfield & vf)
@@ -785,7 +828,7 @@ namespace Engine
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
@@ -797,8 +840,10 @@ namespace Engine
 
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
+
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
+
             ret[0] = ret[0]/N;
             return ret[0];
         }
@@ -824,7 +869,7 @@ namespace Engine
 
             // Dot product
             cu_dot<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), sf.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
 
             // reduction
             ret = sum(sf);
@@ -837,7 +882,7 @@ namespace Engine
 
             // Dot product
             cu_dot<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_scalardot(const scalar * s1, const scalar * s2, scalar * out, size_t N)
@@ -856,7 +901,7 @@ namespace Engine
 
             // Dot product
             cu_scalardot<<<(n+1023)/1024, 1024>>>(s1.data(), s2.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_cross(const Vector3 *vf1, const Vector3 *vf2, Vector3 *out, size_t N)
@@ -874,7 +919,7 @@ namespace Engine
 
             // Dot product
             cu_cross<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -893,7 +938,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a2(scalar c, const Vector3 * a, Vector3 * out, size_t N)
@@ -909,7 +954,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
@@ -925,7 +970,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
@@ -941,7 +986,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -958,7 +1003,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_set_c_a_mask(scalar c, Vector3 a, Vector3 * out, const int * mask, size_t N)
         {
@@ -973,7 +1018,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a_mask<<<(n+1023)/1024, 1024>>>(c, a, out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_set_c_a2(scalar c, const Vector3 * a, Vector3 * out, size_t N)
@@ -989,7 +1034,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_set_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
         {
@@ -1004,7 +1049,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_set_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
@@ -1020,7 +1065,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1038,7 +1083,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
@@ -1054,7 +1099,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1071,7 +1116,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_set_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
@@ -1087,7 +1132,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1105,7 +1150,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         // out[i] += c * a[i] x b[i]
@@ -1121,6 +1166,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            CU_CHECK_AND_SYNC();
+        }
+        
+        // out[i] += c * a[i] x b[i]
+        __global__ void cu_add_c_cross(const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c[idx]*a[idx].cross(b[idx]);
+            }
+        }
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -1138,7 +1199,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         // out[i] = c * a[i] x b[i]
@@ -1154,7 +1215,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
     }
 }

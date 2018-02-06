@@ -235,10 +235,10 @@ void IO_Chain_Read( State *state, const char *file, int format, int starting_ima
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Read the data
         chain->Lock();
         try
@@ -284,10 +284,10 @@ void IO_Chain_Write( State *state, const char *file, int format, const char* com
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Read the data
         chain->Lock();
         try
@@ -370,8 +370,8 @@ void IO_Image_Write_Energy_per_Spin(State * state, const char * file, int idx_im
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -390,14 +390,14 @@ void IO_Image_Write_Energy(State * state, const char * file, int idx_image, int 
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-    	// Write the data
-    	IO::Write_Image_Energy(*image, std::string(file));
+        // Write the data
+        IO::Write_Image_Energy(*image, std::string(file));
     }
     catch( ... )
     {
@@ -412,8 +412,8 @@ void IO_Chain_Write_Energies(State * state, const char * file, int idx_chain) no
     
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -433,7 +433,7 @@ void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int 
     int idx_image = -1;
     
     try
-    {    
+    {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
         

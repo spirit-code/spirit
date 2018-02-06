@@ -1,9 +1,13 @@
 .*
 !.gitignore
 !.gitlab-ci.yml
+!.appveyor.yml
+!.travis.yml
 build/
+dist/
 demo
 *.o
+*.egg-info
 thirdparty/qhull
 docs/html
 docs/latex

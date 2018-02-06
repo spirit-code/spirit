@@ -19,6 +19,7 @@ DLLEXPORT void Parameters_Set_LLG_Time_Step(State *state, float dt, int idx_imag
 DLLEXPORT void Parameters_Set_LLG_Damping(State *state, float damping, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_STT(State *state, bool use_gradient, float magnitude, const float normal[3], int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_LLG_Temperature_Gradient(State *state, float inclination, const float direction[3], int idx_image=-1, int idx_chain=-1) noexcept;
 
 //      Set MC
 // Output
@@ -67,6 +68,7 @@ DLLEXPORT float Parameters_Get_LLG_Convergence(State *state, int idx_image=-1, i
 DLLEXPORT float Parameters_Get_LLG_Time_Step(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT float Parameters_Get_LLG_Damping(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT float Parameters_Get_LLG_Temperature(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_LLG_Temperature_Gradient(State *state, float * direction, float normal[3], int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float * magnitude, float normal[3], int idx_image=-1, int idx_chain=-1) noexcept;
 
 //      Get MC

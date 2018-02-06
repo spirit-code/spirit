@@ -47,11 +47,10 @@ def suite():
     suite.addTest( unittest.makeSuite(TestConstants) )
     return suite
 
-suite = suite()
+if __name__ == '__main__':
+    suite = suite()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-sys.exit(not success)
-
-##########
+    sys.exit(not success)

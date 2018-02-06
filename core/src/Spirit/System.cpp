@@ -12,7 +12,7 @@ int System_Get_Index(State * state) noexcept
     }
     catch( ... )
     {
-		spirit_handle_exception_api(-1, -1);
+        spirit_handle_exception_api(-1, -1);
         return -1;
     }
 }
@@ -59,8 +59,8 @@ scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );

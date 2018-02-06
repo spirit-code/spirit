@@ -1435,7 +1435,14 @@ void SpinWidget::setupRenderers()
         renderers.push_back({ this->m_coordinatesystem, position_coordinatesystem });
 
     // Update View
-    m_view.renderers(renderers);
+    m_view.renderers(renderers, false);
+    auto& options = m_view.options();
+    m_view.setOption<VFRendering::View::CAMERA_POSITION>(options.get<VFRendering::View::CAMERA_POSITION>());
+    m_view.setOption<VFRendering::View::CENTER_POSITION>(options.get<VFRendering::View::CENTER_POSITION>());
+    m_view.setOption<VFRendering::View::SYSTEM_CENTER>(options.get<VFRendering::View::SYSTEM_CENTER>());
+    m_view.setOption<VFRendering::View::UP_VECTOR>(options.get<VFRendering::View::UP_VECTOR>());
+    m_view.setOption<VFRendering::View::LIGHT_POSITION>(options.get<VFRendering::View::LIGHT_POSITION>());
+    m_view.setOption<VFRendering::View::VERTICAL_FIELD_OF_VIEW>(options.get<VFRendering::View::VERTICAL_FIELD_OF_VIEW>());
 
     // TODO: this should not be necessary...
     this->updateVectorFieldGeometry();

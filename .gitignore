@@ -30,6 +30,7 @@ input_*
 /spirit
 spirit.js
 spirit.js.mem
+spirit.wasm
 
 ### Generated Files
 core/python/LICENSE.txt

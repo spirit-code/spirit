@@ -1,10 +1,5 @@
 #ifndef USE_CUDA
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <Eigen/Dense>
-
 #include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
 #include <engine/Vectormath.hpp>
@@ -12,11 +7,16 @@
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
+#include <Eigen/Dense>
+
 using std::vector;
 using std::function;
 
 using namespace Data;
 using namespace Utility;
+using Utility::Constants::mu_B;
+using Utility::Constants::mu_0;
+using Utility::Constants::Pi;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
 
@@ -35,7 +35,7 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions), geometry(geometry),
         mu_s(mu_s),
-        external_field_magnitude(external_field_magnitude * Constants::mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
         dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
@@ -254,8 +254,9 @@ namespace Engine
 
     void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
-        //scalar mult = -Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
-        scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
+
         scalar result = 0.0;
 
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
@@ -269,13 +270,15 @@ namespace Engine
                         for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
                         {
                             std::array<int, 3 > translations = { da, db, dc };
-                            int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                            int i = ddi_pairs[i_pair].i;
+                            int j = ddi_pairs[i_pair].j;
+                            int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[ispin] -= 0.5 * this->mu_s[i] * this->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-                                Energy[ispin] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[jspin] -= 0.5 * this->mu_s[i] * this->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
                             }
                         }
@@ -458,8 +461,8 @@ namespace Engine
 
     void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
-        //scalar mult = Constants::mu_B*Constants::mu_B*1.0 / 4.0 / M_PI; // multiply with mu_B^2
-        scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
         
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
         {
@@ -473,13 +476,15 @@ namespace Engine
                         {
                             scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
                             std::array<int, 3 > translations = { da, db, dc };
-                            
-                            int ispin = ddi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);	
+
+                            int i = ddi_pairs[i_pair].i;
+                            int j = ddi_pairs[i_pair].j;
+                            int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);	
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                gradient[ispin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
-                                gradient[jspin] -= skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
+                                gradient[ispin] -= this->mu_s[j] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
+                                gradient[jspin] -= this->mu_s[i] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
                             }
                         }
                     }

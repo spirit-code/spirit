@@ -25,23 +25,23 @@ def Get_NOI(p_state, idx_chain=-1):
 ### Switch active to next image of chain
 _next_Image             = _spirit.Chain_next_Image
 _next_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int]
-_next_Image.restype     = None
+_next_Image.restype     = ctypes.c_bool
 def Next_Image(p_state, idx_chain=-1):
-    _next_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
+    return bool(_next_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
 
 ### Switch active to previous image of chain
 _prev_Image             = _spirit.Chain_prev_Image
 _prev_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int]
-_prev_Image.restype     = None
+_prev_Image.restype     = ctypes.c_bool
 def Prev_Image(p_state, idx_chain=-1):
-    _prev_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
+    return bool(_prev_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
 
 ### Switch active to specific image of chain
 _Jump_To_Image             = _spirit.Chain_Jump_To_Image
 _Jump_To_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Jump_To_Image.restype     = None
+_Jump_To_Image.restype     = ctypes.c_bool
 def Jump_To_Image(p_state, idx_image=-1, idx_chain=-1):
-    _Jump_To_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return bool(_Jump_To_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
 
 ### Copy active image to clipboard
@@ -85,16 +85,16 @@ def Push_Back(p_state, idx_chain=-1):
 ### Delete active image
 _Delete_Image             = _spirit.Chain_Delete_Image
 _Delete_Image.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Delete_Image.restype     = None
+_Delete_Image.restype     = ctypes.c_bool
 def Delete_Image(p_state, idx_image=-1, idx_chain=-1):
-    _Delete_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return bool(_Delete_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
 ### Delete image at end of chain
 _Pop_Back             = _spirit.Chain_Pop_Back
 _Pop_Back.argtypes    = [ctypes.c_void_p, ctypes.c_int]
-_Pop_Back.restype     = None
+_Pop_Back.restype     = ctypes.c_bool
 def Pop_Back(p_state, idx_chain=-1):
-    _Pop_Back(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
+    return bool(_Pop_Back(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
 
 
 ### Update the chain's data (interpolated energies etc.)
@@ -118,7 +118,7 @@ _Get_Rx          = _spirit.Chain_Get_Rx
 _Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Rx.restype  = None
 def Get_Rx(p_state, idx_chain=-1):
-    noi = Get_NOI(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain))
+    noi = Get_NOI(p_state, idx_chain)
     arrayX = ctypes.c_float * noi
     Rx = [0]*noi
     _Rx = arrayX(*Rx)
@@ -133,12 +133,10 @@ _Get_Rx_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float)
 _Get_Rx_Interpolated.restype  = None
 def Get_Rx_Interpolated(p_state, idx_chain=-1):
     noi = Get_NOI(p_state, idx_chain)
-    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
+    n_interp = parameters.gneb.getEnergyInterpolations(p_state, idx_chain)
     len_Rx = noi + (noi-1)*n_interp
     Rx = (len_Rx*ctypes.c_float)()
     _Get_Rx_Interpolated(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
-    for i in range(len_Rx):
-        Rx[i] = _Rx[i]
     return Rx
 
 ### Get Energy
@@ -157,7 +155,7 @@ _Get_Energy_Interpolated.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_fl
 _Get_Energy_Interpolated.restype  = None
 def Get_Energy_Interpolated(p_state, idx_chain=-1):
     noi = Get_NOI(p_state, idx_chain)
-    n_interp = parameters.Get_GNEB_N_Energy_Interpolations(p_state, idx_chain)
+    n_interp = parameters.gneb.getEnergyInterpolations(p_state, idx_chain)
     len_Energy = noi + (noi-1)*n_interp
     Energy_interp = (len_Energy*ctypes.c_float)()
     _Get_Energy_Interpolated(ctypes.c_void_p(p_state), Energy_interp, ctypes.c_int(idx_chain))

@@ -65,9 +65,18 @@ def setSTT(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=
 _Set_LLG_Temperature             = _spirit.Parameters_Set_LLG_Temperature
 _Set_LLG_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
 _Set_LLG_Temperature.restype     = None
-def setTemperature(p_state, temperature, idx_image=-1, idx_chain=-1):
+_Set_LLG_Temperature_Gradient             = _spirit.Parameters_Set_LLG_Temperature_Gradient
+_Set_LLG_Temperature_Gradient.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(3*ctypes.c_float),
+                                             ctypes.c_int, ctypes.c_int]
+_Set_LLG_Temperature_Gradient.restype     = None
+def setTemperature(p_state, temperature, gradient_inclination=0, gradient_direction=[1.0,0.0,0.0], idx_image=-1, idx_chain=-1):
     _Set_LLG_Temperature(ctypes.c_void_p(p_state), ctypes.c_float(temperature), 
                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    vec3 = ctypes.c_float * 3
+    gradient_direction = vec3(*gradient_direction)
+    ctypes.cast( gradient_direction, ctypes.POINTER(vec3))
+    _Set_LLG_Temperature_Gradient(ctypes.c_void_p(p_state), ctypes.c_float(gradient_inclination), gradient_direction,
+                                  ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
                          
 ## ------------------- Get LLG -------------------
 
@@ -134,6 +143,15 @@ def getSTT(p_state, idx_image=-1, idx_chain=-1):
 _Get_LLG_Temperature             = _spirit.Parameters_Get_LLG_Temperature
 _Get_LLG_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Get_LLG_Temperature.restype     = ctypes.c_float
+_Get_LLG_Temperature_Gradient             = _spirit.Parameters_Get_LLG_Temperature_Gradient
+_Get_LLG_Temperature_Gradient.argtypes    = [ctypes.c_void_p, ctypes.POINTER( ctypes.c_float ),
+                                             ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Get_LLG_Temperature_Gradient.restype     = None
 def getTemperature(p_state, idx_image=-1, idx_chain=-1):
-    return float(_Get_LLG_Temperature(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
-                                     ctypes.c_int(idx_chain)))
+    temperature = float(_Get_LLG_Temperature(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+                                             ctypes.c_int(idx_chain)))
+    gradient_inclination = ctypes.c_float()
+    gradient_direction = (3*ctypes.c_float)()
+    _Get_LLG_Temperature_Gradient(ctypes.c_void_p(p_state), ctypes.pointer(gradient_inclination),
+                                  gradient_direction, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return temperature, gradient_inclination, gradient_direction

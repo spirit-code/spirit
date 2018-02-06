@@ -6,6 +6,11 @@ scalar Constants_mu_B() noexcept
     return (scalar)Utility::Constants::mu_B;
 }
 
+scalar Constants_mu_0() noexcept
+{
+    return (scalar)Utility::Constants::mu_0;
+}
+
 scalar Constants_k_B() noexcept
 {
     return (scalar)Utility::Constants::k_B;
@@ -29,4 +34,9 @@ scalar Constants_gamma() noexcept
 scalar Constants_g_e() noexcept
 {
     return (scalar)Utility::Constants::g_e;
+}
+
+scalar Constants_Pi() noexcept
+{
+    return (scalar)Utility::Constants::Pi;
 }

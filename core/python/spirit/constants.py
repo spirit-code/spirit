@@ -13,6 +13,13 @@ _mu_B.restype   = scalar
 def mu_B():
     return _mu_B()
 
+# The vacuum permeability [T^2 m^3 / meV]
+_mu_0           = _spirit.Constants_mu_0
+_mu_0.argtypes  = None
+_mu_0.restype   = scalar
+def mu_0():
+    return _mu_0()
+
 # The Boltzmann constant [meV / K]
 _k_B            = _spirit.Constants_k_B
 _k_B.argtypes   = None
@@ -47,4 +54,10 @@ _g_e.argtypes   = None
 _g_e.restype    = scalar
 def g_e():
     return _g_e()
-    
+
+# Pi [rad]
+_Pi            = _spirit.Constants_Pi
+_Pi.argtypes   = None
+_Pi.restype    = scalar
+def Pi():
+    return _Pi()

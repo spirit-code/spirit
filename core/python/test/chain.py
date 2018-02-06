@@ -17,7 +17,7 @@ import unittest
 failing test we load a p_state once and we use constructor and destructor
 of each test (setUp/tearDown) to clean that p_state'''
 
-cfgfile = "input/input.cfg"                 # Input File
+cfgfile = spirit_py_dir + "/../test/input/api.cfg"                 # Input File
 p_state = state.setup(cfgfile)              # State setup
 chain.Image_to_Clipboard( p_state )         # Copy p_state to Clipboard
 
@@ -186,10 +186,11 @@ class getters_TestChain(TestChain):
     def test_Rx(self):
         chain.Insert_Image_Before( self.p_state )               # active is 1st
         noi = chain.Get_NOI( self.p_state )                     # total 2 images
+        self.assertAlmostEqual( noi, 2 )
         Rx = chain.Get_Rx( self.p_state )                       # get Rx values
         Rx_interp = chain.Get_Rx_Interpolated( self.p_state )   # get Rx interpol 
-        self.assertNotAlmostEqual( Rx[i], 0 )
-        self.assertAlmostEqual( len(Rx_interp), 0 )
+        self.assertNotAlmostEqual( Rx[noi-1], 0 )
+        # self.assertAlmostEqual( Rx[-1], Rx_interp[-1] )
     
     def test_energy(self):
         E = chain.Get_Energy( self.p_state )
@@ -202,10 +203,12 @@ class data_TestChain(TestChain):
     # TODO: A proper way to test Update and Setup
     
     def test_update(self):
+        noi = chain.Get_NOI( self.p_state )
         Ei = chain.Get_Energy( self.p_state )                   # Energy initial
         chain.Update_Data( self.p_state )
         Ef = chain.Get_Energy( self.p_state )                   # Energy final
-        self.assertEqual( Ei, Ef )                              # should be equal
+        for i in range(noi):
+            self.assertEqual( Ei[i], Ef[i] )                              # should be equal
     
     def test_setup(self):
         chain.Setup_Data( self.p_state )
@@ -225,11 +228,12 @@ def suite():
     #suite.addTest( unittest.makeSuite( data_TestChain ) )
     return suite
 
-suite = suite()
+if __name__ == '__main__':
+    suite = suite()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-state.delete( p_state )
+    state.delete( p_state )
 
-sys.exit(not success)
+    sys.exit(not success)

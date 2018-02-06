@@ -97,15 +97,16 @@ namespace Utility
                 if (ex.classifier == Exception_Classifier::Unknown_Exception ||
                     ex.classifier == Exception_Classifier::System_not_Initialized ||
                     ex.classifier == Exception_Classifier::Simulated_domain_too_small ||
+                    ex.classifier == Exception_Classifier::CUDA_Error ||
                     int(ex.level) <= 1)
                 {
                     Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
-					Log.Append_to_File();
+                    Log.Append_to_File();
                     std::exit( EXIT_FAILURE );  // exit the application. may lead to data loss
                 }
 
-				// If it was recoverable we now write to Log
-				Log.Append_to_File();
+                // If it was recoverable we now write to Log
+                Log.Append_to_File();
             }
             catch ( const std::exception & ex )
             {
@@ -141,6 +142,7 @@ namespace Utility
             if (ex.classifier == Exception_Classifier::Unknown_Exception ||
                 ex.classifier == Exception_Classifier::System_not_Initialized ||
                 ex.classifier == Exception_Classifier::Simulated_domain_too_small ||
+                ex.classifier == Exception_Classifier::CUDA_Error ||
                 int(ex.level) <= 1)
                 can_handle = false;
 

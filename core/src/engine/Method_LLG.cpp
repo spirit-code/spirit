@@ -33,7 +33,8 @@ namespace Engine
         this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->xi = vectorfield(this->nos, {0,0,0});
         this->s_c_grad = vectorfield(this->nos, {0,0,0});
-
+        this->temperature_distribution = scalarfield(this->nos, 0);
+        
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
         this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
@@ -44,8 +45,6 @@ namespace Engine
             {"E", {this->force_max_abs_component}},
             {"M_z", {this->force_max_abs_component}} };
 
-
-
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
@@ -53,12 +52,14 @@ namespace Engine
         // Allocate force array
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
         // Initial force calculation s.t. it does not seem to be already converged
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
-
     }
 
 
@@ -107,12 +108,13 @@ namespace Engine
             Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // TODO: why the 0.5 everywhere??
-            if (parameters.direct_minimization)
+            // Direct minimisation
+            if (parameters.direct_minimization || solver == Solver::VP)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
+            // Dynamics simulation
             else
             {
                 Vectormath::set_c_a( dtg, force, force_virtual);
@@ -121,7 +123,6 @@ namespace Engine
                 // STT
                 if (a_j > 0)
                 {
-
                     if (parameters.stt_use_gradient)
                     {
                         auto& geometry = *this->systems[0]->geometry;
@@ -141,12 +142,37 @@ namespace Engine
                 }
 
                 // Temperature
-                if (parameters.temperature > 0)
+                if (parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0)
                 {
-                    scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
+                    // Generate random directions
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-                    Vectormath::add_c_a    ( sqrtdtg * epsilon, this->xi, force_virtual);
-                    Vectormath::add_c_cross( sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
+
+                    // If we have a temperature gradient, we use the distribution (scalarfield)
+                    if (parameters.temperature_gradient_inclination != 0)
+                    {
+                        // Calculate distribution
+                        Vectormath::get_gradient_distribution(
+                            *this->systems[i]->geometry,
+                            parameters.temperature_gradient_direction,
+                            parameters.temperature,
+                            parameters.temperature_gradient_inclination,
+                            temperature_distribution, 0, 1e30);
+
+                        scalar epsilon = sqrtdtg * Utility::Constants::k_B;
+                        Vectormath::scale(temperature_distribution, epsilon);
+
+                        Vectormath::add_c_a(temperature_distribution, this->xi, force_virtual);
+
+                        Vectormath::scale(temperature_distribution, damping);
+                        Vectormath::add_c_cross(temperature_distribution, image, this->xi, force_virtual);
+                    }
+                    // If we only have homogeneous temperature we do it more efficiently
+                    else if (parameters.temperature > 0)
+                    {
+                        scalar epsilon = sqrtdtg * Utility::Constants::k_B * parameters.temperature;
+                        Vectormath::add_c_a    (epsilon, this->xi, force_virtual);
+                        Vectormath::add_c_cross(epsilon * damping, image, this->xi, force_virtual);
+                    }
                 }
             }
             // Apply Pinning

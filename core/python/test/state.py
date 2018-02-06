@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = "input/input.cfg"
+cfgfile = spirit_py_dir + "/../../input/input.cfg"
 
 class TestState(unittest.TestCase):
     def test(self):
@@ -26,9 +26,9 @@ def suite():
   
     return suite
 
+if __name__ == '__main__':
+    suite = suite()
 
-suite = suite()
-
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
-sys.exit(not success)
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
+    sys.exit(not success)

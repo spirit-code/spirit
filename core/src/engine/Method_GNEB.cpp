@@ -52,6 +52,9 @@ namespace Engine
         this->history = std::map<std::string, std::vector<scalar>>{
 			{"max_torque_component", {this->force_max_abs_component}} };
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 		this->chain->images[this->noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
