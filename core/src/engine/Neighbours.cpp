@@ -46,7 +46,7 @@ namespace Engine
 				min_distance = 1e10;
 				for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 				{
-					x0 = geometry.cell_atoms[iatom];
+				    x0 = geometry.cell_atoms[iatom][0] * a + geometry.cell_atoms[iatom][1] * b + geometry.cell_atoms[iatom][2] * c;
 					for (ii = imax; ii >= -imax; --ii)
 					{
 						for (jj = jmax; jj >= -jmax; --jj)
@@ -57,7 +57,7 @@ namespace Engine
 								{
 									if ( !( iatom==jatom && ii==0 && jj==0 && kk==0 ) )
 									{
-										x1 = geometry.cell_atoms[jatom] + ii*a + jj*b + kk*c;
+									    x1 = geometry.cell_atoms[jatom][0] * a + geometry.cell_atoms[jatom][1] * b + geometry.cell_atoms[jatom][2] * c + i*a + j*b + k*c;
 										dx = (x0-x1).norm();
 
 										if (dx - current_radius > 1e-6 && dx < min_distance)
@@ -155,7 +155,7 @@ namespace Engine
 
 			for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 			{
-				x0 = geometry.cell_atoms[iatom];
+				x0 = geometry.cell_atoms[iatom][0] * a + geometry.cell_atoms[iatom][1] * b + geometry.cell_atoms[iatom][2] * c;
 				for (int ishell = 0; ishell < nShells; ++ishell)
 				{
 					radius = shell_radius[ishell];
@@ -167,7 +167,7 @@ namespace Engine
 							{
 								for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
+									x1 = geometry.cell_atoms[jatom][0] * a + geometry.cell_atoms[jatom][1] * b + geometry.cell_atoms[jatom][2] * c + i*a + j*b + k*c;
 									dx = (x0-x1).norm();
 									delta = std::abs(dx - radius);
 									if (delta < 1e-6)
