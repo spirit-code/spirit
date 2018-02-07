@@ -57,7 +57,7 @@ namespace Engine
 								{
 									if ( !( iatom==jatom && ii==0 && jj==0 && kk==0 ) )
 									{
-									    x1 = geometry.cell_atoms[jatom][0] * a + geometry.cell_atoms[jatom][1] * b + geometry.cell_atoms[jatom][2] * c + i*a + j*b + k*c;
+									    x1 = geometry.cell_atoms[jatom][0] * a + geometry.cell_atoms[jatom][1] * b + geometry.cell_atoms[jatom][2] * c + ii*a + jj*b + kk*c;
 										dx = (x0-x1).norm();
 
 										if (dx - current_radius > 1e-6 && dx < min_distance)
