@@ -68,6 +68,9 @@ namespace Engine
 		pairfield   ddi_pairs;			// [periodicity][nop][2] (i,j)
 		scalarfield ddi_magnitudes;			// [periodicity][nop]    r_ij (distance)
 		vectorfield ddi_normals;			// [periodicity][nop][4] (nx,ny,nz)
+		// Compass pair
+		pairfield	compass_pairs
+		matrixfield compass_matrices
 
 		// ------------ Quadruplet Interactions ------------
 		quadrupletfield quadruplets;
@@ -89,10 +92,12 @@ namespace Engine
 		void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
 		// Quadruplet
 		void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
+		// Compass
+		void Gradient_Compass(const vectorfield & spins, vectorfield & gradient);
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet, idx_compass;
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
@@ -105,6 +110,8 @@ namespace Engine
 		void E_DDI(const vectorfield& spins, scalarfield & Energy);
 		// Quadruplet
 		void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
+		// Compass
+		void E_Compass(const vectorfield & spins, scalarfield & Energy);
 
 	};
 }

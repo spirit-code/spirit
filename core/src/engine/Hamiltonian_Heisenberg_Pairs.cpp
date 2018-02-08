@@ -58,6 +58,44 @@ namespace Engine
 			this->ddi_normals.push_back(normal);
 		}
 
+		// Generate compass-pairs, compass-matrices
+        this->compass_pairs={{0,0,{0,0,0}},{0,0,{1,0,0}},{0,0,{0,1,0}},{0,0,{1,1,0}},{0,0,{1,-1,0}}};
+        for (unsigned int i = 0; i<compass_pairs.size(); ++i)
+        {
+            Matrix3 empty_compass;
+            empty_compass<<0,0,0,
+                            0,0,0,
+                            0,0,0;
+            this->compass_matrices.push_back(empty_compass);
+
+        }
+        //Hardcoded anisotropy tensor
+        this->compass_matrices[0]<<0,0,0,
+                                    0,0,0,
+                                    0,0,0;
+        //hardcoded compass term (next neighbour) for C4v-symmetry
+        scalar Gam1=-1.;
+        scalar delta=0.;
+
+        this->compass_matrices[1]<<Gam1+delta,0,0,
+                                    0,Gam1-delta,0,
+                                    0,0,-2*Gam1;
+        this->compass_matrices[2]<<Gam1-delta,0,0,
+                                    0,Gam1+delta,0,
+                                    0,0,-2*Gam1;
+
+        //hardcoded compass term (neighbour after next) for C4v-symmetry
+        scalar Gam2=0.25;
+        scalar epsilon=0.;
+
+        this->compass_matrices[3]<<Gam2,epsilon,0,
+                                    epsilon,Gam2,0,
+                                    0,0,-2*Gam2;
+        this->compass_matrices[4]<<Gam2,-epsilon,0,
+                                    -epsilon,Gam2,0,
+                                    0,0,-2*Gam2;
+    
+
 		this->Update_Energy_Contributions();
 	}
 
@@ -125,7 +163,14 @@ namespace Engine
 			this->idx_quadruplet = this->energy_contributions_per_spin.size()-1;
 		}
 		else this->idx_quadruplet = -1;
-	}
+		 // Compass
+        if (this->compass_pairs.size() > 0)
+        {
+            this->energy_contributions_per_spin.push_back({"Compass", scalarfield(0) });
+            this->idx_compass = this->energy_contributions_per_spin.size()-1;
+        }
+        else this->idx_compass = -1;
+    }
 
 	void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
 	{
@@ -157,6 +202,8 @@ namespace Engine
 		if (this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
 		// Quadruplets
 		if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
+		// Compass
+        if (this->idx_compass >=0)	   E_Compass(spins, contributions[idx_compass].second);
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
@@ -333,6 +380,40 @@ namespace Engine
 
 
 
+void Hamiltonian_Heisenberg_Pairs::E_Compass(const vectorfield & spins, scalarfield & Energy)
+    {
+        const int Na = geometry->n_cells[0];
+        const int Nb = geometry->n_cells[1];
+        const int Nc = geometry->n_cells[2];
+
+
+        #pragma omp parallel for collapse(3)
+        for (int da = 0; da < Na; ++da)
+        {
+            for (int db = 0; db < Nb; ++db)
+            {
+                for (int dc = 0; dc < Nc; ++dc)
+                {
+                    for (unsigned int i_pair = 0; i_pair < compass_pairs.size(); ++i_pair)
+                    {
+                        std::array<int, 3 > translations = { da, db, dc };
+                        int ispin = compass_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, compass_pairs[i_pair]);
+                        if (jspin >= 0)
+                        {
+                            Energy[ispin] -= 0.5* spins[ispin].dot(compass_matrices[i_pair]*spins[jspin]);
+                            Energy[jspin] -= 0.5* spins[ispin].dot(compass_matrices[i_pair]*spins[jspin]);
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
 	void Hamiltonian_Heisenberg_Pairs::Gradient(const vectorfield & spins, vectorfield & gradient)
 	{
 		// Set to zero
@@ -353,6 +434,8 @@ namespace Engine
 
 		// Quadruplets
 		this->Gradient_Quadruplet(spins, gradient);
+		// Compass
+        this->Gradient_Compass(spins, gradient);
 	}
 
 	void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
@@ -529,6 +612,39 @@ namespace Engine
 			}
 		}
 	}
+
+
+void Hamiltonian_Heisenberg_Pairs::Gradient_Compass(const vectorfield & spins, vectorfield & gradient)
+    {
+        const int Na = geometry->n_cells[0];
+        const int Nb = geometry->n_cells[1];
+        const int Nc = geometry->n_cells[2];
+
+        #pragma omp parallel for collapse(3)
+        for (int da = 0; da < Na; ++da)
+        {
+            for (int db = 0; db < Nb; ++db)
+            {
+                for (int dc = 0; dc < Nc; ++dc)
+                {
+                    std::array<int, 3> translations = { da, db, dc };
+                    for (unsigned int i_pair = 0; i_pair < compass_pairs.size(); ++i_pair)
+                    {
+                        int ispin = compass_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, compass_pairs[i_pair]);
+                        if (jspin >= 0)
+                        {
+                            gradient[ispin] -= compass_matrices[i_pair]*spins[jspin];
+                            gradient[jspin] -= compass_matrices[i_pair]*spins[ispin];
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+
 
 
 	void Hamiltonian_Heisenberg_Pairs::Hessian(const vectorfield & spins, MatrixX & hessian)

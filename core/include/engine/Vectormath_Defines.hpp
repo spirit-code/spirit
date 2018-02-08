@@ -23,6 +23,7 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     typedef std::vector<int,             managed_allocator<int>>             intfield;
     typedef std::vector<scalar,          managed_allocator<scalar>>          scalarfield;
     typedef std::vector<Vector3,         managed_allocator<Vector3>>         vectorfield;
+    typedef std::vector<Matrix3,         managed_allocator<Matrix3>>         matrixfield;
     struct Pair
     {
         // Basis indices of first and second atom of pair
@@ -53,6 +54,7 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     typedef std::vector<int>     intfield;
     typedef std::vector<scalar>  scalarfield;
     typedef std::vector<Vector3> vectorfield;
+    typedef std::vector<Matrix3> matrixfield;
     struct Pair
     {
         int i, j;
