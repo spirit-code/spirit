@@ -350,6 +350,39 @@ namespace IO
         }
     }
     
+    void Write_Eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                           const Data::Geometry& geometry, const std::string filename, 
+                           VF_FileFormat format, const std::string comment, bool append )
+    {
+        int n_modes = modes.size(); 
+        switch( format )
+        {
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+            //Write_SPIRIT_Version( filename, append );
+            //Save_To_SPIRIT( vf, geometry, filename, format, comment );
+            break;
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+                for( int i=0; i<n_modes; i++ )
+                {   
+                    if( modes[i] != NULL )
+                        Save_To_OVF( *modes[0], geometry, filename, format, comment );
+                }
+            break;
+            default:
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+            "existent file format" ), -1, -1 );
+            
+            // TODO: throw some exception to avoid logging "success" by API function
+            
+            break;
+        }        
+    }
+    
     void Write_SPIRIT_Version( const std::string filename, bool append )
     {
         std::string output_to_file = fmt::format( "### SPIRIT Version {}\n", 

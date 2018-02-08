@@ -25,7 +25,10 @@ namespace IO
     void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& c, 
                                          const std::string filename, VF_FileFormat format,
                                          const std::string comment, bool append = false );
-    
+    // Write Spin_System's eigenmodes to file
+    void Write_Eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                           const Data::Geometry& geometry, const std::string filename, 
+                           VF_FileFormat format, const std::string comment, bool append = false );
     // Saves any SPIRIT format
     void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
                          const std::string filename, VF_FileFormat format, 

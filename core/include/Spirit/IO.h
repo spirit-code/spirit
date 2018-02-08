@@ -61,5 +61,11 @@ DLLEXPORT void IO_Collection_Read( State *state, const char *file, int idx_image
 DLLEXPORT void IO_Collection_Write( State *state, const char *file, int idx_image=-1, 
                                     int idx_chain=-1 ) noexcept;
 
+// Eigenmodes
+DLLEXPORT void IO_Eigenmodes_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                              int idx_image_infile=-1, int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
+DLLEXPORT void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_Regular, 
+                               const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
+
 #include "DLL_Undefine_Export.h"
 #endif

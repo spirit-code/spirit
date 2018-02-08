@@ -4,6 +4,7 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
+#include <Spirit/Simulation.h>
 #include <utility>
 #include <vector>
 #include <iostream>
@@ -66,6 +67,38 @@ TEST_CASE( "IO", "[io]" )
     // Energy and Energy per Spin
     //IO_Image_Write_Energy_per_Spin( state.get(), "core/test/io_test_files/E_per_spin.data"  );
     IO_Image_Write_Energy( state.get(), "core/test/io_test_files/Energy.data" );
+}
+
+TEST_CASE( "IO-EIGENMODE-WRITE", "[io-ema]" )
+{
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+
+    // files to be written
+    std::vector<std::pair<std::string,int>> filetypes { 
+        //{ "core/test/io_test_files/eigenmode_regular.data",     IO_Fileformat_Regular     }, 
+        //{ "core/test/io_test_files/eigenmode_regular_pos.data", IO_Fileformat_Regular_Pos },  
+        //{ "core/test/io_test_files/eigenmode_csv.data",         IO_Fileformat_CSV         },
+        //{ "core/test/io_test_files/eigenmode_csv_pos.data",     IO_Fileformat_CSV_Pos     },
+        { "core/test/io_test_files/eigenmode_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
+        { "core/test/io_test_files/eigenmode_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
+        { "core/test/io_test_files/eigenmode_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
+    
+    // buffer variables for better readability
+    const char *filename;
+    int filetype;
+    
+    for ( auto file: filetypes )
+    {
+        filename = file.first.c_str();      // get the filename from pair
+        filetype = file.second;             // fet the filetype from pair
+        
+        // Log the filename
+        INFO( "IO eigenmodes " + file.first );
+        
+        Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
+        Simulation_Calculate_Eigenmodes( state.get());
+        IO_Eigenmodes_Write( state.get(), filename, filetype); 
+    }
 }
 
 TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
