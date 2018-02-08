@@ -76,6 +76,7 @@ private:
 	// Method vectors
 	std::vector<std::thread> threads_llg;
 	std::vector<std::thread> threads_gneb;
+  std::vector<std::thread> threads_ema;	
 	std::thread thread_mmf;
 
 	// Temporary string storage

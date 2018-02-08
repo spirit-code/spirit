@@ -28,6 +28,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     
 	// Create threads
 	threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
+  threads_ema = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
 	threads_gneb = std::vector<std::thread>(Collection_Get_NOC(this->state.get()));
 	//threads_mmf
 
@@ -165,6 +166,7 @@ void ControlWidget::play_pause()
 		// Join the thread of the stopped simulation
 		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
 		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[Chain_Get_Index(state.get())].joinable()) threads_ema[Chain_Get_Index(state.get())].join();
 		else if (thread_mmf.joinable()) thread_mmf.join();
 		// New button text
 		this->pushButton_PlayPause->setText("Play");
@@ -189,8 +191,8 @@ void ControlWidget::play_pause()
         else if (this->s_method == "EMA")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-            this->threads_llg[System_Get_Index(state.get())] =
+            if (threads_ema[idx].joinable()) threads_ema[System_Get_Index(state.get())].join();
+            this->threads_ema[System_Get_Index(state.get())] =
                 std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
 		else if (this->s_method == "GNEB")
@@ -225,8 +227,12 @@ void ControlWidget::stop_all()
 	{
 		if (threads_gneb[i].joinable()) threads_gneb[i].join();
 	}
+    for (unsigned int i=0; i<threads_ema.size(); ++i)
+    {
+        if (threads_ema[i].joinable()) threads_ema[i].join();
+    }
 	if (thread_mmf.joinable()) thread_mmf.join();
-
+	
 	this->pushButton_PlayPause->setText("Play");
 	// this->createStatusBar();
 }
@@ -244,6 +250,7 @@ void ControlWidget::stop_current()
 		// Join the thread of the stopped simulation
 		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
 		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[Chain_Get_Index(state.get())].joinable()) threads_ema[Chain_Get_Index(state.get())].join();
 		else if (thread_mmf.joinable()) thread_mmf.join();
 	}
 
@@ -415,12 +422,13 @@ void ControlWidget::calculate()
     calculate_disable_widget();
     
     int idx = System_Get_Index(state.get());
-    if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-        this->threads_llg[System_Get_Index(state.get())] =
+    if (threads_ema[idx].joinable()) threads_ema[System_Get_Index(state.get())].join();
+    if ( !Simulation_Running_Image(state.get()) )
+        this->threads_ema[System_Get_Index(state.get())] =
             std::thread(&Simulation_Calculate_Eigenmodes, this->state.get(), -1, -1);
             
     QFuture<void> future = QtConcurrent::run( 
-        &threads_llg[System_Get_Index(state.get())], &std::thread::join );
+        &threads_ema[System_Get_Index(state.get())], &std::thread::join );
     this->watcher.setFuture(future);
 }
 
