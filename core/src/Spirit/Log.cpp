@@ -75,3 +75,155 @@ int Log_Get_N_Warnings(State *state) noexcept
 {
     return Log.n_warnings;
 }
+
+//      Set Log parameters
+void Log_Set_Output_File_Tag(State *state, const char * tag) noexcept
+{
+    try
+    {
+        Log.file_tag = tag;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+void Log_Set_Output_Folder(State *state, const char * folder) noexcept
+{
+    try
+    {
+        Log.output_folder = folder;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+void Log_Set_Output_To_Console(State *state, bool b) noexcept
+{
+    try
+    {
+        Log.messages_to_console = b;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+void Log_Set_Output_Console_Level(State *state, int level) noexcept
+{
+    try
+    {
+        Log.level_console = Utility::Log_Level(level);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+void Log_Set_Output_To_File(State *state, bool b) noexcept
+{
+    try
+    {
+        Log.messages_to_file = b;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+void Log_Set_Output_File_Level(State *state, int level) noexcept
+{
+    try
+    {
+        Log.level_file = Utility::Log_Level(level);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
+//      Get Log parameters
+const char * Log_Get_Output_File_Tag(State *state) noexcept
+{
+    try
+    {
+        return Log.file_tag.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return "";
+    }
+}
+
+const char * Log_Get_Output_Folder(State *state) noexcept
+{
+    try
+    {
+        return Log.output_folder.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return "";
+    }
+}
+
+bool Log_Get_Output_To_Console(State *state) noexcept
+{
+    try
+    {
+        return Log.messages_to_console;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return false;
+    }
+}
+
+int Log_Get_Output_Console_Level(State *state) noexcept
+{
+    try
+    {
+        return (int)Log.level_console;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return 0;
+    }
+}
+
+bool Log_Get_Output_To_File(State *state) noexcept
+{
+    try
+    {
+        return Log.messages_to_file;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return false;
+    }
+}
+
+int Log_Get_Output_File_Level(State *state) noexcept
+{
+    try
+    {
+        return (int)Log.level_file;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+        return 0;
+    }
+}

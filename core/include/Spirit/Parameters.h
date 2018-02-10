@@ -7,6 +7,7 @@ struct State;
 
 //      Set LLG
 // Output
+DLLEXPORT void Parameters_Set_LLG_Output_Tag(State *state, const char * tag, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Output_General(State *state, bool any, bool initial, bool final, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -23,6 +24,7 @@ DLLEXPORT void Parameters_Set_LLG_Temperature_Gradient(State *state, float incli
 
 //      Set MC
 // Output
+DLLEXPORT void Parameters_Set_MC_Output_Tag(State *state, const char * tag, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_Output_General(State *state, bool any, bool initial, bool final, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -34,6 +36,7 @@ DLLEXPORT void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int
 
 //      Set GNEB
 // Output
+DLLEXPORT void Parameters_Set_GNEB_Output_Tag(State *state, const char * tag, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_Output_General(State *state, bool any, bool initial, bool final, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_step, bool energies_interpolated, bool energies_divide_by_nos, int idx_chain=-1) noexcept;
@@ -50,6 +53,7 @@ DLLEXPORT void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int id
 
 //      Get LLG
 // Output
+DLLEXPORT const char * Parameters_Get_LLG_Output_Tag(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_LLG_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -67,6 +71,7 @@ DLLEXPORT void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float *
 
 //      Get MC
 // Output
+DLLEXPORT const char * Parameters_Get_MC_Output_Tag(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_MC_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_MC_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -78,6 +83,7 @@ DLLEXPORT float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image=-
 
 //      Get GNEB
 // Output
+DLLEXPORT const char * Parameters_Get_GNEB_Output_Tag(State *state, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_GNEB_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, bool * energies_interpolated, bool * energies_divide_by_nos, int idx_chain=-1) noexcept;
