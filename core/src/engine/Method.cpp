@@ -14,7 +14,7 @@ using namespace Utility;
 namespace Engine
 {
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
-        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
+        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain), iteration(0), step(0)
     {
         // Sender name for log messages
         this->SenderName = Log_Sender::All;
@@ -61,8 +61,6 @@ namespace Engine
         this->Save_Current(this->starttime, this->iteration, true, false);
 
         //---- Iteration loop
-        this->iteration = 0;
-        this->step      = 0;
         for ( this->iteration = 0; 
               this->ContinueIterating() &&
               !this->Walltime_Expired(t_current - t_start); 
