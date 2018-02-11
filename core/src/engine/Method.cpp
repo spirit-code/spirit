@@ -107,7 +107,6 @@ namespace Engine
     }
 
 
-
     scalar Method::getIterationsPerSecond()
     {
         scalar l_ips = 0.0;
@@ -164,20 +163,11 @@ namespace Engine
 
     }
 
-
-
-
     bool Method::ContinueIterating()
     {
         return  this->iteration < this->n_iterations &&
                 this->Iterations_Allowed() &&
-               !this->StopFile_Present()   && 
-               !this->Converged();
-    }
-
-    bool Method::Converged()
-    {
-        return false;
+               !this->StopFile_Present();
     }
 
     bool Method::Iterations_Allowed()
@@ -199,10 +189,6 @@ namespace Engine
         std::ifstream f("STOP");
         return f.good();
     }
-
-
-
-
 
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {

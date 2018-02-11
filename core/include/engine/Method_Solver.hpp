@@ -105,7 +105,13 @@ namespace Engine
         // ...
         // virtual bool Iterations_Allowed() override;
         // Check if the forces are converged
-        virtual bool Converged() override;
+        virtual bool Converged();
+
+        // Check if any stop criteria were encountered
+        bool ContinueIterating() override
+        {
+            return  Method::ContinueIterating() && !this->Converged();
+        }
 
         // Iteration represents one iteration of a certain Solver
         virtual void Iteration() override;
