@@ -574,5 +574,5 @@ endif ()
 
 MESSAGE( STATUS ">> --------------------- Spirit done ---------------------------------- <<" )
 
-message( STATUS ">> CMake CXX Flags:        ${CMAKE_CXX_FLAGS_COVERAGE}" )
+message( STATUS ">> CMake CXX Flags:        ${CMAKE_CXX_FLAGS}" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
