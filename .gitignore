@@ -1,5 +1,6 @@
 ### Directories ###
 build/*
+_build/*
 output/*
 output_llg/*
 output_gneb/*
@@ -29,6 +30,7 @@ input_*
 /spirit
 spirit.js
 spirit.js.mem
+spirit.wasm
 
 ### Generated Files
 core/python/LICENSE.txt

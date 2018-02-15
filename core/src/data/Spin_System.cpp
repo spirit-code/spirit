@@ -115,11 +115,25 @@ namespace Data
 
 	void Spin_System::Lock() const
 	{
-		this->mutex.lock();
+		try
+		{
+			this->mutex.lock();
+		}
+		catch( ... )
+		{
+			spirit_handle_exception_core("Unlocking the Spin_System failed!");
+		}
 	}
 
 	void Spin_System::Unlock() const
 	{
-		this->mutex.unlock();
+		try
+		{
+			this->mutex.unlock();
+		}
+		catch( ... )
+		{
+			spirit_handle_exception_core("Unlocking the Spin_System failed!");
+		}
 	}
 }

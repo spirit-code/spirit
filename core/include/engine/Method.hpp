@@ -34,8 +34,15 @@ namespace Engine
         // Calculate a smooth but current IPS value
         virtual scalar getIterationsPerSecond() final;
 
+        // Get the number of iterations passed
+        virtual int getNIterations() final;
+
         // Maximum of the absolutes of all components of the force - needs to be updated at each calculation
         virtual scalar getForceMaxAbsComponent() final;
+
+        // Maximum of the absolutes of all components of the force for all images the method uses
+        // The default is that this returns simply {getForceMaxAbsComponent()}
+        virtual std::vector<scalar> getForceMaxAbsComponent_All();
 
         // Method name as string
         virtual std::string Name();
@@ -85,19 +92,16 @@ namespace Engine
         virtual void Unlock();
 
 
-
-
         //////////// Check for stopping criteria //////////////////////////////////////////
 
         // Check if iterations allowed
         virtual bool Iterations_Allowed();
 
-        // Check if convergence criteria have been met
-        virtual bool Converged();
+        // Check wether to continue iterating - stop file, convergence etc.
+        virtual bool ContinueIterating();
+
 
         //////////// Final implementations
-        // Check wether to continue iterating - stop file, convergence etc.
-        virtual bool ContinueIterating() final;
         // Check if walltime ran out
         virtual bool Walltime_Expired(duration<scalar> dt_seconds) final;
         // Check if a stop file is present -> Stop the iterations
@@ -120,8 +124,10 @@ namespace Engine
 
         // Method name as enum
         Utility::Log_Sender SenderName;
-        // 
+        // Maximum force component of all images
         scalar force_max_abs_component;
+        // Maximum force component per image
+        std::vector<scalar> force_max_abs_component_all;
         // History of relevant quantities
         std::map<std::string, std::vector<scalar>> history;
         // The time at which this Solver's Iterate() was last called
@@ -131,6 +137,7 @@ namespace Engine
         std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
         
         std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
+
 
         //////////// Parameters //////////////////////////////////////////////////////
         // Number of iterations

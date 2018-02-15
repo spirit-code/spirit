@@ -85,8 +85,12 @@ Module.ready(function() {
         }
     };
 
+    Module.Spirit_Version_Full = Module.cwrap('Spirit_Version_Full', 'string', []);
+    Simulation.prototype.spiritVersion = function() {
+        return Module.Spirit_Version_Full();
+    };
     Module.getSpinDirections = Module.cwrap('System_Get_Spin_Directions', 'number', ['number']);
-    Module.getSpinPositions = Module.cwrap('Geometry_Get_Spin_Positions', 'number', ['number']);
+    Module.getSpinPositions = Module.cwrap('Geometry_Get_Positions', 'number', ['number']);
     Simulation.prototype.update = function() {
         var _n = Simulation.prototype.getNCells(this._state);
         var NX = _n[0];
@@ -248,12 +252,12 @@ Module.ready(function() {
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Parameters_Set_LLG_STT = Module.cwrap('Parameters_Set_LLG_STT', null, ['number', 'number', 'number', 'number', 'number']);
+    Module.Parameters_Set_LLG_STT = Module.cwrap('Parameters_Set_LLG_STT', null, ['number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianSpinTorque = function(magnitude, normal_x, normal_y, normal_z) {
         var normal = new Float32Array([normal_x, normal_y, normal_z]);
         var normal_ptr = Module._malloc(normal.length * normal.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(normal, normal_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Parameters_Set_LLG_STT(this._state, magnitude, normal_ptr, -1, -1);
+        Module.Parameters_Set_LLG_STT(this._state, false, magnitude, normal_ptr, -1, -1);
         Module._free(normal_ptr);
         this.update();
     };

@@ -75,6 +75,16 @@ Implementation and testing of gradient approximation of spin transfer torque.<br
 -----------------
 
 
+### Pavel Bessarab
+* ...
+
+Help with the initial GNEB implementation. Initial implementation of the HTST method.<br />
+
+(April 2015 - ongoing)
+
+-----------------
+
+
 ### Ingo Heimbach
 * Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
 

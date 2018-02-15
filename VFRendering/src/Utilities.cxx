@@ -15,7 +15,7 @@
 
 namespace VFRendering {
 namespace Utilities {
-static GLuint createShader(GLenum shader_type, const std::string& shader_source) throw (OpenGLException) {
+static GLuint createShader(GLenum shader_type, const std::string& shader_source) {
     const char* shader_source_c_str = shader_source.c_str();
     GLuint shader = glCreateShader(shader_type);
     glShaderSource(shader, 1, &shader_source_c_str, nullptr);
@@ -44,7 +44,7 @@ static GLuint createShader(GLenum shader_type, const std::string& shader_source)
 
 OpenGLException::OpenGLException(const std::string& message) : std::runtime_error(message) {}
 
-unsigned int createProgram(const std::string& vertex_shader_source, const std::string& fragment_shader_source, const std::vector<std::string>& attributes) throw (OpenGLException) {
+unsigned int createProgram(const std::string& vertex_shader_source, const std::string& fragment_shader_source, const std::vector<std::string>& attributes) {
     GLuint vertex_shader = createShader(GL_VERTEX_SHADER, vertex_shader_source);
     GLuint fragment_shader = createShader(GL_FRAGMENT_SHADER, fragment_shader_source);
 
@@ -103,14 +103,14 @@ std::string getColormapImplementation(const Colormap& colormap) {
 }
 
 std::pair<glm::mat4, glm::mat4> getMatrices(const VFRendering::Options& options, float aspect_ratio) {
-    auto vertical_field_of_view = glm::radians(options.get<View::Option::VERTICAL_FIELD_OF_VIEW>());
+    auto vertical_field_of_view = options.get<View::Option::VERTICAL_FIELD_OF_VIEW>();
     auto camera_position = options.get<View::Option::CAMERA_POSITION>();
     auto center_position = options.get<View::Option::CENTER_POSITION>();
     auto up_vector = options.get<View::Option::UP_VECTOR>();
 
     glm::mat4 projection_matrix;
     if (vertical_field_of_view > 0) {
-        projection_matrix = glm::perspective(vertical_field_of_view, aspect_ratio, 0.1f, 10000.0f);
+        projection_matrix = glm::perspective(glm::radians(vertical_field_of_view), aspect_ratio, 0.1f, 10000.0f);
         if (aspect_ratio < 1) {
             projection_matrix[0][0] *= aspect_ratio;
             projection_matrix[1][1] *= aspect_ratio;

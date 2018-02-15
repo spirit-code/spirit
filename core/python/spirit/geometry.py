@@ -32,17 +32,25 @@ def Get_Center(p_state, idx_image=-1, idx_chain=-1):
     _Get_Center(ctypes.c_void_p(p_state), _center, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     return [_center[i] for i in range(3)]
 
-### Get Basis vectors
-_Get_Basis_Vectors          = _spirit.Geometry_Get_Basis_Vectors
-_Get_Basis_Vectors.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), 
+### Get Bravais lattice type
+_Get_Bravais_Type          = _spirit.Geometry_Get_Bravais_Type
+_Get_Bravais_Type.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Bravais_Type.restype  = ctypes.c_int
+def Get_Bravais_Type(p_state, idx_image=-1, idx_chain=-1):
+    return int(_Get_Bravais_Type(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+                                 ctypes.c_int(idx_chain)))
+
+### Get Bravais vectors
+_Get_Bravais_Vectors          = _spirit.Geometry_Get_Bravais_Vectors
+_Get_Bravais_Vectors.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), 
                                ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), 
                                ctypes.c_int, ctypes.c_int]
-_Get_Basis_Vectors.restype  = None
-def Get_Basis_Vectors(p_state, idx_image=-1, idx_chain=-1):
+_Get_Bravais_Vectors.restype  = None
+def Get_Bravais_Vectors(p_state, idx_image=-1, idx_chain=-1):
     _a = (3*ctypes.c_float)()
     _b = (3*ctypes.c_float)()
     _c = (3*ctypes.c_float)()
-    _Get_Basis_Vectors(ctypes.c_void_p(p_state), _a, _b, _c, 
+    _Get_Bravais_Vectors(ctypes.c_void_p(p_state), _a, _b, _c, 
                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     return [_a[i] for i in range(3)], [_b[i] for i in range(3)], [_c[i] for i in range(3)]
     
@@ -79,16 +87,16 @@ def Get_Dimensionality(p_state, idx_image=-1, idx_chain=-1):
 
 ### Get Pointer to Spin Positions
 # NOTE: Changing the values of the array_view one can alter the value of the data of the state
-_Get_Spin_Positions            = _spirit.Geometry_Get_Spin_Positions
-_Get_Spin_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Spin_Positions.restype    = ctypes.POINTER(scalar)
-def Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1):
+_Get_Positions            = _spirit.Geometry_Get_Positions
+_Get_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Positions.restype    = ctypes.POINTER(scalar)
+def Get_Positions(p_state, idx_image=-1, idx_chain=-1):
     nos = system.Get_NOS(p_state, idx_image, idx_chain)
     ArrayType = scalar*3*nos
-    Data = _Get_Spin_Positions(ctypes.c_void_p(p_state), 
+    Data = _Get_Positions(ctypes.c_void_p(p_state), 
                                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
-    array = np.frombuffer(array_pointer.contents)
+    array = np.frombuffer(array_pointer.contents, dtype=scalar)
     array_view = array.view()
     array_view.shape = (nos, 3)
     return array_view

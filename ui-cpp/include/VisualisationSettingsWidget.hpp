@@ -55,14 +55,14 @@ private slots:
 	void set_visualization_background();
 
 	// Visualisation - Camera
-	void set_camera();
 	void read_camera();
+	void save_camera();
+	void load_camera();
 	void set_camera_position();
 	void set_camera_focus();
 	void set_camera_upvector();
 	void set_camera_fov_lineedit();
 	void set_camera_fov_slider();
-	void set_camera_rotation();
 
 	// Light
 	void set_light_position();

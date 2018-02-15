@@ -12,7 +12,7 @@
 #include "shaders/isosurface.frag.glsl.hxx"
 
 namespace VFRendering {
-IsosurfaceRenderer::IsosurfaceRenderer(const View& view) : RendererBase(view), m_value_function_changed(true), m_isovalue_changed(true) {}
+IsosurfaceRenderer::IsosurfaceRenderer(const View& view, const VectorField& vf) : VectorFieldRenderer(view, vf), m_value_function_changed(true), m_isovalue_changed(true) {}
 
 void IsosurfaceRenderer::initialize() {
     if (m_is_initialized) {
@@ -71,10 +71,12 @@ void IsosurfaceRenderer::optionsHaveChanged(const std::vector<int>& changed_opti
             case Option::VALUE_FUNCTION:
                 m_value_function_changed = true;
                 break;
-			case Option::LIGHTING_IMPLEMENTATION:
+            case Option::LIGHTING_IMPLEMENTATION:
+            case Option::FLIP_NORMALS:
             case View::Option::COLORMAP_IMPLEMENTATION:
             case View::Option::IS_VISIBLE_IMPLEMENTATION:
-            update_shader = true;
+            case View::Option::LIGHT_POSITION:
+                update_shader = true;
             break;
         }
     }

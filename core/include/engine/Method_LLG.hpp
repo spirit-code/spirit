@@ -46,6 +46,8 @@ namespace Engine
         std::vector<vectorfield> Gradient;
         // Convergence parameters
         std::vector<bool> force_converged;
+        // Temperature distribution
+        scalarfield temperature_distribution;
         // Field for stt gradient method
         vectorfield s_c_grad;
     };

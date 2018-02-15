@@ -93,7 +93,7 @@ if ( UI_CXX_USE_QT )
     ### Header Gropus
     set( HEADER_UI_QT_ROOT )
     ### Source Groups
-    set( SOURCE_UI_QT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp )
+    set( SOURCE_UI_QT_ROOT )
     ### Add Subdirectories
     add_subdirectory( ${PROJECT_SOURCE_DIR}/src )
     add_subdirectory( ${PROJECT_SOURCE_DIR}/include )
@@ -101,8 +101,9 @@ if ( UI_CXX_USE_QT )
     ### Folder include
     source_group( "include" FILES ${HEADER_UI_QT_ROOT} )
     ### Folder src
+    source_group( ""    FILES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
     source_group( "src" FILES ${SOURCE_UI_QT_ROOT} )
-    source_group( "ui" FILES ${UI_FILES} )
+    source_group( "ui"  FILES ${UI_FILES} )
     ###########################
 
     ######### Convert UI Files to Headers
@@ -354,7 +355,7 @@ include( CPack )
 
 
 #--------------------------------------------------------------------------------
-IF( APPLE )
+IF( APPLE AND BUNDLE_APP )
     execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app" )
     execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}" )
 endif( )

@@ -29,71 +29,148 @@ The **geometry describes the positions** on which you evaluated the vector field
 
 As an example, this is how you could create a simple, cartesian 30x30x30 geometry, with coordinates between -1 and 1:
 
-``` c++
-    auto geometry = VFRendering::Geometry::cartesianGeometry(
-        {30, 30, 30},
-        {-1.0, -1.0, -1.0},
-        {1.0, 1.0, 1.0}
-    );
+```c++
+auto geometry = VFRendering::Geometry::cartesianGeometry(
+    {30, 30, 30},
+    {-1.0, -1.0, -1.0},
+    {1.0, 1.0, 1.0}
+);
 ```
 
 ### 3. Read or calculate the vector directions
 
 This step highly depends on your use case. The **directions are stored as a `std::vector<glm::vec3>`**, so they can be created in a simple loop:
 
-``` c++
-    std::vector<glm::vec3> directions;
-    for (int iz = 0; iz < 10; iz++) {
-        for (int iy = 0; iy < 10; iy++) {
-            for (int ix = 0; ix < 10; ix++) {
-                // calculate direction for ix, iy, iz
-                directions.push_back(glm::normalize({ix-4.5, iy-4.5, iz-4.5}));
-            }
+```c++
+std::vector<glm::vec3> directions;
+for (int iz = 0; iz < 10; iz++) {
+    for (int iy = 0; iy < 10; iy++) {
+        for (int ix = 0; ix < 10; ix++) {
+            // calculate direction for ix, iy, iz
+            directions.push_back(glm::normalize({ix-4.5, iy-4.5, iz-4.5}));
         }
     }
+}
 ```
 
 As shown here, the directions should be in **C order** when using the `VFRendering::Geometry` static methods. If you do not know [glm](http://glm.g-truc.net/), think of a `glm::vec3` as a struct containing three floats x, y and z.
 
-### 4. Pass geometry and directions to a VFRendering::View
+### 4. Create a VFRendering::VectorField
+
+This class simply contains geometry and directions.
+
+``` c++
+VFRendering::VectorField vf(geometry, directions);
+```
+
+To update the VectorField data, use `VectorField::update`.
+If the directions changed but the geometry is the same, you can use the `VectorField::updateVectors` method or `VectorField::updateGeometry` vice versa.
+
+### 5. Create a VFRendering::View and a Renderer
 
 The view object is what you will interact most with. It provides an interface to the various renderers and includes functions for handling mouse input.
 
-You can **create a new view** and then **pass the geometry and directions by calling the update method**:
+You can **create a new view** and then **initialize the renderer(s)** (as an example, we use the `VFRendering::ArrowRenderer`):
 
 ``` c++
-    VFRendering::View view;
-    view.update(geometry, directions);
+VFRendering::View view;
+auto arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>(view, vf);
+view.renderers( {{ arrow_renderer_ptr, {0, 0, 1, 1} }} );
+```
+
+### 5. Draw the view in an existing OpenGL context
+
+To actually see something, you need to create an OpenGL context using a toolkit of your choice, e.g. Qt or GLFW. After creating the context, pass the framebuffer size to the **setFramebufferSize method**. You can then call the **draw method** of the view to render the vector field, either in a loop or only when you update the data.
+
+```c++
+view.draw();
+```
+
+For a complete example, including an interactive camera, see [demo.cxx](demo.cxx).
+
+
+## Python Package
+
+The Python package has bindings which correspond directly to the C++ class and function names.
+To use **pyVFRendering**, you need to perform the following steps:
+
+1. `import pyVFRendering as vfr`
+2. Create a `vfr.Geometry`
+3. Read or calculate the vector directions
+4. Pass geometry and directions to a `vfr.View`
+5. Draw the view in an existing OpenGL context
+
+
+### 1. import
+
+In order to `import pyVFRendering as vfr`, you can either `pip install pyVFRendering` or download and build it yourself.
+
+You can build with `python3 setup.py build`, which will generate a library somewhere in your `build` subfolder, which you can `import` in python. Note that you may need to add the folder to your `PYTHONPATH`.
+
+### 2. Create a pyVFRendering.Geometry
+
+As above:
+
+```python
+geometry = vfr.Geometry.cartesianGeometry(
+    (30, 30, 30),       # number of lattice points
+    (-1.0, -1.0, -1.0), # lower bound
+    (1.0, 1.0, 1.0) )   # upper bound
+```
+
+### 3. Read or calculate the vector directions
+
+This step highly depends on your use case. Example:
+
+```python
+directions = []
+for iz in range(n_cells[2]):
+    for iy in range(n_cells[1]):
+        for ix in range(n_cells[0]):
+            # calculate direction for ix, iy, iz
+            directions.append( [ix-4.5, iy-4.5, iz-4.5] )
+```
+
+### 4. Pass geometry and directions to a pyVFRendering.View
+
+You can **create a new view** and then **pass the geometry and directions by calling the update method**:
+
+```python
+view = vfr.View()
+view.update(geometry, directions)
 ```
 
 If the directions changed but the geometry is the same, you can use the **updateVectors method**.
 
 ### 5. Draw the view in an existing OpenGL context
 
-To actually see something, you need to create an OpenGL context using a toolkit of your choice, e.g. Qt or GLFW. After creating the context, pass the framebuffer size to the **setFramebufferSize method**. You can then call the **draw method** of the view to render the vector field, either in a loop or only when you update the data.
+To actually see something, you need to create an OpenGL context using a framework of your choice, e.g. Qt or GLFW. After creating the context, pass the framebuffer size to the **setFramebufferSize method**. You can then call the **draw method** of the view to render the vector field, either in a loop or only when you update the data.
 
-``` c++
-    view.draw();
+```python
+view.setFramebufferSize(width*self.window().devicePixelRatio(), height*self.window().devicePixelRatio())
+view.draw()
 ```
 
-For a complete example, including an interactive camera, see demo.cxx.
+For a complete example, including an interactive camera, see [demo.py](demo.py).
+
 
 ## Renderers
 
-**libvfrendering** offers several types of renderers, which all inherit from VFRendering::RendererBase. Most important among these are:
+**libvfrendering** offers several types of renderers, which all inherit from `VFRendering::RendererBase`.
+The most relevant are the `VectorFieldRenderer`s:
 
-- VFRendering::ArrowRenderer, which renders the vectors as arrows
+- VFRendering::ArrowRenderer, which renders the vectors as colored arrows
+- VFRendering::SphereRenderer, which renders the vectors as colored spheres
 - VFRendering::SurfaceRenderer, which renders the surface of the geometry using a colormap
 - VFRendering::IsosurfaceRenderer, which renders an isosurface of the vectorfield using a colormap
 - VFRendering::VectorSphereRenderer, which renders the vectors as dots on a sphere, with the position of each dot representing the direction of the vector
 
-In addition to these, there also the following renderers:
+In addition to these, there also the following renderers which do not require a `VectorField`:
 - VFRendering::CombinedRenderer, which can be used to create a combination of several renderers, like an isosurface rendering with arrows
 - VFRendering::BoundingBoxRenderer, which is used for rendering bounding boxes around the geometry rendered by an VFRendering::ArrorRenderer, VFRendering::SurfaceRenderer or VFRendering::IsosurfaceRenderer
 - VFRendering::CoordinateSystemRenderer, which is used for rendering a coordinate system, with the axes colored by using the colormap
 
-To control what renderers are used, you can use `VFRendering::View::renderers`. As a convenience function it uses one main renderer (possibly with a bounding box), one alternative smaller renderer and a coordinate system.  
-Alternatively, you can pass it a `std::vector`s of `std::pair`s of renderers as VFRendering::RendererBase shared pointers and viewports as `glm::vec4`.
+To control what renderers are used, you can use `VFRendering::View::renderers`, where you can pass it a `std::vector`s of `std::pair`s of renderers as `std::shared_ptr<VFRendering::RendererBase>` (i.e. shared pointers) and viewports as `glm::vec4`.
 
 ## Options
 
@@ -101,18 +178,16 @@ To modify the way the vector field is rendered, **libvfrendering** offers a vari
 
 As an example, to adjust the vertical field of view, you would do the following:
 
-``` c++
-    VFRendering::Options options;
-    options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(
-        30
-    );
-    view.updateOptions(options);
+```c++
+VFRendering::Options options;
+options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(30);
+view.updateOptions(options);
 ```
 
 If you want to set only one option, you can also use **View::setOption**:
 
-``` c++
-	view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(30);
+```c++
+view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>(30);
 ```
 
 If you want to set an option for an individual Renderer, you can use the methods **RendererBase::updateOptions** and **RendererBase::setOption** in the same way.

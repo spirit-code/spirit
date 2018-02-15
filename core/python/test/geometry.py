@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
+cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"   # Input File
 
 p_state = state.setup(cfgfile)                  # State setup
 
@@ -40,11 +40,14 @@ class Geometry(TestParameters):
         self.assertEqual(center[1], 0.5)
         self.assertEqual(center[2], 0)
     
-    def test_basis_vector(self):
-        a, b, c = geometry.Get_Basis_Vectors(self.p_state)
-        # From the api.cfg the basis is (1,0,0), (0,1,0), (0,0,1)
+    def test_bravais_vector(self):
+        a, b, c = geometry.Get_Bravais_Vectors(self.p_state)
+        # From the api.cfg the bravais vectors are (1,0,0), (0,1,0), (0,0,1)
         self.assertEqual(a[0], b[1])
         self.assertEqual(b[1], c[2])
+        # Check also that the bravais lattice type matches simple cubic
+        lattice_type = geometry.Get_Bravais_Type(self.p_state)
+        self.assertEqual(lattice_type, 2)
     
     def test_N_cells(self):
         ncells = geometry.Get_N_Cells(self.p_state)
@@ -63,24 +66,24 @@ class Geometry(TestParameters):
         dimen = geometry.Get_Dimensionality(self.p_state)
         self.assertEqual(dimen, 2)
     
-    def test_spin_positions(self):
-        spin_positions = geometry.Get_Spin_Positions(self.p_state)
+    def test_positions(self):
+        positions = geometry.Get_Positions(self.p_state)
         # spin at (0,0,0)
-        self.assertAlmostEqual(spin_positions[0][0], 0)
-        self.assertAlmostEqual(spin_positions[0][1], 0)
-        self.assertAlmostEqual(spin_positions[0][2], 0)
+        self.assertAlmostEqual(positions[0][0], 0)
+        self.assertAlmostEqual(positions[0][1], 0)
+        self.assertAlmostEqual(positions[0][2], 0)
         # spin at (1,0,0)
-        self.assertAlmostEqual(spin_positions[1][0], 1)
-        self.assertAlmostEqual(spin_positions[1][1], 0)
-        self.assertAlmostEqual(spin_positions[1][2], 0)
+        self.assertAlmostEqual(positions[1][0], 1)
+        self.assertAlmostEqual(positions[1][1], 0)
+        self.assertAlmostEqual(positions[1][2], 0)
         # spin at (0,1,0)
-        self.assertAlmostEqual(spin_positions[2][0], 0)
-        self.assertAlmostEqual(spin_positions[2][1], 1)
-        self.assertAlmostEqual(spin_positions[2][2], 0)
+        self.assertAlmostEqual(positions[2][0], 0)
+        self.assertAlmostEqual(positions[2][1], 1)
+        self.assertAlmostEqual(positions[2][2], 0)
         # spin at (1,1,0)
-        self.assertAlmostEqual(spin_positions[3][0], 1)
-        self.assertAlmostEqual(spin_positions[3][1], 1)
-        self.assertAlmostEqual(spin_positions[3][2], 0)
+        self.assertAlmostEqual(positions[3][0], 1)
+        self.assertAlmostEqual(positions[3][1], 1)
+        self.assertAlmostEqual(positions[3][2], 0)
     
     def test_atom_types(self):
         types = geometry.Get_Atom_Types(self.p_state)
@@ -97,11 +100,12 @@ def suite():
     suite.addTest(unittest.makeSuite(Geometry))
     return suite
 
-suite = suite()
+if __name__ == '__main__':
+    suite = suite()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-state.delete( p_state )                         # Delete State
+    state.delete( p_state )                         # Delete State
 
-sys.exit(not success)
+    sys.exit(not success)

@@ -13,24 +13,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cmath>
 #include <algorithm>
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+
+using Utility::Constants::Pi;
 
 namespace Utility
 {
 	namespace Configurations
 	{
-		void filter_to_mask(const vectorfield & spins, const vectorfield & spin_pos, filterfunction filter, intfield & mask)
+		void filter_to_mask(const vectorfield & spins, const vectorfield & positions, filterfunction filter, intfield & mask)
 		{
 			int nos = spins.size();
 			mask = intfield(nos, 0);
 
 			for (unsigned int iatom = 0; iatom < mask.size(); ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					mask[iatom] = 1;
 				}
@@ -39,7 +37,7 @@ namespace Utility
 
 		void Move(vectorfield& configuration, const Data::Geometry & geometry, int da, int db, int dc)
 		{
-			int delta = geometry.n_spins_basic_domain*da + geometry.n_spins_basic_domain*geometry.n_cells[0] * db + geometry.n_spins_basic_domain*geometry.n_cells[0] * geometry.n_cells[1] * dc;
+			int delta = geometry.n_cell_atoms*da + geometry.n_cell_atoms*geometry.n_cells[0] * db + geometry.n_cell_atoms*geometry.n_cells[0] * geometry.n_cells[1] * dc;
 			if (delta < 0)
 				delta += geometry.nos;
 			std::rotate(configuration.begin(), configuration.begin() + delta, configuration.end());
@@ -48,7 +46,7 @@ namespace Utility
 		void Insert(Data::Spin_System &s, const vectorfield& configuration, int shift, filterfunction filter)
 		{
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			int nos = s.nos;
 			if (shift < 0) shift += nos;
 
@@ -60,7 +58,7 @@ namespace Utility
 
 			for (int iatom = 0; iatom < nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					spins[iatom] = configuration[(iatom + shift) % nos];
 				}
@@ -69,27 +67,22 @@ namespace Utility
 
 		void Domain(Data::Spin_System & s, Vector3 v, filterfunction filter)
 		{
-			try
+			if (v.norm() < 1e-8)
+			{
+				Log( Log_Level::Warning, Log_Sender::All, fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]) );
+				v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
+			}
+			else
 			{
 				v.normalize();
 			}
-			catch (Exception ex)
-			{
-				if (ex == Exception::Division_by_zero) 
-				{
-					std::string message = fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]);
-					Log(Log_Level::Warning, Log_Sender::All, message);
-					v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
-				}
-				else { throw(ex); }
-			}
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					spins[iatom] = v;
 				}
@@ -99,13 +92,13 @@ namespace Utility
 		void Random(Data::Spin_System & s, filterfunction filter, bool external)
 		{
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
 			if (!external) {
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
-					if (filter(spins[iatom], spin_pos[iatom]))
+					if (filter(spins[iatom], positions[iatom]))
 					{
 						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
@@ -115,7 +108,7 @@ namespace Utility
 				std::mt19937 prng = std::mt19937(123456789);
 				for (int iatom = 0; iatom < s.nos; ++iatom)
 				{
-					if (filter(spins[iatom], spin_pos[iatom]))
+					if (filter(spins[iatom], positions[iatom]))
 					{
 						Engine::Vectormath::get_random_vector_unitsphere(distribution, s.llg_parameters->prng, spins[iatom]);
 					}
@@ -129,11 +122,11 @@ namespace Utility
 			if (temperature == 0.0) return;
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			vectorfield xi(spins.size());
 			intfield mask;
 
-			filter_to_mask(spins, spin_pos, filter, mask);
+			filter_to_mask(spins, positions, filter, mask);
 
 			scalar epsilon = std::sqrt(temperature*Constants::k_B);
 			
@@ -160,7 +153,7 @@ namespace Utility
 			using std::atan2;
 
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			if (r != 0.0)
 			{
@@ -169,9 +162,9 @@ namespace Utility
 				for (int n = 0; n<s.nos; n++)
 				{
 					// Distance of spin from center
-					if (filter(spins[n], spin_pos[n]))
+					if (filter(spins[n], positions[n]))
 					{
-						d = (spin_pos[n] - pos).norm();
+						d = (positions[n] - pos).norm();
 					
 						// Theta
 						if (d == 0)
@@ -180,24 +173,24 @@ namespace Utility
 						}
 						else
 						{
-							T = (spin_pos[n][2] - pos[2]) / d; // angle with respect to the main axis of toroid [0,0,1]
+							T = (positions[n][2] - pos[2]) / d; // angle with respect to the main axis of toroid [0,0,1]
 						}
 						T = acos(T);
 						// ...
 						t = d / r;	// r is a big radius of the torus
 						t = 1.0 + 4.22 / (t*t);
-						tmp = M_PI*(1.0 - 1.0 / sqrt(t));
+						tmp = Pi*(1.0 - 1.0 / sqrt(t));
 						t = sin(tmp)*sin(T);
 						t = acos(1.0 - 2.0*t*t);
 						// ...
-						F = atan2(spin_pos[n][1] - pos[1], spin_pos[n][0] - pos[0]);
-						if (T > M_PI / 2.0)
+						F = atan2(positions[n][1] - pos[1], positions[n][0] - pos[0]);
+						if (T > Pi / 2.0)
 						{
 							f = F + atan(1.0 / (tan(tmp)*cos(T)));
 						}
 						else
 						{
-							f = F + atan(1.0 / (tan(tmp)*cos(T))) + M_PI;
+							f = F + atan(1.0 / (tan(tmp)*cos(T))) + Pi;
 						}
 						// Spin orientation
 						spins[n][0] = sin(t)*cos(order * f);
@@ -213,7 +206,7 @@ namespace Utility
 			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 			
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 
 			// skaled to fit with 
 			scalar r_new = r;
@@ -222,20 +215,20 @@ namespace Utility
 			scalar distance, phi_i, theta_i;
 			for (iatom = 0; iatom < s.nos; ++iatom)
 			{
-				distance = std::sqrt(std::pow(s.geometry->spin_pos[iatom][0] - pos[0], 2) + std::pow(s.geometry->spin_pos[iatom][1] - pos[1], 2));
+				distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
 				distance = distance / r_new;
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
-					double x = (s.geometry->spin_pos[iatom][0] - pos[0]) / distance / r_new;
+					double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
 					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
 					if (distance == 0) { phi_i = 0; }
-					if (s.geometry->spin_pos[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
-					phi_i += phase / 180 * M_PI;
-					if (experimental) { theta_i = M_PI - 4 * std::asin(std::tanh(distance)); }
-					else { theta_i = M_PI - M_PI *distance; }
+					if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
+					phi_i += phase / 180 * Pi;
+					if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
+					else { theta_i = Pi - Pi *distance; }
 
 					spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
-					spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * M_PI));
+					spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * Pi));
 					spins[iatom][2] = std::cos(theta_i) * -dir;
 				}
 			}
@@ -249,9 +242,9 @@ namespace Utility
 			Vector3 vx{ 1,0,0 }, vy{ 0,1,0 }, vz{ 0,0,1 };
 			Vector3 e1, e2;
 			
-			Vector3 a1 = s.geometry->translation_vectors[0];
-			Vector3 a2 = s.geometry->translation_vectors[1];
-			Vector3 a3 = s.geometry->translation_vectors[2];
+			Vector3 a1 = s.geometry->bravais_vectors[0];
+			Vector3 a2 = s.geometry->bravais_vectors[1];
+			Vector3 a3 = s.geometry->bravais_vectors[2];
 			
 			// -------------------- Preparation --------------------
 			axis.normalize();
@@ -293,7 +286,7 @@ namespace Utility
 			}
 
 			// Some normalisations
-			theta = theta / 180.0 * M_PI;
+			theta = theta / 180.0 * Pi;
 			scalar qnorm = q.norm();
 			scalar axnorm = axis.norm();
 			axis.normalize();
@@ -325,14 +318,14 @@ namespace Utility
 
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			if (direction_type == "Reciprocal Lattice")
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 				Vector3 b1, b2, b3;
-				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
-				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
-				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				b1 = 2.0 * Pi * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * Pi * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * Pi * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 				// The q-vector is specified in units of the reciprocal lattice
 				Vector3 projBQ = q[0]*b1 + q[1]*b2 + q[2]*b3;
 				q = projBQ;
@@ -353,11 +346,11 @@ namespace Utility
 			}
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					// Phase is scalar product of spin position and q
-					phase = s.geometry->spin_pos[iatom].dot(q);
-					//phase = phase / 180.0 * M_PI;// / period;
+					phase = s.geometry->positions[iatom].dot(q);
+					//phase = phase / 180.0 * Pi;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
 					scalar norms = 0.0;
@@ -375,9 +368,9 @@ namespace Utility
 			Vector3 e1, e2;
 			Vector3 qm, qk;
 			
-			Vector3 a1 = s.geometry->translation_vectors[0];
-			Vector3 a2 = s.geometry->translation_vectors[1];
-			Vector3 a3 = s.geometry->translation_vectors[2];
+			Vector3 a1 = s.geometry->bravais_vectors[0];
+			Vector3 a2 = s.geometry->bravais_vectors[1];
+			Vector3 a3 = s.geometry->bravais_vectors[2];
 			
 			// -------------------- Preparation --------------------
 			axis.normalize();
@@ -419,7 +412,7 @@ namespace Utility
 			}
 
 			// Some normalisations
-			theta = theta / 180.0 * M_PI;
+			theta = theta / 180.0 * Pi;
 			scalar q1norm = q1.norm();
 			scalar q2norm = q2.norm();
 			scalar axnorm = axis.norm();
@@ -452,14 +445,14 @@ namespace Utility
 
 			// -------------------- Spin Spiral creation --------------------
 			auto& spins = *s.spins;
-			auto& spin_pos = s.geometry->spin_pos;
+			auto& positions = s.geometry->positions;
 			if (direction_type == "Reciprocal Lattice")
 			{
 				// bi = 2*pi*(aj x ak) / (ai * (aj x ak))
 				Vector3 b1, b2, b3;
-				b1 = 2.0 * M_PI * a2.cross(a3) / (a1.dot(a2.cross(a3)));
-				b2 = 2.0 * M_PI * a3.cross(a1) / (a2.dot(a3.cross(a1)));
-				b3 = 2.0 * M_PI * a1.cross(a2) / (a3.dot(a1.cross(a2)));
+				b1 = 2.0 * Pi * a2.cross(a3) / (a1.dot(a2.cross(a3)));
+				b2 = 2.0 * Pi * a3.cross(a1) / (a2.dot(a3.cross(a1)));
+				b3 = 2.0 * Pi * a1.cross(a2) / (a3.dot(a1.cross(a2)));
 
 				// The q-vectors are specified in units of the reciprocal lattice
 				Vector3 projBQ = q1[0]*b1 + q1[1]*b2 + q1[2]*b3;
@@ -489,11 +482,11 @@ namespace Utility
 			
 			for (int iatom = 0; iatom < s.nos; ++iatom)
 			{
-				if (filter(spins[iatom], spin_pos[iatom]))
+				if (filter(spins[iatom], positions[iatom]))
 				{
 					// Phase is scalar product of spin position and q
-					auto& r = s.geometry->spin_pos[iatom];
-					//phase = phase / 180.0 * M_PI;// / period;
+					auto& r = s.geometry->positions[iatom];
+					//phase = phase / 180.0 * Pi;// / period;
 					// The opening angle determines how far from the axis the spins rotate around it.
 					//		The rotation is done by alternating between v1 and v2 periodically
 					scalar norms = 0.0;

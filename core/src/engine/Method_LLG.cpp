@@ -32,7 +32,9 @@ namespace Engine
         this->forces_virtual    = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
         this->xi = vectorfield(this->nos, {0,0,0});
-
+        this->s_c_grad = vectorfield(this->nos, {0,0,0});
+        this->temperature_distribution = scalarfield(this->nos, 0);
+        
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
         this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
@@ -43,8 +45,6 @@ namespace Engine
             {"E", {this->force_max_abs_component}},
             {"M_z", {this->force_max_abs_component}} };
 
-
-
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
@@ -52,12 +52,14 @@ namespace Engine
         // Allocate force array
         //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
         // Initial force calculation s.t. it does not seem to be already converged
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
-
     }
 
 
@@ -101,17 +103,18 @@ namespace Engine
             scalar a_j = parameters.stt_magnitude;
             Vector3 s_c_vec = parameters.stt_polarisation_normal;
             // - gradient
-            scalar b_j = 1.0;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
+            scalar b_j = a_j;    // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
             scalar beta = parameters.beta;  // non-adiabatic parameter of correction term
-            Vector3 je = { 1,0,0 }; // direction of current
+            Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // TODO: why the 0.5 everywhere??
-            if (parameters.direct_minimization)
+            // Direct minimisation
+            if (parameters.direct_minimization || solver == Solver::VP)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
             }
+            // Dynamics simulation
             else
             {
                 Vectormath::set_c_a( dtg, force, force_virtual);
@@ -120,7 +123,6 @@ namespace Engine
                 // STT
                 if (a_j > 0)
                 {
-
                     if (parameters.stt_use_gradient)
                     {
                         auto& geometry = *this->systems[0]->geometry;
@@ -134,18 +136,43 @@ namespace Engine
                     else
                     {
                         // Monolayer approximation
-                        Vectormath::add_c_a    ( -dtg * a_j * damping, s_c_vec, force_virtual);
-                        Vectormath::add_c_cross( -dtg * a_j, s_c_vec, image, force_virtual);
+                        Vectormath::add_c_a    ( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
+                        Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
                     }
                 }
 
                 // Temperature
-                if (parameters.temperature > 0)
+                if (parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0)
                 {
-                    scalar epsilon = parameters.temperature * Utility::Constants::k_B;//std::sqrt(2.0*parameters.damping / (1.0 + std::pow(parameters.damping, 2)) * parameters.temperature * Utility::Constants::k_B);
+                    // Generate random directions
                     Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-                    Vectormath::add_c_a    ( sqrtdtg * epsilon, this->xi, force_virtual);
-                    Vectormath::add_c_cross( sqrtdtg * damping * epsilon, image, this->xi, force_virtual);
+
+                    // If we have a temperature gradient, we use the distribution (scalarfield)
+                    if (parameters.temperature_gradient_inclination != 0)
+                    {
+                        // Calculate distribution
+                        Vectormath::get_gradient_distribution(
+                            *this->systems[i]->geometry,
+                            parameters.temperature_gradient_direction,
+                            parameters.temperature,
+                            parameters.temperature_gradient_inclination,
+                            temperature_distribution, 0, 1e30);
+
+                        scalar epsilon = sqrtdtg * Utility::Constants::k_B;
+                        Vectormath::scale(temperature_distribution, epsilon);
+
+                        Vectormath::add_c_a(temperature_distribution, this->xi, force_virtual);
+
+                        Vectormath::scale(temperature_distribution, damping);
+                        Vectormath::add_c_cross(temperature_distribution, image, this->xi, force_virtual);
+                    }
+                    // If we only have homogeneous temperature we do it more efficiently
+                    else if (parameters.temperature > 0)
+                    {
+                        scalar epsilon = sqrtdtg * Utility::Constants::k_B * parameters.temperature;
+                        Vectormath::add_c_a    (epsilon, this->xi, force_virtual);
+                        Vectormath::add_c_cross(epsilon * damping, image, this->xi, force_virtual);
+                    }
                 }
             }
             // Apply Pinning
@@ -245,25 +272,30 @@ namespace Engine
 
             std::string preSpinsFile;
             std::string preEnergyFile;
-            if (this->systems[0]->llg_parameters->output_tag_time)
-            {
-                preSpinsFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Spins";
-                preEnergyFile = this->parameters->output_folder + "/" + starttime + "_Image-" + s_img + "_Energy";
-            }
+            std::string fileTag;
+            
+            if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->systems[0]->llg_parameters->output_file_tag != "")
+                fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
             else
-            {
-                preSpinsFile = this->parameters->output_folder + "/Image-" + s_img + "_Spins";
-                preEnergyFile = this->parameters->output_folder + "/_Image-" + s_img + "_Energy";
-            }
+                fileTag = "";
+                
+            preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
+            preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
+            
 
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                // File name
+                // File name and comment
                 std::string spinsFile = preSpinsFile + suffix + ".txt";
-
+                std::string comment = std::to_string( iteration );
                 // Spin Configuration
-                IO::Write_Spin_Configuration(this->systems[0], iteration, spinsFile, append);
+                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
+                                              *( this->systems[0] )->geometry, spinsFile, 
+                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
+                                              comment, append );
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -281,15 +313,15 @@ namespace Engine
                     std::ifstream f(energyFile);
                     if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
                     // Append Energy to File
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                 }
                 else
                 {
                     IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    IO::Append_System_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_System_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
                     }
                 }
             };

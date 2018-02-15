@@ -14,10 +14,10 @@ using namespace Utility;
 namespace Engine
 {
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
-        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
+        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain), iteration(0), step(0)
     {
         // Sender name for log messages
-        this->SenderName = Utility::Log_Sender::All;
+        this->SenderName = Log_Sender::All;
 
         // Default history contains force_max_abs_component
         this->history = std::map<std::string, std::vector<scalar>>{
@@ -26,10 +26,10 @@ namespace Engine
         // TODO: is this a good idea?
         this->n_iterations     = this->parameters->n_iterations;
         this->n_iterations_log = this->parameters->n_iterations_log;
-		if (this->n_iterations_log > 0)
-			this->n_log        = this->n_iterations / this->n_iterations_log;
-		else
-			this->n_log        = 0;
+        if (this->n_iterations_log > 0)
+            this->n_log        = this->n_iterations / this->n_iterations_log;
+        else
+            this->n_log        = 0;
 
         // Setup timings
         for (int i = 0; i<7; ++i) this->t_iterations.push_back(system_clock::now());
@@ -48,9 +48,6 @@ namespace Engine
 
     void Method::Iterate()
     {
-        //---- Initialise Solver-specific variables
-        this->Initialize();
-
         //---- Start timings
         this->starttime = Timing::CurrentDateTime();
         this->t_start = system_clock::now();
@@ -64,8 +61,6 @@ namespace Engine
         this->Save_Current(this->starttime, this->iteration, true, false);
 
         //---- Iteration loop
-        this->iteration = 0;
-        this->step      = 0;
         for ( this->iteration = 0; 
               this->ContinueIterating() &&
               !this->Walltime_Expired(t_current - t_start); 
@@ -88,9 +83,9 @@ namespace Engine
             this->t_iterations.push_back(system_clock::now());
 
             // Log Output every n_iterations_log steps
-			bool log = false;
-			if (this->n_iterations_log > 0)
-				log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
+            bool log = false;
+            if (this->n_iterations_log > 0)
+                log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
             if ( log )
             {
                 ++step;
@@ -112,7 +107,6 @@ namespace Engine
     }
 
 
-
     scalar Method::getIterationsPerSecond()
     {
         scalar l_ips = 0.0;
@@ -125,9 +119,21 @@ namespace Engine
     }
 
 
+    int Method::getNIterations()
+    {
+        return this->iteration;
+    }
+
+
     scalar Method::getForceMaxAbsComponent()
     {
         return this->force_max_abs_component;
+    }
+
+
+    std::vector<scalar> Method::getForceMaxAbsComponent_All()
+    {
+        return {this->force_max_abs_component};
     }
 
 
@@ -157,20 +163,11 @@ namespace Engine
 
     }
 
-
-
-
     bool Method::ContinueIterating()
     {
         return  this->iteration < this->n_iterations &&
                 this->Iterations_Allowed() &&
-               !this->StopFile_Present()   && 
-               !this->Converged();
-    }
-
-    bool Method::Converged()
-    {
-        return false;
+               !this->StopFile_Present();
     }
 
     bool Method::Iterations_Allowed()
@@ -193,36 +190,33 @@ namespace Engine
         return f.good();
     }
 
-
-
-
-
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Save_Current() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Pre_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Pre_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Hook_Post_Iteration()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Hook_Post_Iteration() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
     void Method::Finalize()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Finalize() of the Method base class!"));
-        throw Utility::Exception::Not_Implemented;
+        
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::Save_Current() of the Method base class!");
     }
 
 
@@ -244,7 +238,7 @@ namespace Engine
     std::string Method::Name()
     {
         // Not Implemented!
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
+        Log(Log_Level::Error, Log_Sender::All, std::string("Tried to use Method::Name() of the Method base class!"));
         return "--";
     }
 

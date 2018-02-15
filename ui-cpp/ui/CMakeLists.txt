@@ -7,6 +7,7 @@ set(UI_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/PlotsWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/DebugWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/IsosurfaceWidget.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/InfoWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/SettingsWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/ParametersWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergNeighboursWidget.ui

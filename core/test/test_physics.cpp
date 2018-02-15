@@ -13,9 +13,6 @@
 #include <iomanip>
 #include <sstream>
 
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
 
 TEST_CASE( "Larmor Precession","[physics]" )
 {
@@ -98,7 +95,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
             Simulation_SingleShot( state.get(), method, opt );
             
             // analytical calculation of the projection in the z-axis
-            projection = std::tanh( damping * (i+1) * tstep * mu_s * B_mag / (2*M_PI) );
+            projection = std::tanh( damping * (i+1) * tstep * mu_s * B_mag / (2*Constants_Pi()) );
             
             direction = System_Get_Spin_Directions( state.get() );
             
@@ -138,7 +135,6 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
         state->active_image->hamiltonian->Hessian( vf, hessian );
         
-        for( int i=0; i<state->nos; i++)
-            REQUIRE( hessian_fd.isApprox( hessian ) );
+        REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }

@@ -16,8 +16,8 @@ General Settings and Log <a name="General"></a>
 --------------------------------------------------
 
 ```Python
-### Add a time tag to output files
-output_tag_time         1
+### Add a tag to output files (for timestamp use "<time>")
+output_file_tag         some_tag
 ```
 
 ```Python
@@ -57,43 +57,77 @@ at all.
 Geometry <a name="Geometry"></a>
 --------------------------------------------------
 
-The lattice constant scales everything you specify in basis and translations.
+The Geometry of a spin system is specified in form of a bravais lattice
+and a basis cell of atoms. The number of basis cells along each principal
+direction of the basis can be specified.
+*Note:* the default basis is a single atom at (0,0,0).
+
+**3D simple cubic example:**
 
 ```Python
-lattice_constant 1.0
+### The bravais lattice type
+bravais_lattice sc
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells 100 100 10
 ```
 
-The basis is apecified as three basis vectors `a`, `b` and `c`, together
-with the number of atoms in the basis and their positions in terms of
-the basis vectors.
+**2D honeycomb example:**
 
 ```Python
-#### a.x a.y a.z
-#### b.x b.y b.z
-#### c.x c.y c.z
-#### n		     No of spins in the basic domain
-#### 1.x 1.y 1.z     position of spins within basic
-#### 2.x 2.y 2.z     domain in terms of basis vectors
+### The bravais lattice type
+bravais_lattice hex2d
+
+### n            No of spins in the basis cell
+### 1.x 1.y 1.z  position of spins within basis
+### 2.x 2.y 2.z  cell in terms of bravais vectors
 basis
+2
+0   0                      0
+0.86602540378443864676 0.5 0
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells 100 100 1
+```
+
+The bravais lattice can be one of the following:
+
+| Bravais Lattice Type     | Keyword  | Comment                     |
+| ------------------------ | -------- | --------------------------- |
+| Simple cubic             | sc       |                             |
+| Body-centered cubic      | bcc      |                             |
+| Face-centered cubic      | fcc      |                             |
+| Hexagonal (2D)           | hex2d    |  60deg angle                |
+| Hexagonal (2D)           | hex2d60  |  60deg angle                |
+| Hexagonal (2D)           | hex2d120 | 120deg angle                |
+| Hexagonal closely packed | hcp      | 120deg, not yet implemented |
+| Hexagonal densely packed | hdp      |  60deg, not yet implemented |
+| Rhombohedral             | rho      | not yet implemented         |
+| Simple-tetragonal        | stet     | not yet implemented         |
+| Simple-orthorhombic      | so       | not yet implemented         |
+| Simple-monoclinic        | sm       | not yet implemented         |
+| Simple triclinic         | stri     | not yet implemented         |
+
+Alternatively it can be input manually, either through vectors
+or as the bravais matrix:
+
+```Python
+### bravais_vectors or bravais_matrix
+###   a.x a.y a.z       a.x b.x c.x
+###   b.x b.y b.z       a.y b.y c.y
+###   c.x c.y c.z       a.z b.z c.z
+bravais_vectors
 1.0 0.0 0.0
 0.0 1.0 0.0
 0.0 0.0 1.0
-1
-0 0 0
 ```
 
-The translations of the basis are specified as three vectors `(a,b,c)`, i.e.
-they are given in terms of the basis vectors.
-
+A lattice constant can be used for scaling:
 ```Python
-### Keyword translation_vectors ###
-###   t1.a t1.b t1.c nCells(t1)
-###   t2.a t2.b t2.c nCells(t2)
-###   t3.a t3.b t3.c nCells(t3)
-translation_vectors
-1 0 0 100
-0 1 0 100
-0 0 1 1
+### Scaling constant
+lattice_constant 1.0
 ```
 
 
@@ -109,35 +143,43 @@ You may specify shell-wise interaction parameters:
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian                heisenberg_neighbours
+hamiltonian              heisenberg_neighbours
 
 ### boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions        1 1 0
+boundary_conditions      1 1 0
 
 ### external magnetic field vector[T]
-external_field_magnitude   25.0
-external_field_normal      0.0 0.0 1.0
+external_field_magnitude 25.0
+external_field_normal    0.0 0.0 1.0
 ### µSpin
-mu_s                       2.0
+mu_s                     2.0
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude       0.0
-anisotropy_normal          0.0 0.0 1.0
+anisotropy_magnitude     0.0
+anisotropy_normal        0.0 0.0 1.0
 
 ### Exchange constants [meV] for the respective shells
 ### Jij should appear after the >Number_of_neighbour_shells<
-n_neigh_shells_exchange   2
-jij 			  10.0  1.0
+n_neigh_shells_exchange 2
+jij                     10.0  1.0
 
 ### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
 dm_chirality       2
 ### DM constant [meV]
 n_neigh_shells_dmi 1
-dij			       6.0
+dij	               6.0
 
 ### Dipole-Dipole radius
-dd_radius		  0.0
+dd_radius          0.0
 ```
+
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
 
 **Pair-wise Heisenberg Hamiltonian**:
 
@@ -147,29 +189,30 @@ You may specify shell-wise interaction parameters.
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian                   heisenberg_pairs
+hamiltonian                 heisenberg_pairs
 
-### boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions           1 1 0
+### Boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions         1 1 0
 
-### external magnetic field vector[T]
-external_field_magnitude      25.0
-external_field_normal         0.0 0.0 1.0
+### External magnetic field vector[T]
+external_field_magnitude    25.0
+external_field_normal       0.0 0.0 1.0
 ### µSpin
-mu_s                          2.0
+mu_s                        2.0
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude          0.0
-anisotropy_normal             0.0 0.0 1.0
+anisotropy_magnitude        0.0
+anisotropy_normal           0.0 0.0 1.0
 
 ### Dipole-Dipole radius
-dd_radius                     0.0
+dd_radius                   0.0
 
 ### Pairs
-n_interaction_pairs 2
-i  j    da  db  dc    Dx  Dy  Dz     J
-0  0    1   0   0     6.0 0.0 0.0    10.0
-0  0    0   1   0     0.0 6.0 0.0    10.0
+n_interaction_pairs 3
+i j   da db dc    Jij   Dij  Dijx Dijy Dijz
+0 0    1  0  0   10.0   6.0   1.0  0.0  0.0
+0 0    0  1  0   10.0   6.0   0.0  1.0  0.0
+0 0    0  0  1   10.0   6.0   0.0  0.0  1.0
 
 ### Quadruplets
 n_interaction_quadruplets 1
@@ -177,15 +220,31 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
 ```
 
-*Pairs*: Leaving out either exchange or DMI in the pairs is allowed and columns can
+If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
+
+*Anisotropy:*
+By specifying a number of anisotropy axes via `n_anisotropy`, one
+or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
+via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
+a magnitude `K`.
+
+*Pairs:*
+Leaving out either exchange or DMI in the pairs is allowed and columns can
 be placed in arbitrary order.
-Note that instead of specifying the DM-vector as `Dx Dy Dz`, you may specify it as
-`Da Db Dc` if you prefer, you may also specify the magnitude separately as a column `Dij`.
+Note that instead of specifying the DM-vector as `Dijx Dijy Dijz`, you may specify it as
+`Dija Dijb Dijc` if you prefer. You may also specify the magnitude separately as a column
+`Dij`, but note that if you do, the vector (e.g. `Dijx Dijy Dijz`) will be normalized.
 
-*Quadruplets*: Columns for these may also be placed in arbitrary order.
+*Quadruplets:*
+Columns for these may also be placed in arbitrary order.
 
-*Separate files*: The pairs and quadruplets can be placed into separate files.
-If the pairs or quadruplets are at the top of the respective file, it is not necessary to specify `n_interaction_pairs` or `n_interaction_quadruplets` respectively.
+*Separate files:*
+The anisotropy, pairs and quadruplets can be placed into separate files,
+you can use `anisotropy_from_file`, `pairs_from_file` and `quadruplets_from_file`.
+
+If the headers for anisotropies, pairs or quadruplets are at the top of the respective file,
+it is not necessary to specify `n_anisotropy`, `n_interaction_pairs` or `n_interaction_quadruplets`
+respectively.
 
 ```Python
 ### Pairs
@@ -279,7 +338,7 @@ llg_max_walltime        0:0:0
 llg_force_convergence   10e-9
 
 ### Number of iterations
-llg_n_iterations		2000000
+llg_n_iterations        2000000
 ### Number of iterations after which to save
 llg_n_iterations_log    2000
 ```
@@ -287,19 +346,21 @@ llg_n_iterations_log    2000
 **LLG**:
 ```Python
 ### Seed for Random Number Generator
-llg_seed			    20006
+llg_seed            20006
 
 ### Damping [none]
-llg_damping				0.3E+0
+llg_damping         0.3E+0
 
 ### Time step dt
-llg_dt					1.0E-3
+llg_dt              1.0E-3
 
 ### Temperature [K]
-llg_temperature			0
+llg_temperature	    0
+llg_temperature_gradient_direction   1 0 0
+llg_temperature_gradient_inclination 0.0
 
 ### Spin transfer torque parameter proportional to injected current density
-llg_stt_magnitude           0.0
+llg_stt_magnitude  0.0
 ### Spin current polarisation normal vector
 llg_stt_polarisation_normal	1.0 0.0 0.0
 ```
@@ -307,10 +368,10 @@ llg_stt_polarisation_normal	1.0 0.0 0.0
 **MC**:
 ```Python
 ### Seed for Random Number Generator
-mc_seed			    20006
+mc_seed	            20006
 
 ### Temperature [K]
-mc_temperature	    0
+mc_temperature      0
 
 ### Acceptance ratio
 mc_acceptance_ratio 0.5
@@ -319,7 +380,7 @@ mc_acceptance_ratio 0.5
 **GNEB**:
 ```Python
 ### Constant for the spring force
-gneb_spring_constant     1.0
+gneb_spring_constant 1.0
 
 ### Number of energy interpolations between images
 gneb_n_energy_interpolations 10
@@ -345,7 +406,7 @@ pin_na_left 2
 # Pin top and bottom sides (2 rows each)
 pin_nb      2
 # Pin the atoms to x-direction
-pinning_cell    
+pinning_cell
 1 0 0
 ```
 

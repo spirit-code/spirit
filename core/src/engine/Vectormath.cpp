@@ -2,6 +2,7 @@
 
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -10,9 +11,8 @@
 #include <array>
 #include <algorithm>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+using namespace Utility;
+using Utility::Constants::Pi;
 
 namespace Engine
 {
@@ -29,8 +29,8 @@ namespace Engine
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
                      vectorfield & v_out )
         {
-          for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
+            for( unsigned int i=0; i<v_out.size(); i++)
+                rotate( v[i], axis[i], angle[i], v_out[i] );
         }
         
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
@@ -41,45 +41,45 @@ namespace Engine
         
         /////////////////////////////////////////////////////////////////
         
-        void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, 
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
                          const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
         {
-          // Check for erronous input placing two spins on the same location
-          int max_a = std::min(10, n_cells[0]);
-          int max_b = std::min(10, n_cells[1]);
-          int max_c = std::min(10, n_cells[2]);
-          Vector3 sp;
-          for (unsigned int i = 0; i < basis_atoms.size(); ++i)
-          {
-              for (unsigned int j = 0; j < basis_atoms.size(); ++j)
-              {
-                  for (int ka = -max_a; ka <= max_a; ++ka)
-                  {
-                      for (int k2 = -max_b; k2 <= max_b; ++k2)
-                      {
-                          for (int k3 = -max_c; k3 <= max_c; ++k3)
-                          {
-                              // Norm is zero if translated basis atom is at position of another basis atom
-                              sp = basis_atoms[i] - (basis_atoms[j]
-                                  + ka * translation_vectors[0] + k2 * translation_vectors[1] + 
-                                  k3 * translation_vectors[2]);
-                              if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
-                                   std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 &&
-                                   std::abs(sp[2]) < 1e-9 )
-                              {
-                                  Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-                                  Log.Append_to_File();
-                                  throw Utility::Exception::System_not_Initialized;
-                              }
-                          }
-                      }
-                  }
-              }
-          }
+            // Check for erronous input placing two spins on the same location
+            int max_a = std::min(10, n_cells[0]);
+            int max_b = std::min(10, n_cells[1]);
+            int max_c = std::min(10, n_cells[2]);
+            Vector3 sp;
+            for (unsigned int i = 0; i < cell_atoms.size(); ++i)
+            {
+                for (unsigned int j = 0; j < cell_atoms.size(); ++j)
+                {
+                    for (int ka = -max_a; ka <= max_a; ++ka)
+                    {
+                        for (int k2 = -max_b; k2 <= max_b; ++k2)
+                        {
+                            for (int k3 = -max_c; k3 <= max_c; ++k3)
+                            {
+                                // Norm is zero if translated basis atom is at position of another basis atom
+                                sp = cell_atoms[i] - (cell_atoms[j]
+                                    + ka * translation_vectors[0]
+                                    + k2 * translation_vectors[1]
+                                    + k3 * translation_vectors[2]);
+                                if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                                    std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9 )
+                                {
+                                    spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+                                        "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // Build up the spins array
             int i, j, k, s, ispin;
-            int nos_basic = basis_atoms.size();
+            int nos_basic = cell_atoms.size();
             //int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
             Vector3 build_array;
             for (k = 0; k < n_cells[2]; ++k) {
@@ -93,13 +93,14 @@ namespace Engine
                             // paste initial spin orientations across the lattice translations
                             //spins[dim*nos + ispin] = spins[dim*nos + s];
                             // calculate the spin positions
-                            spin_pos[ispin] = basis_atoms[s] + build_array;
+                            positions[ispin] = cell_atoms[s] + build_array;
+                            atom_types[ispin] = cell_atom_types[s];
                         }// endfor s
                     }// endfor k
                 }// endfor j
             }// endfor dim
 
-        };// end Build_Spins
+        }// end Build_Spins
 
 
         std::array<scalar,3> Magnetization(const vectorfield & vf)
@@ -166,7 +167,7 @@ namespace Engine
                 // charge += sign * solid_angle_1(v1, v2, v3);
                 charge += sign * solid_angle_2(v1, v2, v3);
             }
-            return charge / (4*M_PI);
+            return charge / (4*Pi);
         }
 
         // Utility function for the SIB Solver
@@ -210,14 +211,14 @@ namespace Engine
 
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-			scalar v_z = distribution(prng);
-			scalar phi = distribution(prng);
+            scalar v_z = distribution(prng);
+            scalar phi = distribution(prng);
 
-			scalar r_xy = std::sqrt(1 - v_z*v_z);
+            scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-			vec[0] = r_xy * std::cos(2*M_PI*phi);
-			vec[1] = r_xy * std::sin(2 * M_PI*phi);
-			vec[2] = v_z;
+            vec[0] = r_xy * std::cos(2*Pi*phi);
+            vec[1] = r_xy * std::sin(2*Pi*phi);
+            vec[2] = v_z;
         }
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
         {
@@ -227,8 +228,27 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-				get_random_vector_unitsphere(distribution, prng, xi[i]);
+                get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
+        }
+
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Ensure a normalized direction vector
+            gradient_direction.normalize();
+
+            // Basic linear gradient distribution
+            set_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, gradient_start - gradient_inclination*dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
         }
 
         
@@ -238,9 +258,9 @@ namespace Engine
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
             auto& n_cells = geometry.n_cells;
 
-            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.translation_vectors[1];
-            Vector3 c = geometry.translation_vectors[2];
+            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.bravais_vectors[1];
+            Vector3 c = geometry.bravais_vectors[2];
 
             neighbourfield neigh;
 
@@ -285,45 +305,66 @@ namespace Engine
             neigh_tmp.translations[2] = -1;
             neigh.push_back(neigh_tmp);
 
-            // difference quotients in different directions
-            Vector3 diffq, diffqx, diffqy, diffqz;
-
             // Loop over vectorfield
             for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
             {
-                auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
-                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
+                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
                 scalar n = 0;
 
-                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
-                
+                gradient[ispin].setZero();
+
+                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
+                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+                Vector3 proj = {0, 0, 0};
+                Vector3 projection_inv = {0, 0, 0};
+
+                // TODO: both loops together.
+
+                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
                 for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
                     if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
-                        // index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
-                        
-                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
-                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
-
-                        // difference quotient in direction of the neighbour
-                        diffq = ( vf[ineigh] - vf[ispin] ) / translationVec3.norm();
-
-                        // projection of difference quotient in euclidian space
-                        diffqx += translationVec3[0]*diffq;
-                        diffqy += translationVec3[1]*diffq;
-                        diffqz += translationVec3[2]*diffq;
-                        
-                        // boundary conditions considered
-                        n += 1;
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
+                            }
+                        }
+                    }
+                }
+                for (int dim=0; dim<3; ++dim)
+                {
+                    if (std::abs(proj[dim]) > 1e-10)
+                        projection_inv[dim] = 1.0/proj[dim];
+                }
+                // Loop over neighbours of this vector to calculate finite differences
+                for(unsigned int j = 0; j < neigh.size(); ++j)
+                {
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
+                            }
+                        }
                     }
                 }
 
-                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
-
-
-                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+                for (int dim=0; dim<3; ++dim)
+                {
+                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
+                }
             }
         }
 
@@ -341,12 +382,19 @@ namespace Engine
             for (unsigned int i=0; i<sf.size(); ++i)
                 sf[i] = mask[i]*s;
         }
-
+        
         void scale(scalarfield & sf, scalar s)
         {
             #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
                 sf[i] *= s;
+        }
+
+        void add(scalarfield & sf, scalar s)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] += s;
         }
 
         scalar sum(const scalarfield & sf)
@@ -362,6 +410,13 @@ namespace Engine
         {
             scalar ret = sum(sf)/sf.size();
             return ret;
+        }
+
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
         }
 
         void fill(vectorfield & vf, const Vector3 & v)
@@ -386,8 +441,8 @@ namespace Engine
         
         void norm( const vectorfield & vf, scalarfield & norm )
         {
-          for (unsigned int i=0; i<vf.size(); ++i)
-            norm[i] = vf[i].norm();
+            for (unsigned int i=0; i<vf.size(); ++i)
+                norm[i] = vf[i].norm();
         }
         
         std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
@@ -501,12 +556,12 @@ namespace Engine
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*vf[idx];
         }
-		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
-		{
-			#pragma omp parallel for
-			for (unsigned int idx = 0; idx < out.size(); ++idx)
-				out[idx] += mask[idx] * c*vf[idx];
-		}
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += mask[idx] * c*vf[idx];
+        }
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
         {
@@ -596,6 +651,13 @@ namespace Engine
             #pragma omp parallel for
             for(unsigned int idx = 0; idx < out.size(); ++idx)
                 out[idx] += c*a[idx].cross(b[idx]);
+        }
+        // out[i] += c[i] * a[i] x b[i]
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            #pragma omp parallel for
+            for (unsigned int idx = 0; idx < out.size(); ++idx)
+                out[idx] += c[idx] * a[idx].cross(b[idx]);
         }
         
         // out[i] = c * a x b[i]

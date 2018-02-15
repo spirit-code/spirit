@@ -42,6 +42,7 @@ namespace Engine
 
 		// We assume that the chain is not converged before the first iteration
 		this->force_max_abs_component = this->chain->gneb_parameters->force_convergence + 1.0;
+		this->force_max_abs_component_all = std::vector<scalar>(this->noi, 0);
 
 		// Create shared pointers to the method's systems' spin configurations
 		this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -51,10 +52,20 @@ namespace Engine
         this->history = std::map<std::string, std::vector<scalar>>{
 			{"max_torque_component", {this->force_max_abs_component}} };
 
+        //---- Initialise Solver-specific variables
+        this->Initialize();
+
 		// Calculate Data for the border images, which will not be updated
 		this->chain->images[0]->UpdateEffectiveField();// hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 		this->chain->images[this->noi-1]->UpdateEffectiveField();//hamiltonian->Effective_Field(image, this->chain->images[0]->effective_field);
 	}
+
+	template <Solver solver>
+	std::vector<scalar> Method_GNEB<solver>::getForceMaxAbsComponent_All()
+	{
+		return this->force_max_abs_component_all;
+	}
+
 
 	template <Solver solver>
 	void Method_GNEB<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
@@ -204,11 +215,15 @@ namespace Engine
 	{
 		// --- Convergence Parameter Update
 		this->force_max_abs_component = 0;
+		std::fill(this->force_max_abs_component_all.begin(), this->force_max_abs_component_all.end(), 0);
+		
+		
 		for (int img = 1; img < chain->noi - 1; ++img)
 		{
 			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
-			// TODO: how to handle convergence??
-			// if (fmax > this->parameters->force_convergence) this->isConverged = false;
+			// Set maximum per image
+			if (fmax > this->force_max_abs_component_all[img]) this->force_max_abs_component_all[img] = fmax;
+			// Set maximum overall
 			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
 
 			// Set the effective fields
@@ -262,26 +277,31 @@ namespace Engine
 
 			std::string preChainFile;
 			std::string preEnergiesFile;
-			if (this->systems[0]->llg_parameters->output_tag_time)
-			{
-				preChainFile = this->parameters->output_folder + "/" + starttime + "_Chain";
-				preEnergiesFile = this->parameters->output_folder + "/" + starttime + "_Chain_Energies";
-			}
-			else
-			{
-				preChainFile = this->parameters->output_folder + "/Chain";
-				preEnergiesFile = this->parameters->output_folder + "/Chain_Energies";
-			}
+            std::string fileTag;
+            
+            if (this->parameters->output_file_tag == "<time>")
+                fileTag = starttime + "_";
+            else if (this->parameters->output_file_tag != "")
+                fileTag = this->parameters->output_file_tag + "_";
+            else 
+                fileTag = "";
+            
+            preChainFile = this->parameters->output_folder + "/" + fileTag + "Chain";
+            preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
 			// Function to write or append image and energy files
-			auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
+            auto writeOutputChain = [ this, preChainFile, preEnergiesFile, iteration ]
+                                        ( std::string suffix, bool append )
 			{
 				// File name
 				std::string chainFile = preChainFile + suffix + ".txt";
 
 				// Chain
-				IO::Save_SpinChain_Configuration(this->chain, iteration, chainFile);
-			};
+                std::string output_comment = fmt::format( "Iteration: {}", iteration );
+                IO::Write_Chain_Spin_Configuration( this->chain, chainFile, 
+                                                    IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
+                                                    output_comment, append );
+            };
 
 			auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
 			{
@@ -302,7 +322,7 @@ namespace Engine
 				}
 				/*if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
 				{
-					IO::Write_System_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
+					IO::Write_Image_Energy_per_Spin(*this->systems[0], energiesFilePerSpin, normalize);
 				}*/
 			};
 
@@ -310,20 +330,20 @@ namespace Engine
 			// Initial chain before simulation
 			if (initial && this->parameters->output_initial)
 			{
-				writeOutputChain("-initial");
+				writeOutputChain( "-initial", false );
 				writeOutputEnergies("-initial");
 			}
 			// Final chain after simulation
 			else if (final && this->parameters->output_final)
 			{
-				writeOutputChain("-final");
+				writeOutputChain( "-final", false );
 				writeOutputEnergies("-final");
 			}
 
 			// Single file output
 			if (this->chain->gneb_parameters->output_chain_step)
 			{
-				writeOutputChain("_" + s_iter);
+				writeOutputChain("_" + s_iter, false );
 			}
 			if (this->chain->gneb_parameters->output_energies_step)
 			{

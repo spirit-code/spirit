@@ -12,7 +12,7 @@ import unittest
 
 ##########
 
-cfgfile = "input/input.cfg"
+cfgfile = spirit_py_dir + "/../test/input/api.cfg"
 
 class TestConfigurations(unittest.TestCase):
     def test(self):
@@ -39,9 +39,10 @@ def suite():
   
     return suite
 
+if __name__ == '__main__':
+    suite = suite()
 
-suite = suite()
+    runner = unittest.TextTestRunner()
+    success = runner.run(suite).wasSuccessful()
 
-runner = unittest.TextTestRunner()
-success = runner.run(suite).wasSuccessful()
-sys.exit(not success)
+    sys.exit(not success)

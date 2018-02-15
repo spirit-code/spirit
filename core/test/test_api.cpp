@@ -5,6 +5,7 @@
 #include <Spirit/System.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Quantities.h>
+#include <Spirit/Simulation.h>
 #include <utility/Exception.hpp>
 
 auto inputfile = "core/test/input/api.cfg";
@@ -13,11 +14,20 @@ TEST_CASE( "State", "[state]" )
 {
     SECTION( "State setup" )
     {
-        // Test the default config
-        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup(), State_Delete ) );
-        
+        std::shared_ptr<State> state;
+
+        // Test the default config explicitly
+        CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup(), State_Delete ) );
+        CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
+        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+
+        // Test the default config with a nonexistent file
+        CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup("__surely__nonexistent__file__.cfg"), State_Delete ) );
+        CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
+        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+
         // Test the default input file
-        CHECK_NOTHROW( std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );    
+        CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );
     }
     
     SECTION( "from_indices()" )
@@ -38,7 +48,7 @@ TEST_CASE( "State", "[state]" )
         idx_chain = 0;
         idx_image = 5;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
-                         const Utility::Exception & ex );
+                         const Utility::S_Exception & ex );
         // TODO: find a way to see if the exception thrown was the right one
         
         idx_chain = 0;
@@ -50,7 +60,7 @@ TEST_CASE( "State", "[state]" )
         idx_chain = 5;
         idx_image = 0;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
-                         const Utility::Exception & ex );
+                         const Utility::S_Exception & ex );
         // TODO: find a way to see if the exception thrown was the right one
         
         idx_chain = -5;

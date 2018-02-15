@@ -13,7 +13,7 @@
 
 bool Get_Method( State *state, const char * c_method_type, const char * c_solver_type, 
                  int n_iterations, int n_iterations_log, int idx_image, int idx_chain, 
-                 std::shared_ptr<Engine::Method> & method )
+                 std::shared_ptr<Engine::Method> & method ) noexcept
 {
     try
     {
@@ -36,14 +36,14 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
         else
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Solver selected: " + 
-                 solver_type);
+                    solver_type);
             return false;
         }
 
         // Fetch correct indices and pointers for image and chain
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-      
+        
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
@@ -52,17 +52,17 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
         {
             // Currently iterating image, so we stop
             image->Lock();
-        	image->iteration_allowed = false;
+            image->iteration_allowed = false;
             image->Unlock();
-    		return false;
+            return false;
         }
         else if (chain->iteration_allowed)
         {
             // Currently iterating chain, so we stop
             chain->Lock();
-        	chain->iteration_allowed = false;
+            chain->iteration_allowed = false;
             chain->Unlock();
-    		return false;
+            return false;
         }
         else if (state->collection->iteration_allowed)
         {
@@ -70,7 +70,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             // collection->Lock();
             state->collection->iteration_allowed = false;
             // collection->Unlock();
-    		return false;
+            return false;
         }
         else
         {
@@ -104,7 +104,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             }
             else if (method_type == "MC")
             {
-    			image->iteration_allowed = true;
+                image->iteration_allowed = true;
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_MC( image, idx_image, idx_chain ) );
             }
@@ -113,18 +113,18 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
                 if (Simulation_Running_Anywhere_Chain(state, idx_chain))
                 {
                     Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                         std::string( "There are still one or more simulations running on the specified chain!" ) +
-                         std::string( " Please stop them before starting a GNEB calculation." ) );
+                            std::string( "There are still one or more simulations running on the specified chain!" ) +
+                            std::string( " Please stop them before starting a GNEB calculation." ) );
                     chain->Unlock();
                     return false;
                 }
                 else if (Chain_Get_NOI(state, idx_chain) < 3)
                 {
                     Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                         std::string( "There are less than 3 images in the specified chain!" ) +
-                         std::string( " Please insert more before starting a GNEB calculation." ) );
+                            std::string( "There are less than 3 images in the specified chain!" ) +
+                            std::string( " Please insert more before starting a GNEB calculation." ) );
                     chain->Unlock();
-    				return false;
+                    return false;
                 }
                 else
                 {
@@ -154,15 +154,15 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             else if (method_type == "MMF")
             {
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                     "MMF is not yet implemented!" );
+                        "MMF is not yet implemented!" );
                 chain->Unlock();
                 return false;
                 
                 if (Simulation_Running_Anywhere_Collection(state))
                 {
                     Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                         std::string( "There are still one or more simulations running on the collection!" ) +
-                         std::string( " Please stop them before starting a MMF calculation." ) );
+                            std::string( "There are still one or more simulations running on the collection!" ) +
+                            std::string( " Please stop them before starting a MMF calculation." ) );
                     chain->Unlock();
                     return false;
                 }
@@ -194,7 +194,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             else
             {
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                     "Invalid Method selected: " + method_type );
+                        "Invalid Method selected: " + method_type );
                 chain->Unlock();
                 return false;
             }
@@ -222,14 +222,14 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     } 
 }
 
 
 void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -241,28 +241,28 @@ void Simulation_SingleShot(State *state, const char * c_method_type, const char 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
 void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_solver_type,
-    int n_iterations, int n_iterations_log, int idx_image, int idx_chain)
+    int n_iterations, int n_iterations_log, int idx_image, int idx_chain) noexcept
 {
     try
     {
         // Iterate
         std::shared_ptr<Engine::Method> method;
-    	if ( Get_Method( state, c_method_type, c_solver_type, n_iterations, n_iterations_log, 
-                         idx_image, idx_chain, method ) )
-    		method->Iterate();
+        if ( Get_Method( state, c_method_type, c_solver_type, n_iterations, n_iterations_log, 
+                            idx_image, idx_chain, method ) )
+            method->Iterate();
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );        
+        spirit_handle_exception_api(idx_image, idx_chain);        
     }
 }
 
-void Simulation_Stop_All(State *state)
+void Simulation_Stop_All(State *state) noexcept
 {
     try
     {
@@ -298,12 +298,12 @@ void Simulation_Stop_All(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();        
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
 
-float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain)
+float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -314,150 +314,219 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
         from_indices( state, idx_image, idx_chain, image, chain );
 
         if (Simulation_Running_Image(state, idx_image, idx_chain))
-    	{
-    		if (state->method_image[idx_chain][idx_image])
-    			return (float) state->method_image[idx_chain][idx_image]->getForceMaxAbsComponent();
-    	}
-    	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_chain[idx_chain])
-    			return (float) state->method_chain[idx_chain]->getForceMaxAbsComponent();
+            if (state->method_image[idx_chain][idx_image])
+                return (float) state->method_image[idx_chain][idx_image]->getForceMaxAbsComponent();
         }
-    	else if (Simulation_Running_Collection(state))
+        else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_collection)
-    			return (float) state->method_collection->getForceMaxAbsComponent();
+            if (state->method_chain[idx_chain])
+                return (float) state->method_chain[idx_chain]->getForceMaxAbsComponent();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return (float) state->method_collection->getForceMaxAbsComponent();
         }
 
-    	return 0;
+        return 0;
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 
-float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain)
+void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, int idx_chain) noexcept
+{
+    int idx_image = -1;
+
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        if (Simulation_Running_Chain(state, idx_chain))
+        {
+            std::vector<scalar> t(chain->noi, 0);
+            
+            if (state->method_chain[idx_chain])
+                t = state->method_chain[idx_chain]->getForceMaxAbsComponent_All();
+
+            for (int i=0; i<chain->noi; ++i)
+            {
+                torques[i] = t[i];
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+
+float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
-    	// Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
-    	{
-    		if (state->method_image[idx_chain][idx_image])
-    			return (float)state->method_image[idx_chain][idx_image]->getIterationsPerSecond();
-    	}
-    	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_chain[idx_chain])
-    			return (float)state->method_chain[idx_chain]->getIterationsPerSecond();
+            if (state->method_image[idx_chain][idx_image])
+                return (float)state->method_image[idx_chain][idx_image]->getIterationsPerSecond();
         }
-    	else if (Simulation_Running_Collection(state))
+        else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_collection)
-    			return (float)state->method_collection->getIterationsPerSecond();
+            if (state->method_chain[idx_chain])
+                return (float)state->method_chain[idx_chain]->getIterationsPerSecond();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return (float)state->method_collection->getIterationsPerSecond();
         }
 
-    	return 0;
+        return 0;
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return 0;
     }
 }
 
 
-const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain)
+int Simulation_Get_Iteration(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
         // Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        {
+            if (state->method_image[idx_chain][idx_image])
+                return (float)state->method_image[idx_chain][idx_image]->getNIterations();
+        }
+        else if (Simulation_Running_Chain(state, idx_chain))
+        {
+            if (state->method_chain[idx_chain])
+                return (float)state->method_chain[idx_chain]->getNIterations();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return (float)state->method_collection->getNIterations();
+        }
+
+        return 0;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+
+const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
-    	{
-    		if (state->method_image[idx_chain][idx_image])
-    			return state->method_image[idx_chain][idx_image]->SolverName().c_str();
-    	}
-    	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_chain[idx_chain])
-    			return state->method_chain[idx_chain]->SolverName().c_str();
+            if (state->method_image[idx_chain][idx_image])
+                return state->method_image[idx_chain][idx_image]->SolverName().c_str();
         }
-    	else if (Simulation_Running_Collection(state))
+        else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_collection)
-    			return state->method_collection->SolverName().c_str();
+            if (state->method_chain[idx_chain])
+                return state->method_chain[idx_chain]->SolverName().c_str();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return state->method_collection->SolverName().c_str();
         }
         
-    	return "";
+        return "";
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
-const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain)
+const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
         // Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
-    	{
-    		if (state->method_image[idx_chain][idx_image])
-    			return state->method_image[idx_chain][idx_image]->Name().c_str();
-    	}
-    	else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_chain[idx_chain])
-    			return state->method_chain[idx_chain]->Name().c_str();
+            if (state->method_image[idx_chain][idx_image])
+                return state->method_image[idx_chain][idx_image]->Name().c_str();
         }
-    	else if (Simulation_Running_Collection(state))
+        else if (Simulation_Running_Chain(state, idx_chain))
         {
-    		if (state->method_collection)
-    			return state->method_collection->Name().c_str();
+            if (state->method_chain[idx_chain])
+                return state->method_chain[idx_chain]->Name().c_str();
+        }
+        else if (Simulation_Running_Collection(state))
+        {
+            if (state->method_collection)
+                return state->method_collection->Name().c_str();
         }
 
-    	return "";
+        return "";
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return nullptr;
     }
 }
 
 
 
-bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
+bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
         // Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -467,20 +536,20 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Chain(State *state, int idx_chain)
+bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
     try
     {
         // Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
             from_indices( state, idx_image, idx_chain, image, chain );
@@ -492,12 +561,12 @@ bool Simulation_Running_Chain(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Collection(State *state)
+bool Simulation_Running_Collection(State *state) noexcept
 {
     try
     {
@@ -508,21 +577,21 @@ bool Simulation_Running_Collection(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
         return false;
     }
 }
 
 
-bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
+bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
     try
     {
         // Fetch correct indices and pointers for image and chain
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -538,16 +607,16 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
-bool Simulation_Running_Anywhere_Collection(State *state)
+bool Simulation_Running_Anywhere_Collection(State *state) noexcept
 {
     try
     {
-    	if (Simulation_Running_Collection(state)) 
+        if (Simulation_Running_Collection(state)) 
             return true;
         
         for (int ichain=0; ichain<state->collection->noc; ++ichain)
@@ -558,7 +627,7 @@ bool Simulation_Running_Anywhere_Collection(State *state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
         return false;        
     }
 }

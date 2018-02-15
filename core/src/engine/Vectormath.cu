@@ -1,8 +1,10 @@
 #ifdef USE_CUDA
 
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -12,12 +14,15 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+using namespace Utility;
+using Utility::Constants::Pi;
+
 // CUDA Version
 namespace Engine
 {
-	namespace Vectormath
-	{
-		/////////////////////////////////////////////////////////////////
+    namespace Vectormath
+    {
+        /////////////////////////////////////////////////////////////////
         // BOILERPLATE CUDA Reductions
 
         __inline__ __device__
@@ -189,7 +194,7 @@ namespace Engine
         }
 
         std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
-		{
+        {
             int N = 3*vf.size();
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
@@ -200,17 +205,17 @@ namespace Engine
             Vectormath::fill(out_max, 0);
             static scalarfield temp(1, 0);
             Vectormath::fill(temp, 0);
-
+            
             cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
             cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
             cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
 
             return std::pair<scalar, scalar>{out_min[0], out_max[0]};
-		}
+        }
 
 
-		/////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
 
 
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
@@ -221,86 +226,91 @@ namespace Engine
         
         // XXX: should we add test for that function since it's calling the already tested rotat()
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
-                     vectorfield & v_out )
+                        vectorfield & v_out )
         {
-          for( unsigned int i=0; i<v_out.size(); i++)
+            for( unsigned int i=0; i<v_out.size(); i++)
             rotate( v[i], axis[i], angle[i], v_out[i] );
         }
 
-		Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
-		{
-			Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
-			return A.colPivHouseholderQr().solve(v);
-		}
+        Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
+        {
+            Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
+            return A.colPivHouseholderQr().solve(v);
+        }
 
 
-		/////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
 
 
-		void Build_Spins(vectorfield & spin_pos, const std::vector<Vector3> & basis_atoms, const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
-		{
-			// Check for erronous input placing two spins on the same location
-			int max_a = std::min(10, n_cells[0]);
-			int max_b = std::min(10, n_cells[1]);
-			int max_c = std::min(10, n_cells[2]);
-			Vector3 sp;
-			for (unsigned int i = 0; i < basis_atoms.size(); ++i)
-			{
-				for (unsigned int j = 0; j < basis_atoms.size(); ++j)
-				{
-					for (int ka = -max_a; ka <= max_a; ++ka)
-					{
-						for (int kb = -max_b; kb <= max_b; ++kb)
-						{
-							for (int kc = -max_c; kc <= max_c; ++kc)
-							{
-								// Norm is zero if translated basis atom is at position of another basis atom
-								sp = basis_atoms[i] - (basis_atoms[j]
-									+ ka*translation_vectors[0] + kb*translation_vectors[1] + kc*translation_vectors[2]);
-								if ((i != j || ka != 0 || kb != 0 || kc != 0) && std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9)
-								{
-									Log(Utility::Log_Level::Severe, Utility::Log_Sender::All, "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-									Log.Append_to_File();
-									throw Utility::Exception::System_not_Initialized;
-								}
-							}
-						}
-					}
-				}
-			}
+        void Build_Spins(vectorfield & positions, intfield & atom_types,
+            const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
+            const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
+        {
+        // Check for erronous input placing two spins on the same location
+        int max_a = std::min(10, n_cells[0]);
+        int max_b = std::min(10, n_cells[1]);
+        int max_c = std::min(10, n_cells[2]);
+        Vector3 sp;
+        for (unsigned int i = 0; i < cell_atoms.size(); ++i)
+        {
+        for (unsigned int j = 0; j < cell_atoms.size(); ++j)
+        {
+            for (int ka = -max_a; ka <= max_a; ++ka)
+            {
+                for (int k2 = -max_b; k2 <= max_b; ++k2)
+                {
+                    for (int k3 = -max_c; k3 <= max_c; ++k3)
+                    {
+                        // Norm is zero if translated basis atom is at position of another basis atom
+                        sp = cell_atoms[i] - (cell_atoms[j]
+                            + ka * translation_vectors[0]
+                            + k2 * translation_vectors[1]
+                            + k3 * translation_vectors[2]);
+                        if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
+                            std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9 )
+                        {
+                            spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+                                "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                        }
+                    }
+                }
+            }
+        }
+        }
 
-			// Build up the spins array
-			int i, j, k, s, ispin;
-			int nos_basic = basis_atoms.size();
-			//int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
-			Vector3 build_array;
-			for (k = 0; k < n_cells[2]; ++k) {
-				for (j = 0; j < n_cells[1]; ++j) {
-					for (i = 0; i < n_cells[0]; ++i) {
-						for (s = 0; s < nos_basic; ++s) {
-							ispin = k*n_cells[1] * n_cells[0] * nos_basic + j*n_cells[0] * nos_basic + i*nos_basic + s;
-							build_array = i*translation_vectors[0] + j*translation_vectors[1] + k*translation_vectors[2];
-							// paste initial spin orientations across the lattice translations
-							//spins[dim*nos + ispin] = spins[dim*nos + s];
-							// calculate the spin positions
-							spin_pos[ispin] = basis_atoms[s] + build_array;
-						}// endfor s
-					}// endfor k
-				}// endfor j
-			}// endfor dim
+        // Build up the spins array
+        int i, j, k, s, ispin;
+        int nos_basic = cell_atoms.size();
+        //int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
+        Vector3 build_array;
+        for (k = 0; k < n_cells[2]; ++k) {
+        for (j = 0; j < n_cells[1]; ++j) {
+            for (i = 0; i < n_cells[0]; ++i) {
+                for (s = 0; s < nos_basic; ++s) {
+                    ispin = k * n_cells[1] * n_cells[0] * nos_basic + 
+                            j * n_cells[0] * nos_basic + i * nos_basic + s;
+                    build_array = i * translation_vectors[0] + j * translation_vectors[1] + 
+                                    k * translation_vectors[2];
+                    // paste initial spin orientations across the lattice translations
+                    //spins[dim*nos + ispin] = spins[dim*nos + s];
+                    // calculate the spin positions
+                    positions[ispin] = cell_atoms[s] + build_array;
+                    atom_types[ispin] = cell_atom_types[s];
+                }// endfor s
+            }// endfor k
+        }// endfor j
+        }// endfor dim
 
-		};// end Build_Spins
+        };// end Build_Spins
 
 
-		std::array<scalar, 3> Magnetization(const vectorfield & vf)
-		{
-            
+        std::array<scalar, 3> Magnetization(const vectorfield & vf)
+        {
             auto M = mean(vf);
-            cudaDeviceSynchronize();
             return std::array<scalar,3>{M[0], M[1], M[2]};
-		}
+        }
 
-		scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
         {
             // Get sign
             scalar pm = v1.dot(v2.cross(v3));
@@ -357,37 +367,37 @@ namespace Engine
                 // charge += sign * solid_angle_1(v1, v2, v3);
                 charge += sign * solid_angle_2(v1, v2, v3);
             }
-            return charge / (4*M_PI);
+            return charge / (4*Pi);
         }
 
         // Utility function for the SIB Solver
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
-			Vector3 e1, a2, A;
-			scalar detAi;
+            Vector3 e1, a2, A;
+            scalar detAi;
             if(idx < N)
             {
                 e1 = spins[idx];
-				A = 0.5 * force[idx];
+                A = 0.5 * force[idx];
 
-				// 1/determinant(A)
-				detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+                // 1/determinant(A)
+                detAi = 1.0 / (1 + pow(A.norm(), 2.0));
 
-				// calculate equation without the predictor?
-				a2 = e1 - e1.cross(A);
+                // calculate equation without the predictor?
+                a2 = e1 - e1.cross(A);
 
-				out[idx][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-				out[idx][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-				out[idx][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
+                out[idx][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
+                out[idx][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
+                out[idx][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
             }
         }
-		void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-		{
+        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
+        {
             int n = spins.size();
             cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
@@ -414,23 +424,23 @@ namespace Engine
                 }
             }
         }
-		void get_random_vectorfield(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi)
-		{
+        void get_random_vectorfield(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi)
+        {
             int n = xi.size();
             cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
-			scalar v_z = distribution(prng);
-			scalar phi = distribution(prng);
+            scalar v_z = distribution(prng);
+            scalar phi = distribution(prng);
 
-			scalar r_xy = std::sqrt(1 - v_z*v_z);
+            scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-			vec[0] = r_xy * std::cos(2*M_PI*phi);
-			vec[1] = r_xy * std::sin(2 * M_PI*phi);
-			vec[2] = v_z;
+            vec[0] = r_xy * std::cos(2*Pi*phi);
+            vec[1] = r_xy * std::sin(2*Pi*phi);
+            vec[2] = v_z;
         }
         // __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
         // {
@@ -443,14 +453,14 @@ namespace Engine
         //         idx +=  blockDim.x * gridDim.x)
         //     {
         //         curand_init(idx,subsequence,offset,&state);
-			
+            
         //         scalar v_z = llroundf(curand_uniform(&state))*2-1;
         //         scalar phi = llroundf(curand_uniform(&state))*2-1;
 
-		// 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
+        // 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-        //         xi[idx][0] = r_xy * std::cos(2*M_PI*phi);
-        //         xi[idx][1] = r_xy * std::sin(2 * M_PI*phi);
+        //         xi[idx][0] = r_xy * std::cos(2*Pi*phi);
+        //         xi[idx][1] = r_xy * std::sin(2*Pi*phi);
         //         xi[idx][2] = v_z;
         //     }
         // }
@@ -458,7 +468,7 @@ namespace Engine
         // {
         //     int n = xi.size();
         //     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
-        //     cudaDeviceSynchronize();
+        //     CU_CHECK_AND_SYNC();
         // }
         // The above CUDA implementation does not work correctly.
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
@@ -469,8 +479,27 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i < xi.size(); ++i)
             {
-				get_random_vector_unitsphere(distribution, prng, xi[i]);
+                get_random_vector_unitsphere(distribution, prng, xi[i]);
             }
+        }
+
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Starting value
+            fill(distribution, gradient_start);
+
+            // Basic linear gradient distribution
+            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, -dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
         }
 
 
@@ -480,9 +509,9 @@ namespace Engine
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
             auto& n_cells = geometry.n_cells;
 
-            Vector3 a = geometry.translation_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.translation_vectors[1];
-            Vector3 c = geometry.translation_vectors[2];
+            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
+            Vector3 b = geometry.bravais_vectors[1];
+            Vector3 c = geometry.bravais_vectors[2];
 
             neighbourfield neigh;
 
@@ -527,54 +556,72 @@ namespace Engine
             neigh_tmp.translations[2] = -1;
             neigh.push_back(neigh_tmp);
 
-            // difference quotients in different directions
-            Vector3 diffq, diffqx, diffqy, diffqz;
-
             // Loop over vectorfield
-            int nos = vf.size();
-            for(unsigned int ispin = 0; ispin < nos; ++ispin)
+            for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
             {
-                // auto translations_i = translations_from_idx(n_cells, geometry.n_spins_basic_domain, ispin); // transVec of spin i
-                // int k = i%geometry.n_spins_basic_domain; // index within unit cell - k=0 for all cases used in the thesis
+                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
+                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
                 scalar n = 0;
 
-                diffqx = { 0,0,0 }; diffqy = { 0,0,0 }; diffqz = { 0,0,0 };
-                
+                gradient[ispin].setZero();
+
+                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
+                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+                Vector3 proj = {0, 0, 0};
+                Vector3 projection_inv = {0, 0, 0};
+
+                // TODO: both loops together.
+
+                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
                 for(unsigned int j = 0; j < neigh.size(); ++j)
                 {
-                    int jspin = idx_from_pair(ispin, boundary_conditions, n_cells, geometry.n_spins_basic_domain, geometry.atom_types, neigh[j]);
-                    if (jspin >= 0)
-                    // if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
-                        // index of neighbour
-                        // int ineigh = idx_from_translations(n_cells, geometry.n_spins_basic_domain, translations_i, neigh[j].translations);
-                        
-                        Vector3 translationVec3 = neigh[j].translations[0]*a + neigh[j].translations[1]*b + neigh[j].translations[2]*c;
-                        // add "+ geometry.basis_atoms[neigh[k][j].jatom] - geometry.basis_atoms[k]" for unit cells with >1atom ?
-
-                        // difference quotient in direction of the neighbour
-                        diffq = ( vf[jspin] - vf[ispin] ) / translationVec3.norm();
-
-                        // projection of difference quotient in euclidian space
-                        diffqx += translationVec3[0]*diffq;
-                        diffqy += translationVec3[1]*diffq;
-                        diffqz += translationVec3[2]*diffq;
-                        
-                        // boundary conditions considered
-                        n += 1;
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
+                            }
+                        }
+                    }
+                }
+                for (int dim=0; dim<3; ++dim)
+                {
+                    if (std::abs(proj[dim]) > 1e-10)
+                        projection_inv[dim] = 1.0/proj[dim];
+                }
+                // Loop over neighbours of this vector to calculate finite differences
+                for(unsigned int j = 0; j < neigh.size(); ++j)
+                {
+                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if (ineigh >= 0)
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for (int dim=0; dim<3; ++dim)
+                            {
+                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
+                            }
+                        }
                     }
                 }
 
-                diffqx = diffqx/n; diffqy = diffqy/n; diffqz = diffqz/n;
-
-
-                gradient.push_back(direction[0]*diffqx + direction[1]*diffqy + direction[2]*diffqz); // dot(direction, diffqxyz, scalarfield & out)
+                for (int dim=0; dim<3; ++dim)
+                {
+                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
+                }
             }
         }
 
 
 
-		/////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
 
 
         __global__ void cu_fill(scalar *sf, scalar s, size_t N)
@@ -586,11 +633,11 @@ namespace Engine
             }
         }
         void fill(scalarfield & sf, scalar s)
-		{
+        {
             int n = sf.size();
             cu_fill<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
         __global__ void cu_fill_mask(scalar *sf, scalar s, const int * mask, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -599,12 +646,12 @@ namespace Engine
                 sf[idx] = mask[idx]*s;
             }
         }
-		void fill(scalarfield & sf, scalar s, const intfield & mask)
-		{
+        void fill(scalarfield & sf, scalar s, const intfield & mask)
+        {
             int n = sf.size();
             cu_fill_mask<<<(n+1023)/1024, 1024>>>(sf.data(), s, mask.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         __global__ void cu_scale(scalar *sf, scalar s, size_t N)
         {
@@ -614,15 +661,30 @@ namespace Engine
                 sf[idx] *= s;
             }
         }
-		void scale(scalarfield & sf, scalar s)
-		{
+        void scale(scalarfield & sf, scalar s)
+        {
             int n = sf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
-		scalar sum(const scalarfield & sf)
-		{
+        __global__ void cu_add(scalar *sf, scalar s, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                sf[idx] += s;
+            }
+        }
+        void add(scalarfield & sf, scalar s)
+        {
+            int n = sf.size();
+            cu_add<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
+            cudaDeviceSynchronize();
+        }
+
+        scalar sum(const scalarfield & sf)
+        {
             int N = sf.size();
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
@@ -630,23 +692,25 @@ namespace Engine
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
             return ret[0];
-		}
+        }
 
-		scalar mean(const scalarfield & sf)
-		{
+        scalar mean(const scalarfield & sf)
+        {
             int N = sf.size();
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
+
             cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
+
             ret[0] = ret[0]/N;
             return ret[0];
-		}
+        }
 
         __global__ void cu_divide(const scalar * numerator, const scalar * denominator, scalar * out, size_t N)
         {
@@ -660,9 +724,15 @@ namespace Engine
         {
             int n = numerator.size();
             cu_divide<<<(n+1023)/1024, 1024>>>(numerator.data(), denominator.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
+        }
 
         __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
         {
@@ -676,7 +746,7 @@ namespace Engine
         {
             int n = vf.size();
             cu_fill<<<(n+1023)/1024, 1024>>>(vf.data(), v, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_fill_mask(Vector3 *vf1, Vector3 v2, const int * mask, size_t N)
         {
@@ -686,12 +756,12 @@ namespace Engine
                 vf1[idx] = v2;
             }
         }
-		void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
-		{
+        void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
+        {
             int n = vf.size();
             cu_fill_mask<<<(n+1023)/1024, 1024>>>(vf.data(), v, mask.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         __global__ void cu_normalize_vectors(Vector3 *vf, size_t N)
         {
@@ -701,12 +771,12 @@ namespace Engine
                 vf[idx].normalize();
             }
         }
-		void normalize_vectors(vectorfield & vf)
-		{
+        void normalize_vectors(vectorfield & vf)
+        {
             int n = vf.size();
             cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         __global__ void cu_norm(const Vector3 * vf, scalar * norm, size_t N)
         {
@@ -720,19 +790,19 @@ namespace Engine
         {
             int n = vf.size();
             cu_norm<<<(n+1023)/1024, 1024>>>(vf.data(), norm.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
-        scalar  max_abs_component(const vectorfield & vf)
-		{
-			// We want the Maximum of Absolute Values of all force components on all images
-			// Find minimum and maximum values
-			std::pair<scalar,scalar> minmax = minmax_component(vf);
+        scalar max_abs_component(const vectorfield & vf)
+        {
+            // We want the Maximum of Absolute Values of all force components on all images
+            // Find minimum and maximum values
+            std::pair<scalar,scalar> minmax = minmax_component(vf);
             scalar absmin = std::abs(minmax.first);
             scalar absmax = std::abs(minmax.second);
-			// Maximum of absolute values
-			return std::max(absmin, absmax);
-		}
+            // Maximum of absolute values
+            return std::max(absmin, absmax);
+        }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
         {
@@ -746,11 +816,11 @@ namespace Engine
         {
             int n = vf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sc, n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         Vector3 sum(const vectorfield & vf)
-		{
+        {
             int N = vf.size();
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
@@ -758,23 +828,25 @@ namespace Engine
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
             return ret[0];
-		}
+        }
 
-		Vector3 mean(const vectorfield & vf)
-		{
+        Vector3 mean(const vectorfield & vf)
+        {
             int N = vf.size();
             int threads = 512;
             int blocks = min((N + threads - 1) / threads, 1024);
 
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
+
             cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
+
             ret[0] = ret[0]/N;
             return ret[0];
-		}
+        }
 
 
 
@@ -797,7 +869,7 @@ namespace Engine
 
             // Dot product
             cu_dot<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), sf.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
 
             // reduction
             ret = sum(sf);
@@ -810,7 +882,7 @@ namespace Engine
 
             // Dot product
             cu_dot<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_scalardot(const scalar * s1, const scalar * s2, scalar * out, size_t N)
@@ -829,7 +901,7 @@ namespace Engine
 
             // Dot product
             cu_scalardot<<<(n+1023)/1024, 1024>>>(s1.data(), s2.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_cross(const Vector3 *vf1, const Vector3 *vf2, Vector3 *out, size_t N)
@@ -847,7 +919,7 @@ namespace Engine
 
             // Dot product
             cu_cross<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -866,7 +938,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a2(scalar c, const Vector3 * a, Vector3 * out, size_t N)
@@ -882,7 +954,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
@@ -898,7 +970,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
@@ -914,7 +986,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -931,7 +1003,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a<<<(n+1023)/1024, 1024>>>(c, a, out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_set_c_a_mask(scalar c, Vector3 a, Vector3 * out, const int * mask, size_t N)
         {
@@ -941,13 +1013,13 @@ namespace Engine
                 out[idx] = mask[idx]*c*a;
             }
         }
-		// out[i] = c*a
-		void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
-		{
+        // out[i] = c*a
+        void set_c_a(const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask)
+        {
             int n = out.size();
             cu_set_c_a_mask<<<(n+1023)/1024, 1024>>>(c, a, out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         __global__ void cu_set_c_a2(scalar c, const Vector3 * a, Vector3 * out, size_t N)
         {
@@ -962,7 +1034,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a2<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
         __global__ void cu_set_c_a2_mask(scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N)
         {
@@ -973,12 +1045,12 @@ namespace Engine
             }
         }
         // out[i] = c*a[i]
-		void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
-		{
+        void set_c_a(const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask)
+        {
             int n = out.size();
             cu_set_c_a2_mask<<<(n+1023)/1024, 1024>>>(c, a.data(), out.data(), mask.data(), n);
-            cudaDeviceSynchronize();
-		}
+            CU_CHECK_AND_SYNC();
+        }
 
         __global__ void cu_set_c_a3(const scalar * c, const Vector3 * a, Vector3 * out, size_t N)
         {
@@ -993,7 +1065,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_a3<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1011,7 +1083,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_add_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
@@ -1027,7 +1099,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1044,7 +1116,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_set_c_dot(scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N)
@@ -1060,7 +1132,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
 
@@ -1078,7 +1150,7 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         // out[i] += c * a[i] x b[i]
@@ -1094,6 +1166,22 @@ namespace Engine
         {
             int n = out.size();
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
+            CU_CHECK_AND_SYNC();
+        }
+        
+        // out[i] += c * a[i] x b[i]
+        __global__ void cu_add_c_cross(const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                out[idx] += c[idx]*a[idx].cross(b[idx]);
+            }
+        }
+        void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out)
+        {
+            int n = out.size();
+            cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c.data(), a.data(), b.data(), out.data(), n);
             cudaDeviceSynchronize();
         }
 
@@ -1111,7 +1199,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a, b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
 
         // out[i] = c * a[i] x b[i]
@@ -1127,7 +1215,7 @@ namespace Engine
         {
             int n = out.size();
             cu_set_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
-            cudaDeviceSynchronize();
+            CU_CHECK_AND_SYNC();
         }
     }
 }

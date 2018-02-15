@@ -3,16 +3,11 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Configurations.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
 #include <fmt/format.h>
-
-#include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 
 std::function<bool(const Vector3&, const Vector3&)> 
@@ -31,12 +26,12 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
         filter =
             [ position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                 no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical, no_cut_spherical ]
-            (const Vector3& spin, const Vector3& spin_pos)
+            (const Vector3& spin, const Vector3& positions)
         {
-            Vector3 r_rectangular = spin_pos - position;
-            scalar r_cylindrical = std::sqrt(std::pow(spin_pos[0] - position[0], 2) + 
-                                    std::pow(spin_pos[1] - position[1], 2));
-            scalar r_spherical   = (spin_pos-position).norm();
+            Vector3 r_rectangular = positions - position;
+            scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) + 
+                                    std::pow(positions[1] - position[1], 2));
+            scalar r_spherical   = (positions-position).norm();
             if (   ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
                 && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
                 && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
@@ -51,12 +46,12 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
         filter =
             [ position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x, 
                 no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical, no_cut_spherical]
-            (const Vector3& spin, const Vector3& spin_pos)
+            (const Vector3& spin, const Vector3& positions)
         {
-            Vector3 r_rectangular = spin_pos - position;
-            scalar r_cylindrical = std::sqrt(std::pow(spin_pos[0] - position[0], 2) +
-                                    std::pow(spin_pos[1] - position[1], 2));
-            scalar r_spherical   = (spin_pos-position).norm();
+            Vector3 r_rectangular = positions - position;
+            scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) +
+                                    std::pow(positions[1] - position[1], 2));
+            scalar r_spherical   = (positions-position).norm();
             if (!( ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
                 && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
                 && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
@@ -111,29 +106,29 @@ std::string filter_to_string( const float position[3], const float r_cut_rectang
     return ret;
 }
 
-void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain)
+void Configuration_To_Clipboard(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
-    	std::shared_ptr<Data::Spin_System> image;
-    	std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
         
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-    	state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
-    	Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-    		"Copied spin configuration to clipboard.", idx_image, idx_chain);
+        state->clipboard_spins = std::shared_ptr<vectorfield>(new vectorfield(*image->spins));
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Copied spin configuration to clipboard.", idx_image, idx_chain);
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_From_Clipboard( State *state, const float position[3], 
                                    const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                                   float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                                   float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -163,14 +158,14 @@ void Configuration_From_Clipboard( State *state, const float position[3],
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 bool Configuration_From_Clipboard_Shift( State *state, const float position_initial[3], 
                                          const float position_final[3], const float r_cut_rectangular[3], 
                                          float r_cut_cylindrical, float r_cut_spherical, bool inverted,
-                                         int idx_image, int idx_chain )
+                                         int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -185,7 +180,7 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
         Vector3 pos_final{ position_final[0], position_final[1], position_final[2] };
         Vector3 shift = pos_initial - pos_final;
 
-        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->basis);
+        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->bravais_vectors);
         
         int da = (int)std::round(decomposed[0]);
         int db = (int)std::round(decomposed[1]);
@@ -195,9 +190,9 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
             return false;
 
         auto& geometry = *image->geometry;
-        int delta = geometry.n_spins_basic_domain * da + 
-                    geometry.n_spins_basic_domain * geometry.n_cells[0] * db + 
-                    geometry.n_spins_basic_domain * geometry.n_cells[0] * geometry.n_cells[1] * dc;
+        int delta = geometry.n_cell_atoms * da + 
+                    geometry.n_cell_atoms * geometry.n_cells[0] * db + 
+                    geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
 
         // Create position filter
         auto filter = get_filter( pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, 
@@ -226,14 +221,14 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
         return false;
     }
 }
 
 void Configuration_Domain( State *state, const float direction[3], const float position[3], 
                            const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                           float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                           float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -265,33 +260,33 @@ void Configuration_Domain( State *state, const float direction[3], const float p
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 // void Configuration_DomainWall( State *state, const float pos[3], float v[3], bool greater, 
-//                                int idx_image, int idx_chain)
+//                                int idx_image, int idx_chain) noexcept
 // {
-// 	std::shared_ptr<Data::Spin_System> image;
-// 	std::shared_ptr<Data::Spin_System_Chain> chain;
-// 	from_indices(state, idx_image, idx_chain, image, chain);
+//     std::shared_ptr<Data::Spin_System> image;
+//     std::shared_ptr<Data::Spin_System_Chain> chain;
+//     from_indices(state, idx_image, idx_chain, image, chain);
 
-// 	// Create position filter
-// 	Vector3 vpos{pos[0], pos[1], pos[2]};
-// 	std::function< bool( const Vector3&, const Vector3&) > filter = [vpos](const Vector3& spin, 
-//                       const Vector3& position)
-// 	{
-// 		scalar r = std::sqrt(std::pow(position[0] - vpos[0], 2) + std::pow(position[1] - vpos[1], 2));
-// 		if ( r < 3) return true;
-// 		return false;
-// 	};
-// 	// Apply configuration
-// 	Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
+//     // Create position filter
+//     Vector3 vpos{pos[0], pos[1], pos[2]};
+//     std::function< bool( const Vector3&, const Vector3&) > filter = [vpos](const Vector3& spin, 
+//                         const Vector3& position)
+//     {
+//         scalar r = std::sqrt(std::pow(position[0] - vpos[0], 2) + std::pow(position[1] - vpos[1], 2));
+//         if ( r < 3) return true;
+//         return false;
+//     };
+//     // Apply configuration
+//     Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
 // }
 
 void Configuration_PlusZ( State *state, const float position[3], const float r_cut_rectangular[3], 
                           float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                          int idx_image, int idx_chain )
+                          int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -318,17 +313,17 @@ void Configuration_PlusZ( State *state, const float position[3], const float r_c
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
                                               r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-    	     "Set PlusZ configuration. " + filterstring, idx_image, idx_chain );
+             "Set PlusZ configuration. " + filterstring, idx_image, idx_chain );
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_MinusZ( State *state, const float position[3], const float r_cut_rectangular[3], 
                            float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                           int idx_image, int idx_chain )
+                           int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -353,19 +348,19 @@ void Configuration_MinusZ( State *state, const float position[3], const float r_
         image->Unlock();
 
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
-                                                r_cut_spherical, inverted );
+                                              r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 "Set MinusZ configuration. " + filterstring, idx_image, idx_chain);
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Random( State *state, const float position[3], const float r_cut_rectangular[3], 
                            float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                           bool external, int idx_image, int idx_chain )
+                           bool external, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -389,20 +384,20 @@ void Configuration_Random( State *state, const float position[3], const float r_
         image->Unlock();
 
         auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, 
-                                                r_cut_spherical, inverted );
+                                              r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 "Set random configuration. " + filterstring, idx_image, idx_chain );
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Add_Noise_Temperature( State *state, float temperature, const float position[3], 
                                           const float r_cut_rectangular[3], float r_cut_cylindrical, 
                                           float r_cut_spherical, bool inverted, int idx_image, 
-                                          int idx_chain )
+                                          int idx_chain ) noexcept
 {
     try
     {
@@ -433,13 +428,13 @@ void Configuration_Add_Noise_Temperature( State *state, float temperature, const
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Hopfion( State *state, float r, int order, const float position[3], 
                             const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -454,7 +449,7 @@ void Configuration_Hopfion( State *state, float r, int order, const float positi
         Vector3 vpos = image->geometry->center + _pos;
         
         // Set cutoff radius
-        if (r_cut_spherical < 0) r_cut_spherical = r * (float)M_PI;
+        if (r_cut_spherical < 0) r_cut_spherical = r * (float)Utility::Constants::Pi;
         
         // Create position filter
         auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -475,14 +470,14 @@ void Configuration_Hopfion( State *state, float r, int order, const float positi
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_Skyrmion( State *state, float r, float order, float phase, bool upDown,
                              bool achiral, bool rl, const float position[3],
                              const float r_cut_rectangular[3], float r_cut_cylindrical,
-                             float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                             float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -523,14 +518,14 @@ void Configuration_Skyrmion( State *state, float r, float order, float phase, bo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_SpinSpiral( State *state, const char * direction_type, float q[3], float axis[3], 
                                float theta, const float position[3], const float r_cut_rectangular[3], 
                                float r_cut_cylindrical, float r_cut_spherical, bool inverted, 
-                               int idx_image, int idx_chain )
+                               int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -568,14 +563,14 @@ void Configuration_SpinSpiral( State *state, const char * direction_type, float 
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
 
 void Configuration_SpinSpiral_2q( State *state, const char * direction_type, float q1[3], 
                                   float q2[3], float axis[3], float theta, const float position[3], 
                                   const float r_cut_rectangular[3], float r_cut_cylindrical, 
-                                  float r_cut_spherical, bool inverted, int idx_image, int idx_chain )
+                                  float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -614,6 +609,6 @@ void Configuration_SpinSpiral_2q( State *state, const char * direction_type, flo
     }
     catch( ... )
     {
-        Utility::Handle_Exception( idx_image, idx_chain );
+        spirit_handle_exception_api(idx_image, idx_chain);
     }
 }

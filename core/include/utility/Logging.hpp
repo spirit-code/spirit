@@ -42,13 +42,13 @@ namespace Utility
 	*/
 	enum class Log_Level
 	{
-		All = Log_Level_All,
-		Severe = Log_Level_Severe,
-		Error = Log_Level_Error,
-		Warning = Log_Level_Warning,
+		All       = Log_Level_All,
+		Severe    = Log_Level_Severe,
+		Error     = Log_Level_Error,
+		Warning   = Log_Level_Warning,
 		Parameter = Log_Level_Parameter,
-		Info = Log_Level_Info,
-		Debug = Log_Level_Debug
+		Info      = Log_Level_Info,
+		Debug     = Log_Level_Debug
 	};
 
 	/*
@@ -78,9 +78,10 @@ namespace Utility
 	{
 	public:
 		// Send Log messages
-		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 		void Send(Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
 		void operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image=-1, int idx_chain=-1);
+		void SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
+		void operator() (Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image=-1, int idx_chain=-1);
 
 		// Get the Log's entries
 		std::vector<LogEntry> GetEntries();
@@ -89,8 +90,9 @@ namespace Utility
 		void Append_to_File();
 		void Dump_to_File();
 
-		// Wether to tag the time in front of the Log file name
-		bool tag_time;
+		// The file tag in from of the Log or Output files (if "<time>" is used then the tag is 
+        // the timestamp)
+		std::string file_tag;
 		// Output folder where to save the Log file
 		std::string output_folder;
 		// Save Log messages to file
@@ -105,6 +107,11 @@ namespace Utility
 		bool save_input_initial;
 		// Save input at shutdown (config / defaults) - note this is done by State_Delete
 		bool save_input_final;
+		// Same for positions and neighbours
+		bool save_positions_initial;
+		bool save_positions_final;
+		bool save_neighbours_initial;
+		bool save_neighbours_final;
 		// Name of the Log file
 		std::string fileName;
 		// Number of Log entries

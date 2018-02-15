@@ -16,7 +16,7 @@ namespace Utility
 		// Default filter function
 		typedef std::function< bool(const Vector3&, const Vector3&) > filterfunction;
 		filterfunction const defaultfilter = [](const Vector3& spin, const Vector3& pos)->bool { return true; };
-		void filter_to_mask(const vectorfield & spins, const vectorfield & spin_pos, filterfunction filter, intfield & mask);
+		void filter_to_mask(const vectorfield & spins, const vectorfield & positions, filterfunction filter, intfield & mask);
 
 		// TODO: replace the Spin_System references with smart pointers??
 

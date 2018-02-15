@@ -21,6 +21,7 @@ SET( SPIRIT_ENABLE_PINNING    OFF  CACHE BOOL "Enable pinning individual or rows
 SET( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in the lattice." )
 ### Options for Spirit
 SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
+SET( SPIRIT_TEST_COVERAGE     OFF  CACHE BOOL "Build in debug mode with special flags for coverage checks." )
 SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
 SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
@@ -44,16 +45,18 @@ option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cl
 ### the compiler. Either pass them in via command-line or use
 ### the CUDA_TOOLKIT_ROOT_DIR variable.
 if( SPIRIT_USE_CUDA )
+	### Deactivate OpenMP
+	set( SPIRIT_USE_OPENMP          OFF )
 	### Set cuda toolkit path
-	set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
-	# if( (NOT CUDA_TOOLKIT_ROOT_DIR) )
-	# 	if ( APPLE OR UNIX )
-	# 		set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-	# 	elseif (WIN32)
-	# 		set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
-	# 		MESSAGE( STATUS ">> We are on Windows... CUDA Path may need to be set..." )
-	# 	endif()
-	# endif()
+	if( NOT CUDA_TOOLKIT_ROOT_DIR )
+		if ( APPLE OR UNIX )
+			set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
+			# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+		elseif (WIN32)
+			set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
+			MESSAGE( STATUS ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
+		endif()
+	endif()
 	### Set compilers
 	if( APPLE OR UNIX )
 		if( DEFINED CUDA_TOOLKIT_ROOT_DIR )
@@ -125,11 +128,11 @@ endif()
 #############################################
 if ( SPIRIT_USE_OPENMP )
 	include( FindOpenMP )
-    if( OPENMP_FOUND )
-        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-    endif( )
+	if( OPENMP_FOUND )
+		set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+	endif( )
 endif( )
 #############################################
 
@@ -139,6 +142,8 @@ endif( )
 set (       CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install")
 list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
 list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_AR=${CMAKE_AR}")
+list(APPEND CMAKE_QHULL_ARGS "-DCMAKE_RANLIB=${CMAKE_RANLIB}")
 include(ExternalProject)
 ExternalProject_add(qhull
 	SOURCE_DIR    "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
@@ -178,22 +183,23 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 #############################################
 
 
+
 ######### Add Subdirectory Projects #########
 ### Spirit library is built in any case
 add_subdirectory( core )
+### Web UI
+if( SPIRIT_BUILD_FOR_JS )
+	add_subdirectory( ui-web )
 ### CXX UI
-if( SPIRIT_BUILD_FOR_CXX )
+elseif( SPIRIT_BUILD_FOR_CXX )
 	if ( UI_CXX_USE_QT )
 		add_subdirectory( VFRendering )
 		add_definitions( -DUI_CXX_USE_QT )
 	endif()
 	add_subdirectory( ui-cpp )
 endif()
-### Web UI
-if( SPIRIT_BUILD_FOR_JS )
-	add_subdirectory( ui-web )
-endif()
 #############################################
+
 
 
 ################ Install ####################
@@ -205,6 +211,7 @@ if( SPIRIT_BUILD_FOR_CXX )
 	install(DIRECTORY input   DESTINATION bin)
 endif( )
 #############################################
+
 
 
 ######### Write VERSION.txt #################

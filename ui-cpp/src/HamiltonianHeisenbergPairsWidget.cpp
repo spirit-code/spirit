@@ -7,10 +7,10 @@
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
-#include <Spirit/Exception.h>
 #include <Spirit/Hamiltonian.h>
 
 // Small function for normalization of vectors
+#define Exception_Division_by_zero 666666666666
 template <typename T>
 void normalize(T v[3])
 {
@@ -57,7 +57,7 @@ void HamiltonianHeisenbergPairsWidget::updateData()
 void HamiltonianHeisenbergPairsWidget::Load_Contents()
 {
 	float d, vd[3];
-	int n_basis_atoms = Geometry_Get_N_Basis_Atoms(state.get());
+	int n_basis_atoms = Geometry_Get_N_Cell_Atoms(state.get());
 	std::vector<float> mu_s(n_basis_atoms);
 
 	// Boundary conditions

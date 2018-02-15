@@ -3,7 +3,6 @@
 #include "HamiltonianGaussianWidget.hpp"
 
 #include <Spirit/Log.h>
-#include <Spirit/Exception.h>
 #include <Spirit/Hamiltonian.h>
 
 HamiltonianGaussianWidget::HamiltonianGaussianWidget(std::shared_ptr<State> state)

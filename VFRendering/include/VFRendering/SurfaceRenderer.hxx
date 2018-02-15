@@ -3,13 +3,13 @@
 
 #include <array>
 
-#include <VFRendering/RendererBase.hxx>
+#include <VFRendering/VectorFieldRenderer.hxx>
 
 namespace VFRendering {
 
-class SurfaceRenderer : public RendererBase {
+class SurfaceRenderer : public VectorFieldRenderer {
 public:
-    SurfaceRenderer(const View& view);
+    SurfaceRenderer(const View& view, const VectorField& vf);
     virtual ~SurfaceRenderer();
     virtual void draw(float aspect_ratio) override;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options) override;

@@ -1,8 +1,8 @@
 #include <Spirit/State.h>
-#include <Spirit/Version.h>
 #include "Spirit_Defines.h"
 #include <data/State.hpp>
 #include <io/IO.hpp>
+#include <utility/Version.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Logging.hpp>
@@ -12,37 +12,61 @@
 
 using namespace Utility;
 
-State * State_Setup(const char * config_file, bool quiet)
+
+// Forward declaration of helper function
+void Save_Initial_Final( State * state, bool initial );
+
+
+State * State_Setup(const char * config_file, bool quiet) noexcept
 {
+    State *state = new State();
+
+    //---------------------- Initial state data and initial block of log messages ---
     try
     {
         // Create the State
-        State *state = new State();
         state->datetime_creation = system_clock::now();
         state->datetime_creation_string = Utility::Timing::TimePointToString(state->datetime_creation);
         state->config_file = config_file;
         state->quiet = quiet;
 
-        //---------------------- Initial Block of Log messages -------------------------------------
         // Log version info
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
-        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(VERSION));
+        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(version));
         
         // Log revision hash
         Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " + 
-             std::string(VERSION_REVISION));
+                std::string(version_revision));
         
         // Log if quiet mode
         if (state->quiet)
-            Log( Log_Level::All, Log_Sender::All, std::string( "Going to run in QUIET mode" ) + 
-                 std::string( " (only Error messages, no output files)" ) );
+            Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
         
         // Log Config file info
-        Log(Log_Level::All,  Log_Sender::All, "Config file: " + state->config_file);
-        
+        Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //------------------------------------------------------------------------------------------
+
+    //---------------------- Initialize the log ------------------------------------------------
+    try
+    {
         // Read Log Levels
         IO::Log_from_Config(state->config_file, state->quiet);
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //------------------------------------------------------------------------------------------
+
+    //----------------------- Additional info log ----------------------------------------------
+    try
+    {
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
@@ -66,19 +90,40 @@ State * State_Setup(const char * config_file, bool quiet)
             Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
         #endif
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
-        //------------------------------------------------------------------------------------------
-        
-        
-        //---------------------- initialize spin_system ---------------------------------
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //------------------------------------------------------------------------------------------
+
+
+    //---------------------- Initialize spin_system ---------------------------------
+    try
+    {
         // Create a system according to Config
         state->active_image = IO::Spin_System_from_Config(state->config_file);
-        //-------------------------------------------------------------------------------
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-        //---------------------- set image configuration --------------------------------
+    //---------------------- Set image configuration --------------------------------
+    try
+    {
         Configurations::Random(*state->active_image);
-        //-------------------------------------------------------------------------------
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-        //----------------------- initialize spin system chain --------------------------
+    //----------------------- Initialize spin system chain --------------------------
+    try
+    {
         // Get parameters
         auto params_gneb = 
             std::shared_ptr<Data::Parameters_Method_GNEB>(
@@ -90,14 +135,21 @@ State * State_Setup(const char * config_file, bool quiet)
         sv.push_back(state->active_image);
         state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(
             new Data::Spin_System_Chain(sv, params_gneb, false));
-        //-------------------------------------------------------------------------------
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-        //----------------------- initialize spin system chain collection ---------------
+    //----------------------- Initialize spin system chain collection ---------------
+    try
+    {
         // Get parameters
         auto params_mmf = 
             std::shared_ptr<Data::Parameters_Method_MMF>(
                 IO::Parameters_Method_MMF_from_Config( state->config_file, 
-                                                       state->active_image->llg_parameters->pinning));
+                                                        state->active_image->llg_parameters->pinning));
         
         // Create the collection
         auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
@@ -105,8 +157,16 @@ State * State_Setup(const char * config_file, bool quiet)
         state->collection = 
             std::shared_ptr<Data::Spin_System_Chain_Collection>(
                 new Data::Spin_System_Chain_Collection( cv, params_mmf, false ) );
-        //-------------------------------------------------------------------------------
-        
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
+
+    //----------------------- Fill in the state -------------------------------------
+    try
+    {
         // active images
         state->idx_active_chain = 0;
         state->idx_active_image = 0;
@@ -123,17 +183,45 @@ State * State_Setup(const char * config_file, bool quiet)
         state->method_chain = 
             std::vector<std::shared_ptr<Engine::Method>>(state->noc);
         state->method_collection = std::shared_ptr<Engine::Method>();
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
-        // Save the config
-        if (Log.save_input_initial)
+    //-------------------- Set quiet method parameters ------------------------------
+    try
+    {
+        if (state->quiet)
         {
-            std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
-                file += "_" + state->datetime_creation_string;
-            file += "_initial.cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
+            state->active_image->llg_parameters->output_any = false;
+            state->active_image->mc_parameters->output_any = false;
+            state->active_chain->gneb_parameters->output_any = false;
+            state->collection->parameters->output_any = false;
         }
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
 
+    //---------------- Initial file writing (input, positions, neighbours) ----------
+    try
+    {
+        Save_Initial_Final( state, true );
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
+
+
+    //----------------------- Final log ---------------------------------------------
+    try
+    {
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
@@ -151,28 +239,24 @@ State * State_Setup(const char * config_file, bool quiet)
     }
     catch( ... )
     {
-        Utility::Handle_Exception( );
-        return nullptr;
+        spirit_handle_exception_api(-1, -1);
     }
+
+    // This should never happen
+    std::exit(EXIT_FAILURE);
+    return nullptr;
 }
 
-void State_Delete(State * state)
+void State_Delete(State * state) noexcept
 {
     try
     {
         Log(Log_Level::All, Log_Sender::All,  "=====================================================");
         Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
         
-        // Save the config
-        if (Log.save_input_final)
-        {
-            std::string file = Log.output_folder + "/input";
-            if (Log.tag_time)
-                file += "_" + state->datetime_creation_string;
-            file += "_final.cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
-        }
-        
+        // Final file writing (input, positions, neighbours)
+        Save_Initial_Final( state, false );
+
         // Timing
         auto now = system_clock::now();
         auto diff = Timing::DateTimePassed(now - state->datetime_creation);
@@ -189,11 +273,12 @@ void State_Delete(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
-void State_Update(State * state)
+
+void State_Update(State * state) noexcept
 {
     try
     {
@@ -220,11 +305,12 @@ void State_Update(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
-void State_To_Config(State * state, const char * config_file, const char * original_config_file)
+
+void State_To_Config(State * state, const char * config_file, const char * original_config_file) noexcept
 {
     try
     {
@@ -263,11 +349,11 @@ void State_To_Config(State * state, const char * config_file, const char * origi
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
     }
 }
 
-const char * State_DateTime(State * state)
+const char * State_DateTime(State * state) noexcept
 {
     try
     {
@@ -275,10 +361,78 @@ const char * State_DateTime(State * state)
     }
     catch( ... )
     {
-        Utility::Handle_Exception();
+        spirit_handle_exception_api(-1, -1);
         return "00:00:00";
     }
 }
+
+
+// Helper function for file writing at setup and delete of State.
+//    Input, positions, neighbours.
+void Save_Initial_Final( State * state, bool initial )
+{
+    // Folder
+    std::string folder = Log.output_folder;
+
+    // Tag
+    std::string tag    = "";
+    if ( Log.file_tag == std::string("<time>") )
+        tag += state->datetime_creation_string + "_";
+    else if ( Log.file_tag != std::string("") )
+        tag += Log.file_tag + "_";
+
+    // Suffix
+    std::string suffix = "";
+    if (initial)
+        suffix += "initial";
+    else
+        suffix += "final";
+
+    // Save the config
+    try
+    {
+        if ( (Log.save_input_initial &&  initial) ||
+             (Log.save_input_final   && !initial) )
+        {
+            std::string file = folder + "/input/" + tag + suffix + ".cfg";
+            State_To_Config(state, file.c_str(), state->config_file.c_str());
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+
+    // Save the positions
+    try
+    {
+        if ( (Log.save_positions_initial &&  initial) ||
+             (Log.save_positions_final   && !initial) )
+        {
+            std::string file = folder + "/output/" + tag + "positions_" + suffix + ".txt";
+            IO_Positions_Write(state, file.c_str(), IO_Fileformat_Regular, state->config_file.c_str());
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+
+    // Save the neighbours
+    try
+    {
+        if ( (Log.save_neighbours_initial &&  initial) ||
+             (Log.save_neighbours_final   && !initial) )
+        {
+            std::string file = folder + "/output/" + tag + "neighbours_" + suffix + ".txt";
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+}
+
 
 void from_indices( const State * state, int & idx_image, int & idx_chain, 
                    std::shared_ptr<Data::Spin_System> & image, 
@@ -286,7 +440,7 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
 {
     // In case of positive non-existing image_idx throw exception
     if ( idx_chain >= state->collection->noc )
-        throw Exception::Non_existing_Chain;
+        spirit_throw(Exception_Classifier::Non_existing_Chain, Log_Level::Warning, "Non existing chain. No action taken.");
     
     // Chain
     if ( idx_chain < 0 || idx_chain == state->idx_active_chain )
@@ -300,9 +454,9 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
         idx_chain = state->idx_active_chain;
     }
 
-    // In case of positive non-existing chain_idx throw exception    
+    // In case of positive non-existing chain_idx throw exception
     if (  idx_image >= state->active_chain->noi )
-        throw Exception::Non_existing_Image;
+        spirit_throw(Exception_Classifier::Non_existing_Image, Log_Level::Warning, "Non existing image. No action taken.");
     
     // Image
     if ( idx_chain == state->idx_active_chain && 
