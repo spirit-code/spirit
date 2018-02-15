@@ -1,4 +1,5 @@
 General Information
+* [Contributing](CONTRIBUTING.md)
 * [Contributors](CONTRIBUTORS.md)
 * How to [Reference](REFERENCE.md) this code
 
