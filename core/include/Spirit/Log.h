@@ -6,29 +6,35 @@
 #include <vector>
 
 // Define Log Levels
-#define Log_Level_All       0
-#define Log_Level_Severe    1
-#define Log_Level_Error     2
-#define Log_Level_Warning   3
-#define Log_Level_Parameter 4
-#define Log_Level_Info      5
-#define Log_Level_Debug     6
+typedef enum
+{
+    Log_Level_All       = 0,
+    Log_Level_Severe    = 1,
+    Log_Level_Error     = 2,
+    Log_Level_Warning   = 3,
+    Log_Level_Parameter = 4,
+    Log_Level_Info      = 5,
+    Log_Level_Debug     = 6
+} Spirit_Log_Level;
 
 // Define Log Senders
-#define Log_Sender_All  0
-#define Log_Sender_IO   1
-#define Log_Sender_GNEB 2
-#define Log_Sender_LLG  3
-#define Log_Sender_MC   4
-#define Log_Sender_MMF  5
-#define Log_Sender_API  6
-#define Log_Sender_UI   7
+typedef enum
+{
+    Log_Sender_All  = 0,
+    Log_Sender_IO   = 1,
+    Log_Sender_GNEB = 2,
+    Log_Sender_LLG  = 3,
+    Log_Sender_MC   = 4,
+    Log_Sender_MMF  = 5,
+    Log_Sender_API  = 6,
+    Log_Sender_UI   = 7
+} Spirit_Log_Sender;
 
 struct State;
 
 //      General functions
 // Send a Log message
-DLLEXPORT void Log_Send(State *state, int level, int sender, const char * message, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Log_Send(State *state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image=-1, int idx_chain=-1) noexcept;
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?
 namespace Utility

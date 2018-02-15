@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-void Log_Send( State *state, int level, int sender, const char * message, int idx_image, int idx_chain ) noexcept
+void Log_Send( State *state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image, int idx_chain ) noexcept
 {
     try
     {
