@@ -4,6 +4,7 @@
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
+#include <Spirit/Geometry.h>
 
 #include <vector>
 
@@ -23,13 +24,13 @@ namespace Data
 
     enum class BravaisLatticeType
     {
-        Irregular,   // Arbitrary bravais vectors
-        Rectilinear, // Rectilinear (orthorombic) lattice
-        SC,          // Simple cubic lattice
-        Hex2D,       // 2D Hexagonal lattice
-        HCP,         // Hexagonal closely packed
-        BCC,         // Body-centered cubic
-        FCC          // Face-centered cubic
+        Irregular   = Bravais_Lattice_Irregular,   // Arbitrary bravais vectors
+        Rectilinear = Bravais_Lattice_Rectilinear, // Rectilinear (orthorombic) lattice
+        SC          = Bravais_Lattice_SC,          // Simple cubic lattice
+        Hex2D       = Bravais_Lattice_Hex2D,       // 2D Hexagonal lattice
+        HCP         = Bravais_Lattice_HCP,         // Hexagonal closely packed
+        BCC         = Bravais_Lattice_BCC,         // Body-centered cubic
+        FCC         = Bravais_Lattice_FCC          // Face-centered cubic
     };
 
     // Geometry contains all geometric information of a system

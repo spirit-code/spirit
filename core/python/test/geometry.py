@@ -40,11 +40,14 @@ class Geometry(TestParameters):
         self.assertEqual(center[1], 0.5)
         self.assertEqual(center[2], 0)
     
-    def test_basis_vector(self):
-        a, b, c = geometry.Get_Basis_Vectors(self.p_state)
-        # From the api.cfg the basis is (1,0,0), (0,1,0), (0,0,1)
+    def test_bravais_vector(self):
+        a, b, c = geometry.Get_Bravais_Vectors(self.p_state)
+        # From the api.cfg the bravais vectors are (1,0,0), (0,1,0), (0,0,1)
         self.assertEqual(a[0], b[1])
         self.assertEqual(b[1], c[2])
+        # Check also that the bravais lattice type matches simple cubic
+        lattice_type = geometry.Get_Bravais_Type(self.p_state)
+        self.assertEqual(lattice_type, 2)
     
     def test_N_cells(self):
         ncells = geometry.Get_N_Cells(self.p_state)

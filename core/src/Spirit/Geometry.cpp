@@ -374,8 +374,28 @@ void Geometry_Get_Cell_Bounds( State *state, float min[3], float max[3], int idx
     }
 }
 
-// Get basis vectors ta, tb, tc
-void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3], 
+// Get bravais lattice type
+Bravais_Lattice_Type Geometry_Get_Bravais_Type(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        return Bravais_Lattice_Type(image->geometry->classifier);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return Bravais_Lattice_Irregular;
+    }
+}
+
+// Get bravais vectors ta, tb, tc
+void Geometry_Get_Bravais_Vectors( State *state, float a[3], float b[3], float c[3], 
                                  int idx_image, int idx_chain ) noexcept
 {
     try
@@ -402,13 +422,6 @@ void Geometry_Get_Basis_Vectors( State *state, float a[3], float b[3], float c[3
     }
 }
 
-// TODO: Get basis atoms
-// void Geometry_Get_Cell_Atoms(State *state, float * n_atoms, float ** atoms)
-// {
-//     auto g = state->active_image->geometry;
-//     *n_atoms = g->n_cell_atoms;
-// }
-
 // Get number of atoms in a basis cell
 int Geometry_Get_N_Cell_Atoms(State *state, int idx_image, int idx_chain) noexcept
 {
@@ -428,6 +441,30 @@ int Geometry_Get_N_Cell_Atoms(State *state, int idx_image, int idx_chain) noexce
     {
         spirit_handle_exception_api(idx_image, idx_chain);
         return false;
+    }
+}
+
+// Get basis cell atoms
+int Geometry_Get_Cell_Atoms(State *state, scalar ** atoms, int idx_image, int idx_chain)
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        auto g = image->geometry;
+        if (atoms != nullptr)
+            *atoms = reinterpret_cast<scalar *>(g->cell_atoms[0].data());
+
+        return g->cell_atoms.size();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
     }
 }
 
