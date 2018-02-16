@@ -477,7 +477,7 @@ void IO_Eigenmodes_Read( State *state, const char *file, int format, int idx_ima
         image->Unlock();
         
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Read spins from file {} with format {}", file, format),
+            fmt::format("Read eigenmodes from file {} with format {}", file, format),
             idx_image_inchain, idx_chain );
     }
     catch( ... )
@@ -510,8 +510,8 @@ void IO_Eigenmodes_Write( State *state, const char *file, int format, const char
         }
         image->Unlock();
          
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins to file "
-                "{} with format {}", file, format ), idx_image, idx_chain );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote eigenmodes "
+            " to file {} with format {}", file, format ), idx_image, idx_chain );
     }
     catch( ... )
     {

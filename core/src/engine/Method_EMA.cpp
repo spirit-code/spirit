@@ -22,13 +22,17 @@ using namespace Utility;
 namespace Engine
 {
     /* helper function */
-    void Check_n_modes(int& n_modes, const int nos, const int idx_img, const int idx_chain)
+    void Check_n_modes( std::shared_ptr<Data::Spin_System> system, const int nos, const int idx_img, 
+        const int idx_chain)
     {
+        auto& n_modes = system->ema_parameters->n_modes;
         if (n_modes > 2*nos-2)
         {
             n_modes = 2*nos-2;
+            system->modes.resize(2*nos-2);  // this will happen only after initilization of the system
+            
             Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Number of eigenmodes declared in "
-            "EMA Parameters is too large. The number is set to {}", n_modes), idx_img, idx_chain);
+                "EMA Parameters is too large. The number is set to {}", n_modes), idx_img, idx_chain);
         }
     }
     
@@ -52,11 +56,11 @@ namespace Engine
         // vectorfield mode(nos, Vector3{1, 0, 0});
         vectorfield spins_initial = *system->spins;
         
-        // get number of modes
-        auto& n_modes = system->ema_parameters->n_modes; 
-        
         // Check and set (if it is required) the total number of nodes
-        Check_n_modes(n_modes, nos, idx_img, idx_chain);
+        Check_n_modes( system, nos, idx_img, idx_chain);
+       
+        // Get the checked number of modes
+        int n_modes = system->ema_parameters->n_modes; 
         
         // Calculate the Eigenmodes
         vectorfield gradient(nos);
@@ -123,7 +127,7 @@ namespace Engine
         auto& selected_mode = this->systems[0]->ema_parameters->n_mode_follow;
         
         // Check and set (if it is required) the total number of nodes
-        Check_n_modes(n_modes, nos, idx_img, idx_chain);
+        Check_n_modes( this->systems[0], nos, idx_img, idx_chain);
         
         // Check and set (if it is required) the mode to visualize
         Check_selected_mode(selected_mode, n_modes, idx_img, idx_chain);
