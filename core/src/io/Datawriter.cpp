@@ -324,8 +324,8 @@ namespace IO
              format == VF_FileFormat::OVF_BIN4 ||
              format == VF_FileFormat::OVF_TEXT )
         {
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, fmt::format( "OVF "
-                 "Format does not support Chain write" ), -1, -1 );
+            OVF_File ovf_file( filename, format, comment );
+            ovf_file.write_chain( chain ); 
             return;
         }
         
@@ -368,8 +368,8 @@ namespace IO
             case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-            //Write_SPIRIT_Version( filename, append );
-            //Save_To_SPIRIT( vf, geometry, filename, format, comment );
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::IO, fmt::format( "SPIRIT "
+                    "Format does not support Chain write" ), -1, -1 );
             break;
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:

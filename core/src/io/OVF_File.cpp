@@ -192,5 +192,8 @@ namespace IO
 
     void OVF_File::write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain )
     {
+        Write_Top_Header( chain->noi );
+        for (int i=0; i<chain->noi; i++)
+            Write_Segment( *chain->images[i]->spins, *chain->images[i]->geometry );
     }
 }

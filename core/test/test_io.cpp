@@ -127,7 +127,10 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
         { "core/test/io_test_files/chain_regular.data",     IO_Fileformat_Regular     }, 
         { "core/test/io_test_files/chain_regular_pos.data", IO_Fileformat_Regular_Pos },  
         { "core/test/io_test_files/chain_csv.data",         IO_Fileformat_CSV         },
-        { "core/test/io_test_files/chain_csv_pos.data",     IO_Fileformat_CSV_Pos     } };
+        { "core/test/io_test_files/chain_csv_pos.data",     IO_Fileformat_CSV_Pos     },
+        { "core/test/io_test_files/chain_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
+        { "core/test/io_test_files/chain_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
+        { "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
     
     // buffer variables for better readability
     const char *filename;
