@@ -65,10 +65,10 @@ namespace IO
         this->output_to_file += fmt::format( "# zmax: {}\n", geometry.bounds_max[2] );
         this->output_to_file += fmt::format( this->empty_line );
         
-        // XXX: Spirit does not support irregular geometry yet. We are emmiting rectangular mesh
+        // TODO: Spirit does not support irregular geometry yet. We are emmiting rectangular mesh
         this->output_to_file += fmt::format( "# meshtype: rectangular\n" );
         
-        // XXX: maybe this is not true for every system
+        // TODO: maybe this is not true for every system
         this->output_to_file += fmt::format( "# xbase: {}\n", 0 );
         this->output_to_file += fmt::format( "# ybase: {}\n", 0 );
         this->output_to_file += fmt::format( "# zbase: {}\n", 0 );
@@ -88,87 +88,80 @@ namespace IO
         this->output_to_file += fmt::format( "# End: Header\n" );
         this->output_to_file += fmt::format( this->empty_line );
         
-        Write_Segment_Data( vf, geometry );
-    }
-
-    void OVF_File::Write_Segment_Data( const vectorfield& vf, const Data::Geometry& geometry )
-    {
         // Data
         this->output_to_file += fmt::format( "# Begin: Data {}\n", this->datatype );
         
         if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
-        {
-            Append_String_to_File( this->output_to_file, this->filename );  // Append to the top header
-            Write_Data_bin( vf );                                   // write the binary
-            this->output_to_file = "\n";                            // new line will be printed after data
-        }
+            Write_Data_bin( vf );
         else if ( format == VF_FileFormat::OVF_TEXT )
-        {
             Write_Data_txt( vf );
-        }
         
         this->output_to_file += fmt::format( "# End: Data {}\n", this->datatype );
         
         this->output_to_file += fmt::format( "# End: Segment\n" );
         
-        // after data writting append output if binary or dump output if text
-        //if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
-            //Append_String_to_File( this->output_to_file, this->filename );
-        //else if ( format == VF_FileFormat::OVF_TEXT )
-            //Dump_to_File( this->output_to_file, this->filename );
-        
         Append_String_to_File( this->output_to_file, this->filename );  // Append the #End keywords
         this->output_to_file = "";  // reset output string buffer
     }
-    
+
     void OVF_File::Write_Data_bin( const vectorfield& vf )
     {
-        // Open the file to append binary
-        std::ofstream outputfile( this->filename, std::ios::out | std::ios::app | std::ios::binary ); 
-        outputfile.seekp( std::ios::end );                      // go to the end of the header
-        
         // float test value
-        float ref_4b_test = *reinterpret_cast<float *>( &this->hex_4b_test );
+        const float ref_4b_test = *reinterpret_cast<const float *>( &this->hex_4b_test );
         
         // double test value
-        double ref_8b_test = *reinterpret_cast<double *>( &this->hex_8b_test );
+        const double ref_8b_test = *reinterpret_cast<const double *>( &this->hex_8b_test );
         
         if( format == VF_FileFormat::OVF_BIN8 )
         {
-            // Write binary test value
-            outputfile.write( reinterpret_cast<char *>(&ref_8b_test), sizeof(ref_8b_test) );
+            this->output_to_file += std::string( reinterpret_cast<const char *>(&ref_8b_test),
+                sizeof(double) );
             
-            double buffer[3];
-            	
-            // Convert every vector of the vf into vector<double> and then write it out
-            for( unsigned int i=0; i<vf.size(); ++i )
-            {                    
-                buffer[0] = static_cast<double>(vf[i][0]);
-                buffer[1] = static_cast<double>(vf[i][1]);
-                buffer[2] = static_cast<double>(vf[i][2]);
-                
-                outputfile.write( reinterpret_cast<char *>(&buffer[0]), 3 * sizeof(double) ); 
+            // in case that scalar is 4bytes long
+            if (sizeof(scalar) == sizeof(float))
+            {
+                double buffer[3];
+                for (unsigned int i=0; i<vf.size(); i++)
+                {
+                    buffer[0] = static_cast<double>(vf[i][0]);
+                    buffer[1] = static_cast<double>(vf[i][1]);
+                    buffer[2] = static_cast<double>(vf[i][2]);
+                    this->output_to_file += std::string( reinterpret_cast<char *>(buffer), 
+                        sizeof(buffer) );
+                }
+            } 
+            else
+            {
+                for (unsigned int i=0; i<vf.size(); i++)
+                    this->output_to_file += 
+                        std::string( reinterpret_cast<const char *>(&vf[i]), 3*sizeof(double) );
             }
         }
         else if( format == VF_FileFormat::OVF_BIN4 )
         {
-            // write binary test value
-            outputfile.write( reinterpret_cast<char *>(&ref_4b_test), sizeof(ref_4b_test) );
+            this->output_to_file += std::string( reinterpret_cast<const char *>(&ref_4b_test),
+                sizeof(float) );
             
-            float buffer[3];
-            
-            // convert every vector of the vf into vector<float> and then write it out
-            for( unsigned int i=0; i<vf.size(); i++ )
+            // in case that scalar is 8bytes long
+            if (sizeof(scalar) == sizeof(double))
             {
-                buffer[0] = static_cast<float>(vf[i][0]);
-                buffer[1] = static_cast<float>(vf[i][1]);
-                buffer[2] = static_cast<float>(vf[i][2]);
-                
-                outputfile.write( reinterpret_cast<char *>( &buffer[0] ), 3 * sizeof(float) ); 
+                float buffer[3];
+                for (unsigned int i=0; i<vf.size(); i++)
+                {
+                    buffer[0] = static_cast<float>(vf[i][0]);
+                    buffer[1] = static_cast<float>(vf[i][1]);
+                    buffer[2] = static_cast<float>(vf[i][2]);
+                    this->output_to_file += std::string( reinterpret_cast<char *>(buffer), 
+                        sizeof(buffer) );
+                }
+            } 
+            else
+            {
+                for (unsigned int i=0; i<vf.size(); i++)
+                    this->output_to_file += 
+                        std::string( reinterpret_cast<const char *>(&vf[i]), 3*sizeof(float) );
             }
         }
-        
-        outputfile.close();
     }
 
     void OVF_File::Write_Data_txt( const vectorfield& vf )

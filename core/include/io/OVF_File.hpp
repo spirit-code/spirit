@@ -28,12 +28,11 @@ namespace IO
         std::string datatype;
         std::string comment;
         int n_segments;
-        uint32_t hex_4b_test = 0x4996B438;
-        uint64_t hex_8b_test = 0x42DC12218377DE40;
+        const uint32_t hex_4b_test = 0x4996B438;
+        const uint64_t hex_8b_test = 0x42DC12218377DE40;
        
         void Write_Top_Header( const int n_segments );
         void Write_Segment( const vectorfield& vf, const Data::Geometry& geometry );
-        void Write_Segment_Data( const vectorfield& vf, const Data::Geometry& geometry );
         void Write_Data_bin( const vectorfield& vf );
         void Write_Data_txt( const vectorfield& vf );
         void Read_N_Segments();
