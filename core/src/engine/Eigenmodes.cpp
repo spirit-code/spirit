@@ -3,8 +3,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
-#include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
-#include <GenEigsRealShiftSolver.h>
+#include <SymEigsSolver.h>
 
 namespace Engine
 {
@@ -26,7 +25,7 @@ namespace Engine
             // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
             // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
             
-            // Create and initialize a Eigen solver
+            // Create and initialize a Eigen solver. Note: the hessian matrix should be symmetric!
             Eigen::SelfAdjointEigenSolver<MatrixX> hessian_spectrum(hessian_constrained);
 
             // Extract real eigenvalues
@@ -76,11 +75,11 @@ namespace Engine
             // Create the Spectra Matrix product operation
             Spectra::DenseGenMatProd<scalar> op(hessian_constrained);
             // Create and initialize a Spectra solver
-            Spectra::GenEigsSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<scalar> > hessian_spectrum(&op, n_modes, 2*nos);
+            Spectra::SymEigsSolver< scalar, Spectra::SMALLEST_ALGE, Spectra::DenseGenMatProd<scalar> > hessian_spectrum(&op, n_modes, 2*nos);
             hessian_spectrum.init();
 
-            // Compute the specified spectrum, sorted by smallest real eigenvalue
-            int nconv = hessian_spectrum.compute(1000, 1e-10, int(Spectra::SMALLEST_REAL));
+            // Compute the specified spectrum, sorted by smallest eigenvalue. Note: the hessian matrix should be symmetric!
+            int nconv = hessian_spectrum.compute(1000, 1e-10, int(Spectra::SMALLEST_ALGE));
 
             // Extract real eigenvalues
             eigenvalues = hessian_spectrum.eigenvalues().real();
