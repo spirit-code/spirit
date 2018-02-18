@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
+#include <GenEigsSolver.h>
 #include <SymEigsSolver.h>
 
 namespace Engine
