@@ -10,7 +10,8 @@ namespace Engine
 {
     namespace Eigenmodes
     {
-        bool Hessian_Full_Spectrum(const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian,
+        bool Hessian_Full_Spectrum(const std::shared_ptr<Data::Parameters_Method> parameters,
+            const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian,
             MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues, MatrixX & eigenvectors)
         {
             int nos = spins.size();
@@ -20,10 +21,10 @@ namespace Engine
             hessian_constrained = MatrixX::Zero(2*nos, 2*nos);
             tangent_basis       = MatrixX::Zero(3*nos, 2*nos);
             Manifoldmath::hessian_bordered(spins, gradient, hessian, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_projected(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_weingarten(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_spherical(spins, grad, hess, tangent_basis, hessian_constrained);
-            // Manifoldmath::hessian_covariant(spins, grad, hess, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_projected(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_weingarten(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
+            // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
             
             // Create and initialize a Eigen solver
             Eigen::SelfAdjointEigenSolver<MatrixX> hessian_spectrum(hessian_constrained);
@@ -37,17 +38,18 @@ namespace Engine
             return true;
         }
 
-        bool Hessian_Partial_Spectrum(const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian, int n_modes,
+        bool Hessian_Partial_Spectrum(const std::shared_ptr<Data::Parameters_Method> parameters,
+            const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian, int n_modes,
             MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues, MatrixX & eigenvectors)
         {
             int nos = spins.size();
 
             // Restrict number of calculated modes to [1,2N)
-            n_modes = std::max(0, std::min(2*nos-1, n_modes));
+            n_modes = std::max(1, std::min(2*nos-2, n_modes));
 
             // If we have only one spin, we can only calculate the full spectrum
             if (n_modes == nos)
-                return Hessian_Full_Spectrum(spins, gradient, hessian, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
+                return Hessian_Full_Spectrum(parameters, spins, gradient, hessian, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
 
             // Calculate the final Hessian to use for the minimum mode
             // TODO: add option to choose different Hessian calculation
@@ -59,6 +61,18 @@ namespace Engine
             // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
             // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
             
+            // Remove degrees of freedom of pinned spins
+            #ifdef SPIRIT_ENABLE_PINNING
+                for (int i=0; i<nos; ++i)
+                {
+                    if (!parameters->pinning->mask_unpinned[i])
+                    {
+                        // Set diagonal matrix entries of pinned spins to a large value
+                        hessian_constrained.block<2,2>(2*i,2*i).diagonal().setConstant(nos*1e5);
+                    }
+                }
+            #endif // SPIRIT_ENABLE_PINNING
+
             // Create the Spectra Matrix product operation
             Spectra::DenseGenMatProd<scalar> op(hessian_constrained);
             // Create and initialize a Spectra solver

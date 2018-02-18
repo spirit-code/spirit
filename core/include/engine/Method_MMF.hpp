@@ -52,6 +52,8 @@ namespace Engine
         std::vector<vectorfield> gradient;
         // Last calculated minimum mode
         std::vector<vectorfield> minimum_mode;
+        int mode_follow_previous;
+        VectorX mode_2N_previous;
 
         // Last iterations spins and reaction coordinate
         scalar Rx_last;

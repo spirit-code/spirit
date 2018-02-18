@@ -1000,6 +1000,9 @@ void Parameters_Set_MMF_N_Modes(State *state, int n_modes, int idx_image, int id
             p->n_mode_follow = std::min(p->n_mode_follow, n_modes);
             chain->Unlock();
             // image->Unlock();
+
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format("Set MMF number of modes = {}", n_modes), idx_image, idx_chain);
         }
     }
     catch( ... )
@@ -1018,11 +1021,11 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if ( n_mode_follow < 0 || n_mode_follow > state->collection->parameters->n_modes-1 ||
-            n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
+        if ( n_mode_follow < 0 || n_mode_follow > state->collection->parameters->n_modes-1)// ||
+            //  n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
         {
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-                fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
+                 fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
         }
         else
         {
@@ -1033,6 +1036,9 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
             p->n_mode_follow = n_mode_follow;
             chain->Unlock();
             // image->Unlock();
+
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format("Set MMF mode to follow = {}", n_mode_follow), idx_image, idx_chain);
         }
     }
     catch( ... )

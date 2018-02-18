@@ -243,7 +243,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
     MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
     VectorX eigenvalues;
     MatrixX eigenvectors;
-    bool successful = Eigenmodes::Hessian_Partial_Spectrum(image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
+    bool successful = Eigenmodes::Hessian_Partial_Spectrum(system->llg_parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
 
     if (successful)
     {

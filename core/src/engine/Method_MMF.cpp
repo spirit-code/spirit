@@ -55,6 +55,8 @@ namespace Engine
         // ToDo: move into parameters
         this->mm_function = "Spectra Matrix"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
 
+        this->mode_follow_previous = 0;
+
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
@@ -177,18 +179,21 @@ namespace Engine
         const int nos = configurations[0]->size();
         
         // Number of lowest modes to be calculated
-        // NOTE THE ORDER OF THE MODES: the first eigenvalue is not necessarily the lowest for n>1
-        int n_modes = 6;
-        int mode_positive = 0;
+        int n_modes = this->collection->parameters->n_modes;
+        // Mode to follow in the positive region
+        int mode_positive = this->collection->parameters->n_mode_follow;
         mode_positive = std::max(0, std::min(n_modes-1, mode_positive));
-        
+        // Mode to follow in the negative region
+        int mode_negative = this->collection->parameters->n_mode_follow;
+        if (false)  // if (this->collection->parameters->negative_follow_lowest)
+            mode_negative = 0;
+        mode_negative = std::max(0, std::min(n_modes-1, mode_negative));
+
         // Loop over chains and calculate the forces
         for (int ichain = 0; ichain < this->collection->noc; ++ichain)
         {
             auto& image = *configurations[ichain];
-            Eigen::Ref<VectorX> image_3N = Eigen::Map<VectorX>(image[0].data(), 3*nos);
             auto& grad = gradient[ichain];
-            Eigen::Ref<VectorX> grad_3N = Eigen::Map<VectorX>(grad[0].data(), 3*nos);
             MatrixX& hess = hessian[ichain];
 
             // The gradient (unprojected)
@@ -211,6 +216,8 @@ namespace Engine
                 }
             #endif // SPIRIT_ENABLE_PINNING
 
+            Eigen::Ref<VectorX> image_3N = Eigen::Map<VectorX>(image[0].data(), 3*nos);
+            Eigen::Ref<VectorX> grad_3N  = Eigen::Map<VectorX>(grad[0].data(),  3*nos);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,29 +227,74 @@ namespace Engine
             MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
             VectorX eigenvalues;
             MatrixX eigenvectors;
-            bool successful = Eigenmodes::Hessian_Partial_Spectrum(image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
+            bool successful = Eigenmodes::Hessian_Partial_Spectrum(this->parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
 
             if (successful)
             {
+                // TODO: if the mode that is followed in the positive region is not no. 0,
+                //       the following won't work!!
+                //       Need to save the mode_follow as a local variable and update it as necessary.
+                //       Question: what to do when MMF is paused and re-started? Do we remember the
+                //       correct mode, and if yes how?
+                //       Note: it should be distinguished if we are starting in the positive or negative
+                //       region. Probably some of this should go into the constructor.
+
                 // Determine the mode to follow
-                VectorX mode_3N;
-                if (eigenvalues[0] < -1e-6)
+                int mode_follow = mode_negative;
+                if (eigenvalues[0] > -1e-6)
+                    mode_follow = mode_positive;
+
+
+                if (true)// && eigenvalues[0] > -1e-6)
                 {
-                    // Retrieve the minimum mode
-                    mode_3N = basis_3Nx2N * eigenvectors.col(0);
-                    for (int n=0; n<nos; ++n)
-                        this->minimum_mode[ichain][n] = {mode_3N[3*n], mode_3N[3*n+1], mode_3N[3*n+2]};
+                    // Determine if we are still following the same mode and correct if not
+                    // std::abs(mode_2N_previous.dot(eigenvectors.col(mode_follow))) < 1e-2
+                    // std::abs(mode_2N_previous.dot(eigenvectors.col(itest)))       >= 1-1e-4
+                    if (mode_2N_previous.size() > 0)
+                    {
+                        mode_follow = mode_follow_previous;
+                        scalar mode_dot_mode = std::abs(mode_2N_previous.dot(eigenvectors.col(mode_follow)));
+                        if (mode_dot_mode < 0.99)
+                        {
+                            // Need to look for our mode
+                            std::cerr << fmt::format("Looking for previous mode, which used to be {}...", mode_follow_previous);
+                            int ntest = 6;
+                            // int start = std::max(0, mode_follow_previous-ntest);
+                            // int stop  = std::min(n_modes, mode_follow_previous+ntest);
+                            for (int itest = 0; itest < n_modes; ++itest)
+                            {
+                                scalar m_dot_m_test = std::abs(mode_2N_previous.dot(eigenvectors.col(itest)));
+                                if (m_dot_m_test > mode_dot_mode)
+                                {
+                                    mode_follow = itest;
+                                    mode_dot_mode = m_dot_m_test;
+                                }
+                            }
+                            if (mode_follow != mode_follow_previous)
+                                std::cerr << fmt::format("Found mode no. {}", mode_follow) << std::endl;
+                            else
+                                std::cerr << "Did not find a new mode..." << std::endl;
+                        }
+                    }
+
+                    // Save chosen mode as "previous" for next iteration
+                    mode_follow_previous = mode_follow;
+                    mode_2N_previous = eigenvectors.col(mode_follow);
                 }
-                else
-                {
-                    // Retrieve the chosen mode
-                    mode_3N = basis_3Nx2N * eigenvectors.col(mode_positive);
-                    for (int n=0; n<nos; ++n)
-                        this->minimum_mode[ichain][n] = {mode_3N[3*n], mode_3N[3*n+1], mode_3N[3*n+2]};
-                }
-                
+
+
+                // Ref to correct mode
+                Eigen::Ref<VectorX> mode_2N = eigenvectors.col(mode_follow);
+                scalar mode_evalue = eigenvalues[mode_follow];
+
+
+                // Retrieve the chosen mode as vectorfield
+                VectorX mode_3N = basis_3Nx2N * mode_2N;
+                for (int n=0; n<nos; ++n)
+                    this->minimum_mode[ichain][n] = {mode_3N[3*n], mode_3N[3*n+1], mode_3N[3*n+2]};
+
                 // Get the scalar product of mode and gradient
-                scalar mode_grad       = mode_3N.dot(grad_3N);
+                scalar mode_grad = mode_3N.dot(grad_3N);
                 // Get the angle between mode and gradient (in the tangent plane!)
                 VectorX grad_tangent_3N = grad_3N - grad_3N.dot(image_3N) * image_3N;
                 scalar mode_grad_angle = std::abs( mode_grad / (mode_3N.norm()*grad_3N.norm()) );
@@ -250,40 +302,75 @@ namespace Engine
                 // Make sure there is nothing wrong
                 check_modes(image, grad, basis_3Nx2N, eigenvalues, eigenvectors, minimum_mode[ichain]);
 
-                // If the lowest eigenvalue is negative, we follow the minimum mode
-                if (eigenvalues[0] < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
-                {
-                    std::cerr << fmt::format("negative region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                Manifoldmath::project_tangential(grad, image);
 
+                // Some debugging prints
+                if (mode_evalue < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
+                {
+                    std::cerr << fmt::format("negative region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                }
+                else if (mode_grad_angle > 1e-8)
+                {
+                    std::cerr << fmt::format("positive region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                }
+                else
+                {
+                    if (std::abs(mode_evalue) > 1e-8)
+                    {
+                        std::cerr << fmt::format("bad region:      {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                    }
+                    else
+                    {
+                        std::cerr << fmt::format("zero region:     {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                    }
+                }
+
+                // TODO: parameter to switch between mode and gradient for escape from positive region
+                if (false)
+                {
                     // Invert the gradient force along the minimum mode
                     Manifoldmath::invert_parallel(grad, minimum_mode[ichain]);
 
                     // Copy out the forces
                     Vectormath::set_c_a(-1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
                 }
-                // Otherwise we follow some chosen mode, as long as it is not orthogonal to the gradient
-                else if (mode_grad_angle > 1e-8)
-                {
-                    std::cerr << fmt::format("positive region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
-
-                    int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
-
-                    // Calculate the force
-                    // Vectormath::set_c_a(mode_grad, this->minimum_mode[ichain], forces[ichain], collection->parameters->pinning->mask_unpinned);
-                    Vectormath::set_c_a(sign, this->minimum_mode[ichain], forces[ichain], collection->parameters->pinning->mask_unpinned);
-
-                    // // Copy out the forces
-                    // Vectormath::set_c_a(1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
-                }
                 else
                 {
-                    if (std::abs(eigenvalues[0]) > 1e-8)
-                        std::cerr << fmt::format("bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
-                    else
-                        std::cerr << fmt::format("zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
+                    if (eigenvalues[0] < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
+                    {
+                        // Invert the gradient force along the minimum mode
+                        Manifoldmath::invert_parallel(grad, minimum_mode[ichain]);
 
                         // Copy out the forces
-                    Vectormath::set_c_a(1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
+                        Vectormath::set_c_a(-1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
+                    }
+                    else if (mode_grad_angle > 1e-8)
+                    {
+                        int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
+
+                        // Calculate the force
+                        // Vectormath::set_c_a(mode_grad, this->minimum_mode[ichain], forces[ichain], collection->parameters->pinning->mask_unpinned);
+                        Vectormath::set_c_a(sign, this->minimum_mode[ichain], forces[ichain], collection->parameters->pinning->mask_unpinned);
+
+                        // // Copy out the forces
+                        // Vectormath::set_c_a(1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
+                    }
+                    else
+                    {
+                        if (std::abs(mode_evalue) > 1e-8)
+                        {
+                            // Invert the gradient force along the minimum mode
+                            Manifoldmath::invert_parallel(grad, minimum_mode[ichain]);
+
+                            // Copy out the forces
+                            Vectormath::set_c_a(-1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
+                        }
+                        else
+                        {
+                            // Copy out the forces
+                            Vectormath::set_c_a(1, grad, forces[ichain], collection->parameters->pinning->mask_unpinned);
+                        }
+                    }
                 }
             }
             else
@@ -523,10 +610,10 @@ namespace Engine
             std::string preEnergyFile;
             std::string fileTag;
             
-            if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
+            if (this->parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
-            else if (this->systems[0]->llg_parameters->output_file_tag != "")
-                fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
+            else if (this->parameters->output_file_tag != "")
+                fileTag = this->parameters->output_file_tag + "_";
             else
                 fileTag = "";
                 
@@ -548,7 +635,7 @@ namespace Engine
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+                bool normalize = this->collection->parameters->output_energy_divide_by_nspins;
 
                 // File name
                 std::string energyFile = preEnergyFile + suffix + ".txt";
@@ -567,43 +654,43 @@ namespace Engine
                 {
                     IO::Write_Energy_Header(*this->systems[0], energyFile);
                     IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
-                    if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
-                    {
-                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
-                    }
+                    // if (this->collection->parameters->output_energy_spin_resolved)
+                    // {
+                    //     IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                    // }
                 }
             };
 
 
             // Initial image before simulation
-            if (initial && this->parameters->output_initial)
+            if (initial && this->collection->parameters->output_initial)
             {
                 writeOutputConfiguration("-initial", false);
                 writeOutputEnergy("-initial", false);
             }
             // Final image after simulation
-            else if (final && this->parameters->output_final)
+            else if (final && this->collection->parameters->output_final)
             {
                 writeOutputConfiguration("-final", false);
                 writeOutputEnergy("-final", false);
             }
             
             // Single file output
-            if (this->systems[0]->llg_parameters->output_configuration_step)
+            if (this->collection->parameters->output_configuration_step)
             {
                 writeOutputConfiguration("_" + s_iter, false);
             }
-            if (this->systems[0]->llg_parameters->output_energy_step)
+            if (this->collection->parameters->output_energy_step)
             {
                 writeOutputEnergy("_" + s_iter, false);
             }
 
             // Archive file output (appending)
-            if (this->systems[0]->llg_parameters->output_configuration_archive)
+            if (this->collection->parameters->output_configuration_archive)
             {
                 writeOutputConfiguration("-archive", true);
             }
-            if (this->systems[0]->llg_parameters->output_energy_archive)
+            if (this->collection->parameters->output_energy_archive)
             {
                 writeOutputEnergy("-archive", true);
             }
