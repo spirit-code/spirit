@@ -33,16 +33,7 @@ namespace IO
     void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
                          const std::string filename, VF_FileFormat format, 
                          const std::string comment );
-    // Saves any OVF format 
-    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
-                      VF_FileFormat format, const std::string comment );
-    // Writes the OVF bin data
-    void Write_OVF_bin_data( const vectorfield& vf, const Data::Geometry& geometry, 
-                             const std::string filename, VF_FileFormat format );
-    // Writes the OVF text data
-    void Write_OVF_text_data( const vectorfield& vf, const Data::Geometry& geometry,
-                              std::string& output_to_file );
-
+    
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 

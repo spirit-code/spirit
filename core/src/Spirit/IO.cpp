@@ -453,8 +453,8 @@ void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int 
 /*-------------------------------------- Eigenmodes --------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 
-void IO_Eigenmodes_Read( State *state, const char *file, int format, int idx_image_infile, 
-                    int idx_image_inchain, int idx_chain ) noexcept
+void IO_Eigenmodes_Read( State *state, const char *file, int format, int idx_image_inchain, 
+                         int idx_chain ) noexcept
 {
     try
     {
@@ -468,7 +468,7 @@ void IO_Eigenmodes_Read( State *state, const char *file, int format, int idx_ima
         image->Lock();
         try
         {
-            IO::Read_Spin_Configuration(image, std::string(file), IO::VF_FileFormat(format));
+            IO::Read_Eigenmodes(image, std::string(file), IO::VF_FileFormat(format));
         }
         catch( ... )
         {
