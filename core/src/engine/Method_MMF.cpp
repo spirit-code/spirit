@@ -195,19 +195,6 @@ namespace Engine
 
         // The Hessian (unprojected)
         this->systems[0]->hamiltonian->Hessian(image, hessian);
-        // Remove blocks of pinned spins
-        #ifdef SPIRIT_ENABLE_PINNING
-            for (int i=0; i<nos; ++i)
-            {
-                for (int j=0; j<nos; ++j)
-                {
-                    if ((!this->parameters->pinning->mask_unpinned[i]) || (!this->parameters->pinning->mask_unpinned[j]))
-                    {
-                        hessian.block<3,3>(3*i,3*j).setZero();
-                    }
-                }
-            }
-        #endif // SPIRIT_ENABLE_PINNING
 
         Eigen::Ref<VectorX> image_3N = Eigen::Map<VectorX>(image[0].data(), 3*nos);
         Eigen::Ref<VectorX> gradient_3N  = Eigen::Map<VectorX>(gradient[0].data(), 3*nos);

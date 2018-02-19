@@ -67,7 +67,14 @@ namespace Engine
                 {
                     if (!parameters->pinning->mask_unpinned[i])
                     {
+                        // Remove interaction block
+                        for (int j=0; j<nos; ++j)
+                        {
+                            hessian_constrained.block<2,2>(2*i,2*j).setZero();
+                            hessian_constrained.block<2,2>(2*j,2*i).setZero();
+                        }
                         // Set diagonal matrix entries of pinned spins to a large value
+                        hessian_constrained.block<2,2>(2*i,2*i).setZero();
                         hessian_constrained.block<2,2>(2*i,2*i).diagonal().setConstant(nos*1e5);
                     }
                 }
