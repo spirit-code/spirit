@@ -32,12 +32,17 @@ namespace IO
         std::string filename;
         std::unique_ptr<std::ifstream> myfile;
         std::istringstream iss;
+        std::streampos position;
         
         // Constructs a Filter_File_Handle with string filename
         Filter_File_Handle( const std::string& s, 
                             IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
         // Destructor
         ~Filter_File_Handle();
+        // Save the position of the file stream indicator
+        void SavePosition();
+        // Reset the position of the file stream indicator
+        void ResetPosition();
         // Reads next line of file into the handle (false -> end-of-file)
         bool GetLine_Handle();
         // Reads the next line of file into the handle and into the iss

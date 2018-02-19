@@ -25,6 +25,7 @@ namespace IO
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
+        this->position = myfile->tellg(); // position (std::ios::beg) of the ifstream
         
         // set the comment tag
         switch( this->ff )
@@ -47,6 +48,17 @@ namespace IO
     Filter_File_Handle::~Filter_File_Handle()
     { 
         myfile->close();
+    }
+
+    void Filter_File_Handle::SavePosition()
+    {
+        this->position = this->myfile->tellg();
+    }
+
+    void Filter_File_Handle::ResetPosition()
+    {
+        this->myfile->seekg( std::ios::beg );
+        this->position = this->myfile->tellg();
     }
 
     bool Filter_File_Handle::GetLine_Handle()
@@ -89,8 +101,8 @@ namespace IO
     bool Filter_File_Handle::Find(const std::string & s)
     {
         myfile->clear();
-        myfile->seekg(0, std::ios::beg);
-
+        myfile->seekg( this->position, std::ios::beg);
+        
         while (GetLine())
         {
             if (Find_in_Line(s)) return true;
