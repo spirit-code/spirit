@@ -160,11 +160,13 @@ namespace IO
             auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
             // EMA Parameters
             auto ema_params = Parameters_Method_EMA_from_Config(configFile, pinning);
+            // MMF Parameters
+            auto mmf_params = Parameters_Method_MMF_from_Config(configFile, pinning);
             // Hamiltonian
             auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
             // Spin System
             auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), 
-                std::move(geometry), std::move(llg_params), std::move(mc_params), std::move(ema_params), false));
+                std::move(geometry), std::move(llg_params), std::move(mc_params), std::move(ema_params), std::move(mmf_params), false));
             // ----------------------------------------------------------------------------------------------
             Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 

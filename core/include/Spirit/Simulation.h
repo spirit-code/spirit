@@ -20,9 +20,8 @@ DLLEXPORT void Simulation_Stop_All(State *state) noexcept;
 
 
 // Get maximum torque component
-//		If an LLG simulation is running this returns the max. torque on the current image.
+//		If an LLG or MMF simulation is running this returns the max. torque on the current image.
 //		If a GNEB simulation is running this returns the max. torque on the current chain.
-//		IF a MMF simulation is running this returns the max. torque on the current collection.
 DLLEXPORT float Simulation_Get_MaxTorqueComponent(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get maximum torque components on the images of a chain
@@ -30,24 +29,21 @@ DLLEXPORT float Simulation_Get_MaxTorqueComponent(State * state, int idx_image=-
 DLLEXPORT void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, int idx_chain=-1) noexcept;
 
 // Get IPS
-//		If an LLG simulation is running this returns the IPS on the current image.
+//		If an LLG or MMF simulation is running this returns the IPS on the current image.
 //		If a GNEB simulation is running this returns the IPS on the current chain.
-//		IF a MMF simulation is running this returns the IPS on the current collection.
 DLLEXPORT float Simulation_Get_IterationsPerSecond(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get number of done iterations
 DLLEXPORT int Simulation_Get_Iteration(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get name of the currently used solver
-//		If an LLG simulation is running this returns the Solver name on the current image.
+//		If an LLG or MMF simulation is running this returns the Solver name on the current image.
 //		If a GNEB simulation is running this returns the Solver name on the current chain.
-//		IF a MMF simulation is running this returns the Solver name on the current collection.
 DLLEXPORT const char * Simulation_Get_Solver_Name(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get name of the currently used method
-//		If an LLG simulation is running this returns the Method name on the current image.
+//		If an LLG or MMFsimulation is running this returns the Method name on the current image.
 //		If a GNEB simulation is running this returns the Method name on the current chain.
-//		IF a MMF simulation is running this returns the Method name on the current collection.
 DLLEXPORT const char * Simulation_Get_Method_Name(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 
@@ -55,13 +51,9 @@ DLLEXPORT const char * Simulation_Get_Method_Name(State *state, int idx_image=-1
 DLLEXPORT bool Simulation_Running_Image(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 // Check if a simulation is running across a specific chain
 DLLEXPORT bool Simulation_Running_Chain(State *state, int idx_chain=-1) noexcept;
-// Check if a simulation is running across the collection
-DLLEXPORT bool Simulation_Running_Collection(State *state) noexcept;
 
 // Check if a simulation is running on any or all images of a chain
 DLLEXPORT bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain=-1) noexcept;
-// Check if a simulation is running on any or all images or chains of a collection
-DLLEXPORT bool Simulation_Running_Anywhere_Collection(State *state) noexcept;
 
 // Calculate the eigenmodes of the System (Image)
 DLLEXPORT void Simulation_Calculate_Eigenmodes(State *state, int idx_image=-1, int idx_chain=-1) noexcept;

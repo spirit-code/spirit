@@ -846,13 +846,10 @@ void Parameters_Set_MMF_Output_Folder(State *state, const char * folder, int idx
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // image->Lock();
-        // auto p = image->mmf_parameters;
-        chain->Lock();
-        auto p = state->collection->parameters;
+        image->Lock();
+        auto p = image->mmf_parameters;
         p->output_folder = folder;
-        chain->Unlock();
-        // image->Unlock();
+        image->Unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              "Set MMF Output Folder = " + std::string(folder), idx_image, idx_chain );
@@ -874,15 +871,12 @@ void Parameters_Set_MMF_Output_General( State *state, bool any, bool initial, bo
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // image->Lock();
-        // auto p = image->mmf_parameters;
-        chain->Lock();
-        auto p = state->collection->parameters;
+        image->Lock();
+        auto p = image->mmf_parameters;
         p->output_any = any;
         p->output_initial = initial;
         p->output_final = final;
-        chain->Unlock();
-        // image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -902,16 +896,13 @@ void Parameters_Set_MMF_Output_Energy( State *state, bool energy_step, bool ener
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // image->Lock();
-        // auto p = image->mmf_parameters;
-        chain->Lock();
-        auto p = state->collection->parameters;
+        image->Lock();
+        auto p = image->mmf_parameters;
         p->output_energy_step = energy_step;
         p->output_energy_archive = energy_archive;
         p->output_energy_spin_resolved = energy_spin_resolved;
         p->output_energy_divide_by_nspins = energy_divide_by_nos;
-        chain->Unlock();
-        // image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -930,14 +921,11 @@ void Parameters_Set_MMF_Output_Configuration( State *state, bool configuration_s
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // image->Lock();
-        // auto p = image->mmf_parameters;
-        chain->Lock();
-        auto p = state->collection->parameters;
+        image->Lock();
+        auto p = image->mmf_parameters;
         p->output_configuration_step = configuration_step;
         p->output_configuration_archive = configuration_archive;
-        chain->Unlock();
-        // image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -956,14 +944,11 @@ void Parameters_Set_MMF_N_Iterations( State *state, int n_iterations, int n_iter
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // image->Lock();
-        // auto p = image->mmf_parameters;
-        chain->Lock();
-        auto p = state->collection->parameters;
+        image->Lock();
+        auto p = image->mmf_parameters;
         p->n_iterations = n_iterations;
         p->n_iterations_log = n_iterations_log;
-        chain->Unlock();
-        // image->Unlock();
+        image->Unlock();
     }
     catch( ... )
     {
@@ -991,15 +976,12 @@ void Parameters_Set_MMF_N_Modes(State *state, int n_modes, int idx_image, int id
         }
         else
         {
-            // image->Lock();
-            // auto p = image->mmf_parameters;
-            chain->Lock();
-            auto p = state->collection->parameters;
+            image->Lock();
+            auto p = image->mmf_parameters;
             p->n_modes = n_modes;
             image->modes.resize(n_modes);
             p->n_mode_follow = std::min(p->n_mode_follow, n_modes);
-            chain->Unlock();
-            // image->Unlock();
+            image->Unlock();
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
                 fmt::format("Set MMF number of modes = {}", n_modes), idx_image, idx_chain);
@@ -1021,7 +1003,8 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if ( n_mode_follow < 0 || n_mode_follow > state->collection->parameters->n_modes-1)// ||
+        auto p = image->mmf_parameters;
+        if ( n_mode_follow < 0 || n_mode_follow > p->n_modes-1)// ||
             //  n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
         {
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
@@ -1029,13 +1012,9 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         }
         else
         {
-            // image->Lock();
-            // auto p = image->mmf_parameters;
-            chain->Lock();
-            auto p = state->collection->parameters;
+            image->Lock();
             p->n_mode_follow = n_mode_follow;
-            chain->Unlock();
-            // image->Unlock();
+            image->Unlock();
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
                 fmt::format("Set MMF mode to follow = {}", n_mode_follow), idx_image, idx_chain);
@@ -1741,14 +1720,13 @@ const char * Parameters_Get_MMF_Output_Folder(State *state, int idx_image, int i
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         return p->output_folder.c_str();
     }
     catch( ... )
@@ -1763,17 +1741,16 @@ void Parameters_Get_MMF_Output_General( State *state, bool * any, bool * initial
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
-        *any = p->output_any;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p   = image->mmf_parameters;
+        *any     = p->output_any;
         *initial = p->output_initial;
-        *final = p->output_final;
+        *final   = p->output_final;
     }
     catch( ... )
     {
@@ -1787,14 +1764,13 @@ void Parameters_Get_MMF_Output_Energy( State *state, bool * energy_step, bool * 
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         *energy_step = p->output_energy_step;
         *energy_archive = p->output_energy_archive;
         *energy_spin_resolved = p->output_energy_spin_resolved;
@@ -1812,14 +1788,13 @@ void Parameters_Get_MMF_Output_Configuration( State *state, bool * configuration
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         *configuration_step = p->output_configuration_step;
         *configuration_archive = p->output_configuration_archive;
     }
@@ -1834,14 +1809,13 @@ void Parameters_Get_MMF_N_Iterations( State *state, int * iterations, int * iter
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         *iterations = p->n_iterations;
         *iterations_log = p->n_iterations_log;
     }
@@ -1856,14 +1830,13 @@ int Parameters_Get_MMF_N_Modes(State *state, int idx_image, int idx_chain) noexc
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         return p->n_modes;
     }
     catch( ... )
@@ -1877,14 +1850,13 @@ int Parameters_Get_MMF_N_Mode_Follow(State *state, int idx_image, int idx_chain)
 {
     try
     {
-        // std::shared_ptr<Data::Spin_System> image;
-        // std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // // Fetch correct indices and pointers
-        // from_indices( state, idx_image, idx_chain, image, chain );
-        // auto p = image->mmf_parameters;
-
-        auto p = state->collection->parameters;
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        auto p = image->mmf_parameters;
         return p->n_mode_follow;
     }
     catch( ... )

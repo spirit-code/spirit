@@ -252,10 +252,10 @@ void IO_Chain_Read( State *state, const char *file, int format, int starting_ima
         chain->Unlock();
 
         // Update llg simulation information array size
-        if ((int)state->method_image[idx_chain].size() < chain->noi)
+        if ((int)state->method_image.size() < chain->noi)
         {
-            for (int i=state->method_image[idx_chain].size(); i < chain->noi; ++i)
-                state->method_image[idx_chain].push_back( 
+            for (int i=state->method_image.size(); i < chain->noi; ++i)
+                state->method_image.push_back( 
                     std::shared_ptr<Engine::Method>( ) );
         }
 

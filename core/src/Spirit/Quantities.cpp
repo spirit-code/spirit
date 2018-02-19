@@ -191,7 +191,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
 
     // The gradient force (unprojected)
     system->hamiltonian->Gradient(image, grad);
-    Vectormath::set_c_a(1, grad, grad, system->llg_parameters->pinning->mask_unpinned);
+    Vectormath::set_c_a(1, grad, grad, system->mmf_parameters->pinning->mask_unpinned);
 
     // Output
     for (unsigned int _i = 0; _i < nos; ++_i)
@@ -217,7 +217,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
 
     // The gradient (unprojected)
     system->hamiltonian->Gradient(image, grad);
-    Vectormath::set_c_a(1, grad, grad, system->llg_parameters->pinning->mask_unpinned);
+    Vectormath::set_c_a(1, grad, grad, system->mmf_parameters->pinning->mask_unpinned);
 
     // The Hessian (unprojected)
     system->hamiltonian->Hessian(image, hess);
@@ -227,7 +227,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
         {
             for (int j=0; j<nos; ++j)
             {
-                if ((!system->llg_parameters->pinning->mask_unpinned[i]) || (!system->llg_parameters->pinning->mask_unpinned[j]))
+                if ((!system->mmf_parameters->pinning->mask_unpinned[i]) || (!system->mmf_parameters->pinning->mask_unpinned[j]))
                 {
                     hess.block<3,3>(3*i,3*j).setZero();
                 }
@@ -243,7 +243,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
     MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
     VectorX eigenvalues;
     MatrixX eigenvectors;
-    bool successful = Eigenmodes::Hessian_Partial_Spectrum(system->llg_parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
+    bool successful = Eigenmodes::Hessian_Partial_Spectrum(system->mmf_parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
 
     if (successful)
     {
@@ -282,7 +282,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
             Manifoldmath::invert_parallel(grad, minimum_mode);
 
             // Copy out the forces
-            Vectormath::set_c_a(-1, grad, force, state->collection->parameters->pinning->mask_unpinned);
+            Vectormath::set_c_a(-1, grad, force, system->mmf_parameters->pinning->mask_unpinned);
         }
         // Otherwise we follow some chosen mode, as long as it is not orthogonal to the gradient
         else if (mode_grad_angle > 1e-8)
@@ -292,11 +292,11 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
             int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
 
             // Calculate the force
-            // Vectormath::set_c_a(mode_grad, minimum_mode, force, collection->parameters->pinning->mask_unpinned);
-            Vectormath::set_c_a(sign, minimum_mode, force, state->collection->parameters->pinning->mask_unpinned);
+            // Vectormath::set_c_a(mode_grad, minimum_mode, force, system->mmf_parameters->pinning->mask_unpinned);
+            Vectormath::set_c_a(sign, minimum_mode, force, system->mmf_parameters->pinning->mask_unpinned);
 
             // // Copy out the forces
-            // Vectormath::set_c_a(1, grad, force, state->collection->parameters->pinning->mask_unpinned);
+            // Vectormath::set_c_a(1, grad, force, system->mmf_parameters->pinning->mask_unpinned);
         }
         else
         {
@@ -306,7 +306,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
                 std::cerr << fmt::format("zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/M_PI, std::abs(mode_grad)) << std::endl;
 
             // Copy out the forces
-            Vectormath::set_c_a(1, grad, force, state->collection->parameters->pinning->mask_unpinned);
+            Vectormath::set_c_a(1, grad, force, system->mmf_parameters->pinning->mask_unpinned);
         }
     }
     else
