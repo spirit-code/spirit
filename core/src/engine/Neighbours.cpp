@@ -88,7 +88,7 @@ namespace Engine
 			// produce enough needed shells, but is small enough to run sufficiently fast
 			int tMax = nShells + 10;
 			int imax = std::min(tMax, geometry.n_cells[0]-1), jmax = std::min(tMax, geometry.n_cells[1]-1), kmax = std::min(tMax, geometry.n_cells[2]-1);
-			int imin,jmin,kmin;
+			int imin,jmin,kmin,jatommin;
 			if (remove_redundant)
 			{
 				imin=0; jmin=-jmax; kmin=-kmax;
@@ -108,6 +108,14 @@ namespace Engine
 
 			for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
 			{
+				if (remove_redundant)
+				{
+					jatommin=iatom;
+				}
+				else
+				{
+					jatommin=0;
+				}
 				x0 = geometry.cell_atoms[iatom][0] * a + geometry.cell_atoms[iatom][1] * b + geometry.cell_atoms[iatom][2] * c;
 				for (int ishell = 0; ishell < nShells; ++ishell)
 				{
@@ -119,14 +127,14 @@ namespace Engine
 							for (k = kmax; k >= kmin; --k)
 							{
 								// If redundant neighbours should be filtered out, we restrict the search to half of the space
-								if ((i>0 || (i==0 && j>0) || (i==0 && j==0 && k>0)) || !remove_redundant)
+								for (int jatom = jatommin; jatom < geometry.n_cell_atoms; ++jatom)
 								{
-									for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
-									{
+									if ((jatom > iatom) || (i>0 || (i==0 && j>0) || (i==0 && j==0 && k>0)) || !remove_redundant)
+									{		
 										x1 =  geometry.cell_atoms[jatom][0] * a
 											+ geometry.cell_atoms[jatom][1] * b
 											+ geometry.cell_atoms[jatom][2] * c
-										    + i*a + j*b + k*c;
+											+ i*a + j*b + k*c;
 										dx = (x0-x1).norm();
 										delta = std::abs(dx - radius);
 										if (delta < 1e-6)
@@ -140,8 +148,8 @@ namespace Engine
 											neighbours.push_back( neigh );
 											shells.push_back(ishell);
 										}
-									}//endfor jatom
-								}
+									}
+								}//endfor jatom
 							}//endfor k
 						}//endfor j
 					}//endfor i
