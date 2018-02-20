@@ -41,6 +41,24 @@ namespace Engine
         dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
     {
+        #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
+        for (int i = 0; i < exchange_pairs.size(); ++i)
+        {
+            auto& p = exchange_pairs[i];
+            auto& t = p.translations;
+            exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            exchange_magnitudes.push_back(exchange_magnitudes[i]);
+        }
+        for (int i = 0; i < dmi_pairs.size(); ++i)
+        {
+            auto& p = dmi_pairs[i];
+            auto& t = p.translations;
+            dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            dmi_magnitudes.push_back(dmi_magnitudes[i]);
+            dmi_normals.push_back(-dmi_normals[i]);
+        }
+        #endif
+
         // Generate DDI pairs, magnitudes, normals
         this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
         scalar magnitude;
@@ -97,7 +115,7 @@ namespace Engine
             this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
         }
 
- // Generate DDI pairs, magnitudes, normals
+        // Generate DDI pairs, magnitudes, normals
         this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
         scalar magnitude;
         Vector3 normal;
@@ -230,37 +248,19 @@ namespace Engine
         const int Nb = geometry->n_cells[1];
         const int Nc = geometry->n_cells[2];
 
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (unsigned int icell = 0; icell < spins.size(); ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = exchange_pairs[i_pair].i + icell;
+                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-                    {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                            #ifndef _OPENMP
-                            Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin2]);
-                        }
-                        #endif
-                    }
+                    Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+                    #ifndef _OPENMP
+                    Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+                    #endif
                 }
             }
         }
@@ -272,37 +272,19 @@ namespace Engine
         const int Nb = geometry->n_cells[1];
         const int Nc = geometry->n_cells[2];
 
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (unsigned int icell = 0; icell < spins.size(); ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = dmi_pairs[i_pair].i + icell;
+                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-                    {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                            #ifndef _OPENMP
-                            Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            Energy[ispin] += 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin2]));
-                        }
-                        #endif
-                    }
+                    Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+                    #ifndef _OPENMP
+                    Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+                    #endif
                 }
             }
         }
@@ -437,37 +419,19 @@ namespace Engine
         const int Nb = geometry->n_cells[1];
         const int Nc = geometry->n_cells[2];
 
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = exchange_pairs[i_pair].i + icell;
+                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    std::array<int, 3> translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-                    {
-                        int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
-                            #ifndef _OPENMP
-                            gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin2];
-                        }
-                        #endif
-                    }
+                    gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
+                    #ifndef _OPENMP
+                    gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
+                    #endif
                 }
             }
         }
@@ -479,37 +443,19 @@ namespace Engine
         const int Nb = geometry->n_cells[1];
         const int Nc = geometry->n_cells[2];
 
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = dmi_pairs[i_pair].i + icell;
+                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    std::array<int, 3 > translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-                    {
-                        int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
-                            #ifndef _OPENMP
-                            gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            gradient[ispin] += dmi_magnitudes[i_pair] * spins[jspin2].cross(dmi_normals[i_pair]);
-                        }
-                        #endif
-                    }
+                    gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
+                    #ifndef _OPENMP
+                    gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
+                    #endif
                 }
             }
         }
