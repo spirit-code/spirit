@@ -32,6 +32,18 @@ namespace Engine
             intfield boundary_conditions
         );
 
+		Hamiltonian_Heisenberg_Pairs(
+			scalarfield mu_s,
+			scalar external_field_magnitude, Vector3 external_field_normal,
+			intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+			scalarfield exchange_magnitudes,
+			scalarfield dmi_magnitudes, int dm_chirality,
+			scalar ddi_radius,
+        	quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+			std::shared_ptr<Data::Geometry> geometry,
+			intfield boundary_conditions
+		);
+
 		void Update_Energy_Contributions() override;
 
 		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
