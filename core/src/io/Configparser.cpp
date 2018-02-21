@@ -958,15 +958,10 @@ namespace IO
         std::unique_ptr<Engine::Hamiltonian> hamiltonian;
         try
         {
-            if (hamiltonian_type == "heisenberg_neighbours")
+            if (hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs")
             {
-                hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
-            }// endif isotropic
-            else if (hamiltonian_type == "heisenberg_pairs")
-            {
-                // TODO: to std::move or not to std::move, that is the question...
-                hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
-            }// endif anisotropic
+                hamiltonian = Hamiltonian_Heisenberg_from_Config(configFile, geometry, hamiltonian_type);
+            }
             else if (hamiltonian_type == "gaussian")
             {
                 hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
@@ -974,7 +969,7 @@ namespace IO
             else
             {
                 spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
-            }// endif neither
+            }
         }
         catch (...)
         {
@@ -986,7 +981,7 @@ namespace IO
         return hamiltonian;
     }
 
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
+    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type)
     {
         //-------------- Insert default values here -----------------------------
         // Boundary conditions (a, b, c)
@@ -998,243 +993,6 @@ namespace IO
 
         // External Magnetic Field
         scalar B = 0;
-        Vector3 B_normal = { 0.0, 0.0, 1.0 };
-
-        // Anisotropy
-        std::string anisotropy_file = "";
-        scalar K = 0;
-        Vector3 K_normal = { 0.0, 0.0, 1.0 };
-        bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->n_cell_atoms);
-        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
-        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
-
-        // Number of shells in which we calculate neighbours
-        // Jij
-        scalarfield jij = { 10.0 };
-        int n_neigh_shells_exchange = jij.size();
-        // DM constant
-        scalarfield dij = { 6.0 };
-        int n_neigh_shells_dmi = dij.size();
-        int dm_chirality = 1;
-        // Dipole-Dipole interaction radius
-        scalar dd_radius = 0.0;
-
-        //------------------------------- Parser --------------------------------
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: building");
-        // iteration variables
-        int iatom = 0;
-        if (configFile != "")
-        {
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_3Vector(boundary_conditions_i, "boundary_conditions");
-                boundary_conditions[0] = (boundary_conditions_i[0] != 0);
-                boundary_conditions[1] = (boundary_conditions_i[1] != 0);
-                boundary_conditions[2] = (boundary_conditions_i[2] != 0);
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read boundary_conditions from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Spin moment
-                if (myfile.Find("mu_s"))
-                {
-                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
-                    {
-                        if ( !(myfile.iss >> mu_s[iatom]) )
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO,
-                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
-                            mu_s[iatom] = mu_s[0];
-                        }
-                    }
-                }
-                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // External Field
-                // Read parameters from config if available
-                myfile.Read_Single(B, "external_field_magnitude");
-                myfile.Read_Vector3(B_normal, "external_field_normal");
-                B_normal.normalize();
-                if (B_normal.norm() < 1e-8)
-                {
-                    B_normal = { 0,0,1 };
-                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read external field from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Anisotropy
-                if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
-                if (anisotropy_file.length() > 0)
-                {
-                    int n;
-                    // The file name should be valid so we try to read it
-                    Anisotropy_from_File(anisotropy_file, geometry, n,
-                        anisotropy_index, anisotropy_magnitude, anisotropy_normal);
-
-                    anisotropy_from_file = true;
-                    K = anisotropy_magnitude[0];
-                    K_normal = anisotropy_normal[0];
-                }
-                else
-                {
-                    // Read parameters from config
-                    myfile.Read_Single(K, "anisotropy_magnitude");
-                    myfile.Read_Vector3(K_normal, "anisotropy_normal");
-                    K_normal.normalize();
-
-                    if (K != 0)
-                    {
-                        // Fill the arrays
-                        for (int i = 0; i < anisotropy_index.size(); ++i)
-                        {
-                            anisotropy_index[i] = i;
-                            anisotropy_magnitude[i] = K;
-                            anisotropy_normal[i] = K_normal;
-                        }
-                    }
-                    else
-                    {
-                        anisotropy_index = intfield(0);
-                        anisotropy_magnitude = scalarfield(0);
-                        anisotropy_normal = vectorfield(0);
-                    }
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read anisotropy from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
-                if (jij.size() != n_neigh_shells_exchange)
-                    jij = scalarfield(n_neigh_shells_exchange);
-                if (n_neigh_shells_exchange > 0)
-                {
-                    if (myfile.Find("jij"))
-                    {
-                        for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
-                            myfile.iss >> jij[iatom];
-                    }
-                    else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
-                if (dij.size() != n_neigh_shells_dmi)
-                    dij = scalarfield(n_neigh_shells_dmi);
-                if (n_neigh_shells_dmi > 0)
-                {
-                    if (myfile.Find("dij"))
-                    {
-                        for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
-                            myfile.iss >> dij[iatom];
-                    }
-                    else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
-                }
-                myfile.Read_Single(dm_chirality, "dm_chirality");
-
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(dd_radius, "dd_radius");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read dd_radius from config file \"{}\"", configFile));
-            }
-        }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
-
-        // Return
-        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
-        if (anisotropy_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_neigh_shells_exchange));
-        if (n_neigh_shells_exchange > 0)
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", jij[0]));
-        if (n_neigh_shells_dmi > 0)
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_neigh_shells_dmi));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dij[0]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", dd_radius));
-        auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
-                mu_s, B, B_normal,
-                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-                jij,
-                dij, dm_chirality,
-                dd_radius,
-                geometry,
-                boundary_conditions
-            ));
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: built");
-        return hamiltonian;
-    }// end Hamiltonian_Heisenberg_Neighbours_from_Config
-
-
-
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
-    {
-        //-------------- Insert default values here -----------------------------
-        // Boundary conditions (a, b, c)
-        std::vector<int> boundary_conditions_i = { 0, 0, 0 };
-        intfield boundary_conditions = { false, false, false };
-
-        // Spin moment
-        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
-
-        // External Magnetic Field
-        scalar B = 25;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
         
         // Anisotropy
@@ -1252,6 +1010,13 @@ namespace IO
         bool interaction_pairs_from_file = false;
         pairfield exchange_pairs(0); scalarfield exchange_magnitudes(0);
         pairfield dmi_pairs(0); scalarfield dmi_magnitudes(0); vectorfield dmi_normals(0);
+
+        // Number of shells in which we calculate neighbours
+        int n_neigh_shells_exchange = exchange_magnitudes.size();
+        // DM constant
+        int n_neigh_shells_dmi = dmi_magnitudes.size();
+        int dm_chirality = 1;
+        
         scalar ddi_radius = 0.0;
 
         // ------------ Quadruplet Interactions ------------
@@ -1381,33 +1146,84 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
             }
 
-            try
+            if (hamiltonian_type == "heisenberg_pairs")
             {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Interaction Pairs
-                if (myfile.Find("n_interaction_pairs"))
-                    interaction_pairs_file = configFile;
-                else if (myfile.Find("interaction_pairs_file"))
-                    myfile.iss >> interaction_pairs_file;
-
-                if (interaction_pairs_file.length() > 0)
+                try
                 {
-                    // The file name should be valid so we try to read it
-                    Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
-                        exchange_pairs, exchange_magnitudes,
-                        dmi_pairs, dmi_magnitudes, dmi_normals);
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    // Interaction Pairs
+                    if (myfile.Find("n_interaction_pairs"))
+                        interaction_pairs_file = configFile;
+                    else if (myfile.Find("interaction_pairs_file"))
+                        myfile.iss >> interaction_pairs_file;
+
+                    if (interaction_pairs_file.length() > 0)
+                    {
+                        // The file name should be valid so we try to read it
+                        Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
+                            exchange_pairs, exchange_magnitudes,
+                            dmi_pairs, dmi_magnitudes, dmi_normals);
+                    }
+                    //else
+                    //{
+                    //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Default Interaction pairs have not been implemented yet.");
+                    //	throw Exception::System_not_Initialized;
+                    //	// Not implemented!
+                    //}
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
                 }
-                //else
-                //{
-                //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Default Interaction pairs have not been implemented yet.");
-                //	throw Exception::System_not_Initialized;
-                //	// Not implemented!
-                //}
-            }// end try
-            catch( ... )
+            }
+            else
             {
-                spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
+                    if (exchange_magnitudes.size() != n_neigh_shells_exchange)
+                        exchange_magnitudes = scalarfield(n_neigh_shells_exchange);
+                    if (n_neigh_shells_exchange > 0)
+                    {
+                        if (myfile.Find("jij"))
+                        {
+                            for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
+                                myfile.iss >> exchange_magnitudes[iatom];
+                        }
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
+                    }
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
+                }
+
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
+                    if (dmi_magnitudes.size() != n_neigh_shells_dmi)
+                        dmi_magnitudes = scalarfield(n_neigh_shells_dmi);
+                    if (n_neigh_shells_dmi > 0)
+                    {
+                        if (myfile.Find("dij"))
+                        {
+                            for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
+                                myfile.iss >> dmi_magnitudes[iatom];
+                        }
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
+                    }
+                    myfile.Read_Single(dm_chirality, "dm_chirality");
+
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
+                }
             }
             
             try
@@ -1458,18 +1274,49 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+        if (hamiltonian_type == "heisenberg_neighbours")
+        {
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_neigh_shells_exchange));
+            if (n_neigh_shells_exchange > 0)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", exchange_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_neigh_shells_dmi));
+            if (n_neigh_shells_dmi > 0)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dmi_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
+        }
+
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
-        auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
-            mu_s,
-            B, B_normal,
-            anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-            exchange_pairs, exchange_magnitudes,
-            dmi_pairs, dmi_magnitudes, dmi_normals,
-            ddi_radius,
-            quadruplets, quadruplet_magnitudes,
-            geometry,
-            boundary_conditions
-        ));
+
+        std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> hamiltonian;
+
+        if (hamiltonian_type == "heisenberg_neighbours")
+        {
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
+                mu_s,
+                B, B_normal,
+                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                exchange_magnitudes,
+                dmi_magnitudes, dm_chirality,
+                ddi_radius,
+                quadruplets, quadruplet_magnitudes,
+                geometry,
+                boundary_conditions
+            ));
+        }
+        else
+        {
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
+                mu_s,
+                B, B_normal,
+                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                exchange_pairs, exchange_magnitudes,
+                dmi_pairs, dmi_magnitudes, dmi_normals,
+                ddi_radius,
+                quadruplets, quadruplet_magnitudes,
+                geometry,
+                boundary_conditions
+            ));
+        }
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: built");
         return hamiltonian;
     }// end Hamiltonian_Heisenberg_Pairs_From_Config
