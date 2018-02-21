@@ -1,11 +1,12 @@
 #ifndef USE_CUDA
 
 #include <Spirit_Defines.h>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
+#include <iostream>
 
 #include <Eigen/Dense>
 
@@ -22,7 +23,7 @@ using Engine::Vectormath::idx_from_pair;
 
 namespace Engine
 {
-    Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
@@ -37,8 +38,8 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
+        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
+        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
     {
         #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
@@ -73,7 +74,7 @@ namespace Engine
         this->Update_Energy_Contributions();
     }
 
-    Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
@@ -88,7 +89,9 @@ namespace Engine
         geometry(geometry),
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
-        anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals)
+        anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        exchange_n_shells(exchange_magnitudes.size()),
+        dmi_n_shells(dmi_magnitudes.size())
     {
         #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
         // When parallelising (cuda or openmp), we need all neighbours per spin
@@ -109,10 +112,12 @@ namespace Engine
         // Generate DMI neighbours and normals
         intfield dmi_shells(0);
         Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
+        std::cerr << dmi_magnitudes.size() << std::endl;
         for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
         {
             dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
             this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
+            std::cerr << dmi_pairs[ineigh].i << " " << dmi_pairs[ineigh].j << " " << dmi_pairs[ineigh].translations[0] << " " << dmi_pairs[ineigh].translations[1] << " " << dmi_pairs[ineigh].translations[2] << std::endl;
         }
 
         // Generate DDI pairs, magnitudes, normals
@@ -130,7 +135,7 @@ namespace Engine
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
+    void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
@@ -178,7 +183,7 @@ namespace Engine
         else this->idx_quadruplet = -1;
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
+    void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         if (contributions.size() != this->energy_contributions_per_spin.size())
         {
@@ -210,7 +215,7 @@ namespace Engine
         if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -226,7 +231,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -242,7 +247,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
         const int Na = geometry->n_cells[0];
         const int Nb = geometry->n_cells[1];
@@ -266,7 +271,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
         const int Na = geometry->n_cells[0];
         const int Nb = geometry->n_cells[1];
@@ -290,7 +295,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
@@ -327,7 +332,7 @@ namespace Engine
     }// end DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
         for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         {
@@ -359,7 +364,7 @@ namespace Engine
 
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
         // Set to zero
         Vectormath::fill(gradient, {0,0,0});
@@ -381,7 +386,7 @@ namespace Engine
         this->Gradient_Quadruplet(spins, gradient);
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -397,7 +402,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -413,7 +418,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
         const int Na = geometry->n_cells[0];
         const int Nb = geometry->n_cells[1];
@@ -437,7 +442,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
         const int Na = geometry->n_cells[0];
         const int Nb = geometry->n_cells[1];
@@ -461,7 +466,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
@@ -496,7 +501,7 @@ namespace Engine
     }//end Field_DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
         for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         {
@@ -531,7 +536,7 @@ namespace Engine
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Hessian(const vectorfield & spins, MatrixX & hessian)
+    void Hamiltonian_Heisenberg::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
         int nos = spins.size();
 
@@ -673,8 +678,8 @@ namespace Engine
     }
 
     // Hamiltonian name as string
-    static const std::string name = "Heisenberg (Pairs)";
-    const std::string& Hamiltonian_Heisenberg_Pairs::Name() { return name; }
+    static const std::string name = "Heisenberg";
+    const std::string& Hamiltonian_Heisenberg::Name() { return name; }
 }
 
 #endif

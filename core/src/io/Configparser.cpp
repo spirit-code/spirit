@@ -981,7 +981,7 @@ namespace IO
         return hamiltonian;
     }
 
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type)
+    std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type)
     {
         //-------------- Insert default values here -----------------------------
         // Boundary conditions (a, b, c)
@@ -1026,7 +1026,7 @@ namespace IO
         quadrupletfield quadruplets(0); scalarfield quadruplet_magnitudes(0);
 
         //------------------------------- Parser --------------------------------
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: building");
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: building");
         // iteration variables
         int iatom = 0;
         if (configFile != "")
@@ -1167,7 +1167,7 @@ namespace IO
                     }
                     //else
                     //{
-                    //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Default Interaction pairs have not been implemented yet.");
+                    //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
                     //	throw Exception::System_not_Initialized;
                     //	// Not implemented!
                     //}
@@ -1193,7 +1193,7 @@ namespace IO
                             for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
                                 myfile.iss >> exchange_magnitudes[iatom];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  { 10.0 }");
                     }
                 }// end try
                 catch( ... )
@@ -1215,7 +1215,7 @@ namespace IO
                             for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
                                 myfile.iss >> dmi_magnitudes[iatom];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  { 6.0 }");
                     }
                     myfile.Read_Single(dm_chirality, "dm_chirality");
 
@@ -1262,10 +1262,10 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
+        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Using default configuration!");
         
         // Return
-        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
+        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
@@ -1287,11 +1287,11 @@ namespace IO
 
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
 
-        std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> hamiltonian;
+        std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
         if (hamiltonian_type == "heisenberg_neighbours")
         {
-            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
                 mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
@@ -1305,7 +1305,7 @@ namespace IO
         }
         else
         {
-            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
                 mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
@@ -1317,9 +1317,9 @@ namespace IO
                 boundary_conditions
             ));
         }
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: built");
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: built");
         return hamiltonian;
-    }// end Hamiltonian_Heisenberg_Pairs_From_Config
+    }// end Hamiltonian_Heisenberg_From_Config
 
 
     std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
