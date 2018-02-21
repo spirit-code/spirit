@@ -15,6 +15,8 @@
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
+#include <fstream>
+#include <ostream>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
@@ -69,11 +71,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
 	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
+	connect(this->actionLoad_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
 	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
+	connect(this->actionSave_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), SLOT(save_Spin_Configuration_Eigenmodes()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
 	
@@ -1218,6 +1222,31 @@ void MainWindow::load_Spin_Configuration()
 
 	Chain_Jump_To_Image(this->state.get(), i_start);
 	this->spinWidget->updateData();
+}
+
+void MainWindow::save_Spin_Configuration_Eigenmodes()
+{
+	// std::cerr << "inside save spins" << std::endl;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Spin Configuration Eigenmodes"), "./output",
+		tr("OOMF Vector Field 8-bytes binary (*.ovf);;OOMF Vector Field 4-bytes binary (*.ovf);;OOMF Vector Field text (*.ovf);;"));
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        
+        // Determine file type from suffix
+        auto qs_type = fi.completeSuffix();
+        int type = IO_Fileformat_Regular;
+        if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
+       
+        // Write the file
+        auto file = string_q2std(fileName);
+        IO_Eigenmodes_Write(this->state.get(), file.c_str(), type);
+    }
+}
+
+void MainWindow::load_Spin_Configuration_Eigenmodes()
+{
 }
 
 void MainWindow::save_SpinChain_Configuration()
