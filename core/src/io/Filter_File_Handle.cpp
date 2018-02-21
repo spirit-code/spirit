@@ -50,15 +50,15 @@ namespace IO
         myfile->close();
     }
 
-    void Filter_File_Handle::SavePosition()
+    void Filter_File_Handle::SetOffset()
     {
         this->position = this->myfile->tellg();
     }
 
-    void Filter_File_Handle::ResetPosition()
+    void Filter_File_Handle::ResetOffset()
     {
         this->myfile->seekg( std::ios::beg );
-        this->position = this->myfile->tellg();
+        this->position = std::ios::beg;
     }
 
     bool Filter_File_Handle::GetLine_Handle()

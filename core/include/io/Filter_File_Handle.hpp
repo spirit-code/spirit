@@ -39,10 +39,10 @@ namespace IO
                             IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
         // Destructor
         ~Filter_File_Handle();
-        // Save the position of the file stream indicator
-        void SavePosition();
+        // Set the position of the file stream indicator to be used as offset
+        void SetOffset();
         // Reset the position of the file stream indicator
-        void ResetPosition();
+        void ResetOffset();
         // Reads next line of file into the handle (false -> end-of-file)
         bool GetLine_Handle();
         // Reads the next line of file into the handle and into the iss

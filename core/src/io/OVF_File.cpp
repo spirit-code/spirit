@@ -23,7 +23,8 @@ namespace IO
             this->datatype_out = "Binary 4";
         else if( this->format == VF_FileFormat::OVF_TEXT )
             this->datatype_out = "Text";
-        
+       
+        this->n_segments = -1;
         this->version = "";
         this->title = "";
         this->meshunit = "";
@@ -190,40 +191,66 @@ namespace IO
         }
     }
 
+    void OVF_File::Read_Version()
+    {
+        myfile.Read_String( this->version, "# OOMMF OVF" );
+        if( this->version != "2.0" && this->version != "2" )
+        {
+            spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                          Utility::Log_Level::Error,
+                          fmt::format( "OVF {0} is not supported", this->version ) );
+        }
+    }
     
     void OVF_File::Read_N_Segments()
     {
+        try
+        {
+            // get the number of segments from the initial keyword
+            myfile.Read_Single( this->n_segments, "# segment count:" ); 
+            
+            if( this->n_segments < 1 )
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error, fmt::format( "OVF Segment count {0} is"
+                              " invalid", this->n_segments ) );
+            
+            // get the number of segments fro the occurances of "# Begin: Segment"
+            int n_begin_segment = 0;
+           
+            // NOTE: the keyword for find must be lower case since the Filter File Handle converts
+            // the content of the input file to lower case automatically
+            while( myfile.Find( "# begin: segment" ) )
+            {
+                myfile.SetOffset();
+                ++n_begin_segment;
+            }
+            
+            myfile.ResetOffset();
+            
+            // compare the two numbers
+            if( this->n_segments != n_begin_segment )
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error, fmt::format( "OVF Segment numbler in header"
+                              " ({0}) is different from the number of segments ({1}) in file", 
+                              this->n_segments, n_begin_segment ) );
+            
+        }
+        catch( ... )
+        {
+            spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
+        }
     }
 
     void OVF_File::Read_Header()
     {
         try
         {
-            // first line - OVF version
-            myfile.Read_String( this->version, "# OOMMF OVF" );
-            if( this->version != "2.0" && this->version != "2" )
-            {
-                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
-                              Utility::Log_Level::Error,
-                              fmt::format( "OVF {0} is not supported", this->version ) );
-            }
-            
-            // Title
             myfile.Read_String( this->title, "# Title:" );
-            
-            // mesh units 
             myfile.Read_Single( this->meshunit, "# meshunit:" );
-            
-            // value's dimensions
             myfile.Require_Single( this->valuedim, "# valuedim:" );
-            
-            // value's units
             myfile.Read_String( this->valueunits, "# valueunits:" );
-            
-            // value's labels
             myfile.Read_String( this->valueunits, "# valuelabels:" );
             
-            // {x,y,z} x {min,max}
             myfile.Read_Single( this->min.x(), "# xmin:" );
             myfile.Read_Single( this->min.y(), "# ymin:" );
             myfile.Read_Single( this->min.z(), "# zmin:" );
@@ -231,10 +258,8 @@ namespace IO
             myfile.Read_Single( this->max.y(), "# ymax:" );
             myfile.Read_Single( this->max.z(), "# zmax:" );
             
-            // meshtype
             myfile.Require_Single( this->meshtype, "# meshtype:" );
             
-            // TODO: Change the throw to something more meaningfull we don't need want termination
             if( this->meshtype != "rectangular" && this->meshtype != "irregular" )
             {
                 spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
@@ -258,8 +283,6 @@ namespace IO
             // For different mesh types
             if( this->meshtype == "rectangular" )
             {
-                // {x,y,z} x {base,stepsize,nodes} 
-                
                 myfile.Require_Single( this->base.x(), "# xbase:" );
                 myfile.Require_Single( this->base.y(), "# ybase:" );
                 myfile.Require_Single( this->base.z(), "# zbase:" );
@@ -288,7 +311,6 @@ namespace IO
             // Check mesh type
             if ( this->meshtype == "irregular" )
             {
-                // pointcount
                 myfile.Require_Single( this->pointcount, "# pointcount:" );
                 
                 // Write to Log
@@ -340,6 +362,8 @@ namespace IO
             repr >> this->datatype_in;
             if( this->datatype_in == "binary" ) 
                 repr >> this->binary_length;
+            else
+                this->binary_length = 0;
             
             Log( lvl, this->sender, fmt::format( "# OVF data representation = {}", this->datatype_in ) );
             Log( lvl, this->sender, fmt::format( "# OVF binary length       = {}", this->binary_length ) );
@@ -520,10 +544,10 @@ namespace IO
         for (int i=0; i<chain->noi; i++)
             Write_Segment( *chain->images[i]->spins, *chain->images[i]->geometry );
     }
-
     
     void OVF_File::read_image( vectorfield& vf, Data::Geometry& geometry )
     {
+        Read_Version();
         Read_Header();
         Read_Check_Geometry( geometry );
         Read_Data( vf );
@@ -532,5 +556,34 @@ namespace IO
     void OVF_File::read_eigenmodes( std::vector<std::shared_ptr<vectorfield>>& modes,
                                     Data::Geometry& geometry )
     {
+        Read_Version();
+        
+        // read segments in file and compared them with the size of the modes's buffer
+        Read_N_Segments();
+       
+        // check if the modes in the file fit in the modes's buffer and if not resize
+        if ( modes.size() != this->n_segments )
+        {
+            modes.resize(this->n_segments);
+            Log( Log_Level::Warning, this->sender, fmt::format("Modes buffer resized since the"
+                 " number of modes in the OVF file was greater than its size") );
+        }
+        
+        // read in the modes
+        for (int i=0; i<this->n_segments; i++)
+        {
+            Read_Header();
+            Read_Check_Geometry( geometry );
+           
+            // if the modes buffer created by resizing then it needs to be allocated
+            if (modes[i] == NULL)
+            {
+                int nos = this->nodes[0] * this->nodes[1] * this->nodes[2];
+                modes[i] = std::shared_ptr<vectorfield>(new vectorfield(nos, Vector3{1,0,0}));
+            }
+            
+            Read_Data( *modes[i] );
+            myfile.SetOffset();  // save position for skipping the already read segment
+        }
     }
 }

@@ -59,6 +59,7 @@ namespace IO
         Vector3 stepsize;
         std::array<int,3> nodes;
        
+        void Read_Version();
         void Read_N_Segments();
         void Read_Header();
         void Read_Check_Geometry( const Data::Geometry& geometry);

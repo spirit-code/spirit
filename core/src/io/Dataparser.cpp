@@ -303,8 +303,8 @@ namespace IO
             auto& spins = *image->spins;
             auto& geometry = *image->geometry;
            
-            //OVF_File ovf_file( filename, format );
-            //ovf_file.read_eigenmodes( spins, geometry );           
+            OVF_File ovf_file( filename, format );
+            ovf_file.read_eigenmodes( image->modes, geometry ); 
         }
         else
         {
