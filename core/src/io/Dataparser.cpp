@@ -494,15 +494,14 @@ namespace IO
             // Check if interactions have been found in header
             if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in pairs file " + pairsFile);
 
-            // Pair Indices
-            int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
-            scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
-
             // Get actual Pairs Data
             int i_pair = 0;
             std::string sdump;
             while (file.GetLine() && i_pair < n_pairs)
             {
+                // Pair Indices
+                int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
+                scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
                 // Read a Pair from the File
                 for (unsigned int i = 0; i < columns.size(); ++i)
                 {
@@ -539,44 +538,95 @@ namespace IO
                 // DMI vector orientation
                 if (DMI_abc)
                 {
-                    pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-                    pair_D1 = pair_D_temp.dot(geometry->bravais_vectors[0]);
-                    pair_D2 = pair_D_temp.dot(geometry->bravais_vectors[1]);
-                    pair_D3 = pair_D_temp.dot(geometry->bravais_vectors[2]);
+                    pair_D_temp =  pair_D1 * geometry->bravais_vectors[0] 
+                                 + pair_D2 * geometry->bravais_vectors[1] 
+                                 + pair_D3 * geometry->bravais_vectors[2];
+                    pair_D1 = pair_D_temp[0];
+                    pair_D2 = pair_D_temp[1];
+                    pair_D3 = pair_D_temp[2];
                 }
                 // DMI vector normalisation
-                if (Dij)
+                scalar dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
+                if (dnorm != 0)
                 {
-                    scalar dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
-                    if (dnorm != 0)
-                    {
-                        pair_D1 = pair_D1 / dnorm;
-                        pair_D2 = pair_D2 / dnorm;
-                        pair_D3 = pair_D3 / dnorm;
-                    }
+                    pair_D1 = pair_D1 / dnorm;
+                    pair_D2 = pair_D2 / dnorm;
+                    pair_D3 = pair_D3 / dnorm;
                 }
-                else
+                if (!Dij)
                 {
-                    pair_Dij = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
-                    if (pair_Dij != 0)
-                    {
-                        pair_D1 = pair_D1 / pair_Dij;
-                        pair_D2 = pair_D2 / pair_Dij;
-                        pair_D3 = pair_D3 / pair_Dij;
-                    }
+                    pair_Dij = dnorm;
                 }
 
                 // Add the indices and parameters to the corresponding lists
                 if (pair_Jij != 0)
                 {
-                    exchange_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
-                    exchange_magnitudes.push_back(pair_Jij);
+                    bool already_in;
+                    already_in = false;
+                    int atposition = -1;
+                    for (unsigned int icheck = 0; icheck < exchange_pairs.size(); ++icheck )
+                    {
+                        auto& p = exchange_pairs[icheck];
+                        auto& t = p.translations;
+                        std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
+                        if ( (pair_i == p.i && pair_j == p.j && t == tnew) ||
+                             (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]}) )
+                        {
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+                    }
+                    if (already_in)
+                    {
+                        exchange_magnitudes[atposition] += pair_Jij;
+                    }
+                    else
+                    {
+                        exchange_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
+                        exchange_magnitudes.push_back(pair_Jij);
+                    }
                 }
                 if (pair_Dij != 0)
                 {
-                    dmi_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
-                    dmi_magnitudes.push_back(pair_Dij);
-                    dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
+                    bool already_in;
+                    int dfact = 1;
+                    already_in = false;
+                    int atposition = -1;
+                    for (unsigned int icheck = 0; icheck < dmi_pairs.size(); ++icheck )
+                    {
+                        auto& p = dmi_pairs[icheck];
+                        auto& t = p.translations;
+                        std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
+                        if (pair_i == p.i && pair_j == p.j && t == tnew)
+                        {
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+                        else if  (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]})
+                        { // if the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
+                            dfact = -1;
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+
+                    }
+                    if (already_in)
+                    { // calculate new D vector by adding the two redundant ones and normalize again
+                        Vector3 newD =   dmi_magnitudes[atposition] * dmi_normals[atposition]
+                                       + dfact * pair_Dij           * Vector3{pair_D1, pair_D2, pair_D3};
+                        scalar newdnorm = std::sqrt(std::pow(newD[0], 2) + std::pow(newD[1], 2) + std::pow(newD[2], 2));
+                        dmi_magnitudes[atposition] = newdnorm;
+                        dmi_normals[atposition] = newD / newdnorm;
+                    }
+                    else
+                    {
+                        dmi_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
+                        dmi_magnitudes.push_back(pair_Dij);
+                        dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
+                    }
                 }
 
                 ++i_pair;
