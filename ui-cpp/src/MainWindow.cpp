@@ -1229,24 +1229,47 @@ void MainWindow::save_Spin_Configuration_Eigenmodes()
 	// std::cerr << "inside save spins" << std::endl;
     auto fileName = QFileDialog::getSaveFileName(this,
         tr("Save Spin Configuration Eigenmodes"), "./output",
-		tr("OOMF Vector Field 8-bytes binary (*.ovf);;OOMF Vector Field 4-bytes binary (*.ovf);;OOMF Vector Field text (*.ovf);;"));
+		tr("OOMF Vector Field(*.ovf)"));
+    
+    int type = IO_Fileformat_OVF_text;
+    
     if (!fileName.isEmpty())
     {
         QFileInfo fi(fileName);
         
         // Determine file type from suffix
         auto qs_type = fi.completeSuffix();
-        int type = IO_Fileformat_Regular;
-        if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
+        if ( qs_type == "ovf" ) type = IO_Fileformat_OVF_text;
        
         // Write the file
         auto file = string_q2std(fileName);
+        
         IO_Eigenmodes_Write(this->state.get(), file.c_str(), type);
     }
 }
 
 void MainWindow::load_Spin_Configuration_Eigenmodes()
 {
+    auto fileName = QFileDialog::getOpenFileName(this,
+        tr("Load Spin Configuration"), "./input",
+        tr("Any (*.txt *.csv *.ovf);;OOMF Vector Field (*.ovf)"));
+
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        auto qs_type = fi.suffix();
+        
+        if (qs_type == "ovf") 
+            type = IO_Fileformat_OVF_text;
+        else
+            Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only "
+                "txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+        
+	    auto file = string_q2std(fileName);
+        IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
+    }
 }
 
 void MainWindow::save_SpinChain_Configuration()
