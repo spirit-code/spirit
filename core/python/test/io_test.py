@@ -5,13 +5,13 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state, chain, system, io, configuration
+from spirit import state, chain, system, io, configuration, simulation
 
 import unittest
 
 ##########
 
-cfgfile       = spirit_py_dir + "/../test/input/fd_neighbours.cfg"   # Input File
+cfgfile       = spirit_py_dir + "/../test/input/fd_pairs.cfg"   # Input File
 io_image_test = spirit_py_dir + "/test/io_test_files/io_image_test"
 io_chain_test = spirit_py_dir + "/test/io_test_files/io_chain_test"
 
@@ -56,7 +56,16 @@ class Image_IO(TestParameters):
         configuration.MinusZ(self.p_state)
         io.Image_Append(self.p_state, io_image_test, 0, "python io test")
         io.Image_Append(self.p_state, io_image_test, 0, "python io test")
-    
+
+class Eigenmodes_IO(TestParameters):
+
+    def test_write(self):
+        configuration.PlusZ(self.p_state)
+        configuration.Skyrmion(self.p_state,radius=5,phase=-90)
+        simulation.PlayPause(self.p_state,"LLG","VP")
+        simulation.Eigenmodes(self.p_state)
+        io.Eigenmodes_Write(self.p_state,io_image_test,6)
+
 class Chain_IO(TestParameters):
     
     def test_chain_write(self):
@@ -81,6 +90,7 @@ class Chain_IO(TestParameters):
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Image_IO))
+    suite.addTest(unittest.makeSuite(Eigenmodes_IO))
     suite.addTest(unittest.makeSuite(Chain_IO))
     return suite
 

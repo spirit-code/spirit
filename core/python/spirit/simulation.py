@@ -85,3 +85,12 @@ _Running_Anywhere_Collection.argtypes   = [ctypes.c_void_p]
 _Running_Anywhere_Collection.restype    = ctypes.c_bool
 def Running_Anywhere_Collection(p_state):
     return bool(_Running_Anywhere_Collection(ctypes.c_void_p(p_state)))
+
+### Eigenmodes
+_Eigenmodes          = _spirit.Simulation_Calculate_Eigenmodes
+_Eigenmodes.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Eigenmodes.restype  = None
+def Eigenmodes(p_state, idx_image=-1, idx_chain=-1):
+    spiritlib.WrapFunction(_Eigenmodes, [ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+                                         ctypes.c_int(idx_chain)])
+
