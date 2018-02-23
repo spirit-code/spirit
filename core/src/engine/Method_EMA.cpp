@@ -175,7 +175,7 @@ namespace Engine
 
         // Calculate n for that iteration based on the initial n displacement vector
         scalar t_angle = this->parameters_ema->amplitude * 
-            std::cos(2*M_PI*this->counter*this->parameters_ema->frequency);
+            std::sin(2*M_PI*this->counter*this->parameters_ema->frequency);
         this->angle = this->angle_initial;
         Vectormath::scale(this->angle, t_angle);
 
