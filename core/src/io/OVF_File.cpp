@@ -9,13 +9,18 @@ using namespace Utility;
 
 namespace IO
 {
-    OVF_File::OVF_File( std::string filename, VF_FileFormat format, const std::string comment ) : 
-        filename(filename), format(format), comment(comment), myfile(filename, format) 
+    // --------------------------------------------------------------------------------------------
+    // ----------------------------------------- oFile_OVF ----------------------------------------
+    // --------------------------------------------------------------------------------------------
+
+    oFile_OVF::oFile_OVF( std::string filename, VF_FileFormat format, const std::string comment ) : 
+        filename(filename), format(format), comment(comment)
     {
         this->output_to_file = "";
         this->output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
         this->empty_line = "#\n";
         this->sender = Log_Sender::IO;
+        this->n_segments = -1;
         
         if ( this->format == VF_FileFormat::OVF_BIN8 ) 
             this->datatype_out = "Binary 8";
@@ -23,21 +28,9 @@ namespace IO
             this->datatype_out = "Binary 4";
         else if( this->format == VF_FileFormat::OVF_TEXT )
             this->datatype_out = "Text";
-       
-        this->n_segments = -1;
-        this->version = "";
-        this->title = "";
-        this->meshunit = "";
-        this->meshtype = "";
-        this->valueunits = "";
-        this->datatype_in = "";
-        this->max = Vector3(0,0,0);
-        this->min = Vector3(0,0,0);
-        this->base = Vector3(0,0,0);
-        this->stepsize = Vector3(0,0,0);
     }
 
-    void OVF_File::Write_Top_Header( const int n_segments )
+    void oFile_OVF::Write_Top_Header( const int n_segments )
     {
         this->n_segments = n_segments; 
         
@@ -45,14 +38,14 @@ namespace IO
         this->output_to_file += fmt::format( this->empty_line );
         
         this->output_to_file += fmt::format( "# Segment count: {}\n", this->n_segments );
-        this->output_to_file += fmt::format( this->empty_line );
         
         Dump_to_File( this->output_to_file, this->filename );  // Dump to file
         this->output_to_file = "";  // reset output string buffer
     }
     
-    void OVF_File::Write_Segment( const vectorfield& vf, const Data::Geometry& geometry)
+    void oFile_OVF::Write_Segment( const vectorfield& vf, const Data::Geometry& geometry)
     {
+        this->output_to_file += fmt::format( this->empty_line );
         this->output_to_file += fmt::format( "# Begin: Segment\n" );
         this->output_to_file += fmt::format( "# Begin: Header\n" );
         this->output_to_file += fmt::format( this->empty_line );
@@ -122,7 +115,7 @@ namespace IO
         this->output_to_file = "";  // reset output string buffer
     }
 
-    void OVF_File::Write_Data_bin( const vectorfield& vf )
+    void oFile_OVF::Write_Data_bin( const vectorfield& vf )
     {
         // float test value
         const float ref_4b = *reinterpret_cast<const float *>( &this->test_hex_4b );
@@ -182,7 +175,7 @@ namespace IO
         }
     }
 
-    void OVF_File::Write_Data_txt( const vectorfield& vf )
+    void oFile_OVF::Write_Data_txt( const vectorfield& vf )
     {
         for (int iatom = 0; iatom < vf.size(); ++iatom)
         {
@@ -191,7 +184,28 @@ namespace IO
         }
     }
 
-    void OVF_File::Read_Version()
+    // --------------------------------------------------------------------------------------------
+    // ----------------------------------------- iFile_OVF ----------------------------------------
+    // --------------------------------------------------------------------------------------------
+    
+    iFile_OVF::iFile_OVF( std::string filename, VF_FileFormat format ) : 
+        filename(filename), format(format), myfile(filename, format) 
+    {
+        this->n_segments = -1;
+        this->version = "";
+        this->title = "";
+        this->meshunit = "";
+        this->meshtype = "";
+        this->valueunits = "";
+        this->datatype_in = "";
+        this->max = Vector3(0,0,0);
+        this->min = Vector3(0,0,0);
+        this->pointcount = -1;
+        this->base = Vector3(0,0,0);
+        this->stepsize = Vector3(0,0,0);
+    }
+    
+    void iFile_OVF::Read_Version()
     {
         myfile.Read_String( this->version, "# OOMMF OVF" );
         if( this->version != "2.0" && this->version != "2" )
@@ -202,7 +216,7 @@ namespace IO
         }
     }
     
-    void OVF_File::Read_N_Segments()
+    void iFile_OVF::Read_N_Segments()
     {
         try
         {
@@ -241,7 +255,7 @@ namespace IO
         }
     }
 
-    void OVF_File::Read_Header()
+    void iFile_OVF::Read_Header()
     {
         try
         {
@@ -324,7 +338,7 @@ namespace IO
         }
     }
     
-    void OVF_File::Read_Check_Geometry( const Data::Geometry& geometry)
+    void iFile_OVF::Read_Check_Geometry( const Data::Geometry& geometry)
     {
         try
         {
@@ -350,7 +364,7 @@ namespace IO
         }
     }
     
-    void OVF_File::Read_Data( vectorfield& vf )
+    void iFile_OVF::Read_Data( vectorfield& vf )
     {
         try
         {
@@ -394,7 +408,7 @@ namespace IO
         }
     }
     
-    void OVF_File::Read_Data_bin( vectorfield& vf )
+    void iFile_OVF::Read_Data_bin( vectorfield& vf )
     {
         try
         {        
@@ -459,7 +473,7 @@ namespace IO
         }
     }
 
-    void OVF_File::Read_Data_txt( vectorfield& vf )
+    void iFile_OVF::Read_Data_txt( vectorfield& vf )
     {
         try
         {   
@@ -479,7 +493,7 @@ namespace IO
         }
     }
     
-    bool OVF_File::Read_Check_Binary_Values()
+    bool iFile_OVF::Read_Check_Binary_Values()
     {
         try
         {
@@ -521,13 +535,13 @@ namespace IO
 
     // Public methods
     
-    void OVF_File::write_image( const vectorfield& vf, const Data::Geometry& geometry )
+    void oFile_OVF::write_image( const vectorfield& vf, const Data::Geometry& geometry )
     {
         Write_Top_Header(1);
         Write_Segment( vf, geometry );
     }
 
-    void OVF_File::write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes,
+    void oFile_OVF::write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes,
                                      const Data::Geometry& geometry )
     {
         Write_Top_Header( modes.size() );
@@ -538,14 +552,14 @@ namespace IO
         }
     }
 
-    void OVF_File::write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain )
+    void oFile_OVF::write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain )
     {
         Write_Top_Header( chain->noi );
         for (int i=0; i<chain->noi; i++)
             Write_Segment( *chain->images[i]->spins, *chain->images[i]->geometry );
     }
     
-    void OVF_File::read_image( vectorfield& vf, Data::Geometry& geometry )
+    void iFile_OVF::read_image( vectorfield& vf, Data::Geometry& geometry )
     {
         Read_Version();
         Read_Header();
@@ -553,7 +567,7 @@ namespace IO
         Read_Data( vf );
     }
 
-    void OVF_File::read_eigenmodes( std::vector<std::shared_ptr<vectorfield>>& modes,
+    void iFile_OVF::read_eigenmodes( std::vector<std::shared_ptr<vectorfield>>& modes,
                                     Data::Geometry& geometry )
     {
         Read_Version();

@@ -19,28 +19,44 @@
 
 namespace IO
 {
-    class OVF_File
+    class oFile_OVF
     {
     private:
         VF_FileFormat format;
         std::string filename;
-        int n_segments;
         const uint32_t test_hex_4b = 0x4996B438;
         const uint64_t test_hex_8b = 0x42DC12218377DE40;
         Utility::Log_Sender sender;
         
-        // Writing
+        int n_segments;
         std::string output_to_file;
         std::string empty_line;
         std::string datatype_out;
         std::string comment;
         
-        void Write_Top_Header( const int n_segments );
+        void Write_Top_Header( const int n_segments = 1 );
         void Write_Segment( const vectorfield& vf, const Data::Geometry& geometry );
         void Write_Data_bin( const vectorfield& vf );
         void Write_Data_txt( const vectorfield& vf );
+    public:
+        // Constructor
+        oFile_OVF( std::string filename, VF_FileFormat format, const std::string comment = "" );
+        void write_image( const vectorfield& vf, const Data::Geometry& geometry );
+        void write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                               const Data::Geometry& geometry );
+        void write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain );
+    }; // end class oFile_OVF
+
+    class iFile_OVF
+    {
+    private:
+        VF_FileFormat format;
+        std::string filename;
+        const uint32_t test_hex_4b = 0x4996B438;
+        const uint64_t test_hex_8b = 0x42DC12218377DE40;
+        Utility::Log_Sender sender;
        
-        // Reading
+        int n_segments;
         Filter_File_Handle myfile;
         std::string version;
         std::string title;
@@ -69,17 +85,11 @@ namespace IO
         bool Read_Check_Binary_Values();
     public:
         // Constructor
-        OVF_File( std::string filename, VF_FileFormat format, const std::string comment = "" );
-        // writing functions
-        void write_image( const vectorfield& vf, const Data::Geometry& geometry );
-        void write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
-                               const Data::Geometry& geometry );
-        void write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain );
-        // reading functions
+        iFile_OVF( std::string filename, VF_FileFormat format );
         void read_image( vectorfield& vf, Data::Geometry& geometry );
         void read_eigenmodes( std::vector<std::shared_ptr<vectorfield>>& modes, 
                               Data::Geometry& geometry );
-    }; // end class OVF_File
+    }; // end class iFile_OVF
 } // end namespace io
 
 #endif

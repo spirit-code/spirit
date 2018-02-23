@@ -269,8 +269,8 @@ namespace IO
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
             {
-                OVF_File ovf_file( filename, format, comment );
-                ovf_file.write_image( geometry.positions, geometry ); 
+                oFile_OVF ofile_ovf( filename, format, comment );
+                ofile_ovf.write_image( geometry.positions, geometry ); 
                 break;
             }
             default:
@@ -301,8 +301,8 @@ namespace IO
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
             {
-                OVF_File ovf_file( filename, format, comment );
-                ovf_file.write_image( vf, geometry ); 
+                oFile_OVF ofile_ovf( filename, format, comment );
+                ofile_ovf.write_image( vf, geometry ); 
                 break;
             }
             default:
@@ -324,8 +324,8 @@ namespace IO
              format == VF_FileFormat::OVF_BIN4 ||
              format == VF_FileFormat::OVF_TEXT )
         {
-            OVF_File ovf_file( filename, format, comment );
-            ovf_file.write_chain( chain ); 
+            oFile_OVF ofile_ovf( filename, format, comment );
+            ofile_ovf.write_chain( chain ); 
             return;
         }
         
@@ -375,8 +375,8 @@ namespace IO
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
             {   
-                OVF_File ovf_file( filename, format, comment );
-                ovf_file.write_eigenmodes( modes, geometry ); 
+                oFile_OVF ofile_ovf( filename, format, comment );
+                ofile_ovf.write_eigenmodes( modes, geometry ); 
                 break;
             }
             default:
