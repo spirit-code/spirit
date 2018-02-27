@@ -304,7 +304,11 @@ namespace IO
             auto& geometry = *image->geometry;
            
             iFile_OVF ifile_ovf( filename, format );
-            ifile_ovf.read_eigenmodes( image->modes, geometry ); 
+            ifile_ovf.read_eigenmodes( image->modes, geometry );
+            
+            // if the modes vector was reseized adjust the n_modes value
+            if ( image->modes.size() != image->ema_parameters->n_modes )
+                image->ema_parameters->n_modes = image->modes.size();
         }
         else
         {
