@@ -166,7 +166,7 @@ void ControlWidget::play_pause()
 		// Join the thread of the stopped simulation
 		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
 		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-        else if (threads_ema[Chain_Get_Index(state.get())].joinable()) threads_ema[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[System_Get_Index(state.get())].joinable()) threads_ema[System_Get_Index(state.get())].join();
 		else if (thread_mmf.joinable()) thread_mmf.join();
 		// New button text
 		this->pushButton_PlayPause->setText("Play");
@@ -250,7 +250,7 @@ void ControlWidget::stop_current()
 		// Join the thread of the stopped simulation
 		if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
 		else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-        else if (threads_ema[Chain_Get_Index(state.get())].joinable()) threads_ema[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[System_Get_Index(state.get())].joinable()) threads_ema[System_Get_Index(state.get())].join();
 		else if (thread_mmf.joinable()) thread_mmf.join();
 	}
 
@@ -311,6 +311,9 @@ void ControlWidget::cut_image()
 			// Make the llg_threads vector smaller
 			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
 			this->threads_llg.erase(threads_llg.begin() + idx);
+			// Make the ema_threads vector smaller
+			if (this->threads_ema[idx].joinable()) this->threads_ema[idx].join();
+			this->threads_ema.erase(threads_ema.begin() + idx);
 		}
 	}
 
@@ -334,6 +337,8 @@ void ControlWidget::paste_image(std::string where)
 		Chain_Insert_Image_Before(state.get());
 		// Make the llg_threads vector larger
 		this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+		// Make the ema_threads vector larger
+		this->threads_ema.insert(threads_ema.begin()+idx, std::thread());
 		// Switch to the inserted image
 		Chain_prev_Image(this->state.get());
 	}
@@ -344,6 +349,8 @@ void ControlWidget::paste_image(std::string where)
 		Chain_Insert_Image_After(state.get());
 		// Make the llg_threads vector larger
 		this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+		// Make the ema_threads vector larger
+		this->threads_ema.insert(threads_ema.begin()+idx, std::thread());
 		// Switch to the inserted image
 		Chain_next_Image(this->state.get());
 	}
@@ -365,6 +372,9 @@ void ControlWidget::delete_image()
 			// Make the llg_threads vector smaller
 			if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
 			this->threads_llg.erase(threads_llg.begin() + idx);
+			// Make the ema_threads vector smaller
+			if (this->threads_ema[idx].joinable()) this->threads_ema[idx].join();
+			this->threads_ema.erase(threads_ema.begin() + idx);
 		}
 
 		Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());

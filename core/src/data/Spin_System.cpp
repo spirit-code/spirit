@@ -43,7 +43,13 @@ namespace Data
 	{
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
-        this->modes = other.modes;
+        this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
+       
+        // copy the modes
+        for (int i=0; i<other.modes.size(); i++)
+            if ( other.modes[i] != NULL ) 
+                this->modes[i] = 
+                    std::shared_ptr<vectorfield>(new vectorfield(*other.modes[i]));
 
 		this->E = other.E;
 		this->E_array = other.E_array;
@@ -80,7 +86,13 @@ namespace Data
 		{
 			this->nos = other.nos;
 			this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
-            this->modes = other.modes;
+            this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
+            
+            // copy the modes
+            for (int i=0; i<other.modes.size(); i++)
+                if ( other.modes[i] != NULL ) 
+                    this->modes[i] = 
+                        std::shared_ptr<vectorfield>(new vectorfield(*other.modes[i]));
 
 			this->E = other.E;
 			this->E_array = other.E_array;
