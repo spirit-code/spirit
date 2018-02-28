@@ -81,6 +81,7 @@ namespace IO
         void Read_N_Segments();
         void Read_Header();
         void Read_Check_Geometry( const Data::Geometry& geometry);
+        void Read_Eigenvalue( scalar& eigenvalue);
         void Read_Data( vectorfield& vf );
         void Read_Data_bin( vectorfield& vf );
         void Read_Data_txt( vectorfield& vf );
@@ -89,7 +90,8 @@ namespace IO
         // Constructor
         iFile_OVF( std::string filename, VF_FileFormat format );
         void read_image( vectorfield& vf, Data::Geometry& geometry );
-        void read_eigenmodes( std::vector<std::shared_ptr<vectorfield>>& modes, 
+        void read_eigenmodes( std::vector<scalar>& eigenmodes,
+                              std::vector<std::shared_ptr<vectorfield>>& modes, 
                               Data::Geometry& geometry );
     }; // end class iFile_OVF
 } // end namespace io
