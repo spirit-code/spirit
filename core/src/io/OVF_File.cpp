@@ -43,7 +43,8 @@ namespace IO
         this->output_to_file = "";  // reset output string buffer
     }
     
-    void oFile_OVF::Write_Segment( const vectorfield& vf, const Data::Geometry& geometry)
+    void oFile_OVF::Write_Segment( const vectorfield& vf, const Data::Geometry& geometry, 
+                                   const std::string& eigenvalue )
     {
         this->output_to_file += fmt::format( this->empty_line );
         this->output_to_file += fmt::format( "# Begin: Segment\n" );
@@ -54,6 +55,8 @@ namespace IO
         this->output_to_file += fmt::format( this->empty_line );
         
         this->output_to_file += fmt::format( "# Desc: {}\n", this->comment );
+        if ( eigenvalue != "" )
+            this->output_to_file += fmt::format( "# Desc: eigenvalue = {}\n", eigenvalue );
         this->output_to_file += fmt::format( this->empty_line );
         
         // The value dimension is always 3 in this implementation since we are writting Vector3-data
@@ -541,14 +544,15 @@ namespace IO
         Write_Segment( vf, geometry );
     }
 
-    void oFile_OVF::write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes,
-                                     const Data::Geometry& geometry )
+    void oFile_OVF::write_eigenmodes( const std::vector<scalar>& eigenvalues,
+                                      const std::vector<std::shared_ptr<vectorfield>>& modes,
+                                      const Data::Geometry& geometry )
     {
         Write_Top_Header( modes.size() );
         for (int i=0; i<modes.size(); i++)
         {
             if ( modes[i] != NULL )
-                Write_Segment( *modes[i], geometry );
+                Write_Segment( *modes[i], geometry, std::to_string(eigenvalues[i]) );
         }
     }
 

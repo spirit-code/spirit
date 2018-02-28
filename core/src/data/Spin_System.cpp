@@ -30,6 +30,9 @@ namespace Data
         // Initialize Modes container
         this->modes = std::vector<std::shared_ptr<vectorfield>>(this->ema_parameters->n_modes, NULL);
 
+        // Initialize Eigenvalues vector
+        this->eigenvalues = std::vector<scalar>(this->modes.size(),0);
+
 		// ...
 		this->E = 0;
 		this->E_array = std::vector<std::pair<std::string, scalar>>(0);
@@ -44,7 +47,8 @@ namespace Data
 		this->nos = other.nos;
 		this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
         this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
-       
+        this->eigenvalues = other.eigenvalues; 
+        
         // copy the modes
         for (int i=0; i<other.modes.size(); i++)
             if ( other.modes[i] != NULL ) 
@@ -87,6 +91,7 @@ namespace Data
 			this->nos = other.nos;
 			this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
             this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
+            this->eigenvalues = other.eigenvalues; 
             
             // copy the modes
             for (int i=0; i<other.modes.size(); i++)

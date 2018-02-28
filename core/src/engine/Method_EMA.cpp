@@ -30,7 +30,8 @@ namespace Engine
         {
             n_modes = 2*nos-2;
             system->modes.resize(2*nos-2);  // this will happen only after initilization of the system
-            
+            system->eigenvalues.resize(2*nos-2);
+
             Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Number of eigenmodes declared in "
                 "EMA Parameters is too large. The number is set to {}", n_modes), idx_img, idx_chain);
         }
@@ -95,6 +96,9 @@ namespace Engine
                 // Set the modes
                 for (int j=0; j<nos; j++)
                     (*system->modes[i])[j] = {evec_3N[3*j], evec_3N[3*j+1], evec_3N[3*j+2]};
+            
+                // get the eigenvalues
+                system->eigenvalues[i] = eigenvalues(i);
             }
         }
         else

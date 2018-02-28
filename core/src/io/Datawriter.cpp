@@ -357,7 +357,8 @@ namespace IO
         }
     }
     
-    void Write_Eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues, 
+                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
                            const Data::Geometry& geometry, const std::string filename, 
                            VF_FileFormat format, const std::string comment, bool append )
     {
@@ -376,7 +377,7 @@ namespace IO
             case VF_FileFormat::OVF_TEXT:
             {   
                 oFile_OVF ofile_ovf( filename, format, comment );
-                ofile_ovf.write_eigenmodes( modes, geometry ); 
+                ofile_ovf.write_eigenmodes( eigenvalues, modes, geometry ); 
                 break;
             }
             default:

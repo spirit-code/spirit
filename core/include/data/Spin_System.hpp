@@ -46,6 +46,8 @@ namespace Data
 		int nos;
         // Eigenmodes of the system: modes[nem][dim][nos]
         std::vector<std::shared_ptr<vectorfield>> modes;
+        // Eigenvalues of the system
+        std::vector<scalar> eigenvalues;
 		// Orientations of the Spins: spins[dim][nos]
 		std::shared_ptr<vectorfield> spins;
 		// Spin Hamiltonian

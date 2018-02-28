@@ -35,14 +35,16 @@ namespace IO
         std::string comment;
         
         void Write_Top_Header( const int n_segments = 1 );
-        void Write_Segment( const vectorfield& vf, const Data::Geometry& geometry );
+        void Write_Segment( const vectorfield& vf, const Data::Geometry& geometry,
+                            const std::string& eigenvalue = "" );
         void Write_Data_bin( const vectorfield& vf );
         void Write_Data_txt( const vectorfield& vf );
     public:
         // Constructor
         oFile_OVF( std::string filename, VF_FileFormat format, const std::string comment = "" );
         void write_image( const vectorfield& vf, const Data::Geometry& geometry );
-        void write_eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+        void write_eigenmodes( const std::vector<scalar>& eigenvalues,
+                               const std::vector<std::shared_ptr<vectorfield>>& modes, 
                                const Data::Geometry& geometry );
         void write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain );
     }; // end class oFile_OVF

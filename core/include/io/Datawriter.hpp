@@ -26,7 +26,8 @@ namespace IO
                                          const std::string filename, VF_FileFormat format,
                                          const std::string comment, bool append = false );
     // Write Spin_System's eigenmodes to file
-    void Write_Eigenmodes( const std::vector<std::shared_ptr<vectorfield>>& modes, 
+    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues,
+                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
                            const Data::Geometry& geometry, const std::string filename, 
                            VF_FileFormat format, const std::string comment, bool append = false );
     // Saves any SPIRIT format

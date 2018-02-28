@@ -751,6 +751,7 @@ void Parameters_Set_EMA_N_Modes(State *state, int n_modes, int idx_image, int id
             image->Lock();
             image->ema_parameters->n_modes = n_modes;
             image->modes.resize(n_modes);
+            image->eigenvalues.resize(n_modes);
             image->ema_parameters->n_mode_follow = std::min(image->ema_parameters->n_mode_follow, n_modes);
             image->Unlock();
         }

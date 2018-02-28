@@ -501,8 +501,9 @@ void IO_Eigenmodes_Write( State *state, const char *file, int format, const char
         image->Lock();
         try
         {
-            IO::Write_Eigenmodes( image->modes, *image->geometry, std::string( file ), 
-                                  (IO::VF_FileFormat)format, std::string( comment ), false );
+            IO::Write_Eigenmodes( image->eigenvalues, image->modes, *image->geometry, 
+                                  std::string( file ), (IO::VF_FileFormat)format, 
+                                  std::string( comment ), false );
         }
         catch( ... )
         {
