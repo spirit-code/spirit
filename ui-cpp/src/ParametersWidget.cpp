@@ -6,6 +6,7 @@
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
+#include <Spirit/IO.h>
 #include <Spirit/Log.h>
 
 // Small function for normalization of vectors
@@ -461,6 +462,53 @@ void ParametersWidget::set_parameters_ema()
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
 }
 
+void ParametersWidget::save_Spin_Configuration_Eigenmodes()
+{
+	// std::cerr << "inside save spins" << std::endl;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Spin Configuration Eigenmodes"), "./output",
+		tr("OOMF Vector Field(*.ovf)"));
+    
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        
+        // Determine file type from suffix
+        auto qs_type = fi.completeSuffix();
+        if ( qs_type == "ovf" ) type = IO_Fileformat_OVF_text;
+       
+        // Write the file
+        auto file = string_q2std(fileName);
+        
+        IO_Eigenmodes_Write(this->state.get(), file.c_str(), type);
+    }
+}
+
+void ParametersWidget::load_Spin_Configuration_Eigenmodes()
+{
+    auto fileName = QFileDialog::getOpenFileName(this,
+        tr("Load Spin Configuration"), "./input",
+        tr("Any (*.txt *.csv *.ovf);;OOMF Vector Field (*.ovf)"));
+
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        auto qs_type = fi.suffix();
+        
+        if (qs_type == "ovf") 
+            type = IO_Fileformat_OVF_text;
+        else
+            Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only "
+                "txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+        
+	    auto file = string_q2std(fileName);
+        IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
+    }
+}
 
 void ParametersWidget::Setup_Parameters_Slots()
 {
@@ -528,6 +576,8 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_frequency, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_amplitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
+    connect(this->pushButton_SaveModes, SIGNAL(clicked()), this, SLOT(save_Spin_Configuration_Eigenmodes()));
+    connect(this->pushButton_LoadModes, SIGNAL(clicked()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
 
     //      MMF
     // Output
