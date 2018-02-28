@@ -1,17 +1,12 @@
 #ifndef USE_CUDA
 
-#include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
-#include <iostream>
 
 #include <Eigen/Dense>
-
-using std::vector;
-using std::function;
 
 using namespace Data;
 using namespace Utility;
@@ -42,21 +37,21 @@ namespace Engine
         dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
     {
-        #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
+        #if defined SPIRIT_USE_OPENMP
         for (int i = 0; i < exchange_pairs.size(); ++i)
         {
             auto& p = exchange_pairs[i];
             auto& t = p.translations;
-            exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            exchange_magnitudes.push_back(exchange_magnitudes[i]);
+            this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->exchange_magnitudes.push_back(exchange_magnitudes[i]);
         }
         for (int i = 0; i < dmi_pairs.size(); ++i)
         {
             auto& p = dmi_pairs[i];
             auto& t = p.translations;
-            dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            dmi_magnitudes.push_back(dmi_magnitudes[i]);
-            dmi_normals.push_back(-dmi_normals[i]);
+            this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->dmi_magnitudes.push_back(dmi_magnitudes[i]);
+            this->dmi_normals.push_back(-dmi_normals[i]);
         }
         #endif
 
@@ -93,7 +88,7 @@ namespace Engine
         exchange_n_shells(exchange_magnitudes.size()),
         dmi_n_shells(dmi_magnitudes.size())
     {
-        #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
+        #if defined SPIRIT_USE_OPENMP
         // When parallelising (cuda or openmp), we need all neighbours per spin
         const bool remove_redundant = false;
         #else
@@ -112,12 +107,10 @@ namespace Engine
         // Generate DMI neighbours and normals
         intfield dmi_shells(0);
         Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
-        std::cerr << dmi_magnitudes.size() << std::endl;
         for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
         {
-            dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+            this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
             this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
-            std::cerr << dmi_pairs[ineigh].i << " " << dmi_pairs[ineigh].j << " " << dmi_pairs[ineigh].translations[0] << " " << dmi_pairs[ineigh].translations[1] << " " << dmi_pairs[ineigh].translations[2] << std::endl;
         }
 
         // Generate DDI pairs, magnitudes, normals
@@ -249,16 +242,12 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < spins.size(); ++icell)
+        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
             for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                int ispin = exchange_pairs[i_pair].i + icell;
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
                 if (jspin >= 0)
                 {
@@ -273,16 +262,12 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < spins.size(); ++icell)
+        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
             for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                int ispin = dmi_pairs[i_pair].i + icell;
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
                 if (jspin >= 0)
                 {
@@ -420,16 +405,12 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
         #pragma omp parallel
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
             for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                int ispin = exchange_pairs[i_pair].i + icell;
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
                 if (jspin >= 0)
                 {
@@ -444,16 +425,12 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
         #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
             for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                int ispin = dmi_pairs[i_pair].i + icell;
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
                 if (jspin >= 0)
                 {

@@ -569,7 +569,7 @@ namespace IO
                         auto& p = exchange_pairs[icheck];
                         auto& t = p.translations;
                         std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                        if ( (pair_i == p.i && pair_j == p.j && t == tnew) ||
+                        if ( (pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0],  t[1],  t[2]}) ||
                              (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]}) )
                         {
                             already_in = true;
@@ -598,13 +598,13 @@ namespace IO
                         auto& p = dmi_pairs[icheck];
                         auto& t = p.translations;
                         std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                        if (pair_i == p.i && pair_j == p.j && t == tnew)
+                        if (pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] })
                         {
                             already_in = true;
                             atposition = icheck;
                             break;
                         }
-                        else if  (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]})
+                        else if (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]})
                         { // if the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
                             dfact = -1;
                             already_in = true;

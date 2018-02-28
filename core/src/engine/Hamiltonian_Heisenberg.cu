@@ -1,27 +1,24 @@
 #ifdef USE_CUDA
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <Eigen/Dense>
-
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
-using std::vector;
-using std::function;
+#include <Eigen/Dense>
 
 using namespace Data;
 using namespace Utility;
+using Utility::Constants::mu_B;
+using Utility::Constants::mu_0;
+using Utility::Constants::Pi;
 using Engine::Vectormath::cu_check_atom_type;
 using Engine::Vectormath::cu_idx_from_pair;
 
 namespace Engine
 {
-    Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
@@ -34,12 +31,29 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions), geometry(geometry),
         mu_s(mu_s),
-        external_field_magnitude(external_field_magnitude * Constants::mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
+        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
+        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
     {
+        // Duplicate all exchange and DMI pairs in order to have them as neighbours
+        for (int i = 0; i < exchange_pairs.size(); ++i)
+        {
+            auto& p = exchange_pairs[i];
+            auto& t = p.translations;
+            this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->exchange_magnitudes.push_back(exchange_magnitudes[i]);
+        }
+        for (int i = 0; i < dmi_pairs.size(); ++i)
+        {
+            auto& p = dmi_pairs[i];
+            auto& t = p.translations;
+            this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->dmi_magnitudes.push_back(dmi_magnitudes[i]);
+            this->dmi_normals.push_back(-dmi_normals[i]);
+        }
+
         // Generate DDI pairs, magnitudes, normals
         this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
         scalar magnitude;
@@ -54,7 +68,60 @@ namespace Engine
         this->Update_Energy_Contributions();
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
+        scalarfield mu_s,
+        scalar external_field_magnitude, Vector3 external_field_normal,
+        intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+        scalarfield exchange_magnitudes,
+        scalarfield dmi_magnitudes, int dm_chirality,
+        scalar ddi_radius,
+        quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+        std::shared_ptr<Data::Geometry> geometry,
+        intfield boundary_conditions
+    ) :
+        Hamiltonian(boundary_conditions),
+        geometry(geometry),
+        mu_s(mu_s),
+        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        exchange_n_shells(exchange_magnitudes.size()),
+        dmi_n_shells(dmi_magnitudes.size())
+    {
+        // When parallelising (cuda or openmp), we need all neighbours per spin
+        const bool remove_redundant = false;
+
+        // Generate Exchange neighbours
+        intfield exchange_shells(0);
+        Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size(), exchange_pairs, exchange_shells, remove_redundant);
+        for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+        {
+            this->exchange_magnitudes.push_back(exchange_magnitudes[exchange_shells[ipair]]);
+        }
+
+        // Generate DMI neighbours and normals
+        intfield dmi_shells(0);
+        Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
+        for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
+        {
+            dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+            this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
+        }
+
+        // Generate DDI pairs, magnitudes, normals
+        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
+        scalar magnitude;
+        Vector3 normal;
+        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
+        {
+            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} }, magnitude, normal);
+            this->ddi_magnitudes.push_back(magnitude);
+            this->ddi_normals.push_back(normal);
+        }
+
+        this->Update_Energy_Contributions();
+    }
+
+    void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
@@ -103,7 +170,7 @@ namespace Engine
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
+    void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         int nos = spins.size();
         for (auto& pair : contributions)
@@ -135,19 +202,19 @@ namespace Engine
 
     __global__ void CU_E_Zeeman(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * Energy, size_t n_cells_total)
     {
-        for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
-            idx < n_cells_total;
-            idx +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < n_cells_total;
+            icell +=  blockDim.x * gridDim.x)
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = idx + ibasis;
+                int ispin = icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     Energy[ispin] -= mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         int size = geometry->n_cells_total;
         CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
@@ -155,97 +222,89 @@ namespace Engine
     }
 
 
-    __global__ void CU_E_Anisotropy(const Vector3 * spins, const int * atom_types, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, scalar * Energy, size_t n_cells_total)
+    __global__ void CU_E_Anisotropy(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, scalar * Energy, size_t n_cells_total)
     {
-        for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
-            idx < n_cells_total;
-            idx +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < n_cells_total;
+            icell +=  blockDim.x * gridDim.x)
         {
             for (int iani=0; iani<n_anisotropies; ++iani)
             {
-                int ispin = idx + anisotropy_indices[iani];
+                int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     Energy[ispin] -= anisotropy_magnitude[iani] * std::pow(anisotropy_normal[iani].dot(spins[ispin]), 2.0);
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
     {
         int size = geometry->n_cells_total;
-        CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), this->anisotropy_indices.size(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
+        CU_E_Anisotropy<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, this->anisotropy_indices.size(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
 
-    __global__ void CU_E_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+    __global__ void CU_E_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * Energy, size_t size)
     {
         int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
         int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
 
-        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
-            ispin < size;
-            ispin +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < size;
+            icell +=  blockDim.x * gridDim.x)
         {
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
+                int ispin = pairs[ipair].i + icell*n_cell_atoms;
+                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
-                    Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-                }
-                int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
-                if (jspin2 >= 0)
-                {
-                    Energy[ispin] += - 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin2]);
+                    Energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
                 }
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
-        int size = spins.size();
+        int size = geometry->n_cells_total;
         CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
                 this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
 
-    __global__ void CU_E_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+    __global__ void CU_E_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, scalar * Energy, size_t size)
     {
         int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
         int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
         
-        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
-            ispin < size;
-            ispin +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < size;
+            icell +=  blockDim.x * gridDim.x)
         {
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
+                int ispin = pairs[ipair].i + icell*n_cell_atoms;
+                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
-                    Energy[ispin] += - 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-                }
-                int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
-                if (jspin2 >= 0)
-                {
-                    Energy[ispin] += 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin2]));
+                    Energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
                 }
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
-        int size = spins.size();
+        int size = geometry->n_cells_total;
         CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
                 this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
         // //scalar mult = -mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
         // scalar mult = 0.5*0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -278,7 +337,7 @@ namespace Engine
     }// end DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
         // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         // {
@@ -309,7 +368,7 @@ namespace Engine
 
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
         // Set to zero
         Vectormath::fill(gradient, {0,0,0});
@@ -334,21 +393,19 @@ namespace Engine
 
     __global__ void CU_Gradient_Zeeman( const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total)
     {
-        for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
-            idx < n_cells_total;
-            idx +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < n_cells_total;
+            icell +=  blockDim.x * gridDim.x)
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = idx + ibasis;
+                int ispin = icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
-                {
                     gradient[ispin] -= mu_s[ibasis] * external_field_magnitude*external_field_normal;
-                }
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         int size = geometry->n_cells_total;
         CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
@@ -356,15 +413,15 @@ namespace Engine
     }
 
 
-    __global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * atom_types, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, Vector3 * gradient, size_t n_cells_total)
+    __global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, Vector3 * gradient, size_t n_cells_total)
     {
-        for(auto idx = blockIdx.x * blockDim.x + threadIdx.x;
-            idx < n_cells_total;
-            idx +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < n_cells_total;
+            icell +=  blockDim.x * gridDim.x)
         {
             for (int iani=0; iani<n_anisotropies; ++iani)
             {
-                int ispin = idx+anisotropy_indices[iani];
+                int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
                 if ( cu_check_atom_type(atom_types[ispin]) )
                 {
                     scalar sc = -2 * anisotropy_magnitude[iani] * anisotropy_normal[iani].dot(spins[ispin]);
@@ -373,83 +430,75 @@ namespace Engine
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
     {
         int size = geometry->n_cells_total;
-        CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), this->anisotropy_indices.size(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
+        CU_Gradient_Anisotropy<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, this->anisotropy_indices.size(), this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(), gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 
 
-    __global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+    __global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size)
     {
         int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
         int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
 
-        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
-            ispin < size;
-            ispin +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < size;
+            icell +=  blockDim.x * gridDim.x)
         {
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
+                int ispin = pairs[ipair].i + icell*n_cell_atoms;
+                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
-                    gradient[ispin] += -magnitudes[ipair]*spins[jspin];
-                }
-                int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
-                if (jspin2 >= 0)
-                {
-                    gradient[ispin] += -magnitudes[ipair]*spins[jspin2];
+                    gradient[ispin] -= magnitudes[ipair]*spins[jspin];
                 }
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-        int size = spins.size();
+        int size = geometry->n_cells_total;
         CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
                 this->exchange_pairs.size(), this->exchange_pairs.data(), this->exchange_magnitudes.data(), gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 
 
-    __global__ void CU_Gradient_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_basis_spins,
+    __global__ void CU_Gradient_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, Vector3 * gradient, size_t size)
     {
         int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
         int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
         
-        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
-            ispin < size;
-            ispin +=  blockDim.x * gridDim.x)
+        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
+            icell < size;
+            icell +=  blockDim.x * gridDim.x)
         {
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair]);
+                int ispin = pairs[ipair].i + icell*n_cell_atoms;
+                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
-                    gradient[ispin] += -magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
-                }
-                int jspin2 = cu_idx_from_pair(ispin, bc, nc, n_basis_spins, atom_types, pairs[ipair], true);
-                if (jspin2 >= 0)
-                {
-                    gradient[ispin] += magnitudes[ipair]*spins[jspin2].cross(normals[ipair]);
+                    gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
                 }
             }
         }
     }
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
-        int size = spins.size();
+        int size = geometry->n_cells_total;
         CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
                 this->dmi_pairs.size(),  this->dmi_pairs.data(), this->dmi_magnitudes.data(), this->dmi_normals.data(), gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
         // //scalar mult = mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
         // scalar mult = 0.0536814951168; // mu_0*mu_B**2/(4pi*10**-30) -- the translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -483,7 +532,7 @@ namespace Engine
     }//end Field_DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
         // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         // {
@@ -513,7 +562,7 @@ namespace Engine
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Hessian(const vectorfield & spins, MatrixX & hessian)
+    void Hamiltonian_Heisenberg::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
         int nos = spins.size();
 
@@ -653,8 +702,8 @@ namespace Engine
     }
 
     // Hamiltonian name as string
-    static const std::string name = "Heisenberg (Pairs)";
-    const std::string& Hamiltonian_Heisenberg_Pairs::Name() { return name; }
+    static const std::string name = "Heisenberg";
+    const std::string& Hamiltonian_Heisenberg::Name() { return name; }
 }
 
 #endif
