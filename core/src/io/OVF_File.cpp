@@ -206,6 +206,7 @@ namespace IO
         this->pointcount = -1;
         this->base = Vector3(0,0,0);
         this->stepsize = Vector3(0,0,0);
+        this->sender = Log_Sender::IO;
     }
     
     void iFile_OVF::Read_Version()
@@ -284,7 +285,7 @@ namespace IO
             }
             
             // Emit Header to Log
-            auto lvl = Log_Level::Parameter;
+            auto lvl = Log_Level::Debug;
             
             Log( lvl, this->sender, fmt::format( "# OVF version             = {}", this->version ) );
             Log( lvl, this->sender, fmt::format( "# OVF title               = {}", this->title ) );
@@ -371,7 +372,7 @@ namespace IO
     {
         std::string eigenvalue_str = "";
         myfile.Read_String( eigenvalue_str, "# Desc: eigenvalue =" );
-        Log( Log_Level::Parameter, this->sender, fmt::format( "# OVF eigenvalue = {}", 
+        Log( Log_Level::Debug, this->sender, fmt::format( "# OVF eigenvalue = {}", 
              eigenvalue_str ) );
         
         if ( sizeof(scalar) == sizeof(double) )
@@ -387,7 +388,7 @@ namespace IO
     {
         try
         {
-            auto lvl = Log_Level::Parameter;
+            auto lvl = Log_Level::Debug;
             
             // Raw data representation
             myfile.Read_String( this->datatype_in, "# Begin: Data" );
@@ -600,6 +601,7 @@ namespace IO
         if ( modes.size() != this->n_segments )
         {
             modes.resize(this->n_segments);
+            eigenvalues.resize(this->n_segments);
             Log( Log_Level::Warning, this->sender, fmt::format("Modes buffer resized since the"
                  " number of modes in the OVF file was greater than its size") );
         }
@@ -607,10 +609,12 @@ namespace IO
         // read in the modes
         for (int i=0; i<this->n_segments; i++)
         {
+            Log( Log_Level::Debug, this->sender, fmt::format( 
+                 "# ------------ OVF reading Mode {} ------------", i+1 ) );
             Read_Header();
             Read_Check_Geometry( geometry );
             Read_Eigenvalue( eigenvalues[i] );
-
+            
             // if the modes buffer created by resizing then it needs to be allocated
             if (modes[i] == NULL)
             {

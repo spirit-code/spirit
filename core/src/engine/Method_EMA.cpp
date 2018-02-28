@@ -62,7 +62,10 @@ namespace Engine
        
         // Get the checked number of modes
         int n_modes = system->ema_parameters->n_modes; 
-        
+       
+        Log( Log_Level::Info, Log_Sender::EMA, fmt::format("Calculation of {} Eigenmodes "
+             "have started", n_modes ), idx_img, idx_chain );
+
         // Calculate the Eigenmodes
         vectorfield gradient(nos);
         MatrixX hessian(3*nos, 3*nos);
@@ -100,6 +103,13 @@ namespace Engine
                 // get the eigenvalues
                 system->eigenvalues[i] = eigenvalues(i);
             }
+            
+            Log( Log_Level::Info, Log_Sender::EMA, fmt::format("Eigenmodes and eigenvalues were "
+                 "calculated successfully"), idx_img, idx_chain );
+            
+            int ev_print = ( n_modes < 100 ) ? n_modes : 100;
+            Log( Log_Level::Info, Log_Sender::EMA, fmt::format("Eigenvalues: {}", 
+                 eigenvalues.head( ev_print ).transpose() ), idx_img, idx_chain );
         }
         else
         {
@@ -225,10 +235,10 @@ namespace Engine
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
-            "------------  Started  " + this->Name() + " Calculation  ------------",
-            "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
-            "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
-            "     Number of modes " + fmt::format("{}", this->parameters_ema->n_modes ),
+            "------------  Started  " + this->Name() + " Visualization ------------",
+            "       Mode frequency  " + fmt::format("{}", this->parameters_ema->frequency),
+            "       Mode amplitude  " + fmt::format("{}", this->parameters_ema->amplitude),
+            "      Number of modes  " + fmt::format("{}", this->parameters_ema->n_modes ),
             "-----------------------------------------------------"
         }, this->idx_image, this->idx_chain);
     }
