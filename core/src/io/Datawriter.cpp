@@ -328,32 +328,34 @@ namespace IO
             ofile_ovf.write_chain( chain ); 
             return;
         }
-        
-        // write version
-        Write_SPIRIT_Version( filename, append );
-        
-        // Header
-        std::string output_to_file;
-        output_to_file = fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
-                                      "after iteration {}\n#\n", chain->noi, chain->images[0]->nos, 
-                                      comment );
-        Append_String_to_File( output_to_file, filename );
-        
-        for (int image = 0; image < chain->noi; ++image )
+        else
         {
-            //// NOTE: with that implementation we are dumping the output_to_file twice for every
-            // image. One for the image number header and one with the call to Save_To_SPIRIT(). 
-            // Maybe this will add an overhead for large enough chains. To change that the arguments
-            // of Save_To_SPIRIT() must be modified with a reference to output_to_file variable. So
-            // that the buffer will be supplied by the caller. In that case many changes will must
-            // be done in the code
+            // write version
+            Write_SPIRIT_Version( filename, append );
             
-            // Append the number of the image
-            output_to_file = fmt::format( "# Image No {}\n", image );
+            // Header
+            std::string output_to_file;
+            output_to_file = fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
+                                          "after iteration {}\n#\n", chain->noi, chain->images[0]->nos, 
+                                          comment );
             Append_String_to_File( output_to_file, filename );
             
-            Save_To_SPIRIT( *chain->images[image]->spins, *chain->images[image]->geometry, 
-                            filename, format, comment );
+            for (int image = 0; image < chain->noi; ++image )
+            {
+                //// NOTE: with that implementation we are dumping the output_to_file twice for every
+                // image. One for the image number header and one with the call to Save_To_SPIRIT(). 
+                // Maybe this will add an overhead for large enough chains. To change that the arguments
+                // of Save_To_SPIRIT() must be modified with a reference to output_to_file variable. So
+                // that the buffer will be supplied by the caller. In that case many changes will must
+                // be done in the code
+                
+                // Append the number of the image
+                output_to_file = fmt::format( "# Image No {}\n", image );
+                Append_String_to_File( output_to_file, filename );
+                
+                Save_To_SPIRIT( *chain->images[image]->spins, *chain->images[image]->geometry, 
+                                filename, format, comment );
+            }
         }
     }
     
