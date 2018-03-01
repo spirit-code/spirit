@@ -51,6 +51,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     connect(this->pushButton_PreviousMode, SIGNAL(clicked()), this, SLOT(prev_mode()));
     connect(this->pushButton_NextMode, SIGNAL(clicked()), this, SLOT(next_mode()));
     connect(this->lineEdit_ModeNumber, SIGNAL(returnPressed()), this, SLOT(jump_to_mode()));
+    connect(this->pushButton_ApplyMode, SIGNAL(clicked()), this, SLOT(apply_mode()));
     connect(this->pushButton_Calculate, SIGNAL(clicked()), this, SLOT(calculate()));
     connect(&this->watcher, SIGNAL(finished()), this, SLOT(calculate_enable_widget()));
 
@@ -442,6 +443,17 @@ void ControlWidget::calculate()
     this->watcher.setFuture(future);
 }
 
+void ControlWidget::apply_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: apply mode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    
+    Simulation_Apply_Eigenmode( state.get(), following_mode );
+
+    this->spinWidget->updateData();
+}
+
 void ControlWidget::calculate_disable_widget()
 {
     this->lineEdit_Save_E->setEnabled(false);
@@ -452,6 +464,7 @@ void ControlWidget::calculate_disable_widget()
     this->pushButton_PreviousImage->setEnabled(false);
     this->lineEdit_ImageNumber->setEnabled(false);
     this->pushButton_NextImage->setEnabled(false);
+    this->pushButton_ApplyMode->setEnabled(false);
     
     this->comboBox_Method->setEnabled(false);
     this->comboBox_Solver->setEnabled(false);
@@ -476,6 +489,7 @@ void ControlWidget::calculate_enable_widget()
     this->pushButton_PreviousImage->setEnabled(true);
     this->lineEdit_ImageNumber->setEnabled(true);
     this->pushButton_NextImage->setEnabled(true);
+    this->pushButton_ApplyMode->setEnabled(true);
     
     this->comboBox_Method->setEnabled(true);
     this->comboBox_Solver->setEnabled(true);
@@ -542,6 +556,7 @@ void ControlWidget::set_solver_enabled()
 void ControlWidget::ema_buttons_hide()
 {
     this->pushButton_Calculate->setVisible(false);
+    this->pushButton_ApplyMode->setVisible(false);
     this->pushButton_NextMode->setVisible(false);
     this->pushButton_PreviousMode->setVisible(false);
     this->lineEdit_ModeNumber->setVisible(false);
@@ -551,6 +566,7 @@ void ControlWidget::ema_buttons_hide()
 void ControlWidget::ema_buttons_show()
 {
     this->pushButton_Calculate->setVisible(true);
+    this->pushButton_ApplyMode->setVisible(true);
     this->pushButton_NextMode->setVisible(true);
     this->pushButton_PreviousMode->setVisible(true);
     this->lineEdit_ModeNumber->setVisible(true);

@@ -49,7 +49,47 @@ namespace Engine
             selected_mode = n_modes-1;
         }
     }
-    
+
+    void Apply_Eigenmode( int idx_mode, std::shared_ptr<Data::Spin_System> system, 
+                          const int idx_img, const int idx_chain )
+    {
+        int nos = system->nos;
+        int n_modes = system->ema_parameters->n_modes;
+
+        // Check if selected mode exists. If not apply the largerst one.
+        Check_selected_mode( idx_mode, n_modes, idx_img, idx_chain );
+
+        // Check if selected mode has been calculated
+        if ( system->modes[idx_mode] == NULL )
+        {
+            Log(Log_Level::Warning, Log_Sender::EMA, fmt::format("Eigenmode number {} is not "
+            "yet calculated.", idx_mode ), idx_img, idx_chain);
+        }
+        else
+        {
+            auto& mode = *system->modes[idx_mode];
+            auto& image = *system->spins;
+            
+            scalarfield angle(nos);
+            vectorfield axis(nos);
+            
+            // Find the axes of rotation for the mode to visualize
+            for (int idx=0; idx<nos; idx++)
+            {
+                angle[idx] = mode[idx].norm();
+                axis[idx] = image[idx].cross( mode[idx] ).normalized();
+            }
+
+            // Calculate n for that iteration based on the initial n displacement vector
+            scalar t_angle = system->ema_parameters->amplitude;
+
+            Vectormath::scale( angle, t_angle );
+
+            // Rotate the spins
+            Vectormath::rotate( image, axis, angle, image );
+        } 
+    }
+
     void Calculate_Eigenmodes(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain)
     {
         int nos = system->nos;

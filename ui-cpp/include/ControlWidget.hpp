@@ -49,6 +49,7 @@ public slots:
     void prev_mode();
     void jump_to_mode();
     void calculate();
+    void apply_mode(); 
     void calculate_disable_widget();
     void calculate_enable_widget();
     void ema_buttons_show();
