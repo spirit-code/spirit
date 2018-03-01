@@ -375,13 +375,14 @@ namespace IO
         Log( Log_Level::Debug, this->sender, fmt::format( "# OVF eigenvalue = {}", 
              eigenvalue_str ) );
         
-        if ( sizeof(scalar) == sizeof(double) )
-            eigenvalue = std::stod( eigenvalue_str );
-        else if ( sizeof(scalar) == sizeof(float) )
-            eigenvalue = std::stof( eigenvalue_str );
-        else
-            spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
-                          "The eigenvalue could not be read due to scalar represenation error" );
+        if ( eigenvalue_str != "" ) 
+            if ( sizeof(scalar) == sizeof(double) )
+                eigenvalue = std::stod( eigenvalue_str );
+            else if ( sizeof(scalar) == sizeof(float) )
+                eigenvalue = std::stof( eigenvalue_str );
+            else
+                spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
+                              "The eigenvalue could not be read due to scalar represenation error" );
     }
 
     void iFile_OVF::Read_Data( vectorfield& vf )
