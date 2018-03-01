@@ -714,6 +714,8 @@ namespace IO
         scalar frequency = 1./50;
         // Amplitude of the applied eigenmodes
         scalar amplitude = 1;
+        // Snapshot mode option
+        bool snapshot = false;
         
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
@@ -777,7 +779,8 @@ namespace IO
                 output_initial, output_final, output_energy_step, output_energy_archive, 
                 output_energy_spin_resolved, output_energy_divide_by_nspins, 
                 output_configuration_step, output_configuration_archive }, n_iterations, 
-                n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow, frequency, amplitude));
+                n_iterations_log, max_walltime, pinning, n_modes, n_mode_follow, frequency, 
+                amplitude, snapshot ));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
         return ema_params;
     }

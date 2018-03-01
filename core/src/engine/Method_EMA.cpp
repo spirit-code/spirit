@@ -117,7 +117,7 @@ namespace Engine
         }
     }
     
-    Method_EMA::Method_EMA(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
+    Method_EMA::Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain ) :
         Method(system->ema_parameters, idx_img, idx_chain)
     {
         // Currently we only support a single image being iterated at once:
@@ -188,13 +188,21 @@ namespace Engine
         auto& image = *this->systems[0]->spins;
 
         // Calculate n for that iteration based on the initial n displacement vector
-        scalar t_angle = this->parameters_ema->amplitude * 
-            std::sin(2*M_PI*this->counter*this->parameters_ema->frequency);
+        scalar t_angle;
+        if ( !this->parameters_ema->snapshot ) 
+            t_angle = this->parameters_ema->amplitude * 
+                      std::sin( 2 * M_PI * this->counter * this->parameters_ema->frequency );
+        else
+            t_angle = this->parameters_ema->amplitude;
+
         this->angle = this->angle_initial;
         Vectormath::scale(this->angle, t_angle);
 
         // Rotate the spins
         Vectormath::rotate(this->spins_initial, this->axis, this->angle, image);
+    
+        ++this->counter;
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     
     bool Method_EMA::Converged()
@@ -212,8 +220,6 @@ namespace Engine
     
     void Method_EMA::Hook_Post_Iteration()
     {
-        ++this->counter;
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     
     void Method_EMA::Initialize()

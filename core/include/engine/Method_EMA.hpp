@@ -23,7 +23,7 @@ namespace Engine
     {
     public:
         // Constructor
-        Method_EMA(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
+        Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
         // Method name as string
         std::string Name() override;
@@ -58,7 +58,8 @@ namespace Engine
         
         int counter;
         int following_mode;
-        
+       
+        bool snapshot;
         vectorfield mode;
         scalarfield angle;
         scalarfield angle_initial;

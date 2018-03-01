@@ -3,6 +3,7 @@
 #include "ParametersWidget.hpp"
 
 #include <Spirit/Parameters.h>
+#include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
@@ -164,6 +165,8 @@ void ParametersWidget::Load_Parameters_Contents()
    this->doubleSpinBox_ema_frequency->setValue(d);
    d = Parameters_Get_EMA_Amplitude(state.get());
    this->doubleSpinBox_ema_amplitude->setValue(d);
+   b1 = Parameters_Get_EMA_Snapshot(state.get());
+   this->checkBox_snapshot_mode->setChecked(b1);
 
    //       MMF
    // Parameters
@@ -453,12 +456,14 @@ void ParametersWidget::set_parameters_ema()
     int i2 = this->spinBox_ema_n_mode_follow->value();
     float d1 = this->doubleSpinBox_ema_frequency->value();
     float d2 = this->doubleSpinBox_ema_amplitude->value();
-    
+    bool b1 = this->checkBox_snapshot_mode->isChecked();
+
     Parameters_Set_EMA_N_Modes(state.get(), i1);
     Parameters_Set_EMA_N_Mode_Follow(state.get(), i2-1);
     Parameters_Set_EMA_Frequency(state.get(), d1);
     Parameters_Set_EMA_Amplitude(state.get(), d2);
-    
+    Parameters_Set_EMA_Snapshot(state.get(), b1);
+
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
 }
 
@@ -509,6 +514,7 @@ void ParametersWidget::load_Spin_Configuration_Eigenmodes()
         IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
     }
 }
+
 
 void ParametersWidget::Setup_Parameters_Slots()
 {
@@ -578,7 +584,8 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect(this->doubleSpinBox_ema_amplitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->pushButton_SaveModes, SIGNAL(clicked()), this, SLOT(save_Spin_Configuration_Eigenmodes()));
     connect(this->pushButton_LoadModes, SIGNAL(clicked()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
-
+    connect(this->checkBox_snapshot_mode, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_ema()));
+    
     //      MMF
     // Output
     connect(this->lineEdit_mmf_output_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));
