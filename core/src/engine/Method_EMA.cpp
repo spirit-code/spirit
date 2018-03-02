@@ -299,4 +299,7 @@ namespace Engine
     
     // Method name as string
     std::string Method_EMA::Name() { return "EMA"; }
+
+    // Solver name as string
+    std::string Method_EMA::SolverName() { return "None"; }
 }

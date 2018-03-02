@@ -28,7 +28,9 @@ namespace Engine
 
         // Method name as string
         std::string Name() override;
-        
+       
+        // Solver name as string
+        std::string SolverName() override;
     private:
         // Iteration does one time step of the oscillation
         // S(t) = S(0) + cos(omega * t) * direction
