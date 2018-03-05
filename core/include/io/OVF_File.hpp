@@ -60,6 +60,8 @@ namespace IO
        
         int n_segments;
         Filter_File_Handle myfile;
+        // positions of the beggining of each segment in the input file 
+        std::vector<std::ios::pos_type> segment_fpos;
         std::string version;
         std::string title;
         std::string meshunit;

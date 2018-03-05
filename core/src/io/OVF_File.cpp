@@ -207,6 +207,8 @@ namespace IO
         this->base = Vector3(0,0,0);
         this->stepsize = Vector3(0,0,0);
         this->sender = Log_Sender::IO;
+        Read_Version();
+        Read_N_Segments();
     }
     
     void iFile_OVF::Read_Version()
@@ -232,18 +234,27 @@ namespace IO
                               Utility::Log_Level::Error, fmt::format( "OVF Segment count {0} is"
                               " invalid", this->n_segments ) );
             
-            // get the number of segments fro the occurances of "# Begin: Segment"
+            // get the number of segments from the occurrences of "# Begin: Segment"
             int n_begin_segment = 0;
-           
+            
+            std::ios::pos_type end = this->myfile.GetPosition( std::ios::end ); 
+            
             // NOTE: the keyword for find must be lower case since the Filter File Handle converts
             // the content of the input file to lower case automatically
             while( myfile.Find( "# begin: segment" ) )
             {
-                myfile.SetOffset();
+                std::ios::pos_type pos = this->myfile.GetPosition(); 
+                this->segment_fpos.push_back( pos );
+                myfile.SetLimits( pos, end );
+
                 ++n_begin_segment;
             }
-            
-            myfile.ResetOffset();
+           
+            // find the very last keyword of the file
+            this->segment_fpos.push_back( end );
+
+            // reset limits
+            myfile.ResetLimits();
             
             // compare the two numbers
             if( this->n_segments != n_begin_segment )
@@ -583,7 +594,6 @@ namespace IO
     
     void iFile_OVF::read_image( vectorfield& vf, Data::Geometry& geometry )
     {
-        Read_Version();
         Read_Header();
         Read_Check_Geometry( geometry );
         Read_Data( vf );
@@ -593,11 +603,6 @@ namespace IO
                                      std::vector<std::shared_ptr<vectorfield>>& modes,
                                      Data::Geometry& geometry )
     {
-        Read_Version();
-        
-        // read segments in file and compared them with the size of the modes's buffer
-        Read_N_Segments();
-       
         // check if the modes in the file fit in the modes's buffer and if not resize
         if ( modes.size() != this->n_segments )
         {
@@ -612,10 +617,13 @@ namespace IO
         {
             Log( Log_Level::Debug, this->sender, fmt::format( 
                  "# ------------ OVF reading Mode {} ------------", i+1 ) );
+
+            myfile.SetLimits( this->segment_fpos[i], this->segment_fpos[i+1] ); 
+            
             Read_Header();
             Read_Check_Geometry( geometry );
             Read_Eigenvalue( eigenvalues[i] );
-            
+
             // if the modes buffer created by resizing then it needs to be allocated
             if (modes[i] == NULL)
             {
@@ -624,7 +632,6 @@ namespace IO
             }
             
             Read_Data( *modes[i] );
-            myfile.SetOffset();  // save position for skipping the already read segment
         }
     }
 }

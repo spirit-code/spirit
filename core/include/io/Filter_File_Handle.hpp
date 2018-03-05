@@ -27,22 +27,30 @@ namespace IO
         std::string line;
         std::string comment_tag;
         std::string dump;
+        // Beggining and end of file stream indicator 
+        std::ios::pos_type position_file_beg;
+        std::ios::pos_type position_file_end;
+        // Start and stop of file stream indicator
+        std::ios::pos_type position_start;
+        std::ios::pos_type position_stop;
     public:
         IO::VF_FileFormat ff;
         std::string filename;
         std::unique_ptr<std::ifstream> myfile;
         std::istringstream iss;
-        std::streampos position;
         
         // Constructs a Filter_File_Handle with string filename
         Filter_File_Handle( const std::string& s, 
                             IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
         // Destructor
         ~Filter_File_Handle();
-        // Set the position of the file stream indicator to be used as offset
-        void SetOffset();
-        // Reset the position of the file stream indicator
-        void ResetOffset();
+       
+        // Get the position of the file stream indicator
+        std::ios::pos_type GetPosition( std::ios::seekdir dir = std::ios::cur );
+        // Set limits in the file stream indicator
+        void SetLimits( const std::ios::pos_type beg, const std::ios::pos_type end );
+        // Reset the limits of the file stream indicator 
+        void ResetLimits();
         // Reads next line of file into the handle (false -> end-of-file)
         bool GetLine_Handle();
         // Reads the next line of file into the handle and into the iss

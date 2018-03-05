@@ -25,7 +25,17 @@ namespace IO
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
-        this->position = myfile->tellg(); // position (std::ios::beg) of the ifstream
+        //this->position = this->myfile->tellg();
+      
+        // find begging and end positions of the file stream indicator
+        this->position_file_beg = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::end );
+        this->position_file_end = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::beg );
+       
+        // set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
+        this->position_start = this->position_file_beg;
+        this->position_stop = this->position_file_end;
         
         // set the comment tag
         switch( this->ff )
@@ -50,15 +60,23 @@ namespace IO
         myfile->close();
     }
 
-    void Filter_File_Handle::SetOffset()
+    std::ios::pos_type Filter_File_Handle::GetPosition( std::ios::seekdir dir )
     {
-        this->position = this->myfile->tellg();
+        this->myfile->seekg( 0, dir );
+        return this->myfile->tellg();
     }
 
-    void Filter_File_Handle::ResetOffset()
+    void Filter_File_Handle::SetLimits( const std::ios::pos_type start, 
+                                        const std::ios::pos_type stop )
     {
-        this->myfile->seekg( std::ios::beg );
-        this->position = std::ios::beg;
+        this->position_start = start;
+        this->position_stop = stop;
+    }
+
+    void Filter_File_Handle::ResetLimits()
+    {
+        this->position_start = this->position_file_beg;
+        this->position_stop = this->position_file_end;
     }
 
     bool Filter_File_Handle::GetLine_Handle()
@@ -101,11 +119,12 @@ namespace IO
     bool Filter_File_Handle::Find(const std::string & s)
     {
         myfile->clear();
-        myfile->seekg( this->position, std::ios::beg);
-        
-        while (GetLine())
+        //myfile->seekg( this->position_file_beg, std::ios::beg);
+        myfile->seekg( this->position_start );
+
+        while ( GetLine() && ( GetPosition() <= this->position_stop ) ) 
         {
-            if (Find_in_Line(s)) return true;
+            if (Find_in_Line(s) ) return true;
         }
         return false;
     }
@@ -123,8 +142,8 @@ namespace IO
             if ( s.compare("") )
             {
                 int words = Count_Words( s );
-                for( int i=0; i<words; i++ )
-                    iss >> dump;
+                for (int i = 0; i < words; i++)
+                  iss >> dump;
             }
             
             return true;
@@ -170,8 +189,8 @@ namespace IO
 				var = var.substr( start, ( end - start + 1 ) );
         }
         else if ( log_notfound )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + keyword + 
-                    " not found. Using Default: " + fmt::format( "{}", var ) );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
+                 fmt::format( "Keyword \"{}\" not found. Using Default: \"{}\"", keyword, var ) );
     }
 
     int Filter_File_Handle::Count_Words( const std::string& phrase )
