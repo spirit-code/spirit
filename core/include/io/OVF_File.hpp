@@ -78,23 +78,33 @@ namespace IO
         Vector3 base;
         Vector3 stepsize;
         std::array<int,3> nodes;
-       
+      
+        // Read OVF File version
         void Read_Version();
+        // Read the "# Segments: " value and compare with the occurences of "# Begin: Segment "
         void Read_N_Segments();
-        void Read_Header();
-        void Read_Check_Geometry( const Data::Geometry& geometry);
-        void Read_Eigenvalue( scalar& eigenvalue);
-        void Read_Data( vectorfield& vf );
+        // Read binary OVF data
         void Read_Data_bin( vectorfield& vf );
+        // Read text OVF data
         void Read_Data_txt( vectorfield& vf );
+        // In case of binary data check the binary check values
         bool Read_Check_Binary_Values();
+        // Read the segment's header
+        void Read_Header();
+        // Check if the geometry described in the last read header matches the given geometry
+        void Check_Geometry( const Data::Geometry& geometry );
+        // Read the segment's data
+        void Read_Data( vectorfield& vf );
     public:
         // Constructor
         iFile_OVF( std::string filename, VF_FileFormat format );
-        void read_image( vectorfield& vf, Data::Geometry& geometry );
-        void read_eigenmodes( std::vector<scalar>& eigenmodes,
-                              std::vector<std::shared_ptr<vectorfield>>& modes, 
-                              Data::Geometry& geometry );
+        // Get the number of segments in the file
+        int Get_N_Segments();
+        // Read header and data from a given segment. Also check geometry
+        void Read_Segment( vectorfield& vf, const Data::Geometry& geometry, 
+                           const int idx_seg = 0 );
+        // TODO: Changed that to Read_{String,Scalar,Int,Vec3}_from_Comments 
+        void Read_Eigenvalue( scalar& eigenvalue, const int idx_seg = 0 );
     }; // end class iFile_OVF
 } // end namespace io
 

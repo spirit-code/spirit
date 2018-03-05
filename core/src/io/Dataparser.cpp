@@ -122,7 +122,7 @@ namespace IO
                 auto& geometry = *s->geometry;
                 
                 iFile_OVF ifile_ovf( file, format );
-                ifile_ovf.read_image( spins, geometry ); 
+                ifile_ovf.Read_Segment( spins, geometry );
             }
             else
             {
@@ -301,11 +301,38 @@ namespace IO
             format == VF_FileFormat::OVF_TEXT )
         {
             auto& spins = *image->spins;
+            auto& modes = image->modes;
+            auto& eigenvalues = image->eigenvalues;
             auto& geometry = *image->geometry;
            
             iFile_OVF ifile_ovf( filename, format );
-            ifile_ovf.read_eigenmodes( image->eigenvalues, image->modes, geometry );
+          
+            int n_segments = ifile_ovf.Get_N_Segments();
+
+            // If the modes buffer's size is not the same as the n_segments then resize
+            if ( modes.size() != n_segments )
+            {
+                modes.resize( n_segments );
+                eigenvalues.resize( n_segments );
+                Log( Log_Level::Warning, Log_Sender::IO, fmt::format("Modes buffer resized "
+                     "since the number of modes in the OVF file was greater than its size") );
+            }
             
+            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading OVF file with "
+                 "{} segments", n_segments ) );
+
+            // read in the modes
+            for (int idx=0; idx<n_segments; idx++)
+            {
+                // if the mode buffer is created by resizing then it needs to be allocated
+                if ( modes[idx] == NULL )
+                    modes[idx] = std::shared_ptr<vectorfield>(
+                        new vectorfield( spins.size(), Vector3{1,0,0} ));
+                
+                ifile_ovf.Read_Segment( *modes[idx], geometry, idx );
+                ifile_ovf.Read_Eigenvalue( eigenvalues[idx], idx );
+            }
+
             // if the modes vector was reseized adjust the n_modes value
             if ( image->modes.size() != image->ema_parameters->n_modes )
                 image->ema_parameters->n_modes = image->modes.size();

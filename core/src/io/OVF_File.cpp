@@ -298,7 +298,6 @@ namespace IO
             // Emit Header to Log
             auto lvl = Log_Level::Debug;
             
-            Log( lvl, this->sender, fmt::format( "# OVF version             = {}", this->version ) );
             Log( lvl, this->sender, fmt::format( "# OVF title               = {}", this->title ) );
             Log( lvl, this->sender, fmt::format( "# OVF values dimensions   = {}", this->valuedim ) );
             Log( lvl, this->sender, fmt::format( "# OVF meshunit            = {}", this->meshunit ) );
@@ -353,7 +352,7 @@ namespace IO
         }
     }
     
-    void iFile_OVF::Read_Check_Geometry( const Data::Geometry& geometry)
+    void iFile_OVF::Check_Geometry( const Data::Geometry& geometry )
     {
         try
         {
@@ -379,21 +378,35 @@ namespace IO
         }
     }
    
-    void iFile_OVF::Read_Eigenvalue( scalar& eigenvalue )
+    void iFile_OVF::Read_Eigenvalue( scalar& eigenvalue, const int idx_seg )
     {
-        std::string eigenvalue_str = "";
-        myfile.Read_String( eigenvalue_str, "# Desc: eigenvalue =" );
-        Log( Log_Level::Debug, this->sender, fmt::format( "# OVF eigenvalue = {}", 
-             eigenvalue_str ) );
-        
-        if ( eigenvalue_str != "" ) 
-            if ( sizeof(scalar) == sizeof(double) )
-                eigenvalue = std::stod( eigenvalue_str );
-            else if ( sizeof(scalar) == sizeof(float) )
-                eigenvalue = std::stof( eigenvalue_str );
-            else
-                spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
-                              "The eigenvalue could not be read due to scalar represenation error" );
+        try
+        {
+            if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
+                spirit_throw( Exception_Classifier::Input_parse_failed, Log_Level::Error,
+                              "OVF error while choosing segment to read - index out of bounds" );
+
+            this->myfile.SetLimits( this->segment_fpos[idx_seg], this->segment_fpos[idx_seg+1] );
+            
+            std::string eigenvalue_str = "";
+            myfile.Read_String( eigenvalue_str, "# Desc: eigenvalue =" );
+            Log( Log_Level::Debug, this->sender, fmt::format( "# OVF eigenvalue = {}", 
+                 eigenvalue_str ) );
+            
+            if ( eigenvalue_str != "" ) 
+                if ( sizeof(scalar) == sizeof(double) )
+                    eigenvalue = std::stod( eigenvalue_str );
+                else if ( sizeof(scalar) == sizeof(float) )
+                    eigenvalue = std::stof( eigenvalue_str );
+                else
+                    spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
+                                  "The eigenvalue could not be read due to scalar represenation error" );
+        }
+        catch (...) 
+        {
+            spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
+        }
+    
     }
 
     void iFile_OVF::Read_Data( vectorfield& vf )
@@ -565,8 +578,11 @@ namespace IO
         }
     }
 
-    // Public methods
-    
+    int iFile_OVF::Get_N_Segments()
+    {
+        return this->n_segments;
+    }
+
     void oFile_OVF::write_image( const vectorfield& vf, const Data::Geometry& geometry )
     {
         Write_Top_Header(1);
@@ -591,47 +607,19 @@ namespace IO
         for (int i=0; i<chain->noi; i++)
             Write_Segment( *chain->images[i]->spins, *chain->images[i]->geometry );
     }
+   
+    void iFile_OVF::Read_Segment( vectorfield& vf, const Data::Geometry& geometry,
+                                  const int idx_seg )
+    {
+        // NOTE: seg_idx.max = segment_fpos.size - 2
+        if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
+            spirit_throw( Exception_Classifier::Input_parse_failed, Log_Level::Error,
+                          "OVF error while choosing segment to read - index out of bounds" );
+
+        this->myfile.SetLimits( this->segment_fpos[idx_seg], this->segment_fpos[idx_seg+1] );
     
-    void iFile_OVF::read_image( vectorfield& vf, Data::Geometry& geometry )
-    {
         Read_Header();
-        Read_Check_Geometry( geometry );
+        Check_Geometry( geometry );
         Read_Data( vf );
-    }
-
-    void iFile_OVF::read_eigenmodes( std::vector<scalar>& eigenvalues,
-                                     std::vector<std::shared_ptr<vectorfield>>& modes,
-                                     Data::Geometry& geometry )
-    {
-        // check if the modes in the file fit in the modes's buffer and if not resize
-        if ( modes.size() != this->n_segments )
-        {
-            modes.resize(this->n_segments);
-            eigenvalues.resize(this->n_segments);
-            Log( Log_Level::Warning, this->sender, fmt::format("Modes buffer resized since the"
-                 " number of modes in the OVF file was greater than its size") );
-        }
-        
-        // read in the modes
-        for (int i=0; i<this->n_segments; i++)
-        {
-            Log( Log_Level::Debug, this->sender, fmt::format( 
-                 "# ------------ OVF reading Mode {} ------------", i+1 ) );
-
-            myfile.SetLimits( this->segment_fpos[i], this->segment_fpos[i+1] ); 
-            
-            Read_Header();
-            Read_Check_Geometry( geometry );
-            Read_Eigenvalue( eigenvalues[i] );
-
-            // if the modes buffer created by resizing then it needs to be allocated
-            if (modes[i] == NULL)
-            {
-                int nos = this->nodes[0] * this->nodes[1] * this->nodes[2];
-                modes[i] = std::shared_ptr<vectorfield>(new vectorfield(nos, Vector3{1,0,0}));
-            }
-            
-            Read_Data( *modes[i] );
-        }
     }
 }
