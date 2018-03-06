@@ -1,9 +1,10 @@
 #pragma once
-#ifndef HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
-#define HAMILTONIAN_HEISENBERG_NEIGHBOURS_WIDGET_H
+#ifndef HAMILTONIAN_HEISENBERG_WIDGET_H
+#define HAMILTONIAN_HEISENBERG_WIDGET_H
 
 #include <QtWidgets/QWidget>
 
+#include <vector>
 #include <memory>
 #include <thread>
 
@@ -11,7 +12,7 @@
 #include "IsosurfaceWidget.hpp"
 //#include "SettingsWidget.hpp"
 
-#include "ui_HamiltonianHeisenbergNeighboursWidget.h"
+#include "ui_HamiltonianHeisenbergWidget.h"
 
 struct State;
 
@@ -21,12 +22,12 @@ struct State;
 */
 std::string string_q2std(QString qs);
 
-class HamiltonianHeisenbergNeighboursWidget : public QWidget, private Ui::HamiltonianHeisenbergNeighboursWidget
+class HamiltonianHeisenbergWidget : public QWidget, private Ui::HamiltonianHeisenbergWidget
 {
     Q_OBJECT
 
 public:
-	HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
+	HamiltonianHeisenbergWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
 	void updateData();
 
 private slots:
@@ -39,6 +40,9 @@ private slots:
 	void set_nshells_dmi();
 	void set_dmi();
 	void set_ddi();
+	void set_pairs_from_file();
+	void set_pairs_from_text();
+
 
 private:
 	void Load_Contents();
@@ -47,7 +51,7 @@ private:
 
 	std::shared_ptr<State> state;
 	SpinWidget * spinWidget;
-	
+
 	// Spinboxes for interaction shells
 	std::vector<QDoubleSpinBox *> exchange_shells;
 	std::vector<QDoubleSpinBox *> dmi_shells;
