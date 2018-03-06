@@ -537,28 +537,7 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
     }
 }
 
-void Hamiltonian_Get_Exchange(State *state, int * n_shells, float * jij, int idx_image, int idx_chain) noexcept
-{
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        if (image->hamiltonian->Name() == "Heisenberg (Pairs)")
-        {
-            // TODO
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
-}
-
-void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Get_Exchange_Shells(State *state, int * n_shells, float * jij, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -570,12 +549,109 @@ void Hamiltonian_Get_DMI(State *state, int * n_shells, float * dij, int idx_imag
         
         if (image->hamiltonian->Name() == "Heisenberg")
         {
-            // TODO
+            auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
+
+            *n_shells = ham->exchange_n_shells;
+
+            // Note the array needs to be correctly allocated beforehand!
+            for (int i=0; i<*n_shells; ++i)
+            {
+                jij[i] = (float)ham->exchange_magnitudes[i];
+            }
         }
     }
     catch( ... )
     {
         spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+int  Hamiltonian_Get_Exchange_N_Pairs(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            image->hamiltonian->Name() + " Hamiltonian: fetching exchange pairs is not yet implemented...", idx_image, idx_chain );
+        return 0;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+void Hamiltonian_Get_Exchange_Pairs(State *state, float * idx[2], float * translations[3], float * Jij, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            image->hamiltonian->Name() + " Hamiltonian: fetching exchange pairs is not yet implemented...", idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        if (image->hamiltonian->Name() == "Heisenberg")
+        {
+            auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
+            
+            *n_shells = ham->dmi_n_shells;
+            
+            for (int i=0; i<*n_shells; ++i)
+            {
+                dij[i] = (float)ham->dmi_magnitudes[i];
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            image->hamiltonian->Name() + " Hamiltonian: fetching DMI pairs is not yet implemented...", idx_image, idx_chain );
+        return 0;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
     }
 }
 

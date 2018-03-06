@@ -1012,9 +1012,9 @@ namespace IO
         pairfield dmi_pairs(0); scalarfield dmi_magnitudes(0); vectorfield dmi_normals(0);
 
         // Number of shells in which we calculate neighbours
-        int n_neigh_shells_exchange = exchange_magnitudes.size();
+        int n_shells_exchange = exchange_magnitudes.size();
         // DM constant
-        int n_neigh_shells_dmi = dmi_magnitudes.size();
+        int n_shells_dmi = dmi_magnitudes.size();
         int dm_chirality = 1;
         
         scalar ddi_radius = 0.0;
@@ -1183,14 +1183,14 @@ namespace IO
                 {
                     IO::Filter_File_Handle myfile(configFile);
 
-                    myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
-                    if (exchange_magnitudes.size() != n_neigh_shells_exchange)
-                        exchange_magnitudes = scalarfield(n_neigh_shells_exchange);
-                    if (n_neigh_shells_exchange > 0)
+                    myfile.Read_Single(n_shells_exchange, "n_shells_exchange");
+                    if (exchange_magnitudes.size() != n_shells_exchange)
+                        exchange_magnitudes = scalarfield(n_shells_exchange);
+                    if (n_shells_exchange > 0)
                     {
                         if (myfile.Find("jij"))
                         {
-                            for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
+                            for (iatom = 0; iatom < n_shells_exchange; ++iatom)
                                 myfile.iss >> exchange_magnitudes[iatom];
                         }
                         else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  { 10.0 }");
@@ -1205,14 +1205,14 @@ namespace IO
                 {
                     IO::Filter_File_Handle myfile(configFile);
 
-                    myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
-                    if (dmi_magnitudes.size() != n_neigh_shells_dmi)
-                        dmi_magnitudes = scalarfield(n_neigh_shells_dmi);
-                    if (n_neigh_shells_dmi > 0)
+                    myfile.Read_Single(n_shells_dmi, "n_shells_dmi");
+                    if (dmi_magnitudes.size() != n_shells_dmi)
+                        dmi_magnitudes = scalarfield(n_shells_dmi);
+                    if (n_shells_dmi > 0)
                     {
                         if (myfile.Find("dij"))
                         {
-                            for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
+                            for (iatom = 0; iatom < n_shells_dmi; ++iatom)
                                 myfile.iss >> dmi_magnitudes[iatom];
                         }
                         else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  { 6.0 }");
@@ -1276,11 +1276,11 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
         if (hamiltonian_type == "heisenberg_neighbours")
         {
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_neigh_shells_exchange));
-            if (n_neigh_shells_exchange > 0)
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_shells_exchange));
+            if (n_shells_exchange > 0)
                 Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", exchange_magnitudes[0]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_neigh_shells_dmi));
-            if (n_neigh_shells_dmi > 0)
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_shells_dmi));
+            if (n_shells_dmi > 0)
                 Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dmi_magnitudes[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
         }

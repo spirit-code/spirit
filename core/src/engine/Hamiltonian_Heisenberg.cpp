@@ -18,6 +18,7 @@ using Engine::Vectormath::idx_from_pair;
 
 namespace Engine
 {
+    // Construct a Heisenberg Hamiltonian with pairs
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
@@ -69,6 +70,7 @@ namespace Engine
         this->Update_Energy_Contributions();
     }
 
+    // Construct a Heisenberg Hamiltonian from shells
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
