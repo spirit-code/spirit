@@ -377,37 +377,6 @@ namespace IO
             spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
         }
     }
-   
-    void iFile_OVF::Read_Eigenvalue( scalar& eigenvalue, const int idx_seg )
-    {
-        try
-        {
-            if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
-                spirit_throw( Exception_Classifier::Input_parse_failed, Log_Level::Error,
-                              "OVF error while choosing segment to read - index out of bounds" );
-
-            this->myfile.SetLimits( this->segment_fpos[idx_seg], this->segment_fpos[idx_seg+1] );
-            
-            std::string eigenvalue_str = "";
-            myfile.Read_String( eigenvalue_str, "# Desc: eigenvalue =" );
-            Log( Log_Level::Debug, this->sender, fmt::format( "# OVF eigenvalue = {}", 
-                 eigenvalue_str ) );
-            
-            if ( eigenvalue_str != "" ) 
-                if ( sizeof(scalar) == sizeof(double) )
-                    eigenvalue = std::stod( eigenvalue_str );
-                else if ( sizeof(scalar) == sizeof(float) )
-                    eigenvalue = std::stof( eigenvalue_str );
-                else
-                    spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
-                                  "The eigenvalue could not be read due to scalar represenation error" );
-        }
-        catch (...) 
-        {
-            spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
-        }
-    
-    }
 
     void iFile_OVF::Read_Data( vectorfield& vf )
     {

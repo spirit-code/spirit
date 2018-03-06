@@ -330,12 +330,20 @@ namespace IO
                         new vectorfield( spins.size(), Vector3{1,0,0} ));
                 
                 ifile_ovf.Read_Segment( *modes[idx], geometry, idx );
-                ifile_ovf.Read_Eigenvalue( eigenvalues[idx], idx );
+                ifile_ovf.Read_Variable_from_Comment( eigenvalues[idx], 
+                                                      "# Desc: eigenvalue = ", idx );
             }
 
             // if the modes vector was reseized adjust the n_modes value
             if ( image->modes.size() != image->ema_parameters->n_modes )
                 image->ema_parameters->n_modes = image->modes.size();
+
+            // print the first eigenmodes
+            int n_log_eigenvalues = ( n_segments > 50 ) ? 50 : n_segments;
+
+            Log( Log_Level::Info, Log_Sender::IO, fmt::format( "The first {} eigenvalues are: {}",
+                 n_log_eigenvalues, fmt::join( eigenvalues.begin(), eigenvalues.begin() + 
+                 n_log_eigenvalues, ", " ) ) );
         }
         else
         {

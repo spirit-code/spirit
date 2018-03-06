@@ -7,6 +7,7 @@
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Exception.hpp>
 #include <utility/Version.hpp>
 #include <io/Filter_File_Handle.hpp>
 
@@ -103,8 +104,61 @@ namespace IO
         // Read header and data from a given segment. Also check geometry
         void Read_Segment( vectorfield& vf, const Data::Geometry& geometry, 
                            const int idx_seg = 0 );
-        // TODO: Changed that to Read_{String,Scalar,Int,Vec3}_from_Comments 
-        void Read_Eigenvalue( scalar& eigenvalue, const int idx_seg = 0 );
+       
+        // Read a variable from the comment section from the header of segment idx_seg
+        template <typename T> void Read_Variable_from_Comment( T& var, const std::string name,
+                                                               const int idx_seg = 0 )
+        {
+            try
+            {
+                // NOTE: seg_idx.max = segment_fpos.size - 2
+                if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
+                    spirit_throw( Utility::Exception_Classifier::Input_parse_failed, 
+                                  Utility::Log_Level::Error,
+                                  "OVF error while choosing segment to read - "
+                                  "index out of bounds" );
+
+                this->myfile.SetLimits( this->segment_fpos[idx_seg], 
+                                        this->segment_fpos[idx_seg+1] );
+
+                this->myfile.Read_Single( var, name );
+
+                Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
+            }
+            catch (...)
+            {
+                spirit_handle_exception_core(fmt::format( "Failed to read variable \"{}\" "
+                                                          "from comment", name ));
+            }
+        }
+    
+        // Read a Vector3 from the comment section from the header of segment idx_seg
+        template <typename T> void Read_String_from_Comment( T& var, std::string name,
+                                                              const int idx_seg = 0 )
+        {
+            try
+            {
+                // NOTE: seg_idx.max = segment_fpos.size - 2
+                if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
+                    spirit_throw( Utility::Exception_Classifier::Input_parse_failed, 
+                                  Utility::Log_Level::Error,
+                                  "OVF error while choosing segment to read - "
+                                  "index out of bounds" );
+
+                this->myfile.SetLimits( this->segment_fpos[idx_seg], 
+                                        this->segment_fpos[idx_seg+1] );
+
+                this->myfile.Read_String( var, name, false );
+
+                Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
+            }
+            catch (...)
+            {
+                spirit_handle_exception_core(fmt::format( "Failed to read string \"{}\" "
+                                                          "from comment", name ));
+            }
+        }
+    
     }; // end class iFile_OVF
 } // end namespace io
 
