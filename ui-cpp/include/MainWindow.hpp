@@ -35,6 +35,7 @@ protected:
 
 private slots:
 	void keyPressEvent(QKeyEvent *ev) override;
+	void keyReleaseEvent(QKeyEvent * ev) override;
 	void takeScreenshot();
 	void edit_cut();
 	void edit_copy();
@@ -85,6 +86,7 @@ private:
     void writeSettings();
 	void createStatusBar();
 	void updateStatusBar();
+	void move_and_rotate_camera();
 
 	// State
 	std::shared_ptr<State> state;
@@ -101,6 +103,7 @@ private:
 	QTimer * m_timer_control;
 	QTimer * m_timer_plots;
 	QTimer * m_timer_debug;
+	QTimer * m_timer_camera;
 	QTimer * m_timer;
 
 	// Status Bar labels
@@ -118,6 +121,9 @@ private:
 	QLabel * m_Label_Dims;
 	QLabel * m_Label_FPS;
 	std::vector<QLabel*> m_Labels_IPS;
+
+	// List bools if camera keys are pressed
+	std::map<char, bool> camera_keys_pressed;
 
 	// Fullscreen state
 	bool   view_spins_only;

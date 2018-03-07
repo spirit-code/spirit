@@ -15,6 +15,7 @@
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
+#include <algorithm>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
@@ -173,12 +174,14 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Set up Update Timers
 	m_timer = new QTimer(this);
+	m_timer_camera = new QTimer(this);
 	m_timer_control = new QTimer(this);
 	//m_timer_plots = new QTimer(this);
 	//m_timer_spins = new QTimer(this);
 	
 	// Connect the Timers
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
+	connect(m_timer_camera, &QTimer::timeout, this, &MainWindow::move_and_rotate_camera);
 	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::updateData);
 	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::updateData);	// this currently resets the user's interaction (movement, zoom)
 	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::updateData);
@@ -186,11 +189,24 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// Start Timers
 	m_timer->start(200);
 	m_timer_control->start(200);
+	//m_timer_camera->start(10);
 	//m_timer_plots->start(100);
 	//m_timer_spins->start(100);
 	//m_timer_debug->start(100);
 
 	this->n_screenshots = 0;
+	this->camera_keys_pressed = std::map<char, bool>{
+		{'w', false},
+		{'a', false},
+		{'s', false},
+		{'d', false},
+		{'q', false},
+		{'e', false},
+		{'t', false},
+		{'f', false},
+		{'g', false},
+		{'h', false}
+	};
 
 	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
@@ -443,43 +459,43 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// WASDQE
 			case Qt::Key_W:
-				this->spinWidget->moveCamera(-2 * scale, 0, 0);
+				this->camera_keys_pressed['w'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_A:
-				this->spinWidget->rotateCamera(0, 2 * scale);
+				this->camera_keys_pressed['a'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_S:
-				this->spinWidget->moveCamera(2 * scale, 0, 0);
+				this->camera_keys_pressed['s'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_D:
-				this->spinWidget->rotateCamera(0, -2 * scale);
+				this->camera_keys_pressed['d'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_Q:
-				this->spinWidget->rotateCamera(2 * scale, 0);
+				this->camera_keys_pressed['q'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_E:
-				this->spinWidget->rotateCamera(-2 * scale, 0);
+				this->camera_keys_pressed['e'] = true;
 				break;
 			// Movement
 			case Qt::Key_T:
-				this->spinWidget->moveCamera(0, 0, 2 * scale);
+				this->camera_keys_pressed['t'] = true;
 				break;
 			// Movement
 			case Qt::Key_F:
-				this->spinWidget->moveCamera(0, 2 * scale, 0);
+				this->camera_keys_pressed['f'] = true;
 				break;
 			// Movement
 			case Qt::Key_G:
-				this->spinWidget->moveCamera(0, 0, -2 * scale);
+				this->camera_keys_pressed['g'] = true;
 				break;
 			// Movement
 			case Qt::Key_H:
-				this->spinWidget->moveCamera(0, -2 * scale, 0);
+				this->camera_keys_pressed['h'] = true;
 				break;
 			// F1: Show key bindings
 			case Qt::Key_F1:
@@ -604,6 +620,93 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		}
 	}
 	this->return_focus();
+	
+	if (std::any_of(this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),
+		[](const std::pair<char, bool> & key) -> bool { return key.second; }))
+		m_timer_camera->start(10);
+}
+
+
+void MainWindow::keyReleaseEvent(QKeyEvent *k)
+{
+	switch (k->key())
+	{
+		// WASDQE
+		case Qt::Key_W:
+			this->camera_keys_pressed['w'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_A:
+			this->camera_keys_pressed['a'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_S:
+			this->camera_keys_pressed['s'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_D:
+			this->camera_keys_pressed['d'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_Q:
+			this->camera_keys_pressed['q'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_E:
+			this->camera_keys_pressed['e'] = false;
+			break;
+		// Movement
+		case Qt::Key_T:
+			this->camera_keys_pressed['t'] = false;
+			break;
+		// Movement
+		case Qt::Key_F:
+			this->camera_keys_pressed['f'] = false;
+			break;
+		// Movement
+		case Qt::Key_G:
+			this->camera_keys_pressed['g'] = false;
+			break;
+		// Movement
+		case Qt::Key_H:
+			this->camera_keys_pressed['h'] = false;
+			break;
+	}
+
+	// Stop the camera update timer if all camera keys were released
+	if (!std::any_of(this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),
+		[](const std::pair<char, bool> & key) -> bool { return key.second; }))
+		m_timer_camera->stop();
+}
+
+void MainWindow::move_and_rotate_camera()
+{
+	int w=0, a=0, s=0, d=0;
+	int q=0, e=0;
+	int t=0, f=0, g=0, h=0;
+
+	float scale = 5;
+	bool shiftpressed = false;
+
+	if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
+	{
+		scale = 1;
+		shiftpressed = true;
+	}
+	
+	w = (int)this->camera_keys_pressed['w'];
+	a = (int)this->camera_keys_pressed['a'];
+	s = (int)this->camera_keys_pressed['s'];
+	d = (int)this->camera_keys_pressed['d'];
+	q = (int)this->camera_keys_pressed['q'];
+	e = (int)this->camera_keys_pressed['e'];
+	t = (int)this->camera_keys_pressed['t'];
+	f = (int)this->camera_keys_pressed['f'];
+	g = (int)this->camera_keys_pressed['g'];
+	h = (int)this->camera_keys_pressed['h'];
+
+	this->spinWidget->moveCamera(  2*scale*s - 2*scale*w, 2*scale*f - 2*scale*h, 2*scale*t - 2*scale*g);
+	this->spinWidget->rotateCamera(2*scale*q - 2*scale*e, 2*scale*a - 2*scale*d);
 }
 
 
