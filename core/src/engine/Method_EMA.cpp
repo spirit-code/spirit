@@ -122,7 +122,7 @@ namespace Engine
         MatrixX tangent_basis = MatrixX::Zero(3*nos, 2*nos);
         VectorX eigenvalues;
         MatrixX eigenvectors;
-        bool successful = Eigenmodes::Hessian_Partial_Spectrum(spins_initial, gradient, hessian, 
+        bool successful = Eigenmodes::Hessian_Partial_Spectrum(system->ema_parameters, spins_initial, gradient, hessian, 
             n_modes, tangent_basis, hessian_constrained, eigenvalues, eigenvectors);
         
         if (successful)

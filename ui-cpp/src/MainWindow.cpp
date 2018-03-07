@@ -7,7 +7,6 @@
 #include "Spirit/System.h"
 #include "Spirit/Geometry.h"
 #include "Spirit/Chain.h"
-#include "Spirit/Collection.h"
 #include "Spirit/Simulation.h"
 #include "Spirit/Configurations.h"
 #include "Spirit/Quantities.h"
@@ -166,9 +165,6 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	//		NOI
 	this->m_Label_NOI = new QLabel("NOI: -  ");
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
-	//		NOC
-	this->m_Label_NOC = new QLabel("NOC: -  ");
-	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
 	//		Initialisations
 	this->createStatusBar();
 	//		MenuBar checkboxes
@@ -664,35 +660,23 @@ void MainWindow::createStatusBar()
 
 	// Create IPS Labels and add them to the statusBar
 	this->m_Labels_IPS = std::vector<QLabel*>(0);
-	if (Simulation_Running_Anywhere_Collection(state.get()))
+	if (Simulation_Running_Anywhere_Chain(state.get()))
 	{
-		if (Simulation_Running_Collection(state.get()))
+		if (Simulation_Running_Chain(state.get()))
 		{
 			this->m_Labels_IPS.push_back(new QLabel);
-			this->m_Labels_IPS.back()->setText("IPS: -  ");
+			this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 			Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
 		}
 		else
 		{
-			for (int ichain = 0; ichain < Collection_Get_NOC(state.get()); ++ichain)
+			for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
 			{
-				if (Simulation_Running_Chain(state.get(), ichain))
+				if (Simulation_Running_Image(state.get(), img))
 				{
 					this->m_Labels_IPS.push_back(new QLabel);
 					this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
 					Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
-				}
-				else
-				{
-					for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
-					{
-						if (Simulation_Running_Image(state.get(), img, ichain))
-						{
-							this->m_Labels_IPS.push_back(new QLabel);
-							this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
-							Ui::MainWindow::statusBar->addPermanentWidget(m_Labels_IPS.back());
-						}
-					}
 				}
 			}
 		}
@@ -785,12 +769,6 @@ void MainWindow::createStatusBar()
 	this->m_Label_NOI->setText(QString::fromLatin1("NOI: ") + QString::number(Chain_Get_NOI(this->state.get())) + QString::fromLatin1(" "));
 	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOI);
 
-	//		NOC
-	Ui::MainWindow::statusBar->removeWidget(this->m_Label_NOC);
-	this->m_Label_NOC = new QLabel;
-	this->m_Label_NOC->setText(QString::fromLatin1("NOC: ") + QString::number(Collection_Get_NOC(this->state.get())) + QString::fromLatin1(" "));
-	Ui::MainWindow::statusBar->addPermanentWidget(this->m_Label_NOC);
-
 	// Update contents
 	this->updateStatusBar();
 }
@@ -817,9 +795,13 @@ void MainWindow::updateStatusBar()
 	QString qstr_ips;
 	std::vector<QString> v_str(0);
 
-	if (Simulation_Running_Collection(state.get()))
+	if (Simulation_Running_Chain(state.get()))
 	{
-		ips = Simulation_Get_IterationsPerSecond(state.get());
+		float * f = new float[Chain_Get_NOI(state.get())];
+		Simulation_Get_Chain_MaxTorqueComponents(state.get(), f);
+		float f_current = f[System_Get_Index(state.get())];
+		this->m_Label_Torque->setText(QString::fromLatin1("F_current: ") + QString::number(f_current, 'E', 2) + QString::fromLatin1("  F_max: ") + QString::number(F, 'E', 2));
+		ips = Simulation_Get_IterationsPerSecond(state.get(), -1);
 		if (ips < 1) precision = 4;
 		else if (ips > 99) precision = 0;
 		else precision = 2;
@@ -829,37 +811,17 @@ void MainWindow::updateStatusBar()
 	}
 	else
 	{
-		for (int ichain = 0; ichain < Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
 		{
-			if (Simulation_Running_Chain(state.get(), ichain))
+			if (Simulation_Running_Image(state.get(), img))
 			{
-				float * f = new float[Chain_Get_NOI(state.get())];
-				Simulation_Get_Chain_MaxTorqueComponents(state.get(), f);
-				float f_current = f[System_Get_Index(state.get())];
-				this->m_Label_Torque->setText(QString::fromLatin1("F_current: ") + QString::number(f_current, 'E', 2) + QString::fromLatin1("  F_max: ") + QString::number(F, 'E', 2));
-				ips = Simulation_Get_IterationsPerSecond(state.get(), -1, ichain);
+				ips = Simulation_Get_IterationsPerSecond(state.get(), img);
 				if (ips < 1) precision = 4;
 				else if (ips > 99) precision = 0;
 				else precision = 2;
 				if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
 				else qstr_ips = QString::fromLatin1("> 100k");
-				v_str.push_back(QString::fromLatin1("IPS[") + QString::number(ichain + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
-			}
-			else
-			{
-				for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
-				{
-					if (Simulation_Running_Image(state.get(), img, ichain))
-					{
-						ips = Simulation_Get_IterationsPerSecond(state.get(), img, ichain);
-						if (ips < 1) precision = 4;
-						else if (ips > 99) precision = 0;
-						else precision = 2;
-						if (ips < 1e5) qstr_ips = QString::number(ips, 'f', precision);
-						else qstr_ips = QString::fromLatin1("> 100k");
-						v_str.push_back(QString::fromLatin1("IPS[") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
-					}
-				}
+				v_str.push_back(QString::fromLatin1("IPS[") + QString::number(img + 1) + QString::fromLatin1("]: ") + qstr_ips + QString::fromLatin1("  "));
 			}
 		}
 	}

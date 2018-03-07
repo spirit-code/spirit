@@ -17,7 +17,7 @@ namespace Engine
     {
     public:
         // Constructor
-        Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain);
+        Method_MMF(std::shared_ptr<Data::Spin_System> system, int idx_chain);
 
         // Method name as string
         std::string Name() override;
@@ -40,22 +40,22 @@ namespace Engine
         // Sets iteration_allowed to false for the collection
         void Finalize() override;
         
-        bool Iterations_Allowed() override;
-        
+        std::shared_ptr<Data::Spin_System> system;
         
         bool switched1, switched2;
-        std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
         // Last calculated hessian
-        std::vector<MatrixX> hessian;
+        MatrixX hessian;
         // Last calculated gradient
-        std::vector<vectorfield> gradient;
+        vectorfield gradient;
         // Last calculated minimum mode
-        std::vector<vectorfield> minimum_mode;
+        vectorfield minimum_mode;
+        int mode_follow_previous;
+        VectorX mode_2N_previous;
 
         // Last iterations spins and reaction coordinate
         scalar Rx_last;
-        std::vector<vectorfield> spins_last;
+        vectorfield spins_last;
 
         // Which minimum mode function to use
         // ToDo: move into parameters
