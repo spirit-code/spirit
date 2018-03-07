@@ -15,11 +15,9 @@
 #include <sstream>
 
 auto inputfile = "core/test/input/fd_pairs.cfg";
-auto method = "EMA";
-auto solver = "Heun"; //// NOTE: choise of solver doesn't matter
 // auto testfile = "method_EMA_test.txt";
 
-TEST_CASE("Trivial","[EMA]")
+TEST_CASE("Trivial", "[EMA]")
 {
     // create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
@@ -31,7 +29,7 @@ TEST_CASE("Trivial","[EMA]")
     // (Heun, Depondt etc). Or even an EgeinAnalysis might be appropriate.
     
     //Simulation_SingleShot( state.get(), method, "Heun" );
-    Simulation_PlayPause( state.get(), method, "Heun", 20 );
+    Simulation_PlayPause( state.get(), "EMA", "", 20 );
     //IO_Image_Write( state.get(), testfile );
     
     // Configuration_MinusZ( state.get() );

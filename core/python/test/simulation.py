@@ -43,14 +43,8 @@ class Simulation_Running(TestParameters):
     def test_running_chain(self):
         self.assertFalse(simulation.Running_Chain(self.p_state))
     
-    def test_running_collection(self):
-        self.assertFalse(simulation.Running_Collection(self.p_state))
-    
     def test_running_anywhere_chain(self):
         self.assertFalse(simulation.Running_Anywhere_Chain(self.p_state))
-    
-    def test_running_anywhere_collection(self):
-        self.assertFalse(simulation.Running_Anywhere_Collection(self.p_state))
     
 #########
 

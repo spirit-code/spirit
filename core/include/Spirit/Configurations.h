@@ -32,6 +32,9 @@ DLLEXPORT void Configuration_Random(State *state, const float position[3]=defaul
 // Adds some random noise scaled by temperature
 DLLEXPORT void Configuration_Add_Noise_Temperature(State *state, float temperature, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
+// Calculate the eigenmodes of the System (Image)
+DLLEXPORT void Configuration_Displace_Eigenmode(State *state, int idx_mode, int idx_image=-1, int idx_chain=-1) noexcept;
+
 // Create a toroidal Hopfion
 DLLEXPORT void Configuration_Hopfion(State *state, float r, int order=1, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false,  int idx_image=-1, int idx_chain=-1) noexcept;
 

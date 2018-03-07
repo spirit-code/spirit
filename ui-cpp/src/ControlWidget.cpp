@@ -6,6 +6,7 @@
 
 #include "Spirit/System.h"
 #include "Spirit/Chain.h"
+#include "Spirit/Configurations.h"
 #include "Spirit/Simulation.h"
 #include <Spirit/Parameters.h>
 #include "Spirit/IO.h"
@@ -28,7 +29,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     // Create threads
     threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
     threads_ema = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
-    threads_gneb = std::vector<std::thread>(Collection_Get_NOC(this->state.get()));
+    threads_gneb = std::vector<std::thread>(1);
     //threads_mmf
 
     // Setup User Interface
@@ -157,8 +158,7 @@ void ControlWidget::play_pause()
     auto c_solver = s_solver.c_str();
 
     if ( Simulation_Running_Image(this->state.get()) ||
-            Simulation_Running_Chain(this->state.get()) ||
-            Simulation_Running_Collection(this->state.get()) )
+         Simulation_Running_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), c_method, c_solver);
@@ -241,8 +241,7 @@ void ControlWidget::stop_current()
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
 
     if ( Simulation_Running_Image(this->state.get()) ||
-            Simulation_Running_Chain(this->state.get()) ||
-            Simulation_Running_Collection(this->state.get()) )
+         Simulation_Running_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
@@ -443,7 +442,7 @@ void ControlWidget::calculate()
     if (threads_ema[idx].joinable()) threads_ema[System_Get_Index(state.get())].join();
     if ( !Simulation_Running_Image(state.get()) )
         this->threads_ema[System_Get_Index(state.get())] =
-            std::thread(&Simulation_Calculate_Eigenmodes, this->state.get(), -1, -1);
+            std::thread(&System_Update_Eigenmodes, this->state.get(), -1, -1);
             
     QFuture<void> future = QtConcurrent::run( 
         &threads_ema[System_Get_Index(state.get())], &std::thread::join );
@@ -456,7 +455,7 @@ void ControlWidget::apply_mode()
     
     int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
     
-    Simulation_Apply_Eigenmode( state.get(), following_mode );
+    Configuration_Displace_Eigenmode( state.get(), following_mode );
 
     this->spinWidget->updateData();
 }

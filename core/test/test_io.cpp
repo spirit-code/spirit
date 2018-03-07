@@ -97,7 +97,7 @@ TEST_CASE( "IO-EIGENMODE-WRITE", "[io-ema]" )
         INFO( "IO eigenmodes " + file.first );
         
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
-        Simulation_Calculate_Eigenmodes( state.get());
+        System_Update_Eigenmodes( state.get());
         IO_Eigenmodes_Write( state.get(), filename, filetype); 
     }
 }

@@ -83,7 +83,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_3">
           <property name="geometry">
@@ -91,7 +91,7 @@
             <x>0</x>
             <y>0</y>
             <width>499</width>
-            <height>684</height>
+            <height>670</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -842,7 +842,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>637</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1150,8 +1150,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>469</width>
-            <height>653</height>
+            <width>483</width>
+            <height>641</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1614,7 +1614,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>637</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1640,6 +1640,26 @@
               <string>EMA IO</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_30">
+              <item row="2" column="0">
+               <widget class="QPushButton" name="pushButton_LoadModes">
+                <property name="text">
+                 <string>Load Modes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item row="0" column="0">
                <widget class="QPushButton" name="pushButton_SaveModes">
                 <property name="minimumSize">
@@ -1653,33 +1673,13 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QPushButton" name="pushButton_LoadModes">
-                <property name="text">
-                 <string>Load Modes</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_14">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
             </widget>
            </item>
            <item row="0" column="1">
             <layout class="QGridLayout" name="gridLayout_19">
              <item row="1" column="1">
-              <widget class="QLabel" name="label_9">
+              <widget class="QLabel" name="label_23">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1718,7 +1718,7 @@
               </widget>
              </item>
              <item row="1" column="3">
-              <spacer name="horizontalSpacer_10">
+              <spacer name="horizontalSpacer_16">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -1739,7 +1739,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_22">
               <item row="3" column="0">
-               <layout class="QGridLayout" name="gridLayout_17">
+               <layout class="QGridLayout" name="gridLayout_33">
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_14">
                   <property name="minimumSize">
@@ -1890,7 +1890,7 @@
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QLabel" name="label_10">
+                 <widget class="QLabel" name="label_24">
                   <property name="text">
                    <string>n_modes</string>
                   </property>
@@ -1899,7 +1899,7 @@
                </layout>
               </item>
               <item row="1" column="1">
-               <spacer name="horizontalSpacer_11">
+               <spacer name="horizontalSpacer_14">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1929,7 +1929,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>637</height>
            </rect>
           </property>
           <attribute name="label">

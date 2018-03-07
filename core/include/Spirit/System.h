@@ -24,5 +24,8 @@ DLLEXPORT void System_Print_Energy_Array(State * state, int idx_image=-1, int id
 // Update Data (primarily for plots)
 DLLEXPORT void System_Update_Data(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 
+// Update Eigenmodes (primarily for visualisation or saving)
+DLLEXPORT void System_Update_Eigenmodes(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+
 #include "DLL_Undefine_Export.h"
 #endif

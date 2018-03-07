@@ -9,6 +9,7 @@
 
 #include <fmt/format.h>
 
+#include <Eigen/Dense>
 
 std::function<bool(const Vector3&, const Vector3&)> 
 get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cylindrical, 
@@ -425,6 +426,58 @@ void Configuration_Add_Noise_Temperature( State *state, float temperature, const
                                                 r_cut_spherical, inverted );
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Added noise with temperature T={}. {}", temperature, filterstring), idx_image, idx_chain);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void Configuration_Displace_Eigenmode( State *state, int idx_mode, int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        if (idx_mode >= image->modes.size())
+            Log(Utility::Log_Level::Warning, Utility::Log_Sender::EMA, fmt::format("You tried to apply eigenmode number {}, "
+                "but you only calculated {} modes", idx_mode, image->ema_parameters->n_modes), idx_image, idx_chain);
+
+        // The eigenmode was potentially not calculated, yet
+        if ( image->modes[idx_mode] == NULL )
+            Log(Utility::Log_Level::Warning, Utility::Log_Sender::EMA, fmt::format("Eigenmode number {} has not "
+                "yet been calculated.", idx_mode ), idx_image, idx_chain);
+        else
+        {
+            image->Lock();
+
+            auto& spins = *image->spins;
+            auto& mode  = *image->modes[idx_mode];
+            int nos = spins.size();
+
+            scalarfield angles(nos);
+            vectorfield axes(nos);
+
+            // Find the angles and axes of rotation
+            for (int idx=0; idx<image->nos; idx++)
+            {
+                angles[idx] = mode[idx].norm();
+                axes[idx]   = spins[idx].cross(mode[idx]).normalized();
+            }
+
+            // Scale the angles
+            Engine::Vectormath::scale(angles, image->ema_parameters->amplitude);
+
+            // Rotate around axes by certain angles
+            Engine::Vectormath::rotate(spins, axes, angles, spins);
+
+            image->Unlock();
+        }
     }
     catch( ... )
     {

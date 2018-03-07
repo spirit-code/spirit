@@ -63,7 +63,7 @@ class Eigenmodes_IO(TestParameters):
         configuration.PlusZ(self.p_state)
         configuration.Skyrmion(self.p_state,radius=5,phase=-90)
         simulation.PlayPause(self.p_state,"LLG","VP")
-        simulation.Eigenmodes(self.p_state)
+        system.updateEigenmodes(self.p_state)
         io.Eigenmodes_Write(self.p_state,io_image_test,6)
 
 class Chain_IO(TestParameters):

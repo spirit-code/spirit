@@ -63,6 +63,15 @@ _Update_Data.restype    = None
 def Update_Data(p_state, idx_image=-1, idx_chain=-1):
     _Update_Data(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+
+### Eigenmodes
+_Eigenmodes          = _spirit.System_Update_Eigenmodes
+_Eigenmodes.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Eigenmodes.restype  = None
+def updateEigenmodes(p_state, idx_image=-1, idx_chain=-1):
+    spiritlib.WrapFunction(_Eigenmodes, [ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+                                         ctypes.c_int(idx_chain)])
+
 ### Print Energy array
 _Print_Energy_Array            = _spirit.System_Print_Energy_Array
 _Print_Energy_Array.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

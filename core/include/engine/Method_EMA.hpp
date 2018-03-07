@@ -11,12 +11,6 @@
 
 namespace Engine
 {
-    /* 
-        Method for calculating the Eigenmodes of a system
-    */
-    void Calculate_Eigenmodes(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
-    void Apply_Eigenmode( int idx_mode, std::shared_ptr<Data::Spin_System> system, 
-                          const int idx_img, const int idx_chain );
     /*
         The Eigenmode Analysis method
     */
