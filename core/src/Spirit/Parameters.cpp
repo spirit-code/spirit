@@ -751,6 +751,7 @@ void Parameters_Set_EMA_N_Modes(State *state, int n_modes, int idx_image, int id
             image->Lock();
             image->ema_parameters->n_modes = n_modes;
             image->modes.resize(n_modes);
+            image->eigenvalues.resize(n_modes);
             image->ema_parameters->n_mode_follow = std::min(image->ema_parameters->n_mode_follow, n_modes);
             image->Unlock();
         }
@@ -830,6 +831,25 @@ void Parameters_Set_EMA_Amplitude(State *state, float amplitude, int idx_image, 
     }
 }
 
+void Parameters_Set_EMA_Snapshot(State *state, bool snapshot, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        image->Lock();
+        image->ema_parameters->snapshot = snapshot;
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set MMF ----------------------------------------------------------- */
@@ -1703,6 +1723,25 @@ float Parameters_Get_EMA_Amplitude(State *state, int idx_image, int idx_chain) n
         from_indices( state, idx_image, idx_chain, image, chain );
 
         return image->ema_parameters->amplitude;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+bool Parameters_Get_EMA_Snapshot(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        return image->ema_parameters->snapshot;
     }
     catch( ... )
     {

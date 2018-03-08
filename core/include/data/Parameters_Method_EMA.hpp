@@ -14,13 +14,14 @@ namespace Data
         Parameters_Method_EMA(std::string output_folder, std::string output_file_tag, 
             std::array<bool,9> output, long int n_iterations, long int n_iterations_log, 
             long int max_walltime_sec, std::shared_ptr<Pinning> pinning, int n_modes, 
-            int n_mode_follow, scalar frequency, scalar amplitude );
-        
+            int n_mode_follow, scalar frequency, scalar amplitude, bool snapshot );
+       
         int n_modes;
         int n_mode_follow;
         scalar frequency;
         scalar amplitude;
-        
+        bool snapshot; 
+
         // ----------------- Output --------------
         // Energy output settings
         bool output_energy_step;

@@ -1621,10 +1621,65 @@
            <string>EMA</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_18">
+           <item row="10" column="1">
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="1">
+            <widget class="QGroupBox" name="groupBox_8">
+             <property name="title">
+              <string>EMA IO</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_30">
+              <item row="2" column="0">
+               <widget class="QPushButton" name="pushButton_LoadModes">
+                <property name="text">
+                 <string>Load Modes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton_SaveModes">
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Save Modes</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="0" column="1">
             <layout class="QGridLayout" name="gridLayout_19">
              <item row="1" column="1">
-              <widget class="QLabel" name="label_9">
+              <widget class="QLabel" name="label_23">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1663,7 +1718,7 @@
               </widget>
              </item>
              <item row="1" column="3">
-              <spacer name="horizontalSpacer_10">
+              <spacer name="horizontalSpacer_16">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -1683,8 +1738,8 @@
               <string>EMA Parameters</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_22">
-              <item row="1" column="0">
-               <layout class="QGridLayout" name="gridLayout_17">
+              <item row="3" column="0">
+               <layout class="QGridLayout" name="gridLayout_33">
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_14">
                   <property name="minimumSize">
@@ -1753,7 +1808,7 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="0">
+              <item row="1" column="0">
                <layout class="QGridLayout" name="gridLayout_21">
                 <item row="2" column="1">
                  <widget class="QSpinBox" name="spinBox_ema_n_modes">
@@ -1835,7 +1890,7 @@
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QLabel" name="label_10">
+                 <widget class="QLabel" name="label_24">
                   <property name="text">
                    <string>n_modes</string>
                   </property>
@@ -1843,8 +1898,8 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_11">
+              <item row="1" column="1">
+               <spacer name="horizontalSpacer_14">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -1856,21 +1911,15 @@
                 </property>
                </spacer>
               </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_snapshot_mode">
+                <property name="text">
+                 <string>Snapshot mode</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
-           </item>
-           <item row="3" column="1">
-            <spacer name="verticalSpacer_6">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>

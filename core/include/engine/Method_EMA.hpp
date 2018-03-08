@@ -11,11 +11,6 @@
 
 namespace Engine
 {
-    /* 
-        Method for calculating the Eigenmodes of a system
-    */
-    void Calculate_Eigenmodes(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
-    
     /*
         The Eigenmode Analysis method
     */
@@ -23,11 +18,13 @@ namespace Engine
     {
     public:
         // Constructor
-        Method_EMA(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
+        Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
         // Method name as string
         std::string Name() override;
-        
+       
+        // Solver name as string
+        std::string SolverName() override;
     private:
         // Iteration does one time step of the oscillation
         // S(t) = S(0) + cos(omega * t) * direction
@@ -58,7 +55,8 @@ namespace Engine
         
         int counter;
         int following_mode;
-        
+       
+        bool snapshot;
         vectorfield mode;
         scalarfield angle;
         scalarfield angle_initial;

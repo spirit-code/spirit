@@ -6,6 +6,7 @@
 
 #include "Spirit/System.h"
 #include "Spirit/Chain.h"
+#include "Spirit/Configurations.h"
 #include "Spirit/Simulation.h"
 #include <Spirit/Parameters.h>
 #include "Spirit/IO.h"
@@ -27,6 +28,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 
     // Create threads
     threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
+    threads_ema = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
     threads_gneb = std::vector<std::thread>(1);
     //threads_mmf
 
@@ -49,6 +51,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     connect(this->pushButton_PreviousMode, SIGNAL(clicked()), this, SLOT(prev_mode()));
     connect(this->pushButton_NextMode, SIGNAL(clicked()), this, SLOT(next_mode()));
     connect(this->lineEdit_ModeNumber, SIGNAL(returnPressed()), this, SLOT(jump_to_mode()));
+    connect(this->pushButton_ApplyMode, SIGNAL(clicked()), this, SLOT(apply_mode()));
     connect(this->pushButton_Calculate, SIGNAL(clicked()), this, SLOT(calculate()));
     connect(&this->watcher, SIGNAL(finished()), this, SLOT(calculate_enable_widget()));
 
@@ -162,6 +165,7 @@ void ControlWidget::play_pause()
         // Join the thread of the stopped simulation
         if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
         else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[System_Get_Index(state.get())].joinable()) threads_ema[System_Get_Index(state.get())].join();
         else if (thread_mmf.joinable()) thread_mmf.join();
         // New button text
         this->pushButton_PlayPause->setText("Play");
@@ -186,8 +190,8 @@ void ControlWidget::play_pause()
         else if (this->s_method == "EMA")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-            this->threads_llg[System_Get_Index(state.get())] =
+            if (threads_ema[idx].joinable()) threads_ema[System_Get_Index(state.get())].join();
+            this->threads_ema[System_Get_Index(state.get())] =
                 std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "GNEB")
@@ -222,6 +226,10 @@ void ControlWidget::stop_all()
     {
         if (threads_gneb[i].joinable()) threads_gneb[i].join();
     }
+    for (unsigned int i=0; i<threads_ema.size(); ++i)
+    {
+        if (threads_ema[i].joinable()) threads_ema[i].join();
+    }
     if (thread_mmf.joinable()) thread_mmf.join();
 
     this->pushButton_PlayPause->setText("Play");
@@ -234,6 +242,18 @@ void ControlWidget::stop_current()
 
     if ( Simulation_Running_Image(this->state.get()) ||
          Simulation_Running_Chain(this->state.get()) )
+    {
+        // Running, so we stop it
+        Simulation_PlayPause(this->state.get(), "", "");
+        // Join the thread of the stopped simulation
+        if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
+        else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
+        else if (threads_ema[System_Get_Index(state.get())].joinable()) threads_ema[System_Get_Index(state.get())].join();
+        else if (thread_mmf.joinable()) thread_mmf.join();
+    }
+
+    if ( Simulation_Running_Image(this->state.get()) ||
+            Simulation_Running_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
@@ -300,6 +320,9 @@ void ControlWidget::cut_image()
             // Make the llg_threads vector smaller
             if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
             this->threads_llg.erase(threads_llg.begin() + idx);
+            // Make the ema_threads vector smaller
+            if (this->threads_ema[idx].joinable()) this->threads_ema[idx].join();
+            this->threads_ema.erase(threads_ema.begin() + idx);
         }
     }
 
@@ -323,6 +346,8 @@ void ControlWidget::paste_image(std::string where)
         Chain_Insert_Image_Before(state.get());
         // Make the llg_threads vector larger
         this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+        // Make the ema_threads vector larger
+        this->threads_ema.insert(threads_ema.begin()+idx, std::thread());
         // Switch to the inserted image
         Chain_prev_Image(this->state.get());
     }
@@ -333,6 +358,8 @@ void ControlWidget::paste_image(std::string where)
         Chain_Insert_Image_After(state.get());
         // Make the llg_threads vector larger
         this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+        // Make the ema_threads vector larger
+        this->threads_ema.insert(threads_ema.begin()+idx, std::thread());
         // Switch to the inserted image
         Chain_next_Image(this->state.get());
     }
@@ -354,14 +381,15 @@ void ControlWidget::delete_image()
             // Make the llg_threads vector smaller
             if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
             this->threads_llg.erase(threads_llg.begin() + idx);
+            // Make the ema_threads vector smaller
+            if (this->threads_ema[idx].joinable()) this->threads_ema[idx].join();
+            this->threads_ema.erase(threads_ema.begin() + idx);
         }
 
-        Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Deleted image " + std::to_string(System_Get_Index(state.get()))).c_str());
+        // Update
+        this->updateData();
+        this->updateOthers();
     }
-
-    // Update
-    this->updateData();
-    this->updateOthers();
 }
 
 void ControlWidget::next_mode()
@@ -411,13 +439,25 @@ void ControlWidget::calculate()
     calculate_disable_widget();
 
     int idx = System_Get_Index(state.get());
-    if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-        this->threads_llg[System_Get_Index(state.get())] =
-            std::thread(&Simulation_Calculate_Eigenmodes, this->state.get(), -1, -1);
+    if (threads_ema[idx].joinable()) threads_ema[System_Get_Index(state.get())].join();
+    if ( !Simulation_Running_Image(state.get()) )
+        this->threads_ema[System_Get_Index(state.get())] =
+            std::thread(&System_Update_Eigenmodes, this->state.get(), -1, -1);
             
     QFuture<void> future = QtConcurrent::run( 
-        &threads_llg[System_Get_Index(state.get())], &std::thread::join );
+        &threads_ema[System_Get_Index(state.get())], &std::thread::join );
     this->watcher.setFuture(future);
+}
+
+void ControlWidget::apply_mode()
+{
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: apply mode");
+    
+    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    
+    Configuration_Displace_Eigenmode( state.get(), following_mode );
+
+    this->spinWidget->updateData();
 }
 
 void ControlWidget::calculate_disable_widget()
@@ -430,7 +470,8 @@ void ControlWidget::calculate_disable_widget()
     this->pushButton_PreviousImage->setEnabled(false);
     this->lineEdit_ImageNumber->setEnabled(false);
     this->pushButton_NextImage->setEnabled(false);
-
+    this->pushButton_ApplyMode->setEnabled(false);
+    
     this->comboBox_Method->setEnabled(false);
     this->comboBox_Solver->setEnabled(false);
 
@@ -454,7 +495,8 @@ void ControlWidget::calculate_enable_widget()
     this->pushButton_PreviousImage->setEnabled(true);
     this->lineEdit_ImageNumber->setEnabled(true);
     this->pushButton_NextImage->setEnabled(true);
-
+    this->pushButton_ApplyMode->setEnabled(true);
+    
     this->comboBox_Method->setEnabled(true);
     this->comboBox_Solver->setEnabled(true);
 
@@ -520,6 +562,7 @@ void ControlWidget::set_solver_enabled()
 void ControlWidget::ema_buttons_hide()
 {
     this->pushButton_Calculate->setVisible(false);
+    this->pushButton_ApplyMode->setVisible(false);
     this->pushButton_NextMode->setVisible(false);
     this->pushButton_PreviousMode->setVisible(false);
     this->lineEdit_ModeNumber->setVisible(false);
@@ -529,6 +572,7 @@ void ControlWidget::ema_buttons_hide()
 void ControlWidget::ema_buttons_show()
 {
     this->pushButton_Calculate->setVisible(true);
+    this->pushButton_ApplyMode->setVisible(true);
     this->pushButton_NextMode->setVisible(true);
     this->pushButton_PreviousMode->setVisible(true);
     this->lineEdit_ModeNumber->setVisible(true);

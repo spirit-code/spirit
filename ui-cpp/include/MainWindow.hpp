@@ -70,6 +70,8 @@ private slots:
 	void load_Spin_Configuration();
 	void save_SpinChain_Configuration();
 	void load_SpinChain_Configuration();
+	void save_Spin_Configuration_Eigenmodes();
+	void load_Spin_Configuration_Eigenmodes();
 	void save_System_Energy_Spins();
 	void save_Chain_Energies();
 	void save_Chain_Energies_Interpolated();

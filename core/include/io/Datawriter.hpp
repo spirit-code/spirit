@@ -25,21 +25,16 @@ namespace IO
     void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& c, 
                                          const std::string filename, VF_FileFormat format,
                                          const std::string comment, bool append = false );
-    
+    // Write Spin_System's eigenmodes to file
+    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues,
+                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                           const Data::Geometry& geometry, const std::string filename, 
+                           VF_FileFormat format, const std::string comment, bool append = false );
     // Saves any SPIRIT format
     void Save_To_SPIRIT( const vectorfield & vf, const Data::Geometry & geometry, 
                          const std::string filename, VF_FileFormat format, 
                          const std::string comment );
-    // Saves any OVF format 
-    void Save_To_OVF( const vectorfield& vf, const Data::Geometry& geometry, std::string filename, 
-                      VF_FileFormat format, const std::string comment );
-    // Writes the OVF bin data
-    void Write_OVF_bin_data( const vectorfield& vf, const Data::Geometry& geometry, 
-                             const std::string filename, VF_FileFormat format );
-    // Writes the OVF text data
-    void Write_OVF_text_data( const vectorfield& vf, const Data::Geometry& geometry,
-                              std::string& output_to_file );
-
+    
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 

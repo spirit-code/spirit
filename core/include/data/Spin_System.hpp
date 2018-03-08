@@ -50,16 +50,18 @@ namespace Data
         int nos;
         // Eigenmodes of the system: modes[nem][dim][nos]
         std::vector<std::shared_ptr<vectorfield>> modes;
-        // Orientations of the Spins: spins[dim][nos]
-        std::shared_ptr<vectorfield> spins;
-        // Spin Hamiltonian
-        std::shared_ptr<Engine::Hamiltonian> hamiltonian;
-        // Geometric Information
-        std::shared_ptr<Geometry> geometry;
-        // Parameters for LLG
-        std::shared_ptr<Parameters_Method_LLG> llg_parameters;
-        // Parameters for MC
-        std::shared_ptr<Parameters_Method_MC> mc_parameters;
+        // Eigenvalues of the system
+        std::vector<scalar> eigenvalues;
+		// Orientations of the Spins: spins[dim][nos]
+		std::shared_ptr<vectorfield> spins;
+		// Spin Hamiltonian
+		std::shared_ptr<Engine::Hamiltonian> hamiltonian;
+		// Geometric Information
+		std::shared_ptr<Geometry> geometry;
+		// Parameters for LLG
+		std::shared_ptr<Parameters_Method_LLG> llg_parameters;
+		// Parameters for MC
+		std::shared_ptr<Parameters_Method_MC> mc_parameters;
         // Parameters for EMA
         std::shared_ptr<Parameters_Method_EMA> ema_parameters;
         // Parameters for MMF

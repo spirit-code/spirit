@@ -49,6 +49,7 @@ public slots:
     void prev_mode();
     void jump_to_mode();
     void calculate();
+    void apply_mode(); 
     void calculate_disable_widget();
     void calculate_enable_widget();
     void ema_buttons_show();
@@ -76,6 +77,7 @@ private:
 	// Method vectors
 	std::vector<std::thread> threads_llg;
 	std::vector<std::thread> threads_gneb;
+  std::vector<std::thread> threads_ema;	
 	std::thread thread_mmf;
 
 	// Temporary string storage

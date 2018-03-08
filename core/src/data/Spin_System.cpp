@@ -33,6 +33,9 @@ namespace Data
         // Initialize Modes container
         this->modes = std::vector<std::shared_ptr<vectorfield>>(this->ema_parameters->n_modes, NULL);
 
+        // Initialize Eigenvalues vector
+        this->eigenvalues = std::vector<scalar>(this->modes.size(),0);
+
         // ...
         this->E = 0;
         this->E_array = std::vector<std::pair<std::string, scalar>>(0);
@@ -46,7 +49,14 @@ namespace Data
     {
         this->nos = other.nos;
         this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
-        this->modes = other.modes;
+        this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
+        this->eigenvalues = other.eigenvalues; 
+        
+        // copy the modes
+        for (int i=0; i<other.modes.size(); i++)
+            if ( other.modes[i] != NULL ) 
+                this->modes[i] = 
+                    std::shared_ptr<vectorfield>(new vectorfield(*other.modes[i]));
 
         this->E = other.E;
         this->E_array = other.E_array;
@@ -85,7 +95,14 @@ namespace Data
         {
             this->nos = other.nos;
             this->spins = std::shared_ptr<vectorfield>(new vectorfield(*other.spins));
-            this->modes = other.modes;
+            this->modes = std::vector<std::shared_ptr<vectorfield>>(other.modes.size(), NULL);
+            this->eigenvalues = other.eigenvalues; 
+            
+            // copy the modes
+            for (int i=0; i<other.modes.size(); i++)
+                if ( other.modes[i] != NULL ) 
+                    this->modes[i] = 
+                        std::shared_ptr<vectorfield>(new vectorfield(*other.modes[i]));
 
             this->E = other.E;
             this->E_array = other.E_array;
@@ -111,8 +128,6 @@ namespace Data
             this->mc_parameters = std::shared_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(*other.mc_parameters));
 
             this->ema_parameters = std::shared_ptr<Data::Parameters_Method_EMA>(new Data::Parameters_Method_EMA(*other.ema_parameters));
-
-            this->mmf_parameters = std::shared_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(*other.mmf_parameters));
 
             this->iteration_allowed = false;
         }

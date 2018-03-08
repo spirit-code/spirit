@@ -1,6 +1,7 @@
 #include <Spirit/System.h>
 #include <Spirit/State.h>
 #include <data/State.hpp>
+#include <engine/Eigenmodes.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -178,6 +179,29 @@ void System_Update_Data(State * state, int idx_image, int idx_chain) noexcept
         {
             spirit_handle_exception_api(idx_image, idx_chain);
         }
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+// Calculate the eigenmodes of the System 
+void System_Update_Eigenmodes(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        // Fetch correct indices and pointers for image and chain
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        image->Lock();
+        Engine::Eigenmodes::Calculate_Eigenmodes(image, idx_image, idx_chain );
         image->Unlock();
     }
     catch( ... )

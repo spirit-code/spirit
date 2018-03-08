@@ -37,6 +37,8 @@ public:
     void set_gneb_auto_image_type();
     void set_parameters_mmf();
     void set_parameters_ema();
+	void save_Spin_Configuration_Eigenmodes();
+	void load_Spin_Configuration_Eigenmodes();
 
 private:
     void Setup_Input_Validators();

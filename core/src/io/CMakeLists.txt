@@ -6,6 +6,7 @@ set(SOURCE_SPIRIT_IO
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Datawriter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Filter_File_Handle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OVF_File.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

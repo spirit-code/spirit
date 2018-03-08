@@ -27,6 +27,12 @@ namespace IO
         std::string line;
         std::string comment_tag;
         std::string dump;
+        // Beggining and end of file stream indicator 
+        std::ios::pos_type position_file_beg;
+        std::ios::pos_type position_file_end;
+        // Start and stop of file stream indicator
+        std::ios::pos_type position_start;
+        std::ios::pos_type position_stop;
     public:
         IO::VF_FileFormat ff;
         std::string filename;
@@ -38,6 +44,13 @@ namespace IO
                             IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
         // Destructor
         ~Filter_File_Handle();
+       
+        // Get the position of the file stream indicator
+        std::ios::pos_type GetPosition( std::ios::seekdir dir = std::ios::cur );
+        // Set limits in the file stream indicator
+        void SetLimits( const std::ios::pos_type beg, const std::ios::pos_type end );
+        // Reset the limits of the file stream indicator 
+        void ResetLimits();
         // Reads next line of file into the handle (false -> end-of-file)
         bool GetLine_Handle();
         // Reads the next line of file into the handle and into the iss
@@ -101,10 +114,12 @@ namespace IO
         }
         
         // Reads a Vector3 into var, with optional logging in case of failure.
-        void Read_Vector3(Vector3 & var, const std::string name, bool log_notfound = true)
+        void Read_Vector3(Vector3 & var, std::string name, bool log_notfound = true)
         {
             try
             {
+                std::transform( name.begin(), name.end(), name.begin(), ::tolower );
+                
                 if (Find(name))
                     iss >> var[0] >> var[1] >> var[2];
                 else if (log_notfound)
@@ -118,11 +133,13 @@ namespace IO
         };
 
         // Reads a 3-component object, with optional logging in case of failure
-        template <typename T> void Read_3Vector( T & var, const std::string name, 
+        template <typename T> void Read_3Vector( T & var, std::string name, 
                                                     bool log_notfound = true )
         {
             try
             {
+                std::transform( name.begin(), name.end(), name.begin(), ::tolower );
+                
                 if (Find(name))
                     iss >> var[0] >> var[1] >> var[2];
                 else if (log_notfound)

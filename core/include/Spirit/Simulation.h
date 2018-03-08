@@ -55,8 +55,5 @@ DLLEXPORT bool Simulation_Running_Chain(State *state, int idx_chain=-1) noexcept
 // Check if a simulation is running on any or all images of a chain
 DLLEXPORT bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain=-1) noexcept;
 
-// Calculate the eigenmodes of the System (Image)
-DLLEXPORT void Simulation_Calculate_Eigenmodes(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
-
 #include "DLL_Undefine_Export.h"
 #endif

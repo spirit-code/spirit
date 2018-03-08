@@ -448,3 +448,74 @@ void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int 
         spirit_handle_exception_api(idx_image, idx_chain);
     }
 }
+
+/*----------------------------------------------------------------------------------------------- */
+/*-------------------------------------- Eigenmodes --------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
+
+void IO_Eigenmodes_Read( State *state, const char *file, int format, int idx_image_inchain, 
+                         int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image_inchain, idx_chain, image, chain );
+        
+        // Read the data
+        image->Lock();
+        try
+        {
+            IO::Read_Eigenmodes(image, std::string(file), IO::VF_FileFormat(format));
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image_inchain, idx_chain);
+        }
+        image->Unlock();
+        
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Read eigenmodes from file {} with format {}", file, format),
+            idx_image_inchain, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image_inchain, idx_chain);
+    }
+}
+
+void IO_Eigenmodes_Write( State *state, const char *file, int format, const char* comment, 
+                     int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        // Write the data
+        image->Lock();
+        try
+        {
+            IO::Write_Eigenmodes( image->eigenvalues, image->modes, *image->geometry, 
+                                  std::string( file ), (IO::VF_FileFormat)format, 
+                                  std::string( comment ), false );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image, idx_chain);
+        }
+        image->Unlock();
+         
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote eigenmodes "
+            " to file {} with format {}", file, format ), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}

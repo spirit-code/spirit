@@ -3,9 +3,11 @@
 #include "ParametersWidget.hpp"
 
 #include <Spirit/Parameters.h>
+#include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
+#include <Spirit/IO.h>
 #include <Spirit/Log.h>
 
 // Small function for normalization of vectors
@@ -163,6 +165,8 @@ void ParametersWidget::Load_Parameters_Contents()
    this->doubleSpinBox_ema_frequency->setValue(d);
    d = Parameters_Get_EMA_Amplitude(state.get());
    this->doubleSpinBox_ema_amplitude->setValue(d);
+   b1 = Parameters_Get_EMA_Snapshot(state.get());
+   this->checkBox_snapshot_mode->setChecked(b1);
 
    //       MMF
    // Parameters
@@ -453,13 +457,72 @@ void ParametersWidget::set_parameters_ema()
     int i2 = this->spinBox_ema_n_mode_follow->value();
     float d1 = this->doubleSpinBox_ema_frequency->value();
     float d2 = this->doubleSpinBox_ema_amplitude->value();
-    
+    bool b1 = this->checkBox_snapshot_mode->isChecked();
+
     Parameters_Set_EMA_N_Modes(state.get(), i1);
     Parameters_Set_EMA_N_Mode_Follow(state.get(), i2-1);
     Parameters_Set_EMA_Frequency(state.get(), d1);
     Parameters_Set_EMA_Amplitude(state.get(), d2);
-    
+    Parameters_Set_EMA_Snapshot(state.get(), b1);
+
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
+}
+
+void ParametersWidget::save_Spin_Configuration_Eigenmodes()
+{
+	// std::cerr << "inside save spins" << std::endl;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Spin Configuration Eigenmodes"), "./output",
+		tr("OOMF Vector Field(*.ovf)"));
+    
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        
+        // Determine file type from suffix
+        auto qs_type = fi.completeSuffix();
+        if ( qs_type == "ovf" ) type = IO_Fileformat_OVF_text;
+       
+        // Write the file
+        auto file = string_q2std(fileName);
+        
+        IO_Eigenmodes_Write(this->state.get(), file.c_str(), type);
+    }
+}
+
+void ParametersWidget::load_Spin_Configuration_Eigenmodes()
+{
+    auto fileName = QFileDialog::getOpenFileName(this,
+        tr("Load Spin Configuration"), "./input",
+        tr("Any (*.txt *.csv *.ovf);;OOMF Vector Field (*.ovf)"));
+
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        auto qs_type = fi.suffix();
+        
+        if (qs_type == "ovf") 
+            type = IO_Fileformat_OVF_text;
+        else
+            Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only "
+                "txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
+        
+	    auto file = string_q2std(fileName);
+        IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
+ 
+        // n_modes parameter might be change by IO_Eigenmodes_Read so update that first
+        this->spinBox_ema_n_modes->setValue( Parameters_Get_EMA_N_Modes(state.get()) ); 
+        
+        // then pass widgets parameters to the core
+        set_parameters_ema();
+
+        // reload parameters to avoid illegal values showing up (eg n_mode_follow)
+        updateData();
+    }
 }
 
 
@@ -529,7 +592,10 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_frequency, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->doubleSpinBox_ema_amplitude, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
-
+    connect(this->pushButton_SaveModes, SIGNAL(clicked()), this, SLOT(save_Spin_Configuration_Eigenmodes()));
+    connect(this->pushButton_LoadModes, SIGNAL(clicked()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
+    connect(this->checkBox_snapshot_mode, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_ema()));
+    
     //      MMF
     // Output
     connect(this->lineEdit_mmf_output_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));

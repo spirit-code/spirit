@@ -14,6 +14,8 @@
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
+#include <fstream>
+#include <ostream>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
@@ -68,11 +70,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
 	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
+	connect(this->actionLoad_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
 	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
 	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
+	connect(this->actionSave_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), SLOT(save_Spin_Configuration_Eigenmodes()));
 	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
 	
@@ -778,8 +782,8 @@ void MainWindow::updateStatusBar()
 	if (!Simulation_Running_Chain(state.get()))
 		this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
-	double E = System_Get_Energy(state.get())/System_Get_NOS(state.get());
-	this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
+        double E = System_Get_Energy(state.get()) / System_Get_NOS(state.get());
+        this->m_Label_E->setText(QString::fromLatin1("E: ") + QString::number(E, 'f', 6) + QString::fromLatin1("  "));
 
 	float M[3];
 	Quantity_Get_Magnetization(state.get(), M);
@@ -1182,13 +1186,78 @@ void MainWindow::load_Spin_Configuration()
 	this->spinWidget->updateData();
 }
 
+void MainWindow::save_Spin_Configuration_Eigenmodes()
+{
+	// std::cerr << "inside save spins" << std::endl;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Spin Configuration Eigenmodes"), "./output",
+		tr("OOMF Vector Field(*.ovf)"));
+    
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        
+        // Determine file type from suffix
+        auto qs_type = fi.completeSuffix();
+        if ( qs_type == "ovf" ) type = IO_Fileformat_OVF_text;
+       
+        // Write the file
+        auto file = string_q2std(fileName);
+        
+        IO_Eigenmodes_Write(this->state.get(), file.c_str(), type);
+    }
+}
+
+void MainWindow::load_Spin_Configuration_Eigenmodes()
+{
+    auto fileName = QFileDialog::getOpenFileName(this,
+        tr("Load Spin Configuration"), "./input",
+        tr("OOMMF Vector Field (*.ovf)"));
+
+    int type = IO_Fileformat_OVF_text;
+    
+    if (!fileName.isEmpty())
+    {
+        QFileInfo fi(fileName);
+        auto qs_type = fi.suffix();
+        
+        int type = IO_Fileformat_OVF_text; // default value
+
+        if (qs_type == "ovf") 
+            type = IO_Fileformat_OVF_text;
+        else
+            Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, ("Invalid file "
+                "ending (" + string_q2std(qs_type) + "). Default filetype " + 
+                std::to_string(IO_Fileformat_OVF_text) + " was used").c_str() );
+        
+	    auto file = string_q2std(fileName);
+        IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
+    }
+}
+
 void MainWindow::save_SpinChain_Configuration()
 {
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
+	auto fileName = QFileDialog::getSaveFileName( this, tr("Save SpinChain Configuration"), 
+	    "./output", tr("OOMMF Vector Field (*.ovf);;Spirit file format (*.txt)"));
 	if (!fileName.isEmpty())
 	{
+        QFileInfo fi(fileName);
+        auto qs_type = fi.suffix();
+        int type = IO_Fileformat_OVF_text; // default value
+
+        if (qs_type == "ovf") 
+            type = IO_Fileformat_OVF_text;
+        else if (qs_type == "txt") 
+            type = IO_Fileformat_Regular;
+        else
+            Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, ("Invalid file "
+                "ending (" + string_q2std(qs_type) + "). Default filetype " + 
+                std::to_string(IO_Fileformat_OVF_text) + " was used").c_str() );
+
 		auto file = string_q2std(fileName);
-		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_Regular );
+		IO_Chain_Write( this->state.get(), file.c_str(), type );
 	}
 }
 
