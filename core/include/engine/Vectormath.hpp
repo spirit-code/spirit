@@ -28,6 +28,7 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Translating across the lattice
 
+        // Note: translations must lie within bounds of n_cells
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
         {
             int Na = n_cells[0];
@@ -396,6 +397,12 @@ namespace Engine
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
+
+        /////////////////////////////////////////////////////////////////
+
+        // Re-distribute a given vector-field according to a new set of dimensions.
+        vectorfield change_dimensions(vectorfield & sf, int n_cell_atoms, intfield n_cells,
+            intfield dimensions_new, std::array<int,3> shift=std::array<int,3>{0,0,0});
 
         /////////////////////////////////////////////////////////////////
         //////// Vectormath-like operations
