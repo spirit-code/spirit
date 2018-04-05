@@ -121,8 +121,8 @@ namespace IO
                 auto& spins = *s->spins;
                 auto& geometry = *s->geometry;
 
-                iFile_OVF ifile_ovf( file, format );
-                ifile_ovf.Read_Segment( spins, geometry );
+                File_OVF file_ovf( file, format );
+                file_ovf.read_segment( spins, geometry );
             }
             else
             {

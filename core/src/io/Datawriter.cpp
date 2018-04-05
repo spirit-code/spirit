@@ -269,8 +269,8 @@ namespace IO
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
             {
-                oFile_OVF ofile_ovf( filename, format, comment );
-                ofile_ovf.write_image( geometry.positions, geometry ); 
+                File_OVF file_ovf( filename, format );
+                file_ovf.write_segment( geometry.positions, geometry, comment, append ); 
                 break;
             }
             default:
@@ -301,8 +301,8 @@ namespace IO
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
             {
-                oFile_OVF ofile_ovf( filename, format, comment );
-                ofile_ovf.write_image( vf, geometry ); 
+                File_OVF file_ovf( filename, format );
+                file_ovf.write_segment( vf, geometry, comment, append ); 
                 break;
             }
             default:
@@ -319,13 +319,19 @@ namespace IO
                                          const std::string filename, VF_FileFormat format, 
                                          const std::string comment, bool append )
     {
-        // except OVF format
         if ( format == VF_FileFormat::OVF_BIN8 || 
              format == VF_FileFormat::OVF_BIN4 ||
              format == VF_FileFormat::OVF_TEXT )
         {
-            oFile_OVF ofile_ovf( filename, format, comment );
-            ofile_ovf.write_chain( chain ); 
+            File_OVF file_ovf( filename, format );
+
+            // write the first image
+            file_ovf.write_segment( *chain->images[0]->spins, *chain->images[0]->geometry,
+                                    comment, append );
+            // append all the others
+            for ( int i=1; i<chain->noi; i++ )
+                file_ovf.write_segment( *chain->images[i]->spins, *chain->images[i]->geometry,
+                                        comment, true ); 
         }
         else
         {
