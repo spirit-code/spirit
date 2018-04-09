@@ -77,18 +77,22 @@ namespace IO
         // read text OVF data
         void read_data_txt( vectorfield& vf );
         // write OVF file header
-        void write_top_header( const int n_segments = 1 );
+        void write_top_header();
         // write segment data binary
         void write_data_bin( const vectorfield& vf );
         // write segment data text
         void write_data_txt( const vectorfield& vf ); 
         // increment segment count
         void increment_n_segments();
-        // Get the number of segments in the file
-        int get_n_segments();
+        // Read the number of segments in the file by reading the top header
+        void read_n_segments_from_top_header();
+        // Count the number of segments in the file. It also saves their file positions
+        void count_n_segments();
     public:
         // constructor
         File_OVF( std::string filename, VF_FileFormat format );
+        // Get the number of segments in the file
+        int get_n_segments();
         // Read header and data from a given segment. Also check geometry
         void read_segment( vectorfield& vf, const Data::Geometry& geometry, 
                            const int idx_seg = 0 );

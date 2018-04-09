@@ -51,7 +51,8 @@ namespace IO
         if ( this->file_exists )
         {
             check_version();
-            get_n_segments();
+            read_n_segments_from_top_header();
+            count_n_segments();
         } 
     }
    
@@ -350,13 +351,13 @@ namespace IO
         }
     }
 
-    void File_OVF::write_top_header( const int n_segments )
+    void File_OVF::write_top_header()
     {
         this->output_to_file += fmt::format( "# OOMMF OVF 2.0\n" );
         this->output_to_file += fmt::format( this->empty_line );
        
-        // save n_segments as attribute
-        this->n_segments = n_segments;
+        // initialize n_segments to zero
+        this->n_segments = 0;
         // convert n_segments to string
         std::string n_segments_str = std::to_string( this->n_segments );
         // calculate padding's length
@@ -447,7 +448,7 @@ namespace IO
        
             // update n_segments
             this->n_segments++;
-
+            
             // convert updated n_segment into padded string
             std::string new_n_str = std::to_string( this->n_segments );
             std::string::size_type new_n_len = new_n_str.length();
@@ -474,72 +475,88 @@ namespace IO
         }
     }
 
-    int File_OVF::get_n_segments()
+    void File_OVF::read_n_segments_from_top_header()
     {
         try
         {
-            if ( this->file_exists )
-            {
-                this->ifile = std::unique_ptr<Filter_File_Handle>( 
-                                    new Filter_File_Handle( this->filename, this->format ) );
-               
-                // n_segments from top header -----------------------------------------------------
+            this->ifile = std::unique_ptr<Filter_File_Handle>( 
+                                new Filter_File_Handle( this->filename, this->format ) );
+           
+            // n_segments from top header -----------------------------------------------------
 
-                // get the number of segments from the initial keyword
-                ifile->Require_Single( this->n_segments, "# segment count:" ); 
+            // get the number of segments from the initial keyword
+            ifile->Require_Single( this->n_segments, "# segment count:" ); 
 
-                // get the number of segment as string
-                ifile->Read_String( this->n_segments_as_str, "# segment count:" );
+            // get the number of segment as string
+            ifile->Read_String( this->n_segments_as_str, "# segment count:" );
 
-                // save the file position indicator in case we have to increment n_segment
-                this->n_segments_pos = this->ifile->GetPosition();
+            // save the file position indicator in case we have to increment n_segment
+            this->n_segments_pos = this->ifile->GetPosition();
 
-                // TODO: what will happen if the n_segments does not have padding?
-
-                // n_segments from actual segments if file ----------------------------------------
-
-                // get the number of segments from the occurrences of "# Begin: Segment"
-                int n_begin_segment = 0;
-                
-                std::ios::pos_type end = this->ifile->GetPosition( std::ios::end ); 
-                
-                // NOTE: the keyword to find must be lower case since the Filter File Handle 
-                // converts the content of the input file to lower case automatically
-                while( ifile->Find( "# begin: segment" ) )
-                {
-                    std::ios::pos_type pos = this->ifile->GetPosition(); 
-                    this->segment_fpos.push_back( pos );
-                    ifile->SetLimits( pos, end );
-
-                    ++n_begin_segment;
-                }
-               
-                // find the very last keyword of the file
-                this->segment_fpos.push_back( end );
-
-                // reset limits
-                ifile->ResetLimits();
-                
-                // compare the two numbers
-                if( this->n_segments != n_begin_segment )
-                    spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
-                                  Utility::Log_Level::Error, fmt::format( "OVF Segment number "
-                                  "in header ({0}) is different from the number of segments "
-                                  "({1}) in file", this->n_segments, n_begin_segment ) );
-                
-                // close the file
-                this->ifile = NULL;
-            }
+            // TODO: what will happen if the n_segments does not have padding?
             
-            return this->n_segments;
+            // close the file
+            this->ifile = NULL;
+        }
+        catch( ... )
+        {
+            spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
+        }
+
+    }
+
+    void File_OVF::count_n_segments()
+    {
+        try
+        {
+            this->ifile = std::unique_ptr<Filter_File_Handle>( 
+                                new Filter_File_Handle( this->filename, this->format ) );
+
+            // get the number of segments from the occurrences of "# Begin: Segment"
+            int n_begin_segment = 0;
+            
+            std::ios::pos_type end = this->ifile->GetPosition( std::ios::end ); 
+            
+            // NOTE: the keyword to find must be lower case since the Filter File Handle 
+            // converts the content of the input file to lower case automatically
+            while( ifile->Find( "# begin: segment" ) )
+            {
+                std::ios::pos_type pos = this->ifile->GetPosition(); 
+                this->segment_fpos.push_back( pos );
+                ifile->SetLimits( pos, end );
+
+                ++n_begin_segment;
+            }
+           
+            // find the very last keyword of the file
+            this->segment_fpos.push_back( end );
+
+            // reset limits
+            ifile->ResetLimits();
+            
+            // compare with n_segments in top header
+            if( this->n_segments != n_begin_segment )
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error, fmt::format( "OVF Segment number "
+                              "in header ({0}) is different from the number of segments "
+                              "({1}) in file", this->n_segments, n_begin_segment ) );
+            
+            // close the file
+            this->ifile = NULL;
         }
         catch( ... )
         {
             spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
         }
     }
+
     
 // Public methods ------------------------------------------------------------------------------
+
+    int File_OVF::get_n_segments()
+    {
+        return this->n_segments;
+    }
 
     void File_OVF::read_segment( vectorfield& vf, const Data::Geometry& geometry, 
                                  const int idx_seg )
@@ -591,11 +608,14 @@ namespace IO
         {
             this->output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
          
-            // True when (over)writting a new OVF file
-            bool is_newfile = ( !append || !this->file_exists );
-
-            // If we are not appending or the file does not exists we need the top header
-            if ( is_newfile ) write_top_header();
+            // If we are not appending or the file does not exists we need to write the top header
+            // and to turn the file_exists attribute to true so we can append more segments
+            if ( !append || !this->file_exists ) 
+            {
+                write_top_header();
+                read_n_segments_from_top_header();  // finds the file position of n_segments
+                this->file_exists = true; 
+            }
             
             this->output_to_file += fmt::format( this->empty_line );
             this->output_to_file += fmt::format( "# Begin: Segment\n" );
@@ -671,9 +691,8 @@ namespace IO
             // reset output string buffer
             this->output_to_file = "";  
             
-            // If we are appending to an already existing file increment the n_segments after 
-            // succesfully appending the segment body to the file
-            if ( !is_newfile ) increment_n_segments();
+            // Increment the n_segments after succesfully appending the segment body to the file
+            increment_n_segments(); 
         }
         catch( ... )
         {
