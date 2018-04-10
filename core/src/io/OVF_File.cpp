@@ -17,6 +17,7 @@ namespace IO
         this->empty_line = "#\n";
         this->sender = Log_Sender::IO;
         this->n_segments = -1;
+        this->delimiter = ' ';  // empty character
 
         if ( this->format == VF_FileFormat::OVF_BIN8 ) 
             this->datatype_out = "Binary 8";
@@ -24,6 +25,11 @@ namespace IO
             this->datatype_out = "Binary 4";
         else if( this->format == VF_FileFormat::OVF_TEXT )
             this->datatype_out = "Text";
+        else if( this->format == VF_FileFormat::OVF_CSV )
+        {    
+            this->datatype_out = "Text";
+            this->delimiter = ','; 
+        }
 
         this->ifile = NULL;
         this->n_segments = 0;
@@ -340,6 +346,7 @@ namespace IO
             for (int i=0; i<nos; i++)
             {
                 this->ifile->GetLine();
+
                 this->ifile->iss >> vf[i][0];
                 this->ifile->iss >> vf[i][1];
                 this->ifile->iss >> vf[i][2];
@@ -435,8 +442,10 @@ namespace IO
     {
         for (int iatom = 0; iatom < vf.size(); ++iatom)
         {
-                this->output_to_file += fmt::format( "{:20.10f} {:20.10f} {:20.10f}\n", 
-                                                      vf[iatom][0], vf[iatom][1], vf[iatom][2] );
+            this->output_to_file += fmt::format( "{:20.10f}{} {:20.10f}{} {:20.10f}\n", 
+                                                  vf[iatom][0], this->delimiter, 
+                                                  vf[iatom][1], this->delimiter, 
+                                                  vf[iatom][2] );
         }
     }
 
@@ -482,8 +491,6 @@ namespace IO
             this->ifile = std::unique_ptr<Filter_File_Handle>( 
                                 new Filter_File_Handle( this->filename, this->format ) );
            
-            // n_segments from top header -----------------------------------------------------
-
             // get the number of segments from the initial keyword
             ifile->Require_Single( this->n_segments, "# segment count:" ); 
 
@@ -678,7 +685,7 @@ namespace IO
             
             if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
                 write_data_bin( vf );
-            else if ( format == VF_FileFormat::OVF_TEXT )
+            else if ( format == VF_FileFormat::OVF_TEXT || format == VF_FileFormat::OVF_CSV )
                 write_data_txt( vf );
             
             this->output_to_file += fmt::format( "# End: Data {}\n", this->datatype_out );

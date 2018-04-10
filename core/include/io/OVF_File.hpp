@@ -37,7 +37,8 @@ namespace IO
         // positions of the beggining of each segment in the input file 
         std::vector<std::ios::pos_type> segment_fpos;
 
-        // output attributes 
+        // output attributes
+        char delimiter; // used in OVF_csv
         std::string output_to_file;
         std::string empty_line;
         std::string datatype_out;

@@ -21,7 +21,10 @@ namespace IO
         OVF_BIN8                   = IO_Fileformat_OVF_bin8,
         OVF_BIN4                   = IO_Fileformat_OVF_bin4,
         OVF_TEXT                   = IO_Fileformat_OVF_text,
+        OVF_CSV                    = IO_Fileformat_OVF_csv,
         // General Spirit file
+        GENERAL_TXT                = IO_Fileformat_GEN_text,
+        GENERAL_CSV                = IO_Fileformat_GEN_csv,
         SPIRIT_GENERAL
     };
 };

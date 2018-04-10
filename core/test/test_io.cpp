@@ -20,13 +20,11 @@ TEST_CASE( "IO", "[io]" )
     
     // files to be written
     std::vector<std::pair< std::string, int >>  filetypes { 
-        { "core/test/io_test_files/image_regular.data",     IO_Fileformat_Regular     }, 
-        //{ "core/test/io_test_files/image_regular_pos.data", IO_Fileformat_Regular_Pos },  
-        //{ "core/test/io_test_files/image_csv.data",         IO_Fileformat_CSV         },
-        { "core/test/io_test_files/image_csv_pos.data",     IO_Fileformat_CSV_Pos     },
         { "core/test/io_test_files/image_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
         { "core/test/io_test_files/image_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
-        { "core/test/io_test_files/image_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
+        { "core/test/io_test_files/image_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    },
+        { "core/test/io_test_files/image_ovf_csv.ovf",      IO_Fileformat_OVF_csv     } 
+    };
     
     // buffer variables for better readability
     const char *filename;
@@ -88,14 +86,12 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
     
     // files to be written
     std::vector<std::pair< std::string, int >>  filetypes { 
-        { "core/test/io_test_files/chain_regular.data",     IO_Fileformat_Regular     }, 
-        { "core/test/io_test_files/chain_regular_pos.data", IO_Fileformat_Regular_Pos },  
-        { "core/test/io_test_files/chain_csv.data",         IO_Fileformat_CSV         },
-        //{ "core/test/io_test_files/chain_csv_pos.data",     IO_Fileformat_CSV_Pos     }, 
         { "core/test/io_test_files/chain_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
         { "core/test/io_test_files/chain_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
-        { "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
-    
+        { "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    },
+        { "core/test/io_test_files/chain_ovf_csv.ovf",      IO_Fileformat_OVF_csv     } 
+    };
+
     // buffer variables for better readability
     const char *filename;
     int filetype;
@@ -111,44 +107,42 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
     }
 }
 
-TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
-{
-    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+//TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
+//{
+    //auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
     
-    std::vector<std::pair< std::string, int >>  filetypes { 
-        { "core/test/io_test_files/chain_regular.data",     IO_Fileformat_Regular     }, 
-        //{ "core/test/io_test_files/chain_regular_pos.data", IO_Fileformat_Regular_Pos },  
-        //{ "core/test/io_test_files/chain_csv.data",         IO_Fileformat_CSV         },
-        { "core/test/io_test_files/chain_csv_pos.data",     IO_Fileformat_CSV_Pos     }, };
+    //std::vector<std::pair< std::string, int >>  filetypes { 
         //{ "core/test/io_test_files/chain_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
         //{ "core/test/io_test_files/chain_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
-        //{ "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    } };
+        //{ "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    },
+        //{ "core/test/io_test_files/chain_ovf_csv.ovf",      IO_Fileformat_OVF_csv     } 
+    //};
     
-    // buffer variables for better readability
-    const char *filename;
-    int filetype;
+    //// buffer variables for better readability
+    //const char *filename;
+    //int filetype;
     
-    for ( auto file: filetypes )
-    {
-        filename = file.first.c_str();      // get the filename from pair
-        filetype = file.second;             // fet the filetype from pair
+    //for ( auto file: filetypes )
+    //{
+        //filename = file.first.c_str();      // get the filename from pair
+        //filetype = file.second;             // fet the filetype from pair
         
-        // Log the filename
-        INFO( "IO chain" + file.first );
-        IO_Chain_Read( state.get(), filename, filetype );
+        //// Log the filename
+        //INFO( "IO chain" + file.first );
+        //IO_Chain_Read( state.get(), filename, filetype );
         
-        // Now the state must have 3 images
-        REQUIRE( Chain_Get_NOI( state.get() ) == 3 );
+        //// Now the state must have 3 images
+        //REQUIRE( Chain_Get_NOI( state.get() ) == 3 );
         
-        // create a name for printing the read in chain for validation purposes
-        std::string cur_name = file.first;                    // get current name
-        cur_name.erase( cur_name.end()-5, cur_name.end() );     // strip ending (".data")
-        std::string validation_filename = cur_name + "_validate_reading.data"; // expand name
+        //// create a name for printing the read in chain for validation purposes
+        //std::string cur_name = file.first;                    // get current name
+        //cur_name.erase( cur_name.end()-5, cur_name.end() );     // strip ending (".data")
+        //std::string validation_filename = cur_name + "_validate_reading.data"; // expand name
         
-        // write the read in chain for visual inspection
-        IO_Chain_Write( state.get(), validation_filename.c_str(), filetype );
-    }
-}
+        //// write the read in chain for visual inspection
+        //IO_Chain_Write( state.get(), validation_filename.c_str(), filetype );
+    //}
+//}
 
 TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
 {

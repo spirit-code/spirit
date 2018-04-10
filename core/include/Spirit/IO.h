@@ -11,7 +11,10 @@ struct State;
 #define IO_Fileformat_CSV_Pos       3   // px, py, pz, sx, sy, (sz separated by commas)
 #define IO_Fileformat_OVF_bin8      4   // 
 #define IO_Fileformat_OVF_bin4      5   // OOMF Vector Field (OVF2.0) file format
-#define IO_Fileformat_OVF_text      6   // 
+#define IO_Fileformat_OVF_text      6   //
+#define IO_Fileformat_OVF_csv       7   // (OVF2.0) that uses comma for delimiter
+#define IO_Fileformat_GEN_text      8   // for tab or space delimitered column format
+#define IO_Fileformat_GEN_csv       9   // for comma delimitered column format
 
 // From Config File
 DLLEXPORT int IO_System_From_Config( State * state, const char * file, int idx_image=-1,

@@ -262,24 +262,30 @@ namespace IO
             case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                Write_SPIRIT_Version( filename, append );
-                Save_To_SPIRIT( geometry.positions, geometry, filename, format, comment );
+            case VF_FileFormat::GENERAL_TXT:
+            case VF_FileFormat::GENERAL_CSV:
+            {
+                // TODO: remove those enum
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                        "suported file format" ), -1, -1 );
                 break;
+            }
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
+            case VF_FileFormat::OVF_CSV:
             {
                 File_OVF file_ovf( filename, format );
                 file_ovf.write_segment( geometry.positions, geometry, comment, append ); 
                 break;
             }
             default:
+            {
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
                         "existent file format" ), -1, -1 );
-                        
                 // TODO: throw some exception to avoid logging "success" by API function
-                        
                 break;
+            } 
         }        
     }
 
@@ -294,24 +300,30 @@ namespace IO
             case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
             case VF_FileFormat::SPIRIT_CSV_SPIN:
             case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-            Write_SPIRIT_Version( filename, append );
-            Save_To_SPIRIT( vf, geometry, filename, format, comment );
-            break;
+            case VF_FileFormat::GENERAL_TXT:
+            case VF_FileFormat::GENERAL_CSV:
+            {
+                // TODO: remove those enum
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                        "suported file format" ), -1, -1 );
+                break;
+            }
             case VF_FileFormat::OVF_BIN8:
             case VF_FileFormat::OVF_BIN4:
             case VF_FileFormat::OVF_TEXT:
+            case VF_FileFormat::OVF_CSV:
             {
                 File_OVF file_ovf( filename, format );
                 file_ovf.write_segment( vf, geometry, comment, append ); 
                 break;
             }
             default:
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-            "existent file format" ), -1, -1 );
-
-            // TODO: throw some exception to avoid logging "success" by API function
-
-            break;
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                "existent file format" ), -1, -1 );
+                // TODO: throw some exception to avoid logging "success" by API function
+                break;
+            }
         }        
     }
 
@@ -319,49 +331,46 @@ namespace IO
                                          const std::string filename, VF_FileFormat format, 
                                          const std::string comment, bool append )
     {
-        if ( format == VF_FileFormat::OVF_BIN8 || 
-             format == VF_FileFormat::OVF_BIN4 ||
-             format == VF_FileFormat::OVF_TEXT )
+        switch( format )
         {
-            File_OVF file_ovf( filename, format );
-
-            // write the first image
-            file_ovf.write_segment( *chain->images[0]->spins, *chain->images[0]->geometry,
-                                    comment, append );
-            // append all the others
-            for ( int i=1; i<chain->noi; i++ )
-                file_ovf.write_segment( *chain->images[i]->spins, *chain->images[i]->geometry,
-                                        comment, true ); 
-        }
-        else
-        {
-            // write version
-            Write_SPIRIT_Version( filename, append );
-            
-            // Header
-            std::string output_to_file;
-            output_to_file = fmt::format( "### Spin Chain Configuration for {} images with NOS = {} "
-                                          "after iteration {}\n#\n", chain->noi, chain->images[0]->nos, 
-                                          comment );
-            Append_String_to_File( output_to_file, filename );
-            
-            for (int image = 0; image < chain->noi; ++image )
-            {
-                //// NOTE: with that implementation we are dumping the output_to_file twice for every
-                // image. One for the image number header and one with the call to Save_To_SPIRIT(). 
-                // Maybe this will add an overhead for large enough chains. To change that the arguments
-                // of Save_To_SPIRIT() must be modified with a reference to output_to_file variable. So
-                // that the buffer will be supplied by the caller. In that case many changes will must
-                // be done in the code
-                
-                // Append the number of the image
-                output_to_file = fmt::format( "# Image No {}\n", image );
-                Append_String_to_File( output_to_file, filename );
-                
-                Save_To_SPIRIT( *chain->images[image]->spins, *chain->images[image]->geometry, 
-                                filename, format, comment );
+            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_SPIN:
+            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+            case VF_FileFormat::GENERAL_TXT:
+            case VF_FileFormat::GENERAL_CSV:
+            { 
+                // TODO: remove those enum
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                        "suported file format" ), -1, -1 );
+                break;
             }
-        }
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+            case VF_FileFormat::OVF_CSV:
+            {
+                auto& images = chain->images;
+
+                File_OVF file_ovf( filename, format );
+
+                // write the first image
+                file_ovf.write_segment( *images[0]->spins, *images[0]->geometry,
+                                        comment, append );
+                // append all the others
+                for ( int i=1; i<chain->noi; i++ )
+                    file_ovf.write_segment( *images[i]->spins, *images[i]->geometry,
+                                            comment, true ); 
+                break; 
+            }
+            default:
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                "existent file format" ), -1, -1 );
+                // TODO: throw some exception to avoid logging "success" by API function
+                break;
+            }
+        }        
     }
     
     void Write_SPIRIT_Version( const std::string filename, bool append )

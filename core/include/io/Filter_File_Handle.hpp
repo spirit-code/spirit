@@ -25,6 +25,8 @@ namespace IO
     private:
         std::size_t found;
         std::string line;
+        bool has_delimiter;
+        std::string delimiter;
         std::string comment_tag;
         std::string dump;
         // Beggining and end of file stream indicator 
@@ -62,7 +64,7 @@ namespace IO
         // Tries to find s in the current line and if found outputs into internal iss
         bool Find_in_Line(const std::string & s);
         // Removes a set of chars from a string
-        void Remove_Chars_From_String(std::string &str, char* charsToRemove);
+        void Remove_Chars_From_String(std::string &str, const char* charsToRemove);
         // Removes comments from a string
         bool Remove_Comments_From_String( std::string &str );
         // Read a string (separeated by whitespaces) into var. Capitalization is ignored.

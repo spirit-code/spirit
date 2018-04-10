@@ -19,9 +19,10 @@
 namespace IO
 {
     void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
-                                  VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_POS_SPIN );
+                                  VF_FileFormat format = VF_FileFormat::OVF_TEXT );
     void Read_SpinChain_Configuration( std::shared_ptr<Data::Spin_System_Chain> c, 
-                                       const std::string file );
+                                       const std::string file, 
+                                       VF_FileFormat format = VF_FileFormat::OVF_TEXT );
     void Anisotropy_from_File( const std::string anisotropyFile, 
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
                                intfield& anisotropy_index, scalarfield& anisotropy_magnitude, 

@@ -22,6 +22,8 @@ namespace IO
         this->ff = format;
         this->dump = "";
         this->line = "";
+        this->delimiter = "";
+        this->has_delimiter = false;
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
@@ -45,7 +47,11 @@ namespace IO
             case VF_FileFormat::OVF_TEXT:
                 this->comment_tag = "##";
                 break;
-            // for every SPIRIT file format
+            case VF_FileFormat::OVF_CSV:
+                this->has_delimiter = true;
+                this->delimiter = ",";
+                this->comment_tag = "##";
+                break;
             default:
                 this->comment_tag = "#";
         }
@@ -89,6 +95,10 @@ namespace IO
             //  remove separator characters
             Remove_Chars_From_String( this->line, (char *) "|+" );
             
+            // remove any delimeters
+            if ( has_delimiter ) 
+                Remove_Chars_From_String( this->line, delimiter.c_str() );
+
             // if the string does not start with a comment identifier
             if ( Remove_Comments_From_String( this->line ) ) 
                 return true;
@@ -151,7 +161,7 @@ namespace IO
         return false;
     }
 
-    void Filter_File_Handle::Remove_Chars_From_String(std::string &str, char* charsToRemove)
+    void Filter_File_Handle::Remove_Chars_From_String(std::string &str, const char* charsToRemove)
     {
         for (unsigned int i = 0; i < strlen(charsToRemove); ++i)
         {
