@@ -44,7 +44,7 @@ TEST_CASE( "IO", "[io]" )
         
         // set config to plus z and read the previously saved system
         Configuration_PlusZ( state.get() );
-        IO_Image_Read( state.get(), filename, filetype );
+        IO_Image_Read( state.get(), filename );
         
         // make sure that the read in has the same nos
         int nos = System_Get_NOS( state.get() );
@@ -170,8 +170,7 @@ TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
     
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
     
-    IO_Image_Read( state.get(), "core/test/io_test_files/image_ovf_txt_CAP.ovf", 
-                   IO_Fileformat_OVF_text );
+    IO_Image_Read( state.get(), "core/test/io_test_files/image_ovf_txt_CAP.ovf" );
                    
    scalar* data = System_Get_Spin_Directions( state.get() );
    

@@ -7,13 +7,12 @@ _spirit = spiritlib.LoadSpiritLibrary()
 ### Read an image from disk
 _Image_Read             = _spirit.IO_Image_Read
 _Image_Read.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, 
-                           ctypes.c_int, ctypes.c_int]
+                           ctypes.c_int]
 _Image_Read.restype     = None
-def Image_Read(p_state, filename, fileformat=6, idx_image_infile=-1,  
-               idx_image_inchain=-1, idx_chain=-1):
+def Image_Read(p_state, filename, idx_image_infile=-1, idx_image_inchain=-1, idx_chain=-1):
     _Image_Read(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), 
-                ctypes.c_int(fileformat), ctypes.c_int(idx_image_infile), 
-                ctypes.c_int(idx_image_inchain), ctypes.c_int(idx_chain))
+                ctypes.c_int(idx_image_infile), ctypes.c_int(idx_image_inchain), 
+                ctypes.c_int(idx_chain))
 
 ### Write an image to disk
 _Image_Write             = _spirit.IO_Image_Write

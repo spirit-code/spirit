@@ -29,8 +29,8 @@ DLLEXPORT void IO_Positions_Write( State * state, const char *file, int format=I
 // Images
 DLLEXPORT int IO_N_Images_In_File( State *state, const char *file, 
                                    int format=IO_Fileformat_Regular, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Image_Read( State *state, const char *file, int format=IO_Fileformat_Regular, 
-                              int idx_image_infile=-1, int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
+DLLEXPORT void IO_Image_Read( State *state, const char *file, int idx_image_infile=-1, 
+                              int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_Regular, 
                                const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_Regular, 

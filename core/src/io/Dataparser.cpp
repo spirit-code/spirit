@@ -60,9 +60,11 @@ namespace IO
     /*
     Reads a configuration file into an existing Spin_System
     */
-    void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
-                                  VF_FileFormat format )
+    void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file )
     {
+        // TODO: remove that and move almost everygthing to IO API functions
+        VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_SPIN;
+
         std::ifstream myfile(file);
         if (myfile.is_open())
         {
@@ -113,17 +115,6 @@ namespace IO
                 }// endif new line (while)
             
                 if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-            }
-            else if ( format == VF_FileFormat::OVF_BIN8 || 
-                      format == VF_FileFormat::OVF_BIN4 || 
-                      format == VF_FileFormat::OVF_TEXT ||
-                      format == VF_FileFormat::OVF_CSV )
-            {
-                auto& spins = *s->spins;
-                auto& geometry = *s->geometry;
-
-                File_OVF file_ovf( file, format );
-                file_ovf.read_segment( spins, geometry );
             }
             else
             {
