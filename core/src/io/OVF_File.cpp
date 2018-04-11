@@ -12,24 +12,21 @@ namespace IO
     File_OVF::File_OVF( std::string filename, VF_FileFormat format ) : 
         filename(filename), format(format)
     {
+        this->isOVF = false;
         this->output_to_file = "";
         this->output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
-        this->empty_line = "#\n";
         this->sender = Log_Sender::IO;
         this->n_segments = -1;
-        this->delimiter = ' ';  // empty character
 
+        // the datatype_out is used when writing an OVF file
         if ( this->format == VF_FileFormat::OVF_BIN8 ) 
             this->datatype_out = "Binary 8";
-        else if ( this->format == VF_FileFormat::OVF_BIN4 )
+        else if ( this->format == VF_FileFormat::OVF_BIN4 ) 
             this->datatype_out = "Binary 4";
-        else if( this->format == VF_FileFormat::OVF_TEXT )
+        else if( this->format == VF_FileFormat::OVF_TEXT ) 
             this->datatype_out = "Text";
-        else if( this->format == VF_FileFormat::OVF_CSV )
-        {    
-            this->datatype_out = "Text";
-            this->delimiter = ','; 
-        }
+        else if( this->format == VF_FileFormat::OVF_CSV ) 
+            this->datatype_out = "CSV";
 
         this->ifile = NULL;
         this->n_segments = 0;
@@ -53,27 +50,48 @@ namespace IO
         this->file_exists = file.is_open();
         file.close();
                 
-        // if the file exists check the version and get the number of segments
-        if ( this->file_exists )
+        // if the file exists check the version
+        if ( this->file_exists ) check_version();
+           
+        // if the file has the OVF header get the number and the positions of the segments
+        if ( this->isOVF )
         {
-            check_version();
             read_n_segments_from_top_header();
-            count_n_segments();
-        } 
+
+            int n_seg = count_and_locate_segments();
+            
+            // compare with n_segments in top header
+            if( this->n_segments != n_seg )
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error, fmt::format( "OVF Segment number "
+                              "in header ({0}) is different from the number of segments "
+                              "({1}) in file", this->n_segments, n_seg ) );
+        }  
     }
    
     void File_OVF::check_version()
     {
 
         this->ifile = std::unique_ptr<Filter_File_Handle>( 
-                            new Filter_File_Handle( this->filename, this->format ) );
-        ifile->Read_String( this->version, "# OOMMF OVF" );
-        if( this->version != "2.0" && this->version != "2" )
+                            new Filter_File_Handle( this->filename, this->comment_tag ) ); 
+        
+        // check if the file has an OVF top header
+        if ( this->ifile->Read_Single( this->version, "# OOMMF OVF" ) )
         {
-            spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
-                          Utility::Log_Level::Error,
-                          fmt::format( "OVF {0} is not supported", this->version ) );
+            // check the OVF version
+            if( this->version != "2.0" && this->version != "2" )
+            {
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error,
+                              fmt::format( "OVF {0} is not supported", this->version ) );
+            } 
+            this->isOVF = true;
         }
+        else
+        {
+            this->isOVF = false;
+        }
+        
         this->ifile = NULL;
     }
 
@@ -204,10 +222,13 @@ namespace IO
             Log( lvl, this->sender, fmt::format( "# OVF binary length       = {}", this->binary_length ) );
             
             // Check that representation and binary length valures are ok
-            if( this->datatype_in != "text" && this->datatype_in != "binary" )
+            if( this->datatype_in != "text" && 
+                this->datatype_in != "binary" &&
+                this->datatype_in != "csv" )
             {
-                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Data representation must be either \"text\" or \"binary\"");
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
+                              Utility::Log_Level::Error, "Data representation must be "
+                              "either \"text\", \"binary\" or \"csv\"");
             }
             
             if( this->datatype_in == "binary" && 
@@ -221,7 +242,9 @@ namespace IO
             if( this->datatype_in == "binary" )
                 read_data_bin( vf );
             else if( this->datatype_in == "text" )
-                read_data_txt( vf ); 
+                read_data_txt( vf );
+            else if( this->datatype_in == "csv" )
+                read_data_txt( vf, "," );
         }
         catch (...) 
         {
@@ -337,16 +360,16 @@ namespace IO
         }
     }
     
-    void File_OVF::read_data_txt( vectorfield& vf )
+    void File_OVF::read_data_txt( vectorfield& vf, const std::string& delimiter )
     {
         try
-        {   
+        { 
             int nos = this->nodes[0] * this->nodes[1] * this->nodes[2];
             
             for (int i=0; i<nos; i++)
             {
-                this->ifile->GetLine();
-
+                this->ifile->GetLine( delimiter );
+                
                 this->ifile->iss >> vf[i][0];
                 this->ifile->iss >> vf[i][1];
                 this->ifile->iss >> vf[i][2];
@@ -438,14 +461,14 @@ namespace IO
         }
     }
 
-    void File_OVF::write_data_txt( const vectorfield& vf )
+    void File_OVF::write_data_txt( const vectorfield& vf, const std::string& delimiter )
     {
         for (int iatom = 0; iatom < vf.size(); ++iatom)
         {
-            this->output_to_file += fmt::format( "{:20.10f}{} {:20.10f}{} {:20.10f}\n", 
-                                                  vf[iatom][0], this->delimiter, 
-                                                  vf[iatom][1], this->delimiter, 
-                                                  vf[iatom][2] );
+            this->output_to_file += fmt::format( "{:20.10f}{} {:20.10f}{} {:20.10f}{}\n", 
+                                                  vf[iatom][0], delimiter, 
+                                                  vf[iatom][1], delimiter,
+                                                  vf[iatom][2], delimiter );
         }
     }
 
@@ -489,7 +512,7 @@ namespace IO
         try
         {
             this->ifile = std::unique_ptr<Filter_File_Handle>( 
-                                new Filter_File_Handle( this->filename, this->format ) );
+                                new Filter_File_Handle( this->filename, this->comment_tag ) ); 
            
             // get the number of segments from the initial keyword
             ifile->Require_Single( this->n_segments, "# segment count:" ); 
@@ -512,12 +535,12 @@ namespace IO
 
     }
 
-    void File_OVF::count_n_segments()
+    int File_OVF::count_and_locate_segments()
     {
         try
         {
             this->ifile = std::unique_ptr<Filter_File_Handle>( 
-                                new Filter_File_Handle( this->filename, this->format ) );
+                                new Filter_File_Handle( this->filename, this->comment_tag ) ); 
 
             // get the number of segments from the occurrences of "# Begin: Segment"
             int n_begin_segment = 0;
@@ -541,25 +564,24 @@ namespace IO
             // reset limits
             ifile->ResetLimits();
             
-            // compare with n_segments in top header
-            if( this->n_segments != n_begin_segment )
-                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, 
-                              Utility::Log_Level::Error, fmt::format( "OVF Segment number "
-                              "in header ({0}) is different from the number of segments "
-                              "({1}) in file", this->n_segments, n_begin_segment ) );
-            
             // close the file
             this->ifile = NULL;
+
+            return n_begin_segment;
         }
         catch( ... )
         {
             spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
         }
     }
-
     
 // Public methods ------------------------------------------------------------------------------
 
+    bool File_OVF::is_OVF()
+    {
+        return this->isOVF;
+    }
+    
     int File_OVF::get_n_segments()
     {
         return this->n_segments;
@@ -584,7 +606,7 @@ namespace IO
             {
                 // open the file
                 this->ifile = std::unique_ptr<Filter_File_Handle>( 
-                                    new Filter_File_Handle( this->filename, this->format ) );
+                                    new Filter_File_Handle( this->filename, this->comment_tag ) ); 
                 
                 // NOTE: seg_idx.max = segment_fpos.size - 2
                 if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
@@ -683,10 +705,12 @@ namespace IO
             // Data
             this->output_to_file += fmt::format( "# Begin: Data {}\n", this->datatype_out );
             
-            if ( format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+            if ( this->format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
                 write_data_bin( vf );
-            else if ( format == VF_FileFormat::OVF_TEXT || format == VF_FileFormat::OVF_CSV )
+            else if ( this->format == VF_FileFormat::OVF_TEXT )
                 write_data_txt( vf );
+            else if ( this->format == VF_FileFormat::OVF_CSV )
+                write_data_txt( vf, "," );
             
             this->output_to_file += fmt::format( "# End: Data {}\n", this->datatype_out );
             

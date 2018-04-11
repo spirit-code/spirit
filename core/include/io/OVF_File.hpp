@@ -23,10 +23,12 @@ namespace IO
     class File_OVF
     {
     private:
+        bool isOVF;
         VF_FileFormat format;
         std::string filename;
         const uint32_t test_hex_4b = 0x4996B438;
         const uint64_t test_hex_8b = 0x42DC12218377DE40;
+        const std::string comment_tag = "##";
         Utility::Log_Sender sender;
         
         int n_segments;
@@ -34,17 +36,16 @@ namespace IO
         std::ios::pos_type n_segments_pos; 
         const int n_segments_str_digits = 6;  // can store 1M modes
         bool file_exists; 
-        // positions of the beggining of each segment in the input file 
+        // Positions of the beggining of each segment in the input file 
         std::vector<std::ios::pos_type> segment_fpos;
 
-        // output attributes
-        char delimiter; // used in OVF_csv
+        // Output attributes
+        const std::string empty_line = "#\n";
         std::string output_to_file;
-        std::string empty_line;
         std::string datatype_out;
         std::string comment;
-    
-        // input attributes 
+
+        // Input attributes 
         std::unique_ptr<Filter_File_Handle> ifile;
         std::string version;
         std::string title;
@@ -56,42 +57,44 @@ namespace IO
         Vector3 max;
         Vector3 min;
         int valuedim;
-        // irregular mesh
+        // Irregular mesh
         int pointcount;
-        // rectangular mesh
+        // Rectangular mesh
         Vector3 base;
         Vector3 stepsize;
         std::array<int,3> nodes;
 
-        // check OVF version
+        // Check OVF version
         void check_version();
-        // read segment's header
+        // Read segment's header
         void read_header();
-        // check segment's geometry
+        // Check segment's geometry
         void check_geometry( const Data::Geometry& geometry );
-        // read segment's data
+        // Read segment's data
         void read_data( vectorfield& vf );
         // In case of binary data check the binary check values
         bool check_binary_values();
-        // read binary OVF data
+        // Read binary OVF data
         void read_data_bin( vectorfield& vf );
-        // read text OVF data
-        void read_data_txt( vectorfield& vf );
-        // write OVF file header
+        // Read text OVF data. The delimiter, if any, will be discarded in the reading
+        void read_data_txt( vectorfield& vf, const std::string& delimiter = "" );
+        // Write OVF file header
         void write_top_header();
-        // write segment data binary
+        // Write segment data binary
         void write_data_bin( const vectorfield& vf );
-        // write segment data text
-        void write_data_txt( const vectorfield& vf ); 
-        // increment segment count
+        // Write segment data text
+        void write_data_txt( const vectorfield& vf, const std::string& delimiter = "" ); 
+        // Increment segment count
         void increment_n_segments();
         // Read the number of segments in the file by reading the top header
         void read_n_segments_from_top_header();
         // Count the number of segments in the file. It also saves their file positions
-        void count_n_segments();
+        int count_and_locate_segments();
     public:
         // constructor
-        File_OVF( std::string filename, VF_FileFormat format );
+        File_OVF( std::string filename, VF_FileFormat format = VF_FileFormat::OVF_TEXT  );
+        // Check if the file is in OVF format
+        bool is_OVF();
         // Get the number of segments in the file
         int get_n_segments();
         // Read header and data from a given segment. Also check geometry

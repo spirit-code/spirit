@@ -16,19 +16,16 @@ using namespace Utility;
 
 namespace IO
 {
-    Filter_File_Handle::Filter_File_Handle( const std::string& filename, IO::VF_FileFormat format ):
-        filename(filename), iss("")
+    Filter_File_Handle::Filter_File_Handle( const std::string& filename,
+                                            const std::string comment_tag ) :
+        filename(filename), comment_tag(comment_tag), iss("")
     {
-        this->ff = format;
         this->dump = "";
         this->line = "";
-        this->delimiter = "";
-        this->has_delimiter = false;
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
-        //this->position = this->myfile->tellg();
-      
+        
         // find begging and end positions of the file stream indicator
         this->position_file_beg = this->myfile->tellg();
         this->myfile->seekg( 0, std::ios::end );
@@ -38,23 +35,6 @@ namespace IO
         // set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
         this->position_start = this->position_file_beg;
         this->position_stop = this->position_file_end;
-        
-        // set the comment tag
-        switch( this->ff )
-        {
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-            case VF_FileFormat::OVF_TEXT:
-                this->comment_tag = "##";
-                break;
-            case VF_FileFormat::OVF_CSV:
-                this->has_delimiter = true;
-                this->delimiter = ",";
-                this->comment_tag = "##";
-                break;
-            default:
-                this->comment_tag = "#";
-        }
         
         // if the file is not open
         if ( !this->myfile->is_open() )
@@ -85,7 +65,7 @@ namespace IO
         this->position_stop = this->position_file_end;
     }
 
-    bool Filter_File_Handle::GetLine_Handle()
+    bool Filter_File_Handle::GetLine_Handle( const std::string str_to_remove )
     {
         this->line = "";
         
@@ -95,10 +75,10 @@ namespace IO
             //  remove separator characters
             Remove_Chars_From_String( this->line, (char *) "|+" );
             
-            // remove any delimeters
-            if ( has_delimiter ) 
-                Remove_Chars_From_String( this->line, delimiter.c_str() );
-
+            // remove any unwanted str from the line eg. delimiters
+            if ( str_to_remove != "" )
+                Remove_Chars_From_String( this->line, str_to_remove.c_str() );
+             
             // if the string does not start with a comment identifier
             if ( Remove_Comments_From_String( this->line ) ) 
                 return true;
@@ -108,9 +88,9 @@ namespace IO
         return false;     // if there is no next line, return false
     }
 
-    bool Filter_File_Handle::GetLine()
+    bool Filter_File_Handle::GetLine( const std::string str_to_remove )
     {
-        if (Filter_File_Handle::GetLine_Handle())
+        if (Filter_File_Handle::GetLine_Handle( str_to_remove ))
         {
             // decapitalize line
             std::transform( this->line.begin(), this->line.end(), this->line.begin(), ::tolower );

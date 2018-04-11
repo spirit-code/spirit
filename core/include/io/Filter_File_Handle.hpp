@@ -25,9 +25,7 @@ namespace IO
     private:
         std::size_t found;
         std::string line;
-        bool has_delimiter;
-        std::string delimiter;
-        std::string comment_tag;
+        const std::string comment_tag;
         std::string dump;
         // Beggining and end of file stream indicator 
         std::ios::pos_type position_file_beg;
@@ -36,14 +34,12 @@ namespace IO
         std::ios::pos_type position_start;
         std::ios::pos_type position_stop;
     public:
-        IO::VF_FileFormat ff;
         std::string filename;
         std::unique_ptr<std::ifstream> myfile;
         std::istringstream iss;
         
         // Constructs a Filter_File_Handle with string filename
-        Filter_File_Handle( const std::string& s, 
-                            IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
+        Filter_File_Handle( const std::string& filename, const std::string comment_tag = "#" );
         // Destructor
         ~Filter_File_Handle();
        
@@ -54,9 +50,9 @@ namespace IO
         // Reset the limits of the file stream indicator 
         void ResetLimits();
         // Reads next line of file into the handle (false -> end-of-file)
-        bool GetLine_Handle();
+        bool GetLine_Handle( const std::string str_to_remove = "" );
         // Reads the next line of file into the handle and into the iss
-        bool GetLine();
+        bool GetLine( const std::string str_to_remove = "" );
         // Reset the file stream to the start of the file
         void ResetStream();
         // Tries to find s in the current file and if found outputs the line into internal iss
