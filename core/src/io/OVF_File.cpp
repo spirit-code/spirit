@@ -76,7 +76,7 @@ namespace IO
                             new Filter_File_Handle( this->filename, this->comment_tag ) ); 
         
         // check if the file has an OVF top header
-        if ( this->ifile->Read_Single( this->version, "# OOMMF OVF" ) )
+        if ( this->ifile->Read_Single( this->version, "# OOMMF OVF", false ) )
         {
             // check the OVF version
             if( this->version != "2.0" && this->version != "2" )

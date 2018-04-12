@@ -58,113 +58,35 @@ namespace IO
     }
     
     /*
-    Reads a configuration file into an existing Spin_System
+    Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
     */
-    void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file )
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, const int nos, 
+                                         const int idx_image_infile, const std::string file )
     {
-        // TODO: remove that and move almost everygthing to IO API functions
-        VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_SPIN;
+        IO::Filter_File_Handle file_handle( file, "#" );
+         
+        // jump to the specified image in the file
+        for (int i=0; i<( nos * idx_image_infile ); i++) 
+            file_handle.GetLine(); 
 
-        std::ifstream myfile(file);
-        if (myfile.is_open())
+        for (int i=0; i<nos && file_handle.GetLine(","); i++)
         {
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Reading Spins File ").append(file));
-            std::string line = "";
-            std::istringstream iss(line);
-            std::size_t found;
-            int i = 0;
-            if (format == VF_FileFormat::SPIRIT_CSV_POS_SPIN)
-            {
-                auto& spins = *s->spins;
-                while (getline(myfile, line))
-                {
-                    if (i >= s->nos) 
-                    { 
-                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
-                             "Configuration - Aborting" ); 
-                        myfile.close(); 
-                        return; 
-                    }
-                    
-                    found = line.find("#");
-                    
-                    // Read the line if # is not found (# marks a comment)
-                    if (found == std::string::npos)
-                    {
-                        auto x = split_string_to_scalar(line, ",");
+            file_handle.iss >> spins[i][0]; 
+            file_handle.iss >> spins[i][1]; 
+            file_handle.iss >> spins[i][2]; 
 
-                        if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
-                        {
-                            spins[i][0] = 0;
-                            spins[i][1] = 0;
-                            spins[i][2] = 1;
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                            s->geometry->atom_types[i] = -1;
-                            #endif
-                        }
-                        else
-                        {
-                            spins[i][0] = x[3];
-                            spins[i][1] = x[4];
-                            spins[i][2] = x[5];
-                        }
-                        ++i;
-                    }// endif (# not found)
-                    
-                    // discard line if # is found
-                }// endif new line (while)
-            
-                if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-            }
-            else
+            if (spins[i].norm() < 1e-5)
             {
-                auto& spins = *s->spins;
-                Vector3 spin;
-                while (getline(myfile, line))
-                {
-                    if (i >= s->nos) 
-                    { 
-                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
-                             "Configuration - Aborting"); 
-                        myfile.close(); 
-                        return; 
-                    }
-                    found = line.find("#");
-                    // Read the line if # is not found (# marks a comment)
-                    if (found == std::string::npos)
-                    {
-                        //scalar x, y, z;
-                        iss.clear();
-                        iss.str(line);
-                        //iss >> x >> y >> z;
-                        iss >> spin[0] >> spin[1] >> spin[2];
-                        if (spin.norm() < 1e-5)
-                        {
-                            spin = {0, 0, 1};
-                            // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                            s->geometry->atom_types[i] = -1;
-                            #endif
-                        }
-                        spins[i] = spin;
-                        ++i;
-                    }// endif (# not found)
-                        // discard line if # is found
-                }// endif new line (while)
-                if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
+                spins[i] = {0, 0, 1};
+                // in case of spin vector close to zero we have a vacancy
+            #ifdef SPIRIT_ENABLE_DEFECTS
+                spins->geometry->atom_types[i] = -1;
+            #endif
             }
-        
-        #ifdef SPIRIT_ENABLE_DEFECTS
-            // assure that defects are treated right
-            check_defects(s);
-        #endif
-            
-            // normalize read in spins
-            Vectormath::normalize_vectors(*s->spins);
-            
-            myfile.close();
-            Log(Log_Level::Info, Log_Sender::IO, "Done");
         }
+
+        // normalize read in spins
+        Vectormath::normalize_vectors( spins );
     }
 
 

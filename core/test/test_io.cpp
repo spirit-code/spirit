@@ -10,12 +10,10 @@
 #include <algorithm>
 #include <string>
 
-const char inputfile[] = "core/test/input/fd_neighbours.cfg";
+const char inputfile[] = "core/test/input/fd_pairs.cfg";
 
 TEST_CASE( "IO", "[io]" )
 {    
-    // TODO: Diferent OVF test for text, 8 and 4 byte raw data
-    
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
     
     // files to be written
@@ -184,4 +182,62 @@ TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
        REQUIRE( data[i*3+1] == Approx( 0 ) );
        REQUIRE( data[i*3+2] == Approx( -1 ) );
    }
+}
+
+TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
+{
+    // Checks if the API can handle properly raw .txt or .csv files. Any line starting by '#' must
+    // be discarded. If the format is spins components ( s_x s_y s_z ) in columns or csv format
+    // must be detected and handled automatically
+   
+    std::vector<std::pair< std::string,std::string>>  filetypes { 
+        { "core/test/io_test_files/image_ovf_txt.ovf", "core/test/io_test_files/image_ovf_txt.txt" },
+        { "core/test/io_test_files/image_ovf_txt.ovf", "core/test/io_test_files/image_ovf_no_extension" },
+        { "core/test/io_test_files/image_ovf_csv.ovf", "core/test/io_test_files/image_ovf_csv.csv" }
+    };
+
+    // from (*.ovf filetype), to (*.new filetype), dump for dumping the first line "# OOMMF OVF..."
+    std::string from, to, dump;
+
+    for ( auto pairs : filetypes )
+    {
+        from = pairs.first;
+        to = pairs.second;
+        
+        INFO( "IO read non OVF files " + to );
+        
+        // 1. Create a file with different extension by copying an ovf
+
+        std::ifstream ifile( from );
+        std::ofstream ofile( to );
+
+        // dump first line to invalidate OVF format
+        std::getline( ifile, dump );
+        
+        // copy 
+        ofile << ifile.rdbuf();
+
+        ifile.close();
+        ofile.close();
+
+        // 2. Try to read it
+
+        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+        
+        IO_Image_Read( state.get(), to.c_str() );
+        
+        // make sure that the read in has the same nos
+        int nos = System_Get_NOS( state.get() );
+        REQUIRE( nos == 4 );
+        
+        // assure that the system read in corresponds to config minus z
+        scalar* data = System_Get_Spin_Directions( state.get() );
+        
+        for (int i=0; i<nos; i++)
+        {
+            REQUIRE( data[i*3] == Approx( 0 ) );
+            REQUIRE( data[i*3+1] == Approx( 0 ) );
+            REQUIRE( data[i*3+2] == Approx( -1 ) );
+        }
+    }
 }

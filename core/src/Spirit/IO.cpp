@@ -7,6 +7,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <io/IO.hpp>
+#include <io/Filter_File_Handle.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -141,39 +142,38 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
         // get the file extension if any
         if ( n != std::string::npos ) extension = filename.substr(n); 
 
-        if ( extension != ".ovf" && extension != ".txt" && extension != ".csv" && extension != "" )
+        image->Lock();
+        
+        // helper variables
+        auto& spins = *image->spins;
+        auto& geometry = *image->geometry;
+        
+        // Create an OVF object
+        IO::File_OVF file_ovf( file );
+
+        if ( extension == ".ovf" || extension == ".txt" || extension == ".csv" || extension == "" )
+        {
+            if ( file_ovf.is_OVF() ) 
+            {
+                file_ovf.read_segment( spins, geometry, idx_image_infile );
+            } 
+            else
+            {
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                     fmt::format("File {} is not OVF. Trying to read column data", filename ), 
+                     idx_image_inchain, idx_chain );
+                
+                IO::Read_NonOVF_Spin_Configuration( spins, image->nos, idx_image_infile, file ); 
+            }
+        }
+        else
         {
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format("File {} does not have a supported file extension", filename ),
                  idx_image_inchain, idx_chain );
         }
-        else
-        {
-            // Read the data
-            image->Lock();
-            try
-            {   
-                auto& spins = *image->spins;
-                auto& geometry = *image->geometry;
-
-                IO::File_OVF file_ovf( file );
-
-                if ( file_ovf.is_OVF() )
-                    file_ovf.read_segment( spins, geometry );
-                else
-                    // TODO: move the reading part from Dataparser here
-                    IO::Read_Spin_Configuration( image, filename );
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_api(idx_image_inchain, idx_chain);
-            }
-            image->Unlock();
-
-            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format("Read spins from file {}", file ),
-                 idx_image_inchain, idx_chain );
-        }
+        
+        image->Unlock();
     }
     catch( ... )
     {

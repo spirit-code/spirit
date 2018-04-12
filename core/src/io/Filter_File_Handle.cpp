@@ -83,7 +83,7 @@ namespace IO
             if ( Remove_Comments_From_String( this->line ) ) 
                 return true;
             else 
-                return GetLine();
+                return GetLine( str_to_remove );
         }
         return false;     // if there is no next line, return false
     }
