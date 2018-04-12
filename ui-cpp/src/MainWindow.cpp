@@ -1142,22 +1142,15 @@ void MainWindow::return_focus()
 
 void MainWindow::save_Spin_Configuration()
 {
-	// std::cerr << "inside save spins" << std::endl;
 	auto fileName = QFileDialog::getSaveFileName(this,
 		tr("Save Spin Configuration"),
 		"./output",
-		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
+		tr( "Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;"
+		    "OOMF Vector Field binary (*.ovf)" ) );
 	if (!fileName.isEmpty())
 	{
-		QFileInfo fi(fileName);
-		// Determine file type from suffix
-		auto qs_type = fi.completeSuffix();
-		int type = IO_Fileformat_Regular;
-		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
-		// Write the file
 		auto file = string_q2std(fileName);
-		IO_Image_Write(this->state.get(), file.c_str(), type);
+		IO_Image_Write( this->state.get(), file.c_str(), IO_Fileformat_OVF_text );
 	}
 }
 
@@ -1166,10 +1159,11 @@ void MainWindow::load_Spin_Configuration()
 	auto fileNames = QFileDialog::getOpenFileNames(this,
 		tr("Load Spin Configuration"),
 		"./input",
-		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
+		tr( "Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;"
+		    "OOMF Vector Field binary (*.ovf)" ) );
 
 	int n_files = fileNames.size();
-	int n_read  = 0;
+	int n_images_read  = 0;
 	int i_start = System_Get_Index(this->state.get());
 	
 	for (auto& fileName : fileNames)
@@ -1178,41 +1172,27 @@ void MainWindow::load_Spin_Configuration()
 		bool read_image = true;
 		int type = IO_Fileformat_Regular;
 
-		if (!fileName.isEmpty())
-		{
-			QFileInfo fi(fileName);
-			// Determine file type from suffix
-			auto qs_type = fi.suffix();
-			if (qs_type == "txt") type = IO_Fileformat_Regular;
-			else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-			else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
-			else
-			{
-				Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
-				read_image = false;
-			}
-		}
-		else read_image = false;
+        if ( fileName.isEmpty() ) read_image = false;
 
 		if (read_image)
 		{
-			std::cerr << i_start << " " << n_read << " " << noi << std::endl;
 			// Append image to chain if necessary
-			if (i_start+n_read == noi)
+			if ( i_start + n_images_read == noi )
 			{
 				Chain_Image_to_Clipboard(this->state.get());
 				Chain_Insert_Image_After(this->state.get());
 				Chain_next_Image(this->state.get());
 			}
-			else if (n_read > 0)
+			else if ( n_images_read > 0 )
 			{
 				Chain_next_Image(this->state.get());
 			}
 
 			// Read the file
 			auto file = string_q2std(fileName);
-			IO_Image_Read(this->state.get(), file.c_str(), type);
-			++n_read;
+			IO_Image_Read( this->state.get(), file.c_str() );
+			
+			++n_images_read;
 		}
 	}
 
@@ -1226,7 +1206,7 @@ void MainWindow::save_SpinChain_Configuration()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_Regular );
+		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_OVF_text );
 	}
 }
 

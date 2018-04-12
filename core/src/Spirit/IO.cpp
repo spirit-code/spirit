@@ -20,6 +20,15 @@
 /////// TODO: make use of file format specifications
 /////// TODO: implement remaining functions
 
+// helper function
+std::string Get_Extension( const char *file )
+{
+    std::string filename(file);
+    std::string::size_type n = filename.rfind('.');
+    if ( n != std::string::npos ) return filename.substr(n); 
+    else return std::string(""); 
+}
+
 /*----------------------------------------------------------------------------------------------- */
 /*--------------------------------- From Config File -------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
@@ -134,46 +143,53 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
         // Fetch correct indices and pointers
         from_indices( state, idx_image_inchain, idx_chain, image, chain );
        
-        // check file extension
-        std::string extension = "";  // default value for files without extension
-        std::string filename(file);
-        std::string::size_type n = filename.rfind('.');
-       
-        // get the file extension if any
-        if ( n != std::string::npos ) extension = filename.substr(n); 
-
         image->Lock();
-        
-        // helper variables
-        auto& spins = *image->spins;
-        auto& geometry = *image->geometry;
-        
-        // Create an OVF object
-        IO::File_OVF file_ovf( file );
 
-        if ( extension == ".ovf" || extension == ".txt" || extension == ".csv" || extension == "" )
+        try
         {
-            if ( file_ovf.is_OVF() ) 
+            const std::string extension = Get_Extension( file );
+            
+            // helper variables
+            auto& spins = *image->spins;
+            auto& geometry = *image->geometry;
+            
+            // Create an OVF object
+            IO::File_OVF file_ovf( file );
+
+            if ( extension == ".ovf" || extension == ".txt" || extension == ".csv" || 
+                 extension == "" )
             {
-                file_ovf.read_segment( spins, geometry, idx_image_infile );
-            } 
+                if ( file_ovf.is_OVF() ) 
+                {
+                    file_ovf.read_segment( spins, geometry, idx_image_infile );
+                } 
+                else
+                {
+                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                         fmt::format("File {} is not OVF. Trying to read column data", file ), 
+                         idx_image_inchain, idx_chain );
+                    
+                    IO::Read_NonOVF_Spin_Configuration( spins, image->nos, 
+                                                        idx_image_infile, file ); 
+                }
+
+                Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read "
+                     "image from file {}", file ), idx_image_inchain, idx_chain );
+            }
             else
             {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                     fmt::format("File {} is not OVF. Trying to read column data", filename ), 
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                     fmt::format("File {} does not have a supported file extension", file ),
                      idx_image_inchain, idx_chain );
-                
-                IO::Read_NonOVF_Spin_Configuration( spins, image->nos, idx_image_infile, file ); 
             }
         }
-        else
+        catch( ... )
         {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format("File {} does not have a supported file extension", filename ),
-                 idx_image_inchain, idx_chain );
+            spirit_handle_exception_api(idx_image_inchain, idx_chain);
         }
         
         image->Unlock();
+
     }
     catch( ... )
     {
@@ -194,19 +210,28 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
         
         // Write the data
         image->Lock();
+        
         try
         {
+            if ( Get_Extension(file) != ".ovf" )
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format( "The "
+                     "file {} is in OVF format but has a different extension. It is recommend "
+                     "to use the appropriate \".ovf\" extension", file ), idx_image, idx_chain );
+
             IO::Write_Spin_Configuration( *image->spins, *image->geometry, std::string( file ), 
-                                            (IO::VF_FileFormat)format, std::string( comment ), false );
+                                          (IO::VF_FileFormat)format, std::string( comment ), 
+                                          false );
+            
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins "
+                 "to file {} with format {}", file, format ), idx_image, idx_chain );
         }
         catch( ... )
         {
             spirit_handle_exception_api(idx_image, idx_chain);
         }
+
         image->Unlock();
         
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins to file "
-                "{} with format {}", file, format ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -227,20 +252,31 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
         
         // Write the data
         image->Lock();
+        
         try
         {
-            IO::Write_Spin_Configuration( *image->spins, *image->geometry, std::string( file ), 
-                                            (IO::VF_FileFormat)format, std::string( comment ), true );
+            if ( Get_Extension(file) != ".ovf" )
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "The file "
+                     "{} is in OVF format but has a different extension", file ), 
+                     idx_image, idx_chain );
+            }
+            else
+            {
+                IO::Write_Spin_Configuration( *image->spins, *image->geometry, std::string( file ), 
+                                              (IO::VF_FileFormat)format, std::string( comment ), 
+                                              true );
+                Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Appended "
+                     "spins to file {} with format {}", file, format ), idx_image, idx_chain );
+            }
         }
         catch( ... )
         {
             spirit_handle_exception_api(idx_image, idx_chain);
         }
+
         image->Unlock();
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                fmt::format("Appended spins to file {} with format {}", file, format),
-                idx_image, idx_chain );
     }
     catch( ... )
     {
