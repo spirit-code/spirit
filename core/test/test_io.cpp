@@ -105,42 +105,67 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
     }
 }
 
-//TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
-//{
-    //auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
+{
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
     
-    //std::vector<std::pair< std::string, int >>  filetypes { 
-        //{ "core/test/io_test_files/chain_ovf_txt.ovf",      IO_Fileformat_OVF_text    },
-        //{ "core/test/io_test_files/chain_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
-        //{ "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    },
-        //{ "core/test/io_test_files/chain_ovf_csv.ovf",      IO_Fileformat_OVF_csv     } 
-    //};
+    std::vector<std::pair< std::string, int >> filetypes { 
+        { "core/test/io_test_files/chain_ovf_bin_4.ovf",    IO_Fileformat_OVF_bin4    },
+        { "core/test/io_test_files/chain_ovf_bin_8.ovf",    IO_Fileformat_OVF_bin8    },
+        { "core/test/io_test_files/chain_ovf_csv.ovf",      IO_Fileformat_OVF_csv     },
+        { "core/test/io_test_files/chain_ovf_txt.ovf",      IO_Fileformat_OVF_text    }
+    };
     
-    //// buffer variables for better readability
-    //const char *filename;
-    //int filetype;
+    // buffer variables for better readability
+    const char *filename;
+    int filetype;
     
-    //for ( auto file: filetypes )
-    //{
-        //filename = file.first.c_str();      // get the filename from pair
-        //filetype = file.second;             // fet the filetype from pair
+    for ( auto file: filetypes )
+    {
+        filename = file.first.c_str();      // get the filename from pair
+        filetype = file.second;             // fet the filetype from pair
+
+        // Log the filename
+        INFO( "IO chain" + file.first );
+        IO_Chain_Read( state.get(), filename );
         
-        //// Log the filename
-        //INFO( "IO chain" + file.first );
-        //IO_Chain_Read( state.get(), filename, filetype );
+        // Now the state must have 3 images
+        int noi = Chain_Get_NOI( state.get() ); 
+        REQUIRE( noi == 3 );
+       
+        // Get nos. Each image must have the same nos
+        int nos = System_Get_NOS( state.get() );
+ 
+        scalar* data;
         
-        //// Now the state must have 3 images
-        //REQUIRE( Chain_Get_NOI( state.get() ) == 3 );
+        // Image 0 must have all the configurations to minus Z
+       
+        Chain_Jump_To_Image( state.get(), 0 );
+        data = System_Get_Spin_Directions( state.get() );
+        for (int i=0; i<nos; i++)
+        {
+            REQUIRE( data[i*3] == Approx( 0 ) );
+            REQUIRE( data[i*3+1] == Approx( 0 ) );
+            REQUIRE( data[i*3+2] == Approx( -1 ) );
+        }
         
-        //// create a name for printing the read in chain for validation purposes
-        //std::string cur_name = file.first;                    // get current name
-        //cur_name.erase( cur_name.end()-5, cur_name.end() );     // strip ending (".data")
-        //std::string validation_filename = cur_name + "_validate_reading.data"; // expand name
-        
-        //// write the read in chain for visual inspection
-        //IO_Chain_Write( state.get(), validation_filename.c_str(), filetype );
-    //}
-//}
+        // Image 1 must have all the configurations at random orientation - we cannot test
+       
+        // Image 2 must have all the configurations to plus Z
+        Chain_Jump_To_Image( state.get(), 2 );
+        data = System_Get_Spin_Directions( state.get() );
+        for (int i=0; i<nos; i++)
+        {
+            REQUIRE( data[i*3] == Approx( 0 ) );
+            REQUIRE( data[i*3+1] == Approx( 0 ) );
+            REQUIRE( data[i*3+2] == Approx( 1 ) );
+        }
+
+        // Before testing the next filetype remove noi-1 images from the system 
+        for (int i=0; i<(noi-1); i++ ) Chain_Pop_Back( state.get() );
+        REQUIRE( Chain_Get_NOI( state.get() ) == 1 );
+    }
+}
 
 TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
 {
@@ -170,18 +195,18 @@ TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]")
     
     IO_Image_Read( state.get(), "core/test/io_test_files/image_ovf_txt_CAP.ovf" );
                    
-   scalar* data = System_Get_Spin_Directions( state.get() );
-   
-   // make sure that the read in has the same nos
-   int nos = System_Get_NOS( state.get() );
-   REQUIRE( nos == 4 );
-   
-   for (int i=0; i<nos; i++)
-   {
+    scalar* data = System_Get_Spin_Directions( state.get() );
+
+    // make sure that the read in has the same nos
+    int nos = System_Get_NOS( state.get() );
+    REQUIRE( nos == 4 );
+
+    for (int i=0; i<nos; i++)
+    {
        REQUIRE( data[i*3] == Approx( 0 ) );
        REQUIRE( data[i*3+1] == Approx( 0 ) );
        REQUIRE( data[i*3+2] == Approx( -1 ) );
-   }
+    }
 }
 
 TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
@@ -239,5 +264,34 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
             REQUIRE( data[i*3+1] == Approx( 0 ) );
             REQUIRE( data[i*3+2] == Approx( -1 ) );
         }
+    }
+}
+
+TEST_CASE( "IO-OVF-N_SEGMENTS", "[io-OVF-n_segments]" )
+{
+    // Checks if the OVF_File object will return the correct number of segments in an OVF file
+    // by calling the API function. In case that the file is not OVF type the function must return
+    // -1 and Log an appropriate warning.
+    
+    std::vector<std::pair<std::string,int>> filenames {
+        { "core/test/io_test_files/image_ovf_txt.ovf", 1 },
+        { "core/test/io_test_files/image_ovf_txt.txt", -1 },
+        { "core/test/io_test_files/chain_ovf_txt.ovf", 3 }
+    };
+
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+    
+    std::string file;
+    int noi_read;
+    int noi_known;
+
+    for ( auto pair : filenames )
+    {
+        file = pair.first;
+        noi_known = pair.second;
+
+        noi_read = IO_N_Images_In_File( state.get(), file.c_str() );
+        
+        REQUIRE( noi_known == noi_read );
     }
 }

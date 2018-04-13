@@ -125,11 +125,31 @@ void IO_Positions_Write( State * state, const char *file, int format,
 /*-------------------------------------- Images ------------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 
-int IO_N_Images_In_File( State *state, const char *file, int format, int idx_chain ) noexcept
+int IO_N_Images_In_File( State * state, const char *file, int idx_image, int idx_chain ) noexcept
 {
-    // TODO: implementation
-    
-    return 0;
+    try
+    {   
+        // We choose not to fetch the corrent indices since it is not necessary for the behavior
+        // of that specific function
+        
+        IO::File_OVF file_ovf( file );
+       
+        if ( file_ovf.is_OVF() )
+        {
+            return file_ovf.get_n_segments();
+        } 
+        else
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "File {} is not OVF. Cannot measure number of images.", file ), 
+                 idx_image, idx_chain );
+            return -1;
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api( idx_image, idx_chain );
+    }
 }
 
 void IO_Image_Read( State *state, const char *file, int idx_image_infile, 
@@ -153,12 +173,12 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
             auto& spins = *image->spins;
             auto& geometry = *image->geometry;
             
-            // Create an OVF object
-            IO::File_OVF file_ovf( file );
-
             if ( extension == ".ovf" || extension == ".txt" || extension == ".csv" || 
                  extension == "" )
             {
+                // Create an OVF object
+                IO::File_OVF file_ovf( file );
+
                 if ( file_ovf.is_OVF() ) 
                 {
                     file_ovf.read_segment( spins, geometry, idx_image_infile );
@@ -289,7 +309,7 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
 /*-------------------------------------- Chains ------------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 
-void IO_Chain_Read( State *state, const char *file, int format, int starting_image, 
+void IO_Chain_Read( State *state, const char *file, int starting_image, 
                     int ending_image, int insert_idx, int idx_chain ) noexcept
 {
     int idx_image = -1;
@@ -304,33 +324,121 @@ void IO_Chain_Read( State *state, const char *file, int format, int starting_ima
 
         // Read the data
         chain->Lock();
+        
+        bool success = false;
+        
         try
         {
-            IO::Read_SpinChain_Configuration(chain, std::string(file));
+            const std::string extension = Get_Extension( file );  
+           
+            // helper variables
+            auto& images = chain->images;
+            int noi = chain->noi; 
+
+            if ( insert_idx < 0 || insert_idx > noi )
+            {
+
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                     fmt::format( "Invalid insert_idx {}. State has {} noi", insert_idx, noi ), 
+                     insert_idx, idx_chain );
+            }
+            else if ( extension == ".ovf" || extension == ".txt" || 
+                      extension == ".csv" || extension == "" )
+            {
+                // Create an OVF object
+                IO::File_OVF file_ovf( file );
+                
+                if ( file_ovf.is_OVF() ) 
+                {
+                    int noi_infile = file_ovf.get_n_segments();
+                   
+                    // Check if the ending image is valid otherwise set it to the last image infile
+                    if ( ending_image < starting_image || ending_image >= noi_infile )
+                    {
+                        ending_image = noi_infile - 1;
+                        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                             fmt::format( "Invalid ending_image. Value was set to the last image "
+                             "of the file"), starting_image, idx_chain );
+                    }
+
+                    // If the idx of the starting image is valid
+                    if ( starting_image < noi_infile )
+                    {
+                        int noi_to_read = ending_image - starting_image + 1;
+                       
+                        int noi_to_add = noi_to_read - ( noi - insert_idx );
+       
+                        // Add the images if you need that
+                        if ( noi_to_add > 0 ) 
+                        { 
+                            chain->Unlock();
+                            Chain_Image_to_Clipboard( state, noi-1 );
+                            for (int i=0; i<noi_to_add; i++) Chain_Push_Back( state );
+                            chain->Lock(); 
+                        } 
+
+                        // Read the images
+                        for (int i=insert_idx; i<noi_to_read; i++)
+                        {
+                            file_ovf.read_segment( *images[i]->spins, *images[i]->geometry, 
+                                                   starting_image );
+                            starting_image++;
+                        }
+                        
+                        success = true;
+                    }
+                    else
+                    {
+                        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                             fmt::format( "Invalid starting_idx. File {} has {} noi", file, 
+                             noi_infile ), insert_idx, idx_chain );
+                    }
+                } 
+                else
+                {
+                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                         fmt::format( "File {} is not OVF. Trying to read column data", file ), 
+                         insert_idx, idx_chain );
+                   
+                    //// TODO: Fix arguments - rename function in its source
+                    //IO::Read_NonOVF_SpinChain_Configuration( spins, image->nos, 
+                                                             //idx_image_infile, file ); 
+                    success = true; 
+                }
+            }
+            else
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                     fmt::format( "File {} does not have a supported file extension", file ),
+                     insert_idx, idx_chain );
+            }
         }
         catch( ... )
         {
             spirit_handle_exception_api(idx_image, idx_chain);
         }
+        
         chain->Unlock();
-
-        // Update llg simulation information array size
-        if ((int)state->method_image[idx_chain].size() < chain->noi)
+        
+        if ( success )
         {
-            for (int i=state->method_image[idx_chain].size(); i < chain->noi; ++i)
-                state->method_image[idx_chain].push_back( 
-                    std::shared_ptr<Engine::Method>( ) );
-        }
+            // Update llg simulation information array size
+            if ((int)state->method_image[idx_chain].size() < chain->noi)
+            {
+                for (int i=state->method_image[idx_chain].size(); i < chain->noi; ++i)
+                    state->method_image[idx_chain].push_back( 
+                        std::shared_ptr<Engine::Method>( ) );
+            }
 
-        // Update state
-        State_Update(state);
+            // Update state
+            State_Update(state);
 
-        // Update array lengths
-        Chain_Setup_Data(state, idx_chain);
+            // Update array lengths
+            Chain_Setup_Data(state, idx_chain);
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Read chain from file {} with format {}", file, format), 
-                idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read "
+                 "chain from file {}", file ), starting_image, idx_chain );
+        } 
     }
     catch( ... )
     {
@@ -408,20 +516,6 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
     {
         spirit_handle_exception_api(idx_image, idx_chain);
     }
-}
-
-/*----------------------------------------------------------------------------------------------- */
-/*------------------------------------ Collection ----------------------------------------------- */
-/*----------------------------------------------------------------------------------------------- */
-
-void IO_Collection_Read(State * state, const char * file, int idx_image, int idx_chain) noexcept
-{
-
-}
-
-void IO_Collection_Write(State * state, const char * file, int idx_image, int idx_chain) noexcept
-{
-
 }
 
 /*----------------------------------------------------------------------------------------------- */
