@@ -4,6 +4,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <io/IO.hpp>
+#include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
 
 #include <iostream>
@@ -288,14 +289,22 @@ namespace Engine
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                // File name and comment
-                std::string spinsFile = preSpinsFile + suffix + ".txt";
-                std::string comment = std::to_string( iteration );
-                // Spin Configuration
-                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
-                                              *( this->systems[0] )->geometry, spinsFile, 
-                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
-                                              comment, append );
+                try
+                {
+                    // File name and comment
+                    std::string spinsFile = preSpinsFile + suffix + ".ovf";
+                    std::string comment = std::to_string( iteration );
+                    
+                    // Spin Configuration
+                    IO::File_OVF file_ovf( spinsFile, IO::VF_FileFormat::OVF_TEXT );
+                    file_ovf.write_segment( *( this->systems[0] )->spins, 
+                                            *( this->systems[0] )->geometry,
+                                            comment, append );
+                }
+                catch( ... )
+                {
+                   spirit_handle_exception_core( "LLG output failed" ); 
+                }
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
