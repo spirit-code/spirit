@@ -8,12 +8,6 @@
 
 namespace IO
 {
-    // =========================== Saving Configurations ===========================
-    // Write/Append spin positions to file
-    void Write_Positions( const Data::Geometry& geometry, 
-                          const std::string filename, VF_FileFormat format,
-                          const std::string comment, bool append = false );
-
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 

@@ -103,7 +103,46 @@ void IO_Positions_Write( State * state, const char *file, int format,
         image->Lock();
         try
         {
-            IO::Write_Positions( *image->geometry, file, IO::VF_FileFormat(format), comment, false );
+            if ( Get_Extension(file) != ".ovf" )
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format( "The "
+                     "file {} is written in OVF format but has different extension. It is "
+                     "recommend to use the appropriate \".ovf\" extension", file ), 
+                     idx_image, idx_chain );
+
+            // helper variables
+            auto& geometry = *image->geometry;
+            auto fileformat = (IO::VF_FileFormat)format;
+            auto filename = std::string( file ); 
+            
+            switch( fileformat  )
+            {
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+                case IO::VF_FileFormat::GENERAL_TXT:
+                case IO::VF_FileFormat::GENERAL_CSV:
+                {
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                            "suported file format" ), idx_image, idx_chain );
+                    break;
+                }
+                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_TEXT:
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    IO::File_OVF file_ovf( filename, fileformat );
+                    file_ovf.write_segment( geometry.positions, geometry, comment ); 
+                    break;
+                }
+                default:
+                {
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                    "existent file format" ), idx_image, idx_chain );
+                    break;
+                }
+            }        
         }
         catch( ... )
         {
@@ -629,10 +668,15 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
 
                     IO::File_OVF file_ovf( filename, fileformat );
 
-                    // append all images
-                    for ( int i=0; i<chain->noi; i++ )
-                        file_ovf.write_segment( *images[i]->spins, *images[i]->geometry,
-                                                comment, true ); 
+                    // check if the file was OVF
+                    if ( file_ovf.is_OVF( ) )
+                        for ( int i=0; i<chain->noi; i++ )
+                            file_ovf.write_segment( *images[i]->spins, *images[i]->geometry,
+                                                    comment, true ); 
+                    else
+                        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
+                             fmt::format( "Cannot append to non OVF file" ), 
+                             idx_image, idx_chain );
                     break; 
                 }
                 default:

@@ -250,42 +250,4 @@ namespace IO
 		// }
 		// Dump_to_File(output_to_file, filename);
 	}
-
-
-    void Write_Positions( const Data::Geometry& geometry, 
-                          const std::string filename, VF_FileFormat format,
-                          const std::string comment, bool append )
-    {
-        switch( format )
-        {
-            case VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-            case VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-            case VF_FileFormat::SPIRIT_CSV_SPIN:
-            case VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-            case VF_FileFormat::GENERAL_TXT:
-            case VF_FileFormat::GENERAL_CSV:
-            {
-                // TODO: remove those enum
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                        "suported file format" ), -1, -1 );
-                break;
-            }
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-            case VF_FileFormat::OVF_TEXT:
-            case VF_FileFormat::OVF_CSV:
-            {
-                File_OVF file_ovf( filename, format );
-                file_ovf.write_segment( geometry.positions, geometry, comment, append ); 
-                break;
-            }
-            default:
-            {
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                        "existent file format" ), -1, -1 );
-                // TODO: throw some exception to avoid logging "success" by API function
-                break;
-            } 
-        }        
-    }
 } 
