@@ -13,10 +13,6 @@ namespace IO
     void Write_Positions( const Data::Geometry& geometry, 
                           const std::string filename, VF_FileFormat format,
                           const std::string comment, bool append = false );
-    // Write/Append Spin_System_Chain's spin configurations to file
-    void Write_Chain_Spin_Configuration( const std::shared_ptr<Data::Spin_System_Chain>& c, 
-                                         const std::string filename, VF_FileFormat format,
-                                         const std::string comment, bool append = false );
 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 

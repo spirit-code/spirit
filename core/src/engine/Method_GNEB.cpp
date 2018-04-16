@@ -4,6 +4,7 @@
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <io/IO.hpp>
+#include <io/OVF_File.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 
@@ -293,14 +294,30 @@ namespace Engine
             auto writeOutputChain = [ this, preChainFile, preEnergiesFile, iteration ]
                                         ( std::string suffix, bool append )
 			{
-				// File name
-				std::string chainFile = preChainFile + suffix + ".txt";
+			    try
+			    {
+                    // File name
+                    std::string chainFile = preChainFile + suffix + ".txt";
 
-				// Chain
-                std::string output_comment = fmt::format( "Iteration: {}", iteration );
-                IO::Write_Chain_Spin_Configuration( this->chain, chainFile, 
-                                                    IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
-                                                    output_comment, append );
+                    // Chain
+                    std::string output_comment = fmt::format( "Iteration: {}", iteration );
+
+                    IO::File_OVF file_ovf( chainFile, IO::VF_FileFormat::OVF_TEXT );
+
+                    // write/append the first image
+                    file_ovf.write_segment( *this->chain->images[0]->spins, 
+                                            *this->chain->images[0]->geometry,
+                                            output_comment, append );
+                    // append all the others
+                    for ( int i=1; i<this->chain->noi; i++ )
+                        file_ovf.write_segment( *this->chain->images[i]->spins, 
+                                                *this->chain->images[i]->geometry,
+                                                output_comment, true ); 
+                }
+                catch( ... )
+                {
+                   spirit_handle_exception_core( "GNEB output failed" ); 
+                }
             };
 
 			auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)

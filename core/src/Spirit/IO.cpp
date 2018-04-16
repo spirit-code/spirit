@@ -526,8 +526,49 @@ void IO_Chain_Write( State *state, const char *file, int format, const char* com
         chain->Lock();
         try
         {
-            IO::Write_Chain_Spin_Configuration( chain, std::string(file), (IO::VF_FileFormat)format, 
-                                                std::string(comment), false );
+            auto fileformat = (IO::VF_FileFormat)format;
+            auto filename = std::string( file ); 
+        
+            switch( fileformat )
+            {
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+                case IO::VF_FileFormat::GENERAL_TXT:
+                case IO::VF_FileFormat::GENERAL_CSV:
+                { 
+                    // TODO: remove those enum
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                            "suported file format" ), idx_image, idx_chain );
+                    break;
+                }
+                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_TEXT:
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    auto& images = chain->images;
+
+                    IO::File_OVF file_ovf( filename, fileformat );
+
+                    // write the first image
+                    file_ovf.write_segment( *images[0]->spins, *images[0]->geometry,
+                                            comment, false );
+                    // append all the others
+                    for ( int i=1; i<chain->noi; i++ )
+                        file_ovf.write_segment( *images[i]->spins, *images[i]->geometry,
+                                                comment, true ); 
+                    break; 
+                }
+                default:
+                {
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                    "existent file format" ), -1, -1 );
+                    break;
+                }
+            }        
+        
         }
         catch( ... )
         {
@@ -562,8 +603,46 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
         chain->Lock();
         try
         {
-            IO::Write_Chain_Spin_Configuration( chain, std::string(file), (IO::VF_FileFormat)format, 
-                                                std::string(comment), true );
+            auto fileformat = (IO::VF_FileFormat)format;
+            auto filename = std::string( file ); 
+        
+            switch( fileformat )
+            {
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
+                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
+                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
+                case IO::VF_FileFormat::GENERAL_TXT:
+                case IO::VF_FileFormat::GENERAL_CSV:
+                { 
+                    // TODO: remove those enum
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                            "suported file format" ), idx_image, idx_chain );
+                    break;
+                }
+                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_TEXT:
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    auto& images = chain->images;
+
+                    IO::File_OVF file_ovf( filename, fileformat );
+
+                    // append all images
+                    for ( int i=0; i<chain->noi; i++ )
+                        file_ovf.write_segment( *images[i]->spins, *images[i]->geometry,
+                                                comment, true ); 
+                    break; 
+                }
+                default:
+                {
+                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                    "existent file format" ), -1, -1 );
+                    break;
+                }
+            }        
+        
         }
         catch( ... )
         {
