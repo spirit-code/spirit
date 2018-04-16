@@ -20,9 +20,10 @@ namespace IO
 {
     void Read_NonOVF_Spin_Configuration( vectorfield& spins, const int nos, 
                                          const int idx_image_infile, const std::string file );
-    void Read_SpinChain_Configuration( std::shared_ptr<Data::Spin_System_Chain> c, 
-                                       const std::string file, 
-                                       VF_FileFormat format = VF_FileFormat::OVF_TEXT );
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
+                                           const std::string file, int starting_image, 
+                                           int ending_image, const int insert_idx, int& noi_to_add,
+                                           int& noi_to_read, const int idx_chain );
     void Anisotropy_from_File( const std::string anisotropyFile, 
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
                                intfield& anisotropy_index, scalarfield& anisotropy_magnitude, 

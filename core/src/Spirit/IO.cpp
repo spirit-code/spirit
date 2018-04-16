@@ -460,7 +460,7 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                         ending_image = noi_infile - 1;
                         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                              fmt::format( "Invalid ending_image. Value was set to the last image "
-                             "of the file"), starting_image, idx_chain );
+                             "of the file"), insert_idx, idx_chain );
                     }
 
                     // If the idx of the starting image is valid
@@ -501,11 +501,34 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                     Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                          fmt::format( "File {} is not OVF. Trying to read column data", file ), 
                          insert_idx, idx_chain );
-                   
-                    //// TODO: Fix arguments - rename function in its source
-                    //IO::Read_NonOVF_SpinChain_Configuration( spins, image->nos, 
-                                                             //idx_image_infile, file ); 
-                    success = true; 
+                
+                    int noi_to_add = 0;
+                    int noi_to_read = 0;
+
+                    IO::Check_NonOVF_Chain_Configuration( chain, file, starting_image, 
+                                                          ending_image, insert_idx, noi_to_add,
+                                                          noi_to_read, idx_chain );
+                    // Add the images if you need that
+                    if ( noi_to_add > 0 ) 
+                    { 
+                        chain->Unlock();
+                        Chain_Image_to_Clipboard( state, noi-1 );
+                        for (int i=0; i<noi_to_add; i++) Chain_Push_Back( state );
+                        chain->Lock(); 
+                    } 
+
+                    // Read the images
+                    if ( noi_to_read > 0 )
+                    { 
+                        for (int i=insert_idx; i<noi_to_read; i++)
+                        {
+                            IO::Read_NonOVF_Spin_Configuration( *chain->images[i]->spins,
+                                                                chain->images[i]->nos,
+                                                                starting_image, file );
+                            starting_image++;
+                        }
+                        success = true;
+                    }          
                 }
             }
             else
@@ -539,7 +562,7 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
             Chain_Setup_Data(state, idx_chain);
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read "
-                 "chain from file {}", file ), starting_image, idx_chain );
+                 "chain from file {}", file ), insert_idx, idx_chain );
         } 
     }
     catch( ... )

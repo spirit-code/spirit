@@ -218,7 +218,10 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
     std::vector<std::pair< std::string,std::string>>  filetypes { 
         { "core/test/io_test_files/image_ovf_txt.ovf", "core/test/io_test_files/image_ovf_txt.txt" },
         { "core/test/io_test_files/image_ovf_txt.ovf", "core/test/io_test_files/image_ovf_no_extension" },
-        { "core/test/io_test_files/image_ovf_csv.ovf", "core/test/io_test_files/image_ovf_csv.csv" }
+        { "core/test/io_test_files/image_ovf_csv.ovf", "core/test/io_test_files/image_ovf_csv.csv" },
+        { "core/test/io_test_files/chain_ovf_txt.ovf", "core/test/io_test_files/chain_ovf_txt.txt" },
+        { "core/test/io_test_files/chain_ovf_txt.ovf", "core/test/io_test_files/chain_ovf_no_extension" },
+        { "core/test/io_test_files/chain_ovf_csv.ovf", "core/test/io_test_files/chain_ovf_csv.csv" }
     };
 
     // from (*.ovf filetype), to (*.new filetype), dump for dumping the first line "# OOMMF OVF..."
@@ -231,7 +234,7 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
         
         INFO( "IO read non OVF files " + to );
         
-        // 1. Create a file with different extension by copying an ovf
+        // Create a file with different extension by copying an ovf
 
         std::ifstream ifile( from );
         std::ofstream ofile( to );
@@ -244,9 +247,12 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
 
         ifile.close();
         ofile.close();
+    }
 
-        // 2. Try to read it
-
+    for ( int i=0; i<3; i++ )
+    {
+        to = filetypes[i].second;
+                
         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
         
         IO_Image_Read( state.get(), to.c_str() );
@@ -258,12 +264,30 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
         // assure that the system read in corresponds to config minus z
         scalar* data = System_Get_Spin_Directions( state.get() );
         
-        for (int i=0; i<nos; i++)
+        for (int j=0; j<nos; j++)
         {
-            REQUIRE( data[i*3] == Approx( 0 ) );
-            REQUIRE( data[i*3+1] == Approx( 0 ) );
-            REQUIRE( data[i*3+2] == Approx( -1 ) );
+            REQUIRE( data[j*3] == Approx( 0 ) );
+            REQUIRE( data[j*3+1] == Approx( 0 ) );
+            REQUIRE( data[j*3+2] == Approx( -1 ) );
         }
+    }
+
+    
+    for ( int i=3; i<6; i++ )
+    {
+        to = filetypes[i].second;
+                
+        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+        
+        IO_Chain_Read( state.get(), to.c_str() );
+        
+        // make sure that the read in has the same nos
+        int noi = Chain_Get_NOI( state.get() );
+        REQUIRE( noi == 3 );
+    
+        // Before testing the next filetype remove noi-1 images from the system 
+        for (int i=0; i<(noi-1); i++ ) Chain_Pop_Back( state.get() );
+        REQUIRE( Chain_Get_NOI( state.get() ) == 1 );
     }
 }
 

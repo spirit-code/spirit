@@ -33,6 +33,8 @@ namespace IO
         // Start and stop of file stream indicator
         std::ios::pos_type position_start;
         std::ios::pos_type position_stop;
+        int n_lines;
+        int n_comment_lines;
     public:
         std::string filename;
         std::unique_ptr<std::ifstream> myfile;
@@ -67,7 +69,8 @@ namespace IO
         void Read_String( std::string& var, std::string keyword, bool log_notfound = true );
         // Count the words of a string
         int Count_Words( const std::string& str );
-        // get name 
+        // Returns the number of lines which are not starting with a comment
+        int Get_N_Non_Comment_Lines();
         
         // Reads a single variable into var, with optional logging in case of failure.
         //

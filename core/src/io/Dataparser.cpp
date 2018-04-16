@@ -90,141 +90,48 @@ namespace IO
     }
 
 
-    void Read_SpinChain_Configuration( std::shared_ptr<Data::Spin_System_Chain> c, 
-                                       const std::string file, VF_FileFormat format )
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
+                                           const std::string file, int starting_image, 
+                                           int ending_image, const int insert_idx, int& noi_to_add,
+                                           int& noi_to_read, const int idx_chain )
     {
-        std::ifstream myfile(file);
-        if (myfile.is_open())
-        {
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
-            std::string line = "";
-            std::istringstream iss(line);
-            std::size_t found;
-            std::size_t image_no;
-            int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
-            Vector3 spin;
+        IO::Filter_File_Handle file_handle( file, "#" ); 
         
-            if ( format == VF_FileFormat::OVF_BIN8 || 
-                 format == VF_FileFormat::OVF_BIN4 || 
-                 format == VF_FileFormat::OVF_TEXT ||
-                 format == VF_FileFormat::OVF_CSV )
-            {
-                auto& images = c->images;
-                int noi = c->noi;
+        int nol = file_handle.Get_N_Non_Comment_Lines();
+        int noi = chain->noi;
+        int nos = chain->images[0]->nos;
+       
+        int noi_infile = nol/nos;
+        int remainder = nol%nos;
 
-                File_OVF file_ovf( file, format );
+        if ( remainder != 0 )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
+                 fmt::format( "Calculated number of images in the nonOVF file is not integer"),
+                 insert_idx, idx_chain );
+        }
 
-                int noi_in_file = file_ovf.get_n_segments();
-    
-                for( int i=0; i<noi_in_file; i++)
-                {
-                    file_ovf.read_segment( *images[i]->spins, *images[i]->geometry );
-                } 
-            }
-            else
-            {
-                while (getline(myfile, line))
-                {
-                    // First we check if the line declares a new image
-                    
-                    image_no = line.find("Image No"); 
-                    
-                    // if there is a "Image No" in that line increment the indeces appropriately
-                    if ( image_no != std::string::npos )
-                    {
-                        if (ispin < nos && iimage>0)    // Check if less than NOS spins were read for the image before
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
-                        }
-                        // set new image index
-                        ++iimage;
-                        // re-set spin counter
-                        ispin = 0;
-                        // jump to next line
-                        getline(myfile, line);
-                        if (iimage >= noi)
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
-                        }
-                        else
-                        {
-                            nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-                        }
-                    }//endif "Image No"
-                    
-                    // Then check if the line contains "#" charachter which means that is a comment.
-                    // This will not affect the "Image No" since is already been done.
-                    found = line.find("#");
-                    
-                    // Read the line if # is not found (# marks a comment)
-                    if (found == std::string::npos)
-                    {
-                        if (iimage < 0) iimage = 0;
-
-                        if (iimage >= noi)
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}. Appending image {}", iimage+1, noi, iimage+1));
-                            // Copy Image
-                            auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
-                            new_system->Lock();
-                            // Add to chain
-                            c->noi++;
-                            c->images.push_back(new_system);
-                            c->image_type.push_back(Data::GNEB_Image_Type::Normal);
-                            noi = c->noi;
-                        }
-                        nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-
-                        if (ispin >= nos)
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
-                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", ispin+1, nos));
-                            //Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
-                            //myfile.close();
-                            //return;
-                        }
-                        else
-                        {
-                            iss.clear();
-                            iss.str(line);
-                            auto& spins = *c->images[iimage]->spins;
-                            //iss >> x >> y >> z;
-                            iss >> spin[0] >> spin[1] >> spin[2];
-                            if (spin.norm() < 1e-5)
-                            {
-                                spin = {0, 0, 1};
-                                #ifdef SPIRIT_ENABLE_DEFECTS
-                                c->images[iimage]->geometry->atom_types[ispin] = -1;
-                                #endif
-                            }
-                            spins[ispin] = spin;
-                        }
-                        ++ispin;
-                    }// endif (# not found)
-                    
-                    // Discard line if # is found. This will work also in the case of finding "Image No"
-                    // keyword since a line like that would containi "#"
-                    
-                }// endif new line (while)
-            }
-
-            // for every image of the chain
-            for (int i=0; i<iimage; i++)
-            {
-            #ifdef SPIRIT_ENABLE_DEFECTS
-                // assure that defects are treated right
-                check_defects(c->images[iimage]);
-            #endif
-                
-                // normalize read in spins
-                Vectormath::normalize_vectors(*c->images[iimage]->spins);
-            }
-            
-            if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
-            if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(chain) = {} > NOI(file) = {}", noi, iimage+1));
-            
-            myfile.close();
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
+        // Check if the ending image is valid otherwise set it to the last image infile
+        if ( ending_image < starting_image || ending_image >= noi_infile )
+        {
+            ending_image = noi_infile - 1;
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "Invalid ending_image. Value was set to the last image "
+                 "of the file"), insert_idx, idx_chain );
+        }
+          
+        // If the idx of the starting image is valid
+        if ( starting_image < noi_infile )
+        {
+            noi_to_read = ending_image - starting_image + 1;
+           
+            noi_to_add = noi_to_read - ( noi - insert_idx );
+        }
+        else
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::IO,
+                 fmt::format( "Invalid starting_idx. File {} has {} noi", file, 
+                 noi_infile ), insert_idx, idx_chain );
         }
     }
 

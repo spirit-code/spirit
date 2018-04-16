@@ -35,7 +35,11 @@ namespace IO
         // set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
         this->position_start = this->position_file_beg;
         this->position_stop = this->position_file_end;
-        
+       
+        // initialize number of lines
+        this->n_lines = 0;
+        this->n_comment_lines = 0;
+
         // if the file is not open
         if ( !this->myfile->is_open() )
         spirit_throw(Exception_Classifier::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
@@ -72,6 +76,8 @@ namespace IO
         //	if there is a next line
         if ( (bool) getline( *this->myfile, this->line ) )
         {
+            this->n_lines++;
+
             //  remove separator characters
             Remove_Chars_From_String( this->line, (char *) "|+" );
             
@@ -80,10 +86,15 @@ namespace IO
                 Remove_Chars_From_String( this->line, str_to_remove.c_str() );
              
             // if the string does not start with a comment identifier
-            if ( Remove_Comments_From_String( this->line ) ) 
+            if ( Remove_Comments_From_String( this->line ) )
+            {
                 return true;
+            } 
             else 
+            {
+                this->n_comment_lines++;
                 return GetLine( str_to_remove );
+            } 
         }
         return false;     // if there is no next line, return false
     }
@@ -126,7 +137,6 @@ namespace IO
         {
             iss.clear();    // empty the stream
             iss.str(line);  // copy line into the iss stream
-            dump = "";      // TODO: since we have the init in the constructor we might not need that
             
             // if s is not empty
             if ( s.compare("") )
@@ -190,5 +200,12 @@ namespace IO
         int words = 0;
         while( phrase_stream >> dump ) ++words;
         return words; 
+    }
+
+    int Filter_File_Handle::Get_N_Non_Comment_Lines()
+    {
+        while( GetLine() ) { };
+        ResetLimits(); 
+        return ( this->n_lines - this->n_comment_lines );
     }
 }// end namespace IO
