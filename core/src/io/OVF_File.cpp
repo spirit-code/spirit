@@ -326,10 +326,21 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
+                            
+                            if (vf[index].norm() < 1e-5)
+                            {
+                                vf[index] = {0, 0, 1};
+                                // in case of spin vector close to zero we have a vacancy
+                            #ifdef SPIRIT_ENABLE_DEFECTS
+                                vf->geometry->atom_types[index] = -1;
+                            #endif
+                            }
                         }
                     }
                 }
                 
+                // normalize read in spins 
+                Engine::Vectormath::normalize_vectors( vf );
             }
             else if (this->binary_length == 8)
             {
@@ -349,9 +360,21 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
+                            
+                            if (vf[index].norm() < 1e-5)
+                            {
+                                vf[index] = {0, 0, 1};
+                                // in case of spin vector close to zero we have a vacancy
+                            #ifdef SPIRIT_ENABLE_DEFECTS
+                                vf->geometry->atom_types[index] = -1;
+                            #endif
+                            }
                         }
                     }
                 }
+                
+                // normalize read in spins 
+                Engine::Vectormath::normalize_vectors( vf );
             }
         }
         catch (...)
@@ -373,7 +396,19 @@ namespace IO
                 this->ifile->iss >> vf[i][0];
                 this->ifile->iss >> vf[i][1];
                 this->ifile->iss >> vf[i][2];
+                
+                if (vf[i].norm() < 1e-5)
+                {
+                    vf[i] = {0, 0, 1};
+                    // in case of spin vector close to zero we have a vacancy
+                #ifdef SPIRIT_ENABLE_DEFECTS
+                    vf->geometry->atom_types[i] = -1;
+                #endif
+                }
             }
+            
+            // normalize read in spins 
+            Engine::Vectormath::normalize_vectors( vf );
         }
         catch (...)
         {
