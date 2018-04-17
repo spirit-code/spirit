@@ -17,9 +17,6 @@
 #include <memory>
 #include <string>
 
-/////// TODO: make use of file format specifications
-/////// TODO: implement remaining functions
-
 // helper function
 std::string Get_Extension( const char *file )
 {
@@ -168,9 +165,6 @@ int IO_N_Images_In_File( State * state, const char *file, int idx_image, int idx
 {
     try
     {   
-        // We choose not to fetch the corrent indices since it is not necessary for the behavior
-        // of that specific function
-        
         IO::File_OVF file_ovf( file );
        
         if ( file_ovf.is_OVF() )
@@ -179,6 +173,9 @@ int IO_N_Images_In_File( State * state, const char *file, int idx_image, int idx
         } 
         else
         {
+            // TODO: Calculate the N_Images for a columnd data file. This will be usefull for
+            // IO_Chain_Read()
+
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "File {} is not OVF. Cannot measure number of images.", file ), 
                  idx_image, idx_chain );

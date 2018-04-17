@@ -60,7 +60,7 @@ namespace IO
         // Irregular mesh
         int pointcount;
         // Rectangular mesh
-        Vector3 base;
+        std::array<Vector3,3> base;
         Vector3 stepsize;
         std::array<int,3> nodes;
 

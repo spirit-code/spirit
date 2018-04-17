@@ -41,7 +41,7 @@ namespace IO
         this->max = Vector3(0,0,0);
         this->min = Vector3(0,0,0);
         this->pointcount = -1;
-        this->base = Vector3(0,0,0);
+        this->base = { Vector3(0,0,0), Vector3(0,0,0), Vector3(0,0,0) };
         this->stepsize = Vector3(0,0,0);
         this->sender = Log_Sender::IO;
 
@@ -136,9 +136,9 @@ namespace IO
             // For different mesh types
             if( this->meshtype == "rectangular" )
             {
-                ifile->Require_Single( this->base.x(), "# xbase:" );
-                ifile->Require_Single( this->base.y(), "# ybase:" );
-                ifile->Require_Single( this->base.z(), "# zbase:" );
+                ifile->Read_Vector3( this->base[0], "# xbase:", true );
+                ifile->Read_Vector3( this->base[1], "# ybase:", true );
+                ifile->Read_Vector3( this->base[2], "# zbase:", true );
                 
                 ifile->Require_Single( this->stepsize.x(), "# xstepsize:" );
                 ifile->Require_Single( this->stepsize.y(), "# ystepsize:" );
@@ -150,9 +150,9 @@ namespace IO
                 
                 // Write to Log
                 Log( lvl, this->sender, fmt::format( "# OVF meshtype <{}>", this->meshtype ) );
-                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8f}", this->base.x() ) );
-                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8f}", this->base.y() ) );
-                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8f}", this->base.z() ) );
+                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8}", this->base[0] ) );
+                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8}", this->base[1] ) );
+                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8}", this->base[2] ) );
                 Log( lvl, this->sender, fmt::format( "# xstepsize  = {:.8f}", this->stepsize.x() ) );
                 Log( lvl, this->sender, fmt::format( "# ystepsize  = {:.8f}", this->stepsize.y() ) );
                 Log( lvl, this->sender, fmt::format( "# zstepsize  = {:.8f}", this->stepsize.z() ) );
@@ -667,8 +667,8 @@ namespace IO
             this->output_to_file += fmt::format( this->empty_line );
             
             this->output_to_file += fmt::format( "## Fundamental mesh measurement unit. "
-                                           "Treated as a label:\n" );
-            this->output_to_file += fmt::format( "# meshunit: nm\n" ); //// TODO: treat that
+                                                 "Treated as a label:\n" );
+            this->output_to_file += fmt::format( "# meshunit: unspecified\n" );
             this->output_to_file += fmt::format( this->empty_line );
             
             this->output_to_file += fmt::format( "# xmin: {}\n", geometry.bounds_min[0] );
@@ -679,13 +679,22 @@ namespace IO
             this->output_to_file += fmt::format( "# zmax: {}\n", geometry.bounds_max[2] );
             this->output_to_file += fmt::format( this->empty_line );
             
-            // TODO: Spirit does not support irregular geometry yet. We are emmiting rectangular mesh
+            // TODO: Spirit does not support irregular geometry yet. Write ONLY rectangular mesh
             this->output_to_file += fmt::format( "# meshtype: rectangular\n" );
-            
-            // TODO: maybe this is not true for every system
-            this->output_to_file += fmt::format( "# xbase: {}\n", 0 );
-            this->output_to_file += fmt::format( "# ybase: {}\n", 0 );
-            this->output_to_file += fmt::format( "# zbase: {}\n", 0 );
+           
+            // Bravais Lattice
+            this->output_to_file += fmt::format( "# xbase: {} {} {}\n", 
+                                                 geometry.bravais_vectors[0][0], 
+                                                 geometry.bravais_vectors[0][1],
+                                                 geometry.bravais_vectors[0][2] );
+            this->output_to_file += fmt::format( "# ybase: {} {} {}\n",
+                                                 geometry.bravais_vectors[1][0], 
+                                                 geometry.bravais_vectors[1][1],
+                                                 geometry.bravais_vectors[1][2] );
+            this->output_to_file += fmt::format( "# zbase: {} {} {}\n",
+                                                 geometry.bravais_vectors[2][0], 
+                                                 geometry.bravais_vectors[2][1],
+                                                 geometry.bravais_vectors[2][2] );
             
             this->output_to_file += fmt::format( "# xstepsize: {}\n", 
                                         geometry.lattice_constant * geometry.bravais_vectors[0][0] );
