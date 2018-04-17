@@ -43,7 +43,7 @@ namespace Engine
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
 
-        #ifndef USE_CUDA
+        #ifndef SPIRIT_USE_CUDA
 
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
         {
@@ -79,7 +79,7 @@ namespace Engine
         }
 
         #endif
-        #ifdef USE_CUDA
+        #ifdef SPIRIT_USE_CUDA
     
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const int translations[3])
         {

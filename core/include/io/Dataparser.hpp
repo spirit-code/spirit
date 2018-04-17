@@ -6,12 +6,6 @@
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <data/Parameters_Method_LLG.hpp>
-#include <data/Parameters_Method_GNEB.hpp>
-#include <data/Parameters_Method_MMF.hpp>
-#include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
-#include <engine/Hamiltonian_Gaussian.hpp>
 #include <io/IO.hpp>
 #include <io/Fileformat.hpp>
 #include <io/Filter_File_Handle.hpp>

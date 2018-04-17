@@ -184,51 +184,25 @@ namespace IO
         std::string config = "";
         config += "################### Hamiltonian ##################\n";
         std::string name;
-        if (hamiltonian->Name() == "Heisenberg (Pairs)") name = "heisenberg_pairs";
-        else if (hamiltonian->Name() == "Heisenberg (Neighbours)") name = "heisenberg_neighbours";
+        if (hamiltonian->Name() == "Heisenberg") name = "heisenberg_pairs";
         else if (hamiltonian->Name() == "Gaussian") name = "gaussian";
         config += fmt::format("{:<25} {}\n",       "hamiltonian", name);
         config += fmt::format("{:<25} {} {} {}\n", "boundary_conditions", hamiltonian->boundary_conditions[0], hamiltonian->boundary_conditions[1], hamiltonian->boundary_conditions[2]);
         Append_String_to_File(config, configFile);
 
-        if (hamiltonian->Name() == "Heisenberg (Pairs)") Hamiltonian_Heisenberg_Pairs_to_Config(configFile, hamiltonian, geometry);
-        else if (hamiltonian->Name() == "Heisenberg (Neighbours)") Hamiltonian_Heisenberg_Neighbours_to_Config(configFile, hamiltonian);
+        if (hamiltonian->Name() == "Heisenberg") Hamiltonian_Heisenberg_to_Config(configFile, hamiltonian, geometry);
         else if (hamiltonian->Name() == "Gaussian") Hamiltonian_Gaussian_to_Config(configFile, hamiltonian);
 
         config = "################# End Hamiltonian ################";
         Append_String_to_File(config, configFile);
     }// end Hamiltonian_to_Config
 
-    void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian)
-    {
-        std::string config = "";
-        Engine::Hamiltonian_Heisenberg_Neighbours * ham = (Engine::Hamiltonian_Heisenberg_Neighbours *)hamiltonian.get();
-        config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude/Constants::mu_B);
-        config += fmt::format("{:<25} {}\n", "external_field_normal",    ham->external_field_normal.transpose());
-        config += fmt::format("{:<25} {}\n", "mu_s",                     ham->mu_s[0]);
-        config += fmt::format("{:<25} {}\n", "anisotropy_magnitude",     ham->anisotropy_magnitudes[0]);
-        config += fmt::format("{:<25} {}\n", "anisotropy_normal",        ham->anisotropy_normals[0].transpose());
-        config += fmt::format("{:<25} {}\n", "n_neigh_shells",           ham->exchange_magnitudes.size());
-        config += fmt::format("{:<25} {}\n", "jij",                      ham->exchange_magnitudes[0]);
-        for (unsigned int i=1; i<ham->exchange_magnitudes.size(); ++i)
-            config += fmt::format(" {}", ham->exchange_magnitudes[i]);
-        config += "\n";
-        config += "\n";
-        config += fmt::format("{:<25} {}\n", "n_neigh_shells_dmi", ham->dmi_magnitudes.size());
-        config += fmt::format("{:<25} {}\n", "dij",                ham->dmi_magnitudes[0]);
-        for (unsigned int i=1; i<ham->dmi_magnitudes.size(); ++i)
-            config += fmt::format(" {}", ham->dmi_magnitudes[i]);
-        config += "\n";
-        config += "\n";
-        config += fmt::format("{:<25} {}\n", "dd_radius", ham->ddi_radius);
-        Append_String_to_File(config, configFile);
-    }// end Hamiltonian_Heisenberg_Neighbours_to_Config
 
-    void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry)
+    void Hamiltonian_Heisenberg_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry)
     {
         int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
         std::string config = "";
-        Engine::Hamiltonian_Heisenberg_Pairs* ham = (Engine::Hamiltonian_Heisenberg_Pairs *)hamiltonian.get();
+        Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
         
         // Magnetic moment
         config += "mu_s                     ";

@@ -17,9 +17,9 @@ import unittest
 failing test we load a p_state once and we use constructor and destructor
 of each test (setUp/tearDown) to clean that p_state'''
 
-cfgfile = spirit_py_dir + "/../test/input/api.cfg"                 # Input File
-p_state = state.setup(cfgfile)              # State setup
-chain.Image_to_Clipboard( p_state )         # Copy p_state to Clipboard
+cfgfile = spirit_py_dir + "/../test/input/api.cfg" # Input File
+p_state = state.setup(cfgfile)                     # State setup
+chain.Image_to_Clipboard( p_state )                # Copy p_state to Clipboard
 
 class TestChain(unittest.TestCase):
     
@@ -52,9 +52,9 @@ class clipboard_TestChain( TestChain ):
     
     def test_nonexisting_chain_to_clipboard(self):
         ''' Must do nothing if we want to add non existing state to clipboard'''
-        chain.Image_to_Clipboard( self.p_state, -1, 10  );      # copy 10th chain
+        chain.Image_to_Clipboard( self.p_state, -1, 10  );      # copy current image of 10th chain
         chain.Image_to_Clipboard( self.p_state, 10, 10  );      # copy 10th image 10th chain
-        chain.Image_to_Clipboard( self.p_state, -1, -10 );      # copy -10th chain
+        chain.Image_to_Clipboard( self.p_state, -1, -10 );      # copy current image of -10th chain
 
 class insert_deleteTestChain(TestChain):
     
@@ -179,39 +179,43 @@ class remove_TestChain(TestChain):
         self.assertEqual( chain.Get_NOI( self.p_state ), 2 )    # total 2 images
         self.assertEqual( system.Get_Index( self.p_state ), 1 ) # active is 1st
 
-class getters_TestChain(TestChain):
+# class getters_TestChain(TestChain):
     
-    # TODO: a proper way to test Rx and E values
+#     # TODO: a proper way to test Rx and E values
     
-    def test_Rx(self):
-        chain.Insert_Image_Before( self.p_state )               # active is 1st
-        noi = chain.Get_NOI( self.p_state )                     # total 2 images
-        self.assertAlmostEqual( noi, 2 )
-        Rx = chain.Get_Rx( self.p_state )                       # get Rx values
-        Rx_interp = chain.Get_Rx_Interpolated( self.p_state )   # get Rx interpol 
-        self.assertNotAlmostEqual( Rx[noi-1], 0 )
-        # self.assertAlmostEqual( Rx[-1], Rx_interp[-1] )
+#     def test_Rx(self):
+#         chain.Insert_Image_Before( self.p_state )               # active is 1st
+#         noi = chain.Get_NOI( self.p_state )                     # total 2 images
+#         self.assertAlmostEqual( noi, 2 )
+#         Rx = chain.Get_Rx( self.p_state )                       # get Rx values
+#         Rx_interp = chain.Get_Rx_Interpolated( self.p_state )   # get Rx interpol 
+#         self.assertNotAlmostEqual( Rx[noi-1], 0 )
+#         # self.assertAlmostEqual( Rx[-1], Rx_interp[-1] )
     
-    def test_energy(self):
-        E = chain.Get_Energy( self.p_state )
-        E_interp = chain.Get_Energy_Interpolated( self.p_state )
-        self.assertNotAlmostEqual( E[0], 0 )
-        self.assertAlmostEqual( E_interp[0], 0 )
+#     def test_energy(self):
+#         E = chain.Get_Energy( self.p_state )
+#         E_interp = chain.Get_Energy_Interpolated( self.p_state )
+#         print("............................")
+#         print(E)
+#         print(E_interp)
+#         print("............................")
+#         self.assertNotAlmostEqual( E[0], 0 )
+#         self.assertAlmostEqual( E_interp[0], 0 )
 
-class data_TestChain(TestChain):
+# class data_TestChain(TestChain):
     
-    # TODO: A proper way to test Update and Setup
+#     # TODO: A proper way to test Update and Setup
     
-    def test_update(self):
-        noi = chain.Get_NOI( self.p_state )
-        Ei = chain.Get_Energy( self.p_state )                   # Energy initial
-        chain.Update_Data( self.p_state )
-        Ef = chain.Get_Energy( self.p_state )                   # Energy final
-        for i in range(noi):
-            self.assertEqual( Ei[i], Ef[i] )                              # should be equal
+#     def test_update(self):
+#         noi = chain.Get_NOI( self.p_state )
+#         Ei = chain.Get_Energy( self.p_state )                   # Energy initial
+#         chain.Update_Data( self.p_state )
+#         Ef = chain.Get_Energy( self.p_state )                   # Energy final
+#         for i in range(noi):
+#             self.assertEqual( Ei[i], Ef[i] )                    # should be equal
     
-    def test_setup(self):
-        chain.Setup_Data( self.p_state )
+#     def test_setup(self):
+#         chain.Setup_Data( self.p_state )
 
 #########
 

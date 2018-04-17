@@ -1,4 +1,4 @@
-#ifdef USE_CUDA
+#ifdef SPIRIT_USE_CUDA
 
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>

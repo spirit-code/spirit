@@ -70,7 +70,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
-        #ifdef _OPENMP
+        #ifdef SPIRIT_USE_OPENMP
             int nt = omp_get_max_threads();
             Log(Log_Level::Info, Log_Sender::All, fmt::format("Using OpenMP (max. {} threads)", nt).c_str() );
         #else

@@ -54,10 +54,8 @@ namespace Engine
         vectorfield grad_pj(nos);
         vectorfield grad_mj(nos);
 
-        std::cerr << "inside FD Hess" << std::endl;
         for (int i = 0; i < nos; ++i)
         {
-            std::cerr << "inside FD Hess "  << i << std::endl;
             for (int j = 0; j < nos; ++j)
             {
                 for (int alpha = 0; alpha < 3; ++alpha)
@@ -76,9 +74,9 @@ namespace Engine
                         this->Gradient(spins_pj, grad_pj);
                         this->Gradient(spins_mj, grad_mj);
 
-                        hessian(3*i + alpha, 3*j + beta) = 0.25 / delta * ( 
-                                                grad_pj[i][alpha] - grad_mj[i][alpha]
-                                                + grad_pi[j][beta]  - grad_mi[j][beta]  );
+                        hessian(3*i + alpha, 3*j + beta) = 0.25 / delta *
+                            ( grad_pj[i][alpha] - grad_mj[i][alpha]
+                            + grad_pi[j][beta]  - grad_mi[j][beta] );
                         
                         // Un-Displace
                         spins_pi[i][alpha] -= delta;

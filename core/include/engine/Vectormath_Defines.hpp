@@ -18,7 +18,7 @@ typedef Eigen::Matrix<scalar, 1, 3> RowVector3;
 typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
 
 // Vectorfield and Scalarfield typedefs
-#ifdef USE_CUDA
+#ifdef SPIRIT_USE_CUDA
     #include "Managed_Allocator.hpp"
     typedef std::vector<int,             managed_allocator<int>>             intfield;
     typedef std::vector<scalar,          managed_allocator<scalar>>          scalarfield;
