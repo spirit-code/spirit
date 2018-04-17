@@ -623,6 +623,38 @@ namespace Engine
 
         /////////////////////////////////////////////////////////////////
 
+        vectorfield change_dimensions(vectorfield & sf, int n_cell_atoms, intfield n_cells,
+            intfield dimensions_new, std::array<int,3> shift)
+        {
+            int N_old = n_cell_atoms*n_cells[0]*n_cells[1]*dimensions_new[2];
+            int N_new = n_cell_atoms*dimensions_new[0]*dimensions_new[1]*dimensions_new[2];
+            vectorfield newfield(N_new);
+
+            for (int i=0; i<dimensions_new[0]; ++i)
+            {
+                for (int j=0; j<dimensions_new[1]; ++j)
+                {
+                    for (int k=0; k<dimensions_new[2]; ++k)
+                    {
+                        for (int iatom=0; iatom<n_cell_atoms; ++iatom)
+                        {
+                            int idx_old = iatom + idx_from_translations(n_cells, n_cell_atoms, {i,j,k});
+
+                            int idx_new = iatom + idx_from_translations(dimensions_new, n_cell_atoms, {i,j,k}, shift.data());
+
+                            if ( (i>=n_cells[0]) || (j>=n_cells[1]) || (k>=n_cells[2]))
+                                newfield[idx_new] = {0,0,1};
+                            else
+                                newfield[idx_new] = sf[idx_old];
+                        }
+                    }
+                }
+            }
+            return newfield;
+        }
+
+        /////////////////////////////////////////////////////////////////
+
 
         __global__ void cu_fill(scalar *sf, scalar s, size_t N)
         {

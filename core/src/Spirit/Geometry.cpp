@@ -10,18 +10,20 @@
 
 void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const Data::Geometry & new_geometry)
 {
-    *system->geometry = new_geometry;
+    // *system->geometry = new_geometry;
     auto ge = system->geometry;
 
     // Spins
     int nos_old = system->nos;
-    int nos = ge->nos;
+    int nos = new_geometry.nos;
     system->nos = nos;
-    // TODO: ordering of spins should be considered and date potentially extrapolated -> write a function for this
-    system->spins->resize(nos);
-    system->effective_field.resize(nos);
-    for (int i = nos_old; i<nos; ++i) (*system->spins)[i] = Vector3{ 0, 0, 1 };
-    for (int i = nos_old; i<nos; ++i) system->effective_field[i] = Vector3{ 0, 0, 1 };
+    
+    // Move the vector-fields to the new geometry
+    *system->spins = Engine::Vectormath::change_dimensions(*system->spins, ge->n_cell_atoms, ge->n_cells, new_geometry.n_cells);
+    system->effective_field = Engine::Vectormath::change_dimensions(system->effective_field, ge->n_cell_atoms, ge->n_cells, new_geometry.n_cells);
+
+    // Update the system geometry
+    *system->geometry = new_geometry;
 
     // Parameters
     // TODO: properly re-generate pinning
