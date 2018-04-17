@@ -523,20 +523,31 @@ namespace Engine
         hessian.setZero();
 
         // Single Spin elements
-        for (int alpha = 0; alpha < 3; ++alpha)
+        for (int da = 0; da < geometry->n_cells[0]; ++da)
         {
-            for ( int beta = 0; beta < 3; ++beta )
+            for (int db = 0; db < geometry->n_cells[1]; ++db)
             {
-                for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
+                for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
                 {
-                    if ( check_atom_type(this->geometry->atom_types[anisotropy_indices[i]]) )
+                    std::array<int, 3 > translations = { da, db, dc };
+                    int icell = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                    for (int alpha = 0; alpha < 3; ++alpha)
                     {
-                        int idx_i = 3 * anisotropy_indices[i] + alpha;
-                        int idx_j = 3 * anisotropy_indices[i] + beta;
-                        // scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
-                        hessian( idx_i, idx_j ) += -2.0 * this->anisotropy_magnitudes[i] * 
-                                                            this->anisotropy_normals[i][alpha] * 
-                                                            this->anisotropy_normals[i][beta];
+                        for ( int beta = 0; beta < 3; ++beta )
+                        {
+                            for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
+                            {
+                                if ( check_atom_type(this->geometry->atom_types[anisotropy_indices[i]]) )
+                                {
+                                    int idx_i = 3 * icell + anisotropy_indices[i] + alpha;
+                                    int idx_j = 3 * icell + anisotropy_indices[i] + beta;
+                                    // scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
+                                    hessian( idx_i, idx_j ) += -2.0 * this->anisotropy_magnitudes[i] * 
+                                                                    this->anisotropy_normals[i][alpha] * 
+                                                                    this->anisotropy_normals[i][beta];
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -563,7 +574,9 @@ namespace Engine
                                 int j = 3 * jspin + alpha;
 
                                 hessian(i, j) += -exchange_magnitudes[i_pair];
+                                #ifndef _OPENMP
                                 hessian(j, i) += -exchange_magnitudes[i_pair];
+                                #endif
                             }
                         }
                     }
@@ -585,45 +598,24 @@ namespace Engine
                         int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
                         if (jspin >= 0)
                         {
-                            for (int alpha = 0; alpha < 3; ++alpha)
-                            {
-                                for (int beta = 0; beta < 3; ++beta)
-                                {
-                                    int i = 3 * ispin + alpha;
-                                    int j = 3 * jspin + beta;
-                                    
-                                    if ((alpha == 0 && beta == 1))
-                                    {
-                                        hessian(i, j) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                        hessian(j, i) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                    }
-                                    else if ((alpha == 1 && beta == 0))
-                                    {
-                                        hessian(i, j) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                        hessian(j, i) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                    }
-                                    else if ((alpha == 0 && beta == 2))
-                                    {
-                                        hessian(i, j) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                        hessian(j, i) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                    }
-                                    else if ((alpha == 2 && beta == 0))
-                                    {
-                                        hessian(i, j) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                        hessian(j, i) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                    }
-                                    else if ((alpha == 1 && beta == 2))
-                                    {
-                                        hessian(i, j) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                        hessian(j, i) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                    }
-                                    else if ((alpha == 2 && beta == 1))
-                                    {
-                                        hessian(i, j) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                        hessian(j, i) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                    }
-                                }
-                            }
+                            int i = 3*ispin;
+                            int j = 3*jspin;
+
+                            hessian(i+2, j+1) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(i+1, j+2) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(i, j+2)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(i+2, j)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                            hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+
+                            #ifndef _OPENMP
+                            hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(j, i+2)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(j, i+1)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                            hessian(j+1, i)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                            #endif
                         }
                     }
                 }
