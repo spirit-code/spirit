@@ -177,6 +177,9 @@ endif()
 if ( SPIRIT_USE_CUDA )
 	set ( SPIRIT_DEFINE_CUDA "#define SPIRIT_USE_CUDA")
 endif()
+if ( SPIRIT_USE_OPENMP )
+	set ( SPIRIT_DEFINE_OPENMP "#define SPIRIT_USE_OPENMP")
+endif()
 if ( SPIRIT_USE_THREADS )
 	set ( SPIRIT_DEFINE_THREADS "#define SPIRIT_USE_THREADS")
 endif()
@@ -189,7 +192,6 @@ configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.hpp.in ${PROJECT_SOURC
 if ( SPIRIT_USE_CUDA )
 	# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
     find_package( CUDA 8 REQUIRED )
-    add_definitions( -DUSE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks

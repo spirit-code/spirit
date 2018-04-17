@@ -1,4 +1,4 @@
-#ifndef USE_CUDA
+#ifndef SPIRIT_USE_CUDA
 
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
@@ -407,7 +407,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-        #pragma omp parallel
+        #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
             for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)

@@ -1,4 +1,4 @@
-#ifdef USE_CUDA
+#ifdef SPIRIT_USE_CUDA
 
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
