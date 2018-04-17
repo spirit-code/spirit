@@ -18,8 +18,9 @@
 
 namespace IO
 {
-    void Read_NonOVF_Spin_Configuration( vectorfield& spins, const int nos, 
-                                         const int idx_image_infile, const std::string file );
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
+                                         const int nos, const int idx_image_infile, 
+                                         const std::string file );
     void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
                                            const std::string file, int start_image_infile, 
                                            int end_image_infile, const int insert_idx, 

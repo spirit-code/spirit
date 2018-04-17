@@ -71,13 +71,14 @@ namespace IO
         // Check segment's geometry
         void check_geometry( const Data::Geometry& geometry );
         // Read segment's data
-        void read_data( vectorfield& vf );
+        void read_data( vectorfield& vf, Data::Geometry& geometry );
         // In case of binary data check the binary check values
         bool check_binary_values();
         // Read binary OVF data
-        void read_data_bin( vectorfield& vf );
+        void read_data_bin( vectorfield& vf, Data::Geometry& geometry );
         // Read text OVF data. The delimiter, if any, will be discarded in the reading
-        void read_data_txt( vectorfield& vf, const std::string& delimiter = "" );
+        void read_data_txt( vectorfield& vf, Data::Geometry& geometry, 
+                            const std::string& delimiter = "" );
         // Write OVF file header
         void write_top_header();
         // Write segment data binary
@@ -98,7 +99,7 @@ namespace IO
         // Get the number of segments in the file
         int get_n_segments();
         // Read header and data from a given segment. Also check geometry
-        void read_segment( vectorfield& vf, const Data::Geometry& geometry, 
+        void read_segment( vectorfield& vf, Data::Geometry& geometry, 
                            const int idx_seg = 0 );
         // Write segment to file (if the file exists overwrite it)
         void write_segment( const vectorfield& vf, const Data::Geometry& geometry,

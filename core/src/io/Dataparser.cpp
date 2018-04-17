@@ -18,50 +18,12 @@ using namespace Engine;
 
 namespace IO
 {
-    // A helper function for splitting a string with a delimiter
-    std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
-    {
-        std::vector<scalar> result;
-
-        scalar temp;
-        std::stringstream ss(source);
-        while (ss >> temp)
-        {
-            result.push_back(temp);
-
-            if (ss.peek() == ',' || ss.peek() == ' ')
-                ss.ignore();
-        }
-
-        return result;
-    }
-    
-    // A helper function 
-    void check_defects( std::shared_ptr<Data::Spin_System> s )
-    {
-        auto& spins = *s->spins;
-        int nos = s->geometry->nos;
-        
-        // Detecet the defects 
-        for (int i=0; i<nos; i++)
-        {
-            if (spins[i].norm() < 1e-5)
-            {
-                spins[i] = {0, 0, 1};
-                
-                // in case of spin vector close to zero we have a vacancy
-            #ifdef SPIRIT_ENABLE_DEFECTS
-                s->geometry->atom_types[i] = -1;
-            #endif
-            }            
-        }
-    }
-    
     /*
     Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
     */
-    void Read_NonOVF_Spin_Configuration( vectorfield& spins, const int nos, 
-                                         const int idx_image_infile, const std::string file )
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
+                                         const int nos, const int idx_image_infile, 
+                                         const std::string file )
     {
         IO::Filter_File_Handle file_handle( file, "#" );
          
@@ -80,7 +42,7 @@ namespace IO
                 spins[i] = {0, 0, 1};
                 // in case of spin vector close to zero we have a vacancy
             #ifdef SPIRIT_ENABLE_DEFECTS
-                spins->geometry->atom_types[i] = -1;
+                geometry.atom_types[i] = -1;
             #endif
             }
         }

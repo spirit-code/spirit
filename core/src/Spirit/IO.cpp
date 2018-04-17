@@ -225,7 +225,7 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
                          fmt::format("File {} is not OVF. Trying to read column data", file ), 
                          idx_image_inchain, idx_chain );
                     
-                    IO::Read_NonOVF_Spin_Configuration( spins, image->nos, 
+                    IO::Read_NonOVF_Spin_Configuration( spins, geometry, image->nos, 
                                                         idx_image_infile, file ); 
                 }
 
@@ -520,6 +520,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         for (int i=insert_idx; i<noi_to_read; i++)
                         {
                             IO::Read_NonOVF_Spin_Configuration( *chain->images[i]->spins,
+                                                                *chain->images[i]->geometry,
                                                                 chain->images[i]->nos,
                                                                 start_image_infile, file );
                             start_image_infile++;

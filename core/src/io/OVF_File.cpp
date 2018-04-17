@@ -203,7 +203,7 @@ namespace IO
         }
     }
         
-    void File_OVF::read_data( vectorfield& vf )
+    void File_OVF::read_data( vectorfield& vf, Data::Geometry& geometry )
     {
         try
         {
@@ -240,11 +240,11 @@ namespace IO
             
             // Read the data
             if( this->datatype_in == "binary" )
-                read_data_bin( vf );
+                read_data_bin( vf, geometry );
             else if( this->datatype_in == "text" )
-                read_data_txt( vf );
+                read_data_txt( vf, geometry );
             else if( this->datatype_in == "csv" )
-                read_data_txt( vf, "," );
+                read_data_txt( vf, geometry, "," );
         }
         catch (...) 
         {
@@ -295,7 +295,7 @@ namespace IO
     
     }
 
-    void File_OVF::read_data_bin( vectorfield& vf )
+    void File_OVF::read_data_bin( vectorfield& vf, Data::Geometry& geometry )
     {
         try
         {        
@@ -332,7 +332,7 @@ namespace IO
                                 vf[index] = {0, 0, 1};
                                 // in case of spin vector close to zero we have a vacancy
                             #ifdef SPIRIT_ENABLE_DEFECTS
-                                vf->geometry->atom_types[index] = -1;
+                                geometry.atom_types[index] = -1;
                             #endif
                             }
                         }
@@ -366,7 +366,7 @@ namespace IO
                                 vf[index] = {0, 0, 1};
                                 // in case of spin vector close to zero we have a vacancy
                             #ifdef SPIRIT_ENABLE_DEFECTS
-                                vf->geometry->atom_types[index] = -1;
+                                geometry.atom_types[index] = -1;
                             #endif
                             }
                         }
@@ -383,7 +383,8 @@ namespace IO
         }
     }
     
-    void File_OVF::read_data_txt( vectorfield& vf, const std::string& delimiter )
+    void File_OVF::read_data_txt( vectorfield& vf, Data::Geometry& geometry, 
+                                  const std::string& delimiter )
     {
         try
         { 
@@ -402,7 +403,7 @@ namespace IO
                     vf[i] = {0, 0, 1};
                     // in case of spin vector close to zero we have a vacancy
                 #ifdef SPIRIT_ENABLE_DEFECTS
-                    vf->geometry->atom_types[i] = -1;
+                    geometry.atom_types[i] = -1;
                 #endif
                 }
             }
@@ -622,7 +623,7 @@ namespace IO
         return this->n_segments;
     }
 
-    void File_OVF::read_segment( vectorfield& vf, const Data::Geometry& geometry, 
+    void File_OVF::read_segment( vectorfield& vf, Data::Geometry& geometry, 
                                  const int idx_seg )
     {
         try
@@ -653,7 +654,7 @@ namespace IO
            
                 read_header();
                 check_geometry( geometry );
-                read_data( vf );
+                read_data( vf, geometry );
 
                 // close the file
                 this->ifile = NULL;
