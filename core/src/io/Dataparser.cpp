@@ -91,9 +91,9 @@ namespace IO
 
 
     void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
-                                           const std::string file, int starting_image, 
-                                           int ending_image, const int insert_idx, int& noi_to_add,
-                                           int& noi_to_read, const int idx_chain )
+                                           const std::string file, int start_image_infile, 
+                                           int end_image_infile, const int insert_idx, 
+                                           int& noi_to_add, int& noi_to_read, const int idx_chain )
     {
         IO::Filter_File_Handle file_handle( file, "#" ); 
         
@@ -112,18 +112,18 @@ namespace IO
         }
 
         // Check if the ending image is valid otherwise set it to the last image infile
-        if ( ending_image < starting_image || ending_image >= noi_infile )
+        if ( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
         {
-            ending_image = noi_infile - 1;
+            end_image_infile = noi_infile - 1;
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Invalid ending_image. Value was set to the last image "
+                 fmt::format( "Invalid end_image_infile. Value was set to the last image "
                  "of the file"), insert_idx, idx_chain );
         }
           
         // If the idx of the starting image is valid
-        if ( starting_image < noi_infile )
+        if ( start_image_infile < noi_infile )
         {
-            noi_to_read = ending_image - starting_image + 1;
+            noi_to_read = end_image_infile - start_image_infile + 1;
            
             noi_to_add = noi_to_read - ( noi - insert_idx );
         }

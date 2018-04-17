@@ -36,8 +36,8 @@ DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fi
                                 const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
 
 // Chains
-DLLEXPORT void IO_Chain_Read( State *state, const char *file, int starting_image=0, 
-                              int ending_image=-1, int insert_idx=0, int idx_chain=-1 ) noexcept;
+DLLEXPORT void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, 
+                              int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Chain_Write( State *state, const char *file, int format, 
                                const char* comment = "-", int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format, 

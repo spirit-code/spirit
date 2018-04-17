@@ -408,8 +408,8 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
 /*-------------------------------------- Chains ------------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 
-void IO_Chain_Read( State *state, const char *file, int starting_image, 
-                    int ending_image, int insert_idx, int idx_chain ) noexcept
+void IO_Chain_Read( State *state, const char *file, int start_image_infile, 
+                    int end_image_infile, int insert_idx, int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -452,18 +452,18 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                     int noi_infile = file_ovf.get_n_segments();
                    
                     // Check if the ending image is valid otherwise set it to the last image infile
-                    if ( ending_image < starting_image || ending_image >= noi_infile )
+                    if ( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
                     {
-                        ending_image = noi_infile - 1;
+                        end_image_infile = noi_infile - 1;
                         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                             fmt::format( "Invalid ending_image. Value was set to the last image "
+                             fmt::format( "Invalid end_image_infile. Value was set to the last image "
                              "of the file"), insert_idx, idx_chain );
                     }
 
                     // If the idx of the starting image is valid
-                    if ( starting_image < noi_infile )
+                    if ( start_image_infile < noi_infile )
                     {
-                        int noi_to_read = ending_image - starting_image + 1;
+                        int noi_to_read = end_image_infile - start_image_infile + 1;
                        
                         int noi_to_add = noi_to_read - ( noi - insert_idx );
        
@@ -480,8 +480,8 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                         for (int i=insert_idx; i<noi_to_read; i++)
                         {
                             file_ovf.read_segment( *images[i]->spins, *images[i]->geometry, 
-                                                   starting_image );
-                            starting_image++;
+                                                   start_image_infile );
+                            start_image_infile++;
                         }
                         
                         success = true;
@@ -502,8 +502,8 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                     int noi_to_add = 0;
                     int noi_to_read = 0;
 
-                    IO::Check_NonOVF_Chain_Configuration( chain, file, starting_image, 
-                                                          ending_image, insert_idx, noi_to_add,
+                    IO::Check_NonOVF_Chain_Configuration( chain, file, start_image_infile, 
+                                                          end_image_infile, insert_idx, noi_to_add,
                                                           noi_to_read, idx_chain );
                     // Add the images if you need that
                     if ( noi_to_add > 0 ) 
@@ -521,8 +521,8 @@ void IO_Chain_Read( State *state, const char *file, int starting_image,
                         {
                             IO::Read_NonOVF_Spin_Configuration( *chain->images[i]->spins,
                                                                 chain->images[i]->nos,
-                                                                starting_image, file );
-                            starting_image++;
+                                                                start_image_infile, file );
+                            start_image_infile++;
                         }
                         success = true;
                     }          
