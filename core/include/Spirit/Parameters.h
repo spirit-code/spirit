@@ -49,6 +49,7 @@ DLLEXPORT void Parameters_Set_GNEB_Climbing_Falling(State *state, int image_type
 // Automatically set the image type for a chain.
 //    Maxima are set to climbing, minima to falling, others are not changed.
 DLLEXPORT void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_GNEB_N_Energy_Interpolations(State *state, int n, int idx_chain=-1) noexcept;
 
 
 //      Get LLG

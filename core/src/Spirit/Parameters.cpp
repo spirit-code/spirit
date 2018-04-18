@@ -796,6 +796,31 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) n
     }
 }
 
+void Parameters_Set_GNEB_N_Energy_Interpolations(State *state, int n, int idx_chain) noexcept
+{
+    int idx_image = -1;
+    
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        chain->Lock();
+        chain->gneb_parameters->n_E_interpolations = n;
+        int size_interpolated = chain->noi + (chain->noi - 1)*n;
+        chain->Rx_interpolated = std::vector<scalar>(size_interpolated, 0);
+        chain->E_interpolated = std::vector<scalar>(size_interpolated, 0);
+        chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(size_interpolated, 0));
+        chain->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get LLG ----------------------------------------------------------- */

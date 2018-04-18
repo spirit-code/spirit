@@ -120,6 +120,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionToggle_visualisation,       SIGNAL(triggered()), this, SLOT(updateMenuBar()));
 	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(updateMenuBar()));
 	connect(this->actionToggle_fullscreen_window,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_infowidget,          SIGNAL(triggered()), this, SLOT(toggleInfoWidget()));
 	connect(this->dockWidget_Settings, SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
 	connect(this->dockWidget_Plots,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
 	connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));

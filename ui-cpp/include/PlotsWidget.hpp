@@ -17,18 +17,15 @@ class PlotsWidget : public QWidget, private Ui::PlotsWidget
     Q_OBJECT
 
 public:
-	PlotsWidget(std::shared_ptr<State> state);
+    PlotsWidget(std::shared_ptr<State> state);
 
-	std::shared_ptr<State> state;
-    
+    std::shared_ptr<State> state;
     PlotWidget * energyPlot;
 
 private slots:
-	void updatePlots();
-	void RefreshClicked();
-	void ChangeInterpolationClicked();
-
-
+    void updatePlots();
+    void refreshClicked();
+    void updateInterpolation();
 };
 
 #endif
