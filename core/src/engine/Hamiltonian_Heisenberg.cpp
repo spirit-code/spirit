@@ -36,7 +36,8 @@ namespace Engine
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
         dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
-        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
+        ddi_cutoff_radius(ddi_radius)
     {
         #if defined SPIRIT_USE_OPENMP
         for (int i = 0; i < exchange_pairs.size(); ++i)
@@ -57,15 +58,7 @@ namespace Engine
         #endif
 
         // Generate DDI pairs, magnitudes, normals
-        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-        scalar magnitude;
-        Vector3 normal;
-        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
-        {
-            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, ddi_pairs[i].translations }, magnitude, normal);
-            this->ddi_magnitudes.push_back(magnitude);
-            this->ddi_normals.push_back(normal);
-        }
+        this->Update_DDI_Pairs();
 
         this->Update_Energy_Contributions();
     }
@@ -88,7 +81,8 @@ namespace Engine
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_n_shells(exchange_magnitudes.size()),
-        dmi_n_shells(dmi_magnitudes.size())
+        dmi_n_shells(dmi_magnitudes.size()),
+        ddi_cutoff_radius(ddi_radius)
     {
         #if defined SPIRIT_USE_OPENMP
         // When parallelising (cuda or openmp), we need all neighbours per spin
@@ -116,19 +110,28 @@ namespace Engine
         }
 
         // Generate DDI pairs, magnitudes, normals
-        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-        scalar magnitude;
-        Vector3 normal;
-        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
-        {
-            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, ddi_pairs[i].translations }, magnitude, normal);
-            this->ddi_magnitudes.push_back(magnitude);
-            this->ddi_normals.push_back(normal);
-        }
+        this->Update_DDI_Pairs();
 
         this->Update_Energy_Contributions();
     }
 
+    void Hamiltonian_Heisenberg::Update_DDI_Pairs()
+    {
+        this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
+        this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
+        this->ddi_normals    = vectorfield(this->ddi_pairs.size());
+
+        scalar magnitude;
+        Vector3 normal;
+
+        for (unsigned int i = 0; i < this->ddi_pairs.size(); ++i)
+        {
+            Engine::Neighbours::DDI_from_Pair(
+                *this->geometry,
+                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, this->ddi_pairs[i].translations },
+                this->ddi_magnitudes[i], this->ddi_normals[i]);
+        }
+    }
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
@@ -250,7 +253,7 @@ namespace Engine
             for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
                 int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
@@ -270,7 +273,7 @@ namespace Engine
             for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
                 int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
@@ -413,7 +416,7 @@ namespace Engine
             for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
                 int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
@@ -433,7 +436,7 @@ namespace Engine
             for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
                 int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);

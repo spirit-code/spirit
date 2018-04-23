@@ -114,7 +114,7 @@ namespace Data
         }
 
         // 2D: triangulation
-        if (dimensionality == 2)
+        if (this->dimensionality == 2)
         {
             // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
             if (this->last_update_n_cell_step != n_cell_step ||
@@ -172,7 +172,7 @@ namespace Data
         }
 
         // 3D: Tetrahedra
-        if (dimensionality == 3)
+        if (this->dimensionality == 3)
         {
             // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
             if (this->last_update_n_cell_step != n_cell_step ||

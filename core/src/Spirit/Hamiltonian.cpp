@@ -669,7 +669,7 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
         {
             auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
 
-            *radius = (float)ham->ddi_radius;
+            *radius = (float)ham->ddi_cutoff_radius;
         }
     }
     catch( ... )

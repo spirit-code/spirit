@@ -8,21 +8,22 @@
 #include "Spirit_Defines.h"
 
 // Dynamic Eigen typedefs
-typedef Eigen::Matrix<scalar, -1,  1> VectorX;
-typedef Eigen::Matrix<scalar,  1, -1> RowVectorX;
-typedef Eigen::Matrix<scalar, -1, -1> MatrixX;
+using VectorX    = Eigen::Matrix<scalar, -1,  1>;
+using RowVectorX = Eigen::Matrix<scalar,  1, -1>;
+using MatrixX    = Eigen::Matrix<scalar, -1, -1>;
 
 // 3D Eigen typedefs
-typedef Eigen::Matrix<scalar, 3, 1> Vector3;
-typedef Eigen::Matrix<scalar, 1, 3> RowVector3;
-typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
+using Vector3    = Eigen::Matrix<scalar, 3, 1>;
+using RowVector3 = Eigen::Matrix<scalar, 1, 3>;
+using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
 
-// Vectorfield and Scalarfield typedefs
+// Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA
+    // The general field, using the managed allocator
     #include "Managed_Allocator.hpp"
-    typedef std::vector<int,             managed_allocator<int>>             intfield;
-    typedef std::vector<scalar,          managed_allocator<scalar>>          scalarfield;
-    typedef std::vector<Vector3,         managed_allocator<Vector3>>         vectorfield;
+    template<typename T>
+    using field = std::vector<T, managed_allocator<T>>;
+
     struct Pair
     {
         // Basis indices of first and second atom of pair
@@ -40,19 +41,11 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
         int i, j, k, l;
         int d_j[3], d_k[3], d_l[3];
     };
-    struct Neighbour : Pair
-    {
-        // Shell index
-        int idx_shell;
-    };
-    typedef std::vector<Pair,       managed_allocator<Pair>>       pairfield;
-    typedef std::vector<Triplet,    managed_allocator<Triplet>>    tripletfield;
-    typedef std::vector<Quadruplet, managed_allocator<Quadruplet>> quadrupletfield;
-    typedef std::vector<Neighbour,  managed_allocator<Neighbour>>  neighbourfield;
 #else
-    typedef std::vector<int>     intfield;
-    typedef std::vector<scalar>  scalarfield;
-    typedef std::vector<Vector3> vectorfield;
+    // The general field
+    template<typename T>
+    using field = std::vector<T>;
+
     struct Pair
     {
         int i, j;
@@ -68,17 +61,25 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
         int i, j, k, l;
         std::array<int,3> d_j, d_k, d_l;
     };
-    struct Neighbour : Pair
-    {
-        // Shell index
-        int idx_shell;
-    };
-    typedef std::vector<Pair>       pairfield;
-    typedef std::vector<Triplet>    tripletfield;
-    typedef std::vector<Quadruplet> quadrupletfield;
-    typedef std::vector<Neighbour>  neighbourfield;
 
     // Definition for OpenMP reduction operation using Vector3's
     #pragma omp declare reduction (+: Vector3: omp_out=omp_out+omp_in)\
         initializer(omp_priv=Vector3::Zero())
 #endif
+
+struct Neighbour : Pair
+{
+    // Shell index
+    int idx_shell;
+};
+
+// Important fields
+using intfield    = field<int>;
+using scalarfield = field<scalar>;
+using vectorfield = field<Vector3>;
+
+// Additional fields
+using pairfield       = field<Pair>;
+using tripletfield    = field<Triplet>;
+using quadrupletfield = field<Quadruplet>;
+using neighbourfield  = field<Neighbour>;

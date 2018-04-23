@@ -7,6 +7,7 @@
 
 #include <Eigen/Core>
 
+#include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
@@ -400,9 +401,46 @@ namespace Engine
 
         /////////////////////////////////////////////////////////////////
 
-        // Re-distribute a given vector-field according to a new set of dimensions.
-        vectorfield change_dimensions(vectorfield & sf, int n_cell_atoms, intfield n_cells,
-            intfield dimensions_new, std::array<int,3> shift=std::array<int,3>{0,0,0});
+
+        // Re-distribute a given field according to a new set of dimensions.
+        template <typename T>
+        field<T> change_dimensions(field<T> & oldfield, const Data::Geometry & geometry_old, const Data::Geometry & geometry_new,
+            T default_value, std::array<int,3> shift = std::array<int,3>{0,0,0})
+        {
+            auto& n_cells_old      = geometry_old.n_cells;
+            auto& n_cell_atoms_old = geometry_old.n_cell_atoms;
+
+            auto& n_cells_new = geometry_new.n_cells;
+            auto& n_cell_atoms_new = geometry_new.n_cell_atoms;
+
+            int N_new = n_cell_atoms_new * n_cells_new[0] * n_cells_new[1] * n_cells_new[2];
+            field<T> newfield(N_new, default_value);
+
+            #pragma omp parallel for collapse(3)
+            for (int i=0; i<n_cells_new[0]; ++i)
+            {
+                for (int j=0; j<n_cells_new[1]; ++j)
+                {
+                    for (int k=0; k<n_cells_new[2]; ++k)
+                    {
+                        for (int iatom=0; iatom<n_cell_atoms_new; ++iatom)
+                        {
+                            int idx_new = iatom + idx_from_translations(n_cells_new, n_cell_atoms_new, {i,j,k}, shift);
+
+                            if ( (iatom < n_cell_atoms_old) && (i < n_cells_old[0]) && (j < n_cells_old[1]) && (k < n_cells_old[2]) )
+                            {
+                                int idx_old = iatom + idx_from_translations(n_cells_old, n_cell_atoms_old, {i,j,k});
+                                newfield[idx_new] = oldfield[idx_old];
+                            }
+                            // else
+                            //     newfield[idx_new] = default_value;
+                        }
+                    }
+                }
+            }
+            return newfield;
+        }
+
 
         /////////////////////////////////////////////////////////////////
         //////// Vectormath-like operations

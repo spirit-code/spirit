@@ -55,15 +55,7 @@ namespace Engine
         }
 
         // Generate DDI pairs, magnitudes, normals
-        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-        scalar magnitude;
-        Vector3 normal;
-        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
-        {
-            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} }, magnitude, normal);
-            this->ddi_magnitudes.push_back(magnitude);
-            this->ddi_normals.push_back(normal);
-        }
+        this->Update_DDI_Pairs();
 
         this->Update_Energy_Contributions();
     }
@@ -108,17 +100,28 @@ namespace Engine
         }
 
         // Generate DDI pairs, magnitudes, normals
-        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-        scalar magnitude;
-        Vector3 normal;
-        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
-        {
-            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} }, magnitude, normal);
-            this->ddi_magnitudes.push_back(magnitude);
-            this->ddi_normals.push_back(normal);
-        }
+        this->Update_DDI_Pairs();
 
         this->Update_Energy_Contributions();
+    }
+
+
+    void Hamiltonian_Heisenberg::Update_DDI_Pairs()
+    {
+        this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
+        this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
+        this->ddi_normals    = vectorfield(this->ddi_pairs.size());
+
+        scalar magnitude;
+        Vector3 normal;
+
+        for (unsigned int i = 0; i < this->ddi_pairs.size(); ++i)
+        {
+            Engine::Neighbours::DDI_from_Pair(
+                *this->geometry,
+                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} },
+                this->ddi_magnitudes[i], this->ddi_normals[i]);
+        }
     }
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
