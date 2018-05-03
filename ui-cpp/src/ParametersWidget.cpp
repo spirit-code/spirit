@@ -276,12 +276,10 @@ void ParametersWidget::set_parameters_mc()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		float d;
-
-		if (this->checkBox_mc_temperature->isChecked())
-			d = this->doubleSpinBox_mc_temperature->value();
-		else
-			d = 0.0;
+		
+		d = this->doubleSpinBox_mc_temperature->value();
 		Parameters_Set_MC_Temperature(state.get(), d, idx_image, idx_chain);
+
 		d = this->doubleSpinBox_mc_acceptance->value();
 		Parameters_Set_MC_Acceptance_Ratio(state.get(), d, idx_image, idx_chain);
 	};
@@ -437,6 +435,10 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+
+	// MC
+	connect(this->doubleSpinBox_mc_acceptance, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
+	connect(this->doubleSpinBox_mc_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
 }
 
 
