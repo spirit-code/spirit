@@ -151,6 +151,13 @@ namespace Engine
             "Tried to use  Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!");
     }
 
+    scalar Hamiltonian::Energy_Single_Spin(int ispin, const vectorfield & spins)
+    {
+        // Not Implemented!
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use  Hamiltonian::Energy_Single_Spin() of the Hamiltonian base class!");
+    }
+
     static const std::string name = "--";
     const std::string& Hamiltonian::Name()
     {
