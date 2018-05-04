@@ -155,10 +155,10 @@ namespace Engine
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
-            "------------  Started  " + this->Name() + " Calculation  ------------",
-            "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
-            "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
-            "   Target acceptance " + fmt::format("{}", this->parameters_mc->acceptance_ratio_target),
+            fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
+            fmt::format("    Going to iterate {} steps", this->n_log),
+            fmt::format("                with {} iterations per step", this->n_iterations_log),
+            fmt::format("   Target acceptance {}", this->parameters_mc->acceptance_ratio_target),
             "-----------------------------------------------------"
         }, this->idx_image, this->idx_chain);
     }
@@ -170,16 +170,20 @@ namespace Engine
         // Update time of current step
         auto t_current = system_clock::now();
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         // Send log message
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
-            "----- " + this->Name() + " Calculation: " + Timing::DateTimePassed(t_current - this->t_start),
-            fmt::format("    Step                          {} / {}", step, n_log),
-            fmt::format("    Iteration                     {} / {}", this->iteration, n_iterations),
-            fmt::format("    Time since last step:         {}", Timing::DateTimePassed(t_current - this->t_last)),
-            fmt::format("    Iterations / sec:             {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-            fmt::format("    Current acceptance ratio:     {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target),
-            fmt::format("    Current cone angle:           {}", this->cos_cone_angle)
+            fmt::format("----- {} Calculation: {}", this->Name(), Timing::DateTimePassed(t_current - this->t_start)),
+            fmt::format("    Step                      {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log),
+            fmt::format("    Iteration                 {} / {}", this->iteration, this->n_iterations),
+            fmt::format("    Time since last step:     {}", Timing::DateTimePassed(t_current - this->t_last)),
+            fmt::format("    Iterations / sec:         {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
+            fmt::format("    Current acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target),
+            fmt::format("    Current cone angle:       {}", this->cos_cone_angle),
+            fmt::format("    Total energy:             {:20.10f}", this->systems[0]->E)
         }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -200,17 +204,21 @@ namespace Engine
         else if (this->Walltime_Expired(t_end - this->t_start))
             reason = "The maximum walltime has been reached";
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         //---- Log messages
         std::vector<std::string> block;
-        block.push_back("------------ Terminated " + this->Name() + " Calculation ------------");
+        block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
         if (reason.length() > 0)
-            block.push_back("----- Reason:   " + reason);
-        block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - this->t_start));
+            block.push_back(fmt::format("----- Reason:   {}", reason));
+        block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Step              {} / {}", step, n_log));
         block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
         block.push_back(fmt::format("    Cone angle:       {}", this->cos_cone_angle));
+        block.push_back(fmt::format("    Total energy:     {:20.10f}", this->systems[0]->E));
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }
