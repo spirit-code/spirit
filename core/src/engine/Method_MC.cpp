@@ -10,7 +10,6 @@
 #include <ctime>
 #include <math.h>
 
-using namespace Utility;
 namespace Constants = Utility::Constants;
 
 namespace Engine

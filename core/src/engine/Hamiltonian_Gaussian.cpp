@@ -99,9 +99,15 @@ namespace Engine
 
     scalar Hamiltonian_Gaussian::Energy_Single_Spin(int ispin, const vectorfield & spins)
     {
-        // Not Implemented!
-        spirit_throw(Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
-            "Tried to use  Hamiltonian_Gaussian::Energy_Single_Spin(), but this has not yet been implemented!");
+        scalar Energy = 0;
+        for (int i = 0; i < this->n_gaussians; ++i)
+        {
+            // Distance between spin and gaussian center
+            scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+            // Energy contribution
+            this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
+        }
+        return Energy;
     }
 
     // Hamiltonian name as string
