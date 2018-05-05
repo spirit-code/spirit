@@ -501,7 +501,7 @@ namespace IO
     {
         for (int iatom = 0; iatom < vf.size(); ++iatom)
         {
-            this->output_to_file += fmt::format( "{:20.10f}{} {:20.10f}{} {:20.10f}{}\n", 
+            this->output_to_file += fmt::format( "{:22.12f}{} {:22.12f}{} {:22.12f}{}\n", 
                                                   vf[iatom][0], delimiter, 
                                                   vf[iatom][1], delimiter,
                                                   vf[iatom][2], delimiter );
@@ -608,6 +608,7 @@ namespace IO
         catch( ... )
         {
             spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
+            return 0;
         }
     }
     
@@ -633,7 +634,7 @@ namespace IO
                 spirit_throw( Exception_Classifier::File_not_Found, Log_Level::Warning, 
                               fmt::format( "The file \"{}\" does not exist", filename ) );
             } 
-            else if ( this->n_segments = 0 )
+            else if ( this->n_segments == 0 )
             {
                 spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Warning, 
                               fmt::format( "File \"{}\" is empty", filename ) );

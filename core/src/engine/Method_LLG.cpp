@@ -295,8 +295,17 @@ namespace Engine
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
                     std::string comment = std::to_string( iteration );
                     
+                    // File format
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
+                        format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
+                        format = IO::VF_FileFormat::OVF_TEXT;
+                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
+                        format = IO::VF_FileFormat::OVF_CSV;
+
                     // Spin Configuration
-                    IO::File_OVF file_ovf( spinsFile, IO::VF_FileFormat::OVF_TEXT );
+                    IO::File_OVF file_ovf( spinsFile, format );
                     file_ovf.write_segment( *( this->systems[0] )->spins, 
                                             *( this->systems[0] )->geometry,
                                             comment, append );
@@ -310,6 +319,7 @@ namespace Engine
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
                 bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+                bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
 
                 // File name
                 std::string energyFile = preEnergyFile + suffix + ".txt";
@@ -320,17 +330,17 @@ namespace Engine
                 {
                     // Check if Energy File exists and write Header if it doesn't
                     std::ifstream f(energyFile);
-                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
+                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
                     // Append Energy to File
-                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                 }
                 else
                 {
-                    IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
+                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize, readability);
                     }
                 }
             };
