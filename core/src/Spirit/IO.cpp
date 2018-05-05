@@ -423,22 +423,25 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
 
         // Read the data
         chain->Lock();
-        
+
         bool success = false;
-        
+
         try
         {
             const std::string extension = Get_Extension( file );  
-           
+
             // helper variables
             auto& images = chain->images;
             int noi = chain->noi; 
 
-            if ( insert_idx < 0 || insert_idx > noi )
-            {
+            if (insert_idx < 0)
+                insert_idx = 0;
 
+            if ( insert_idx > noi )
+            {
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-                     fmt::format( "Invalid insert_idx {}. State has {} noi", insert_idx, noi ), 
+                     fmt::format( "IO_Chain_Read: Tried to start reading chain on invalid index"
+                        "(insert_idx={}, but chain has {} images)", insert_idx, noi ), 
                      insert_idx, idx_chain );
             }
             else if ( extension == ".ovf" || extension == ".txt" || 
@@ -450,14 +453,21 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                 if ( file_ovf.is_OVF() ) 
                 {
                     int noi_infile = file_ovf.get_n_segments();
-                   
+
+                    if (start_image_infile < 0)
+                        start_image_infile = 0;
+
+                    if (end_image_infile < 0)
+                        end_image_infile = noi_infile-1;
+
                     // Check if the ending image is valid otherwise set it to the last image infile
                     if ( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
                     {
-                        end_image_infile = noi_infile - 1;
                         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                             fmt::format( "Invalid end_image_infile. Value was set to the last image "
-                             "of the file"), insert_idx, idx_chain );
+                             fmt::format( "IO_Chain_Read: specified invalid reading range (start_image_infile={}, end_image_infile={})."
+                                " Set to read entire file  \"{}\" ({} images).", start_image_infile, end_image_infile, file, noi_infile),
+                            insert_idx, idx_chain );
+                        end_image_infile = noi_infile - 1;
                     }
 
                     // If the idx of the starting image is valid
@@ -489,14 +499,15 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                     else
                     {
                         Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-                             fmt::format( "Invalid starting_idx. File {} has {} noi", file, 
-                             noi_infile ), insert_idx, idx_chain );
+                             fmt::format( "IO_Chain_Read: Invalid starting_idx={}. File \"{}\" contains {} images",
+                                start_image_infile, file, noi_infile ),
+                             insert_idx, idx_chain );
                     }
                 } 
                 else
                 {
                     Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                         fmt::format( "File {} is not OVF. Trying to read column data", file ), 
+                         fmt::format( "IO_Chain_Read: File \"{}\" seems to not be OVF. Trying to read column data", file ), 
                          insert_idx, idx_chain );
                 
                     int noi_to_add = 0;
@@ -532,7 +543,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
             else
             {
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-                     fmt::format( "File {} does not have a supported file extension", file ),
+                     fmt::format( "IO_Chain_Read: File \"{}\" does not have a supported file extension", file ),
                      insert_idx, idx_chain );
             }
         }
@@ -559,8 +570,8 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
             // Update array lengths
             Chain_Setup_Data(state, idx_chain);
 
-            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read "
-                 "chain from file {}", file ), insert_idx, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 fmt::format( "IO_Chain_Read: Read chain from file {}", file ), insert_idx, idx_chain );
         } 
     }
     catch( ... )
