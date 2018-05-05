@@ -185,6 +185,7 @@ int IO_N_Images_In_File( State * state, const char *file, int idx_image, int idx
     catch( ... )
     {
         spirit_handle_exception_api( idx_image, idx_chain );
+        return -1;
     }
 }
 

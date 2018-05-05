@@ -1,6 +1,7 @@
 #pragma once
 #ifndef INTERFACE_PARAMETERS_H
 #define INTERFACE_PARAMETERS_H
+#include "IO.h"
 #include "DLL_Define_Export.h"
 
 struct State;
@@ -10,8 +11,8 @@ struct State;
 DLLEXPORT void Parameters_Set_LLG_Output_Tag(State *state, const char * tag, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_Output_General(State *state, bool any, bool initial, bool final, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_LLG_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, bool energy_add_readability_lines, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_LLG_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int configuration_filetype=IO_Fileformat_OVF_text, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_LLG_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT void Parameters_Set_LLG_Direct_Minimization(State *state, bool direct, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -27,8 +28,8 @@ DLLEXPORT void Parameters_Set_LLG_Temperature_Gradient(State *state, float incli
 DLLEXPORT void Parameters_Set_MC_Output_Tag(State *state, const char * tag, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_Output_General(State *state, bool any, bool initial, bool final, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_MC_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_MC_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_MC_Output_Energy(State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved, bool energy_divide_by_nos, bool energy_add_readability_lines, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_MC_Output_Configuration(State *state, bool configuration_step, bool configuration_archive, int configuration_filetype=IO_Fileformat_OVF_text, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_MC_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT void Parameters_Set_MC_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -39,8 +40,8 @@ DLLEXPORT void Parameters_Set_MC_Acceptance_Ratio(State *state, float ratio, int
 DLLEXPORT void Parameters_Set_GNEB_Output_Tag(State *state, const char * tag, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_Output_General(State *state, bool any, bool initial, bool final, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_step, bool energies_interpolated, bool energies_divide_by_nos, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_GNEB_Output_Energies(State *state, bool energies_step, bool energies_interpolated, bool energies_divide_by_nos, bool energies_add_readability_lines, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int chain_filetype=IO_Fileformat_OVF_text, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Set_GNEB_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT void Parameters_Set_GNEB_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -56,8 +57,8 @@ DLLEXPORT void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int id
 DLLEXPORT const char * Parameters_Get_LLG_Output_Tag(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_LLG_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_LLG_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, bool * energy_add_readability_lines, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_LLG_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int * configuration_filetype, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_LLG_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT bool Parameters_Get_LLG_Direct_Minimization(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -74,8 +75,8 @@ DLLEXPORT void Parameters_Get_LLG_STT(State *state, bool * use_gradient, float *
 DLLEXPORT const char * Parameters_Get_MC_Output_Tag(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_MC_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_MC_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_MC_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_MC_Output_Energy(State *state, bool * energy_step, bool * energy_archive, bool * energy_spin_resolved, bool * energy_divide_by_nos, bool * energy_add_readability_lines, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_MC_Output_Configuration(State *state, bool * configuration_step, bool * configuration_archive, int * configuration_filetype, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_MC_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT float Parameters_Get_MC_Temperature(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -86,8 +87,8 @@ DLLEXPORT float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image=-
 DLLEXPORT const char * Parameters_Get_GNEB_Output_Tag(State *state, int idx_chain=-1) noexcept;
 DLLEXPORT const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_GNEB_Output_General(State *state, bool * any, bool * initial, bool * final, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, bool * energies_interpolated, bool * energies_divide_by_nos, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_GNEB_Output_Energies(State *state, bool * energies_step, bool * energies_interpolated, bool * energies_divide_by_nos, bool * energies_add_readability_lines, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int * chain_filetype, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_Get_GNEB_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT float Parameters_Get_GNEB_Convergence(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
