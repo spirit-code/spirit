@@ -94,10 +94,10 @@
     <addaction name="actionSave_Cfg_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Spin_Configuration"/>
-    <addaction name="actionLoad_SpinChain_Configuration"/>
+    <addaction name="actionLoad_Spin_Configuration_Chain"/>
     <addaction name="separator"/>
     <addaction name="action_Save_Spin_Configuration"/>
-    <addaction name="actionSave_SpinChain_Configuration"/>
+    <addaction name="actionSave_Spin_Configuration_Chain"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Energy_per_Spin"/>
     <addaction name="actionSave_Energies"/>
@@ -406,12 +406,12 @@
     <string>(Load &amp;Hamiltonian)</string>
    </property>
   </action>
-  <action name="actionLoad_SpinChain_Configuration">
+  <action name="actionLoad_Spin_Configuration_Chain">
    <property name="text">
     <string>Load Spin Configuration Chain</string>
    </property>
   </action>
-  <action name="actionSave_SpinChain_Configuration">
+  <action name="actionSave_Spin_Configuration_Chain">
    <property name="text">
     <string>Save Spin Configuration Chain</string>
    </property>

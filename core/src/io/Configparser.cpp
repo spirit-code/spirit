@@ -555,14 +555,16 @@ namespace IO
         // Save output when logging
         std::string output_file_tag = ""; 
         bool output_any = true, 
-                output_initial = true, 
-                output_final = true;
+             output_initial = true, 
+             output_final = true;
         bool output_energy_divide_by_nspins=true, 
-                output_energy_spin_resolved=true, 
-                output_energy_step=true, 
-                output_energy_archive=true;
+             output_energy_spin_resolved=true, 
+             output_energy_step=true, 
+             output_energy_archive=true,
+             output_energy_add_readability_lines=true;
         bool output_configuration_step = false, 
-                output_configuration_archive = false;
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -608,12 +610,14 @@ namespace IO
                 myfile.Read_Single(output_any,     "llg_output_any");
                 myfile.Read_Single(output_initial, "llg_output_initial");
                 myfile.Read_Single(output_final,   "llg_output_final");
-                myfile.Read_Single(output_energy_spin_resolved,    "llg_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step,             "llg_output_energy_step");
-                myfile.Read_Single(output_energy_archive,          "llg_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins, "llg_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step,    "llg_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "llg_output_configuration_archive");
+                myfile.Read_Single(output_energy_spin_resolved,         "llg_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,                  "llg_output_energy_step");
+                myfile.Read_Single(output_energy_archive,               "llg_output_energy_archive");
+                myfile.Read_Single(output_energy_divide_by_nspins,      "llg_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_add_readability_lines, "llg_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,           "llg_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,        "llg_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,       "llg_output_configuration_filetype");
                 myfile.Read_Single(str_max_walltime, "llg_max_walltime");
                 myfile.Read_Single(seed, "llg_seed");
                 myfile.Read_Single(n_iterations, "llg_n_iterations");
@@ -665,14 +669,16 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
 
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(
             output_folder, output_file_tag,
-            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive},
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
+            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
+            output_configuration_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
             temperature, temperature_gradient_direction, temperature_gradient_inclination,
             damping, beta, dt, renorm_sd, stt_use_gradient, stt_magnitude, stt_polarisation_normal));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
@@ -687,14 +693,16 @@ namespace IO
         // Save output when logging
         std::string output_file_tag; 
         bool output_any = true, 
-                output_initial = true, 
-                output_final = true;
+             output_initial = true, 
+             output_final = true;
         bool output_energy_divide_by_nspins = true, 
-                output_energy_spin_resolved = true, 
-                output_energy_step = true, 
-                output_energy_archive = true;
+             output_energy_spin_resolved = true, 
+             output_energy_step = true, 
+             output_energy_archive = true,
+             output_energy_add_readability_lines = true;
         bool output_configuration_step = false,
-                output_configuration_archive = false;
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -720,16 +728,18 @@ namespace IO
                 IO::Filter_File_Handle myfile(configFile);
 
                 myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder, "mc_output_folder");
-                myfile.Read_Single(output_any, "mc_output_any");
-                myfile.Read_Single(output_initial, "mc_output_initial");
-                myfile.Read_Single(output_final, "mc_output_final");
-                myfile.Read_Single(output_energy_spin_resolved, "mc_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step, "mc_output_energy_step");
-                myfile.Read_Single(output_energy_archive, "mc_output_energy_archive");
+                myfile.Read_Single(output_folder,   "mc_output_folder");
+                myfile.Read_Single(output_any,      "mc_output_any");
+                myfile.Read_Single(output_initial,  "mc_output_initial");
+                myfile.Read_Single(output_final,    "mc_output_final");
+                myfile.Read_Single(output_energy_spin_resolved,    "mc_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,             "mc_output_energy_step");
+                myfile.Read_Single(output_energy_archive,          "mc_output_energy_archive");
                 myfile.Read_Single(output_energy_divide_by_nspins, "mc_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step, "mc_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "mc_output_configuration_archive");
+                myfile.Read_Single(output_energy_add_readability_lines, "mc_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,      "mc_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,   "mc_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,  "mc_output_configuration_filetype");
                 myfile.Read_Single(str_max_walltime, "mc_max_walltime");
                 myfile.Read_Single(seed, "mc_seed");
                 myfile.Read_Single(n_iterations, "mc_n_iterations");
@@ -760,11 +770,13 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
+            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines }, output_configuration_filetype, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: built");
         return mc_params;
     }
@@ -775,14 +787,16 @@ namespace IO
         // Output folder for results
         std::string output_folder = "output_gneb";
         // Save output when logging
-        std::string output_file_tag = ""; 
-        bool output_any = true, 
-                output_initial = false, 
-                output_final = true, 
-                output_energies_step = false, 
-                output_energies_interpolated = true, 
-                output_energies_divide_by_nspins = true, 
+        std::string output_file_tag = "";
+        bool output_any = true,
+                output_initial = false,
+                output_final = true,
+                output_energies_step = false,
+                output_energies_interpolated = true,
+                output_energies_divide_by_nspins = true,
+                output_energies_add_readability_lines = true,
                 output_chain_step = false;
+        int output_chain_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -810,9 +824,11 @@ namespace IO
                 myfile.Read_Single(output_initial, "gneb_output_initial");
                 myfile.Read_Single(output_final, "gneb_output_final");
                 myfile.Read_Single(output_energies_step, "gneb_output_energies_step");
+                myfile.Read_Single(output_energies_add_readability_lines, "gneb_output_energies_add_readability_lines");
                 myfile.Read_Single(output_energies_interpolated, "gneb_output_energies_interpolated");
                 myfile.Read_Single(output_energies_divide_by_nspins, "gneb_output_energies_divide_by_nspins");
                 myfile.Read_Single(output_chain_step, "gneb_output_chain_step");
+                myfile.Read_Single(output_chain_filetype, "gneb_output_chain_filetype");
                 myfile.Read_Single(str_max_walltime, "gneb_max_walltime");
                 myfile.Read_Single(spring_constant, "gneb_spring_constant");
                 myfile.Read_Single(force_convergence, "gneb_force_convergence");
@@ -840,11 +856,13 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_initial", output_initial));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_final", output_final));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_step", output_energies_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_add_readability_lines", output_energies_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_step", output_chain_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_filetype", output_chain_filetype));
 
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step },
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
+        auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step, output_energies_add_readability_lines},
+            output_chain_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
         return gneb_params;
     }// end Parameters_Method_LLG_from_Config

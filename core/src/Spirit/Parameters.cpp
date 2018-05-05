@@ -84,8 +84,8 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
     }
 }
 
-void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, 
-                                       bool energy_spin_resolved, bool energy_divide_by_nos, 
+void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
+                                       bool energy_divide_by_nos, bool energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -101,6 +101,7 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
         image->llg_parameters->output_energy_archive = energy_archive;
         image->llg_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->llg_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
+        image->llg_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
         image->Unlock();
     }
     catch( ... )
@@ -109,8 +110,8 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
     }
 }
 
-void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step, 
-                                              bool configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step,  bool configuration_archive,
+                                              int configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -123,6 +124,7 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
         image->Lock();
         image->llg_parameters->output_configuration_step = configuration_step;
         image->llg_parameters->output_configuration_archive = configuration_archive;
+        image->llg_parameters->output_configuration_filetype = configuration_filetype;
         image->Unlock();
     }
     catch( ... )
@@ -425,8 +427,8 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
     }
 }
 
-void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, 
-                                      bool energy_spin_resolved, bool energy_divide_by_nos, 
+void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
+                                      bool energy_add_readability_lines, bool energy_divide_by_nos, 
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -442,6 +444,7 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
         image->mc_parameters->output_energy_archive = energy_archive;
         image->mc_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->mc_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
+        image->mc_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
         image->Unlock();
     }
     catch( ... )
@@ -450,8 +453,8 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
     }
 }
 
-void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, 
-                                             bool configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, bool configuration_archive,
+                                             int configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -464,6 +467,7 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
         image->Lock();
         image->mc_parameters->output_configuration_step = configuration_step;
         image->mc_parameters->output_configuration_archive = configuration_archive;
+        image->mc_parameters->output_configuration_filetype = configuration_filetype;
         image->Unlock();
     }
     catch( ... )
@@ -622,8 +626,8 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
     }
 }
 
-void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, 
-                                          bool energies_divide_by_nos, int idx_chain ) noexcept
+void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, bool energies_divide_by_nos,
+                                          bool energies_add_readability_lines, int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -639,6 +643,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
         chain->gneb_parameters->output_energies_step = energies_step;
         chain->gneb_parameters->output_energies_interpolated = energies_interpolated;
         chain->gneb_parameters->output_energies_divide_by_nspins = energies_divide_by_nos;
+        chain->gneb_parameters->output_energies_add_readability_lines = energies_add_readability_lines;
         chain->Unlock();
     }
     catch( ... )
@@ -647,7 +652,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
     }
 }
 
-void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain) noexcept
+void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int chain_filetype, int idx_chain) noexcept
 {
     int idx_image = -1;
 
@@ -661,6 +666,7 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
 
         chain->Lock();
         chain->gneb_parameters->output_chain_step = chain_step;
+        chain->gneb_parameters->output_chain_filetype = chain_filetype;
         chain->Unlock();
     }
     catch( ... )
@@ -886,8 +892,9 @@ void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial
     }
 }
 
-void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
-                                       bool * energy_spin_resolved, bool * energy_divide_by_nos, 
+void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive,
+                                       bool * energy_spin_resolved, bool * energy_divide_by_nos,
+                                       bool * energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -902,6 +909,7 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
         *energy_archive = image->llg_parameters->output_energy_archive;
         *energy_spin_resolved = image->llg_parameters->output_energy_spin_resolved;
         *energy_divide_by_nos = image->llg_parameters->output_energy_divide_by_nspins;
+        *energy_add_readability_lines = image->llg_parameters->output_energy_add_readability_lines;
     }
     catch( ... )
     {
@@ -909,9 +917,8 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
     }
 }
 
-void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, 
-                                              bool * configuration_archive, int idx_image, 
-                                              int idx_chain ) noexcept
+void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, bool * configuration_archive, 
+                                              int * configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -923,6 +930,7 @@ void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration
 
         *configuration_step = image->llg_parameters->output_configuration_step;
         *configuration_archive = image->llg_parameters->output_configuration_archive;
+        *configuration_filetype = image->llg_parameters->output_configuration_filetype;
     }
     catch( ... )
     {
@@ -1164,8 +1172,9 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
     }
 }
 
-void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
-                                      bool * energy_spin_resolved, bool * energy_divide_by_nos, 
+void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive,
+                                      bool * energy_spin_resolved, bool * energy_divide_by_nos,
+                                      bool * energy_add_readability_lines,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -1180,6 +1189,7 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
         *energy_archive = image->mc_parameters->output_energy_archive;
         *energy_spin_resolved = image->mc_parameters->output_energy_spin_resolved;
         *energy_divide_by_nos = image->mc_parameters->output_energy_divide_by_nspins;
+        *energy_add_readability_lines = image->mc_parameters->output_energy_add_readability_lines;
     }
     catch( ... )
     {
@@ -1187,8 +1197,8 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
     }
 }
 
-void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, 
-                                             bool * configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, bool * configuration_archive,
+                                             int * configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1200,6 +1210,7 @@ void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_
 
         *configuration_step = image->mc_parameters->output_configuration_step;
         *configuration_archive = image->mc_parameters->output_configuration_archive;
+        *configuration_filetype = image->mc_parameters->output_configuration_filetype;
     }
     catch( ... )
     {
@@ -1337,8 +1348,9 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
     }
 }
 
-void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step, 
-                                          bool * energies_interpolated, bool * energies_divide_by_nos, 
+void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
+                                          bool * energies_interpolated, bool * energies_divide_by_nos,
+                                          bool * energies_add_readability_lines,
                                           int idx_chain ) noexcept
 {
     int idx_image = -1;
@@ -1354,6 +1366,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
         *energies_step = chain->gneb_parameters->output_energies_step;
         *energies_interpolated = chain->gneb_parameters->output_energies_interpolated;
         *energies_divide_by_nos = chain->gneb_parameters->output_energies_divide_by_nspins;
+        *energies_add_readability_lines = chain->gneb_parameters->output_energies_add_readability_lines;
     }
     catch( ... )
     {
@@ -1361,7 +1374,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
     }
 }
 
-void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain) noexcept
+void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int * chain_filetype, int idx_chain) noexcept
 {
     int idx_image = -1;
 
@@ -1374,6 +1387,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
         from_indices( state, idx_image, idx_chain, image, chain );
 
         *chain_step = chain->gneb_parameters->output_chain_step;
+        *chain_filetype = chain->gneb_parameters->output_chain_filetype;
     }
     catch( ... )
     {
@@ -1381,7 +1395,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
     }
 }
 
-void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log, 
+void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log,
                                        int idx_chain ) noexcept
 {
     int idx_image = -1;

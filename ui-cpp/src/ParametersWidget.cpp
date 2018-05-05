@@ -58,7 +58,7 @@ void ParametersWidget::Load_Parameters_Contents()
 	float d, vd[3];
 	int image_type;
 	int i1, i2;
-	bool b1, b2, b3, b4;
+	bool b1, b2, b3, b4, b5;
 
 	//		LLG
 	// Direct minimization
@@ -100,12 +100,12 @@ void ParametersWidget::Load_Parameters_Contents()
 	this->checkBox_llg_output_any->setChecked(b1);
 	this->checkBox_llg_output_initial->setChecked(b2);
 	this->checkBox_llg_output_final->setChecked(b3);
-	Parameters_Get_LLG_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+	Parameters_Get_LLG_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
 	this->checkBox_llg_output_energy_step->setChecked(b1);
 	this->checkBox_llg_output_energy_archive->setChecked(b2);
 	this->checkBox_llg_output_energy_spin_resolved->setChecked(b3);
 	this->checkBox_llg_output_energy_divide->setChecked(b4);
-	Parameters_Get_LLG_Output_Configuration(state.get(), &b1, &b2);
+	Parameters_Get_LLG_Output_Configuration(state.get(), &b1, &b2, &i1);
 	this->checkBox_llg_output_configuration_step->setChecked(b1);
 	this->checkBox_llg_output_configuration_archive->setChecked(b2);
 
@@ -127,11 +127,11 @@ void ParametersWidget::Load_Parameters_Contents()
 	this->checkBox_gneb_output_any->setChecked(b1);
 	this->checkBox_gneb_output_initial->setChecked(b2);
 	this->checkBox_gneb_output_final->setChecked(b3);
-	Parameters_Get_GNEB_Output_Energies(state.get(), &b1, &b2, &b3);
+	Parameters_Get_GNEB_Output_Energies(state.get(), &b1, &b2, &b3, &b4);
 	this->checkBox_gneb_output_energies_step->setChecked(b1);
 	this->checkBox_gneb_output_energies_interpolated->setChecked(b2);
 	this->checkBox_gneb_output_energies_divide->setChecked(b3);
-	Parameters_Get_GNEB_Output_Chain(state.get(), &b1);
+	Parameters_Get_GNEB_Output_Chain(state.get(), &b1, &i1);
 	this->checkBox_gneb_output_chain_step->setChecked(b1);
 
 	// Convergence
