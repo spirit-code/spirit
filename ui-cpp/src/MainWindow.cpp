@@ -70,12 +70,12 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionLoad_Configuration, SIGNAL(triggered()), this, SLOT(load_Configuration()));
 	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
-	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
+	connect(this->actionLoad_Spin_Configuration_Chain, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration_Chain()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
 	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
-	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
+	connect(this->actionSave_Spin_Configuration_Chain, SIGNAL(triggered()), this, SLOT(save_Spin_Configuration_Chain()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
 	
 	// Edit Menu
@@ -1245,15 +1245,23 @@ void MainWindow::return_focus()
 
 void MainWindow::save_Spin_Configuration()
 {
+	QString selectedFilter;
 	auto fileName = QFileDialog::getSaveFileName(this,
 		tr("Save Spin Configuration"),
 		"./output",
-		tr( "Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;"
-		    "OOMF Vector Field binary (*.ovf)" ) );
+		tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
+			"OOMF Vector Field binary (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
+		&selectedFilter);
+
 	if (!fileName.isEmpty())
 	{
+		int fileFormat = IO_Fileformat_OVF_text;
+		if (selectedFilter == "OOMF Vector Field binary (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_bin8;
+		if (selectedFilter == "OOMF Vector Field csv (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_csv;
 		auto file = string_q2std(fileName);
-		IO_Image_Write( this->state.get(), file.c_str(), IO_Fileformat_OVF_text );
+		IO_Image_Write( this->state.get(), file.c_str(), fileFormat );
 	}
 }
 
@@ -1262,8 +1270,8 @@ void MainWindow::load_Spin_Configuration()
 	auto fileNames = QFileDialog::getOpenFileNames(this,
 		tr("Load Spin Configuration"),
 		"./input",
-		tr( "Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;"
-		    "OOMF Vector Field binary (*.ovf)" ) );
+		tr( "Any (*);;OOMF Vector Field (*.ovf);;"
+			"Plaintext (*.txt);;Comma-separated (*.csv)" ) );
 
 	int n_files = fileNames.size();
 	int n_images_read  = 0;
@@ -1275,7 +1283,7 @@ void MainWindow::load_Spin_Configuration()
 		bool read_image = true;
 		int type = IO_Fileformat_Regular;
 
-        if ( fileName.isEmpty() ) read_image = false;
+		if ( fileName.isEmpty() ) read_image = false;
 
 		if (read_image)
 		{
@@ -1303,19 +1311,36 @@ void MainWindow::load_Spin_Configuration()
 	this->spinWidget->updateData();
 }
 
-void MainWindow::save_SpinChain_Configuration()
+void MainWindow::save_Spin_Configuration_Chain()
 {
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save SpinChain Configuration"), "./output", tr("Spin Configuration (*.txt)"));
+	QString selectedFilter;
+	auto fileName = QFileDialog::getSaveFileName(this,
+		tr("Save SpinChain Configuration"),
+		"./output",
+		tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
+			"OOMF Vector Field binary (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
+		&selectedFilter);
+
 	if (!fileName.isEmpty())
 	{
+		int fileFormat = IO_Fileformat_OVF_text;
+		if (selectedFilter == "OOMF Vector Field binary (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_bin8;
+		if (selectedFilter == "OOMF Vector Field csv (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_csv;
 		auto file = string_q2std(fileName);
-		IO_Chain_Write(this->state.get(), file.c_str(), IO_Fileformat_OVF_text );
+		IO_Chain_Write(this->state.get(), file.c_str(), fileFormat);
 	}
 }
 
-void MainWindow::load_SpinChain_Configuration()
+void MainWindow::load_Spin_Configuration_Chain()
 {
-	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
+	auto fileName = QFileDialog::getOpenFileName(this,
+		tr("Load Spin Configuration"),
+		"./input",
+		tr( "Any (*);;OOMF Vector Field (*.ovf);;"
+			"Plaintext (*.txt);;Comma-separated (*.csv)" ));
+
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
@@ -1340,11 +1365,10 @@ void MainWindow::load_Configuration()
 		if (!IO_System_From_Config(this->state.get(), file.c_str()))
 		{
 			QMessageBox::about(this, tr("Error"),
-				tr("The resulting Spin System would have different NOS\n"
-					"or isotropy status than one or more of the other\n"
-					"images in the chain!\n"
+				tr( "The given config file could not be used!\n"
+					"Please check the log for any details.\n"
 					"\n"
-					"The system has thus not been reset!"));
+					"The system has not been reset!"));
 		}
 		else
 		{
