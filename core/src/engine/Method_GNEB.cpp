@@ -309,7 +309,8 @@ namespace Engine
                         format = IO::VF_FileFormat::OVF_CSV;
 
                     // Chain
-                    std::string output_comment = fmt::format( "Iteration: {}", iteration );
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
 
                     IO::File_OVF file_ovf( chainFile, format );
 

@@ -43,7 +43,6 @@ namespace IO
         const std::string empty_line = "#\n";
         std::string output_to_file;
         std::string datatype_out;
-        std::string comment;
 
         // Input attributes 
         std::unique_ptr<Filter_File_Handle> ifile;

@@ -293,7 +293,8 @@ namespace Engine
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string comment = std::to_string( iteration );
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
                     
                     // File format
                     IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
@@ -308,7 +309,7 @@ namespace Engine
                     IO::File_OVF file_ovf( spinsFile, format );
                     file_ovf.write_segment( *( this->systems[0] )->spins, 
                                             *( this->systems[0] )->geometry,
-                                            comment, append );
+                                            output_comment, append );
                 }
                 catch( ... )
                 {

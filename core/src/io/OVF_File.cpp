@@ -692,7 +692,7 @@ namespace IO
                                                  Utility::version_full );
             this->output_to_file += fmt::format( this->empty_line );
             
-            this->output_to_file += fmt::format( "# Desc: {}\n", this->comment );
+            this->output_to_file += fmt::format( "# Desc: {}\n", comment );
             this->output_to_file += fmt::format( this->empty_line );
             
             // The value dimension is always 3 since we are writting Vector3-data
