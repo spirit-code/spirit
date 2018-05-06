@@ -64,14 +64,14 @@ namespace Engine
     template <Solver solver>
     void Method_MMF<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
     {
-        if (this->mm_function == "Spectra Matrix")
-        {
+        // if (this->mm_function == "Spectra Matrix")
+        // {
             this->Calculate_Force_Spectra_Matrix(configurations, forces);
-        }
-        else if (this->mm_function == "Lanczos")
-        {
-            this->Calculate_Force_Lanczos(configurations, forces);
-        }
+        // }
+        // else if (this->mm_function == "Lanczos")
+        // {
+        //     this->Calculate_Force_Lanczos(configurations, forces);
+        // }
         #ifdef SPIRIT_ENABLE_PINNING
             Vectormath::set_c_a(1, forces[0], forces[0], this->parameters->pinning->mask_unpinned);
         #endif // SPIRIT_ENABLE_PINNING
@@ -326,14 +326,19 @@ namespace Engine
                 }
                 else if (mode_grad_angle > 1e-8)
                 {
-                    int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
-
-                    // Calculate the force
-                    // Vectormath::set_c_a(mode_grad, this->minimum_mode, force, parameters.pinning->mask_unpinned);
-                    Vectormath::set_c_a(sign, this->minimum_mode, force, parameters.pinning->mask_unpinned);
-
-                    // // Copy out the forces
-                    // Vectormath::set_c_a(1, gradient, force, parameters.pinning->mask_unpinned);
+                    // TODO: add switch between gradient and mode following for positive region
+                    if (false)
+                    {
+                        // Calculate the force
+                        // Vectormath::set_c_a(mode_grad, this->minimum_mode, force, parameters.pinning->mask_unpinned);
+                        int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
+                        Vectormath::set_c_a(sign, this->minimum_mode, force, parameters.pinning->mask_unpinned);
+                    }
+                    else
+                    {
+                        // Copy out the forces
+                        Vectormath::set_c_a(1, gradient, force, parameters.pinning->mask_unpinned);
+                    }
                 }
                 else
                 {
@@ -361,174 +366,6 @@ namespace Engine
             Vectormath::fill(force, Vector3{0,0,0});
         }
     }
-
-
-
-
-    // This Lanczos algorithm is implemented as described in this paper:
-    // R. A. Olsen, G. J. Kroes, G. Henkelman, A. Arnaldsson, and H. Jónsson, 
-    // Comparison of methods for finding saddle points without knowledge of the final states,
-    // J. Chem. Phys. 121, 9776-9792 (2004).
-    //
-    // The 1 character variables in this method match the variables in the
-    // equations in the paper given above
-    template <Solver solver>
-    void Method_MMF<solver>::Calculate_Force_Lanczos(const std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces)
-    {
-        scalar lowestEw;
-        MatrixX lowestEv;
-
-        const int nos = configurations[0]->size();
-        const int size = 3*nos;
-        auto& image = *configurations[0];
-        
-        int lanczosMaxIterations = 100;
-        scalar lanczosTolerance = 1e-5;
-        scalar finiteDifference = 1e-3;
-
-        MatrixX T(size, lanczosMaxIterations), Q(size, lanczosMaxIterations);
-        T.setZero();
-        VectorX u(size);//, r(size);
-
-        // Convert the AtomMatrix of all the atoms into
-        // a single column vector with just the free coordinates.
-        int i,j;
-        Eigen::Ref<VectorX> r = Eigen::Map<VectorX>(image[0].data(), 3 * nos);
-        // for (i=0,j=0;i<nos;i++)
-        // {
-        // 	// if (!matter->getFixed(i)) // pinning and vacancies need to be considered here
-        // 	// {
-        // 		r.segment<3>(j) = direction.row(i);
-        // 		j+=3;
-        // 	// }
-        // }
-
-        scalar alpha, beta=r.norm();
-        scalar ew=0, ewOld=0, ewAbsRelErr;
-        scalar dr = finiteDifference;
-        VectorX evEst, evT, evOldEst;
-
-        vectorfield spins_tmp = image, force_tmp(nos);
-        // Matter *tmpMatter = new Matter(parameters);
-        // *tmpMatter = *matter;
-
-        this->systems[0]->hamiltonian->Gradient(spins_tmp, force_tmp);
-        Eigen::Ref<VectorX> force1 = Eigen::Map<VectorX>(force_tmp[0].data(), size);
-        // force1 = tmpMatter->getForcesFreeV();
-
-        for (i=0; i<size; ++i)
-        {
-            Q.col(i) = r/beta;
-
-            // Finite difference force in the direction of the ith Lanczos vector
-            for (int _i=0; _i < nos; ++i)
-                spins_tmp[i] += dr*Q.col(i).segment<3>(_i);
-            this->systems[0]->hamiltonian->Gradient(spins_tmp, force_tmp);
-            Eigen::Ref<VectorX> force2 = Eigen::Map<VectorX>(force_tmp[0].data(), size);
-            // tmpMatter->setPositionsFreeV(matter->getPositionsFreeV()+dr*Q.col(i));
-            // force2 = tmpMatter->getForcesFreeV();
-
-            u = -(force2-force1)/dr;
-
-            if (i==0)
-                r = u;
-            else
-                r = u-beta*Q.col(i-1);
-            
-            alpha = Q.col(i).dot(r);
-            r = r-alpha*Q.col(i);
-
-            T(i,i) = alpha;
-            if (i>0)
-            {
-                T(i-1,i) = beta;
-                T(i,i-1) = beta;
-            }
-
-            beta = r.norm();
-
-            if (beta <= 1e-10*fabs(alpha))
-            {
-                /* If Q(0) is an eigenvector (or a linear combination of a subset of eigenvectors)
-                then the lanczos cannot complete the basis of vector Q.*/
-                if (i == 0)
-                {
-                    ew = alpha;
-                    evEst = Q.col(0);
-                }
-                // log_file("[ILanczos] ERROR: linear dependence\n");
-                std::cerr << "[ILanczos] ERROR: linear dependence" << std::endl;
-                break;
-            }
-            //Check Eigenvalues
-            if (i >= 1)
-            {
-                Eigen::SelfAdjointEigenSolver<MatrixX> es(T.block(0,0,i+1,i+1));
-                ew = es.eigenvalues()(0); 
-                evT = es.eigenvectors().col(0);
-                ewAbsRelErr = fabs((ew-ewOld)/ewOld);
-                ewOld = ew;
-
-                //Convert eigenvector of T matrix to eigenvector of full Hessian
-                evEst = Q.block(0,0,size,i+1)*evT;
-                evEst.normalize();
-                // statsAngle = acos(fabs(evEst.dot(evOldEst)))*(180/M_PI);
-                // statsTorque = ewAbsRelErr;
-                evOldEst = evEst;
-                // log_file("[ILanczos] %9s %9s %10s %14s %9.4f %10.6f %7.3f %5i\n", 
-                // "----", "----", "----", "----", ew, ewAbsRelErr, statsAngle, i);
-                if (ewAbsRelErr < lanczosTolerance)
-                {
-                    // log_file("[ILanczos] Tolerence reached: %f\n", lanczosTolerance);
-                    std::cerr << "[ILanczos] Tolerence reached: " << ewAbsRelErr << std::endl;
-                    break;
-                }
-            }
-            else
-            {
-                ew = alpha;
-                ewOld = ew;
-                evEst = Q.col(0);
-                evOldEst = Q.col(0);
-                if (lowestEw != 0.0 && false) // && parameters->lanczosQuitEarly)
-                {
-                    double Cprev = lowestEw;
-                    double Cnew = u.dot(Q.col(i));
-                    ewAbsRelErr = fabs((Cnew-Cprev)/Cprev);
-                    if (ewAbsRelErr <= lanczosTolerance)
-                    {
-                        // statsAngle = 0.0;
-                        // statsTorque = ewAbsRelErr;
-                        // log_file("[ILanczos] Tolerence reached: %f\n", lanczosTolerance);
-                        std::cerr << "[ILanczos] Tolerence reached: " << ewAbsRelErr << std::endl;
-                        break;
-                    }
-                }
-            }
-
-            if (i >= lanczosMaxIterations-1)
-            {
-                // log_file("[ILanczos] Max iterations\n");
-                std::cerr << "[ILanczos] Max iterations" << std::endl;
-                break;
-            }
-        }
-
-        lowestEw = ew;
-
-        // Convert back from free atom coordinate column vector
-        // to AtomMatrix style.
-        lowestEv.resize(nos,3);
-        for (i=0,j=0;i<nos;i++)
-        {
-            // if (!matter->getFixed(i))
-            // {
-                lowestEv.row(i) = evEst.segment<3>(j);
-                j+=3;
-            // }
-        }
-    }
-
 
 
     void printmatrix(MatrixX & m)
