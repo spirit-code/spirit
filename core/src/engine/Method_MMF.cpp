@@ -4,6 +4,7 @@
 #include <engine/Manifoldmath.hpp>
 #include <engine/Eigenmodes.hpp>
 #include <io/IO.hpp>
+#include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
 
 #include <Eigen/Core>
@@ -433,19 +434,38 @@ namespace Engine
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                // File name and comment
-                std::string spinsFile = preSpinsFile + suffix + ".txt";
-                std::string comment = std::to_string( iteration );
-                // Spin Configuration
-                IO::Write_Spin_Configuration( *( this->systems[0] )->spins, 
-                                              *( this->systems[0] )->geometry, spinsFile, 
-                                              IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN, 
-                                              comment, append );
+                try
+                {
+                    // File name and comment
+                    std::string spinsFile = preSpinsFile + suffix + ".ovf";
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
+                    
+                    // File format
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
+                        format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
+                        format = IO::VF_FileFormat::OVF_TEXT;
+                    else if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
+                        format = IO::VF_FileFormat::OVF_CSV;
+
+                    // Spin Configuration
+                    IO::File_OVF file_ovf( spinsFile, format );
+                    file_ovf.write_segment( *( this->systems[0] )->spins, 
+                                            *( this->systems[0] )->geometry,
+                                            output_comment, append );
+                }
+                catch( ... )
+                {
+                   spirit_handle_exception_core( "LLG output failed" ); 
+                }
             };
 
             auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
             {
-                bool normalize = this->systems[0]->mmf_parameters->output_energy_divide_by_nspins;
+                bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+                bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
 
                 // File name
                 std::string energyFile = preEnergyFile + suffix + ".txt";
@@ -456,30 +476,29 @@ namespace Engine
                 {
                     // Check if Energy File exists and write Header if it doesn't
                     std::ifstream f(energyFile);
-                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
+                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
                     // Append Energy to File
-                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                 }
                 else
                 {
-                    IO::Write_Energy_Header(*this->systems[0], energyFile);
-                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
-                    // if (this->systems[0]->mmf_parameters->output_energy_spin_resolved)
-                    // {
-                    //     IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize);
-                    // }
+                    IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
+                    if (this->systems[0]->mmf_parameters->output_energy_spin_resolved)
+                    {
+                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize, readability);
+                    }
                 }
             };
-
-
+            
             // Initial image before simulation
-            if (initial && this->systems[0]->mmf_parameters->output_initial)
+            if (initial && this->parameters->output_initial)
             {
                 writeOutputConfiguration("-initial", false);
                 writeOutputEnergy("-initial", false);
             }
             // Final image after simulation
-            else if (final && this->systems[0]->mmf_parameters->output_final)
+            else if (final && this->parameters->output_final)
             {
                 writeOutputConfiguration("-final", false);
                 writeOutputEnergy("-final", false);
@@ -504,6 +523,9 @@ namespace Engine
             {
                 writeOutputEnergy("-archive", true);
             }
+
+            // Save Log
+            Log.Append_to_File();
         }
     }
 

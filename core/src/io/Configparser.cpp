@@ -558,16 +558,18 @@ namespace IO
         // Output folder for results
         std::string output_folder = "output_llg";
         // Save output when logging
-        std::string output_file_tag = ""; 
-        bool output_any = true, 
-                output_initial = true, 
-                output_final = true;
-        bool output_energy_divide_by_nspins=true, 
-                output_energy_spin_resolved=true, 
-                output_energy_step=true, 
-                output_energy_archive=true;
-        bool output_configuration_step = false, 
-                output_configuration_archive = false;
+        std::string output_file_tag = "";
+        bool output_any = true,
+             output_initial = true,
+             output_final = true;
+        bool output_energy_divide_by_nspins=true,
+             output_energy_spin_resolved=true,
+             output_energy_step=true,
+             output_energy_archive=true,
+             output_energy_add_readability_lines=true;
+        bool output_configuration_step = false,
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -613,12 +615,14 @@ namespace IO
                 myfile.Read_Single(output_any,     "llg_output_any");
                 myfile.Read_Single(output_initial, "llg_output_initial");
                 myfile.Read_Single(output_final,   "llg_output_final");
-                myfile.Read_Single(output_energy_spin_resolved,    "llg_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step,             "llg_output_energy_step");
-                myfile.Read_Single(output_energy_archive,          "llg_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins, "llg_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step,    "llg_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "llg_output_configuration_archive");
+                myfile.Read_Single(output_energy_spin_resolved,         "llg_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,                  "llg_output_energy_step");
+                myfile.Read_Single(output_energy_archive,               "llg_output_energy_archive");
+                myfile.Read_Single(output_energy_divide_by_nspins,      "llg_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_add_readability_lines, "llg_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,           "llg_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,        "llg_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,       "llg_output_configuration_filetype");
                 myfile.Read_Single(str_max_walltime, "llg_max_walltime");
                 myfile.Read_Single(seed, "llg_seed");
                 myfile.Read_Single(n_iterations, "llg_n_iterations");
@@ -670,14 +674,16 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
 
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(
             output_folder, output_file_tag,
-            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive},
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
+            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
+            output_configuration_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
             temperature, temperature_gradient_direction, temperature_gradient_inclination,
             damping, beta, dt, renorm_sd, stt_use_gradient, stt_magnitude, stt_polarisation_normal));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
@@ -795,14 +801,16 @@ namespace IO
         // Save output when logging
         std::string output_file_tag; 
         bool output_any = true, 
-                output_initial = true, 
-                output_final = true;
+             output_initial = true, 
+             output_final = true;
         bool output_energy_divide_by_nspins = true, 
-                output_energy_spin_resolved = true, 
-                output_energy_step = true, 
-                output_energy_archive = true;
+             output_energy_spin_resolved = true, 
+             output_energy_step = true, 
+             output_energy_archive = true,
+             output_energy_add_readability_lines = true;
         bool output_configuration_step = false,
-                output_configuration_archive = false;
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -828,16 +836,18 @@ namespace IO
                 IO::Filter_File_Handle myfile(configFile);
 
                 myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder, "mc_output_folder");
-                myfile.Read_Single(output_any, "mc_output_any");
-                myfile.Read_Single(output_initial, "mc_output_initial");
-                myfile.Read_Single(output_final, "mc_output_final");
-                myfile.Read_Single(output_energy_spin_resolved, "mc_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step, "mc_output_energy_step");
-                myfile.Read_Single(output_energy_archive, "mc_output_energy_archive");
+                myfile.Read_Single(output_folder,   "mc_output_folder");
+                myfile.Read_Single(output_any,      "mc_output_any");
+                myfile.Read_Single(output_initial,  "mc_output_initial");
+                myfile.Read_Single(output_final,    "mc_output_final");
+                myfile.Read_Single(output_energy_spin_resolved,    "mc_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,             "mc_output_energy_step");
+                myfile.Read_Single(output_energy_archive,          "mc_output_energy_archive");
                 myfile.Read_Single(output_energy_divide_by_nspins, "mc_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step, "mc_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "mc_output_configuration_archive");
+                myfile.Read_Single(output_energy_add_readability_lines, "mc_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,      "mc_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,   "mc_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,  "mc_output_configuration_filetype");
                 myfile.Read_Single(str_max_walltime, "mc_max_walltime");
                 myfile.Read_Single(seed, "mc_seed");
                 myfile.Read_Single(n_iterations, "mc_n_iterations");
@@ -868,11 +878,13 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive }, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
+            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines }, output_configuration_filetype, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: built");
         return mc_params;
     }
@@ -883,14 +895,16 @@ namespace IO
         // Output folder for results
         std::string output_folder = "output_gneb";
         // Save output when logging
-        std::string output_file_tag = ""; 
-        bool output_any = true, 
-                output_initial = false, 
-                output_final = true, 
-                output_energies_step = false, 
-                output_energies_interpolated = true, 
-                output_energies_divide_by_nspins = true, 
+        std::string output_file_tag = "";
+        bool output_any = true,
+                output_initial = false,
+                output_final = true,
+                output_energies_step = false,
+                output_energies_interpolated = true,
+                output_energies_divide_by_nspins = true,
+                output_energies_add_readability_lines = true,
                 output_chain_step = false;
+        int output_chain_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -918,9 +932,11 @@ namespace IO
                 myfile.Read_Single(output_initial, "gneb_output_initial");
                 myfile.Read_Single(output_final, "gneb_output_final");
                 myfile.Read_Single(output_energies_step, "gneb_output_energies_step");
+                myfile.Read_Single(output_energies_add_readability_lines, "gneb_output_energies_add_readability_lines");
                 myfile.Read_Single(output_energies_interpolated, "gneb_output_energies_interpolated");
                 myfile.Read_Single(output_energies_divide_by_nspins, "gneb_output_energies_divide_by_nspins");
                 myfile.Read_Single(output_chain_step, "gneb_output_chain_step");
+                myfile.Read_Single(output_chain_filetype, "gneb_output_chain_filetype");
                 myfile.Read_Single(str_max_walltime, "gneb_max_walltime");
                 myfile.Read_Single(spring_constant, "gneb_spring_constant");
                 myfile.Read_Single(force_convergence, "gneb_force_convergence");
@@ -948,11 +964,13 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_initial", output_initial));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_final", output_final));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_step", output_energies_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_add_readability_lines", output_energies_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_step", output_chain_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_filetype", output_chain_filetype));
 
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step },
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
+        auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step, output_energies_add_readability_lines},
+            output_chain_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
         return gneb_params;
     }// end Parameters_Method_LLG_from_Config
@@ -964,14 +982,17 @@ namespace IO
         std::string output_folder = "output_mmf";
         // Save output when logging
         std::string output_file_tag = "";
-        bool output_any = true, 
-                output_initial = false, 
-                output_final = true, 
-                output_energy_step = false, 
-                output_energy_archive = true, 
-                output_energy_divide_by_nspins = true, 
-                output_configuration_step = false, 
-                output_configuration_archive = true;
+        bool output_any = true,
+             output_initial = true,
+             output_final = true;
+        bool output_energy_divide_by_nspins=true,
+             output_energy_spin_resolved=true,
+             output_energy_step=true,
+             output_energy_archive=true,
+             output_energy_add_readability_lines=true;
+        bool output_configuration_step = false,
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -1001,18 +1022,20 @@ namespace IO
                 myfile.Read_Single(output_any,      "mmf_output_any");
                 myfile.Read_Single(output_initial,  "mmf_output_initial");
                 myfile.Read_Single(output_final,    "mmf_output_final");
-                myfile.Read_Single(output_energy_step,              "mmf_output_energy_step");
-                myfile.Read_Single(output_energy_archive,           "mmf_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins,  "mmf_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step,       "mmf_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive,    "mmf_output_configuration_archive");
+                myfile.Read_Single(output_energy_step,                  "mmf_output_energy_step");
+                myfile.Read_Single(output_energy_archive,               "mmf_output_energy_archive");
+                myfile.Read_Single(output_energy_divide_by_nspins,      "mmf_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_add_readability_lines, "mmf_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,           "mmf_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,        "mmf_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,       "mmf_output_configuration_filetype");
                 // Simulation parameters
-                myfile.Read_Single(str_max_walltime,    "mmf_max_walltime");
-                myfile.Read_Single(force_convergence,   "mmf_force_convergence");
-                myfile.Read_Single(n_iterations,        "mmf_n_iterations");
-                myfile.Read_Single(n_iterations_log,    "mmf_n_iterations_log");
-                myfile.Read_Single(n_modes,         "mmf_n_modes");
-                myfile.Read_Single(n_mode_follow,   "mmf_n_mode_follow");
+                myfile.Read_Single(str_max_walltime,  "mmf_max_walltime");
+                myfile.Read_Single(force_convergence, "mmf_force_convergence");
+                myfile.Read_Single(n_iterations,      "mmf_n_iterations");
+                myfile.Read_Single(n_iterations_log,  "mmf_n_iterations_log");
+                myfile.Read_Single(n_modes,           "mmf_n_modes");
+                myfile.Read_Single(n_mode_follow,     "mmf_n_mode_follow");
             }// end try
             catch (...)
             {
@@ -1034,12 +1057,15 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(
-            output_folder, output_file_tag, {output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
-            n_modes, n_mode_follow, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
+            output_folder, output_file_tag,
+            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
+            output_configuration_filetype, n_modes, n_mode_follow, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
         return mmf_params;
     }
@@ -1076,15 +1102,10 @@ namespace IO
         std::unique_ptr<Engine::Hamiltonian> hamiltonian;
         try
         {
-            if (hamiltonian_type == "heisenberg_neighbours")
+            if (hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs")
             {
-                hamiltonian = Hamiltonian_Heisenberg_Neighbours_from_Config(configFile, geometry);
-            }// endif isotropic
-            else if (hamiltonian_type == "heisenberg_pairs")
-            {
-                // TODO: to std::move or not to std::move, that is the question...
-                hamiltonian = std::move(Hamiltonian_Heisenberg_Pairs_from_Config(configFile, geometry));
-            }// endif anisotropic
+                hamiltonian = Hamiltonian_Heisenberg_from_Config(configFile, geometry, hamiltonian_type);
+            }
             else if (hamiltonian_type == "gaussian")
             {
                 hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
@@ -1092,7 +1113,7 @@ namespace IO
             else
             {
                 spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
-            }// endif neither
+            }
         }
         catch (...)
         {
@@ -1104,7 +1125,7 @@ namespace IO
         return hamiltonian;
     }
 
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
+    std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type)
     {
         //-------------- Insert default values here -----------------------------
         // Boundary conditions (a, b, c)
@@ -1116,243 +1137,6 @@ namespace IO
 
         // External Magnetic Field
         scalar B = 0;
-        Vector3 B_normal = { 0.0, 0.0, 1.0 };
-
-        // Anisotropy
-        std::string anisotropy_file = "";
-        scalar K = 0;
-        Vector3 K_normal = { 0.0, 0.0, 1.0 };
-        bool anisotropy_from_file = false;
-        intfield    anisotropy_index(geometry->n_cell_atoms);
-        scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
-        vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
-
-        // Number of shells in which we calculate neighbours
-        // Jij
-        scalarfield jij = { 10.0 };
-        int n_neigh_shells_exchange = jij.size();
-        // DM constant
-        scalarfield dij = { 6.0 };
-        int n_neigh_shells_dmi = dij.size();
-        int dm_chirality = 1;
-        // Dipole-Dipole interaction radius
-        scalar dd_radius = 0.0;
-
-        //------------------------------- Parser --------------------------------
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: building");
-        // iteration variables
-        int iatom = 0;
-        if (configFile != "")
-        {
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_3Vector(boundary_conditions_i, "boundary_conditions");
-                boundary_conditions[0] = (boundary_conditions_i[0] != 0);
-                boundary_conditions[1] = (boundary_conditions_i[1] != 0);
-                boundary_conditions[2] = (boundary_conditions_i[2] != 0);
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read boundary_conditions from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Spin moment
-                if (myfile.Find("mu_s"))
-                {
-                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
-                    {
-                        if ( !(myfile.iss >> mu_s[iatom]) )
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO,
-                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
-                            mu_s[iatom] = mu_s[0];
-                        }
-                    }
-                }
-                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // External Field
-                // Read parameters from config if available
-                myfile.Read_Single(B, "external_field_magnitude");
-                myfile.Read_Vector3(B_normal, "external_field_normal");
-                B_normal.normalize();
-                if (B_normal.norm() < 1e-8)
-                {
-                    B_normal = { 0,0,1 };
-                    Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read external field from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Anisotropy
-                if (myfile.Find("anisotropy_file")) myfile.iss >> anisotropy_file;
-                if (anisotropy_file.length() > 0)
-                {
-                    int n;
-                    // The file name should be valid so we try to read it
-                    Anisotropy_from_File(anisotropy_file, geometry, n,
-                        anisotropy_index, anisotropy_magnitude, anisotropy_normal);
-
-                    anisotropy_from_file = true;
-                    K = anisotropy_magnitude[0];
-                    K_normal = anisotropy_normal[0];
-                }
-                else
-                {
-                    // Read parameters from config
-                    myfile.Read_Single(K, "anisotropy_magnitude");
-                    myfile.Read_Vector3(K_normal, "anisotropy_normal");
-                    K_normal.normalize();
-
-                    if (K != 0)
-                    {
-                        // Fill the arrays
-                        for (int i = 0; i < anisotropy_index.size(); ++i)
-                        {
-                            anisotropy_index[i] = i;
-                            anisotropy_magnitude[i] = K;
-                            anisotropy_normal[i] = K_normal;
-                        }
-                    }
-                    else
-                    {
-                        anisotropy_index = intfield(0);
-                        anisotropy_magnitude = scalarfield(0);
-                        anisotropy_normal = vectorfield(0);
-                    }
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read anisotropy from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(n_neigh_shells_exchange, "n_neigh_shells_exchange");
-                if (jij.size() != n_neigh_shells_exchange)
-                    jij = scalarfield(n_neigh_shells_exchange);
-                if (n_neigh_shells_exchange > 0)
-                {
-                    if (myfile.Find("jij"))
-                    {
-                        for (iatom = 0; iatom < n_neigh_shells_exchange; ++iatom)
-                            myfile.iss >> jij[iatom];
-                    }
-                    else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'jij' not found. Using Default:  { 10.0 }");
-                }
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(n_neigh_shells_dmi, "n_neigh_shells_dmi");
-                if (dij.size() != n_neigh_shells_dmi)
-                    dij = scalarfield(n_neigh_shells_dmi);
-                if (n_neigh_shells_dmi > 0)
-                {
-                    if (myfile.Find("dij"))
-                    {
-                        for (iatom = 0; iatom < n_neigh_shells_dmi; ++iatom)
-                            myfile.iss >> dij[iatom];
-                    }
-                    else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Keyword 'dij' not found. Using Default:  { 6.0 }");
-                }
-                myfile.Read_Single(dm_chirality, "dm_chirality");
-
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                myfile.Read_Single(dd_radius, "dd_radius");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Failed to read dd_radius from config file \"{}\"", configFile));
-            }
-        }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: Using default configuration!");
-
-        // Return
-        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        boundary conditions = {0} {1} {2}", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
-        if (anisotropy_from_file)
-            Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_neigh_shells_exchange));
-        if (n_neigh_shells_exchange > 0)
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", jij[0]));
-        if (n_neigh_shells_dmi > 0)
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_neigh_shells_dmi));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dij[0]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", dd_radius));
-        auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours>(new Engine::Hamiltonian_Heisenberg_Neighbours(
-                mu_s, B, B_normal,
-                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-                jij,
-                dij, dm_chirality,
-                dd_radius,
-                geometry,
-                boundary_conditions
-            ));
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Neighbours: built");
-        return hamiltonian;
-    }// end Hamiltonian_Heisenberg_Neighbours_from_Config
-
-
-
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
-    {
-        //-------------- Insert default values here -----------------------------
-        // Boundary conditions (a, b, c)
-        std::vector<int> boundary_conditions_i = { 0, 0, 0 };
-        intfield boundary_conditions = { false, false, false };
-
-        // Spin moment
-        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
-
-        // External Magnetic Field
-        scalar B = 25;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
         
         // Anisotropy
@@ -1370,6 +1154,13 @@ namespace IO
         bool interaction_pairs_from_file = false;
         pairfield exchange_pairs(0); scalarfield exchange_magnitudes(0);
         pairfield dmi_pairs(0); scalarfield dmi_magnitudes(0); vectorfield dmi_normals(0);
+
+        // Number of shells in which we calculate neighbours
+        int n_shells_exchange = exchange_magnitudes.size();
+        // DM constant
+        int n_shells_dmi = dmi_magnitudes.size();
+        int dm_chirality = 1;
+        
         scalar ddi_radius = 0.0;
 
         // ------------ Quadruplet Interactions ------------
@@ -1379,7 +1170,7 @@ namespace IO
         quadrupletfield quadruplets(0); scalarfield quadruplet_magnitudes(0);
 
         //------------------------------- Parser --------------------------------
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: building");
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: building");
         // iteration variables
         int iatom = 0;
         if (configFile != "")
@@ -1499,33 +1290,84 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
             }
 
-            try
+            if (hamiltonian_type == "heisenberg_pairs")
             {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Interaction Pairs
-                if (myfile.Find("n_interaction_pairs"))
-                    interaction_pairs_file = configFile;
-                else if (myfile.Find("interaction_pairs_file"))
-                    myfile.iss >> interaction_pairs_file;
-
-                if (interaction_pairs_file.length() > 0)
+                try
                 {
-                    // The file name should be valid so we try to read it
-                    Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
-                        exchange_pairs, exchange_magnitudes,
-                        dmi_pairs, dmi_magnitudes, dmi_normals);
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    // Interaction Pairs
+                    if (myfile.Find("n_interaction_pairs"))
+                        interaction_pairs_file = configFile;
+                    else if (myfile.Find("interaction_pairs_file"))
+                        myfile.iss >> interaction_pairs_file;
+
+                    if (interaction_pairs_file.length() > 0)
+                    {
+                        // The file name should be valid so we try to read it
+                        Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
+                            exchange_pairs, exchange_magnitudes,
+                            dmi_pairs, dmi_magnitudes, dmi_normals);
+                    }
+                    //else
+                    //{
+                    //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
+                    //	throw Exception::System_not_Initialized;
+                    //	// Not implemented!
+                    //}
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
                 }
-                //else
-                //{
-                //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Default Interaction pairs have not been implemented yet.");
-                //	throw Exception::System_not_Initialized;
-                //	// Not implemented!
-                //}
-            }// end try
-            catch( ... )
+            }
+            else
             {
-                spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    myfile.Read_Single(n_shells_exchange, "n_shells_exchange");
+                    if (exchange_magnitudes.size() != n_shells_exchange)
+                        exchange_magnitudes = scalarfield(n_shells_exchange);
+                    if (n_shells_exchange > 0)
+                    {
+                        if (myfile.Find("jij"))
+                        {
+                            for (iatom = 0; iatom < n_shells_exchange; ++iatom)
+                                myfile.iss >> exchange_magnitudes[iatom];
+                        }
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  { 10.0 }");
+                    }
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Failed to read exchange parameters from config file \"{}\"", configFile));
+                }
+
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    myfile.Read_Single(n_shells_dmi, "n_shells_dmi");
+                    if (dmi_magnitudes.size() != n_shells_dmi)
+                        dmi_magnitudes = scalarfield(n_shells_dmi);
+                    if (n_shells_dmi > 0)
+                    {
+                        if (myfile.Find("dij"))
+                        {
+                            for (iatom = 0; iatom < n_shells_dmi; ++iatom)
+                                myfile.iss >> dmi_magnitudes[iatom];
+                        }
+                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  { 6.0 }");
+                    }
+                    myfile.Read_Single(dm_chirality, "dm_chirality");
+
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
+                }
             }
             
             try
@@ -1564,10 +1406,10 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: Using default configuration!");
+        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Using default configuration!");
         
         // Return
-        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs:");
+        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
@@ -1576,21 +1418,52 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+        if (hamiltonian_type == "heisenberg_neighbours")
+        {
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_shells_exchange));
+            if (n_shells_exchange > 0)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", exchange_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_shells_dmi));
+            if (n_shells_dmi > 0)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dmi_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
+        }
+
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
-        auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs>(new Engine::Hamiltonian_Heisenberg_Pairs(
-            mu_s,
-            B, B_normal,
-            anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-            exchange_pairs, exchange_magnitudes,
-            dmi_pairs, dmi_magnitudes, dmi_normals,
-            ddi_radius,
-            quadruplets, quadruplet_magnitudes,
-            geometry,
-            boundary_conditions
-        ));
-        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg_Pairs: built");
+
+        std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
+
+        if (hamiltonian_type == "heisenberg_neighbours")
+        {
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
+                mu_s,
+                B, B_normal,
+                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                exchange_magnitudes,
+                dmi_magnitudes, dm_chirality,
+                ddi_radius,
+                quadruplets, quadruplet_magnitudes,
+                geometry,
+                boundary_conditions
+            ));
+        }
+        else
+        {
+            hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
+                mu_s,
+                B, B_normal,
+                anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                exchange_pairs, exchange_magnitudes,
+                dmi_pairs, dmi_magnitudes, dmi_normals,
+                ddi_radius,
+                quadruplets, quadruplet_magnitudes,
+                geometry,
+                boundary_conditions
+            ));
+        }
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: built");
         return hamiltonian;
-    }// end Hamiltonian_Heisenberg_Pairs_From_Config
+    }// end Hamiltonian_Heisenberg_From_Config
 
 
     std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)

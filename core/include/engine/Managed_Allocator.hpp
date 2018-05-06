@@ -1,7 +1,7 @@
 #ifndef MANAGED_ALLOCATOR_H
 #define MANAGED_ALLOCATOR_H
 
-#ifdef USE_CUDA
+#ifdef SPIRIT_USE_CUDA
 
 #include <utility/Exception.hpp>
 

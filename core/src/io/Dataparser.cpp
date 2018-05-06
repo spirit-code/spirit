@@ -1,5 +1,6 @@
 #include <io/IO.hpp>
 #include <io/Filter_File_Handle.hpp>
+#include <io/OVF_File.hpp>
 #include <io/Dataparser.hpp>
 #include <io/OVF_File.hpp>
 #include <engine/Vectormath.hpp>
@@ -18,278 +19,82 @@ using namespace Engine;
 
 namespace IO
 {
-    // A helper function for splitting a string with a delimiter
-    std::vector<scalar> split_string_to_scalar(const std::string& source, const std::string& delimiter)
+    /*
+    Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
+    */
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
+                                         const int nos, const int idx_image_infile, 
+                                         const std::string file )
     {
-        std::vector<scalar> result;
+        IO::Filter_File_Handle file_handle( file, "#" );
+         
+        // jump to the specified image in the file
+        for (int i=0; i<( nos * idx_image_infile ); i++) 
+            file_handle.GetLine(); 
 
-        scalar temp;
-        std::stringstream ss(source);
-        while (ss >> temp)
+        for (int i=0; i<nos && file_handle.GetLine(","); i++)
         {
-            result.push_back(temp);
+            file_handle.iss >> spins[i][0]; 
+            file_handle.iss >> spins[i][1]; 
+            file_handle.iss >> spins[i][2]; 
 
-            if (ss.peek() == ',' || ss.peek() == ' ')
-                ss.ignore();
-        }
-
-        return result;
-    }
-    
-    // A helper function 
-    void check_defects( std::shared_ptr<Data::Spin_System> s )
-    {
-        auto& spins = *s->spins;
-        int nos = s->geometry->nos;
-        
-        // Detecet the defects 
-        for (int i=0; i<nos; i++)
-        {
             if (spins[i].norm() < 1e-5)
             {
                 spins[i] = {0, 0, 1};
-                
                 // in case of spin vector close to zero we have a vacancy
             #ifdef SPIRIT_ENABLE_DEFECTS
-                s->geometry->atom_types[i] = -1;
+                geometry.atom_types[i] = -1;
             #endif
-            }            
+            }
         }
-    }
-    
-    /*
-    Reads a configuration file into an existing Spin_System
-    */
-    void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
-                                  VF_FileFormat format )
-    {
-        std::ifstream myfile(file);
-        if (myfile.is_open())
-        {
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Reading Spins File ").append(file));
-            std::string line = "";
-            std::istringstream iss(line);
-            std::size_t found;
-            int i = 0;
-            if (format == VF_FileFormat::SPIRIT_CSV_POS_SPIN)
-            {
-                auto& spins = *s->spins;
-                while (getline(myfile, line))
-                {
-                    if (i >= s->nos) 
-                    { 
-                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
-                             "Configuration - Aborting" ); 
-                        myfile.close(); 
-                        return; 
-                    }
-                    
-                    found = line.find("#");
-                    
-                    // Read the line if # is not found (# marks a comment)
-                    if (found == std::string::npos)
-                    {
-                        auto x = split_string_to_scalar(line, ",");
 
-                        if (x[3]*x[3] + x[4]*x[4] + x[5]*x[5] < 1e-5)
-                        {
-                            spins[i][0] = 0;
-                            spins[i][1] = 0;
-                            spins[i][2] = 1;
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                            s->geometry->atom_types[i] = -1;
-                            #endif
-                        }
-                        else
-                        {
-                            spins[i][0] = x[3];
-                            spins[i][1] = x[4];
-                            spins[i][2] = x[5];
-                        }
-                        ++i;
-                    }// endif (# not found)
-                    
-                    // discard line if # is found
-                }// endif new line (while)
-            
-                if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-            }
-            else if ( format == VF_FileFormat::OVF_BIN8 || 
-                      format == VF_FileFormat::OVF_BIN4 || 
-                      format == VF_FileFormat::OVF_TEXT )
-            {
-                auto& spins = *s->spins;
-                auto& geometry = *s->geometry;
-                
-                iFile_OVF ifile_ovf( file, format );
-                ifile_ovf.Read_Segment( spins, geometry );
-            }
-            else
-            {
-                auto& spins = *s->spins;
-                Vector3 spin;
-                while (getline(myfile, line))
-                {
-                    if (i >= s->nos) 
-                    { 
-                        Log( Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin "
-                             "Configuration - Aborting"); 
-                        myfile.close(); 
-                        return; 
-                    }
-                    found = line.find("#");
-                    // Read the line if # is not found (# marks a comment)
-                    if (found == std::string::npos)
-                    {
-                        //scalar x, y, z;
-                        iss.clear();
-                        iss.str(line);
-                        //iss >> x >> y >> z;
-                        iss >> spin[0] >> spin[1] >> spin[2];
-                        if (spin.norm() < 1e-5)
-                        {
-                            spin = {0, 0, 1};
-                            // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                            s->geometry->atom_types[i] = -1;
-                            #endif
-                        }
-                        spins[i] = spin;
-                        ++i;
-                    }// endif (# not found)
-                        // discard line if # is found
-                }// endif new line (while)
-                if (i < s->nos) { Log(Log_Level::Warning, Log_Sender::IO, "NOS mismatch in Read Spin Configuration"); }
-            }
-        
-        #ifdef SPIRIT_ENABLE_DEFECTS
-            // assure that defects are treated right
-            check_defects(s);
-        #endif
-            
-            // normalize read in spins
-            Vectormath::normalize_vectors(*s->spins);
-            
-            myfile.close();
-            Log(Log_Level::Info, Log_Sender::IO, "Done");
-        }
+        // normalize read in spins
+        Vectormath::normalize_vectors( spins );
     }
 
 
-    void Read_SpinChain_Configuration(std::shared_ptr<Data::Spin_System_Chain> c, const std::string file)
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
+                                           const std::string file, int start_image_infile, 
+                                           int end_image_infile, const int insert_idx, 
+                                           int& noi_to_add, int& noi_to_read, const int idx_chain )
     {
-        std::ifstream myfile(file);
-        if (myfile.is_open())
-        {
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Reading SpinChain File ").append(file));
-            std::string line = "";
-            std::istringstream iss(line);
-            std::size_t found;
-            std::size_t image_no;
-            int ispin = 0, iimage = -1, nos = c->images[0]->nos, noi = c->noi;
-            Vector3 spin;
+        IO::Filter_File_Handle file_handle( file, "#" ); 
         
-            while (getline(myfile, line))
-            {
-                // First we check if the line declares a new image
-                
-                image_no = line.find("Image No"); 
-                
-                // if there is a "Image No" in that line increment the indeces appropriately
-                if ( image_no != std::string::npos )
-                {
-                    if (ispin < nos && iimage>0)    // Check if less than NOS spins were read for the image before
-                    {
-                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
-                    }
-                    // set new image index
-                    ++iimage;
-                    // re-set spin counter
-                    ispin = 0;
-                    // jump to next line
-                    getline(myfile, line);
-                    if (iimage >= noi)
-                    {
-                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}", iimage+1, noi));
-                    }
-                    else
-                    {
-                        nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
-                    }
-                }//endif "Image No"
-                
-                // Then check if the line contains "#" charachter which means that is a comment.
-                // This will not affect the "Image No" since is already been done.
-                found = line.find("#");
-                
-                // Read the line if # is not found (# marks a comment)
-                if (found == std::string::npos)
-                {
-                    if (iimage < 0) iimage = 0;
+        int nol = file_handle.Get_N_Non_Comment_Lines();
+        int noi = chain->noi;
+        int nos = chain->images[0]->nos;
+       
+        int noi_infile = nol/nos;
+        int remainder = nol%nos;
 
-                    if (iimage >= noi)
-                    {
-                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(file) = {} > NOI(chain) = {}. Appending image {}", iimage+1, noi, iimage+1));
-                        // Copy Image
-                        auto new_system = std::make_shared<Data::Spin_System>(Data::Spin_System(*c->images[iimage-1]));
-                        new_system->Lock();
-                        // Add to chain
-                        c->noi++;
-                        c->images.push_back(new_system);
-                        c->image_type.push_back(Data::GNEB_Image_Type::Normal);
-                        noi = c->noi;
-                    }
-                    nos = c->images[iimage]->nos; // Note: different NOS in different images is currently not supported
+        if ( remainder != 0 )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
+                 fmt::format( "Calculated number of images in the nonOVF file is not integer"),
+                 insert_idx, idx_chain );
+        }
 
-                    if (ispin >= nos)
-                    {
-                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS missmatch in image {}", iimage+1));
-                        Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(file) = {} > NOS(image) = {}", ispin+1, nos));
-                        //Log(Log_Level::Warning, Log_Sender::IO, std::string("Aborting Loading of SpinChain Configuration ").append(file));
-                        //myfile.close();
-                        //return;
-                    }
-                    else
-                    {
-                        iss.clear();
-                        iss.str(line);
-                        auto& spins = *c->images[iimage]->spins;
-                        //iss >> x >> y >> z;
-                        iss >> spin[0] >> spin[1] >> spin[2];
-                        if (spin.norm() < 1e-5)
-                        {
-                            spin = {0, 0, 1};
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                            c->images[iimage]->geometry->atom_types[ispin] = -1;
-                            #endif
-                        }
-                        spins[ispin] = spin;
-                    }
-                    ++ispin;
-                }// endif (# not found)
-                
-                // Discard line if # is found. This will work also in the case of finding "Image No"
-                // keyword since a line like that would containi "#"
-                
-            }// endif new line (while)
-            
-            // for every image of the chain
-            for (int i=0; i<iimage; i++)
-            {
-            #ifdef SPIRIT_ENABLE_DEFECTS
-                // assure that defects are treated right
-                check_defects(c->images[iimage]);
-            #endif
-                
-                // normalize read in spins
-                Vectormath::normalize_vectors(*c->images[iimage]->spins);
-            }
-            
-            if (ispin < nos) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOS(image) = {} > NOS(file) = {} in image {}", nos, ispin+1, iimage+1));
-            if (iimage < noi-1) Log(Log_Level::Warning, Log_Sender::IO, fmt::format("NOI(chain) = {} > NOI(file) = {}", noi, iimage+1));
-            
-            myfile.close();
-            Log(Log_Level::Info, Log_Sender::IO, std::string("Done Reading SpinChain File ").append(file));
+        // Check if the ending image is valid otherwise set it to the last image infile
+        if ( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
+        {
+            end_image_infile = noi_infile - 1;
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "Invalid end_image_infile. Value was set to the last image "
+                 "of the file"), insert_idx, idx_chain );
+        }
+          
+        // If the idx of the starting image is valid
+        if ( start_image_infile < noi_infile )
+        {
+            noi_to_read = end_image_infile - start_image_infile + 1;
+           
+            noi_to_add = noi_to_read - ( noi - insert_idx );
+        }
+        else
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::IO,
+                 fmt::format( "Invalid starting_idx. File {} has {} noi", file, 
+                 noi_infile ), insert_idx, idx_chain );
         }
     }
 
@@ -305,9 +110,9 @@ namespace IO
             auto& eigenvalues = image->eigenvalues;
             auto& geometry = *image->geometry;
            
-            iFile_OVF ifile_ovf( filename, format );
+            File_OVF file_ovf( filename, format );
           
-            int n_segments = ifile_ovf.Get_N_Segments();
+            int n_segments = file_ovf.get_n_segments();
 
             // If the modes buffer's size is not the same as the n_segments then resize
             if ( modes.size() != n_segments )
@@ -329,8 +134,8 @@ namespace IO
                     modes[idx] = std::shared_ptr<vectorfield>(
                         new vectorfield( spins.size(), Vector3{1,0,0} ));
                 
-                ifile_ovf.Read_Segment( *modes[idx], geometry, idx );
-                ifile_ovf.Read_Variable_from_Comment( eigenvalues[idx], 
+                file_ovf.read_segment( *modes[idx], geometry, idx );
+                file_ovf.Read_Variable_from_Comment( eigenvalues[idx], 
                                                       "# Desc: eigenvalue = ", idx );
             }
 
@@ -441,7 +246,6 @@ namespace IO
                         file.iss >> sdump;
                 }
                 K_temp = { spin_K1, spin_K2, spin_K3 };
-
                 // Anisotropy vector orientation
                 if (K_abc)
                 {
@@ -472,7 +276,6 @@ namespace IO
                     anisotropy_magnitude.push_back(spin_K);
                     anisotropy_normal.push_back(K_temp);
                 }
-
                 ++i_anisotropy;
             }// end while getline
             n_indices = i_anisotropy;
@@ -545,15 +348,14 @@ namespace IO
             // Check if interactions have been found in header
             if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in pairs file " + pairsFile);
 
-            // Pair Indices
-            int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
-            scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
-
             // Get actual Pairs Data
             int i_pair = 0;
             std::string sdump;
             while (file.GetLine() && i_pair < n_pairs)
             {
+                // Pair Indices
+                int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
+                scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
                 // Read a Pair from the File
                 for (unsigned int i = 0; i < columns.size(); ++i)
                 {
@@ -590,44 +392,95 @@ namespace IO
                 // DMI vector orientation
                 if (DMI_abc)
                 {
-                    pair_D_temp = { pair_D1, pair_D2, pair_D3 };
-                    pair_D1 = pair_D_temp.dot(geometry->bravais_vectors[0]);
-                    pair_D2 = pair_D_temp.dot(geometry->bravais_vectors[1]);
-                    pair_D3 = pair_D_temp.dot(geometry->bravais_vectors[2]);
+                    pair_D_temp =  pair_D1 * geometry->bravais_vectors[0] 
+                                 + pair_D2 * geometry->bravais_vectors[1] 
+                                 + pair_D3 * geometry->bravais_vectors[2];
+                    pair_D1 = pair_D_temp[0];
+                    pair_D2 = pair_D_temp[1];
+                    pair_D3 = pair_D_temp[2];
                 }
                 // DMI vector normalisation
-                if (Dij)
+                scalar dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
+                if (dnorm != 0)
                 {
-                    scalar dnorm = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
-                    if (dnorm != 0)
-                    {
-                        pair_D1 = pair_D1 / dnorm;
-                        pair_D2 = pair_D2 / dnorm;
-                        pair_D3 = pair_D3 / dnorm;
-                    }
+                    pair_D1 = pair_D1 / dnorm;
+                    pair_D2 = pair_D2 / dnorm;
+                    pair_D3 = pair_D3 / dnorm;
                 }
-                else
+                if (!Dij)
                 {
-                    pair_Dij = std::sqrt(std::pow(pair_D1, 2) + std::pow(pair_D2, 2) + std::pow(pair_D3, 2));
-                    if (pair_Dij != 0)
-                    {
-                        pair_D1 = pair_D1 / pair_Dij;
-                        pair_D2 = pair_D2 / pair_Dij;
-                        pair_D3 = pair_D3 / pair_Dij;
-                    }
+                    pair_Dij = dnorm;
                 }
 
                 // Add the indices and parameters to the corresponding lists
                 if (pair_Jij != 0)
                 {
-                    exchange_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
-                    exchange_magnitudes.push_back(pair_Jij);
+                    bool already_in;
+                    already_in = false;
+                    int atposition = -1;
+                    for (unsigned int icheck = 0; icheck < exchange_pairs.size(); ++icheck )
+                    {
+                        auto& p = exchange_pairs[icheck];
+                        auto& t = p.translations;
+                        std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
+                        if ( (pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0],  t[1],  t[2]}) ||
+                             (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]}) )
+                        {
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+                    }
+                    if (already_in)
+                    {
+                        exchange_magnitudes[atposition] += pair_Jij;
+                    }
+                    else
+                    {
+                        exchange_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
+                        exchange_magnitudes.push_back(pair_Jij);
+                    }
                 }
                 if (pair_Dij != 0)
                 {
-                    dmi_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
-                    dmi_magnitudes.push_back(pair_Dij);
-                    dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
+                    bool already_in;
+                    int dfact = 1;
+                    already_in = false;
+                    int atposition = -1;
+                    for (unsigned int icheck = 0; icheck < dmi_pairs.size(); ++icheck )
+                    {
+                        auto& p = dmi_pairs[icheck];
+                        auto& t = p.translations;
+                        std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
+                        if (pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] })
+                        {
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+                        else if (pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{-t[0], -t[1], -t[2]})
+                        { // if the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
+                            dfact = -1;
+                            already_in = true;
+                            atposition = icheck;
+                            break;
+                        }
+
+                    }
+                    if (already_in)
+                    { // calculate new D vector by adding the two redundant ones and normalize again
+                        Vector3 newD =   dmi_magnitudes[atposition] * dmi_normals[atposition]
+                                       + dfact * pair_Dij           * Vector3{pair_D1, pair_D2, pair_D3};
+                        scalar newdnorm = std::sqrt(std::pow(newD[0], 2) + std::pow(newD[1], 2) + std::pow(newD[2], 2));
+                        dmi_magnitudes[atposition] = newdnorm;
+                        dmi_normals[atposition] = newD / newdnorm;
+                    }
+                    else
+                    {
+                        dmi_pairs.push_back({ pair_i, pair_j, { pair_da, pair_db, pair_dc } });
+                        dmi_magnitudes.push_back(pair_Dij);
+                        dmi_normals.push_back(Vector3{pair_D1, pair_D2, pair_D3});
+                    }
                 }
 
                 ++i_pair;
@@ -916,5 +769,4 @@ namespace IO
 
         line[pos] = 0;
     }
-    
 }// end namespace IO

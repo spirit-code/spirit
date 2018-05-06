@@ -88,28 +88,23 @@ namespace Engine
         ++this->counter;
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    
-    bool Method_EMA::Converged()
-    {
-        return false;
-    }
-    
+
     void Method_EMA::Save_Current(std::string starttime, int iteration, bool initial, bool final)
-    {    
+    {
     }
-    
+
     void Method_EMA::Hook_Pre_Iteration()
     {
     }
-    
+
     void Method_EMA::Hook_Post_Iteration()
     {
     }
-    
+
     void Method_EMA::Initialize()
     {
     }
-    
+
     void Method_EMA::Finalize()
     {
         this->Lock();
@@ -117,30 +112,30 @@ namespace Engine
         (*this->systems[0]->spins) = this->spins_initial;
         this->Unlock();
     }
-    
+
     void Method_EMA::Message_Start()
     {
         using namespace Utility;
-        
+
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
             "------------  Started  " + this->Name() + " Visualization ------------",
-            "       Mode frequency  " + fmt::format("{}", this->parameters_ema->frequency),
-            "       Mode amplitude  " + fmt::format("{}", this->parameters_ema->amplitude),
-            "      Number of modes  " + fmt::format("{}", this->parameters_ema->n_modes ),
+            "    Mode frequency  " + fmt::format("{}", this->parameters_ema->frequency),
+            "    Mode amplitude  " + fmt::format("{}", this->parameters_ema->amplitude),
+            "    Number of modes " + fmt::format("{}", this->parameters_ema->n_modes ),
             "-----------------------------------------------------"
         }, this->idx_image, this->idx_chain);
     }
-    
+
     void Method_EMA::Message_Step()
     {
     }
-    
+
     void Method_EMA::Message_End()
     {
     }
-    
+
     // Method name as string
     std::string Method_EMA::Name() { return "EMA"; }
 

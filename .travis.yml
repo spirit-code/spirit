@@ -229,9 +229,8 @@ script:
   - if [ "$PYPI" == "true" ]; then echo "Deploying to testpypi."; else echo "Not deploying to testpypi."; fi
   - if [ "$PYPI" == "true" ]; then twine upload --skip-existing -r testpypi dist/*; fi
 
-  # Don't run coverage on branches other than master or develop
+  # Don't run coverage on branches other than master or develop (or pull requests targeting those)
   - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_BRANCH" != "develop" ]; then COVERAGE=false; fi
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then COVERAGE=false; fi
 
   # Run C++ coverage report generation and upload to codecov
   - cd ../../build
@@ -239,12 +238,12 @@ script:
   - if [ "$COVERAGE" == "true" ]; then make test; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -c --no-external --directory . --base-directory ../core -o after_test.info; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -a baseline.info -a after_test.info -o total_test.info; fi
-  - if [ "$COVERAGE" == "true" ]; then lcov -r total_test.info \*thirdparty\* \*/test/\* -o coverage.info; fi
+  - if [ "$COVERAGE" == "true" ]; then lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info; fi
   - if [ "$COVERAGE" == "true" ]; then bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"; fi
 
   # Run Python coverage report generation and upload to coveralls
   - cd ../core/python
-  - if [ "$COVERAGE" == "true" ]; then coverage run --source spirit setup.py test > cov.txt; fi
+  - if [ "$COVERAGE" == "true" ]; then coverage run --source spirit --omit=spirit/spiritlib.py,spirit/collection.py setup.py test > cov.txt; fi
   - if [ "$COVERAGE" == "true" ]; then head cov.txt; fi
   - if [ "$COVERAGE" == "true" ]; then coverage report -m; fi
   - if [ "$COVERAGE" == "true" ]; then coverage xml; fi

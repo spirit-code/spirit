@@ -6,22 +6,19 @@
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <data/Parameters_Method_LLG.hpp>
-#include <data/Parameters_Method_GNEB.hpp>
-#include <data/Parameters_Method_MMF.hpp>
-#include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
-#include <engine/Hamiltonian_Gaussian.hpp>
 #include <io/IO.hpp>
 #include <io/Fileformat.hpp>
 #include <io/Filter_File_Handle.hpp>
 
 namespace IO
 {
-    void Read_Spin_Configuration( std::shared_ptr<Data::Spin_System> s, const std::string file, 
-                                  VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_POS_SPIN );
-    void Read_SpinChain_Configuration( std::shared_ptr<Data::Spin_System_Chain> c, 
-                                       const std::string file );
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
+                                         const int nos, const int idx_image_infile, 
+                                         const std::string file );
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
+                                           const std::string file, int start_image_infile, 
+                                           int end_image_infile, const int insert_idx, 
+                                           int& noi_to_add, int& noi_to_read, const int idx_chain );
     void Read_Eigenmodes( std::shared_ptr<Data::Spin_System> image, const std::string filename, 
                           VF_FileFormat format = VF_FileFormat::SPIRIT_CSV_POS_SPIN );
     void Anisotropy_from_File( const std::string anisotropyFile, 

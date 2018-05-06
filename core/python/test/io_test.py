@@ -34,7 +34,7 @@ class Image_IO(TestParameters):
     
         configuration.PlusZ(self.p_state)
     
-        io.Image_Write(self.p_state, io_image_test, 0, "python io test")
+        io.Image_Write(self.p_state, io_image_test, 6, "python io test")
         io.Image_Read(self.p_state, io_image_test)
         spins = system.Get_Spin_Directions(self.p_state)
         for i in range(nos):
@@ -44,7 +44,7 @@ class Image_IO(TestParameters):
         
         configuration.MinusZ(self.p_state)
         
-        io.Image_Write(self.p_state, io_image_test, 0, "python io test")
+        io.Image_Write(self.p_state, io_image_test, 6, "python io test")
         io.Image_Read(self.p_state, io_image_test)
         spins = system.Get_Spin_Directions(self.p_state)
         for i in range(nos):
@@ -66,6 +66,9 @@ class Eigenmodes_IO(TestParameters):
         system.updateEigenmodes(self.p_state)
         io.Eigenmodes_Write(self.p_state,io_image_test,6)
 
+        io.Image_Append(self.p_state, io_image_test, 6, "python io test")
+        io.Image_Append(self.p_state, io_image_test, 6, "python io test")
+    
 class Chain_IO(TestParameters):
     
     def test_chain_write(self):
@@ -81,9 +84,9 @@ class Chain_IO(TestParameters):
         chain.Jump_To_Image(self.p_state, 2)
         configuration.PlusZ(self.p_state,)
         # write and append chain
-        io.Chain_Write(self.p_state,io_chain_test, 0, "python io chain")  # this must be overwritten
-        io.Chain_Write(self.p_state,io_chain_test, 0, "python io chain")
-        io.Chain_Append(self.p_state,io_chain_test, 0, "python io chain")
+        io.Chain_Write(self.p_state,io_chain_test, 6, "python io chain")  # this must be overwritten
+        io.Chain_Write(self.p_state,io_chain_test, 6, "python io chain")
+        io.Chain_Append(self.p_state,io_chain_test, 6, "python io chain")
     
 #########
 

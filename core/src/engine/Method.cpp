@@ -14,7 +14,7 @@ using namespace Utility;
 namespace Engine
 {
     Method::Method(std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain) :
-        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain)
+        parameters(parameters), idx_image(idx_img), idx_chain(idx_chain), iteration(0), step(0)
     {
         // Sender name for log messages
         this->SenderName = Log_Sender::All;
@@ -61,8 +61,6 @@ namespace Engine
         this->Save_Current(this->starttime, this->iteration, true, false);
 
         //---- Iteration loop
-        this->iteration = 0;
-        this->step      = 0;
         for ( this->iteration = 0; 
               this->ContinueIterating() &&
               !this->Walltime_Expired(t_current - t_start); 
@@ -107,7 +105,6 @@ namespace Engine
         //---- Finalize (set iterations_allowed to false etc.)
         this->Finalize();
     }
-
 
 
     scalar Method::getIterationsPerSecond()
@@ -166,20 +163,11 @@ namespace Engine
 
     }
 
-
-
-
     bool Method::ContinueIterating()
     {
         return  this->iteration < this->n_iterations &&
                 this->Iterations_Allowed() &&
-               !this->StopFile_Present()   && 
-               !this->Converged();
-    }
-
-    bool Method::Converged()
-    {
-        return false;
+               !this->StopFile_Present();
     }
 
     bool Method::Iterations_Allowed()
@@ -201,10 +189,6 @@ namespace Engine
         std::ifstream f("STOP");
         return f.good();
     }
-
-
-
-
 
     void Method::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {

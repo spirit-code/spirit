@@ -60,7 +60,7 @@ void ParametersWidget::Load_Parameters_Contents()
     float d, vd[3];
     int image_type;
     int i1, i2;
-    bool b1, b2, b3, b4;
+    bool b1, b2, b3, b4, b5;
 
     //		LLG
     // Direct minimization
@@ -96,18 +96,18 @@ void ParametersWidget::Load_Parameters_Contents()
     Parameters_Get_LLG_N_Iterations(state.get(), &i1, &i2);
     this->lineEdit_llg_n_iterations->setText(QString::number(i1));
     this->lineEdit_llg_log_steps->setText(QString::number(i2));
-    auto folder_llg = Parameters_Get_LLG_Output_Folder(state.get());
-    this->lineEdit_llg_output_folder->setText(folder_llg);
+    auto folder = Parameters_Get_LLG_Output_Folder(state.get());
+    this->lineEdit_llg_output_folder->setText(folder);
     Parameters_Get_LLG_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_llg_output_any->setChecked(b1);
     this->checkBox_llg_output_initial->setChecked(b2);
     this->checkBox_llg_output_final->setChecked(b3);
-    Parameters_Get_LLG_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+    Parameters_Get_LLG_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
     this->checkBox_llg_output_energy_step->setChecked(b1);
     this->checkBox_llg_output_energy_archive->setChecked(b2);
     this->checkBox_llg_output_energy_spin_resolved->setChecked(b3);
     this->checkBox_llg_output_energy_divide->setChecked(b4);
-    Parameters_Get_LLG_Output_Configuration(state.get(), &b1, &b2);
+    Parameters_Get_LLG_Output_Configuration(state.get(), &b1, &b2, &i1);
     this->checkBox_llg_output_configuration_step->setChecked(b1);
     this->checkBox_llg_output_configuration_archive->setChecked(b2);
 
@@ -123,18 +123,32 @@ void ParametersWidget::Load_Parameters_Contents()
     Parameters_Get_GNEB_N_Iterations(state.get(), &i1, &i2);
     this->lineEdit_gneb_n_iterations->setText(QString::number(i1));
     this->lineEdit_gneb_log_steps->setText(QString::number(i2));
-    auto folder_gneb = Parameters_Get_GNEB_Output_Folder(state.get());
-    this->lineEdit_gneb_output_folder->setText(folder_gneb);
+    folder = Parameters_Get_GNEB_Output_Folder(state.get());
+    this->lineEdit_gneb_output_folder->setText(folder);
     Parameters_Get_GNEB_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_gneb_output_any->setChecked(b1);
     this->checkBox_gneb_output_initial->setChecked(b2);
     this->checkBox_gneb_output_final->setChecked(b3);
-    Parameters_Get_GNEB_Output_Energies(state.get(), &b1, &b2, &b3);
+    Parameters_Get_GNEB_Output_Energies(state.get(), &b1, &b2, &b3, &b4);
     this->checkBox_gneb_output_energies_step->setChecked(b1);
     this->checkBox_gneb_output_energies_interpolated->setChecked(b2);
     this->checkBox_gneb_output_energies_divide->setChecked(b3);
-    Parameters_Get_GNEB_Output_Chain(state.get(), &b1);
+    Parameters_Get_GNEB_Output_Chain(state.get(), &b1, &i1);
     this->checkBox_gneb_output_chain_step->setChecked(b1);
+
+    //      EMA
+    // modes to calculate and visualize
+    i1 = Parameters_Get_EMA_N_Modes(state.get());
+    this->spinBox_ema_n_modes->setValue(i1);
+    i2 = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    this->spinBox_ema_n_mode_follow->setValue(i2+1);
+    this->spinBox_ema_n_mode_follow->setMaximum(i1);
+    d = Parameters_Get_EMA_Frequency(state.get());
+    this->doubleSpinBox_ema_frequency->setValue(d);
+    d = Parameters_Get_EMA_Amplitude(state.get());
+    this->doubleSpinBox_ema_amplitude->setValue(d);
+    b1 = Parameters_Get_EMA_Snapshot(state.get());
+    this->checkBox_snapshot_mode->setChecked(b1);
 
     // Convergence
     d = Parameters_Get_GNEB_Convergence(state.get());
@@ -154,20 +168,6 @@ void ParametersWidget::Load_Parameters_Contents()
     else if (image_type == 3)
         this->radioButton_Stationary->setChecked(true);
 
-    //      EMA
-    // modes to calculate and visualize
-   i1 = Parameters_Get_EMA_N_Modes(state.get());
-   this->spinBox_ema_n_modes->setValue(i1);
-   i2 = Parameters_Get_EMA_N_Mode_Follow(state.get());
-   this->spinBox_ema_n_mode_follow->setValue(i2+1);
-   this->spinBox_ema_n_mode_follow->setMaximum(i1);
-   d = Parameters_Get_EMA_Frequency(state.get());
-   this->doubleSpinBox_ema_frequency->setValue(d);
-   d = Parameters_Get_EMA_Amplitude(state.get());
-   this->doubleSpinBox_ema_amplitude->setValue(d);
-   b1 = Parameters_Get_EMA_Snapshot(state.get());
-   this->checkBox_snapshot_mode->setChecked(b1);
-
    //       MMF
    // Parameters
    i1 = Parameters_Get_MMF_N_Modes(state.get());
@@ -185,12 +185,12 @@ void ParametersWidget::Load_Parameters_Contents()
     this->checkBox_mmf_output_any->setChecked(b1);
     this->checkBox_mmf_output_initial->setChecked(b2);
     this->checkBox_mmf_output_final->setChecked(b3);
-    Parameters_Get_MMF_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+    Parameters_Get_MMF_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
     this->checkBox_mmf_output_energy_step->setChecked(b1);
     this->checkBox_mmf_output_energy_archive->setChecked(b2);
     this->checkBox_mmf_output_energy_spin_resolved->setChecked(b3);
     this->checkBox_mmf_output_energy_divide->setChecked(b4);
-    Parameters_Get_MMF_Output_Configuration(state.get(), &b1, &b2);
+    Parameters_Get_MMF_Output_Configuration(state.get(), &b1, &b2, &i1);
     this->checkBox_mmf_output_configuration_step->setChecked(b1);
     this->checkBox_mmf_output_configuration_archive->setChecked(b2);
 }
@@ -470,10 +470,10 @@ void ParametersWidget::set_parameters_ema()
 
 void ParametersWidget::save_Spin_Configuration_Eigenmodes()
 {
-	// std::cerr << "inside save spins" << std::endl;
+    // std::cerr << "inside save spins" << std::endl;
     auto fileName = QFileDialog::getSaveFileName(this,
         tr("Save Spin Configuration Eigenmodes"), "./output",
-		tr("OOMF Vector Field(*.ovf)"));
+        tr("OOMF Vector Field(*.ovf)"));
     
     int type = IO_Fileformat_OVF_text;
     
@@ -511,9 +511,9 @@ void ParametersWidget::load_Spin_Configuration_Eigenmodes()
             Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only "
                 "txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
         
-	    auto file = string_q2std(fileName);
+        auto file = string_q2std(fileName);
         IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
- 
+
         // n_modes parameter might be change by IO_Eigenmodes_Read so update that first
         this->spinBox_ema_n_modes->setValue( Parameters_Get_EMA_N_Modes(state.get()) ); 
         
@@ -586,7 +586,7 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
     connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
     connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
-    
+
     //      EMA
     connect(this->spinBox_ema_n_modes, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
     connect(this->spinBox_ema_n_mode_follow, SIGNAL(editingFinished()), this, SLOT(set_parameters_ema()));
@@ -595,7 +595,7 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect(this->pushButton_SaveModes, SIGNAL(clicked()), this, SLOT(save_Spin_Configuration_Eigenmodes()));
     connect(this->pushButton_LoadModes, SIGNAL(clicked()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
     connect(this->checkBox_snapshot_mode, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_ema()));
-    
+
     //      MMF
     // Output
     connect(this->lineEdit_mmf_output_n_iterations, SIGNAL(returnPressed()), this, SLOT(set_parameters_mmf()));

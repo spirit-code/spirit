@@ -1,4 +1,4 @@
-#ifndef USE_CUDA
+#ifndef SPIRIT_USE_CUDA
 
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>

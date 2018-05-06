@@ -128,12 +128,9 @@ const VFRendering::VectorField * SpinWidget::vectorfield()
 
 void SpinWidget::addIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer)
 {
-    if (Geometry_Get_Dimensionality(this->state.get()) == 3)
-    {
-        this->m_renderers_isosurface.insert(renderer);
-        if (m_gl_initialized)
-            this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
-    }
+    this->m_renderers_isosurface.insert(renderer);
+    if (m_gl_initialized)
+        this->enableSystem(this->show_arrows, this->show_boundingbox, this->show_surface, this->show_isosurface);
 }
 
 void SpinWidget::removeIsosurface(std::shared_ptr<VFRendering::IsosurfaceRenderer> renderer)
@@ -342,7 +339,7 @@ void SpinWidget::updateVectorFieldGeometry()
     // Generate the right geometry (triangles and tetrahedra)
     VFRendering::Geometry geometry;
     VFRendering::Geometry geometry_surf2D;
-    //		get tetrahedra
+    //      get tetrahedra
     if (Geometry_Get_Dimensionality(state.get()) == 3)
     {
         if (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2)
@@ -1054,7 +1051,7 @@ void SpinWidget::enableSystem(bool arrows, bool boundingbox, bool surface, bool 
         system.push_back(this->m_renderer_boundingbox);
     if (show_surface && (Geometry_Get_Dimensionality(this->state.get()) == 2 || Geometry_Get_Dimensionality(this->state.get()) == 3))
         system.push_back(this->m_renderer_surface);
-    if (show_isosurface)
+    if (show_isosurface && (Geometry_Get_Dimensionality(this->state.get()) == 3))
     {
         for (auto& iso : this->m_renderers_isosurface) system.push_back(iso);
     }

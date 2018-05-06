@@ -14,8 +14,7 @@
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
-#include <fstream>
-#include <ostream>
+#include <algorithm>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
@@ -71,13 +70,13 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionSave_Cfg_File, SIGNAL(triggered()), this, SLOT(save_Configuration()));
 	connect(this->actionLoad_Spin_Configuration, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration()));
 	connect(this->actionLoad_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration_Eigenmodes()));
-	connect(this->actionLoad_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(load_SpinChain_Configuration()));
+	connect(this->actionLoad_Spin_Configuration_Chain, SIGNAL(triggered()), this, SLOT(load_Spin_Configuration_Chain()));
 	connect(this->actionSave_Energy_per_Spin, SIGNAL(triggered()), this, SLOT(save_System_Energy_Spins()));
 	connect(this->actionSave_Energies, SIGNAL(triggered()), this, SLOT(save_Chain_Energies()));
 	connect(this->actionSave_Energies_Interpolated, SIGNAL(triggered()), this, SLOT(save_Chain_Energies_Interpolated()));
 	connect(this->action_Save_Spin_Configuration, SIGNAL(triggered()), SLOT(save_Spin_Configuration()));
 	connect(this->actionSave_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), SLOT(save_Spin_Configuration_Eigenmodes()));
-	connect(this->actionSave_SpinChain_Configuration, SIGNAL(triggered()), this, SLOT(save_SpinChain_Configuration()));
+	connect(this->actionSave_Spin_Configuration_Chain, SIGNAL(triggered()), this, SLOT(save_Spin_Configuration_Chain()));
 	connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
 	
 	// Edit Menu
@@ -122,6 +121,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	connect(this->actionToggle_visualisation,       SIGNAL(triggered()), this, SLOT(updateMenuBar()));
 	connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(updateMenuBar()));
 	connect(this->actionToggle_fullscreen_window,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+	connect(this->actionToggle_infowidget,          SIGNAL(triggered()), this, SLOT(toggleInfoWidget()));
 	connect(this->dockWidget_Settings, SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
 	connect(this->dockWidget_Plots,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
 	connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
@@ -173,12 +173,14 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 
 	// Set up Update Timers
 	m_timer = new QTimer(this);
+	m_timer_camera = new QTimer(this);
 	m_timer_control = new QTimer(this);
 	//m_timer_plots = new QTimer(this);
 	//m_timer_spins = new QTimer(this);
 	
 	// Connect the Timers
 	connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
+	connect(m_timer_camera, &QTimer::timeout, this, &MainWindow::move_and_rotate_camera);
 	connect(m_timer_control, &QTimer::timeout, this->controlWidget, &ControlWidget::updateData);
 	//connect(m_timer_plots, &QTimer::timeout, this->plotsWidget->energyPlot, &PlotWidget::updateData);	// this currently resets the user's interaction (movement, zoom)
 	//connect(m_timer_spins, &QTimer::timeout, this->spinWidget, &Spin_Widget::updateData);
@@ -186,11 +188,24 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
 	// Start Timers
 	m_timer->start(200);
 	m_timer_control->start(200);
+	//m_timer_camera->start(10);
 	//m_timer_plots->start(100);
 	//m_timer_spins->start(100);
 	//m_timer_debug->start(100);
 
 	this->n_screenshots = 0;
+	this->camera_keys_pressed = std::map<char, bool>{
+		{'w', false},
+		{'a', false},
+		{'s', false},
+		{'d', false},
+		{'q', false},
+		{'e', false},
+		{'t', false},
+		{'f', false},
+		{'g', false},
+		{'h', false}
+	};
 
 	// Status Bar message
 	Ui::MainWindow::statusBar->showMessage(tr("Ready"), 5000);
@@ -443,43 +458,43 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 				break;
 			// WASDQE
 			case Qt::Key_W:
-				this->spinWidget->moveCamera(-2 * scale, 0, 0);
+				this->camera_keys_pressed['w'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_A:
-				this->spinWidget->rotateCamera(0, 2 * scale);
+				this->camera_keys_pressed['a'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_S:
-				this->spinWidget->moveCamera(2 * scale, 0, 0);
+				this->camera_keys_pressed['s'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_D:
-				this->spinWidget->rotateCamera(0, -2 * scale);
+				this->camera_keys_pressed['d'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_Q:
-				this->spinWidget->rotateCamera(2 * scale, 0);
+				this->camera_keys_pressed['q'] = true;
 				break;
 			// WASDQE
 			case Qt::Key_E:
-				this->spinWidget->rotateCamera(-2 * scale, 0);
+				this->camera_keys_pressed['e'] = true;
 				break;
 			// Movement
 			case Qt::Key_T:
-				this->spinWidget->moveCamera(0, 0, 2 * scale);
+				this->camera_keys_pressed['t'] = true;
 				break;
 			// Movement
 			case Qt::Key_F:
-				this->spinWidget->moveCamera(0, 2 * scale, 0);
+				this->camera_keys_pressed['f'] = true;
 				break;
 			// Movement
 			case Qt::Key_G:
-				this->spinWidget->moveCamera(0, 0, -2 * scale);
+				this->camera_keys_pressed['g'] = true;
 				break;
 			// Movement
 			case Qt::Key_H:
-				this->spinWidget->moveCamera(0, -2 * scale, 0);
+				this->camera_keys_pressed['h'] = true;
 				break;
 			// F1: Show key bindings
 			case Qt::Key_F1:
@@ -604,6 +619,93 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
 		}
 	}
 	this->return_focus();
+	
+	if (std::any_of(this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),
+		[](const std::pair<char, bool> & key) -> bool { return key.second; }))
+		m_timer_camera->start(10);
+}
+
+
+void MainWindow::keyReleaseEvent(QKeyEvent *k)
+{
+	switch (k->key())
+	{
+		// WASDQE
+		case Qt::Key_W:
+			this->camera_keys_pressed['w'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_A:
+			this->camera_keys_pressed['a'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_S:
+			this->camera_keys_pressed['s'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_D:
+			this->camera_keys_pressed['d'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_Q:
+			this->camera_keys_pressed['q'] = false;
+			break;
+		// WASDQE
+		case Qt::Key_E:
+			this->camera_keys_pressed['e'] = false;
+			break;
+		// Movement
+		case Qt::Key_T:
+			this->camera_keys_pressed['t'] = false;
+			break;
+		// Movement
+		case Qt::Key_F:
+			this->camera_keys_pressed['f'] = false;
+			break;
+		// Movement
+		case Qt::Key_G:
+			this->camera_keys_pressed['g'] = false;
+			break;
+		// Movement
+		case Qt::Key_H:
+			this->camera_keys_pressed['h'] = false;
+			break;
+	}
+
+	// Stop the camera update timer if all camera keys were released
+	if (!std::any_of(this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),
+		[](const std::pair<char, bool> & key) -> bool { return key.second; }))
+		m_timer_camera->stop();
+}
+
+void MainWindow::move_and_rotate_camera()
+{
+	int w=0, a=0, s=0, d=0;
+	int q=0, e=0;
+	int t=0, f=0, g=0, h=0;
+
+	float scale = 5;
+	bool shiftpressed = false;
+
+	if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
+	{
+		scale = 1;
+		shiftpressed = true;
+	}
+	
+	w = (int)this->camera_keys_pressed['w'];
+	a = (int)this->camera_keys_pressed['a'];
+	s = (int)this->camera_keys_pressed['s'];
+	d = (int)this->camera_keys_pressed['d'];
+	q = (int)this->camera_keys_pressed['q'];
+	e = (int)this->camera_keys_pressed['e'];
+	t = (int)this->camera_keys_pressed['t'];
+	f = (int)this->camera_keys_pressed['f'];
+	g = (int)this->camera_keys_pressed['g'];
+	h = (int)this->camera_keys_pressed['h'];
+
+	this->spinWidget->moveCamera(  2*scale*s - 2*scale*w, 2*scale*f - 2*scale*h, 2*scale*t - 2*scale*g);
+	this->spinWidget->rotateCamera(2*scale*q - 2*scale*e, 2*scale*a - 2*scale*d);
 }
 
 
@@ -894,304 +996,292 @@ void MainWindow::takeScreenshot()
 
 void MainWindow::edit_cut()
 {
-	auto str_image = [](int idx_img, int noi, int idx_chain) {
-		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
-	};
+    auto str_image = [](int idx_img, int noi, int idx_chain) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    };
 
-	this->controlWidget->cut_image();
-	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-	this->createStatusBar();
+    this->controlWidget->cut_image();
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    this->createStatusBar();
 }
 
 void MainWindow::edit_copy()
 {
-	Chain_Image_to_Clipboard(state.get());
+    Chain_Image_to_Clipboard(state.get());
 }
 
 void MainWindow::edit_paste()
 {
-	this->controlWidget->paste_image();
-	this->createStatusBar();
+    this->controlWidget->paste_image();
+    this->createStatusBar();
 }
 
 void MainWindow::edit_insert_right()
 {
-	auto str_image = [](int idx_img, int noi, int idx_chain) {
-		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
-	};
+    auto str_image = [](int idx_img, int noi, int idx_chain) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    };
 
-	this->controlWidget->paste_image("right");
-	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-	this->createStatusBar();
+    this->controlWidget->paste_image("right");
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    this->createStatusBar();
 }
 
 void MainWindow::edit_insert_left()
 {
-	auto str_image = [](int idx_img, int noi, int idx_chain) {
-		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
-	};
+    auto str_image = [](int idx_img, int noi, int idx_chain) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    };
 
-	this->controlWidget->paste_image("left");
-	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-	this->createStatusBar();
+    this->controlWidget->paste_image("left");
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    this->createStatusBar();
 }
 
 void MainWindow::edit_delete()
 {
-	auto str_image = [](int idx_img, int noi, int idx_chain) {
-		return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
-	};
+    auto str_image = [](int idx_img, int noi, int idx_chain) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    };
 
-	this->controlWidget->delete_image();
-	Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
-	this->createStatusBar();
+    this->controlWidget->delete_image();
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    this->createStatusBar();
 }
 
 void MainWindow::control_random()
 {
-	this->settingsWidget->randomPressed();
+    this->settingsWidget->randomPressed();
 }
 
 void MainWindow::control_insertconfiguration()
 {
-	this->settingsWidget->lastConfiguration();
+    this->settingsWidget->lastConfiguration();
 }
 
 void MainWindow::control_playpause()
 {
-	this->controlWidget->play_pause();
-	Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
+    this->controlWidget->play_pause();
+    Ui::MainWindow::statusBar->showMessage(tr(std::string("Play/Pause: "+this->controlWidget->methodName()+" simulation").c_str()), 5000);
 }
 
 void MainWindow::control_cycle_method()
 {
-	this->controlWidget->cycleMethod();
-	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
+    this->controlWidget->cycleMethod();
+    Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->methodName().c_str()), 5000);
 }
 
 void MainWindow::control_cycle_solver()
 {
-	this->controlWidget->cycleSolver();
-	Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->solverName().c_str()), 5000);
+    this->controlWidget->cycleSolver();
+    Ui::MainWindow::statusBar->showMessage(tr(this->controlWidget->solverName().c_str()), 5000);
 }
 
 void MainWindow::view_regular_mode()
 {
-	this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
-	this->settingsWidget->updateData();
-	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Regular"), 5000);
+    this->spinWidget->cycleSystem(SpinWidget::SystemMode::CUSTOM);
+    this->settingsWidget->updateData();
+    Ui::MainWindow::statusBar->showMessage(tr("Set mode to Regular"), 5000);
 }
 
 void MainWindow::view_isosurface_mode()
 {
-	this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
-	this->settingsWidget->updateData();
-	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Isosurface"), 5000);
+    this->spinWidget->cycleSystem(SpinWidget::SystemMode::ISOSURFACE);
+    this->settingsWidget->updateData();
+    Ui::MainWindow::statusBar->showMessage(tr("Set mode to Isosurface"), 5000);
 }
 
 void MainWindow::view_slab_x()
 {
-	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
-	this->settingsWidget->updateData();
-	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab X"), 5000);
+    this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_X);
+    this->settingsWidget->updateData();
+    Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab X"), 5000);
 }
 
 void MainWindow::view_slab_y()
 {
-	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
-	this->settingsWidget->updateData();
-	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Y"), 5000);
+    this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Y);
+    this->settingsWidget->updateData();
+    Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Y"), 5000);
 }
 
 void MainWindow::view_slab_z()
 {
-	this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
-	this->settingsWidget->updateData();
-	Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Z"), 5000);
+    this->spinWidget->cycleSystem(SpinWidget::SystemMode::SLAB_Z);
+    this->settingsWidget->updateData();
+    Ui::MainWindow::statusBar->showMessage(tr("Set mode to Slab Z"), 5000);
 }
 
 
 void MainWindow::view_cycle_camera()
 {
-	this->spinWidget->cycleCamera();
-	if (this->spinWidget->cameraProjection())
-		Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
-	else
-		Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
-	this->settingsWidget->updateData();
+    this->spinWidget->cycleCamera();
+    if (this->spinWidget->cameraProjection())
+        Ui::MainWindow::statusBar->showMessage(tr("Camera: perspective projection"), 5000);
+    else
+        Ui::MainWindow::statusBar->showMessage(tr("Camera: orthogonal projection"), 5000);
+    this->settingsWidget->updateData();
 }
 
 
 void MainWindow::about()
 {
-	QMessageBox::about(this, tr("About Spirit"),
-		QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
-		QString::fromLatin1(
-			"The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
-			"powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
-			"into a cross-platform user interface.<br>"
-			"<br>"
-			"Main developer:<br>"
-			"  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
-			"at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
-			"For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
-			"or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
-			"<br>"
-			"<b>Copyright 2016</b><br>"));
+    QMessageBox::about(this, tr("About Spirit"),
+        QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
+        QString::fromLatin1(
+            "The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
+            "powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
+            "into a cross-platform user interface.<br>"
+            "<br>"
+            "Main developer:<br>"
+            "  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
+            "at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
+            "For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
+            "or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
+            "<br>"
+            "<b>Copyright 2016</b><br>"));
 }
 
 void MainWindow::keyBindings()
 {
-	QMessageBox::about(this, tr("Spirit UI Key Bindings"),
-		QString::fromLatin1("The <b>Key Bindings</b> are as follows:<br>"
-			"<br>"
-			"<i>UI controls</i><br>"
-			" - <b>F1</b>:      Show this<br>"
-			" - <b>F2</b>:      Toggle Settings<br>"
-			" - <b>F3</b>:      Toggle Plots<br>"
-			" - <b>F4</b>:      Toggle Debug<br>"
-			" - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
-			" - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
-			" - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
-			" - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
-			" - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
-			" - <b>i</b>:       Toggle large visualisation<br>"
-			" - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
-			"<br>"
-			"<i>Camera controls</i><br>"
-			" - <b>Left mouse</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
-			" - <b>Right mouse</b>:   Move the camera around (<b>shift</b> to go slow)<br>"
-			" - <b>Scroll mouse</b>:  Zoom in on focus point (<b>shift</b> to go slow)<br>"
-			" - <b>WASD</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
-			" - <b>TFGH</b>:    Move the camera around (<b>shift</b> to go slow)<br>"
-			" - <b>X,Y,Z</b>:   Set the camera in X, Y or Z direction (<b>shift</b> to invert)<br>"
-			"<br>"
-			"<i>Control Simulations</i><br>"
-			" - <b>Space</b>:   Play/Pause<br>"
-			" - <b>Ctrl+M</b>:  Cycle Method<br>"
-			" - <b>Ctrl+S</b>:  Cycle Solver<br>"
-			"<br>"
-			"<i>Manipulate the current images</i><br>"
-			" - <b>Ctrl+R</b>:  Random configuration<br>"
-			" - <b>Ctrl+N</b>:  Add tempered noise<br>"
-			" - <b>Enter</b>:   Insert last used configuration<br>"
-			"<br>"
-			"<i>Visualisation</i><br>"
-			" - <b>+/-</b>:     Use more/fewer data points of the vector field<br>"
-			" - <b>1</b>:       Regular Visualisation Mode<br>"
-			" - <b>2</b>:       Isosurface Visualisation Mode<br>"
-			" - <b>3-5</b>:     Slab (X,Y,Z) Visualisation Mode<br>"
-			" - <b>/</b>:       Cycle Visualisation Mode<br>"
-			" - <b>, and .</b>: Move Slab (<b>shift</b> to go faster)<br>"
-			"<br>"
-			"<i>Manipulate the chain of images</i><br>"
-			" - <b>Arrows</b>:           Switch between images and chains<br>"
-			" - <b>Ctrl+X</b>:           Cut   image<br>"
-			" - <b>Ctrl+C</b>:           Copy  image<br>"
-			" - <b>Ctrl+V</b>:           Paste image at current index<br>"
-			" - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
-			" - <b>Del</b>:              Delete image<br>"
-			"<br>"
-			"<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
+    QMessageBox::about(this, tr("Spirit UI Key Bindings"),
+        QString::fromLatin1("The <b>Key Bindings</b> are as follows:<br>"
+            "<br>"
+            "<i>UI controls</i><br>"
+            " - <b>F1</b>:      Show this<br>"
+            " - <b>F2</b>:      Toggle Settings<br>"
+            " - <b>F3</b>:      Toggle Plots<br>"
+            " - <b>F4</b>:      Toggle Debug<br>"
+            " - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
+            " - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
+            " - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
+            " - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
+            " - <b>Ctrl+Shift+V</b>:          Toggle OpenGL Visualisation<br>"
+            " - <b>i</b>:       Toggle large visualisation<br>"
+            " - <b>Escape</b>:  Try to return focus to main UI (does not always work)<br>"
+            "<br>"
+            "<i>Camera controls</i><br>"
+            " - <b>Left mouse</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+            " - <b>Right mouse</b>:   Move the camera around (<b>shift</b> to go slow)<br>"
+            " - <b>Scroll mouse</b>:  Zoom in on focus point (<b>shift</b> to go slow)<br>"
+            " - <b>WASD</b>:    Rotate the camera around (<b>shift</b> to go slow)<br>"
+            " - <b>TFGH</b>:    Move the camera around (<b>shift</b> to go slow)<br>"
+            " - <b>X,Y,Z</b>:   Set the camera in X, Y or Z direction (<b>shift</b> to invert)<br>"
+            "<br>"
+            "<i>Control Simulations</i><br>"
+            " - <b>Space</b>:   Play/Pause<br>"
+            " - <b>Ctrl+M</b>:  Cycle Method<br>"
+            " - <b>Ctrl+S</b>:  Cycle Solver<br>"
+            "<br>"
+            "<i>Manipulate the current images</i><br>"
+            " - <b>Ctrl+R</b>:  Random configuration<br>"
+            " - <b>Ctrl+N</b>:  Add tempered noise<br>"
+            " - <b>Enter</b>:   Insert last used configuration<br>"
+            "<br>"
+            "<i>Visualisation</i><br>"
+            " - <b>+/-</b>:     Use more/fewer data points of the vector field<br>"
+            " - <b>1</b>:       Regular Visualisation Mode<br>"
+            " - <b>2</b>:       Isosurface Visualisation Mode<br>"
+            " - <b>3-5</b>:     Slab (X,Y,Z) Visualisation Mode<br>"
+            " - <b>/</b>:       Cycle Visualisation Mode<br>"
+            " - <b>, and .</b>: Move Slab (<b>shift</b> to go faster)<br>"
+            "<br>"
+            "<i>Manipulate the chain of images</i><br>"
+            " - <b>Arrows</b>:           Switch between images and chains<br>"
+            " - <b>Ctrl+X</b>:           Cut   image<br>"
+            " - <b>Ctrl+C</b>:           Copy  image<br>"
+            " - <b>Ctrl+V</b>:           Paste image at current index<br>"
+            " - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
+            " - <b>Del</b>:              Delete image<br>"
+            "<br>"
+            "<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
 }
 
 void MainWindow::return_focus()
 {
-	auto childWidgets = this->findChildren<QWidget *>();
-	for (int i = 0; i <childWidgets.count(); ++i)
-	{
-		childWidgets.at(i)->clearFocus();
-	}
+    auto childWidgets = this->findChildren<QWidget *>();
+    for (int i = 0; i <childWidgets.count(); ++i)
+    {
+        childWidgets.at(i)->clearFocus();
+    }
 }
 
 
 
 void MainWindow::save_Spin_Configuration()
 {
-	// std::cerr << "inside save spins" << std::endl;
-	auto fileName = QFileDialog::getSaveFileName(this,
-		tr("Save Spin Configuration"),
-		"./output",
-		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
-	if (!fileName.isEmpty())
-	{
-		QFileInfo fi(fileName);
-		// Determine file type from suffix
-		auto qs_type = fi.completeSuffix();
-		int type = IO_Fileformat_Regular;
-		if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-		else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
-		// Write the file
-		auto file = string_q2std(fileName);
-		IO_Image_Write(this->state.get(), file.c_str(), type);
-	}
+    QString selectedFilter;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save Spin Configuration"),
+        "./output",
+        tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
+            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
+        &selectedFilter);
+
+    if (!fileName.isEmpty())
+    {
+        int fileFormat = IO_Fileformat_OVF_text;
+        if (selectedFilter == "OOMF Vector Field binary (*.ovf)")
+            fileFormat = IO_Fileformat_OVF_bin8;
+        if (selectedFilter == "OOMF Vector Field csv (*.ovf)")
+            fileFormat = IO_Fileformat_OVF_csv;
+        auto file = string_q2std(fileName);
+        IO_Image_Write( this->state.get(), file.c_str(), fileFormat );
+    }
 }
 
 void MainWindow::load_Spin_Configuration()
 {
-	auto fileNames = QFileDialog::getOpenFileNames(this,
-		tr("Load Spin Configuration"),
-		"./input",
-		tr("Any (*.txt *.csv *.ovf);;Plaintext (*.txt);;Comma-separated (*.csv);;OOMF Vector Field binary (*.ovf)"));
+    auto fileNames = QFileDialog::getOpenFileNames(this,
+        tr("Load Spin Configuration"),
+        "./input",
+        tr( "Any (*);;OOMF Vector Field (*.ovf);;"
+            "Plaintext (*.txt);;Comma-separated (*.csv)" ) );
 
-	int n_files = fileNames.size();
-	int n_read  = 0;
-	int i_start = System_Get_Index(this->state.get());
-	
-	for (auto& fileName : fileNames)
-	{
-		int noi = Chain_Get_NOI(this->state.get());
-		bool read_image = true;
-		int type = IO_Fileformat_Regular;
+    int n_files = fileNames.size();
+    int n_images_read  = 0;
+    int i_start = System_Get_Index(this->state.get());
 
-		if (!fileName.isEmpty())
-		{
-			QFileInfo fi(fileName);
-			// Determine file type from suffix
-			auto qs_type = fi.suffix();
-			if (qs_type == "txt") type = IO_Fileformat_Regular;
-			else if (qs_type == "csv") type = IO_Fileformat_CSV_Pos;
-			else if (qs_type == "ovf") type = IO_Fileformat_OVF_bin8;
-			else
-			{
-				Log_Send(state.get(), Log_Level_Error, Log_Sender_UI, ("Invalid file ending (only txt, csv and ovf allowed) on file " + string_q2std(fileName)).c_str());
-				read_image = false;
-			}
-		}
-		else read_image = false;
+    for (auto& fileName : fileNames)
+    {
+        int noi = Chain_Get_NOI(this->state.get());
+        bool read_image = true;
+        int type = IO_Fileformat_Regular;
 
-		if (read_image)
-		{
-			std::cerr << i_start << " " << n_read << " " << noi << std::endl;
-			// Append image to chain if necessary
-			if (i_start+n_read == noi)
-			{
-				Chain_Image_to_Clipboard(this->state.get());
-				Chain_Insert_Image_After(this->state.get());
-				Chain_next_Image(this->state.get());
-			}
-			else if (n_read > 0)
-			{
-				Chain_next_Image(this->state.get());
-			}
+        if ( fileName.isEmpty() ) read_image = false;
 
-			// Read the file
-			auto file = string_q2std(fileName);
-			IO_Image_Read(this->state.get(), file.c_str(), type);
-			++n_read;
-		}
-	}
+        if (read_image)
+        {
+            // Append image to chain if necessary
+            if ( i_start + n_images_read == noi )
+            {
+                Chain_Image_to_Clipboard(this->state.get());
+                Chain_Insert_Image_After(this->state.get());
+                Chain_next_Image(this->state.get());
+            }
+            else if ( n_images_read > 0 )
+            {
+                Chain_next_Image(this->state.get());
+            }
 
-	Chain_Jump_To_Image(this->state.get(), i_start);
-	this->spinWidget->updateData();
+            // Read the file
+            auto file = string_q2std(fileName);
+            IO_Image_Read( this->state.get(), file.c_str() );
+            
+            ++n_images_read;
+        }
+    }
+
+    Chain_Jump_To_Image(this->state.get(), i_start);
+    this->spinWidget->updateData();
 }
 
 void MainWindow::save_Spin_Configuration_Eigenmodes()
 {
-	// std::cerr << "inside save spins" << std::endl;
+    // std::cerr << "inside save spins" << std::endl;
     auto fileName = QFileDialog::getSaveFileName(this,
         tr("Save Spin Configuration Eigenmodes"), "./output",
-		tr("OOMF Vector Field(*.ovf)"));
+        tr("OOMF Vector Field(*.ovf)"));
     
     int type = IO_Fileformat_OVF_text;
     
@@ -1217,12 +1307,12 @@ void MainWindow::load_Spin_Configuration_Eigenmodes()
         tr("OOMMF Vector Field (*.ovf)"));
 
     int type = IO_Fileformat_OVF_text;
-    
+
     if (!fileName.isEmpty())
     {
         QFileInfo fi(fileName);
         auto qs_type = fi.suffix();
-        
+
         int type = IO_Fileformat_OVF_text; // default value
 
         if (qs_type == "ovf") 
@@ -1231,124 +1321,126 @@ void MainWindow::load_Spin_Configuration_Eigenmodes()
             Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, ("Invalid file "
                 "ending (" + string_q2std(qs_type) + "). Default filetype " + 
                 std::to_string(IO_Fileformat_OVF_text) + " was used").c_str() );
-        
-	    auto file = string_q2std(fileName);
+
+        auto file = string_q2std(fileName);
         IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
     }
 }
 
-void MainWindow::save_SpinChain_Configuration()
+void MainWindow::save_Spin_Configuration_Chain()
 {
-	auto fileName = QFileDialog::getSaveFileName( this, tr("Save SpinChain Configuration"), 
-	    "./output", tr("OOMMF Vector Field (*.ovf);;Spirit file format (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-        QFileInfo fi(fileName);
-        auto qs_type = fi.suffix();
-        int type = IO_Fileformat_OVF_text; // default value
+    QString selectedFilter;
+    auto fileName = QFileDialog::getSaveFileName(this,
+        tr("Save SpinChain Configuration"),
+        "./output",
+        tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
+            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
+        &selectedFilter);
 
-        if (qs_type == "ovf") 
-            type = IO_Fileformat_OVF_text;
-        else if (qs_type == "txt") 
-            type = IO_Fileformat_Regular;
-        else
-            Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, ("Invalid file "
-                "ending (" + string_q2std(qs_type) + "). Default filetype " + 
-                std::to_string(IO_Fileformat_OVF_text) + " was used").c_str() );
-
-		auto file = string_q2std(fileName);
-		IO_Chain_Write( this->state.get(), file.c_str(), type );
-	}
+    if (!fileName.isEmpty())
+    {
+        int fileFormat = IO_Fileformat_OVF_text;
+        if (selectedFilter == "OOMF Vector Field binary (*.ovf)")
+            fileFormat = IO_Fileformat_OVF_bin8;
+        if (selectedFilter == "OOMF Vector Field csv (*.ovf)")
+            fileFormat = IO_Fileformat_OVF_csv;
+        auto file = string_q2std(fileName);
+        IO_Chain_Write(this->state.get(), file.c_str(), fileFormat);
+    }
 }
 
-void MainWindow::load_SpinChain_Configuration()
+void MainWindow::load_Spin_Configuration_Chain()
 {
-	auto fileName = QFileDialog::getOpenFileName(this, tr("Load Spin Configuration"), "./input", tr("Spin Configuration (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		IO_Chain_Read(this->state.get(), file.c_str());
-	}
-	this->createStatusBar();
-	this->controlWidget->updateData();
-	this->spinWidget->updateData();
+    auto fileName = QFileDialog::getOpenFileName(this,
+        tr("Load Spin Configuration"),
+        "./input",
+        tr( "Any (*);;OOMF Vector Field (*.ovf);;"
+            "Plaintext (*.txt);;Comma-separated (*.csv)" ));
+
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        IO_Chain_Read(this->state.get(), file.c_str());
+    }
+    this->createStatusBar();
+    this->controlWidget->updateData();
+    this->spinWidget->updateData();
 }
 
 
 void MainWindow::load_Configuration()
 {
-	int idx_img = System_Get_Index(state.get());
-	// Read Spin System from cfg
-	auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		
-		// Set current image
-		if (!IO_System_From_Config(this->state.get(), file.c_str()))
-		{
-			QMessageBox::about(this, tr("Error"),
-				tr("The resulting Spin System would have different NOS\n"
-					"or isotropy status than one or more of the other\n"
-					"images in the chain!\n"
-					"\n"
-					"The system has thus not been reset!"));
-		}
-		else
-		{
-			this->updateStatusBar();
-			this->spinWidget->updateData();
-			this->settingsWidget->updateData();
-		}
-	}
+    int idx_img = System_Get_Index(state.get());
+    // Read Spin System from cfg
+    auto fileName = QFileDialog::getOpenFileName(this, tr("Open Config"), "./input", tr("Config (*.cfg)"));
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        
+        // Set current image
+        if (!IO_System_From_Config(this->state.get(), file.c_str()))
+        {
+            QMessageBox::about(this, tr("Error"),
+                tr( "The given config file could not be used!\n"
+                    "Please check the log for any details.\n"
+                    "\n"
+                    "The system has not been reset!"));
+        }
+        else
+        {
+            this->updateStatusBar();
+            this->spinWidget->updateData();
+            this->settingsWidget->updateData();
+        }
+    }
 }
 
 void MainWindow::save_Configuration()
 {
-	int idx_img = System_Get_Index(state.get());
-	// Read Spin System from cfg
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Config"), "./input", tr("Config (*.cfg)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		
-		State_To_Config(this->state.get(), file.c_str(), ">unknown<");
-	}
+    int idx_img = System_Get_Index(state.get());
+    // Read Spin System from cfg
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save Config"), "./input", tr("Config (*.cfg)"));
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        
+        State_To_Config(this->state.get(), file.c_str(), ">unknown<");
+    }
 }
 
 
 
 void MainWindow::save_System_Energy_Spins()
 {
-	this->return_focus();
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies per Spin"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str());
-	}
+    this->return_focus();
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies per Spin"), "./output", tr("Text (*.txt)"));
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str());
+    }
 }
 
 void MainWindow::save_Chain_Energies()
 {
-	this->return_focus();
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		IO_Chain_Write_Energies(this->state.get(), file.c_str());
-	}
+    this->return_focus();
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        IO_Chain_Write_Energies(this->state.get(), file.c_str());
+    }
 }
 
 void MainWindow::save_Chain_Energies_Interpolated()
 {
-	this->return_focus();
-	auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
-	if (!fileName.isEmpty())
-	{
-		auto file = string_q2std(fileName);
-		IO_Chain_Write_Energies_Interpolated(this->state.get(), file.c_str());
-	}
+    this->return_focus();
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save Energies"), "./output", tr("Text (*.txt)"));
+    if (!fileName.isEmpty())
+    {
+        auto file = string_q2std(fileName);
+        IO_Chain_Write_Energies_Interpolated(this->state.get(), file.c_str());
+    }
 }
 
 void MainWindow::readSettings()
@@ -1356,87 +1448,87 @@ void MainWindow::readSettings()
     QSettings settings("Spirit Code", "Spirit");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState", QByteArray()).toByteArray());
-	bool spins_only = settings.value("fullscreenSpins").toBool();
-	if (spins_only) this->view_toggle_spins_only();
-	bool fullscreen = settings.value("fullscreen").toBool();
-	if (fullscreen) this->view_toggle_fullscreen();
-	bool show_infoWidget = settings.value("show infoWidget", true).toBool();
-	if (!show_infoWidget) this->toggleInfoWidget();
+    bool spins_only = settings.value("fullscreenSpins").toBool();
+    if (spins_only) this->view_toggle_spins_only();
+    bool fullscreen = settings.value("fullscreen").toBool();
+    if (fullscreen) this->view_toggle_fullscreen();
+    bool show_infoWidget = settings.value("show infoWidget", true).toBool();
+    if (!show_infoWidget) this->toggleInfoWidget();
 
-	// Settings Dock
-	settings.beginGroup("SettingsDock");
-	// dockWidget_Settings->setFloating(settings.value("docked").toBool());
-	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
-	// dockWidget_Settings->setHidden(settings.value("hidden").toBool());
-	dockWidget_Settings->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
-	dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
-	settings.endGroup();
+    // Settings Dock
+    settings.beginGroup("SettingsDock");
+    // dockWidget_Settings->setFloating(settings.value("docked").toBool());
+    // addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Settings);
+    // dockWidget_Settings->setHidden(settings.value("hidden").toBool());
+    dockWidget_Settings->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
+    dockWidget_Settings->move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
 
-	// Plots Dock
-	settings.beginGroup("PlotsDock");
-	// dockWidget_Plots->setFloating(settings.value("docked").toBool());
-	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Plots);
-	// dockWidget_Plots->setHidden(settings.value("hidden").toBool());
-	dockWidget_Plots->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
-	dockWidget_Plots->move(settings.value("pos", QPoint(200, 200)).toPoint());
-	settings.endGroup();
+    // Plots Dock
+    settings.beginGroup("PlotsDock");
+    // dockWidget_Plots->setFloating(settings.value("docked").toBool());
+    // addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Plots);
+    // dockWidget_Plots->setHidden(settings.value("hidden").toBool());
+    dockWidget_Plots->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
+    dockWidget_Plots->move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
 
-	// Debug Dock
-	settings.beginGroup("DebugDock");
-	// dockWidget_Debug->setFloating(settings.value("docked").toBool());
-	// addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Debug);
-	// dockWidget_Debug->setHidden(settings.value("hidden").toBool());
-	dockWidget_Debug->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
-	dockWidget_Debug->move(settings.value("pos", QPoint(200, 200)).toPoint());
-	settings.endGroup();
+    // Debug Dock
+    settings.beginGroup("DebugDock");
+    // dockWidget_Debug->setFloating(settings.value("docked").toBool());
+    // addDockWidget((Qt::DockWidgetArea)settings.value("dockarea", Qt::RightDockWidgetArea).toInt(), dockWidget_Debug);
+    // dockWidget_Debug->setHidden(settings.value("hidden").toBool());
+    dockWidget_Debug->topLevelWidget()->resize(settings.value("size", QSize(1, 1)).toSize());
+    dockWidget_Debug->move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
 }
 
 void MainWindow::writeSettings()
 {
-	QSettings settings("Spirit Code", "Spirit");
+    QSettings settings("Spirit Code", "Spirit");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-	settings.setValue("fullscreenSpins", this->view_spins_only);
-	settings.setValue("fullscreen", this->view_fullscreen);
-	settings.setValue("show infoWidget", this->m_InfoWidgetActive);
-	
-	// Settings Dock
-	settings.beginGroup("SettingsDock");
-	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
-	// settings.setValue("docked", dockWidget_Settings->isFloating());
-	// settings.setValue("hidden", dockWidget_Settings->isHidden());
-	settings.setValue("size", dockWidget_Settings->topLevelWidget()->size());
-	settings.setValue("pos", dockWidget_Settings->pos());
-	settings.endGroup();
+    settings.setValue("fullscreenSpins", this->view_spins_only);
+    settings.setValue("fullscreen", this->view_fullscreen);
+    settings.setValue("show infoWidget", this->m_InfoWidgetActive);
 
-	// Plots Dock
-	settings.beginGroup("PlotsDock");
-	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Plots));
-	// settings.setValue("docked", dockWidget_Plots->isFloating());
-	// settings.setValue("hidden", dockWidget_Plots->isHidden());
-	settings.setValue("size", dockWidget_Plots->topLevelWidget()->size());
-	settings.setValue("pos", dockWidget_Plots->pos());
-	settings.endGroup();
+    // Settings Dock
+    settings.beginGroup("SettingsDock");
+    // settings.setValue("dockarea", dockWidgetArea(dockWidget_Settings));
+    // settings.setValue("docked", dockWidget_Settings->isFloating());
+    // settings.setValue("hidden", dockWidget_Settings->isHidden());
+    settings.setValue("size", dockWidget_Settings->topLevelWidget()->size());
+    settings.setValue("pos", dockWidget_Settings->pos());
+    settings.endGroup();
 
-	// Debug Dock
-	settings.beginGroup("DebugDock");
-	// settings.setValue("dockarea", dockWidgetArea(dockWidget_Debug));
-	// settings.setValue("docked", dockWidget_Debug->isFloating());
-	// settings.setValue("hidden", dockWidget_Debug->isHidden());
-	settings.setValue("size", dockWidget_Debug->topLevelWidget()->size());
-	settings.setValue("pos", dockWidget_Debug->pos());
-	settings.endGroup();
+    // Plots Dock
+    settings.beginGroup("PlotsDock");
+    // settings.setValue("dockarea", dockWidgetArea(dockWidget_Plots));
+    // settings.setValue("docked", dockWidget_Plots->isFloating());
+    // settings.setValue("hidden", dockWidget_Plots->isHidden());
+    settings.setValue("size", dockWidget_Plots->topLevelWidget()->size());
+    settings.setValue("pos", dockWidget_Plots->pos());
+    settings.endGroup();
+
+    // Debug Dock
+    settings.beginGroup("DebugDock");
+    // settings.setValue("dockarea", dockWidgetArea(dockWidget_Debug));
+    // settings.setValue("docked", dockWidget_Debug->isFloating());
+    // settings.setValue("hidden", dockWidget_Debug->isHidden());
+    settings.setValue("size", dockWidget_Debug->topLevelWidget()->size());
+    settings.setValue("pos", dockWidget_Debug->pos());
+    settings.endGroup();
 }
 
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	this->controlWidget->stop_all();
-	
-	writeSettings();
-	this->spinWidget->close();
-	this->controlWidget->close();
-	this->infoWidget->close();
+    this->controlWidget->stop_all();
 
-	event->accept();
+    writeSettings();
+    this->spinWidget->close();
+    this->controlWidget->close();
+    this->infoWidget->close();
+
+    event->accept();
 }

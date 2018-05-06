@@ -6,12 +6,13 @@
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
 General code design and project setup (including CMake).<br />
-Implementation of the core library and UIs, most notably:
+Implementation of the core library and user interfaces, most notably:
 - GNEB and MMF methods
 - Velocity projection solver
 - CUDA and OpenMP parallelizations of backend
-- C API and Pyhton bindings
+- C API and Python bindings
 - C++ QT GUI and initial OpenGL code
+- Unit tests and continuous integration
 
 (Oct. 2014 - ongoing)
 
@@ -22,7 +23,8 @@ Implementation of the core library and UIs, most notably:
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Implementation of the initial core library, notably translating from Fortran90 to C++ and addition of STT to the SIB solver.<br />
+Implementation of the initial core library, notably translating
+from Fortran90 to C++ and addition of STT to the SIB solver.<br />
 Work on QT GUI and Python bindings.
 
 (Oct. 2015 - Sept. 2016)
@@ -45,9 +47,10 @@ Scientific advice, general help and feedback, initial (Fortran90) implementation
 
 
 ### Florian Rhiem
-* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
+* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich
 
-Implementation of C++ OpenGL code (VFRendering library), as well as JavaScript Web UI and WebGL code.<br />
+Implementation of C++ OpenGL code (VFRendering library),
+as well as JavaScript Web UI and WebGL code.<br />
 Code design improvements, including the C API and CMake. 
 
 (Jan. 2016 - ongoing)
@@ -56,9 +59,10 @@ Code design improvements, including the C API and CMake.
 
 
 ### Stefanos Mavros
-* RWTH Aachen 
+* RWTH Aachen
 
-Work on unit testing and documentation and implementation of the Depondt solver.<br />
+Work on unit testing and documentation, implementation of the Depondt solver.<br />
+Also some general code design and IO improvements.
 
 (April 2017 - ongoing)
 
@@ -66,27 +70,51 @@ Work on unit testing and documentation and implementation of the Depondt solver.
 
 
 ### Constantin Disselkamp
-* RWTH Aachen 
+* RWTH Aachen
 
-Implementation and testing of gradient approximation of spin transfer torque.<br />
+Implementation and testing of gradient approximation of spin transfer torque.
 
 (April 2017 - Juli 2017)
 
 -----------------
 
 
-### Pavel Bessarab
-* ...
+### Markus Hoffmann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Help with the initial GNEB implementation. Initial implementation of the HTST method.<br />
+Bug-reports, feedback on code features and general help designing some of the
+functionality, user interface and input file format.
+
+(June 2016 - ongoing)
+
+-----------------
+
+
+### Pavel Bessarab
+* Various Universities
+
+Help with the initial GNEB implementation. Initial implementation of the HTST method.
 
 (April 2015 - ongoing)
 
 -----------------
 
 
+### Filipp Rybakov
+* Various Universities
+
+Designs and ideas for the user interface and other code features,
+such as isosurfaces and colormaps for 3D systems.<br />
+Some help and ideas related to code performance and CUDA.
+
+(Jan. 2016 - ongoing)
+
+-----------------
+
+
 ### Ingo Heimbach
-* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich 
+* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich
 
 Implementation of the initial OpenGL code.<br />
 Code design suggestions and other general help.
@@ -97,7 +125,7 @@ Code design suggestions and other general help.
 
 
 ### Mathias Redies, Maximilian Merte, Rene Suckert
-* RWTH Aachen 
+* RWTH Aachen
 
 Initial CUDA implementation and tests.<br />
 Code optimizations, suggestions and feedback.
@@ -111,7 +139,8 @@ Code optimizations, suggestions and feedback.
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-Initial (Fortran90) implementations of the isotropic Heisenberg Hamiltonian, Neighbour calculations and the SIB solver.
+Initial (Fortran90) implementations of the isotropic Heisenberg Hamiltonian,
+Neighbour calculations and the SIB solver.
 
 (Oct. 2007 - Sept. 2008)
 

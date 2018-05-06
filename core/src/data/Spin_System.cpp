@@ -23,7 +23,6 @@ namespace Data
         llg_parameters(std::move(llg_params)), mc_parameters(std::move(mc_params)),
         ema_parameters(std::move(ema_params)), mmf_parameters(std::move(mmf_params))
     {
-
         // Get Number of Spins
         this->nos = this->geometry->nos;
 
@@ -44,6 +43,7 @@ namespace Data
 
     }//end Spin_System constructor
 
+
     // Copy Constructor
     Spin_System::Spin_System(Spin_System const & other)
     {
@@ -63,14 +63,10 @@ namespace Data
         this->effective_field = other.effective_field;
 
         this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
-        
-        if (other.hamiltonian->Name() == "Heisenberg (Neighbours)")
+
+        if (other.hamiltonian->Name() == "Heisenberg")
         {
-            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Neighbours(*(Engine::Hamiltonian_Heisenberg_Neighbours*)(other.hamiltonian.get())));
-        }
-        else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
-        {
-            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Pairs(*(Engine::Hamiltonian_Heisenberg_Pairs*)(other.hamiltonian.get())));
+            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
         }
         else if (other.hamiltonian->Name() == "Gaussian")
         {
@@ -87,6 +83,7 @@ namespace Data
 
         this->iteration_allowed = false;
     }
+
 
     // Copy Assignment operator
     Spin_System& Spin_System::operator=(Spin_System const & other)
@@ -109,14 +106,10 @@ namespace Data
             this->effective_field = other.effective_field;
 
             this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
-            
-            if (other.hamiltonian->Name() == "Heisenberg (Neighbours)")
+
+            if (other.hamiltonian->Name() == "Heisenberg")
             {
-                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Neighbours(*(Engine::Hamiltonian_Heisenberg_Neighbours*)(other.hamiltonian.get())));
-            }
-            else if (other.hamiltonian->Name() == "Heisenberg (Pairs)")
-            {
-                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg_Pairs(*(Engine::Hamiltonian_Heisenberg_Pairs*)(other.hamiltonian.get())));
+                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
             }
             else if (other.hamiltonian->Name() == "Gaussian")
             {
@@ -135,6 +128,7 @@ namespace Data
         return *this;
     }
 
+
     void Spin_System::UpdateEnergy()
     {
         this->E_array = this->hamiltonian->Energy_Contributions(*this->spins);
@@ -143,11 +137,13 @@ namespace Data
         this->E = sum;
     }
 
+
     void Spin_System::UpdateEffectiveField()
     {
         this->hamiltonian->Gradient(*this->spins, this->effective_field);
         Engine::Vectormath::scale(this->effective_field, -1);
     }
+
 
     void Spin_System::Lock() const
     {
@@ -157,9 +153,10 @@ namespace Data
         }
         catch( ... )
         {
-            spirit_handle_exception_core("Unlocking the Spin_System failed!");
+            spirit_handle_exception_core("Locking the Spin_System failed!");
         }
     }
+
 
     void Spin_System::Unlock() const
     {

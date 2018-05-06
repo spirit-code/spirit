@@ -14,7 +14,30 @@ using namespace Utility;
 /*---------------------------------- Set LLG ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-// Set LLG Output
+// Set LLG output
+void Parameters_Set_LLG_Output_Tag(State *state, const char * tag, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        image->Lock();
+        image->llg_parameters->output_file_tag = tag;
+        image->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format("Set LLG output tag = \"{}\"", tag), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 void Parameters_Set_LLG_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
@@ -61,8 +84,8 @@ void Parameters_Set_LLG_Output_General( State *state, bool any, bool initial, bo
     }
 }
 
-void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, 
-                                       bool energy_spin_resolved, bool energy_divide_by_nos, 
+void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
+                                       bool energy_divide_by_nos, bool energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -78,6 +101,7 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
         image->llg_parameters->output_energy_archive = energy_archive;
         image->llg_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->llg_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
+        image->llg_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
         image->Unlock();
     }
     catch( ... )
@@ -86,8 +110,8 @@ void Parameters_Set_LLG_Output_Energy( State *state, bool energy_step, bool ener
     }
 }
 
-void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step, 
-                                              bool configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_step,  bool configuration_archive,
+                                              int configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -100,6 +124,7 @@ void Parameters_Set_LLG_Output_Configuration( State *state, bool configuration_s
         image->Lock();
         image->llg_parameters->output_configuration_step = configuration_step;
         image->llg_parameters->output_configuration_archive = configuration_archive;
+        image->llg_parameters->output_configuration_filetype = configuration_filetype;
         image->Unlock();
     }
     catch( ... )
@@ -307,7 +332,7 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
         {
             image->llg_parameters->stt_polarisation_normal = { 0,0,1 };
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, 
-                 "s_c_vec = {0,0,0} replaced by {0,0,1}" );
+                    "s_c_vec = {0,0,0} replaced by {0,0,1}" );
         }
         else 
             image->llg_parameters->stt_polarisation_normal.normalize();
@@ -333,6 +358,29 @@ void Parameters_Set_LLG_STT( State *state, bool use_gradient, float magnitude, c
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set MC Output
+void Parameters_Set_MC_Output_Tag(State *state, const char * tag, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        image->Lock();
+        image->mc_parameters->output_file_tag = tag;
+        image->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format("Set MC output tag = \"{}\"", tag), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 void Parameters_Set_MC_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
@@ -379,8 +427,8 @@ void Parameters_Set_MC_Output_General( State *state, bool any, bool initial, boo
     }
 }
 
-void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, 
-                                      bool energy_spin_resolved, bool energy_divide_by_nos, 
+void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
+                                      bool energy_add_readability_lines, bool energy_divide_by_nos, 
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -396,6 +444,7 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
         image->mc_parameters->output_energy_archive = energy_archive;
         image->mc_parameters->output_energy_spin_resolved = energy_spin_resolved;
         image->mc_parameters->output_energy_divide_by_nspins = energy_divide_by_nos;
+        image->mc_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
         image->Unlock();
     }
     catch( ... )
@@ -404,8 +453,8 @@ void Parameters_Set_MC_Output_Energy( State *state, bool energy_step, bool energ
     }
 }
 
-void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, 
-                                             bool configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_step, bool configuration_archive,
+                                             int configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -418,6 +467,7 @@ void Parameters_Set_MC_Output_Configuration( State *state, bool configuration_st
         image->Lock();
         image->mc_parameters->output_configuration_step = configuration_step;
         image->mc_parameters->output_configuration_archive = configuration_archive;
+        image->mc_parameters->output_configuration_filetype = configuration_filetype;
         image->Unlock();
     }
     catch( ... )
@@ -484,7 +534,7 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-
+        
         image->Lock();
 
         image->mc_parameters->acceptance_ratio_target = ratio;
@@ -505,6 +555,31 @@ void Parameters_Set_MC_Acceptance_Ratio( State *state, float ratio, int idx_imag
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set GNEB Output
+void Parameters_Set_GNEB_Output_Tag(State *state, const char * tag, int idx_chain) noexcept
+{
+    int idx_image = -1;
+
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        chain->Lock();
+        chain->gneb_parameters->output_file_tag = tag;
+        chain->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format("Set GNEB output tag = \"{}\"", tag), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 void Parameters_Set_GNEB_Output_Folder(State *state, const char * folder, int idx_chain) noexcept
 {
     int idx_image = -1;
@@ -551,8 +626,8 @@ void Parameters_Set_GNEB_Output_General( State *state, bool any, bool initial, b
     }
 }
 
-void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, 
-                                          bool energies_divide_by_nos, int idx_chain ) noexcept
+void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool energies_interpolated, bool energies_divide_by_nos,
+                                          bool energies_add_readability_lines, int idx_chain ) noexcept
 {
     int idx_image = -1;
 
@@ -568,6 +643,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
         chain->gneb_parameters->output_energies_step = energies_step;
         chain->gneb_parameters->output_energies_interpolated = energies_interpolated;
         chain->gneb_parameters->output_energies_divide_by_nspins = energies_divide_by_nos;
+        chain->gneb_parameters->output_energies_add_readability_lines = energies_add_readability_lines;
         chain->Unlock();
     }
     catch( ... )
@@ -576,7 +652,7 @@ void Parameters_Set_GNEB_Output_Energies( State *state, bool energies_step, bool
     }
 }
 
-void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_chain) noexcept
+void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int chain_filetype, int idx_chain) noexcept
 {
     int idx_image = -1;
 
@@ -590,6 +666,7 @@ void Parameters_Set_GNEB_Output_Chain(State *state, bool chain_step, int idx_cha
 
         chain->Lock();
         chain->gneb_parameters->output_chain_step = chain_step;
+        chain->gneb_parameters->output_chain_filetype = chain_filetype;
         chain->Unlock();
     }
     catch( ... )
@@ -718,6 +795,32 @@ void Parameters_Set_GNEB_Image_Type_Automatically(State *state, int idx_chain) n
             // Minimum
             if (E0 > E1 && E1 < E2) Parameters_Set_GNEB_Climbing_Falling(state, 2, img);
         }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void Parameters_Set_GNEB_N_Energy_Interpolations(State *state, int n, int idx_chain) noexcept
+{
+    int idx_image = -1;
+    
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        chain->Lock();
+        chain->gneb_parameters->n_E_interpolations = n;
+        int size_interpolated = chain->noi + (chain->noi - 1)*n;
+        chain->Rx_interpolated = std::vector<scalar>(size_interpolated, 0);
+        chain->E_interpolated = std::vector<scalar>(size_interpolated, 0);
+        chain->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(size_interpolated, 0));
+        chain->Unlock();
     }
     catch( ... )
     {
@@ -856,6 +959,30 @@ void Parameters_Set_EMA_Snapshot(State *state, bool snapshot, int idx_image, int
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set MMF Output
+void Parameters_Set_MMF_Output_Tag(State *state, const char * tag, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        chain->Lock();
+        auto p = image->mmf_parameters;
+        p->output_file_tag = tag;
+        chain->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format("Set GNEB output tag = \"{}\"", tag), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 void Parameters_Set_MMF_Output_Folder(State *state, const char * folder, int idx_image, int idx_chain) noexcept
 {
     try
@@ -904,8 +1031,8 @@ void Parameters_Set_MMF_Output_General( State *state, bool any, bool initial, bo
     }
 }
 
-void Parameters_Set_MMF_Output_Energy( State *state, bool energy_step, bool energy_archive, 
-                                       bool energy_spin_resolved, bool energy_divide_by_nos, 
+void Parameters_Set_MMF_Output_Energy( State *state, bool energy_step, bool energy_archive,
+                                       bool energy_spin_resolved, bool energy_divide_by_nos, bool energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -922,6 +1049,7 @@ void Parameters_Set_MMF_Output_Energy( State *state, bool energy_step, bool ener
         p->output_energy_archive = energy_archive;
         p->output_energy_spin_resolved = energy_spin_resolved;
         p->output_energy_divide_by_nspins = energy_divide_by_nos;
+        p->output_energy_add_readability_lines = energy_add_readability_lines;
         image->Unlock();
     }
     catch( ... )
@@ -931,7 +1059,8 @@ void Parameters_Set_MMF_Output_Energy( State *state, bool energy_step, bool ener
 }
 
 void Parameters_Set_MMF_Output_Configuration( State *state, bool configuration_step, 
-                                              bool configuration_archive, int idx_image, int idx_chain ) noexcept
+                                              bool configuration_archive, int configuration_filetype,
+                                              int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -945,6 +1074,7 @@ void Parameters_Set_MMF_Output_Configuration( State *state, bool configuration_s
         auto p = image->mmf_parameters;
         p->output_configuration_step = configuration_step;
         p->output_configuration_archive = configuration_archive;
+        p->output_configuration_filetype = configuration_filetype;
         image->Unlock();
     }
     catch( ... )
@@ -1022,7 +1152,7 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         if ( n_mode_follow < 0 || n_mode_follow > p->n_modes-1)// ||
             //  n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
@@ -1046,11 +1176,31 @@ void Parameters_Set_MMF_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
     }
 }
 
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get LLG ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get LLG Output Parameters
+const char * Parameters_Get_LLG_Output_Tag(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        return image->llg_parameters->output_file_tag.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return nullptr;
+    }
+}
+
 const char * Parameters_Get_LLG_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
@@ -1091,8 +1241,9 @@ void Parameters_Get_LLG_Output_General( State *state, bool * any, bool * initial
     }
 }
 
-void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
-                                       bool * energy_spin_resolved, bool * energy_divide_by_nos, 
+void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * energy_archive,
+                                       bool * energy_spin_resolved, bool * energy_divide_by_nos,
+                                       bool * energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -1107,6 +1258,7 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
         *energy_archive = image->llg_parameters->output_energy_archive;
         *energy_spin_resolved = image->llg_parameters->output_energy_spin_resolved;
         *energy_divide_by_nos = image->llg_parameters->output_energy_divide_by_nspins;
+        *energy_add_readability_lines = image->llg_parameters->output_energy_add_readability_lines;
     }
     catch( ... )
     {
@@ -1114,9 +1266,8 @@ void Parameters_Get_LLG_Output_Energy( State *state, bool * energy_step, bool * 
     }
 }
 
-void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, 
-                                              bool * configuration_archive, int idx_image, 
-                                              int idx_chain ) noexcept
+void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration_step, bool * configuration_archive, 
+                                              int * configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1128,6 +1279,7 @@ void Parameters_Get_LLG_Output_Configuration( State *state, bool * configuration
 
         *configuration_step = image->llg_parameters->output_configuration_step;
         *configuration_archive = image->llg_parameters->output_configuration_archive;
+        *configuration_filetype = image->llg_parameters->output_configuration_filetype;
     }
     catch( ... )
     {
@@ -1304,11 +1456,31 @@ void Parameters_Get_LLG_STT( State *state, bool * use_gradient, float * magnitud
     }
 }
 
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get MC ------------------------------------------------------------ */
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get MC Output Parameters
+const char * Parameters_Get_MC_Output_Tag(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        return image->mc_parameters->output_file_tag.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return nullptr;
+    }
+}
+
 const char * Parameters_Get_MC_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
@@ -1335,7 +1507,7 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-
+        
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
@@ -1349,8 +1521,9 @@ void Parameters_Get_MC_Output_General( State *state, bool * any, bool * initial,
     }
 }
 
-void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
-                                      bool * energy_spin_resolved, bool * energy_divide_by_nos, 
+void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * energy_archive,
+                                      bool * energy_spin_resolved, bool * energy_divide_by_nos,
+                                      bool * energy_add_readability_lines,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -1365,6 +1538,7 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
         *energy_archive = image->mc_parameters->output_energy_archive;
         *energy_spin_resolved = image->mc_parameters->output_energy_spin_resolved;
         *energy_divide_by_nos = image->mc_parameters->output_energy_divide_by_nspins;
+        *energy_add_readability_lines = image->mc_parameters->output_energy_add_readability_lines;
     }
     catch( ... )
     {
@@ -1372,8 +1546,8 @@ void Parameters_Get_MC_Output_Energy( State *state, bool * energy_step, bool * e
     }
 }
 
-void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, 
-                                             bool * configuration_archive, int idx_image, int idx_chain ) noexcept
+void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_step, bool * configuration_archive,
+                                             int * configuration_filetype, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1385,6 +1559,7 @@ void Parameters_Get_MC_Output_Configuration( State *state, bool * configuration_
 
         *configuration_step = image->mc_parameters->output_configuration_step;
         *configuration_archive = image->mc_parameters->output_configuration_archive;
+        *configuration_filetype = image->mc_parameters->output_configuration_filetype;
     }
     catch( ... )
     {
@@ -1457,6 +1632,27 @@ float Parameters_Get_MC_Acceptance_Ratio(State *state, int idx_image, int idx_ch
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get GNEB Output Parameters
+const char * Parameters_Get_GNEB_Output_Tag(State *state, int idx_chain) noexcept
+{
+    int idx_image = -1;
+
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        return chain->gneb_parameters->output_file_tag.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return nullptr;
+    }
+}
+
 const char * Parameters_Get_GNEB_Output_Folder(State *state, int idx_chain) noexcept
 {
     int idx_image = -1;
@@ -1484,7 +1680,7 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
     int idx_image = -1;
 
     try
-    {    
+    {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
 
@@ -1501,12 +1697,13 @@ void Parameters_Get_GNEB_Output_General( State *state, bool * any, bool * initia
     }
 }
 
-void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step, 
-                                          bool * energies_interpolated, bool * energies_divide_by_nos, 
+void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
+                                          bool * energies_interpolated, bool * energies_divide_by_nos,
+                                          bool * energies_add_readability_lines,
                                           int idx_chain ) noexcept
 {
     int idx_image = -1;
-    
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -1518,6 +1715,7 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
         *energies_step = chain->gneb_parameters->output_energies_step;
         *energies_interpolated = chain->gneb_parameters->output_energies_interpolated;
         *energies_divide_by_nos = chain->gneb_parameters->output_energies_divide_by_nspins;
+        *energies_add_readability_lines = chain->gneb_parameters->output_energies_add_readability_lines;
     }
     catch( ... )
     {
@@ -1525,10 +1723,10 @@ void Parameters_Get_GNEB_Output_Energies( State *state, bool * energies_step,
     }
 }
 
-void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_chain) noexcept
+void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int * chain_filetype, int idx_chain) noexcept
 {
     int idx_image = -1;
-    
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -1538,6 +1736,7 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
         from_indices( state, idx_image, idx_chain, image, chain );
 
         *chain_step = chain->gneb_parameters->output_chain_step;
+        *chain_filetype = chain->gneb_parameters->output_chain_filetype;
     }
     catch( ... )
     {
@@ -1545,11 +1744,11 @@ void Parameters_Get_GNEB_Output_Chain(State *state, bool * chain_step, int idx_c
     }
 }
 
-void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log, 
+void Parameters_Get_GNEB_N_Iterations( State *state, int * iterations, int * iterations_log,
                                        int idx_chain ) noexcept
 {
-	int idx_image = -1;
-    
+    int idx_image = -1;
+
     try
     {
         std::shared_ptr<Data::Spin_System> image;
@@ -1650,6 +1849,7 @@ int Parameters_Get_GNEB_N_Energy_Interpolations(State *state, int idx_chain) noe
     }
 }
 
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get EMA ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -1673,6 +1873,7 @@ int Parameters_Get_EMA_N_Modes(State *state, int idx_image, int idx_chain) noexc
         return 0;
     }
 }
+
 
 int Parameters_Get_EMA_N_Mode_Follow(State *state, int idx_image, int idx_chain) noexcept
 {
@@ -1755,6 +1956,26 @@ bool Parameters_Get_EMA_Snapshot(State *state, int idx_image, int idx_chain) noe
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get MMF Output Parameters
+const char * Parameters_Get_MMF_Output_Tag(State *state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        auto p = image->mmf_parameters;
+        return p->output_file_tag.c_str();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return nullptr;
+    }
+}
+
 const char * Parameters_Get_MMF_Output_Folder(State *state, int idx_image, int idx_chain) noexcept
 {
     try
@@ -1764,7 +1985,7 @@ const char * Parameters_Get_MMF_Output_Folder(State *state, int idx_image, int i
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         return p->output_folder.c_str();
     }
@@ -1797,8 +2018,9 @@ void Parameters_Get_MMF_Output_General( State *state, bool * any, bool * initial
     }
 }
 
-void Parameters_Get_MMF_Output_Energy( State *state, bool * energy_step, bool * energy_archive, 
-                                       bool * energy_spin_resolved, bool * energy_divide_by_nos, 
+void Parameters_Get_MMF_Output_Energy( State *state, bool * energy_step, bool * energy_archive,
+                                       bool * energy_spin_resolved, bool * energy_divide_by_nos,
+                                       bool * energy_add_readability_lines,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -1814,6 +2036,7 @@ void Parameters_Get_MMF_Output_Energy( State *state, bool * energy_step, bool * 
         *energy_archive = p->output_energy_archive;
         *energy_spin_resolved = p->output_energy_spin_resolved;
         *energy_divide_by_nos = p->output_energy_divide_by_nspins;
+        *energy_add_readability_lines = p->output_energy_add_readability_lines;
     }
     catch( ... )
     {
@@ -1821,9 +2044,9 @@ void Parameters_Get_MMF_Output_Energy( State *state, bool * energy_step, bool * 
     }
 }
 
-void Parameters_Get_MMF_Output_Configuration( State *state, bool * configuration_step, 
-                                              bool * configuration_archive, int idx_image, 
-                                              int idx_chain ) noexcept
+void Parameters_Get_MMF_Output_Configuration( State *state, bool * configuration_step,
+                                              bool * configuration_archive, int * configuration_filetype,
+                                              int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -1836,6 +2059,7 @@ void Parameters_Get_MMF_Output_Configuration( State *state, bool * configuration
         auto p = image->mmf_parameters;
         *configuration_step = p->output_configuration_step;
         *configuration_archive = p->output_configuration_archive;
+        *configuration_filetype = p->output_configuration_filetype;
     }
     catch( ... )
     {

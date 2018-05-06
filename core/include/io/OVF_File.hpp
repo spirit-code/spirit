@@ -20,49 +20,32 @@
 
 namespace IO
 {
-    class oFile_OVF
+    class File_OVF
     {
     private:
+        bool isOVF;
         VF_FileFormat format;
         std::string filename;
         const uint32_t test_hex_4b = 0x4996B438;
         const uint64_t test_hex_8b = 0x42DC12218377DE40;
+        const std::string comment_tag = "##";
         Utility::Log_Sender sender;
         
         int n_segments;
-        std::string output_to_file;
-        std::string empty_line;
-        std::string datatype_out;
-        std::string comment;
-        
-        void Write_Top_Header( const int n_segments = 1 );
-        void Write_Segment( const vectorfield& vf, const Data::Geometry& geometry,
-                            const std::string& eigenvalue = "" );
-        void Write_Data_bin( const vectorfield& vf );
-        void Write_Data_txt( const vectorfield& vf );
-    public:
-        // Constructor
-        oFile_OVF( std::string filename, VF_FileFormat format, const std::string comment = "" );
-        void write_image( const vectorfield& vf, const Data::Geometry& geometry );
-        void write_eigenmodes( const std::vector<scalar>& eigenvalues,
-                               const std::vector<std::shared_ptr<vectorfield>>& modes, 
-                               const Data::Geometry& geometry );
-        void write_chain( const std::shared_ptr<Data::Spin_System_Chain>& chain );
-    }; // end class oFile_OVF
-
-    class iFile_OVF
-    {
-    private:
-        VF_FileFormat format;
-        std::string filename;
-        const uint32_t test_hex_4b = 0x4996B438;
-        const uint64_t test_hex_8b = 0x42DC12218377DE40;
-        Utility::Log_Sender sender;
-       
-        int n_segments;
-        Filter_File_Handle myfile;
-        // positions of the beggining of each segment in the input file 
+        std::string n_segments_as_str;
+        std::ios::pos_type n_segments_pos; 
+        const int n_segments_str_digits = 6;  // can store 1M modes
+        bool file_exists; 
+        // Positions of the beggining of each segment in the input file 
         std::vector<std::ios::pos_type> segment_fpos;
+
+        // Output attributes
+        const std::string empty_line = "#\n";
+        std::string output_to_file;
+        std::string datatype_out;
+
+        // Input attributes 
+        std::unique_ptr<Filter_File_Handle> ifile;
         std::string version;
         std::string title;
         std::string meshunit;
@@ -73,38 +56,59 @@ namespace IO
         Vector3 max;
         Vector3 min;
         int valuedim;
-        // irregular mesh
+        // Irregular mesh
         int pointcount;
-        // rectangular mesh
-        Vector3 base;
+        // Rectangular mesh
+        std::array<Vector3,3> base;
         Vector3 stepsize;
         std::array<int,3> nodes;
-      
-        // Read OVF File version
-        void Read_Version();
-        // Read the "# Segments: " value and compare with the occurences of "# Begin: Segment "
-        void Read_N_Segments();
-        // Read binary OVF data
-        void Read_Data_bin( vectorfield& vf );
-        // Read text OVF data
-        void Read_Data_txt( vectorfield& vf );
+
+        // Check OVF version
+        void check_version();
+        // Read segment's header
+        void read_header();
+        // Check segment's geometry
+        void check_geometry( const Data::Geometry& geometry );
+        // Read segment's data
+        void read_data( vectorfield& vf, Data::Geometry& geometry );
         // In case of binary data check the binary check values
-        bool Read_Check_Binary_Values();
-        // Read the segment's header
-        void Read_Header();
-        // Check if the geometry described in the last read header matches the given geometry
-        void Check_Geometry( const Data::Geometry& geometry );
-        // Read the segment's data
-        void Read_Data( vectorfield& vf );
+        bool check_binary_values();
+        // Read binary OVF data
+        void read_data_bin( vectorfield& vf, Data::Geometry& geometry );
+        // Read text OVF data. The delimiter, if any, will be discarded in the reading
+        void read_data_txt( vectorfield& vf, Data::Geometry& geometry, 
+                            const std::string& delimiter = "" );
+        // Write OVF file header
+        void write_top_header();
+        // Write segment data binary
+        void write_data_bin( const vectorfield& vf );
+        // Write segment data text
+        void write_data_txt( const vectorfield& vf, const std::string& delimiter = "" ); 
+        // Increment segment count
+        void increment_n_segments();
+        // Read the number of segments in the file by reading the top header
+        void read_n_segments_from_top_header();
+        // Count the number of segments in the file. It also saves their file positions
+        int count_and_locate_segments();
+
     public:
-        // Constructor
-        iFile_OVF( std::string filename, VF_FileFormat format );
+        // constructor
+        File_OVF( std::string filename, VF_FileFormat format = VF_FileFormat::OVF_TEXT  );
+        // Check if the file is in OVF format
+        bool is_OVF();
         // Get the number of segments in the file
-        int Get_N_Segments();
+        int get_n_segments();
         // Read header and data from a given segment. Also check geometry
-        void Read_Segment( vectorfield& vf, const Data::Geometry& geometry, 
+        void read_segment( vectorfield& vf, Data::Geometry& geometry, 
                            const int idx_seg = 0 );
-       
+        // Write segment to file (if the file exists overwrite it)
+        void write_segment( const vectorfield& vf, const Data::Geometry& geometry,
+                            const std::string comment = "", const bool append = false );
+
+        void write_eigenmodes( const std::vector<scalar>& eigenvalues,
+                               const std::vector<std::shared_ptr<vectorfield>>& modes,
+                               const Data::Geometry& geometry );
+ 
         // Read a variable from the comment section from the header of segment idx_seg
         template <typename T> void Read_Variable_from_Comment( T& var, const std::string name,
                                                                const int idx_seg = 0 )
@@ -118,10 +122,10 @@ namespace IO
                                   "OVF error while choosing segment to read - "
                                   "index out of bounds" );
 
-                this->myfile.SetLimits( this->segment_fpos[idx_seg], 
+                this->ifile->SetLimits( this->segment_fpos[idx_seg], 
                                         this->segment_fpos[idx_seg+1] );
 
-                this->myfile.Read_Single( var, name );
+                this->ifile->Read_Single( var, name );
 
                 Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
             }
@@ -145,10 +149,10 @@ namespace IO
                                   "OVF error while choosing segment to read - "
                                   "index out of bounds" );
 
-                this->myfile.SetLimits( this->segment_fpos[idx_seg], 
+                this->ifile->SetLimits( this->segment_fpos[idx_seg], 
                                         this->segment_fpos[idx_seg+1] );
 
-                this->myfile.Read_String( var, name, false );
+                this->ifile->Read_String( var, name, false );
 
                 Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
             }
@@ -158,8 +162,8 @@ namespace IO
                                                           "from comment", name ));
             }
         }
-    
-    }; // end class iFile_OVF
+    };
+
 } // end namespace io
 
 #endif

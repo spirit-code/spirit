@@ -3,6 +3,7 @@ set(HEADER_SPIRIT_IO
     ${CMAKE_CURRENT_SOURCE_DIR}/IO.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/OVF_File.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Filter_File_Handle.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OVF_File.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configwriter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.hpp

@@ -5,7 +5,8 @@ The following sections will list and explain the input file keywords.
 
 1. [General Settings and Log](#General)
 2. [Geometry](#Geometry)
-2. [Hamiltonian](#Hamiltonian)
+2. [Heisenberg Hamiltonian](#Heisenberg)
+2. [Gaussian Hamiltonian](#Gaussian)
 2. [Method Output](#MethodOutput)
 2. [Method Parameters](#MethodParameters)
 2. [Pinning](#Pinning)
@@ -131,15 +132,13 @@ lattice_constant 1.0
 ```
 
 
-Hamiltonian <a name="Hamiltonian"></a>
+Heisenberg Hamiltonian <a name="Heisenberg"></a>
 --------------------------------------------------
 
-Note that you select the Hamiltonian you use with the `hamiltonian` keyword.
+To use a Heisenberg Hamiltonian, use either `heisenberg_neighbours` or `heisenberg_pairs`
+as input parameter after the `hamiltonian` keyword.
 
-**Isotropic Heisenberg Hamiltonian**:
-
-Interactions are handled in terms of neighbours.
-You may specify shell-wise interaction parameters:
+**General Parameters**:
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
@@ -158,17 +157,6 @@ mu_s                     2.0
 anisotropy_magnitude     0.0
 anisotropy_normal        0.0 0.0 1.0
 
-### Exchange constants [meV] for the respective shells
-### Jij should appear after the >Number_of_neighbour_shells<
-n_neigh_shells_exchange 2
-jij                     10.0  1.0
-
-### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
-dm_chirality       2
-### DM constant [meV]
-n_neigh_shells_dmi 1
-dij	               6.0
-
 ### Dipole-Dipole radius
 dd_radius          0.0
 ```
@@ -181,31 +169,40 @@ or more anisotropy axes can be set for the atoms in the basis cell. Specify colu
 via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
 a magnitude `K`.
 
-**Pair-wise Heisenberg Hamiltonian**:
 
-Interactions are specified pair-wise. Single-threaded applications can thus
-calculate interactions twice as fast as for the neighbour-wise case.
-You may specify shell-wise interaction parameters.
+**Neighbour shells**:
+
+Using `hamiltonian heisenberg_neighbours`, pair-wise interactions are handled in terms of
+(isotropic) neighbour shells:
+
+```Python
+### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
+hamiltonian              heisenberg_neighbours
+
+### Exchange: number of shells and constants [meV / unique pair]
+n_shells_exchange 2
+jij               10.0  1.0
+
+### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
+dm_chirality      2
+### DMI: number of shells and constants [meV / unique pair]
+n_shells_dmi      2
+dij	              6.0 0.5
+```
+
+Note that pair-wise interaction parameters always mean energy per unique pair
+(not per neighbour).
+
+
+**Specify Pairs**:
+
+Using `hamiltonian heisenberg_pairs`, you may input interactions explicitly,
+in form of unique pairs, giving you more granular control over the system and
+the ability to specify non-isotropic interactions:
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
 hamiltonian                 heisenberg_pairs
-
-### Boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions         1 1 0
-
-### External magnetic field vector[T]
-external_field_magnitude    25.0
-external_field_normal       0.0 0.0 1.0
-### µSpin
-mu_s                        2.0
-
-### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude        0.0
-anisotropy_normal           0.0 0.0 1.0
-
-### Dipole-Dipole radius
-dd_radius                   0.0
 
 ### Pairs
 n_interaction_pairs 3
@@ -220,13 +217,8 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
 ```
 
-If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
-
-*Anisotropy:*
-By specifying a number of anisotropy axes via `n_anisotropy`, one
-or more anisotropy axes can be set for the atoms in the basis cell. Specify columns
-via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
-a magnitude `K`.
+Note that pair-wise interaction parameters always mean energy per unique pair
+(not per neighbour).
 
 *Pairs:*
 Leaving out either exchange or DMI in the pairs is allowed and columns can
@@ -254,7 +246,11 @@ interaction_pairs_file        input/pairs.txt
 interaction_quadruplets_file  input/quadruplets.txt
 ```
 
-**Gaussian Hamiltonian**:
+
+Gaussian Hamiltonian <a name="Gaussian"></a>
+--------------------------------------------------
+
+Note that you select the Hamiltonian you use with the `hamiltonian gaussian` input option.
 
 This is a testing Hamiltonian consisting of the superposition
 of gaussian potentials. It does not contain interactions.

@@ -92,19 +92,16 @@ namespace Engine
         virtual void Unlock();
 
 
-
-
         //////////// Check for stopping criteria //////////////////////////////////////////
 
         // Check if iterations allowed
         virtual bool Iterations_Allowed();
 
-        // Check if convergence criteria have been met
-        virtual bool Converged();
+        // Check wether to continue iterating - stop file, convergence etc.
+        virtual bool ContinueIterating();
+
 
         //////////// Final implementations
-        // Check wether to continue iterating - stop file, convergence etc.
-        virtual bool ContinueIterating() final;
         // Check if walltime ran out
         virtual bool Walltime_Expired(duration<scalar> dt_seconds) final;
         // Check if a stop file is present -> Stop the iterations
@@ -140,6 +137,7 @@ namespace Engine
         std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
         
         std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
+
 
         //////////// Parameters //////////////////////////////////////////////////////
         // Number of iterations

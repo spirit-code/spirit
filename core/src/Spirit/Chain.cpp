@@ -334,7 +334,7 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain ) noe
             Chain_Setup_Data(state, idx_chain);
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                fmt::format("Inserted image after. NOI is now ", chain->noi),
+                fmt::format("Inserted image after. NOI is now {}", chain->noi),
                 idx_image, idx_chain);
             
             if (running)

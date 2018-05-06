@@ -8,8 +8,7 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 
 namespace IO
@@ -26,8 +25,7 @@ namespace IO
     void Parameters_Method_GNEB_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters);
     void Parameters_Method_MMF_to_Config(const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MMF> parameters);
     void Hamiltonian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry);
-    void Hamiltonian_Heisenberg_Neighbours_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian);
-    void Hamiltonian_Heisenberg_Pairs_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry);
+    void Hamiltonian_Heisenberg_to_Config(const std::string configFile, std::shared_ptr<Engine::Hamiltonian> hamiltonian, const std::shared_ptr<Data::Geometry> geometry);
     void Hamiltonian_Gaussian_to_Config(const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian);
 };// end namespace IO
 #endif

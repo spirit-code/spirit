@@ -25,7 +25,7 @@ namespace IO
     private:
         std::size_t found;
         std::string line;
-        std::string comment_tag;
+        const std::string comment_tag;
         std::string dump;
         // Beggining and end of file stream indicator 
         std::ios::pos_type position_file_beg;
@@ -33,15 +33,15 @@ namespace IO
         // Start and stop of file stream indicator
         std::ios::pos_type position_start;
         std::ios::pos_type position_stop;
+        int n_lines;
+        int n_comment_lines;
     public:
-        IO::VF_FileFormat ff;
         std::string filename;
         std::unique_ptr<std::ifstream> myfile;
         std::istringstream iss;
         
         // Constructs a Filter_File_Handle with string filename
-        Filter_File_Handle( const std::string& s, 
-                            IO::VF_FileFormat format = VF_FileFormat::SPIRIT_GENERAL );
+        Filter_File_Handle( const std::string& filename, const std::string comment_tag = "#" );
         // Destructor
         ~Filter_File_Handle();
        
@@ -52,9 +52,9 @@ namespace IO
         // Reset the limits of the file stream indicator 
         void ResetLimits();
         // Reads next line of file into the handle (false -> end-of-file)
-        bool GetLine_Handle();
+        bool GetLine_Handle( const std::string str_to_remove = "" );
         // Reads the next line of file into the handle and into the iss
-        bool GetLine();
+        bool GetLine( const std::string str_to_remove = "" );
         // Reset the file stream to the start of the file
         void ResetStream();
         // Tries to find s in the current file and if found outputs the line into internal iss
@@ -62,14 +62,15 @@ namespace IO
         // Tries to find s in the current line and if found outputs into internal iss
         bool Find_in_Line(const std::string & s);
         // Removes a set of chars from a string
-        void Remove_Chars_From_String(std::string &str, char* charsToRemove);
+        void Remove_Chars_From_String(std::string &str, const char* charsToRemove);
         // Removes comments from a string
         bool Remove_Comments_From_String( std::string &str );
         // Read a string (separeated by whitespaces) into var. Capitalization is ignored.
         void Read_String( std::string& var, std::string keyword, bool log_notfound = true );
         // Count the words of a string
         int Count_Words( const std::string& str );
-        // get name 
+        // Returns the number of lines which are not starting with a comment
+        int Get_N_Non_Comment_Lines();
         
         // Reads a single variable into var, with optional logging in case of failure.
         //

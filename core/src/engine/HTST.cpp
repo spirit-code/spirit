@@ -1,7 +1,7 @@
 #include <engine/HTST.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -159,7 +159,7 @@ namespace Engine
             // Manifoldmath::tangent_basis(image_sp, basis_sp);
             // TODO
             // Calculate_a_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, a_sp);
-            auto ham = (Engine::Hamiltonian_Heisenberg_Pairs*)system_sp->hamiltonian.get();
+            auto ham = (Engine::Hamiltonian_Heisenberg*)system_sp->hamiltonian.get();
             Calculate_a(image_sp, ham->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, a_sp);
             // QUESTION: is scaling a_sp with mub/mry necessary?
             

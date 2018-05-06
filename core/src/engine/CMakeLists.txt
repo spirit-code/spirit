@@ -2,10 +2,8 @@ set(SOURCE_SPIRIT_ENGINE
 	${SOURCE_SPIRIT_ENGINE}
 	${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Pairs.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Neighbours.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp

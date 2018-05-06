@@ -22,16 +22,13 @@ namespace Engine
 
         // Method name as string
         std::string Name() override;
-       
+
         // Solver name as string
         std::string SolverName() override;
     private:
         // Iteration does one time step of the oscillation
         // S(t) = S(0) + cos(omega * t) * direction
         void Iteration() override;
-
-        // Check if the Forces are converged
-        bool Converged() override;
 
         // Save the current Step's Data: spins and energy
         void Save_Current(std::string starttime, int iteration, bool initial=false, 
@@ -52,10 +49,10 @@ namespace Engine
         void Message_End() override;
 
         std::shared_ptr<Data::Parameters_Method_EMA> parameters_ema;
-        
+
         int counter;
         int following_mode;
-       
+
         bool snapshot;
         vectorfield mode;
         scalarfield angle;

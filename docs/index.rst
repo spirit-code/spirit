@@ -35,6 +35,7 @@ Spirit - Spin Simulation Framework
    :caption: Further Information:
 
    License                       <https://github.com/spirit-code/spirit/blob/master/LICENSE.txt>
+   Contributing                  <CONTRIBUTING>
    Contributors                  <CONTRIBUTORS>
    Referencing this Code         <REFERENCE>
    Included Dependencies         <dependencies>

@@ -1,16 +1,12 @@
-#ifndef USE_CUDA
+#ifndef SPIRIT_USE_CUDA
 
-#include <Spirit_Defines.h>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 
 #include <Eigen/Dense>
-
-using std::vector;
-using std::function;
 
 using namespace Data;
 using namespace Utility;
@@ -22,7 +18,8 @@ using Engine::Vectormath::idx_from_pair;
 
 namespace Engine
 {
-    Hamiltonian_Heisenberg_Pairs::Hamiltonian_Heisenberg_Pairs(
+    // Construct a Heisenberg Hamiltonian with pairs
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
@@ -37,26 +34,106 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
-        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
+        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
+        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
+        ddi_cutoff_radius(ddi_radius)
     {
-        // Generate DDI pairs, magnitudes, normals
-        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, ddi_radius);
-        scalar magnitude;
-        Vector3 normal;
-        for (unsigned int i = 0; i<ddi_pairs.size(); ++i)
+        #if defined SPIRIT_USE_OPENMP
+        for (int i = 0; i < exchange_pairs.size(); ++i)
         {
-            Engine::Neighbours::DDI_from_Pair(*this->geometry, { ddi_pairs[i].i, ddi_pairs[i].j, ddi_pairs[i].translations }, magnitude, normal);
-            this->ddi_magnitudes.push_back(magnitude);
-            this->ddi_normals.push_back(normal);
+            auto& p = exchange_pairs[i];
+            auto& t = p.translations;
+            this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->exchange_magnitudes.push_back(exchange_magnitudes[i]);
         }
+        for (int i = 0; i < dmi_pairs.size(); ++i)
+        {
+            auto& p = dmi_pairs[i];
+            auto& t = p.translations;
+            this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+            this->dmi_magnitudes.push_back(dmi_magnitudes[i]);
+            this->dmi_normals.push_back(-dmi_normals[i]);
+        }
+        #endif
+
+        // Generate DDI pairs, magnitudes, normals
+        this->Update_DDI_Pairs();
 
         this->Update_Energy_Contributions();
     }
 
+    // Construct a Heisenberg Hamiltonian from shells
+    Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
+        scalarfield mu_s,
+        scalar external_field_magnitude, Vector3 external_field_normal,
+        intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+        scalarfield exchange_magnitudes,
+        scalarfield dmi_magnitudes, int dm_chirality,
+        scalar ddi_radius,
+        quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+        std::shared_ptr<Data::Geometry> geometry,
+        intfield boundary_conditions
+    ) :
+        Hamiltonian(boundary_conditions),
+        geometry(geometry),
+        mu_s(mu_s),
+        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        exchange_n_shells(exchange_magnitudes.size()),
+        dmi_n_shells(dmi_magnitudes.size()),
+        ddi_cutoff_radius(ddi_radius)
+    {
+        #if defined SPIRIT_USE_OPENMP
+        // When parallelising (cuda or openmp), we need all neighbours per spin
+        const bool remove_redundant = false;
+        #else
+        // When running on a single thread, we can ignore redundant neighbours
+        const bool remove_redundant = true;
+        #endif
 
-    void Hamiltonian_Heisenberg_Pairs::Update_Energy_Contributions()
+        // Generate Exchange neighbours
+        intfield exchange_shells(0);
+        Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size(), exchange_pairs, exchange_shells, remove_redundant);
+        for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+        {
+            this->exchange_magnitudes.push_back(exchange_magnitudes[exchange_shells[ipair]]);
+        }
+
+        // Generate DMI neighbours and normals
+        intfield dmi_shells(0);
+        Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
+        for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
+        {
+            this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+            this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
+        }
+
+        // Generate DDI pairs, magnitudes, normals
+        this->Update_DDI_Pairs();
+
+        this->Update_Energy_Contributions();
+    }
+
+    void Hamiltonian_Heisenberg::Update_DDI_Pairs()
+    {
+        this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
+        this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
+        this->ddi_normals    = vectorfield(this->ddi_pairs.size());
+
+        scalar magnitude;
+        Vector3 normal;
+
+        for (unsigned int i = 0; i < this->ddi_pairs.size(); ++i)
+        {
+            Engine::Neighbours::DDI_from_Pair(
+                *this->geometry,
+                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, this->ddi_pairs[i].translations },
+                this->ddi_magnitudes[i], this->ddi_normals[i]);
+        }
+    }
+
+    void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
@@ -104,7 +181,7 @@ namespace Engine
         else this->idx_quadruplet = -1;
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
+    void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         if (contributions.size() != this->energy_contributions_per_spin.size())
         {
@@ -136,7 +213,7 @@ namespace Engine
         if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -152,7 +229,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -168,91 +245,47 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-                    {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = exchange_pairs[i_pair].i+ Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                            #ifndef _OPENMP
-                            Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin2]);
-                        }
-                        #endif
-                    }
+                    Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+                    #ifndef _OPENMP
+                    Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
+                    #endif
                 }
             }
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_DMI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-                    {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                            #ifndef _OPENMP
-                            Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            Energy[ispin] += 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin2]));
-                        }
-                        #endif
-                    }
+                    Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+                    #ifndef _OPENMP
+                    Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
+                    #endif
                 }
             }
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::E_DDI(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
@@ -289,7 +322,7 @@ namespace Engine
     }// end DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
         for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         {
@@ -321,7 +354,7 @@ namespace Engine
 
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
         // Set to zero
         Vectormath::fill(gradient, {0,0,0});
@@ -343,7 +376,7 @@ namespace Engine
         this->Gradient_Quadruplet(spins, gradient);
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Zeeman(vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -359,7 +392,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
 
@@ -375,91 +408,47 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    std::array<int, 3> translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-                    {
-                        int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
-                            #ifndef _OPENMP
-                            gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin2];
-                        }
-                        #endif
-                    }
+                    gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
+                    #ifndef _OPENMP
+                    gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
+                    #endif
                 }
             }
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
-        const int Na = geometry->n_cells[0];
-        const int Nb = geometry->n_cells[1];
-        const int Nc = geometry->n_cells[2];
-
-        #pragma omp parallel for collapse(3)
-        for (int da = 0; da < Na; ++da)
+        #pragma omp parallel for
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
         {
-            for (int db = 0; db < Nb; ++db)
+            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
             {
-                for (int dc = 0; dc < Nc; ++dc)
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if (jspin >= 0)
                 {
-                    std::array<int, 3 > translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-                    {
-                        int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
-                            #ifndef _OPENMP
-                            gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
-                            #endif
-                        }
-
-                        // To parallelize with OpenMP we avoid atomics by not adding to two different spins in one thread.
-                        //		instead, we need to also add the inverse pair to each spin, which makes it similar to the
-                        //		neighbours implementation (in terms of the number of pairs)
-                        #ifdef _OPENMP
-                        int jspin2 = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair], true);
-                        if (jspin2 >= 0)
-                        {
-                            gradient[ispin] += dmi_magnitudes[i_pair] * spins[jspin2].cross(dmi_normals[i_pair]);
-                        }
-                        #endif
-                    }
+                    gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
+                    #ifndef _OPENMP
+                    gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
+                    #endif
                 }
             }
         }
     }
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
@@ -494,7 +483,7 @@ namespace Engine
     }//end Field_DipoleDipole
 
 
-    void Hamiltonian_Heisenberg_Pairs::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
         for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
         {
@@ -529,7 +518,7 @@ namespace Engine
     }
 
 
-    void Hamiltonian_Heisenberg_Pairs::Hessian(const vectorfield & spins, MatrixX & hessian)
+    void Hamiltonian_Heisenberg::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
         int nos = spins.size();
 
@@ -588,7 +577,9 @@ namespace Engine
                                 int j = 3 * jspin + alpha;
 
                                 hessian(i, j) += -exchange_magnitudes[i_pair];
+                                #ifndef _OPENMP
                                 hessian(j, i) += -exchange_magnitudes[i_pair];
+                                #endif
                             }
                         }
                     }
@@ -614,22 +605,20 @@ namespace Engine
                             int j = 3*jspin;
 
                             hessian(i+2, j+1) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            
                             hessian(i+1, j+2) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-
                             hessian(i, j+2)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            
                             hessian(i+2, j)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(j, i+2)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-
                             hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                            hessian(j, i+1)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-
                             hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+
+                            #ifndef _OPENMP
+                            hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                            hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(j, i+2)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                            hessian(j, i+1)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
                             hessian(j+1, i)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                            #endif
                         }
                     }
                 }
@@ -663,8 +652,8 @@ namespace Engine
     }
 
     // Hamiltonian name as string
-    static const std::string name = "Heisenberg (Pairs)";
-    const std::string& Hamiltonian_Heisenberg_Pairs::Name() { return name; }
+    static const std::string name = "Heisenberg";
+    const std::string& Hamiltonian_Heisenberg::Name() { return name; }
 }
 
 #endif

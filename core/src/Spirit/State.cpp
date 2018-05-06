@@ -21,7 +21,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
 {
     State *state = new State();
 
-    //---------------------- initial state data and initial block of log messages ---
+    //---------------------- Initial state data and initial block of log messages ---
     try
     {
         // Create the State
@@ -41,8 +41,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         
         // Log if quiet mode
         if (state->quiet)
-            Log( Log_Level::All, Log_Sender::All, std::string( "Going to run in QUIET mode" ) + 
-                    std::string( " (only Error messages, no output files)" ) );
+            Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
         
         // Log Config file info
         Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
@@ -53,7 +52,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //------------------------------------------------------------------------------------------
 
-    //---------------------- initialize the log ------------------------------------------------
+    //---------------------- Initialize the log ------------------------------------------------
     try
     {
         // Read Log Levels
@@ -65,13 +64,13 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //------------------------------------------------------------------------------------------
 
-    //----------------------- additional info log ----------------------------------------------
+    //----------------------- Additional info log ----------------------------------------------
     try
     {
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
-        #ifdef _OPENMP
+        #ifdef SPIRIT_USE_OPENMP
             int nt = omp_get_max_threads();
             Log(Log_Level::Info, Log_Sender::All, fmt::format("Using OpenMP (max. {} threads)", nt).c_str() );
         #else
@@ -99,7 +98,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     //------------------------------------------------------------------------------------------
 
 
-    //---------------------- initialize spin_system ---------------------------------
+    //---------------------- Initialize spin_system ---------------------------------
     try
     {
         // Create a system according to Config
@@ -111,7 +110,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //---------------------- set image configuration --------------------------------
+    //---------------------- Set image configuration --------------------------------
     try
     {
         Configurations::Random(*state->active_image);
@@ -122,7 +121,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //----------------------- initialize spin system chain --------------------------
+    //----------------------- Initialize spin system chain --------------------------
     try
     {
         // Get parameters
@@ -143,7 +142,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //----------------------- initialize spin system chain collection ---------------
+    //----------------------- Initialize spin system chain collection ---------------
     try
     {
         // Get parameters
@@ -162,7 +161,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //----------------------- fill in the state -------------------------------------
+    //----------------------- Fill in the state -------------------------------------
     try
     {
         // active images
@@ -184,7 +183,23 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //---------------- initial file writing (input, positions, neighbours) ----------
+    //-------------------- Set quiet method parameters ------------------------------
+    try
+    {
+        if (state->quiet)
+        {
+            state->active_image->llg_parameters->output_any = false;
+            state->active_image->mc_parameters->output_any = false;
+            state->active_chain->gneb_parameters->output_any = false;
+        }
+    }
+    catch (...)
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    //-------------------------------------------------------------------------------
+
+    //---------------- Initial file writing (input, positions, neighbours) ----------
     try
     {
         Save_Initial_Final( state, true );
@@ -195,7 +210,8 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     }
     //-------------------------------------------------------------------------------
 
-    //----------------------- final log ---------------------------------------------
+
+    //----------------------- Final log ---------------------------------------------
     try
     {
         // Log
