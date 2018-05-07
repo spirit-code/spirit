@@ -222,12 +222,12 @@ namespace Engine
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
-                "------------  Started  " + this->Name() + " Calculation  ------------",
-                "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
-                "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
-                "    Force convergence parameter: " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                "    Maximum force component:     " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
-                "    Solver: " + this->SolverFullName(),
+                fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
+                fmt::format("    Going to iterate {} steps", this->n_log),
+                fmt::format("                with {} iterations per step", this->n_iterations_log),
+                fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
+                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
+                fmt::format("    Solver: {}", this->SolverFullName()),
                 "-----------------------------------------------------"
             }, this->idx_image, this->idx_chain);
     }
@@ -243,13 +243,13 @@ namespace Engine
         // Send log message
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
-                "----- " + this->Name() + " Calculation (" + this->SolverName() + " Solver): " + Timing::DateTimePassed(t_current - this->t_start),
-                "    Step                         " + fmt::format("{} / {}", step, n_log),
-                "    Iteration                    " + fmt::format("{} / {}", this->iteration, n_iterations),
-                "    Time since last step:        " + Timing::DateTimePassed(t_current - this->t_last),
-                "    Iterations / sec:            " + fmt::format("{}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-                "    Force convergence parameter: " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                "    Maximum force component:     " + fmt::format("{:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component)
+                fmt::format("----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(), Timing::DateTimePassed(t_current - this->t_start)),
+                fmt::format("    Step                         {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log),
+                fmt::format("    Iteration                    {} / {}", this->iteration, n_iterations),
+                fmt::format("    Time since last step:        {}", Timing::DateTimePassed(t_current - this->t_last)),
+                fmt::format("    Iterations / sec:            {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
+                fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
+                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component)
             }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -275,16 +275,16 @@ namespace Engine
 
         //---- Log messages
         std::vector<std::string> block;
-        block.push_back("------------ Terminated " + this->Name() + " Calculation ------------");
+        block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
         if (reason.length() > 0)
-            block.push_back("----- Reason:   " + reason);
-        block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - this->t_start));
-        block.push_back("    Step              " + fmt::format("{} / {}", step, n_log));
-        block.push_back("    Iteration         " + fmt::format("{} / {}", this->iteration, n_iterations));
-        block.push_back("    Iterations / sec: " + fmt::format("{}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back("    Force convergence parameter: " + fmt::format("{:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
-        block.push_back("    Maximum force component:     " + fmt::format("{:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
-        block.push_back("    Solver: " + this->SolverFullName());
+            block.push_back(fmt::format("----- Reason:   {}", reason));
+        block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
+        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
+        block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
+        block.push_back(fmt::format("    Maximum force component:     {:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
+        block.push_back(fmt::format("    Solver: " + this->SolverFullName()));
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }

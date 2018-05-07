@@ -10,7 +10,7 @@
 #include <ctime>
 #include <math.h>
 
-using namespace Utility;
+namespace Constants = Utility::Constants;
 
 namespace Engine
 {
@@ -49,45 +49,60 @@ namespace Engine
     {
         int nos = spins_new.size();
         auto distribution = std::uniform_real_distribution<scalar>(0, 1);
+        auto distribution_idx = std::uniform_int_distribution<>(0, nos);
+        scalar kB_T = Constants::k_B * Temperature;
 
         // One Metropolis step for each spin
-        for (int ispin=0; ispin < nos; ++ispin)
+        for (int irnd=0; irnd < nos; ++irnd)
         {
+            int ispin = distribution_idx(this->parameters_mc->prng);
+
             // Displace the spin
             spins_new[ispin] = spins_displaced[ispin];
-            
+
             // Energy difference of configurations with and without displacement
-            scalar Eold = this->systems[0]->hamiltonian->Energy(spins_old);
-            scalar Enew = this->systems[0]->hamiltonian->Energy(spins_new);
+            scalar Eold = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
+            scalar Enew = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
+
             scalar Ediff = Enew-Eold;
 
             // Metropolis criterion: reject the step if energy rose
-            if (Ediff > 0)
+            if (Ediff > 1e-14)
             {
-                // Exponential factor
-                scalar expediff    = std::exp( -Ediff/Temperature );
-                // Metropolis random number
-                scalar xmetropolis = distribution(this->parameters_mc->prng);
-
-                // Only reject if random number is larger than exponential
-                if (expediff < xmetropolis)
+                if (Temperature < 1e-12)
                 {
                     // Restore the spin
                     spins_new[ispin] = spins_old[ispin];
                     // Counter for the number of rejections
                     ++n_rejected;
                 }
+                else
+                {
+                    // Exponential factor
+                    scalar exp_ediff    = std::exp( -Ediff/kB_T );
+                    // Metropolis random number
+                    scalar x_metropolis = distribution(this->parameters_mc->prng);
+
+                    // Only reject if random number is larger than exponential
+                    if (exp_ediff < x_metropolis)
+                    {
+                        // Restore the spin
+                        spins_new[ispin] = spins_old[ispin];
+                        // Counter for the number of rejections
+                        ++n_rejected;
+                    }
+                }
             }
         }
     }
 
     // This implementation is mostly serial as parallelization is nontrivial
-    //		if the range of neighbours for each atom is not pre-defined.
+    //      if the range of neighbours for each atom is not pre-defined.
     void Method_MC::Iteration()
     {
         int nos = this->systems[0]->spins->size();
 
-        scalar diff = 0.001;
+        scalar diff = 1e-3;
 
         // Cone angle feedback algorithm
         this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)nos;
@@ -140,10 +155,10 @@ namespace Engine
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
-            "------------  Started  " + this->Name() + " Calculation  ------------",
-            "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
-            "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
-            "   Target acceptance " + fmt::format("{}", this->acceptance_ratio_current),
+            fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
+            fmt::format("    Going to iterate {} steps", this->n_log),
+            fmt::format("                with {} iterations per step", this->n_iterations_log),
+            fmt::format("   Target acceptance {}", this->parameters_mc->acceptance_ratio_target),
             "-----------------------------------------------------"
         }, this->idx_image, this->idx_chain);
     }
@@ -155,15 +170,20 @@ namespace Engine
         // Update time of current step
         auto t_current = system_clock::now();
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         // Send log message
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
-            "----- " + this->Name() + " Calculation: " + Timing::DateTimePassed(t_current - this->t_start),
-            "    Step                         " + fmt::format("{} / {}", step, n_log),
-            "    Iteration                    " + fmt::format("{} / {}", this->iteration, n_iterations),
-            "    Time since last step:        " + Timing::DateTimePassed(t_current - this->t_last),
-            "    Iterations / sec:            " + fmt::format("{}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-            "    Current acceptance ratio:    " + fmt::format("{}", this->acceptance_ratio_current)
+            fmt::format("----- {} Calculation: {}", this->Name(), Timing::DateTimePassed(t_current - this->t_start)),
+            fmt::format("    Step                      {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log),
+            fmt::format("    Iteration                 {} / {}", this->iteration, this->n_iterations),
+            fmt::format("    Time since last step:     {}", Timing::DateTimePassed(t_current - this->t_last)),
+            fmt::format("    Iterations / sec:         {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
+            fmt::format("    Current acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target),
+            fmt::format("    Current cone angle:       {}", this->cos_cone_angle),
+            fmt::format("    Total energy:             {:20.10f}", this->systems[0]->E)
         }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -184,16 +204,21 @@ namespace Engine
         else if (this->Walltime_Expired(t_end - this->t_start))
             reason = "The maximum walltime has been reached";
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         //---- Log messages
         std::vector<std::string> block;
-        block.push_back("------------ Terminated " + this->Name() + " Calculation ------------");
+        block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
         if (reason.length() > 0)
-            block.push_back("----- Reason:   " + reason);
-        block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - this->t_start));
-        block.push_back("    Step              " + fmt::format("{} / {}", step, n_log));
-        block.push_back("    Iteration         " + fmt::format("{} / {}", this->iteration, n_iterations));
-        block.push_back("    Iterations / sec: " + fmt::format("{}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back("    Acceptance ratio: " + fmt::format("{}", this->acceptance_ratio_current));
+            block.push_back(fmt::format("----- Reason:   {}", reason));
+        block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
+        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
+        block.push_back(fmt::format("    Acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
+        block.push_back(fmt::format("    Cone angle:       {}", this->cos_cone_angle));
+        block.push_back(fmt::format("    Total energy:     {:20.10f}", this->systems[0]->E));
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }

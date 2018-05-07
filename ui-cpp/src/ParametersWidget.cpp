@@ -110,11 +110,30 @@ void ParametersWidget::Load_Parameters_Contents()
 	this->checkBox_llg_output_configuration_archive->setChecked(b2);
 
 	//		MC
+	// Parameters
 	d = Parameters_Get_MC_Temperature(state.get());
 	this->doubleSpinBox_mc_temperature->setValue(d);
 	if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
 	d = Parameters_Get_MC_Acceptance_Ratio(state.get());
 	this->doubleSpinBox_mc_acceptance->setValue(d);
+	// Output
+	Parameters_Get_MC_N_Iterations(state.get(), &i1, &i2);
+	this->spinBox_mc_n_iterations->setValue(i1);
+	this->spinBox_mc_log_steps->setValue(i2);
+	folder = Parameters_Get_MC_Output_Folder(state.get());
+	this->lineEdit_mc_output_folder->setText(folder);
+	Parameters_Get_MC_Output_General(state.get(), &b1, &b2, &b3);
+	this->checkBox_mc_output_any->setChecked(b1);
+	this->checkBox_mc_output_initial->setChecked(b2);
+	this->checkBox_mc_output_final->setChecked(b3);
+	Parameters_Get_MC_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+	this->checkBox_mc_output_energy_step->setChecked(b1);
+	this->checkBox_mc_output_energy_archive->setChecked(b2);
+	this->checkBox_mc_output_energy_spin_resolved->setChecked(b3);
+	this->checkBox_mc_output_energy_divide->setChecked(b4);
+	Parameters_Get_MC_Output_Configuration(state.get(), &b1, &b2);
+	this->checkBox_mc_output_configuration_step->setChecked(b1);
+	this->checkBox_mc_output_configuration_archive->setChecked(b2);
 
 	//		GNEB
 	// Output
@@ -276,14 +295,38 @@ void ParametersWidget::set_parameters_mc()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		float d;
+		int i1, i2;
+		bool b1, b2, b3, b4;
 
+		// Temperature
 		if (this->checkBox_mc_temperature->isChecked())
 			d = this->doubleSpinBox_mc_temperature->value();
 		else
 			d = 0.0;
 		Parameters_Set_MC_Temperature(state.get(), d, idx_image, idx_chain);
+
+		// Acceptance ratio
 		d = this->doubleSpinBox_mc_acceptance->value();
 		Parameters_Set_MC_Acceptance_Ratio(state.get(), d, idx_image, idx_chain);
+
+		// Output
+		i1 = this->spinBox_mc_n_iterations->value();
+		i2 = this->spinBox_mc_log_steps->value();
+		Parameters_Set_MC_N_Iterations(state.get(), i1, i2, idx_image, idx_chain);
+		std::string folder = this->lineEdit_mc_output_folder->text().toStdString();
+		Parameters_Set_MC_Output_Folder(state.get(), folder.c_str(), idx_image, idx_chain);
+		b1 = this->checkBox_mc_output_any->isChecked();
+		b2 = this->checkBox_mc_output_initial->isChecked();
+		b3 = this->checkBox_mc_output_final->isChecked();
+		Parameters_Set_MC_Output_General(state.get(), b1, b2, b3, idx_image, idx_chain);
+		b1 = this->checkBox_mc_output_energy_step->isChecked();
+		b2 = this->checkBox_mc_output_energy_archive->isChecked();
+		b3 = this->checkBox_mc_output_energy_spin_resolved->isChecked();
+		b4 = this->checkBox_mc_output_energy_divide->isChecked();
+		Parameters_Set_MC_Output_Energy(state.get(), b1, b2, b3, b4, idx_image, idx_chain);
+		b1 = this->checkBox_mc_output_configuration_step->isChecked();
+		b2 = this->checkBox_mc_output_configuration_archive->isChecked();
+		Parameters_Set_MC_Output_Configuration(state.get(), b1, b2, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_MC_ApplyTo->currentText() == "Current Image")
@@ -437,6 +480,25 @@ void ParametersWidget::Setup_Parameters_Slots()
 	connect(this->checkBox_gneb_output_energies_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_energies_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
 	connect(this->checkBox_gneb_output_chain_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+
+	//		MC
+	// Paramters
+	connect(this->checkBox_mc_temperature, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->doubleSpinBox_mc_acceptance, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
+	connect(this->doubleSpinBox_mc_temperature, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
+	// Output
+	connect(this->spinBox_mc_n_iterations, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
+	connect(this->spinBox_mc_log_steps, SIGNAL(editingFinished()), this, SLOT(set_parameters_mc()));
+	connect(this->lineEdit_mc_output_folder, SIGNAL(returnPressed()), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_any, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_initial, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_final, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_energy_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_energy_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_energy_spin_resolved, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_energy_divide, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_configuration_step, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
+	connect(this->checkBox_mc_output_configuration_archive, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_mc()));
 }
 
 
