@@ -425,7 +425,11 @@ namespace Engine
                     {
                         for (int iatom=0; iatom<n_cell_atoms_new; ++iatom)
                         {
+                            #ifdef SPIRIT_USE_CUDA
+                            int idx_new = iatom + idx_from_translations(n_cells_new, n_cell_atoms_new, {i,j,k}, shift.data());
+                            #else
                             int idx_new = iatom + idx_from_translations(n_cells_new, n_cell_atoms_new, {i,j,k}, shift);
+                            #endif
 
                             if ( (iatom < n_cell_atoms_old) && (i < n_cells_old[0]) && (j < n_cells_old[1]) && (k < n_cells_old[2]) )
                             {
