@@ -126,12 +126,12 @@ void ParametersWidget::Load_Parameters_Contents()
 	this->checkBox_mc_output_any->setChecked(b1);
 	this->checkBox_mc_output_initial->setChecked(b2);
 	this->checkBox_mc_output_final->setChecked(b3);
-	Parameters_Get_MC_Output_Energy(state.get(), &b1, &b2, &b3, &b4);
+	Parameters_Get_MC_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
 	this->checkBox_mc_output_energy_step->setChecked(b1);
 	this->checkBox_mc_output_energy_archive->setChecked(b2);
 	this->checkBox_mc_output_energy_spin_resolved->setChecked(b3);
 	this->checkBox_mc_output_energy_divide->setChecked(b4);
-	Parameters_Get_MC_Output_Configuration(state.get(), &b1, &b2);
+	Parameters_Get_MC_Output_Configuration(state.get(), &b1, &b2, &i1);
 	this->checkBox_mc_output_configuration_step->setChecked(b1);
 	this->checkBox_mc_output_configuration_archive->setChecked(b2);
 
@@ -323,10 +323,10 @@ void ParametersWidget::set_parameters_mc()
 		b2 = this->checkBox_mc_output_energy_archive->isChecked();
 		b3 = this->checkBox_mc_output_energy_spin_resolved->isChecked();
 		b4 = this->checkBox_mc_output_energy_divide->isChecked();
-		Parameters_Set_MC_Output_Energy(state.get(), b1, b2, b3, b4, idx_image, idx_chain);
+		Parameters_Set_MC_Output_Energy(state.get(), b1, b2, b3, b4, true, idx_image, idx_chain);
 		b1 = this->checkBox_mc_output_configuration_step->isChecked();
 		b2 = this->checkBox_mc_output_configuration_archive->isChecked();
-		Parameters_Set_MC_Output_Configuration(state.get(), b1, b2, idx_image, idx_chain);
+		Parameters_Set_MC_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_MC_ApplyTo->currentText() == "Current Image")
