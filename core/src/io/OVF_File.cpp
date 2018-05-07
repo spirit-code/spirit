@@ -614,11 +614,16 @@ namespace IO
     
 // Public methods ------------------------------------------------------------------------------
 
+    bool File_OVF::exists()
+    {
+        return this->file_exists;
+    }
+
     bool File_OVF::is_OVF()
     {
         return this->isOVF;
     }
-    
+
     int File_OVF::get_n_segments()
     {
         return this->n_segments;
@@ -666,14 +671,14 @@ namespace IO
             spirit_rethrow( fmt::format("Failed to read OVF file \"{}\".", this->filename) );
         }
     }
-    
+
     void File_OVF::write_segment( const vectorfield& vf, const Data::Geometry& geometry,
                                   const std::string comment, const bool append )
     {
         try
         {
             this->output_to_file.reserve( int( 0x08000000 ) );  // reserve 128[MByte]
-         
+
             // If we are not appending or the file does not exists we need to write the top header
             // and to turn the file_exists attribute to true so we can append more segments
             if ( !append || !this->file_exists ) 
@@ -682,19 +687,19 @@ namespace IO
                 read_n_segments_from_top_header();  // finds the file position of n_segments
                 this->file_exists = true; 
             }
-            
+
             this->output_to_file += fmt::format( this->empty_line );
             this->output_to_file += fmt::format( "# Begin: Segment\n" );
             this->output_to_file += fmt::format( "# Begin: Header\n" );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             this->output_to_file += fmt::format( "# Title: SPIRIT Version {}\n", 
                                                  Utility::version_full );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             this->output_to_file += fmt::format( "# Desc: {}\n", comment );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             // The value dimension is always 3 since we are writting Vector3-data
             this->output_to_file += fmt::format( "# valuedim: {} ##Value dimension\n", 3 );
             this->output_to_file += fmt::format( "# valueunits: None None None\n" );
@@ -702,12 +707,12 @@ namespace IO
                 fmt::format("# valuelabels: spin_x_component spin_y_component "
                             "spin_z_component \n");
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             this->output_to_file += fmt::format( "## Fundamental mesh measurement unit. "
                                                  "Treated as a label:\n" );
             this->output_to_file += fmt::format( "# meshunit: unspecified\n" );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             this->output_to_file += fmt::format( "# xmin: {}\n", geometry.bounds_min[0] );
             this->output_to_file += fmt::format( "# ymin: {}\n", geometry.bounds_min[1] );
             this->output_to_file += fmt::format( "# zmin: {}\n", geometry.bounds_min[2] );
@@ -715,10 +720,10 @@ namespace IO
             this->output_to_file += fmt::format( "# ymax: {}\n", geometry.bounds_max[1] );
             this->output_to_file += fmt::format( "# zmax: {}\n", geometry.bounds_max[2] );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             // TODO: Spirit does not support irregular geometry yet. Write ONLY rectangular mesh
             this->output_to_file += fmt::format( "# meshtype: rectangular\n" );
-           
+
             // Bravais Lattice
             this->output_to_file += fmt::format( "# xbase: {} {} {}\n", 
                                                  geometry.bravais_vectors[0][0], 
@@ -732,42 +737,42 @@ namespace IO
                                                  geometry.bravais_vectors[2][0], 
                                                  geometry.bravais_vectors[2][1],
                                                  geometry.bravais_vectors[2][2] );
-            
+
             this->output_to_file += fmt::format( "# xstepsize: {}\n", 
                                         geometry.lattice_constant * geometry.bravais_vectors[0][0] );
             this->output_to_file += fmt::format( "# ystepsize: {}\n", 
                                         geometry.lattice_constant * geometry.bravais_vectors[1][1] );
             this->output_to_file += fmt::format( "# zstepsize: {}\n", 
                                         geometry.lattice_constant * geometry.bravais_vectors[2][2] );
-            
+
             this->output_to_file += fmt::format( "# xnodes: {}\n", geometry.n_cells[0] );
             this->output_to_file += fmt::format( "# ynodes: {}\n", geometry.n_cells[1] );
             this->output_to_file += fmt::format( "# znodes: {}\n", geometry.n_cells[2] );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             this->output_to_file += fmt::format( "# End: Header\n" );
             this->output_to_file += fmt::format( this->empty_line );
-            
+
             // Data
             this->output_to_file += fmt::format( "# Begin: Data {}\n", this->datatype_out );
-            
+
             if ( this->format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
                 write_data_bin( vf );
             else if ( this->format == VF_FileFormat::OVF_TEXT )
                 write_data_txt( vf );
             else if ( this->format == VF_FileFormat::OVF_CSV )
                 write_data_txt( vf, "," );
-            
+
             this->output_to_file += fmt::format( "# End: Data {}\n", this->datatype_out );
             
             this->output_to_file += fmt::format( "# End: Segment\n" );
-            
+
             // Append the #End keywords
             Append_String_to_File( this->output_to_file, this->filename );
-            
+
             // reset output string buffer
             this->output_to_file = "";  
-            
+
             // Increment the n_segments after succesfully appending the segment body to the file
             increment_n_segments(); 
         }

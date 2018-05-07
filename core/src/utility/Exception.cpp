@@ -70,7 +70,7 @@ namespace Utility
         }
     }
 
-    void Handle_Exception_API( const std::string & api_function, int idx_image, int idx_chain )
+    void Handle_Exception_API( const char * file, unsigned int line, const std::string & api_function, int idx_image, int idx_chain )
     {
         try
         {
@@ -87,7 +87,7 @@ namespace Utility
                     str_exception = "exception";
                 else
                     str_exception = "SEVERE exception";
-                Log(ex.level, Log_Sender::API, fmt::format("Caught {} in API function \'{}\'\n{:>49}Exception backtrace:", str_exception, api_function, " "), idx_image, idx_chain);
+                Log(ex.level, Log_Sender::API, fmt::format("Caught {} in API function \'{}\' (at {}:{})\n{:>49}Exception backtrace:", str_exception, api_function, file, line, " "), idx_image, idx_chain);
                 
                 // Create backtrace
                 Backtrace_Exception();
@@ -110,7 +110,7 @@ namespace Utility
             }
             catch ( const std::exception & ex )
             {
-                std::cerr << "Caught exception in API function \'" << api_function << "\'" << std::endl;
+                std::cerr << "Caught std::exception in API function \'" << api_function << "\'" << std::endl;
                 std::cerr << "Unable to handle std::exception \'" << ex.what() << "\'! TERMINATING!" << std::endl;
                 std::exit(EXIT_FAILURE);  // exit the application. may lead to data loss
             }

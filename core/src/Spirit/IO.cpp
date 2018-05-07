@@ -216,6 +216,14 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
                 // Create an OVF object
                 IO::File_OVF file_ovf( file );
 
+                if ( !file_ovf.exists() )
+                {
+                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                        fmt::format( "IO_Image_Read: file \"{}\" does not seem to exist", file ), 
+                        idx_image_inchain, idx_chain );
+                    return;
+                }
+
                 if ( file_ovf.is_OVF() ) 
                 {
                     file_ovf.read_segment( spins, geometry, idx_image_infile );
@@ -450,7 +458,15 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
             {
                 // Create an OVF object
                 IO::File_OVF file_ovf( file );
-                
+
+                if ( !file_ovf.exists() )
+                {
+                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                        fmt::format( "IO_Chain_Read: file \"{}\" does not seem to exist", file ), 
+                        insert_idx, idx_chain );
+                    return;
+                }
+
                 if ( file_ovf.is_OVF() ) 
                 {
                     int noi_infile = file_ovf.get_n_segments();

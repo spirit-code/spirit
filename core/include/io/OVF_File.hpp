@@ -93,6 +93,8 @@ namespace IO
     public:
         // constructor
         File_OVF( std::string filename, VF_FileFormat format = VF_FileFormat::OVF_TEXT  );
+        // Check if the file already exists
+        bool exists();
         // Check if the file is in OVF format
         bool is_OVF();
         // Get the number of segments in the file
