@@ -146,6 +146,7 @@ namespace Engine
 
     void Method_MC::Finalize()
     {
+        this->systems[0]->iteration_allowed = false;
     }
 
     void Method_MC::Message_Start()

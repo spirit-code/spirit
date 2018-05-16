@@ -1,3 +1,3 @@
-__all__ = ["gneb", "llg"]
+__all__ = ["gneb", "llg", "mc"]
 
 from spirit.parameters import *
