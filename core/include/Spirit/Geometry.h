@@ -18,6 +18,8 @@ typedef enum
     Bravais_Lattice_FCC         = 6
 } Bravais_Lattice_Type;
 
+// ---------------------------------- Set ----------------------------------
+
 // Set the type of Bravais lattice. Can be e.g. "sc" or "bcc"
 DLLEXPORT void Geometry_Set_Bravais_Lattice(State *state, const char * bravais_lattice) noexcept;
 // Set the number of basis cells in the three translation directions
@@ -25,12 +27,13 @@ DLLEXPORT void Geometry_Set_N_Cells(State * state, int n_cells[3]) noexcept;
 // Set the number and positions of atoms in a basis cell
 DLLEXPORT void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) noexcept;
 // Set the types of the atoms in a basis cell
-DLLEXPORT void Geometry_Set_Cell_Atom_Types(State *state, float lattice_constant) noexcept;
+DLLEXPORT void Geometry_Set_Cell_Atom_Types(State *state, int n_atoms, int * atom_types) noexcept;
 // Set the bravais vectors
 DLLEXPORT void Geometry_Set_Bravais_Vectors(State *state, float ta[3], float tb[3], float tc[3]) noexcept;
 // Set the overall lattice constant
 DLLEXPORT void Geometry_Set_Lattice_Constant(State *state, float lattice_constant) noexcept;
 
+// ---------------------------------- Get ----------------------------------
 
 // Get number of spins
 DLLEXPORT int Geometry_Get_NOS(State * state) noexcept;

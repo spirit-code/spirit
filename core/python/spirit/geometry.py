@@ -7,9 +7,52 @@ _spirit = spiritlib.LoadSpiritLibrary()
 ### Imports
 from spirit.scalar import scalar
 from spirit import system
-# import spirit.system as system
 
 import numpy as np
+
+### ---------------------------------- Set ----------------------------------
+
+### Set the type of Bravais lattice. Can be e.g. "sc" or "bcc"
+_Set_Bravais_Lattice          = _spirit.Geometry_Set_Bravais_Lattice
+_Set_Bravais_Lattice.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+_Set_Bravais_Lattice.restype  = None
+def setBravaisLattice(p_state, lattice, idx_image=-1, idx_chain=-1):
+    _Set_Bravais_Lattice(ctypes.c_void_p(p_state), ctypes.c_char_p(lattice.encode('utf-8')))
+
+### Set number of cells in bravais lattice directions a, b, c
+_Set_N_Cells          = _spirit.Geometry_Set_N_Cells
+_Set_N_Cells.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
+_Set_N_Cells.restype  = None
+def setNCells(p_state, n_cells=[1, 1, 1], idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_int * 3
+    _Set_N_Cells(ctypes.c_void_p(p_state), vec3(*n_cells))
+
+### Set the types of the atoms in a basis cell
+_Set_Cell_Atom_Types          = _spirit.Geometry_Set_Cell_Atom_Types
+_Set_Cell_Atom_Types.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float)]
+_Set_Cell_Atom_Types.restype  = None
+def setCellAtomTypes(p_state, atom_types, idx_image=-1, idx_chain=-1):
+    n = len(atom_types)
+    vec = ctypes.c_int * n
+    _Set_Cell_Atom_Types(ctypes.c_void_p(p_state), ctypes.c_int(n), vec(*atom_types))
+
+### Set the bravais vectors
+_Set_Bravais_Vectors             = _spirit.Geometry_Set_Bravais_Vectors
+_Set_Bravais_Vectors.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
+                                    ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float)]
+_Set_Bravais_Vectors.restype     = None
+def setBravaisVectors(p_state, ta=[1.0, 0.0, 0.0], tb=[0.0, 1.0, 0.0], tc=[0.0, 0.0, 1.0], idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
+    _Set_Bravais_Vectors(ctypes.c_void_p(p_state), vec3(ta), vec3(tb), vec3(tc))
+
+### Set the overall lattice constant
+_Set_Lattice_Constant             = _spirit.Geometry_Set_Lattice_Constant
+_Set_Lattice_Constant.argtypes    = [ctypes.c_void_p, ctypes.c_float]
+_Set_Lattice_Constant.restype     = None
+def setLatticeConstant(p_state, lattice_constant, idx_image=-1, idx_chain=-1):
+    _Set_Lattice_Constant(p_state, ctypes.c_float(lattice_constant))
+
+### ---------------------------------- Get ----------------------------------
 
 ### Get Bounds
 _Get_Bounds          = _spirit.Geometry_Get_Bounds
