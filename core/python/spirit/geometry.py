@@ -29,12 +29,11 @@ def setNCells(p_state, n_cells=[1, 1, 1], idx_image=-1, idx_chain=-1):
 
 ### Set the types of the atoms in a basis cell
 _Set_Cell_Atom_Types          = _spirit.Geometry_Set_Cell_Atom_Types
-_Set_Cell_Atom_Types.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float)]
+_Set_Cell_Atom_Types.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
 _Set_Cell_Atom_Types.restype  = None
 def setCellAtomTypes(p_state, atom_types, idx_image=-1, idx_chain=-1):
-    n = len(atom_types)
-    vec = ctypes.c_int * n
-    _Set_Cell_Atom_Types(ctypes.c_void_p(p_state), ctypes.c_int(n), vec(*atom_types))
+    vec = ctypes.c_int * len(atom_types)
+    _Set_Cell_Atom_Types(ctypes.c_void_p(p_state), vec(*atom_types))
 
 ### Set the bravais vectors
 _Set_Bravais_Vectors             = _spirit.Geometry_Set_Bravais_Vectors
@@ -51,6 +50,14 @@ _Set_Lattice_Constant.argtypes    = [ctypes.c_void_p, ctypes.c_float]
 _Set_Lattice_Constant.restype     = None
 def setLatticeConstant(p_state, lattice_constant, idx_image=-1, idx_chain=-1):
     _Set_Lattice_Constant(p_state, ctypes.c_float(lattice_constant))
+
+### Set the spin moments
+_Set_mu_s             = _spirit.Geometry_Set_mu_s
+_Set_mu_s.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float)]
+_Set_mu_s.restype     = None
+def setMuS(p_state, mu_s, idx_image=-1, idx_chain=-1):
+    vec = ctypes.c_int * len(mu_s)
+    _Set_mu_s(ctypes.c_void_p(p_state), vec(*mu_s))
 
 ### ---------------------------------- Get ----------------------------------
 

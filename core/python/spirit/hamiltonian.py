@@ -5,7 +5,6 @@ import ctypes
 _spirit = spiritlib.LoadSpiritLibrary()
 
 ### TODO:
-#Hamiltonian_Set_mu_s
 #Hamiltonian_Set_DMI
 #Hamiltonian_Set_BQE
 #Hamiltonian_Set_FSC
