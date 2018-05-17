@@ -52,44 +52,6 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     }
 }
 
-void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain) noexcept
-{
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        image->Lock();
-        
-        try
-        {
-            if (image->hamiltonian->Name() == "Heisenberg")
-            {
-                auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-                for (auto& m : ham->mu_s) m = mu_s;
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                    fmt::format("Set mu_s to {}", mu_s), idx_image, idx_chain);
-            }
-            else
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                    "mu_s cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_api(idx_image, idx_chain);
-        }
-        
-        image->Unlock();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
-}
-
 void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, int idx_image, int idx_chain) noexcept
 {
     try
@@ -429,29 +391,6 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int id
         periodical[0] = image->hamiltonian->boundary_conditions[0];
         periodical[1] = image->hamiltonian->boundary_conditions[1];
         periodical[2] = image->hamiltonian->boundary_conditions[2];
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
-}
-
-void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_chain) noexcept
-{
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        if (image->hamiltonian->Name() == "Heisenberg")
-        {
-            auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
-                mu_s[i] = (float)ham->mu_s[i];
-        }
     }
     catch( ... )
     {

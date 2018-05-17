@@ -15,11 +15,11 @@
 namespace Data
 {
     Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
-        intfield cell_atom_types, scalar lattice_constant) :
+        scalarfield mu_s, intfield cell_atom_types, scalar lattice_constant) :
         bravais_vectors(bravais_vectors), n_cells(n_cells),
         n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
         nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
-        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2])
+        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]), mu_s(mu_s)
     {
         for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
         {

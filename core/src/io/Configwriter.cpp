@@ -84,6 +84,11 @@ namespace IO
                 config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
             }
         }
+        // Spin moments
+        config += "mu_s ";
+        for (int i = 0; i<geometry->n_cell_atoms; ++i)
+            config += fmt::format(" {}", geometry->mu_s[i]);
+        config += "\n";
         // Optionally lattice constant
         if (std::abs(geometry->lattice_constant-1) > 1e-6)
             config += fmt::format("lattice_constant {}\n", geometry->lattice_constant);
@@ -203,12 +208,6 @@ namespace IO
         int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
         std::string config = "";
         Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
-        
-        // Magnetic moment
-        config += "mu_s                     ";
-        for (int i=0; i<geometry->n_cell_atoms; ++i)
-            config += fmt::format(" {}", ham->mu_s[i]);
-        config += "\n";
 
         // External Field
         config += "###    External Field:\n";

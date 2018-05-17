@@ -20,7 +20,6 @@ namespace Engine
 {
     // Construct a Heisenberg Hamiltonian with pairs
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
@@ -31,7 +30,6 @@ namespace Engine
         intfield boundary_conditions
     ) :
         Hamiltonian(boundary_conditions), geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
@@ -65,7 +63,6 @@ namespace Engine
 
     // Construct a Heisenberg Hamiltonian from shells
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         scalarfield exchange_magnitudes,
@@ -77,7 +74,6 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_n_shells(exchange_magnitudes.size()),
@@ -224,7 +220,7 @@ namespace Engine
             {
                 int ispin = icell*N + ibasis;
                 if (check_atom_type(this->geometry->atom_types[ispin]))
-                    Energy[ispin] -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+                    Energy[ispin] -= this->geometry->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
             }
         }
     }
@@ -309,9 +305,9 @@ namespace Engine
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                Energy[ispin] -= 0.5 * this->mu_s[i] * this->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[ispin] -= 0.5 * this->geometry->mu_s[i] * this->geometry->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-                                Energy[jspin] -= 0.5 * this->mu_s[i] * this->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[jspin] -= 0.5 * this->geometry->mu_s[i] * this->geometry->mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
                             }
                         }
@@ -363,7 +359,7 @@ namespace Engine
         if (this->idx_zeeman >= 0)
         {
             if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                Energy -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+                Energy -= this->geometry->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
         }
 
         // Anisotropy
@@ -435,7 +431,7 @@ namespace Engine
                 if (ddi_pairs[ipair].i == ibasis)
                 {
                     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-                    const scalar mult = 0.5 * this->mu_s[ddi_pairs[ipair].i] * this->mu_s[ddi_pairs[ipair].j]
+                    const scalar mult = 0.5 * this->geometry->mu_s[ddi_pairs[ipair].i] * this->geometry->mu_s[ddi_pairs[ipair].j]
                         * Utility::Constants::mu_0 * std::pow(Utility::Constants::mu_B, 2) / ( 4*Utility::Constants::Pi * 1e-30 );
 
                     int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
@@ -528,7 +524,7 @@ namespace Engine
             {
                 int ispin = icell*N + ibasis;
                 if (check_atom_type(this->geometry->atom_types[ispin]))
-                    gradient[ispin] -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal;
+                    gradient[ispin] -= this->geometry->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal;
             }
         }
     }
@@ -613,8 +609,8 @@ namespace Engine
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                gradient[ispin] -= this->mu_s[j] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
-                                gradient[jspin] -= this->mu_s[i] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
+                                gradient[ispin] -= this->geometry->mu_s[j] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
+                                gradient[jspin] -= this->geometry->mu_s[i] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
                             }
                         }
                     }

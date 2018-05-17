@@ -270,6 +270,8 @@ namespace IO
             // Atoms in the basis
             std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
             int n_cell_atoms = cell_atoms.size();
+            // Spin moments
+            scalarfield mu_s = scalarfield(1, 1.0);
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
             // Number of translations nT for each basis direction
@@ -340,6 +342,31 @@ namespace IO
                 {
                     spirit_handle_exception_core(fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile));
                 }
+
+
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    // Spin moment
+                    if (myfile.Find("mu_s"))
+                    {
+                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        {
+                            if (!(myfile.iss >> mu_s[iatom]))
+                            {
+                                Log(Log_Level::Warning, Log_Sender::IO,
+                                    fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
+                                mu_s[iatom] = mu_s[0];
+                            }
+                        }
+                    }
+                    else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+                }// end try
+                catch (...)
+                {
+                    spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+                }
             }// end if file=""
             else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
 
@@ -353,9 +380,9 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {} atom(s):", n_cell_atoms));
             for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {0} at {1}", iatom, cell_atoms[iatom].transpose()));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at position ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), mu_s[iatom]));
             Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
 
 
@@ -379,7 +406,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
             
             // Return geometry
-            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(bravais_vectors, n_cells, cell_atoms, atom_types, lattice_constant));
+            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(bravais_vectors, n_cells, cell_atoms, mu_s, atom_types, lattice_constant));
 
             #ifdef SPIRIT_ENABLE_DEFECTS
             for (int i = 0; i < n_defects; ++i)
@@ -1006,9 +1033,6 @@ namespace IO
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
         intfield boundary_conditions = { false, false, false };
 
-        // Spin moment
-        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
-
         // External Magnetic Field
         scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
@@ -1062,30 +1086,6 @@ namespace IO
             catch( ... )
             {
                 spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Spin moment
-                if (myfile.Find("mu_s"))
-                {
-                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
-                    {
-                        if ( !(myfile.iss >> mu_s[iatom]) )
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO,
-                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
-                            mu_s[iatom] = mu_s[0];
-                        }
-                    }
-                }
-                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
             }
 
             try
@@ -1287,7 +1287,6 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
         if (anisotropy_from_file)
             Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
@@ -1310,7 +1309,6 @@ namespace IO
         if (hamiltonian_type == "heisenberg_neighbours")
         {
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
-                mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_magnitudes,
@@ -1324,7 +1322,6 @@ namespace IO
         else
         {
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
-                mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_pairs, exchange_magnitudes,

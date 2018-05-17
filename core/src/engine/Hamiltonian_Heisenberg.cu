@@ -19,7 +19,6 @@ using Engine::Vectormath::cu_idx_from_pair;
 namespace Engine
 {
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
@@ -30,7 +29,6 @@ namespace Engine
         intfield boundary_conditions
     ) :
         Hamiltonian(boundary_conditions), geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
@@ -61,7 +59,6 @@ namespace Engine
     }
 
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         scalarfield exchange_magnitudes,
@@ -73,7 +70,6 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_n_shells(exchange_magnitudes.size()),
@@ -220,7 +216,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         int size = geometry->n_cells_total;
-        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
+        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, this->geometry->mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
@@ -411,7 +407,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         int size = geometry->n_cells_total;
-        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
+        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, this->geometry->mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 
@@ -686,7 +682,7 @@ namespace Engine
         //	int idx_2 = DD_indices[i_pair][1];
         //	// prefactor
         //	scalar prefactor = 0.0536814951168
-        //		* this->mu_s[idx_1] * this->mu_s[idx_2]
+        //		* this->geometry->mu_s[idx_1] * this->geometry->mu_s[idx_2]
         //		/ std::pow(DD_magnitude[i_pair], 3);
         //	// components
         //	for (int alpha = 0; alpha < 3; ++alpha)

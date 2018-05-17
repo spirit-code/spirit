@@ -69,7 +69,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 	this->checkBox_aniso_periodical_c->setChecked(boundary_conditions[2]);
 
 	// mu_s
-	Hamiltonian_Get_mu_s(state.get(), mu_s.data());
+	Geometry_Get_mu_s(state.get(), mu_s.data());
 	this->lineEdit_muSpin_aniso->setText(QString::number(mu_s[0]));
 
 	// External magnetic field
@@ -159,8 +159,9 @@ void HamiltonianHeisenbergWidget::set_mu_s()
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		// mu_s
-		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
-		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
+        int n_cell_atoms = Geometry_Get_N_Cell_Atoms(state.get());
+        auto mu_s = std::vector<float>(n_cell_atoms, this->lineEdit_muSpin_aniso->text().toFloat());
+		Geometry_Set_mu_s(state.get(), mu_s.data(), idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")

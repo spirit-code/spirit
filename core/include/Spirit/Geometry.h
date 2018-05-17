@@ -26,6 +26,8 @@ DLLEXPORT void Geometry_Set_Bravais_Lattice(State *state, const char * bravais_l
 DLLEXPORT void Geometry_Set_N_Cells(State * state, int n_cells[3]) noexcept;
 // Set the number and positions of atoms in a basis cell
 DLLEXPORT void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) noexcept;
+// Set the spin moments of the basis atoms
+DLLEXPORT void Geometry_Set_mu_s(State *state, const float * mu_s, int idx_image=-1, int idx_chain=-1) noexcept;
 // Set the types of the atoms in a basis cell
 DLLEXPORT void Geometry_Set_Cell_Atom_Types(State *state, int n_atoms, int * atom_types) noexcept;
 // Set the bravais vectors
@@ -59,6 +61,8 @@ DLLEXPORT void Geometry_Get_Bravais_Vectors(State *state, float a[3], float b[3]
 DLLEXPORT int Geometry_Get_N_Cell_Atoms(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 // Get basis cell atoms
 DLLEXPORT int Geometry_Get_Cell_Atoms(State *state, scalar ** atoms, int idx_image=-1, int idx_chain=-1);
+// Get the spin moments of basis atoms
+DLLEXPORT void Geometry_Get_mu_s(State *state, float * mu_s, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get number of basis cells in the three translation directions
 DLLEXPORT void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image=-1, int idx_chain=-1) noexcept;

@@ -39,9 +39,10 @@ TEST_CASE( "Larmor Precession","[physics]" )
     REQUIRE( direction[2] == 0 );
     
     // make sure that mu_s is the same as the one define in input file
-    float mu_s;
-    Hamiltonian_Get_mu_s( state.get(), &mu_s );
-    REQUIRE( mu_s == 2 );
+    int n_cell_atoms = Geometry_Get_N_Cell_Atoms(state.get());
+    std::vector<float> mu_s(n_cell_atoms, 1);
+    Geometry_Get_mu_s( state.get(), mu_s.data() );
+    REQUIRE( mu_s[0] == 2 );
     
     // get the magnitude of the magnetic field ( it has only z-axis component )
     float B_mag;
@@ -74,10 +75,10 @@ TEST_CASE( "Larmor Precession","[physics]" )
             direction = System_Get_Spin_Directions( state.get() );
             angle = std::atan2( direction[1] , direction[0] );
             
-            REQUIRE( direction[2] == 0 );     // spin should always be to the xy plane
+            REQUIRE( direction[2] == 0 );     // spin should stay in the xy plane
             
-            // gamma must be scalled by mu_s
-            REQUIRE( Approx(angle)  == ( (i+1) * tstep * mu_s * Constants_gamma() * B_mag ) );
+            // TODO: should not be scaled by mu_s
+            REQUIRE( Approx(angle)  == ( (i+1) * tstep * mu_s[0] * Constants_gamma() * B_mag ) );
         }
         
         // Test precession orbit projection on z-axis
@@ -95,7 +96,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
             Simulation_SingleShot( state.get(), method, opt );
             
             // analytical calculation of the projection in the z-axis
-            projection = std::tanh( damping * (i+1) * tstep * mu_s * B_mag / (2*Constants_Pi()) );
+            // TODO: should not be scaled by mu_s
+            projection = std::tanh( damping * (i+1) * tstep * mu_s[0] * B_mag / (2*Constants_Pi()) );
             
             direction = System_Get_Spin_Directions( state.get() );
             
