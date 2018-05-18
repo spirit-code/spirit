@@ -32,7 +32,7 @@ namespace IO
             (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
         output += "###    Interaction pairs:\n";
-        output += fmt::format( "n_heisenberg_interaction_pairs {}\n", ham->exchange_pairs.size() );
+        output += fmt::format( "n_heisenberg_interaction_pairs {}\n", 2 * ham->exchange_pairs.size() );
         
         if (ham->exchange_pairs.size() > 0)
         {
@@ -44,10 +44,17 @@ namespace IO
                     ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
                     ham->exchange_pairs[i].translations[0], ham->exchange_pairs[i].translations[1], 
                     ham->exchange_pairs[i].translations[2], ham->exchange_magnitudes[i] );
+                // mirrored interactions 
+                output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
+                    ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
+                    (-1) * ham->exchange_pairs[i].translations[0], 
+                    (-1) * ham->exchange_pairs[i].translations[1], 
+                    (-1) * ham->exchange_pairs[i].translations[2], 
+                    ham->exchange_magnitudes[i] );
             }
         }
 
-        Append_String_to_File( output, filename );
+        Dump_to_File( output, filename );
     } 
     
     void Write_Pairs_DMI_Interaction( const Data::Spin_System& system,
@@ -60,7 +67,7 @@ namespace IO
             (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
         output += "###    Interaction pairs:\n";
-        output += fmt::format( "n_DMI_interaction_pairs {}\n", ham->dmi_pairs.size() );
+        output += fmt::format( "n_DMI_interaction_pairs {}\n", 2 * ham->dmi_pairs.size() );
         
         if (ham->dmi_pairs.size() > 0)
         {
@@ -75,10 +82,17 @@ namespace IO
                     ham->dmi_pairs[i].translations[0], ham->dmi_pairs[i].translations[1], 
                     ham->dmi_pairs[i].translations[2], ham->dmi_magnitudes[i], 
                     ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2]);
+                // mirrored interactions 
+                output += fmt::format(
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                    ham->dmi_pairs[i].i, ham->dmi_pairs[i].j, (-1) * ham->dmi_pairs[i].translations[0], 
+                    (-1) * ham->dmi_pairs[i].translations[1], (-1) * ham->dmi_pairs[i].translations[2], 
+                    ham->dmi_magnitudes[i], (-1) * ham->dmi_normals[i][0], 
+                    (-1) * ham->dmi_normals[i][1], (-1) * ham->dmi_normals[i][2]);
             }
         }
 
-        Append_String_to_File( output, filename );
+        Dump_to_File( output, filename );
     } 
 
     void Write_Energy_Header( const Data::Spin_System & s, const std::string filename, 
