@@ -758,8 +758,8 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
 /*----------------------------------------------------------------------------------------------- */
 
 // Interactions Pairs
-void IO_Image_Write_Heisenberg_Interaction_Pairs( State * state, const char * file, 
-                                                  int idx_image, int idx_chain ) noexcept
+void IO_Image_Write_Neighbors_Exchange( State * state, const char * file, 
+                                        int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -770,7 +770,7 @@ void IO_Image_Write_Heisenberg_Interaction_Pairs( State * state, const char * fi
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        IO::Write_Pairs_Heisenberg_Interaction( *image, std::string(file) );
+        IO::Write_Neighbors_Exchange( *image, std::string(file) );
     }
     catch( ... )
     {
@@ -778,8 +778,8 @@ void IO_Image_Write_Heisenberg_Interaction_Pairs( State * state, const char * fi
     }
 }
 
-void IO_Image_Write_DMI_Interaction_Pairs( State * state, const char * file, 
-                                           int idx_image, int idx_chain ) noexcept
+void IO_Image_Write_Neighbors_DMI( State * state, const char * file, 
+                                   int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -790,7 +790,7 @@ void IO_Image_Write_DMI_Interaction_Pairs( State * state, const char * file,
         from_indices( state, idx_image, idx_chain, image, chain );
         
         // Write the data
-        IO::Write_Pairs_DMI_Interaction( *image, std::string(file) );
+        IO::Write_Neighbors_DMI( *image, std::string(file) );
     }
     catch( ... )
     {
