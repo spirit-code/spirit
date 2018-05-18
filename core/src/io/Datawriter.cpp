@@ -22,6 +22,65 @@
 
 namespace IO
 {
+    void Write_Pairs_Heisenberg_Interaction( 
+        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
+        const std::shared_ptr<Data::Geometry> geometry, const std::string filename )
+    {
+        std::string output;
+        output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
+
+        Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
+         
+        output += "###    Interaction pairs:\n";
+        output += fmt::format( "n_heisenberg_interaction_pairs {}\n", ham->exchange_pairs.size() );
+        
+        if (ham->exchange_pairs.size() > 0)
+        {
+            output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", 
+                "i", "j", "da", "db", "dc", "Jij" );
+            for (unsigned int i=0; i<ham->exchange_pairs.size(); ++i)
+            {
+                output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
+                    ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
+                    ham->exchange_pairs[i].translations[0], ham->exchange_pairs[i].translations[1], 
+                    ham->exchange_pairs[i].translations[2], ham->exchange_magnitudes[i] );
+            }
+        }
+
+        Append_String_to_File( output, filename );
+    } 
+    
+    void Write_Pairs_DMI_Interaction(
+        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
+        const std::shared_ptr<Data::Geometry> geometry, const std::string filename )
+    {
+        std::string output;
+        output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
+
+        Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
+         
+        output += "###    Interaction pairs:\n";
+        output += fmt::format( "n_DMI_interaction_pairs {}\n", ham->dmi_pairs.size() );
+        
+        if (ham->dmi_pairs.size() > 0)
+        {
+            output += fmt::format( 
+                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15} {:^15} {:^15} {:^15}\n",
+                "i", "j", "da", "db", "dc", "Dij", "Dijx", "Dijy", "Dijz");
+            for (unsigned int i = 0; i<ham->dmi_pairs.size(); ++i)
+            {
+                output += fmt::format(
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                    ham->dmi_pairs[i].i, ham->dmi_pairs[i].j,
+                    ham->dmi_pairs[i].translations[0], ham->dmi_pairs[i].translations[1], 
+                    ham->dmi_pairs[i].translations[2], ham->dmi_magnitudes[i], 
+                    ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2]);
+            }
+        }
+
+        Append_String_to_File( output, filename );
+    } 
+
     void Write_Energy_Header( const Data::Spin_System & s, const std::string filename, 
                                 std::vector<std::string> firstcolumns, bool contributions, 
                                 bool normalize_by_nos, bool readability_toggle )
