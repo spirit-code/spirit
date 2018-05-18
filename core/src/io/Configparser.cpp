@@ -89,10 +89,10 @@ namespace IO
                 // Save Input (parameters from config file and defaults) on State Delete
                 myfile.Read_Single(save_positions_final, "save_positions_final");
                 
-                // // Save Input (parameters from config file and defaults) on State Setup
-                // myfile.Read_Single(save_neighbours_initial, "save_neighbours_initial");
-                // // Save Input (parameters from config file and defaults) on State Delete
-                // myfile.Read_Single(save_neighbours_final, "save_neighbours_final");
+                 // Save Input (parameters from config file and defaults) on State Setup
+                 myfile.Read_Single(save_neighbours_initial, "save_neighbours_initial");
+                 // Save Input (parameters from config file and defaults) on State Delete
+                 myfile.Read_Single(save_neighbours_final, "save_neighbours_final");
 
             }// end try
             catch( ... )

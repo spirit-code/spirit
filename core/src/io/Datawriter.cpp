@@ -22,7 +22,7 @@
 
 namespace IO
 {
-    void Write_Neighbors_Exchange( const Data::Spin_System& system, const std::string filename )
+    void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename )
     {
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
@@ -30,8 +30,8 @@ namespace IO
         Engine::Hamiltonian_Heisenberg* ham = 
             (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
-        output += "###    Interaction neighbors:\n";
-        output += fmt::format( "n_neighbors_exchange {}\n", 2 * ham->exchange_pairs.size() );
+        output += "###    Interaction neighbours:\n";
+        output += fmt::format( "n_neighbours_exchange {}\n", 2 * ham->exchange_pairs.size() );
         
         if (ham->exchange_pairs.size() > 0)
         {
@@ -56,7 +56,7 @@ namespace IO
         Dump_to_File( output, filename );
     } 
     
-    void Write_Neighbors_DMI( const Data::Spin_System& system, const std::string filename ) 
+    void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ) 
     {
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
@@ -64,8 +64,8 @@ namespace IO
         Engine::Hamiltonian_Heisenberg* ham = 
             (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
-        output += "###    Interaction neighbors:\n";
-        output += fmt::format( "n_neighbors_dmi {}\n", 2 * ham->dmi_pairs.size() );
+        output += "###    Interaction neighbours:\n";
+        output += fmt::format( "n_neighbours_dmi {}\n", 2 * ham->dmi_pairs.size() );
         
         if (ham->dmi_pairs.size() > 0)
         {

@@ -324,6 +324,6 @@ TEST_CASE( "IO-INTERACTION-PAIRS", "[io-interactions-pairs]" )
 {
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    IO_Image_Write_Neighbors_Exchange( state.get(), "core/test/io_test_files/neighbors_J.dat" );
-    IO_Image_Write_Neighbors_DMI( state.get(), "core/test/io_test_files/neighbors_DMI.dat" );
+    IO_Image_Write_Neighbours_Exchange( state.get(), "core/test/io_test_files/neighbours_J.dat" );
+    IO_Image_Write_Neighbours_DMI( state.get(), "core/test/io_test_files/neighbours_DMI.dat" );
 }

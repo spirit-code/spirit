@@ -9,8 +9,8 @@
 namespace IO
 {
     // =========================== Saving Interactions =======================
-    void Write_Neighbors_Exchange( const Data::Spin_System& system, const std::string filename ); 
-    void Write_Neighbors_DMI( const Data::Spin_System& system, const std::string filename ); 
+    void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename ); 
+    void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ); 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 
