@@ -9,12 +9,10 @@
 namespace IO
 {
     // =========================== Saving Interactions =======================
-    void Write_Pairs_Heisenberg_Interaction( 
-        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
-        const std::shared_ptr<Data::Geometry> geometry, const std::string filename ); 
-    void Write_Pairs_DMI_Interaction(
-        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
-        const std::shared_ptr<Data::Geometry> geometry, const std::string filename ); 
+    void Write_Pairs_Heisenberg_Interaction( const Data::Spin_System& system,
+                                             const std::string filename ); 
+    void Write_Pairs_DMI_Interaction( const Data::Spin_System& system,
+                                      const std::string filename ); 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 

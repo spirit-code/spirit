@@ -757,6 +757,48 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
 /*--------------------------------------- Data -------------------------------------------------- */
 /*----------------------------------------------------------------------------------------------- */
 
+// Interactions Pairs
+void IO_Image_Write_Heisenberg_Interaction_Pairs( State * state, const char * file, 
+                                                  int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        // Write the data
+        IO::Write_Pairs_Heisenberg_Interaction( *image, std::string(file) );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void IO_Image_Write_DMI_Interaction_Pairs( State * state, const char * file, 
+                                           int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        // Write the data
+        IO::Write_Pairs_DMI_Interaction( *image, std::string(file) );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+
 //IO_Energies_Spins_Save
 void IO_Image_Write_Energy_per_Spin(State * state, const char * file, int idx_image, int idx_chain) noexcept
 {

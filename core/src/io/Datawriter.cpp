@@ -22,14 +22,14 @@
 
 namespace IO
 {
-    void Write_Pairs_Heisenberg_Interaction( 
-        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
-        const std::shared_ptr<Data::Geometry> geometry, const std::string filename )
+    void Write_Pairs_Heisenberg_Interaction( const Data::Spin_System& system, 
+                                             const std::string filename )
     {
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
 
-        Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
+        Engine::Hamiltonian_Heisenberg* ham = 
+            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
         output += "###    Interaction pairs:\n";
         output += fmt::format( "n_heisenberg_interaction_pairs {}\n", ham->exchange_pairs.size() );
@@ -50,14 +50,14 @@ namespace IO
         Append_String_to_File( output, filename );
     } 
     
-    void Write_Pairs_DMI_Interaction(
-        const std::shared_ptr<Engine::Hamiltonian> hamiltonian, 
-        const std::shared_ptr<Data::Geometry> geometry, const std::string filename )
+    void Write_Pairs_DMI_Interaction( const Data::Spin_System& system,
+                                      const std::string filename ) 
     {
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
 
-        Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
+        Engine::Hamiltonian_Heisenberg* ham = 
+            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
          
         output += "###    Interaction pairs:\n";
         output += fmt::format( "n_DMI_interaction_pairs {}\n", ham->dmi_pairs.size() );
