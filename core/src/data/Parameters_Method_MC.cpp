@@ -13,7 +13,8 @@ namespace Data
         output_configuration_step(output[7]), output_configuration_archive(output[8]),
         output_energy_add_readability_lines(output[9]), output_configuration_filetype(output_configuration_filetype),
         acceptance_ratio_target(acceptance_ratio_target), temperature(temperature), 
-        rng_seed(rng_seed), prng(std::mt19937(rng_seed))
+        rng_seed(rng_seed), prng(std::mt19937(rng_seed)),
+        metropolis_random_sample(true), metropolis_step_cone(true), metropolis_cone_angle(30), metropolis_cone_adaptive(true)
     {
     }
 }

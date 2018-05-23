@@ -28,7 +28,16 @@ namespace Data
         // Mersenne twister PRNG
         std::mt19937 prng;
 
-        // Step acceptance ratio
+        // Whether to sample spins randomly or in sequence in Metropolis algorithm
+        bool metropolis_random_sample;
+        // Whether to use the adaptive cone radius (otherwise just uses full sphere sampling)
+        bool metropolis_step_cone;
+        // Whether to adapt the metropolis cone angle throughout a MC run to try to hit a target acceptance ratio
+        bool metropolis_cone_adaptive;
+        // The metropolis cone angle
+        scalar metropolis_cone_angle;
+
+        // Target acceptance ratio of mc steps for adaptive cone angle
         scalar acceptance_ratio_target;
 
         // ----------------- Output --------------
