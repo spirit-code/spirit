@@ -3,6 +3,7 @@
 #define ParametersWidget_H
 
 #include <QWidget>
+#include <QRegularExpressionValidator>
 
 #include <memory>
 #include <thread>
