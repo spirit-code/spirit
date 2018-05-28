@@ -70,7 +70,7 @@ namespace Engine
         this->n_rejected = 0;
         int nos = spins_new.size();
         auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-        auto distribution_idx = std::uniform_int_distribution<>(0, nos);
+        auto distribution_idx = std::uniform_int_distribution<>(0, nos-1);
         scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
 
         scalar diff = 0.01;

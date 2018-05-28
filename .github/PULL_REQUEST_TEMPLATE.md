@@ -2,7 +2,7 @@
 ### First time contributor checklist
 <!-- replace the empty checkboxes [ ] below with checked ones [x] accordingly -->
 - [ ] I have read the [README](https://github.com/spirit-code/spirit/blob/develop/README.md)
-- [ ] I have read the [CONTRIBUTING](https://github.com/spirit-code/spirit/blob/develop/CONTRIBUTING.md) document
+- [ ] I have read the [CONTRIBUTING](https://github.com/spirit-code/spirit/blob/develop/docs/CONTRIBUTING.md) document
 
 ### Contributor checklist
 <!-- replace the empty checkboxes [ ] below with checked ones [x] accordingly -->
