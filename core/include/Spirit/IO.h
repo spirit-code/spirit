@@ -43,6 +43,12 @@ DLLEXPORT void IO_Chain_Write( State *state, const char *file, int format,
 DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format, 
                                 const char* comment = "-", int idx_chain=-1 ) noexcept;
 
+// Save the interactions
+void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, 
+                                         int idx_image=-1, int idx_chain=-1 ) noexcept;
+void IO_Image_Write_Neighbours_DMI( State * state, const char * file, 
+                                    int idx_image=-1, int idx_chain=-1 ) noexcept;
+
 // Save the spin-resolved energy contributions of a spin system
 DLLEXPORT void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int idx_image=-1, 
                                                int idx_chain = -1 ) noexcept;

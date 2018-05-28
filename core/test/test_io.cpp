@@ -319,3 +319,11 @@ TEST_CASE( "IO-OVF-N_SEGMENTS", "[io-OVF-n_segments]" )
         REQUIRE( noi_known == noi_read );
     }
 }
+
+TEST_CASE( "IO-INTERACTION-PAIRS", "[io-interactions-pairs]" )
+{
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+
+    IO_Image_Write_Neighbours_Exchange( state.get(), "core/test/io_test_files/neighbours_J.dat" );
+    IO_Image_Write_Neighbours_DMI( state.get(), "core/test/io_test_files/neighbours_DMI.dat" );
+}
