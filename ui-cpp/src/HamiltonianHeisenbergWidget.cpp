@@ -1,8 +1,9 @@
 #include <QtWidgets>
 
-#include "HamiltonianHeisenbergNeighboursWidget.hpp"
+#include "HamiltonianHeisenbergWidget.hpp"
 
 #include <Spirit/System.h>
+#include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Collection.h>
 #include <Spirit/Log.h>
@@ -19,7 +20,7 @@ void normalize(T v[3])
 	for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
 }
 
-HamiltonianHeisenbergNeighboursWidget::HamiltonianHeisenbergNeighboursWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
+HamiltonianHeisenbergWidget::HamiltonianHeisenbergWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
 {
 	this->state = state;
 	this->spinWidget = spinWidget;
@@ -39,75 +40,75 @@ HamiltonianHeisenbergNeighboursWidget::HamiltonianHeisenbergNeighboursWidget(std
 	// Setup the validators for the various input fields
 	this->Setup_Input_Validators();
 
-	// Load variables from State
+	// Load variables from SpinWidget and State
 	this->updateData();
 
 	// Connect signals and slots
 	this->Setup_Slots();
 }
 
-void HamiltonianHeisenbergNeighboursWidget::updateData()
+void HamiltonianHeisenbergWidget::updateData()
 {
 	Load_Contents();
 }
 
 
-void HamiltonianHeisenbergNeighboursWidget::Load_Contents()
+
+void HamiltonianHeisenbergWidget::Load_Contents()
 {
-	float d, dij[100], vd[3], mu_s, jij[100];
+	float d, vd[3], jij[100], dij[100];
 	int n_neigh_shells_exchange, n_neigh_shells_dmi;
+	int n_basis_atoms = Geometry_Get_N_Cell_Atoms(state.get());
+	std::vector<float> mu_s(n_basis_atoms);
 
 	// Boundary conditions
 	bool boundary_conditions[3];
 	Hamiltonian_Get_Boundary_Conditions(state.get(), boundary_conditions);
-	this->checkBox_iso_periodical_a->setChecked(boundary_conditions[0]);
-	this->checkBox_iso_periodical_b->setChecked(boundary_conditions[1]);
-	this->checkBox_iso_periodical_c->setChecked(boundary_conditions[2]);
+	this->checkBox_aniso_periodical_a->setChecked(boundary_conditions[0]);
+	this->checkBox_aniso_periodical_b->setChecked(boundary_conditions[1]);
+	this->checkBox_aniso_periodical_c->setChecked(boundary_conditions[2]);
 
 	// mu_s
-	Hamiltonian_Get_mu_s(state.get(), &mu_s);
-	this->lineEdit_muSpin->setText(QString::number(mu_s));
+	Hamiltonian_Get_mu_s(state.get(), mu_s.data());
+	this->lineEdit_muSpin_aniso->setText(QString::number(mu_s[0]));
 
 	// External magnetic field
 	Hamiltonian_Get_Field(state.get(), &d, vd);
-	this->lineEdit_extH->setText(QString::number(d));
-	this->lineEdit_extHx->setText(QString::number(vd[0]));
-	this->lineEdit_extHy->setText(QString::number(vd[1]));
-	this->lineEdit_extHz->setText(QString::number(vd[2]));
-	if (d > 0.0) this->checkBox_extH->setChecked(true);
-	else this->checkBox_extH->setChecked(false);
-	
+	this->lineEdit_extH_aniso->setText(QString::number(d));
+	this->lineEdit_extHx_aniso->setText(QString::number(vd[0]));
+	this->lineEdit_extHy_aniso->setText(QString::number(vd[1]));
+	this->lineEdit_extHz_aniso->setText(QString::number(vd[2]));
+	if (d > 0.0) this->checkBox_extH_aniso->setChecked(true);
+
 	// Anisotropy
 	Hamiltonian_Get_Anisotropy(state.get(), &d, vd);
-	this->lineEdit_aniso->setText(QString::number(d));
-	this->lineEdit_anisox->setText(QString::number(vd[0]));
-	this->lineEdit_anisoy->setText(QString::number(vd[1]));
-	this->lineEdit_anisoz->setText(QString::number(vd[2]));
-	if (d > 0.0) this->checkBox_aniso->setChecked(true);
-	else this->checkBox_aniso->setChecked(false);
+	this->lineEdit_ani_aniso->setText(QString::number(d));
+	this->lineEdit_anix_aniso->setText(QString::number(vd[0]));
+	this->lineEdit_aniy_aniso->setText(QString::number(vd[1]));
+	this->lineEdit_aniz_aniso->setText(QString::number(vd[2]));
+	if (d > 0.0) this->checkBox_ani_aniso->setChecked(true);
 
-	// Exchange interaction
-	Hamiltonian_Get_Exchange(state.get(), &n_neigh_shells_exchange, jij);
+	// Exchange interaction (shells)
+	Hamiltonian_Get_Exchange_Shells(state.get(), &n_neigh_shells_exchange, jij);
 	if (n_neigh_shells_exchange > 0) this->checkBox_exchange->setChecked(true);
 	else this->checkBox_exchange->setChecked(false);
-	this->spinBox_exchange_nshells->setValue(n_neigh_shells_exchange);
+	this->spinBox_nshells_exchange->setValue(n_neigh_shells_exchange);
 	this->set_nshells_exchange();
 	for (int i = 0; i < n_neigh_shells_exchange; ++i) this->exchange_shells[i]->setValue(jij[i]);
 
 	// DMI
-	Hamiltonian_Get_DMI(state.get(), &n_neigh_shells_dmi, dij);
+	Hamiltonian_Get_DMI_Shells(state.get(), &n_neigh_shells_dmi, dij);
 	if (n_neigh_shells_dmi > 0) this->checkBox_dmi->setChecked(true);
-	this->spinBox_dmi_nshells->setValue(n_neigh_shells_dmi);
+	this->spinBox_nshells_dmi->setValue(n_neigh_shells_dmi);
 	this->set_nshells_dmi();
 	for (int i = 0; i < n_neigh_shells_dmi; ++i) this->dmi_shells[i]->setValue(dij[i]);
 
 	// DDI
-	float ddi_radius;
-	Hamiltonian_Get_DDI(state.get(), &ddi_radius);
-	if (ddi_radius > 0) this->checkBox_ddi->setChecked(true);
-	else this->checkBox_ddi->setChecked(false);
-	this->doubleSpinBox_ddi_radius->setValue(ddi_radius);
+	Hamiltonian_Get_DDI(state.get(), &d);
+	this->doubleSpinBox_ddi->setValue(d);
 }
+
+
 
 
 // -----------------------------------------------------------------------------------
@@ -115,31 +116,31 @@ void HamiltonianHeisenbergNeighboursWidget::Load_Contents()
 // -----------------------------------------------------------------------------------
 
 
-void HamiltonianHeisenbergNeighboursWidget::set_boundary_conditions()
+void HamiltonianHeisenbergWidget::set_boundary_conditions()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		// Boundary conditions
 		bool boundary_conditions[3];
-		boundary_conditions[0] = this->checkBox_iso_periodical_a->isChecked();
-		boundary_conditions[1] = this->checkBox_iso_periodical_b->isChecked();
-		boundary_conditions[2] = this->checkBox_iso_periodical_c->isChecked();
+		boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
+		boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
+		boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
 		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -152,28 +153,28 @@ void HamiltonianHeisenbergNeighboursWidget::set_boundary_conditions()
 	this->spinWidget->updateBoundingBoxIndicators();
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_mu_s()
+void HamiltonianHeisenbergWidget::set_mu_s()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		// mu_s
-		float mu_s = lineEdit_muSpin->text().toFloat();
+		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
 		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -185,7 +186,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_mu_s()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_external_field()
+void HamiltonianHeisenbergWidget::set_external_field()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -194,13 +195,12 @@ void HamiltonianHeisenbergNeighboursWidget::set_external_field()
 
 		// External magnetic field
 		//		magnitude
-		if (this->checkBox_extH->isChecked())
-			d = this->lineEdit_extH->text().toFloat();
+		if (this->checkBox_extH_aniso->isChecked()) d = this->lineEdit_extH_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_extHx->text().toFloat();
-		vd[1] = lineEdit_extHy->text().toFloat();
-		vd[2] = lineEdit_extHz->text().toFloat();
+		vd[0] = lineEdit_extHx_aniso->text().toFloat();
+		vd[1] = lineEdit_extHy_aniso->text().toFloat();
+		vd[2] = lineEdit_extHz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -210,27 +210,27 @@ void HamiltonianHeisenbergNeighboursWidget::set_external_field()
 				vd[1] = 0.0;
 				vd[2] = 1.0;
 				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_extHx->setText(QString::number(0.0));
-				lineEdit_extHy->setText(QString::number(0.0));
-				lineEdit_extHz->setText(QString::number(1.0));
+				lineEdit_extHx_aniso->setText(QString::number(0.0));
+				lineEdit_extHy_aniso->setText(QString::number(0.0));
+				lineEdit_extHz_aniso->setText(QString::number(1.0));
 			}
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Field(state.get(), d, vd, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -242,7 +242,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_external_field()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
+void HamiltonianHeisenbergWidget::set_anisotropy()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -251,12 +251,12 @@ void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
 
 		// Anisotropy
 		//		magnitude
-		if (this->checkBox_aniso->isChecked()) d = this->lineEdit_aniso->text().toFloat();
+		if (this->checkBox_ani_aniso->isChecked()) d = this->lineEdit_ani_aniso->text().toFloat();
 		else d = 0.0;
 		//		normal
-		vd[0] = lineEdit_anisox->text().toFloat();
-		vd[1] = lineEdit_anisoy->text().toFloat();
-		vd[2] = lineEdit_anisoz->text().toFloat();
+		vd[0] = lineEdit_anix_aniso->text().toFloat();
+		vd[1] = lineEdit_aniy_aniso->text().toFloat();
+		vd[2] = lineEdit_aniz_aniso->text().toFloat();
 		try {
 			normalize(vd);
 		}
@@ -265,28 +265,28 @@ void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
 				vd[0] = 0.0;
 				vd[1] = 0.0;
 				vd[2] = 1.0;
-				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Aniso_vec = {0,0,0} replaced by {0,0,1}");
-				lineEdit_anisox->setText(QString::number(0.0));
-				lineEdit_anisoy->setText(QString::number(0.0));
-				lineEdit_anisoz->setText(QString::number(1.0));
+				Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "ani_vec = {0,0,0} replaced by {0,0,1}");
+				lineEdit_anix_aniso->setText(QString::number(0.0));
+				lineEdit_aniy_aniso->setText(QString::number(0.0));
+				lineEdit_aniz_aniso->setText(QString::number(1.0));
 			}
 			else { throw(ex); }
 		}
 		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -298,13 +298,13 @@ void HamiltonianHeisenbergNeighboursWidget::set_anisotropy()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_nshells_exchange()
+void HamiltonianHeisenbergWidget::set_nshells_exchange()
 {
 	// The desired number of shells
-	int n_shells = this->spinBox_exchange_nshells->value();
+	int n_shells = this->spinBox_nshells_exchange->value();
 	// The current number of shells
 	int n_shells_current = this->exchange_shells.size();
-	// If reduction: remove widgets and set exchange
+	// If reduction remove widgets and set exchange
 	if (n_shells < n_shells_current)
 	{
 		for (int n = n_shells_current; n > n_shells; --n)
@@ -312,9 +312,8 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_exchange()
 			this->exchange_shells.back()->close();
 			this->exchange_shells.pop_back();
 		}
-		this->set_exchange();
 	}
-	// If increase: add widgets, connect to slots and do nothing
+	// If increase add widgets, connect to slots and do nothing
 	else
 	{
 		for (int n = n_shells_current; n < n_shells; ++n)
@@ -328,7 +327,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_exchange()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_exchange()
+void HamiltonianHeisenbergWidget::set_exchange()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -344,18 +343,18 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 			Hamiltonian_Set_Exchange(state.get(), 0, nullptr, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -367,10 +366,10 @@ void HamiltonianHeisenbergNeighboursWidget::set_exchange()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
+void HamiltonianHeisenbergWidget::set_nshells_dmi()
 {
 	// The desired number of shells
-	int n_shells = this->spinBox_dmi_nshells->value();
+	int n_shells = this->spinBox_nshells_dmi->value();
 	// The current number of shells
 	int n_shells_current = this->dmi_shells.size();
 	// If reduction remove widgets and set dmi
@@ -381,7 +380,6 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
 			this->dmi_shells.back()->close();
 			this->dmi_shells.pop_back();
 		}
-		this->set_dmi();
 	}
 	// If increase add widgets, connect to slots and do nothing
 	else
@@ -397,7 +395,7 @@ void HamiltonianHeisenbergNeighboursWidget::set_nshells_dmi()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_dmi()
+void HamiltonianHeisenbergWidget::set_dmi()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
@@ -413,18 +411,18 @@ void HamiltonianHeisenbergNeighboursWidget::set_dmi()
 			Hamiltonian_Set_DMI(state.get(), 0, nullptr, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -436,29 +434,29 @@ void HamiltonianHeisenbergNeighboursWidget::set_dmi()
 	}
 }
 
-void HamiltonianHeisenbergNeighboursWidget::set_ddi()
+void HamiltonianHeisenbergWidget::set_ddi()
 {
 	// Closure to set the parameters of a specific spin system
 	auto apply = [this](int idx_image, int idx_chain) -> void
 	{
 		if (this->checkBox_ddi->isChecked())
-			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi_radius->value(), idx_image, idx_chain);
+			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value(), idx_image, idx_chain);
 		else
 			Hamiltonian_Set_DDI(state.get(), 0, idx_image, idx_chain);
 	};
 
-	if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image")
+	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
 		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "Current Image Chain")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
 			apply(i, Chain_Get_Index(state.get()));
 		}
 	}
-	else if (this->comboBox_Hamiltonian_Iso_ApplyTo->currentText() == "All Images")
+	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
 		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
 		{
@@ -470,59 +468,70 @@ void HamiltonianHeisenbergNeighboursWidget::set_ddi()
 	}
 }
 
+void HamiltonianHeisenbergWidget::set_pairs_from_file()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Not yet implemented: set pairs from file");
+}
+
+void HamiltonianHeisenbergWidget::set_pairs_from_text()
+{
+	Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "Not yet implemented: set pairs from text");
+}
+
+
 // -----------------------------------------------------------------------------------
 // --------------------------------- Setup -------------------------------------------
 // -----------------------------------------------------------------------------------
 
-void HamiltonianHeisenbergNeighboursWidget::Setup_Input_Validators()
+void HamiltonianHeisenbergWidget::Setup_Input_Validators()
 {
 	//		mu_s
-	this->lineEdit_muSpin->setValidator(this->number_validator);
+	this->lineEdit_muSpin_aniso->setValidator(this->number_validator);
 	//		external field
-	this->lineEdit_extH->setValidator(this->number_validator);
-	this->lineEdit_extHx->setValidator(this->number_validator);
-	this->lineEdit_extHy->setValidator(this->number_validator);
-	this->lineEdit_extHz->setValidator(this->number_validator);
+	this->lineEdit_extH_aniso->setValidator(this->number_validator);
+	this->lineEdit_extHx_aniso->setValidator(this->number_validator);
+	this->lineEdit_extHy_aniso->setValidator(this->number_validator);
+	this->lineEdit_extHz_aniso->setValidator(this->number_validator);
 	//		anisotropy
-	this->lineEdit_aniso->setValidator(this->number_validator);
-	this->lineEdit_anisox->setValidator(this->number_validator);
-	this->lineEdit_anisoy->setValidator(this->number_validator);
-	this->lineEdit_anisoz->setValidator(this->number_validator);
-	//		BQE
-	this->lineEdit_bqe->setValidator(this->number_validator);
-	//		FSC
-	this->lineEdit_fourspin->setValidator(this->number_validator);
+	this->lineEdit_ani_aniso->setValidator(this->number_validator);
+	this->lineEdit_anix_aniso->setValidator(this->number_validator);
+	this->lineEdit_aniy_aniso->setValidator(this->number_validator);
+	this->lineEdit_aniz_aniso->setValidator(this->number_validator);
 }
 
 
 
-void HamiltonianHeisenbergNeighboursWidget::Setup_Slots()
+
+void HamiltonianHeisenbergWidget::Setup_Slots()
 {
-	// Boundary conditions
-	connect(this->checkBox_iso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
-	connect(this->checkBox_iso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
-	connect(this->checkBox_iso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+	// Boundary Conditions
+	connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+	connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+	connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
 	// mu_s
-	connect(this->lineEdit_muSpin, SIGNAL(returnPressed()), this, SLOT(set_mu_s()));
-	// External Magnetic Field
-	connect(this->checkBox_extH, SIGNAL(stateChanged(int)), this, SLOT(set_external_field()));
-	connect(this->lineEdit_extH, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
-	connect(this->lineEdit_extHx, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
-	connect(this->lineEdit_extHy, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
-	connect(this->lineEdit_extHz, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_muSpin_aniso, SIGNAL(returnPressed()), this, SLOT(set_mu_s()));
+	// External Field
+	connect(this->checkBox_extH_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extH_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHx_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHy_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+	connect(this->lineEdit_extHz_aniso, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
 	// Anisotropy
-	connect(this->checkBox_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_anisotropy()));
-	connect(this->lineEdit_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
-	connect(this->lineEdit_anisox, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
-	connect(this->lineEdit_anisoy, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
-	connect(this->lineEdit_anisoz, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->checkBox_ani_aniso, SIGNAL(stateChanged(int)), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_ani_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_anix_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_aniy_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
+	connect(this->lineEdit_aniz_aniso, SIGNAL(returnPressed()), this, SLOT(set_anisotropy()));
 	// Exchange
 	connect(this->checkBox_exchange, SIGNAL(stateChanged(int)), this, SLOT(set_exchange()));
-	connect(this->spinBox_exchange_nshells, SIGNAL(editingFinished()), this, SLOT(set_nshells_exchange()));
+	connect(this->spinBox_nshells_exchange, SIGNAL(editingFinished()), this, SLOT(set_nshells_exchange()));
 	// DMI
 	connect(this->checkBox_dmi, SIGNAL(stateChanged(int)), this, SLOT(set_dmi()));
-	connect(this->spinBox_dmi_nshells, SIGNAL(editingFinished()), this, SLOT(set_nshells_dmi()));
+	connect(this->spinBox_nshells_dmi, SIGNAL(editingFinished()), this, SLOT(set_nshells_dmi()));
 	// DDI
 	connect(this->checkBox_ddi, SIGNAL(stateChanged(int)), this, SLOT(set_ddi()));
-	connect(this->doubleSpinBox_ddi_radius, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
+	connect(this->doubleSpinBox_ddi, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
+	// Pairs
+	connect(this->pushButton_pairs_apply, SIGNAL(clicked()), this, SLOT(set_pairs_from_text()));
+	connect(this->pushButton_pairs_fromfile, SIGNAL(clicked()), this, SLOT(set_pairs_from_file()));
 }

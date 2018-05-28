@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>446</height>
+    <width>610</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -89,7 +89,14 @@
          <property name="bottomMargin">
           <number>12</number>
          </property>
-         <item row="0" column="4">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_Refresh">
+           <property name="text">
+            <string>Refresh</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -102,24 +109,7 @@
            </property>
           </spacer>
          </item>
-         <item row="0" column="1">
-          <widget class="QCheckBox" name="checkBox_InterpolateEnergies">
-           <property name="text">
-            <string>Interpolate Energies</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QPushButton" name="pushButton_Refresh">
-           <property name="text">
-            <string>Refresh</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
+         <item row="0" column="3">
           <layout class="QGridLayout" name="gridLayout_7">
            <item row="0" column="0">
             <widget class="QRadioButton" name="radioButton_2">
@@ -139,6 +129,26 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item row="0" column="1">
+          <widget class="QCheckBox" name="checkBox_InterpolateEnergies">
+           <property name="text">
+            <string>Interpolate Energies</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QSpinBox" name="spinBox_InterpolateEnergies_N">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

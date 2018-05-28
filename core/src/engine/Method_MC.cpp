@@ -6,6 +6,8 @@
 #include <io/IO.hpp>
 #include <utility/Logging.hpp>
 
+#include <Eigen/Dense>
+
 #include <iostream>
 #include <ctime>
 #include <math.h>
@@ -19,7 +21,7 @@ namespace Engine
     {
         // Currently we only support a single image being iterated at once:
         this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
-        this->SenderName = Utility::Log_Sender::MC;
+        this->SenderName = Log_Sender::MC;
 
         this->noi = this->systems.size();
         this->nos = this->systems[0]->nos;
@@ -38,84 +40,162 @@ namespace Engine
         this->parameters_mc = system->mc_parameters;
 
         // Starting cone angle
-        this->cos_cone_angle = 0.1;
+        this->cone_angle = Constants::Pi * this->parameters_mc->metropolis_cone_angle / 180.0;
         this->n_rejected = 0;
         this->acceptance_ratio_current = this->parameters_mc->acceptance_ratio_target;
     }
 
-    // Simple metropolis step for a single spin
-    void Method_MC::Metropolis(const vectorfield & spins_old, const vectorfield & spins_displaced,
-                               vectorfield & spins_new, int & n_rejected, scalar Temperature, scalar radius)
+    // This implementation is mostly serial as parallelization is nontrivial
+    //      if the range of neighbours for each atom is not pre-defined.
+    void Method_MC::Iteration()
     {
+        int nos = this->systems[0]->spins->size();
+
+        // Temporaries
+        auto& spins_old       = *this->systems[0]->spins;
+        auto  spins_new       = spins_old;
+
+        // Generate randomly displaced spin configuration according to cone radius
+        // Vectormath::get_random_vectorfield_unitsphere(this->parameters_mc->prng, random_unit_vectors);
+
+        // TODO: add switch between Metropolis and heat bath
+        // One Metropolis step
+        Metropolis(spins_old, spins_new);
+        Vectormath::set_c_a(1, spins_new, spins_old);
+    }
+
+    // Simple metropolis step
+    void Method_MC::Metropolis(const vectorfield & spins_old, vectorfield & spins_new)
+    {
+        this->n_rejected = 0;
         int nos = spins_new.size();
         auto distribution = std::uniform_real_distribution<scalar>(0, 1);
+        auto distribution_idx = std::uniform_int_distribution<>(0, nos-1);
+        scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
+
+        scalar diff = 0.01;
+
+        // Cone angle feedback algorithm
+        if (this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive)
+        {
+            this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)nos;
+
+            if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
+            {
+                this->cone_angle -= diff;
+            }
+            if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
+            {
+                this->cone_angle += diff;
+            }
+            this->parameters_mc->metropolis_cone_angle = this->cone_angle * 180.0 / Constants::Pi;
+        }
 
         // One Metropolis step for each spin
-        for (int ispin=0; ispin < nos; ++ispin)
+        Vector3 e_z{0, 0, 1};
+        scalar costheta, sintheta, phi;
+        Matrix3 local_basis;
+        scalar cos_cone_angle = std::cos(cone_angle);
+
+        // Loop over NOS samples (on average every spin should be hit once per Metropolis step)
+        for (int idx=0; idx < nos; ++idx)
         {
-            // Displace the spin
-            spins_new[ispin] = spins_displaced[ispin];
-            
+            int ispin;
+            if (this->parameters_mc->metropolis_random_sample)
+                // Better statistics, but additional calculation of random number
+                ispin = distribution_idx(this->parameters_mc->prng);
+            else
+                // Faster, but worse statistics
+                ispin = idx;
+
+            // Sample a cone
+            if (this->parameters_mc->metropolis_step_cone)
+            {
+                // Calculate local basis for the spin
+                if (spins_old[ispin].z() < 1-1e-10)
+                {
+                    local_basis.col(2) = spins_old[ispin];
+                    local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
+                    local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
+                }
+                else
+                {
+                    local_basis = Matrix3::Identity();
+                }
+
+                // Rotation angle between 0 and cone_angle degrees
+                costheta = 1 - (1 - cos_cone_angle) * distribution(this->parameters_mc->prng);
+
+                sintheta = std::sqrt(1 - costheta*costheta);
+
+                // Random distribution of phi between 0 and 360 degrees
+                phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
+
+                // New spin orientation in local basis
+                Vector3 local_spin_new{ sintheta * std::cos(phi),
+                                        sintheta * std::sin(phi),
+                                        costheta };
+
+                // New spin orientation in regular basis
+                spins_new[ispin] = local_basis * local_spin_new;
+            }
+            // Sample the entire unit sphere
+            else
+            {
+                // Rotation angle between 0 and 180 degrees
+                costheta = distribution(this->parameters_mc->prng);
+
+                sintheta = std::sqrt(1 - costheta*costheta);
+
+                // Random distribution of phi between 0 and 360 degrees
+                phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
+
+                // New spin orientation in local basis
+                spins_new[ispin] = Vector3{ sintheta * std::cos(phi),
+                                            sintheta * std::sin(phi),
+                                            costheta };
+            }
+
             // Energy difference of configurations with and without displacement
-            scalar Eold = this->systems[0]->hamiltonian->Energy(spins_old);
-            scalar Enew = this->systems[0]->hamiltonian->Energy(spins_new);
+            scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
+            scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
             scalar Ediff = Enew-Eold;
 
             // Metropolis criterion: reject the step if energy rose
-            if (Ediff > 0)
+            if (Ediff > 1e-14)
             {
-                // Exponential factor
-                scalar expediff    = std::exp( -Ediff/Temperature );
-                // Metropolis random number
-                scalar xmetropolis = distribution(this->parameters_mc->prng);
-
-                // Only reject if random number is larger than exponential
-                if (expediff < xmetropolis)
+                if (this->parameters_mc->temperature < 1e-12)
                 {
                     // Restore the spin
                     spins_new[ispin] = spins_old[ispin];
                     // Counter for the number of rejections
-                    ++n_rejected;
+                    ++this->n_rejected;
+                }
+                else
+                {
+                    // Exponential factor
+                    scalar exp_ediff    = std::exp( -Ediff/kB_T );
+                    // Metropolis random number
+                    scalar x_metropolis = distribution(this->parameters_mc->prng);
+
+                    // Only reject if random number is larger than exponential
+                    if (exp_ediff < x_metropolis)
+                    {
+                        // Restore the spin
+                        spins_new[ispin] = spins_old[ispin];
+                        // Counter for the number of rejections
+                        ++this->n_rejected;
+                    }
                 }
             }
         }
     }
 
-    // This implementation is mostly serial as parallelization is nontrivial
-    //		if the range of neighbours for each atom is not pre-defined.
-    void Method_MC::Iteration()
-    {
-        int nos = this->systems[0]->spins->size();
-
-        scalar diff = 0.001;
-
-        // Cone angle feedback algorithm
-        this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)nos;
-        if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cos_cone_angle > diff) )
-        {
-            this->cos_cone_angle -= diff;
-        }
-        if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cos_cone_angle < 1-diff) )
-        {
-            this->cos_cone_angle += diff;
-        }
-
-        // Temporaries
-        auto& spins_old       = *this->systems[0]->spins;
-        auto  spins_displaced = vectorfield(nos);
-        auto  spins_new       = spins_old;
-
-        // Generate randomly displaced spin configuration according to cone radius
-        Vectormath::get_random_vectorfield_unitsphere(this->parameters_mc->prng, spins_displaced);
-        Vectormath::scale(spins_displaced, cos_cone_angle);
-        Vectormath::add_c_a(1, spins_old, spins_displaced);
-        Vectormath::normalize_vectors(spins_displaced);
-
-        // One Metropolis step
-        this->n_rejected = 0;
-        Metropolis(spins_old, spins_displaced, spins_new, this->n_rejected, this->parameters_mc->temperature, this->cos_cone_angle);
-        Vectormath::set_c_a(1, spins_new, spins_old);
-    }
+    // TODO:
+    // Implement heat bath algorithm, see Y. Miyatake et al, J Phys C: Solid State Phys 19, 2539 (1986)
+    // void Method_MC::HeatBath(const vectorfield & spins_old, vectorfield & spins_new)
+    // {
+    // }
 
     void Method_MC::Hook_Pre_Iteration()
     {
@@ -131,40 +211,47 @@ namespace Engine
 
     void Method_MC::Finalize()
     {
+        this->systems[0]->iteration_allowed = false;
     }
 
     void Method_MC::Message_Start()
     {
-        using namespace Utility;
-
         //---- Log messages
-        Log.SendBlock(Log_Level::All, this->SenderName,
+        std::vector<std::string> block(0);
+        block.push_back(fmt::format("------------  Started  {} Calculation  ------------", this->Name()));
+        block.push_back(fmt::format("    Going to iterate {} steps", this->n_log));
+        block.push_back(fmt::format("                with {} iterations per step", this->n_iterations_log));
+        if (this->parameters_mc->metropolis_step_cone)
         {
-            "------------  Started  " + this->Name() + " Calculation  ------------",
-            "    Going to iterate " + fmt::format("{}", this->n_log) + " steps",
-            "                with " + fmt::format("{}", this->n_iterations_log) + " iterations per step",
-            "   Target acceptance " + fmt::format("{}", this->acceptance_ratio_current),
-            "-----------------------------------------------------"
-        }, this->idx_image, this->idx_chain);
+            block.push_back(fmt::format("   Target acceptance {}", this->parameters_mc->acceptance_ratio_target));
+            block.push_back(fmt::format("   Cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+        }
+        block.push_back("-----------------------------------------------------");
+        Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }
 
     void Method_MC::Message_Step()
     {
-        using namespace Utility;
-
         // Update time of current step
         auto t_current = system_clock::now();
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         // Send log message
-        Log.SendBlock(Log_Level::All, this->SenderName,
+        std::vector<std::string> block(0);
+        block.push_back(fmt::format("----- {} Calculation: {}", this->Name(), Timing::DateTimePassed(t_current - this->t_start)));
+        block.push_back(fmt::format("    Step                      {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log));
+        block.push_back(fmt::format("    Iteration                 {} / {}", this->iteration, this->n_iterations));
+        block.push_back(fmt::format("    Time since last step:     {}", Timing::DateTimePassed(t_current - this->t_last)));
+        block.push_back(fmt::format("    Iterations / sec:         {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)));
+        if (this->parameters_mc->metropolis_step_cone)
         {
-            "----- " + this->Name() + " Calculation: " + Timing::DateTimePassed(t_current - this->t_start),
-            "    Step                         " + fmt::format("{} / {}", step, n_log),
-            "    Iteration                    " + fmt::format("{} / {}", this->iteration, n_iterations),
-            "    Time since last step:        " + Timing::DateTimePassed(t_current - this->t_last),
-            "    Iterations / sec:            " + fmt::format("{}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-            "    Current acceptance ratio:    " + fmt::format("{}", this->acceptance_ratio_current)
-        }, this->idx_image, this->idx_chain);
+            block.push_back(fmt::format("    Current acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
+            block.push_back(fmt::format("    Current cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+        }
+        block.push_back(fmt::format("    Total energy:             {:20.10f}", this->systems[0]->E));
+        Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
 
         // Update time of last step
         this->t_last = t_current;
@@ -172,8 +259,6 @@ namespace Engine
 
     void Method_MC::Message_End()
     {
-        using namespace Utility;
-
         //---- End timings
         auto t_end = system_clock::now();
 
@@ -184,16 +269,24 @@ namespace Engine
         else if (this->Walltime_Expired(t_end - this->t_start))
             reason = "The maximum walltime has been reached";
 
+        // Update the system's energy
+        this->systems[0]->UpdateEnergy();
+
         //---- Log messages
         std::vector<std::string> block;
-        block.push_back("------------ Terminated " + this->Name() + " Calculation ------------");
+        block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
         if (reason.length() > 0)
-            block.push_back("----- Reason:   " + reason);
-        block.push_back("----- Duration:       " + Timing::DateTimePassed(t_end - this->t_start));
-        block.push_back("    Step              " + fmt::format("{} / {}", step, n_log));
-        block.push_back("    Iteration         " + fmt::format("{} / {}", this->iteration, n_iterations));
-        block.push_back("    Iterations / sec: " + fmt::format("{}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back("    Acceptance ratio: " + fmt::format("{}", this->acceptance_ratio_current));
+            block.push_back(fmt::format("----- Reason:   {}", reason));
+        block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
+        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
+        if (this->parameters_mc->metropolis_step_cone)
+        {
+            block.push_back(fmt::format("    Acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
+            block.push_back(fmt::format("    Cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+        }
+        block.push_back(fmt::format("    Total energy:     {:20.10f}", this->systems[0]->E));
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }

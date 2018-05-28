@@ -70,7 +70,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         Log(Log_Level::Info, Log_Sender::All, "=====================================================");
         Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
         // Log OpenMP info
-        #ifdef _OPENMP
+        #ifdef SPIRIT_USE_OPENMP
             int nt = omp_get_max_threads();
             Log(Log_Level::Info, Log_Sender::All, fmt::format("Using OpenMP (max. {} threads)", nt).c_str() );
         #else
@@ -424,7 +424,10 @@ void Save_Initial_Final( State * state, bool initial )
         if ( (Log.save_neighbours_initial &&  initial) ||
              (Log.save_neighbours_final   && !initial) )
         {
-            std::string file = folder + "/output/" + tag + "neighbours_" + suffix + ".txt";
+            std::string file = folder + "/output/" + tag + "neighbours_exchange_" + suffix + ".txt";
+            IO_Image_Write_Neighbours_Exchange( state, file.c_str() );
+            file = folder + "/output/" + tag + "neighbours_dmi_" + suffix + ".txt";
+            IO_Image_Write_Neighbours_DMI( state, file.c_str() );
         }
     }
     catch( ... )

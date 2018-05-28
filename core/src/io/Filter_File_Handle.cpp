@@ -16,29 +16,30 @@ using namespace Utility;
 
 namespace IO
 {
-    Filter_File_Handle::Filter_File_Handle( const std::string& filename, IO::VF_FileFormat format ):
-        filename(filename), iss("")
+    Filter_File_Handle::Filter_File_Handle( const std::string& filename,
+                                            const std::string comment_tag ) :
+        filename(filename), comment_tag(comment_tag), iss("")
     {
-        this->ff = format;
         this->dump = "";
         this->line = "";
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
         
-        // set the comment tag
-        switch( this->ff )
-        {
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-            case VF_FileFormat::OVF_TEXT:
-                this->comment_tag = "##";
-                break;
-            // for every SPIRIT file format
-            default:
-                this->comment_tag = "#";
-        }
-        
+        // find begging and end positions of the file stream indicator
+        this->position_file_beg = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::end );
+        this->position_file_end = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::beg );
+       
+        // set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
+        this->position_start = this->position_file_beg;
+        this->position_stop = this->position_file_end;
+       
+        // initialize number of lines
+        this->n_lines = 0;
+        this->n_comment_lines = 0;
+
         // if the file is not open
         if ( !this->myfile->is_open() )
         spirit_throw(Exception_Classifier::File_not_Found, Log_Level::Error, fmt::format("Could not open file \"{}\"", filename));
@@ -49,28 +50,58 @@ namespace IO
         myfile->close();
     }
 
-    bool Filter_File_Handle::GetLine_Handle()
+    std::ios::pos_type Filter_File_Handle::GetPosition( std::ios::seekdir dir )
+    {
+        this->myfile->seekg( 0, dir );
+        return this->myfile->tellg();
+    }
+
+    void Filter_File_Handle::SetLimits( const std::ios::pos_type start, 
+                                        const std::ios::pos_type stop )
+    {
+        this->position_start = start;
+        this->position_stop = stop;
+    }
+
+    void Filter_File_Handle::ResetLimits()
+    {
+        this->position_start = this->position_file_beg;
+        this->position_stop = this->position_file_end;
+    }
+
+    bool Filter_File_Handle::GetLine_Handle( const std::string str_to_remove )
     {
         this->line = "";
         
         //	if there is a next line
         if ( (bool) getline( *this->myfile, this->line ) )
         {
+            this->n_lines++;
+
             //  remove separator characters
             Remove_Chars_From_String( this->line, (char *) "|+" );
             
+            // remove any unwanted str from the line eg. delimiters
+            if ( str_to_remove != "" )
+                Remove_Chars_From_String( this->line, str_to_remove.c_str() );
+             
             // if the string does not start with a comment identifier
-            if ( Remove_Comments_From_String( this->line ) ) 
+            if ( Remove_Comments_From_String( this->line ) )
+            {
                 return true;
+            } 
             else 
-                return GetLine();
+            {
+                this->n_comment_lines++;
+                return GetLine( str_to_remove );
+            } 
         }
         return false;     // if there is no next line, return false
     }
 
-    bool Filter_File_Handle::GetLine()
+    bool Filter_File_Handle::GetLine( const std::string str_to_remove )
     {
-        if (Filter_File_Handle::GetLine_Handle())
+        if (Filter_File_Handle::GetLine_Handle( str_to_remove ))
         {
             // decapitalize line
             std::transform( this->line.begin(), this->line.end(), this->line.begin(), ::tolower );
@@ -89,11 +120,12 @@ namespace IO
     bool Filter_File_Handle::Find(const std::string & s)
     {
         myfile->clear();
-        myfile->seekg(0, std::ios::beg);
+        //myfile->seekg( this->position_file_beg, std::ios::beg);
+        myfile->seekg( this->position_start );
 
-        while (GetLine())
+        while ( GetLine() && ( GetPosition() <= this->position_stop ) ) 
         {
-            if (Find_in_Line(s)) return true;
+            if (Find_in_Line(s) ) return true;
         }
         return false;
     }
@@ -105,14 +137,13 @@ namespace IO
         {
             iss.clear();    // empty the stream
             iss.str(line);  // copy line into the iss stream
-            dump = "";      // TODO: since we have the init in the constructor we might not need that
             
             // if s is not empty
             if ( s.compare("") )
             {
                 int words = Count_Words( s );
-                for( int i=0; i<words; i++ )
-                    iss >> dump;
+                for (int i = 0; i < words; i++)
+                  iss >> dump;
             }
             
             return true;
@@ -120,7 +151,7 @@ namespace IO
         return false;
     }
 
-    void Filter_File_Handle::Remove_Chars_From_String(std::string &str, char* charsToRemove)
+    void Filter_File_Handle::Remove_Chars_From_String(std::string &str, const char* charsToRemove)
     {
         for (unsigned int i = 0; i < strlen(charsToRemove); ++i)
         {
@@ -158,8 +189,8 @@ namespace IO
 				var = var.substr( start, ( end - start + 1 ) );
         }
         else if ( log_notfound )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO, "Keyword " + keyword + 
-                    " not found. Using Default: " + fmt::format( "{}", var ) );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
+                 fmt::format( "Keyword \"{}\" not found. Using Default: \"{}\"", keyword, var ) );
     }
 
     int Filter_File_Handle::Count_Words( const std::string& phrase )
@@ -169,5 +200,12 @@ namespace IO
         int words = 0;
         while( phrase_stream >> dump ) ++words;
         return words; 
+    }
+
+    int Filter_File_Handle::Get_N_Non_Comment_Lines()
+    {
+        while( GetLine() ) { };
+        ResetLimits(); 
+        return ( this->n_lines - this->n_comment_lines );
     }
 }// end namespace IO

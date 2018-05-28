@@ -75,7 +75,7 @@ namespace Utility
     // Handle_Exception_API finalizes what should be done when an exception is encountered at the API layer.
     //      This function should only be used inside API functions, since that is the top level at which an
     //      exception is caught.
-    void Handle_Exception_API( const std::string & function="", int idx_image=-1, int idx_chain=-1 );
+    void Handle_Exception_API( const char * file, unsigned int line, const std::string & function="", int idx_image=-1, int idx_chain=-1 );
 
     // Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core.
     //      This function should only be used inside the core, below the API layer.
@@ -89,7 +89,7 @@ namespace Utility
     #define spirit_rethrow(message) Utility::rethrow(message, __FILE__, __LINE__, __func__)
 
     // Handle exception with backtrace and logging information on the calling API function
-    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception_API(__func__, idx_image, idx_chain)
+    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception_API(__FILE__, __LINE__, __func__, idx_image, idx_chain)
 
     // Handle exception with backtrace and logging information on the calling core function
     #define spirit_handle_exception_core(message) Utility::Handle_Exception_Core(message, __FILE__, __LINE__, __func__) 

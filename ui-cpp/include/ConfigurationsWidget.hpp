@@ -3,6 +3,7 @@
 #define ConfigurationsWidget_H
 
 #include <QtWidgets/QWidget>
+#include <QRegularExpressionValidator>
 
 #include <memory>
 #include <thread>

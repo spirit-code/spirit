@@ -16,9 +16,10 @@ namespace Data
 		this->image_type = std::vector<GNEB_Image_Type>(this->noi, GNEB_Image_Type::Normal);
 
 		this->Rx = std::vector<scalar>(this->noi, 0);
-		this->Rx_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_interpolated = std::vector<scalar>(this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations, 0);
-		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(this->noi + (this->noi-1)*gneb_parameters->n_E_interpolations, 0));
+		int size_interpolated = this->noi + (this->noi - 1)*gneb_parameters->n_E_interpolations;
+		this->Rx_interpolated = std::vector<scalar>(size_interpolated, 0);
+		this->E_interpolated = std::vector<scalar>(size_interpolated, 0);
+		this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(size_interpolated, 0));
 	}
 
 	void Spin_System_Chain::Lock() const

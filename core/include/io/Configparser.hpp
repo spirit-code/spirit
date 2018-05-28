@@ -8,8 +8,7 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <engine/Hamiltonian_Heisenberg_Neighbours.hpp>
-#include <engine/Hamiltonian_Heisenberg_Pairs.hpp>
+#include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 
 namespace IO
@@ -25,8 +24,7 @@ namespace IO
     std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
     std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning);
     std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Neighbours> Hamiltonian_Heisenberg_Neighbours_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg_Pairs> Hamiltonian_Heisenberg_Pairs_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
+    std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type);
     std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
 };// end namespace IO
 #endif
