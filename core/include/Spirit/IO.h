@@ -27,7 +27,7 @@ DLLEXPORT void IO_Positions_Write( State * state, const char *file, int format=I
 ///// TODO: give bool returns for these functions to indicate success??
 
 // Images
-int IO_N_Images_In_File( State * state, const char *file, int idx_image=-1, int idx_chain=-1 ) noexcept;
+DLLEXPORT int IO_N_Images_In_File( State * state, const char *file, int idx_image=-1, int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, 
                               int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
 DLLEXPORT void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_Regular, 
@@ -44,9 +44,9 @@ DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format,
                                 const char* comment = "-", int idx_chain=-1 ) noexcept;
 
 // Save the interactions
-void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, 
+DLLEXPORT void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, 
                                          int idx_image=-1, int idx_chain=-1 ) noexcept;
-void IO_Image_Write_Neighbours_DMI( State * state, const char * file, 
+DLLEXPORT void IO_Image_Write_Neighbours_DMI( State * state, const char * file, 
                                     int idx_image=-1, int idx_chain=-1 ) noexcept;
 
 // Save the spin-resolved energy contributions of a spin system
