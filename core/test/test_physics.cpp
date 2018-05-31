@@ -16,90 +16,67 @@
 
 TEST_CASE( "Larmor Precession","[physics]" )
 {
-    // input file
+    // Input file
     auto inputfile = "core/test/input/physics_larmor.cfg";
-    
-    // create State
+
+    // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-    
-    // choose method
+
+    // Choose method
     auto method = "LLG";
-    
+
     // Solvers to be tested
-    std::vector<const char *>  solvers{ "Depondt", "Heun", "SIB" };
-    
-    // set up one the initial direction of the spin
+    std::vector<const char *>  solvers{ "Heun", "Depondt", "SIB" };
+
+    // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
     Configuration_Domain( state.get(), init_direction );     // set spin parallel to x-axis
-    
-    // assure that the initial direction is set
+
+    // Assure that the initial direction is set
+    // (note: this pointer will stay valid throughout this test)
     auto direction = System_Get_Spin_Directions( state.get() );
     REQUIRE( direction[0] == 1 );
     REQUIRE( direction[1] == 0 );
     REQUIRE( direction[2] == 0 );
-    
-    // make sure that mu_s is the same as the one define in input file
+
+    // Make sure that mu_s is the same as the one define in input file
     float mu_s;
     Hamiltonian_Get_mu_s( state.get(), &mu_s );
     REQUIRE( mu_s == 2 );
-    
-    // get the magnitude of the magnetic field ( it has only z-axis component )
+
+    // Get the magnitude of the magnetic field ( it has only z-axis component )
     float B_mag;
     float normal[3];
     Hamiltonian_Get_Field( state.get(), &B_mag, normal );
-    
-    // get time step of method
+
+    // Get time step of method
+    scalar damping = 0.3;
     float tstep = Parameters_Get_LLG_Time_Step( state.get() );
-    
-    // define damping values
-    scalar no_damping = 0.0;        // for measuring Larmor precession
-    scalar damping    = 0.3;        // for measuring precession projection to z-axis
-    
-    // testing values
-    float angle, projection;
-    
+    Parameters_Set_LLG_Damping( state.get(), damping );
+
+    scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping*damping );
+
     for( auto opt : solvers )
     {
-        // Test Larmor frequency
-        
-        Configuration_Domain( state.get(), init_direction );     // set spin parallel to x-axis
-        Parameters_Set_LLG_Damping( state.get(), no_damping );
-        
-        for( int i=0; i<5; i++ )
+        // Set spin parallel to x-axis
+        Configuration_Domain( state.get(), init_direction );
+
+        for( int i=0; i<100; i++ )
         {
-            INFO( std::string( opt ) << " failed Larmor frequency test at " << i << " iteration." );
-            
+            INFO( std::string( opt ) << " failed spin trajectory test at iteration " << i );
+
+            // A single iteration
             Simulation_SingleShot( state.get(), method, opt );
-            
-            direction = System_Get_Spin_Directions( state.get() );
-            angle = std::atan2( direction[1] , direction[0] );
-            
-            REQUIRE( direction[2] == 0 );     // spin should always be to the xy plane
-            
-            // gamma must be scalled by mu_s
-            REQUIRE( Approx(angle)  == ( (i+1) * tstep * mu_s * Constants_gamma() * B_mag ) );
-        }
-        
-        // Test precession orbit projection on z-axis
-        
-        Configuration_Domain( state.get(), init_direction );     // set spin parallel to x-axis
-        Parameters_Set_LLG_Damping( state.get(), damping );
-        
-        REQUIRE( direction[2] == 0 );     // initial spin position must have z=0
-        
-        for( int i=0; i<5; i++ )
-        {
-            INFO( std::string( opt ) << " failed orbit projection to z-axis test at " << 
-                  i << " iteration." );
-            
-            Simulation_SingleShot( state.get(), method, opt );
-            
-            // analytical calculation of the projection in the z-axis
-            projection = std::tanh( damping * (i+1) * tstep * mu_s * B_mag / (2*Constants_Pi()) );
-            
-            direction = System_Get_Spin_Directions( state.get() );
-            
-            REQUIRE( Approx( projection ) == direction[2] );
+
+            // Expected spin orientation
+            // TODO: the step size should not be scaled by mu_s
+            scalar phi_expected = mu_s * dtg * (i+1) * B_mag;
+            scalar sz_expected  = std::tanh( mu_s * damping * dtg * (i+1) * B_mag );
+            scalar rxy_expected = std::sqrt( 1-sz_expected*sz_expected );
+            scalar sx_expected  = std::cos(phi_expected) * rxy_expected;
+
+            REQUIRE( Approx(direction[0]) == sx_expected );
+            REQUIRE( Approx(direction[2]) == sz_expected );
         }
     }
 }
@@ -113,28 +90,28 @@ TEST_CASE( "Finite Differences", "[physics]" )
     for( auto ham: hamiltonians )
     {
         INFO( " Testing " << ham );
-        
+
         // create state
         auto state = std::shared_ptr<State>( State_Setup( ham ), State_Delete );
-        
+
         Configuration_Random( state.get() );
-        
+
         auto& vf = *state->active_image->spins;
         auto grad = vectorfield( state->nos );
         auto grad_fd = vectorfield( state->nos );
-        
+
         state->active_image->hamiltonian->Gradient_FD( vf, grad_fd );
         state->active_image->hamiltonian->Gradient( vf, grad );
-        
+
         for( int i=0; i<state->nos; i++)
             REQUIRE( grad_fd[i].isApprox( grad[i] ) );
-        
+
         auto hessian = MatrixX( 3*state->nos, 3*state->nos );
         auto hessian_fd = MatrixX( 3*state->nos, 3*state->nos );
-        
+
         state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
         state->active_image->hamiltonian->Hessian( vf, hessian );
-        
+
         REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }
