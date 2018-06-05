@@ -14,7 +14,7 @@ from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 
 NAME = "spirit"
-PACKAGES = ['spirit']
+PACKAGES = ['spirit', 'spirit.parameters']
 META_PATH = os.path.join("spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
