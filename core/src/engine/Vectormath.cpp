@@ -139,35 +139,93 @@ namespace Engine
             return solid_angle;
         }
 
-        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation)
+        scalar TopChargeTriangle(const Vector3 x1, const Vector3 x2, const Vector3 x3, const Vector3 v1, const Vector3 v2, const Vector3 v3)
         {
-            // TODO: this still ignores periodical boundaries, as they are not part of the delaunay triangulation!
-
-            scalar charge = 0, sign;
-            Vector3 triangle_normal;
-            for (int i = 0; i < triangulation.size(); ++i)
-            {
-                int i1 = triangulation[i][0];
-                int i2 = triangulation[i][1];
-                int i3 = triangulation[i][2];
-
-                auto& vp1 = vf_pos[i1];
-                auto& vp2 = vf_pos[i2];
-                auto& vp3 = vf_pos[i3];
-
+                scalar sign;
+                Vector3 triangle_normal;
                 // TODO: this will only work if the vf_pos are in the xy-plane!
-                triangle_normal = (vp1-vp2).cross(vp1-vp3);
+                triangle_normal = (x1-x2).cross(x1-x3); 
                 triangle_normal.normalize();
                 sign = triangle_normal[2]/std::abs(triangle_normal[2]);
-
-                auto& v1 = vf[i1];
-                auto& v2 = vf[i2];
-                auto& v3 = vf[i3];
-
                 // charge += sign * solid_angle_1(v1, v2, v3);
-                charge += sign * solid_angle_2(v1, v2, v3);
+                return sign * solid_angle_2(v1, v2, v3) / (4*Pi);
+        }
+
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom , const int wrap_a, const int wrap_b)
+        {
+            // This implementations assumes
+            // 1. There is always an atom at the lattice sites i.e. at (0, 0, 0) in the basis cell
+            // 2. No basis atom lies outside the cell spanned by the basis vectors of the lattice
+            // 3. The 2d plane is spanned by the first 2 basis_vectors of the lattice
+
+            const auto & vf_pos = geom.positions;
+            scalar charge = 0; 
+            std::vector<Data::vector2_t> points;  
+            //compute delaunay for unitcell + basis with neighboring lattice sites a, b, and a+b
+            std::vector<Data::vector2_t> temp_points;
+            int n_batoms = geom.n_cell_atoms;
+            temp_points.resize(geom.n_cell_atoms+3);
+            temp_points[n_batoms+2].x = geom.bravais_vectors[0][0];
+            temp_points[n_batoms+2].y = geom.bravais_vectors[0][1];
+            temp_points[n_batoms+1].x = geom.bravais_vectors[1][0];
+            temp_points[n_batoms+1].y = geom.bravais_vectors[1][1];
+            temp_points[n_batoms].x = geom.bravais_vectors[1][0]+geom.bravais_vectors[0][0];
+            temp_points[n_batoms].y = geom.bravais_vectors[1][1]+geom.bravais_vectors[0][1];
+            for(int i = 0; i < geom.n_cell_atoms; i++)
+            {
+                temp_points[i].x=(geom.cell_atoms[i][0]);
+                temp_points[i].y=(geom.cell_atoms[i][1]);
+            }  
+            std::vector<Data::triangle_t> delaunay = Data::compute_delaunay_triangulation_2D(temp_points);
+
+            for(int cell_b=0; cell_b < geom.n_cells[1]; ++cell_b)
+            {
+                for(int cell_a=0; cell_a < geom.n_cells[0]; ++cell_a)
+                { 
+                    for(Data::triangle_t tri : delaunay)
+                    {
+                        std::array<Vector3, 3> positions;
+                        std::array<Vector3, 3> spins;
+
+                        //bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
+                        bool a_next_allowed = (cell_a+1 < geom.n_cells[0] || wrap_a);
+                        bool b_next_allowed = (cell_b+1 < geom.n_cells[1] || wrap_b);
+                        bool ab_next_allowed = a_next_allowed && b_next_allowed;
+                        bool valid_triangle = true;
+
+                        for(int i = 0; i<3; ++i)
+                        {
+                            int idx;
+                            if(tri[i] < n_batoms) //tri[i] is an index of a basis atom, no wrap around can occur
+                            {
+                                idx = (tri[i] + cell_a * n_batoms + cell_b * n_batoms * geom.n_cells[0]);
+                                positions[i] = geom.cell_atoms[tri[i]] + cell_a * geom.bravais_vectors[0] + cell_b * geom.bravais_vectors[1];
+                            } else if (tri[i] == n_batoms + 2 && a_next_allowed) //translation by a 
+                            {
+                                idx = ((cell_a + 1) % geom.n_cells[0]) * n_batoms + cell_b * n_batoms * geom.n_cells[0];
+                                positions[i] = (cell_a+1) * geom.bravais_vectors[0] + cell_b * geom.bravais_vectors[1];
+
+                            } else if (tri[i] == n_batoms + 1 && b_next_allowed) //translation by b
+                            {
+                                idx = cell_a * n_batoms + ((cell_b + 1) % geom.n_cells[1]) * n_batoms *geom.n_cells[0];
+                                positions[i] = cell_a * geom.bravais_vectors[0] + (cell_b+1) * geom.bravais_vectors[1];
+
+                            } else if (tri[i] == n_batoms && ab_next_allowed) //translation by a + b
+                            {
+                                idx = ((cell_a + 1) % geom.n_cells[0]) * n_batoms + ((cell_b + 1) % geom.n_cells[1]) * n_batoms * geom.n_cells[0];
+                                positions[i] = (cell_a+1) * geom.bravais_vectors[0] + (cell_b+1) * geom.bravais_vectors[1];
+                            } else { //translation not allowed, skip to next triangle
+                                valid_triangle = false;
+                                break;
+                            }
+                            spins[i] = vf[idx];
+                        }
+                        if(valid_triangle)
+                            charge += TopChargeTriangle(positions[0], positions[1], positions[2], spins[0], spins[1], spins[2]);
+                    }
+                }
             }
-            return charge / (4*Pi);
+            return charge;
         }
 
         // Utility function for the SIB Solver

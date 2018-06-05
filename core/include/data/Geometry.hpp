@@ -115,5 +115,8 @@ namespace Data
         int last_update_n_cell_step;
         intfield last_update_n_cells;
     };
+    
+    //TODO: find better place (?)
+    std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points);
 }
 #endif
