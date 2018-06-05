@@ -411,17 +411,18 @@ namespace Engine
             auto& n_cell_atoms_old = geometry_old.n_cell_atoms;
 
             auto& n_cells_new = geometry_new.n_cells;
+            const int n_cells_test[] = {geometry_new.n_cells[0],geometry_new.n_cells[1],geometry_new.n_cells[2]};
             auto& n_cell_atoms_new = geometry_new.n_cell_atoms;
 
             int N_new = n_cell_atoms_new * n_cells_new[0] * n_cells_new[1] * n_cells_new[2];
             field<T> newfield(N_new, default_value);
 
             #pragma omp parallel for collapse(3)
-            for (int i=0; i<n_cells_new[0]; ++i)
+            for (int i=0; i<n_cells_test[0]; ++i)
             {
-                for (int j=0; j<n_cells_new[1]; ++j)
+                for (int j=0; j<n_cells_test[1]; ++j)
                 {
-                    for (int k=0; k<n_cells_new[2]; ++k)
+                    for (int k=0; k<n_cells_test[2]; ++k)
                     {
                         for (int iatom=0; iatom<n_cell_atoms_new; ++iatom)
                         {
