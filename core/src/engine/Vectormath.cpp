@@ -151,7 +151,7 @@ namespace Engine
                 return sign * solid_angle_2(v1, v2, v3) / (4*Pi);
         }
 
-        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom , const int wrap_a, const int wrap_b)
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const int wrap_a, const int wrap_b)
         {
             // This implementations assumes
             // 1. There is always an atom at the lattice sites i.e. at (0, 0, 0) in the basis cell
@@ -173,8 +173,8 @@ namespace Engine
             temp_points[n_batoms].y = geom.bravais_vectors[1][1]+geom.bravais_vectors[0][1];
             for(int i = 0; i < geom.n_cell_atoms; i++)
             {
-                temp_points[i].x=(geom.cell_atoms[i][0]);
-                temp_points[i].y=(geom.cell_atoms[i][1]);
+                temp_points[i].x = (geom.cell_atoms[i][0]);
+                temp_points[i].y = (geom.cell_atoms[i][1]);
             }  
             std::vector<Data::triangle_t> delaunay = Data::compute_delaunay_triangulation_2D(temp_points);
 
@@ -203,17 +203,17 @@ namespace Engine
                             } else if (tri[i] == n_batoms + 2 && a_next_allowed) //translation by a 
                             {
                                 idx = ((cell_a + 1) % geom.n_cells[0]) * n_batoms + cell_b * n_batoms * geom.n_cells[0];
-                                positions[i] = (cell_a+1) * geom.bravais_vectors[0] + cell_b * geom.bravais_vectors[1];
+                                positions[i] = (cell_a + 1) * geom.bravais_vectors[0] + cell_b * geom.bravais_vectors[1];
 
                             } else if (tri[i] == n_batoms + 1 && b_next_allowed) //translation by b
                             {
-                                idx = cell_a * n_batoms + ((cell_b + 1) % geom.n_cells[1]) * n_batoms *geom.n_cells[0];
-                                positions[i] = cell_a * geom.bravais_vectors[0] + (cell_b+1) * geom.bravais_vectors[1];
+                                idx = cell_a * n_batoms + ((cell_b + 1) % geom.n_cells[1]) * n_batoms * geom.n_cells[0];
+                                positions[i] = cell_a * geom.bravais_vectors[0] + (cell_b + 1) * geom.bravais_vectors[1];
 
                             } else if (tri[i] == n_batoms && ab_next_allowed) //translation by a + b
                             {
                                 idx = ((cell_a + 1) % geom.n_cells[0]) * n_batoms + ((cell_b + 1) % geom.n_cells[1]) * n_batoms * geom.n_cells[0];
-                                positions[i] = (cell_a+1) * geom.bravais_vectors[0] + (cell_b+1) * geom.bravais_vectors[1];
+                                positions[i] = (cell_a + 1) * geom.bravais_vectors[0] + (cell_b + 1) * geom.bravais_vectors[1];
                             } else { //translation not allowed, skip to next triangle
                                 valid_triangle = false;
                                 break;

@@ -15,12 +15,12 @@ SET( SPIRIT_PRINT_SOURCES     OFF  CACHE BOOL "Print Spirit Headers and Sources 
 SET( SPIRIT_BUILD_FOR_JS      OFF  CACHE BOOL "Build the JavaScript library." )
 SET( SPIRIT_BUILD_FOR_JULIA   OFF  CACHE BOOL "Build the shared library for Julia." )
 SET( SPIRIT_BUILD_FOR_PYTHON  ON   CACHE BOOL "Build the shared library for Python." )
-SET( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ applications" )
+SET( SPIRIT_BUILD_FOR_CXX     OFF   CACHE BOOL "Build the static library for C++ applications" )
 ### Feature switches for Spirit
 SET( SPIRIT_ENABLE_PINNING    OFF  CACHE BOOL "Enable pinning individual or rows of spins." )
 SET( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in the lattice." )
 ### Options for Spirit
-SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
+SET( SPIRIT_BUILD_TEST        OFF   CACHE BOOL "Build unit tests for the Spirit library." )
 SET( SPIRIT_TEST_COVERAGE     OFF  CACHE BOOL "Build in debug mode with special flags for coverage checks." )
 SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
 SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
@@ -31,7 +31,7 @@ set( SPIRIT_SCALAR_TYPE double )
 ### CMake Verbosity
 option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
 ### Decide CXX UI
-option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."       ON  )
+option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."       OFF  )
 ### Bundle option
 option( BUNDLE_APP       "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
