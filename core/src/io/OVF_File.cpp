@@ -57,6 +57,7 @@ namespace IO
         if ( this->isOVF )
         {
             read_n_segments_from_top_header();
+            Log( Log_Level::Debug, this->sender, fmt::format( "OVF file header says it contains {} segments", this->n_segments ) );
 
             int n_seg = count_and_locate_segments();
             
@@ -150,9 +151,9 @@ namespace IO
                 
                 // Write to Log
                 Log( lvl, this->sender, fmt::format( "# OVF meshtype <{}>", this->meshtype ) );
-                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8}", this->base[0] ) );
-                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8}", this->base[1] ) );
-                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8}", this->base[2] ) );
+                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8}", this->base[0].transpose() ) );
+                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8}", this->base[1].transpose() ) );
+                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8}", this->base[2].transpose() ) );
                 Log( lvl, this->sender, fmt::format( "# xstepsize  = {:.8f}", this->stepsize.x() ) );
                 Log( lvl, this->sender, fmt::format( "# ystepsize  = {:.8f}", this->stepsize.y() ) );
                 Log( lvl, this->sender, fmt::format( "# zstepsize  = {:.8f}", this->stepsize.z() ) );
