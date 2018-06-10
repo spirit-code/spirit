@@ -21,24 +21,28 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
         // Translate to string
         std::string method_type(c_method_type);
         std::string solver_type(c_solver_type);
-
-        // Determine the Solver kind
         Engine::Solver solver;
-        if (solver_type == "SIB")
-            solver = Engine::Solver::SIB;
-        else if (solver_type == "Heun")
-            solver = Engine::Solver::Heun;
-        else if (solver_type == "Depondt")
-            solver = Engine::Solver::Depondt;
-        else if (solver_type == "NCG")
-            solver = Engine::Solver::NCG;
-        else if (solver_type == "VP")
-            solver = Engine::Solver::VP;
-        else
+
+        // Check validity of specified Method
+        if (method_type == "LLG" || method_type == "GNEB" || method_type == "MMF")
         {
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Solver selected: " + 
-                    solver_type);
-            return false;
+            // Determine the Solver kind
+            if (solver_type == "SIB")
+                solver = Engine::Solver::SIB;
+            else if (solver_type == "Heun")
+                solver = Engine::Solver::Heun;
+            else if (solver_type == "Depondt")
+                solver = Engine::Solver::Depondt;
+            else if (solver_type == "NCG")
+                solver = Engine::Solver::NCG;
+            else if (solver_type == "VP")
+                solver = Engine::Solver::VP;
+            else
+            {
+                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, "Invalid Solver selected: " + 
+                        solver_type);
+                return false;
+            }
         }
 
         // Fetch correct indices and pointers for image and chain

@@ -1,5 +1,6 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Exception.hpp>
 
 using namespace Data;
 
@@ -93,6 +94,19 @@ namespace Engine
                 this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
             }
         }
+    }
+
+    scalar Hamiltonian_Gaussian::Energy_Single_Spin(int ispin, const vectorfield & spins)
+    {
+        scalar Energy = 0;
+        for (int i = 0; i < this->n_gaussians; ++i)
+        {
+            // Distance between spin and gaussian center
+            scalar l = 1 - this->center[i].dot(spins[ispin]); //Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
+            // Energy contribution
+            this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
+        }
+        return Energy;
     }
 
     // Hamiltonian name as string

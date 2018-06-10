@@ -3,6 +3,7 @@
 #define HAMILTONIAN_HEISENBERG_WIDGET_H
 
 #include <QtWidgets/QWidget>
+#include <QRegularExpressionValidator>
 
 #include <vector>
 #include <memory>

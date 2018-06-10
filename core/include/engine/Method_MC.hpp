@@ -28,8 +28,7 @@ namespace Engine
         void Iteration() override;
 
         // Metropolis iteration with adaptive cone radius
-        void Metropolis(const vectorfield & spins_old, const vectorfield & spins_displaced,
-                        vectorfield & spins_new, int & n_rejected, scalar Temperature, scalar radius);
+        void Metropolis(const vectorfield & spins_old, vectorfield & spins_new);
 
         // Save the current Step's Data: spins and energy
         void Save_Current(std::string starttime, int iteration, bool initial=false, bool final=false) override;
@@ -53,7 +52,7 @@ namespace Engine
         std::shared_ptr<Data::Parameters_Method_MC> parameters_mc;
 
         // Cosine of current cone angle
-        scalar cos_cone_angle;
+        scalar cone_angle;
         int n_rejected;
         scalar acceptance_ratio_current;
     };

@@ -33,13 +33,13 @@ environment:
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Release
-      QTDIR:  "C:\\Qt\\5.8\\msvc2015_64"
+      QTDIR:  "C:\\Qt\\5.10.1\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS:
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Debug
-      QTDIR:  "C:\\Qt\\5.8\\msvc2015_64"
+      QTDIR:  "C:\\Qt\\5.10.1\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
       EXCLUDETESTS: solver
       PYPI:

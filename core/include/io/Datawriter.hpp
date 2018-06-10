@@ -14,6 +14,9 @@ namespace IO
                            const Data::Geometry& geometry, const std::string filename, 
                            VF_FileFormat format, const std::string comment, bool append = false );
 
+    // =========================== Saving Interactions =======================
+    void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename ); 
+    void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ); 
     // =========================== Saving Energies ===========================
     void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
                               std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 

@@ -873,7 +873,20 @@
               <string>MC Output</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_94">
-              <item row="2" column="0">
+              <item row="2" column="4">
+               <spacer name="horizontalSpacer_51">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="0">
                <layout class="QGridLayout" name="gridLayout_102">
                 <item row="0" column="0">
                  <widget class="QCheckBox" name="checkBox_mc_output_energy_step">
@@ -920,6 +933,44 @@
                </layout>
               </item>
               <item row="1" column="0">
+               <layout class="QGridLayout" name="gridLayout_59">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_60">
+                  <property name="text">
+                   <string>n_iterations</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_mc_n_iterations">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                  <property name="maximum">
+                   <number>999999999</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QSpinBox" name="spinBox_mc_log_steps">
+                  <property name="locale">
+                   <locale language="C" country="AnyCountry"/>
+                  </property>
+                  <property name="maximum">
+                   <number>999999999</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_48">
+                  <property name="text">
+                   <string>log steps</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0">
                <layout class="QGridLayout" name="gridLayout_101">
                 <item row="0" column="1">
                  <widget class="QCheckBox" name="checkBox_mc_output_initial">
@@ -944,48 +995,37 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="4">
-               <spacer name="horizontalSpacer_51">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayout_59">
+               <layout class="QGridLayout" name="gridLayout_18">
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_60">
+                 <widget class="QLabel" name="label_12">
                   <property name="text">
-                   <string>n_iterations</string>
+                   <string>Folder</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QSpinBox" name="spinBox_mc_n_iterations">
-                  <property name="locale">
-                   <locale language="C" country="AnyCountry"/>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QSpinBox" name="spinBox_mc_log_steps">
-                  <property name="locale">
-                   <locale language="C" country="AnyCountry"/>
+                 <widget class="QLineEdit" name="lineEdit_mc_output_folder">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="2">
-                 <widget class="QLabel" name="label_48">
-                  <property name="text">
-                   <string>log steps</string>
+                 <spacer name="horizontalSpacer_12">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
-                 </widget>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </item>
@@ -1018,12 +1058,8 @@
                   <property name="text">
                    <string>Temperature</string>
                   </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_mc_acceptance">
-                  <property name="text">
-                   <string>Acceptance Ratio</string>
+                  <property name="checked">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -1044,6 +1080,13 @@
                  <widget class="QLabel" name="label_59">
                   <property name="text">
                    <string>K</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>Target acceptance ratio</string>
                   </property>
                  </widget>
                 </item>
@@ -2304,7 +2347,6 @@
   <tabstop>checkBox_llg_output_configuration_archive</tabstop>
   <tabstop>checkBox_mc_temperature</tabstop>
   <tabstop>doubleSpinBox_mc_temperature</tabstop>
-  <tabstop>checkBox_mc_acceptance</tabstop>
   <tabstop>doubleSpinBox_mc_acceptance</tabstop>
   <tabstop>spinBox_mc_n_iterations</tabstop>
   <tabstop>spinBox_mc_log_steps</tabstop>

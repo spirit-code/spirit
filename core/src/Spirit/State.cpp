@@ -416,7 +416,10 @@ void Save_Initial_Final( State * state, bool initial )
         if ( (Log.save_neighbours_initial &&  initial) ||
              (Log.save_neighbours_final   && !initial) )
         {
-            std::string file = folder + "/output/" + tag + "neighbours_" + suffix + ".txt";
+            std::string file = folder + "/output/" + tag + "neighbours_exchange_" + suffix + ".txt";
+            IO_Image_Write_Neighbours_Exchange( state, file.c_str() );
+            file = folder + "/output/" + tag + "neighbours_dmi_" + suffix + ".txt";
+            IO_Image_Write_Neighbours_DMI( state, file.c_str() );
         }
     }
     catch( ... )

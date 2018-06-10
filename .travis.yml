@@ -22,7 +22,7 @@ matrix:
     # OSX, xcode 8
     - os: osx
       osx_image: xcode8
-      env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt/5.10.0_1" PYPI=true
+      env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt/5.11.0" PYPI=true
     # Linux, GCC 6
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
@@ -52,19 +52,19 @@ matrix:
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
           - sourceline: 'ppa:beineri/opt-qt571-trusty'
-    # Linux, GCC 5.1 CUDA build
-    - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
-      compiler: g++
-      addons:
-        apt:
-          packages:
-          - g++-5
-          - qt57base
-          - qt57charts-no-lgpl
-          sources:
-          - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
+    # # Linux, GCC 5.1 CUDA build
+    # - os: linux
+    #   env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
+    #   compiler: g++
+    #   addons:
+    #     apt:
+    #       packages:
+    #       - g++-5
+    #       - qt57base
+    #       - qt57charts-no-lgpl
+    #       sources:
+    #       - sourceline: 'ppa:ubuntu-toolchain-r/test'
+    #       - sourceline: 'ppa:beineri/opt-qt571-trusty'
     # Linux, GCC 6 OpenMP build
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false

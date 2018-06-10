@@ -3,6 +3,7 @@
 #define ISOSURFACEWIDGET_H
 
 #include <QtWidgets/QWidget>
+#include <QRegularExpressionValidator>
 
 #include <memory>
 

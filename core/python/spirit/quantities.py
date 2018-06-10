@@ -8,9 +8,8 @@ import numpy as np
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 
-### Get Chain index
 _Get_Magnetization          = _spirit.Quantity_Get_Magnetization
-_Get_Magnetization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), 
+_Get_Magnetization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                                ctypes.c_int, ctypes.c_int]
 _Get_Magnetization.restype  = None
 def Get_Magnetization(p_state, idx_image=-1, idx_chain=-1):
@@ -61,3 +60,11 @@ def Get_MMF_Info(p_state, idx_image=-1, idx_chain=-1):
     array_view_grad.shape = (nos, 3)
 
     return array_view_grad, _eval[0], array_view_mode, array_view_force
+
+
+_Get_Topological_Charge          = _spirit.Quantity_Get_Topological_Charge
+_Get_Topological_Charge.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Topological_Charge.restype  = ctypes.c_float
+def Get_Topological_Charge(p_state, idx_image=-1, idx_chain=-1):
+    return float(_Get_Topological_Charge(ctypes.c_void_p(p_state),
+                       ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
