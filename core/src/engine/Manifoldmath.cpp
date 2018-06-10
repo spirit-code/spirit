@@ -2,6 +2,7 @@
 
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -11,6 +12,8 @@
 #include <GenEigsRealShiftSolver.h>
 
 #include <array>
+
+namespace C = Utility::Constants;
 
 namespace Engine
 {
@@ -289,7 +292,7 @@ namespace Engine
                 scalar phi   = atan2(vf[i][1], vf[i][0]);
                 scalar cot = 0;
                 if (std::abs(theta) > 1e-4)
-                    cot = -tan(M_PI_2 + theta);
+                    cot = -tan(C::Pi_2 + theta);
 
                 gamma_theta(2*i+1,2*i+1) = -sin(theta)*cos(theta);
 

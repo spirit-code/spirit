@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+namespace C = Utility::Constants;
+
 namespace Engine
 {
     namespace HTST
@@ -329,7 +331,7 @@ namespace Engine
                 std::cerr << "  a[" << i << "] = " << a[i] << std::endl;
             // std::cerr << "without units:" << std::endl;
             // for (int i=0; i<10; ++i)
-            //     std::cerr << "  a[" << i << "] = " << a[i]/Utility::Constants::mu_B << std::endl;
+            //     std::cerr << "  a[" << i << "] = " << a[i]/C::mu_B << std::endl;
         }
 
 
@@ -439,7 +441,7 @@ namespace Engine
             // Calculate "me" - QUESTION: what is this?
             scalar me = 1;
             for (int i=0; i < (n_zero_modes_minimum - n_zero_modes_sp); ++i)
-                me *= 2*M_PI*Utility::Constants::k_B;
+                me *= 2*C::Pi * C::k_B;
             me = std::sqrt(me);
 
             // Calculate "m" - QUESTION: what is it?
@@ -468,7 +470,7 @@ namespace Engine
             s = std::sqrt(s);
 
             // Calculate the prefactor
-            prefactor = g_e * m * s * me * volume_sp / ( 2*M_PI * Utility::Constants::hbar * 1e-12 * volume_minimum);
+            prefactor = g_e * m * s * me * volume_sp / ( 2*C::Pi * C::hbar * 1e-12 * volume_minimum);
 
             std::cerr << "exponent    = " << exponent << std::endl;
             std::cerr << "me =          " << me << std::endl;
@@ -476,7 +478,7 @@ namespace Engine
             std::cerr << "s  =          " << s << std::endl;
             std::cerr << "volume_sp   = " << volume_sp << std::endl;
             std::cerr << "volume_min  = " << volume_minimum << std::endl;
-            std::cerr << "hbar[meV*s] = " << Utility::Constants::hbar*1e-12 << std::endl;
+            std::cerr << "hbar[meV*s] = " << C::hbar*1e-12 << std::endl;
             std::cerr << "prefactor   = " << prefactor << std::endl;
         }
 

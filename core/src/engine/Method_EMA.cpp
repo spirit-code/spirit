@@ -4,6 +4,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <data/Spin_System.hpp>
 #include <io/IO.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
@@ -15,6 +16,7 @@
 #include <chrono>
 
 using namespace Utility;
+namespace C = Utility::Constants;
 
 namespace Engine
 {
@@ -22,7 +24,7 @@ namespace Engine
         Method(system->ema_parameters, idx_img, idx_chain)
     {
         this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
-        this->SenderName = Utility::Log_Sender::EMA;
+        this->SenderName = Log_Sender::EMA;
         this->parameters_ema = system->ema_parameters;
 
         this->noi = this->systems.size();
@@ -75,7 +77,7 @@ namespace Engine
         scalar t_angle;
         if ( !this->parameters_ema->snapshot ) 
             t_angle = this->parameters_ema->amplitude * 
-                      std::sin( 2 * M_PI * this->counter * this->parameters_ema->frequency );
+                      std::sin( 2*C::Pi * this->counter * this->parameters_ema->frequency );
         else
             t_angle = this->parameters_ema->amplitude;
 
@@ -115,8 +117,6 @@ namespace Engine
 
     void Method_EMA::Message_Start()
     {
-        using namespace Utility;
-
         //---- Log messages
         Log.SendBlock(Log_Level::All, this->SenderName,
         {
