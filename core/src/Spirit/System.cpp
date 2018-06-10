@@ -74,6 +74,41 @@ scalar * System_Get_Effective_Field(State * state, int idx_image, int idx_chain)
     }
 }
 
+scalar * System_Get_Eigenmode(State * state, int idx_mode, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        // Check mode index
+        if (idx_mode >= image->modes.size())
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                fmt::format("Invalid mode index {}, image has only {} modes stored.", idx_mode, image->modes.size()) );
+            return nullptr;
+        }
+
+        // Check if mode has been calculated
+        if (!image->modes[idx_mode])
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                fmt::format("Mode {} has not yet been calculated.", idx_mode) );
+            return nullptr;
+        }
+
+        return (*image->modes[idx_mode])[0].data();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return nullptr;
+    }
+}
+
 float System_Get_Rx(State * state, int idx_image, int idx_chain) noexcept
 {
     try
@@ -125,6 +160,27 @@ void System_Get_Energy_Array(State * state, float * energies, int idx_image, int
         for (unsigned int i=0; i<image->E_array.size(); ++i)
         {
             energies[i] = (float)image->E_array[i].second;
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+void System_Get_Eigenvalues(State * state, float * eigenvalues, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        
+        for (unsigned int i=0; i<image->eigenvalues.size(); ++i)
+        {
+            eigenvalues[i] = (float)image->eigenvalues[i];
         }
     }
     catch( ... )

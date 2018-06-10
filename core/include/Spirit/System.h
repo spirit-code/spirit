@@ -14,9 +14,11 @@ DLLEXPORT int System_Get_NOS(State * state, int idx_image=-1, int idx_chain=-1) 
 // Data
 DLLEXPORT scalar * System_Get_Spin_Directions(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT scalar * System_Get_Effective_Field(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT scalar * System_Get_Eigenmode(State * state, int idx_mode, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT float System_Get_Rx(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT float System_Get_Energy(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void System_Get_Energy_Array(State * state, float * energies, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void System_Get_Eigenvalues(State * state, float * eigenvalues, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Console Output
 DLLEXPORT void System_Print_Energy_Array(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
