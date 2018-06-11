@@ -233,7 +233,7 @@ namespace IO
             }
             
             if( this->datatype_in == "binary" && 
-                 this->binary_length != 4 && this->binary_length != 8  )
+                this->binary_length != 4 && this->binary_length != 8  )
             {
                 spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
                               "Binary representation can be either \"binary 8\" or \"binary 4\"");
@@ -327,21 +327,9 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
-                            
-                            if (vf[index].norm() < 1e-5)
-                            {
-                                vf[index] = {0, 0, 1};
-                                // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                                geometry.atom_types[index] = -1;
-                            #endif
-                            }
                         }
                     }
                 }
-                
-                // normalize read in spins 
-                Engine::Vectormath::normalize_vectors( vf );
             }
             else if (this->binary_length == 8)
             {
@@ -361,21 +349,9 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
-                            
-                            if (vf[index].norm() < 1e-5)
-                            {
-                                vf[index] = {0, 0, 1};
-                                // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                                geometry.atom_types[index] = -1;
-                            #endif
-                            }
                         }
                     }
                 }
-                
-                // normalize read in spins 
-                Engine::Vectormath::normalize_vectors( vf );
             }
         }
         catch (...)
@@ -390,27 +366,15 @@ namespace IO
         try
         { 
             int nos = this->nodes[0] * this->nodes[1] * this->nodes[2];
-            
+
             for (int i=0; i<nos; i++)
             {
                 this->ifile->GetLine( delimiter );
-                
+
                 this->ifile->iss >> vf[i][0];
                 this->ifile->iss >> vf[i][1];
                 this->ifile->iss >> vf[i][2];
-                
-                if (vf[i].norm() < 1e-5)
-                {
-                    vf[i] = {0, 0, 1};
-                    // in case of spin vector close to zero we have a vacancy
-                #ifdef SPIRIT_ENABLE_DEFECTS
-                    geometry.atom_types[i] = -1;
-                #endif
-                }
             }
-            
-            // normalize read in spins 
-            Engine::Vectormath::normalize_vectors( vf );
         }
         catch (...)
         {
@@ -791,7 +755,7 @@ namespace IO
         for (int i=0; i<modes.size(); i++)
         {
             if ( modes[i] != NULL )
-                this->write_segment( *modes[i], geometry, std::to_string(eigenvalues[i]) );
+                this->write_segment( *modes[i], geometry, fmt::format("eigenvalue = {}", eigenvalues[i]), true );
         }
     }
 } // end of namespace IO

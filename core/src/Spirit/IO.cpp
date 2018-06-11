@@ -227,6 +227,20 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
                 if ( file_ovf.is_OVF() ) 
                 {
                     file_ovf.read_segment( spins, geometry, idx_image_infile );
+
+                    for (int ispin=0; ispin<spins.size(); ++ispin)
+                    {
+                        if (spins[ispin].norm() < 1e-5)
+                        {
+                            spins[ispin] = {0, 0, 1};
+                            // In case of spin vector close to zero we have a vacancy
+                            #ifdef SPIRIT_ENABLE_DEFECTS
+                            geometry.atom_types[ispin] = -1;
+                            #endif
+                        }
+                    }
+                    // Normalize read in spins 
+                    Engine::Vectormath::normalize_vectors( spins );
                 } 
                 else
                 {
@@ -506,8 +520,24 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         // Read the images
                         for (int i=insert_idx; i<noi_to_read; i++)
                         {
-                            file_ovf.read_segment( *images[i]->spins, *images[i]->geometry, 
-                                                   start_image_infile );
+                            auto& spins    = *images[i]->spins;
+                            auto& geometry = *images[i]->geometry;
+                            file_ovf.read_segment( spins, geometry, start_image_infile );
+
+                            for (int ispin=0; ispin<spins.size(); ++ispin)
+                            {
+                                if (spins[ispin].norm() < 1e-5)
+                                {
+                                    spins[ispin] = {0, 0, 1};
+                                    // In case of spin vector close to zero we have a vacancy
+                                    #ifdef SPIRIT_ENABLE_DEFECTS
+                                    geometry.atom_types[ispin] = -1;
+                                    #endif
+                                }
+                            }
+                            // Normalize read in spins 
+                            Engine::Vectormath::normalize_vectors( spins );
+
                             start_image_infile++;
                         }
                         

@@ -94,12 +94,13 @@
     <addaction name="actionSave_Cfg_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Spin_Configuration"/>
-    <addaction name="actionLoad_Spin_Configuration_Eigenmodes"/>
-    <addaction name="actionLoad_Spin_Configuration_Chain"/>
-    <addaction name="separator"/>
     <addaction name="action_Save_Spin_Configuration"/>
-    <addaction name="actionSave_Spin_Configuration_Eigenmodes"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Spin_Configuration_Chain"/>
     <addaction name="actionSave_Spin_Configuration_Chain"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Spin_Configuration_Eigenmodes"/>
+    <addaction name="actionSave_Spin_Configuration_Eigenmodes"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Energy_per_Spin"/>
     <addaction name="actionSave_Energies"/>

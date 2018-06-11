@@ -124,10 +124,17 @@ namespace IO
                                   "OVF error while choosing segment to read - "
                                   "index out of bounds" );
 
+                // open the file
+                this->ifile = std::unique_ptr<Filter_File_Handle>( 
+                                    new Filter_File_Handle( this->filename, this->comment_tag ) );
+
                 this->ifile->SetLimits( this->segment_fpos[idx_seg], 
                                         this->segment_fpos[idx_seg+1] );
 
                 this->ifile->Read_Single( var, name );
+
+                // close the file
+                this->ifile = NULL;
 
                 Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
             }

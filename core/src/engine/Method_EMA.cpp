@@ -52,6 +52,8 @@ namespace Engine
         // If the mode index has changed
         if ( this->following_mode != this->parameters_ema->n_mode_follow )
         {
+            this->counter = 0;
+
             // Re-check validity of parameters and system->modes
             Eigenmodes::Check_Eigenmode_Parameters(this->systems[0]);
 
