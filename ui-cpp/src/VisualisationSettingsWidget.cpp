@@ -45,6 +45,10 @@ VisualisationSettingsWidget::VisualisationSettingsWidget(std::shared_ptr<State> 
 	m_isosurfaceshadows = false;
 	add_isosurface();
 
+	this->camera_position_last = spinWidget->getCameraPositon();
+	this->camera_focus_last    = spinWidget->getCameraFocus();
+	this->camera_upvector_last = spinWidget->getCameraUpVector();
+
 	// Load variables from SpinWidget and State
 	this->updateData();
 
@@ -718,25 +722,39 @@ void VisualisationSettingsWidget::set_visualization_background()
 
 void VisualisationSettingsWidget::read_camera()
 {
-	auto camera_position  = spinWidget->getCameraPositon();
-	auto center_position  = spinWidget->getCameraFocus();
-	auto camera_up_vector = spinWidget->getCameraUpVector();
+	auto camera_position = spinWidget->getCameraPositon();
+	auto camera_focus    = spinWidget->getCameraFocus();
+	auto camera_upvector = spinWidget->getCameraUpVector();
 
-	this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
-	this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
-	this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
-	this->lineEdit_camera_focus_x->setText(QString::number(center_position.x, 'f', 2));
-	this->lineEdit_camera_focus_y->setText(QString::number(center_position.y, 'f', 2));
-	this->lineEdit_camera_focus_z->setText(QString::number(center_position.z, 'f', 2));
-	this->lineEdit_camera_upvector_x->setText(QString::number(camera_up_vector.x, 'f', 2));
-	this->lineEdit_camera_upvector_y->setText(QString::number(camera_up_vector.y, 'f', 2));
-	this->lineEdit_camera_upvector_z->setText(QString::number(camera_up_vector.z, 'f', 2));
+	if (camera_position != camera_position_last)
+	{
+		this->lineEdit_camera_pos_x->setText(QString::number(camera_position.x, 'f', 2));
+		this->lineEdit_camera_pos_y->setText(QString::number(camera_position.y, 'f', 2));
+		this->lineEdit_camera_pos_z->setText(QString::number(camera_position.z, 'f', 2));
+		camera_position_last = camera_position;
+	}
+
+	if (camera_focus != camera_focus_last)
+	{
+		this->lineEdit_camera_focus_x->setText(QString::number(camera_focus.x, 'f', 2));
+		this->lineEdit_camera_focus_y->setText(QString::number(camera_focus.y, 'f', 2));
+		this->lineEdit_camera_focus_z->setText(QString::number(camera_focus.z, 'f', 2));
+		camera_focus_last = camera_focus;
+	}
+
+	if (camera_upvector != camera_upvector_last)
+	{
+		this->lineEdit_camera_upvector_x->setText(QString::number(camera_upvector.x, 'f', 2));
+		this->lineEdit_camera_upvector_y->setText(QString::number(camera_upvector.y, 'f', 2));
+		this->lineEdit_camera_upvector_z->setText(QString::number(camera_upvector.z, 'f', 2));
+		camera_upvector_last = camera_upvector;
+	}
 }
 
 void VisualisationSettingsWidget::save_camera()
 {
 	QSettings settings("Spirit Code", "Spirit");
-	
+
 	auto camera_position  = spinWidget->getCameraPositon();
 	auto center_position  = spinWidget->getCameraFocus();
 	auto camera_up_vector = spinWidget->getCameraUpVector();
