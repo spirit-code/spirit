@@ -289,16 +289,16 @@ namespace Data
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D60()
     {
-        return { { 1,   0,                0 },
-                 { 0.5, 0.5*std::sqrt(3), 0 },
-                 { 0,   0,                1 } };
+        return { { 0.5*std::sqrt(3), -0.5, 0 },
+                 { 0.5*std::sqrt(3),  0.5, 0 },
+                 { 0,   0,                 1 } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D120()
     {
-        return { {  1,   0,                0 },
-                 { -0.5, 0.5*std::sqrt(3), 0 },
-                 {  0,   0,                1 } };
+        return { { 0.5, -0.5*std::sqrt(3), 0 },
+                 { 0.5,  0.5*std::sqrt(3), 0 },
+                 { 0,    0,                1 } };
     }
 
 
