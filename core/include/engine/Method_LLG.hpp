@@ -21,6 +21,8 @@ namespace Engine
         // Constructor
         Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
 
+        scalar getTime() override;
+
         // Method name as string
         std::string Name() override;
 
@@ -50,6 +52,9 @@ namespace Engine
         scalarfield temperature_distribution;
         // Field for stt gradient method
         vectorfield s_c_grad;
+
+        // Measure of simulated time in picoseconds
+        scalar picoseconds_passed;
     };
 }
 

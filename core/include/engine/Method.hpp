@@ -37,6 +37,12 @@ namespace Engine
         // Get the number of iterations passed
         virtual int getNIterations() final;
 
+        // If the method has a measure of counting time, return the value in picoseconds
+        virtual scalar getTime();
+
+        // Get the number of milliseconds since the Method started iterating
+        virtual int getWallTime() final;
+
         // Maximum of the absolutes of all components of the force - needs to be updated at each calculation
         virtual scalar getForceMaxAbsComponent() final;
 

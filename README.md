@@ -85,28 +85,32 @@ A **powerful desktop user interface** is available, providing real-time visualis
 control of parameters.
 
 ### *Physics Features*
-* Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
-* **Spin Dynamics simulations** obeying the
+
+- Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
+- **Spin Dynamics simulations** obeying the
   [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation)
-* Direct **Energy minimisation** with different solvers
-* **Minimum Energy Path calculations** for transitions between different
+- Direct **Energy minimisation** with different solvers
+- **Minimum Energy Path calculations** for transitions between different
   spin configurations, using the GNEB method
 
 ### *Highlights of the Framework*
-* Cross-platform: everything can be built and run on Linux, OSX and Windows
-* Standalone core library with C API which can be used from almost any programming language
-* **Python package** making complex simulation workflows easy
-* Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
-* Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
+
+- Cross-platform: everything can be built and run on Linux, OSX and Windows
+- Standalone core library with C API which can be used from almost any programming language
+- **Python package** making complex simulation workflows easy
+- Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
+- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
 
 ### *Documentation*
+
 More details may be found at [spirit-docs.readthedocs.io](http://spirit-docs.readthedocs.io)
 or in the [Reference section](docs/README.md) including
-* [Framework build instructions](docs/BUILD.md)
-* [Core build instructions](core/docs/BUILD.md)
-* [Core API Reference](core/docs/API.md)
-* [Python API Reference](core/docs/API_Python.md)
-* [Input File Reference](core/docs/INPUT.md)
+
+- [Framework build instructions](docs/BUILD.md)
+- [Core build instructions](core/docs/BUILD.md)
+- [Core API Reference](core/docs/API.md)
+- [Python API Reference](core/docs/API_Python.md)
+- [Input File Reference](core/docs/INPUT.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
 hosted by the Research Centre Jülich.
@@ -129,6 +133,7 @@ See [BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
 The user interface provides a powerful OpenGL visualisation window
 using the [VFRendering](https://github.com/FlorianRhiem/VFRendering) library.
 It provides functionality to
+
 - Control Calculations
 - Locally insert Configurations (homogeneous, skyrmions, spin spiral, ... )
 - Generate homogeneous Transition Paths
@@ -155,7 +160,7 @@ Getting started with the Python Package <a name="Python"></a>
 To install the *Spirit python package*, either [build and install from source](docs/BUILD.md)
 or simply use
 
-	pip install spirit
+    pip install spirit
 
 With this package you have access to powerful [Python APIs](core/docs/API_Python.md) to run and control
 dynamics simulations or optimizations.
@@ -189,7 +194,7 @@ the collapse of a skyrmion to the homogeneous state:
     ### Copy the system a few times
     chain.Image_to_Clipboard(p_state)
     for number in range(1,7):
-    	chain.Insert_Image_After(p_state)
+        chain.Insert_Image_After(p_state)
     noi = chain.Get_NOI(p_state)
 
     ### First image is homogeneous with a Skyrmion in the center

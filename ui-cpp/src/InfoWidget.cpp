@@ -94,6 +94,17 @@ void InfoWidget::updateData()
     // Simulation
     this->m_Label_Method->setText(QString::fromStdString("Method: " + this->controlWidget->methodName()));
     this->m_Label_Solver->setText(QString::fromStdString("Solver: " + this->controlWidget->solverName()));
+    int walltime = Simulation_Get_Wall_Time(state.get());
+    int hours       = walltime / (60*60*1000);
+    int minutes     = (walltime - 60*60*1000*hours) / (60*1000);
+    int seconds     = (walltime - 60*60*1000*hours - 60*1000*minutes) / 1000;
+    int miliseconds = walltime - 60*60*1000*hours - 60*1000*minutes - 1000*seconds;
+    QString qs_hours        = QString("%1").arg(hours,       2, 10, QChar('0'));
+    QString qs_minutes      = QString("%1").arg(minutes,     2, 10, QChar('0'));
+    QString qs_seconds      = QString("%1").arg(seconds,     2, 10, QChar('0'));
+    QString qs_milliseconds = QString("%1").arg(miliseconds, 3, 10, QChar('0'));
+    QString qs_walltime = qs_hours+":"+qs_minutes+":"+qs_seconds+"."+qs_milliseconds;
+    this->m_Label_Wall_Time->setText(qs_walltime);
     int ips = Simulation_Get_IterationsPerSecond(state.get());
     int precision = 0;
     QString qstr_ips = "";
@@ -115,4 +126,7 @@ void InfoWidget::updateData()
     else
         qs_iter = QString::number(iter);
     this->m_Label_Iteration->setText(QString::fromLatin1("Iteration: ") + qs_iter);
+    float simulation_time = Simulation_Get_Time(state.get());
+    QString qs_time = QString::number(simulation_time, 'f', 2);
+    this->m_Label_Time->setText(qs_time);
 }

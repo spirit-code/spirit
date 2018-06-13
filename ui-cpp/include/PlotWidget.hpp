@@ -14,9 +14,10 @@ class PlotWidget : public QtCharts::QChartView
 {
 
 public:
-    PlotWidget(std::shared_ptr<State> state, bool plot_interpolated=false);
+    PlotWidget(std::shared_ptr<State> state, bool plot_image_energies=true, bool plot_interpolated=false);
     void updateData();
 
+    bool plot_image_energies;
     bool plot_interpolated;
     int  plot_interpolated_n;
 

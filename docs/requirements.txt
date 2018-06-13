@@ -1,2 +1,2 @@
 pandoc
-sphinxcontrib-pandoc-markdown
+sphinx-markdown-tables

@@ -281,6 +281,8 @@ namespace Engine
         block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Step              {} / {}", step, n_log));
         block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        if (this->Name() == "LLG")
+            block.push_back(fmt::format("    Simulated time:   {} ps", this->getTime()));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
         block.push_back(fmt::format("    Maximum force component:     {:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));

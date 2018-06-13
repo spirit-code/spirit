@@ -95,7 +95,7 @@ def Get_Bravais_Vectors(p_state, idx_image=-1, idx_chain=-1):
     _c = (3*ctypes.c_float)()
     _Get_Bravais_Vectors(ctypes.c_void_p(p_state), _a, _b, _c, 
                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return [_a[i] for i in range(3)], [_b[i] for i in range(3)], [_c[i] for i in range(3)]
+    return [a for a in _a], [b for b in _b], [c for c in _c]
     
 ### Get N Cells
 _Get_N_Cells          = _spirit.Geometry_Get_N_Cells
@@ -104,7 +104,7 @@ _Get_N_Cells.restype  = None
 def Get_N_Cells(p_state, idx_image=-1, idx_chain=-1):
     n_cells = (3*ctypes.c_int)()
     _Get_N_Cells(ctypes.c_void_p(p_state), n_cells, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return [n_cells[i] for i in range(3)]
+    return [n for n in n_cells]
 
 ### Get Translation Vectors
 _Get_Translation_Vectors          = _spirit.Geometry_Get_Translation_Vectors
@@ -118,7 +118,7 @@ def Get_Translation_Vectors(p_state, idx_image=-1, idx_chain=-1):
     tc = (3*ctypes.c_float)()
     _Get_Translation_Vectors(ctypes.c_void_p(p_state), ta, tb, tc, 
                              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return ta, tb, tc
+    return [a for a in ta], [b for b in tb], [c for c in tc]
 
 ### Get Translation Vectors
 _Get_Dimensionality          = _spirit.Geometry_Get_Dimensionality

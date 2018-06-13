@@ -19,7 +19,7 @@ namespace Engine
 {
     template <Solver solver>
     Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-        Method_Solver<solver>(system->llg_parameters, idx_img, idx_chain)
+        Method_Solver<solver>(system->llg_parameters, idx_img, idx_chain), picoseconds_passed(0)
     {
         // Currently we only support a single image being iterated at once:
         this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
@@ -183,6 +183,11 @@ namespace Engine
         }
     }
 
+    template <Solver solver>
+    scalar Method_LLG<solver>::getTime()
+    {
+        return this->picoseconds_passed;
+    }
 
     template <Solver solver>
     bool Method_LLG<solver>::Converged()
@@ -202,6 +207,9 @@ namespace Engine
     template <Solver solver>
     void Method_LLG<solver>::Hook_Post_Iteration()
     {
+        // Increment the time counter (picoseconds)
+        this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
+
         // --- Convergence Parameter Update
         // Loop over images to calculate the maximum force components
         for (unsigned int img = 0; img < this->systems.size(); ++img)
