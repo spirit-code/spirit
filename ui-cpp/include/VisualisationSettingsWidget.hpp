@@ -85,6 +85,11 @@ private:
 	QRegularExpressionValidator * number_validator_unsigned;
 	QRegularExpressionValidator * number_validator_int;
 	QRegularExpressionValidator * number_validator_int_unsigned;
+
+	// The camera values of the last update
+	glm::vec3 camera_position_last;
+	glm::vec3 camera_focus_last;
+	glm::vec3 camera_upvector_last;
 };
 
 #endif

@@ -26,6 +26,8 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     this->spinWidget = spinWidget;
     this->settingsWidget = settingsWidget;
 
+    this->idx_image_last = 0;
+
     // Create threads
     threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
     threads_gneb = std::vector<std::thread>(1);
@@ -70,10 +72,10 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 }
 
 void ControlWidget::updateData()
-{
+    {
     // Check for running simulations - update Play/Pause Button
     if ( Simulation_Running_Chain(state.get()) ||
-            Simulation_Running_Image(state.get()) )
+         Simulation_Running_Image(state.get()) )
     {
         this->pushButton_PlayPause->setText("Pause");
         this->spinWidget->updateData();
@@ -86,7 +88,13 @@ void ControlWidget::updateData()
     }
 
     // Update Image number
-    this->lineEdit_ImageNumber->setText(QString::number(System_Get_Index(state.get())+1));
+    int idx_image = System_Get_Index(state.get());
+    // Update Image number
+    if ( idx_image_last != idx_image )
+    {
+        this->lineEdit_ImageNumber->setText(QString::number(idx_image+1));
+        this->idx_image_last = idx_image;
+    }
     // Update Mode number
     this->lineEdit_ModeNumber->setText(QString::number(Parameters_Get_EMA_N_Mode_Follow(state.get())+1));
     // Update NOI counter

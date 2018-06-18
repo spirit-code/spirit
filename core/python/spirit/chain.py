@@ -119,13 +119,9 @@ _Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_in
 _Get_Rx.restype  = None
 def Get_Rx(p_state, idx_chain=-1):
     noi = Get_NOI(p_state, idx_chain)
-    arrayX = ctypes.c_float * noi
-    Rx = [0]*noi
-    _Rx = arrayX(*Rx)
-    _Get_Rx(ctypes.c_void_p(p_state), _Rx, ctypes.c_int(idx_chain))
-    for i in range(noi):
-        Rx[i] = _Rx[i]
-    return Rx
+    Rx = (noi*ctypes.c_float)()
+    _Get_Rx(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
+    return [x for x in Rx]
 
 ### Get Rx interpolated
 _Get_Rx_Interpolated          = _spirit.Chain_Get_Rx_Interpolated
@@ -137,7 +133,7 @@ def Get_Rx_Interpolated(p_state, idx_chain=-1):
     len_Rx = noi + (noi-1)*n_interp
     Rx = (len_Rx*ctypes.c_float)()
     _Get_Rx_Interpolated(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
-    return Rx
+    return [x for x in Rx]
 
 ### Get Energy
 _Get_Energy          = _spirit.Chain_Get_Energy
@@ -147,7 +143,7 @@ def Get_Energy(p_state, idx_chain=-1):
     noi = Get_NOI(p_state, idx_chain)
     Energy = (noi*ctypes.c_float)()
     _Get_Energy(ctypes.c_void_p(p_state), Energy, ctypes.c_int(idx_chain))
-    return Energy
+    return [E for E in Energy]
 
 ### Get Energy Interpolated
 _Get_Energy_Interpolated          = _spirit.Chain_Get_Energy_Interpolated
@@ -159,4 +155,4 @@ def Get_Energy_Interpolated(p_state, idx_chain=-1):
     len_Energy = noi + (noi-1)*n_interp
     Energy_interp = (len_Energy*ctypes.c_float)()
     _Get_Energy_Interpolated(ctypes.c_void_p(p_state), Energy_interp, ctypes.c_int(idx_chain))
-    return Energy_interp
+    return [E for E in Energy_interp]

@@ -87,7 +87,7 @@ set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
 set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
 set(META_VERSION_MINOR        "8")
-set(META_VERSION_PATCH        "2")
+set(META_VERSION_PATCH        "3")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
 ### Propagate version and name_version upwards

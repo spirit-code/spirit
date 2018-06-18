@@ -34,9 +34,21 @@ If you do not pass a config file, the implemented defaults are used.
 | `delete(p_state )`                                                                  | `None`     |
 
 
+System
+------
+
+| System                                                                | Returns  | Description                                                                          |
+| --------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `Get_Index(p_state)`                                                  | `int`    | Returns the index of the currently active image                                      |
+| `Get_NOS(p_state, idx_image=-1, idx_chain=-1)`                        | `int`    | Returns the number of spins                                                          |
+| `Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1)`            | `[3*NOS]`| Returns an `numpy.Array` of size `3*NOS` with the components of each spin's vector   |
+| `Get_Energy(p_state, idx_image=-1, idx_chain=-1)`                     | `float`  | Returns the energy of the system                                                     |
+| `Update_Data(p_state, idx_image=-1, idx_chain=-1)`                    | `None`   | Update the data of the state                                                         |
+| `Print_Energy_Array(p_state, idx_image=-1, idx_chain=-1)`             | `None`   | Print the energy array of the state                                                  |
+
+
 Chain
 -----
-
 
 For having more images one can copy the active image in the Clipboard and then insert in a specified position of the chain.
 ```python
@@ -76,19 +88,6 @@ number_of_images = chain.Get_NOI(p_state )
 | `Setup_Data(p_state, idx_chain=-1)`         | `None`         | Setup the chain's data arrays                              |
 
 
-System
-------
-
-| System                                                                | Returns  | Description                                                                          |
-| --------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
-| `Get_Index(p_state)`                                                  | `int`    | Returns the index of the currently active image                                      |
-| `Get_NOS(p_state, idx_image=-1, idx_chain=-1)`                        | `int`    | Returns the number of spins                                                          |
-| `Get_Spin_Directions(p_state, idx_image=-1, idx_chain=-1)`            | `[3*NOS]`| Returns an `numpy.Array` of size `3*NOS` with the components of each spin's vector   |
-| `Get_Energy(p_state, idx_image=-1, idx_chain=-1)`                     | `float`  | Returns the energy of the system                                                     |
-| `Update_Data(p_state, idx_image=-1, idx_chain=-1)`                    | `None`   | Update the data of the state                                                         |
-| `Print_Energy_Array(p_state, idx_image=-1, idx_chain=-1)`             | `None`   | Print the energy array of the state                                                  |
-
-
 Constants
 ---------
 
@@ -100,6 +99,7 @@ Constants
 | `mRy()`                                 | `float`        | Millirydberg [mRy / meV]                           |
 | `gamma()`                               | `float`        | The Gyromagnetic ratio of electron [rad / (ps*T)]  |
 | `g_e()`                                 | `float`        | The Electron g-factor [unitless]                   |
+
 
 Geometry
 --------
@@ -115,13 +115,19 @@ Geometry
 | `Get_Spin_Positions(p_state, idx_image=-1, idx_chain=-1)`            | `[3*NOS]`             | Get Spin positions                                 |
 | `Get_Atom_Types(p_state, idx_image=-1, idx_chain=-1)`                | `[NOS]`               | Get atom types                                     |
 
+
 Hamiltonian
 -----------
 
-| Set Parameters                                                                  | Returns               | Description                                        |
-| ------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------- |
-| `Set_Field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`          | `None`                | Set external magnetic field                        |
-| `Set_Anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`     | `None`                | Set anisotropy                                     |
+| Set Parameters                                                                  | Returns               | Description                                                 |
+| ------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------- |
+| `Set_Boundary_Conditions(p_state, boundaries, idx_image=-1, idx_chain=-1)`      | `None`                | Set the boundary conditions [a, b, c]: 0=open, 1=periodical |
+| `Set_mu_s(p_state, mu_s, idx_image=-1, idx_chain=-1)`                           | `None`                | Set a value of mu_s for all spins                           |
+| `Set_Field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`          | `None`                | Set external magnetic field                                 |
+| `Set_Anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1)`     | `None`                | Set a magnitude and normal of anisotropy for all spins      |
+| `Set_Exchange(p_state, n_shells, J_ij, idx_image=-1, idx_chain=-1)`             | `None`                | Set the exchange pairs in terms of neighbour shells         |
+| `Set_DMI(p_state, n_shells, D_ij, idx_image=-1, idx_chain=-1)`                  | `None`                | Set the DMI pairs in terms of neighbour shells              |
+| `Set_DDI(p_state, radius, idx_image=-1, idx_chain=-1)`                          | `None`                | Set dipole-dipole cutoff radius                             |
 
 
 Log
@@ -231,27 +237,33 @@ Transition
 Input/Output
 ------------
 
+Note that, when reading an image or chain from file, the file will automatically be tested for an OVF header.
+If it cannot be identified as OVF, it will be tried to be read as three plain text columns (Sx Sy Sz).
+
+Note also, IO is still being re-written and only OVF will be supported as output format.
+
+| For Image                                                                                 | Description                          |
+| ----------------------------------------------------------------------------------------- | ------------------------------------ |
+| `Image_Read(p_state, filename, idx_image_infile=0, idx_image_inchain=-1, idx_chain=-1)`   | Read specified image from a file to specified image in the chain |
+| `Image_Write(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1)`   | Write an image to disk               |
+| `Image_Append(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1)`  | Append an image to an existing file  |
+
+| For Chain                                                                     | Description                          |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| `Chain_Read(p_state, filename, starting_image=-1, ending_image=-1, insert_idx=-1, idx_chain=-1)` | Read some images from a file and insert them into the chain, starting at a specified index |
+| `Chain_Write(p_state, filename, fileformat=6, comment=" ", idx_chain=-1)`     | Write a chain of images to disk      |
+| `Chain_Append(p_state, filename, fileformat=6, comment=" ", idx_chain=-1)`    | Append a chain of images to disk     |
+
 | Macros of File Formats for Vector Fields | values  | Description                                       |
 | ---------------------------------------- | :-----: | --------------------------------------------------|
 | `IO_Fileformat_Regular`                  | 0       | sx sy sz (separated by whitespace)                |
 | `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
 | `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
 | `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
-| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
-| `IO_Fileformat_OVF_text`                 | 6       |                                                   |
-
-
-| For Image                                                                                 | Description                          |
-| ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| `Image_Read(p_state, filename, fileformat=0, idx_image=-1, idx_chain=-1)`                 | Read an image from disk              |
-| `Image_Write(p_state, filename, fileformat=0, comment=" ", idx_image=-1, idx_chain=-1)`   | Write an image to disk               |
-| `Image_Append(p_state, filename, fileformat=0, comment=" ", idx_image=-1, idx_chain=-1)`  | Append an image to an existing file  |
-
-| For Chain                                                                     | Description                          |
-| ----------------------------------------------------------------------------- | ------------------------------------ |
-| `Chain_Read(p_state, filename, fileformat=0, idx_chain=-1)`                   | Read a chain of images from disk     |
-| `Chain_Write(p_state, filename, fileformat=0, comment=" ", idx_chain=-1)`     | Write a chain of images to disk      |
-| `Chain_Append(p_state, filename, fileformat=0, comment=" ", idx_chain=-1)`    | Append a chain of images to disk      |
+| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary-8)  |
+| `IO_Fileformat_OVF_bin4`                 | 5       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary-4)  |
+| `IO_Fileformat_OVF_text`                 | 6       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (plaintext) |
+| `IO_Fileformat_OVF_csv`                  | 7       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (comma-separated plaintext) |
 
 
 ---

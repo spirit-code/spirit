@@ -81,6 +81,10 @@ private:
     std::string s_method;
     std::string s_solver;
 
+    // Image index of last update
+    int idx_image_last;
+
+    // Future watcher for calculation of eigenmodes
     QFutureWatcher<void> watcher;
 
     // ...

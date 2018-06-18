@@ -125,6 +125,23 @@ namespace Engine
     }
 
 
+    scalar Method::getTime()
+    {
+        // Not Implemented!
+        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
+            "Tried to use Method::getTime() of the Method base class!");
+    }
+
+
+    int Method::getWallTime()
+    {
+        auto t_current = system_clock::now();
+        duration<scalar> dt_seconds = t_current - this->t_start;
+        auto dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(dt_seconds);
+        return dt_ms.count();
+    }
+
+
     scalar Method::getForceMaxAbsComponent()
     {
         return this->force_max_abs_component;
@@ -218,10 +235,6 @@ namespace Engine
         spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
             "Tried to use Method::Save_Current() of the Method base class!");
     }
-
-
-
-
 
 
     void Method::Lock()

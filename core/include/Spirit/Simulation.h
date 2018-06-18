@@ -36,6 +36,14 @@ DLLEXPORT float Simulation_Get_IterationsPerSecond(State *state, int idx_image=-
 // Get number of done iterations
 DLLEXPORT int Simulation_Get_Iteration(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
+// Get time passed by the simulation in picoseconds
+//		If an LLG simulation is running this returns the cumulatively summed dt.
+//		Otherwise it returns 0.
+DLLEXPORT float Simulation_Get_Time(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+
+// Get number of miliseconds since the simulation was started
+DLLEXPORT int Simulation_Get_Wall_Time(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+
 // Get name of the currently used solver
 //		If an LLG or MMF simulation is running this returns the Solver name on the current image.
 //		If a GNEB simulation is running this returns the Solver name on the current chain.

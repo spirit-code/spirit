@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 #include <ctime>
 
 #include <fmt/format.h>
@@ -195,6 +196,7 @@ namespace IO
             if (myfile.Find("bravais_lattice"))
             {
                 myfile.iss >> bravais_lattice;
+                std::transform(bravais_lattice.begin(), bravais_lattice.end(), bravais_lattice.begin(), ::tolower);
 
                 if (bravais_lattice == "sc")
                 {
@@ -214,21 +216,27 @@ namespace IO
                     bravais_lattice_type = Data::BravaisLatticeType::BCC;
                     bravais_vectors = Data::Geometry::BravaisVectorsBCC();
                 }
-                else if (bravais_lattice == "hex2D60")
+                else if (bravais_lattice == "hex2d")
+                {
+                    Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D (default: 60deg angle)");
+                    bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
+                    bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
+                }
+                else if (bravais_lattice == "hex2d60")
                 {
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 60deg angle");
                     bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
                     bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
                 }
-                else if (bravais_lattice == "hex2D120")
+                else if (bravais_lattice == "hex2d120")
                 {
                     Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: hexagonal 2D 120deg angle");
                     bravais_lattice_type = Data::BravaisLatticeType::Hex2D;
                     bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
                 }
                 else
-                {
-                }
+                    Log(Log_Level::Warning, Log_Sender::IO,
+                        fmt::format("Bravais lattice \"{}\" unknown. Using simple cubic...", bravais_lattice));
             }
             else if (myfile.Find("bravais_vectors"))
             {
@@ -253,6 +261,8 @@ namespace IO
                 myfile.GetLine();
                 myfile.iss >> bravais_vectors[0][2] >> bravais_vectors[1][2] >> bravais_vectors[2][2];
             }
+            else
+                Log(Log_Level::Parameter, Log_Sender::IO, "Bravais lattice not specified. Using simple cubic...");
         }
         catch( ... )
         {

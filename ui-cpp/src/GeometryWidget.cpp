@@ -45,14 +45,14 @@ void GeometryWidget::setNCells()
 	auto x_range = this->spinWidget->xRangePosition();
 	auto y_range = this->spinWidget->yRangePosition();
 	auto z_range = this->spinWidget->zRangePosition();
+	float pc_x = x_range.y - x_range.x;
+	float pc_y = y_range.y - y_range.x;
+	float pc_z = z_range.y - z_range.x;
 	float b_min[3], b_max[3], b_range[3];
 	Geometry_Get_Bounds(state.get(), b_min, b_max);
-	float pc_x = x_range.y;
-	float pc_y = y_range.y;
-	float pc_z = z_range.y;
-	if (std::abs(b_max[0]) > 0) pc_x /= b_max[0];
-	if (std::abs(b_max[1]) > 0) pc_y /= b_max[1];
-	if (std::abs(b_max[2]) > 0) pc_z /= b_max[2];
+	if (std::abs(b_max[0]-b_min[0]) > 0) pc_x /= std::abs(b_max[0]-b_min[0]);
+	if (std::abs(b_max[1]-b_min[1]) > 0) pc_y /= std::abs(b_max[1]-b_min[1]);
+	if (std::abs(b_max[2]-b_min[2]) > 0) pc_z /= std::abs(b_max[2]-b_min[2]);
 
 	// Update the geometry in the core
 	int n_cells[3]{ this->lineEdit_n_cells_a->text().toInt(), this->lineEdit_n_cells_b->text().toInt(), this->lineEdit_n_cells_c->text().toInt() };
@@ -65,8 +65,11 @@ void GeometryWidget::setNCells()
 	// Update the position filter of SpinWidget
 	float b_min_new[3], b_max_new[3], b_range_new[3];
 	Geometry_Get_Bounds(state.get(), b_min_new, b_max_new);
+	x_range.x = pc_x * b_min_new[0];
 	x_range.y = pc_x * b_max_new[0];
+	y_range.x = pc_y * b_min_new[1];
 	y_range.y = pc_y * b_max_new[1];
+	z_range.x = pc_z * b_min_new[2];
 	z_range.y = pc_z * b_max_new[2];
 	this->spinWidget->setOverallPositionRange(x_range, y_range, z_range);
 
