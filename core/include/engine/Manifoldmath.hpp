@@ -43,21 +43,34 @@ namespace Engine
         void project_tangential(vectorfield & vf1, const vectorfield & vf2);
 
 
-        // The tangential projector is a matrix which projects any vector
-        // into the tangent space of the given vectorfield.
+        // The tangential projector is a matrix which projects any vector into the tangent
+        //      space of a vectorfield, considered to live on the direct product of N unit
+        //      spheres. It is a 3N x 3N matrix.
         MatrixX tangential_projector(const vectorfield & image);
 
-        // Calculate a matrix of orthonormal basis vectors that span the tangent space of
-        //      a unit vectorfield defining a set of points on a unit sphere.
+        // Calculate a matrix of orthonormal basis vectors that span the tangent space to
+        //      a vectorfield, considered to live on the direct product of N unit spheres.
         //      The basis vectors will be the spherical unit vectors, except at the poles.
-        //      basis will be a 3Nx2N matrix.
+        //      The basis will be a 3Nx2N matrix.
         void tangent_basis_spherical(const vectorfield & vf, MatrixX & basis);
 
-        // Calculate a matrix of orthonormal basis vectors that span the tangent space of
-        //      a unit vectorfield defining a set of points on a unit sphere.
+        // Calculate a matrix of orthonormal basis vectors that span the tangent space to
+        //      a vectorfield, considered to live on the direct product of N unit spheres.
+        //      The basis vectors will be generated from cross products with euclidean basis
+        //      vectors. The basis will be a 3Nx2N matrix.
+        void tangent_basis_cross(const vectorfield & vf, MatrixX & basis);
+
+        // Calculate a matrix of orthonormal basis vectors that span the tangent space to
+        //      a vectorfield, considered to live on the direct product of N unit spheres.
         //      The basis vectors will form righthanded sets with the vectors of vf.
-        //      basis will be a 3Nx2N matrix.
-        void tangent_basis(const vectorfield & vf, MatrixX & basis);
+        //      The basis will be a 3Nx2N matrix.
+        void tangent_basis_righthanded(const vectorfield & vf, MatrixX & basis);
+
+        // Calculate a matrix of orthonormal basis vectors that span the tangent space to
+        //      a vectorfield, considered to live on the direct product of N unit spheres.
+        //      The basis vectors will be calculated from orthonormalizations with respect
+        //      to a random vector. The basis will be a 3Nx2N matrix.
+        // void tangent_basis_random(const vectorfield & vf, MatrixX & basis);
 
 
         // This is the derivatives of the coordinate transformation from (unit-)spherical to cartesian
