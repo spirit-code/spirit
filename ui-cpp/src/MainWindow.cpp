@@ -1388,8 +1388,7 @@ void MainWindow::save_Configuration()
 	if (!fileName.isEmpty())
 	{
 		auto file = string_q2std(fileName);
-		
-		State_To_Config(this->state.get(), file.c_str(), ">unknown<");
+		State_To_Config(this->state.get(), file.c_str(), "");
 	}
 }
 

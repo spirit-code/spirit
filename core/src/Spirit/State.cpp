@@ -310,17 +310,18 @@ void State_Update(State * state) noexcept
 }
 
 
-void State_To_Config(State * state, const char * config_file, const char * original_config_file) noexcept
+void State_To_Config(State * state, const char * config_file, const char * comment) noexcept
 {
     try
     {
         Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
 
         std::string cfg = std::string(config_file);
-        
+
         // Header
-        std::string header = "###\n### Original configuration file was called\n###   " + 
-                             std::string(original_config_file) + "\n###\n\n";
+        std::string header = "";
+        if( std::string(comment) != "" )
+            header = std::string(comment)+"\n";
         IO::String_to_File(header, cfg);
         // Folders
         IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
@@ -395,7 +396,8 @@ void Save_Initial_Final( State * state, bool initial )
              (Log.save_input_final   && !initial) )
         {
             std::string file = folder + "/input/" + tag + suffix + ".cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
+            std::string comment = fmt::format("###\n### Original configuration file was called\n###   {}\n###\n", state->config_file);
+            State_To_Config(state, file.c_str(), comment.c_str());
         }
     }
     catch( ... )

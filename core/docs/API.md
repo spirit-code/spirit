@@ -47,7 +47,7 @@ The State struct is passed around in an application to make the simulation's sta
 | `State_Setup( const char * config_file )`                                                                   | `State *` | Create new state by passing a config file |
 | `State_Update( State * )`                                                                                   | `void`    | Update the state to hold current values |
 | `State_Delete( State * )`                                                                                   | `void`    | Delete a state |
-| `State_To_Config( State *, const char * config_file, const char * original_config_file)`                    | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
+| `State_To_Config( State *, const char * config_file, const char * comment)`                                 | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
 | `State_DateTime( State * )`                                                                                 | `const char *` | Get datetime tag of the creation of the state |
 
 
