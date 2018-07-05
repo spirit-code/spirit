@@ -235,9 +235,9 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
                 intfield  shells(0);
                 Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells, neighbours, shells, remove_redundant);
                 scalarfield magnitudes(0);
-                for (int i=0; i<n_shells; ++i)
+                for (int ineigh=0; ineigh<neighbours.size(); ++ineigh)
                 {
-                    magnitudes.push_back( { (scalar)jij[i] } );
+                    magnitudes.push_back( { (scalar)jij[shells[ineigh]] } );
                 }
                 
                 // Set Hamiltonian's arrays
@@ -270,7 +270,7 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
     }
 }
 
-void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chirality, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -293,19 +293,16 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int idx_
                 const bool remove_redundant = true;
                 #endif
 
-                // TODO: add function parameter
-                int dmi_chirality = 1;
-
                 // Get the necessary pairs list
                 intfield  shells(0);
                 pairfield neighbours(0);
                 Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells, neighbours, shells, remove_redundant);
                 scalarfield magnitudes(0);
                 vectorfield normals(0);
-                for (int i=0; i<n_shells; ++i)
+                for (int ineigh=0; ineigh<neighbours.size(); ++ineigh)
                 {
-                    magnitudes.push_back({ (scalar)dij[i] });
-                    normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair( *image->geometry, neighbours[i], dmi_chirality) } );
+                    magnitudes.push_back({ (scalar)dij[shells[ineigh]] });
+                    normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair( *image->geometry, neighbours[ineigh], chirality) } );
                 }
 
                 // Set Hamiltonian's arrays
