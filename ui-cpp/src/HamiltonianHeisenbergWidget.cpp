@@ -405,10 +405,19 @@ void HamiltonianHeisenbergWidget::set_dmi()
 			int n_shells = this->dmi_shells.size();
 			std::vector<float> Dij(n_shells);
 			for (int i = 0; i < n_shells; ++i) Dij[i] = this->dmi_shells[i]->value();
-			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data(), idx_image, idx_chain);
+
+			int chirality = 1;
+			if (this->comboBox_dmi_chirality->currentIndex() == 1)
+				chirality = -1;
+			else if (this->comboBox_dmi_chirality->currentIndex() == 2)
+				chirality = 2;
+			else if (this->comboBox_dmi_chirality->currentIndex() == 3)
+				chirality = -2;
+
+			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data(), chirality, idx_image, idx_chain);
 		}
 		else
-			Hamiltonian_Set_DMI(state.get(), 0, nullptr, idx_image, idx_chain);
+			Hamiltonian_Set_DMI(state.get(), 0, nullptr, 1, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
@@ -528,6 +537,7 @@ void HamiltonianHeisenbergWidget::Setup_Slots()
 	// DMI
 	connect(this->checkBox_dmi, SIGNAL(stateChanged(int)), this, SLOT(set_dmi()));
 	connect(this->spinBox_nshells_dmi, SIGNAL(editingFinished()), this, SLOT(set_nshells_dmi()));
+	connect(this->comboBox_dmi_chirality, SIGNAL(currentIndexChanged(int)), this, SLOT(set_dmi()));
 	// DDI
 	connect(this->checkBox_ddi, SIGNAL(stateChanged(int)), this, SLOT(set_ddi()));
 	connect(this->doubleSpinBox_ddi, SIGNAL(editingFinished()), this, SLOT(set_ddi()));

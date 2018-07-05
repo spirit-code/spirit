@@ -18,7 +18,7 @@ def Set_Boundary_Conditions(p_state, boundaries, idx_image=-1, idx_chain=-1):
 
 ### Set magnetic moment globally
 _Set_mu_s             = _spirit.Hamiltonian_Set_mu_s
-_Set_mu_s.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), 
+_Set_mu_s.argtypes    = [ctypes.c_void_p, ctypes.c_float,
                           ctypes.c_int, ctypes.c_int]
 _Set_mu_s.restype     = None
 def Set_mu_s(p_state, mu_s, idx_image=-1, idx_chain=-1):
@@ -58,12 +58,12 @@ def Set_Exchange(p_state, n_shells, J_ij, idx_image=-1, idx_chain=-1):
 ### Set Dzyaloshinskii-Moriya interaction in form of neighbour shells
 _Set_DMI             = _spirit.Hamiltonian_Set_DMI
 _Set_DMI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
-                        ctypes.c_int, ctypes.c_int]
+                        ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _Set_DMI.restype     = None
-def Set_DMI(p_state, n_shells, D_ij, idx_image=-1, idx_chain=-1):
+def Set_DMI(p_state, n_shells, D_ij, chirality=1, idx_image=-1, idx_chain=-1):
     vec = ctypes.c_float * n_shells
     _Set_DMI(ctypes.c_void_p(p_state), ctypes.c_int(n_shells), vec(*D_ij),
-             ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+             ctypes.c_int(chirality), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set dipole-dipole interaction in form of exact calculation within a cutoff radius
 _Set_DDI             = _spirit.Hamiltonian_Set_DDI
