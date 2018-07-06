@@ -242,9 +242,9 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
                 
                 // Set Hamiltonian's arrays
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-                ham->exchange_n_shells   = n_shells;
-                ham->exchange_pairs      = neighbours;
-                ham->exchange_magnitudes = magnitudes;
+                ham->exchange_shell_magnitudes = scalarfield(jij, jij + n_shells);
+                ham->exchange_pairs            = neighbours;
+                ham->exchange_magnitudes       = magnitudes;
                 
                 // Update the list of different contributions
                 ham->Update_Energy_Contributions();
@@ -307,10 +307,10 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chir
 
                 // Set Hamiltonian's arrays
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-                ham->dmi_n_shells   = n_shells;
-                ham->dmi_pairs      = neighbours;
-                ham->dmi_magnitudes = magnitudes;
-                ham->dmi_normals    = normals;
+                ham->dmi_shell_magnitudes = scalarfield(dij, dij + n_shells);
+                ham->dmi_pairs            = neighbours;
+                ham->dmi_magnitudes       = magnitudes;
+                ham->dmi_normals          = normals;
 
                 // Update the list of different contributions
                 ham->Update_Energy_Contributions();
@@ -540,20 +540,20 @@ void Hamiltonian_Get_Exchange_Shells(State *state, int * n_shells, float * jij, 
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         if (image->hamiltonian->Name() == "Heisenberg")
         {
             auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
 
-            *n_shells = ham->exchange_n_shells;
+            *n_shells = ham->exchange_shell_magnitudes.size();
 
             // Note the array needs to be correctly allocated beforehand!
-            for (int i=0; i<*n_shells; ++i)
+            for (int i=0; i<ham->exchange_shell_magnitudes.size(); ++i)
             {
-                jij[i] = (float)ham->exchange_magnitudes[i];
+                jij[i] = (float)ham->exchange_shell_magnitudes[i];
             }
         }
     }
@@ -617,11 +617,11 @@ void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int i
         {
             auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
             
-            *n_shells = ham->dmi_n_shells;
+            *n_shells = ham->dmi_shell_magnitudes.size();
             
             for (int i=0; i<*n_shells; ++i)
             {
-                dij[i] = (float)ham->dmi_magnitudes[i];
+                dij[i] = (float)ham->dmi_shell_magnitudes[i];
             }
         }
     }

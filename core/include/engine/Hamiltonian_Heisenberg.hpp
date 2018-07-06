@@ -36,8 +36,8 @@ namespace Engine
             scalarfield mu_s,
             scalar external_field_magnitude, Vector3 external_field_normal,
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-            scalarfield exchange_magnitudes,
-            scalarfield dmi_magnitudes, int dm_chirality,
+            scalarfield exchange_shell_magnitudes,
+            scalarfield dmi_shell_magnitudes, int dm_chirality,
             scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
@@ -76,11 +76,11 @@ namespace Engine
 
         // ------------ Pair Interactions ------------
         // Exchange interaction
-        int         exchange_n_shells;
+        scalarfield exchange_shell_magnitudes;
         pairfield   exchange_pairs;
         scalarfield exchange_magnitudes;
         // DMI
-        int         dmi_n_shells;
+        scalarfield dmi_shell_magnitudes;
         pairfield   dmi_pairs;
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;
