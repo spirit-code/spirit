@@ -18,6 +18,7 @@ using Engine::Vectormath::cu_idx_from_pair;
 
 namespace Engine
 {
+    // Construct a Heisenberg Hamiltonian with pairs
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
@@ -29,43 +30,27 @@ namespace Engine
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
     ) :
-        Hamiltonian(boundary_conditions), geometry(geometry),
+        Hamiltonian(boundary_conditions),
+        geometry(geometry),
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
-        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
+        exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
+        dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
+        ddi_cutoff_radius(ddi_radius)
     {
-        // Duplicate all exchange and DMI pairs in order to have them as neighbours
-        for (int i = 0; i < exchange_pairs.size(); ++i)
-        {
-            auto& p = exchange_pairs[i];
-            auto& t = p.translations;
-            this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            this->exchange_magnitudes.push_back(exchange_magnitudes[i]);
-        }
-        for (int i = 0; i < dmi_pairs.size(); ++i)
-        {
-            auto& p = dmi_pairs[i];
-            auto& t = p.translations;
-            this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            this->dmi_magnitudes.push_back(dmi_magnitudes[i]);
-            this->dmi_normals.push_back(-dmi_normals[i]);
-        }
-
-        // Generate DDI pairs, magnitudes, normals
-        this->Update_DDI_Pairs();
-
-        this->Update_Energy_Contributions();
+        // Generate interaction pairs, constants etc.
+        this->Update_Interactions();
     }
 
+    // Construct a Heisenberg Hamiltonian from shells
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-        scalarfield exchange_magnitudes,
-        scalarfield dmi_magnitudes, int dm_chirality,
+        scalarfield exchange_shell_magnitudes,
+        scalarfield dmi_shell_magnitudes, int dm_chirality,
         scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
@@ -76,38 +61,83 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_n_shells(exchange_magnitudes.size()),
-        dmi_n_shells(dmi_magnitudes.size())
+        exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
+        dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dm_chirality),
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
+        ddi_cutoff_radius(ddi_radius)
     {
-        // When parallelising (cuda or openmp), we need all neighbours per spin
-        const bool remove_redundant = false;
-
-        // Generate Exchange neighbours
-        intfield exchange_shells(0);
-        Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size(), exchange_pairs, exchange_shells, remove_redundant);
-        for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
-        {
-            this->exchange_magnitudes.push_back(exchange_magnitudes[exchange_shells[ipair]]);
-        }
-
-        // Generate DMI neighbours and normals
-        intfield dmi_shells(0);
-        Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
-        for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
-        {
-            dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
-            this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
-        }
-
-        // Generate DDI pairs, magnitudes, normals
-        this->Update_DDI_Pairs();
-
-        this->Update_Energy_Contributions();
+        // Generate interaction pairs, constants etc.
+        this->Update_Interactions();
     }
 
 
-    void Hamiltonian_Heisenberg::Update_DDI_Pairs()
+    void Hamiltonian_Heisenberg::Update_Interactions()
     {
+        // When parallelising (cuda or openmp), we need all neighbours per spin
+        const bool use_redundant_neighbours = true;
+
+        // Exchange
+        this->exchange_pairs      = pairfield(0);
+        this->exchange_magnitudes = scalarfield(0);
+        if( exchange_shell_magnitudes.size() > 0 )
+        {
+            // Generate Exchange neighbours
+            intfield exchange_shells(0);
+            Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours);
+            for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+            {
+                this->exchange_magnitudes.push_back(exchange_shell_magnitudes[exchange_shells[ipair]]);
+            }
+        }
+        else
+        {
+            // Use direct list of pairs
+            this->exchange_pairs      = this->exchange_pairs_in;
+            this->exchange_magnitudes = this->exchange_magnitudes_in;
+            if( use_redundant_neighbours )
+            {
+                for (int i = 0; i < exchange_pairs_in.size(); ++i)
+                {
+                    auto& p = exchange_pairs_in[i];
+                    auto& t = p.translations;
+                    this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+                    this->exchange_magnitudes.push_back(exchange_magnitudes_in[i]);
+                }
+            }
+        }
+
+        // DMI
+        this->dmi_pairs      = pairfield(0);
+        this->dmi_magnitudes = scalarfield(0);
+        this->dmi_normals    = vectorfield(0);
+        if( dmi_shell_magnitudes.size() > 0 )
+        {
+            // Generate DMI neighbours and normals
+            intfield dmi_shells(0);
+            Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours);
+            for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
+            {
+                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+                this->dmi_magnitudes.push_back(dmi_shell_magnitudes[dmi_shells[ineigh]]);
+            }
+        }
+        else
+        {
+            // Use direct list of pairs
+            this->dmi_pairs      = this->dmi_pairs_in;
+            this->dmi_magnitudes = this->dmi_magnitudes_in;
+            this->dmi_normals    = this->dmi_normals_in;
+            for (int i = 0; i < dmi_pairs_in.size(); ++i)
+            {
+                auto& p = dmi_pairs_in[i];
+                auto& t = p.translations;
+                this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+                this->dmi_magnitudes.push_back(dmi_magnitudes_in[i]);
+                this->dmi_normals.push_back(-dmi_normals_in[i]);
+            }
+        }
+
+        // Dipole-dipole
         this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
         this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
         this->ddi_normals    = vectorfield(this->ddi_pairs.size());
@@ -369,6 +399,111 @@ namespace Engine
         // }
     }
 
+
+    scalar Hamiltonian_Heisenberg::Energy_Single_Spin(int ispin_in, const vectorfield & spins)
+    {
+        int icell  = ispin_in / this->geometry->n_cell_atoms;
+        int ibasis = ispin_in - icell*this->geometry->n_cell_atoms;
+        scalar Energy = 0;
+
+        // External field
+        if (this->idx_zeeman >= 0)
+        {
+            if (check_atom_type(this->geometry->atom_types[ispin_in]))
+                Energy -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+        }
+
+        // Anisotropy
+        if (this->idx_anisotropy >= 0)
+        {
+            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            {
+                if (anisotropy_indices[iani] == ibasis)
+                {
+                    if (check_atom_type(this->geometry->atom_types[ispin_in]))
+                        Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2.0);
+                }
+            }
+        }
+
+        // Exchange
+        if (this->idx_exchange >= 0)
+        {
+            for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+            {
+                if (exchange_pairs[ipair].i == ibasis)
+                {
+                    int ispin = exchange_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair]);
+                    if (jspin >= 0)
+                    {
+                        Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+                    }
+                }
+            }
+        }
+
+        // DMI
+        if (this->idx_dmi >= 0)
+        {
+            for (unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair)
+            {
+                if (dmi_pairs[ipair].i == ibasis)
+                {
+                    int ispin = dmi_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair]);
+                    if (jspin >= 0)
+                    {
+                        Energy -= 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+                    }
+                }
+            }
+        }
+
+        // DDI
+        if (this->idx_ddi >= 0)
+        {
+            for (unsigned int ipair = 0; ipair < ddi_pairs.size(); ++ipair)
+            {
+                if (ddi_pairs[ipair].i == ibasis)
+                {
+                    // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+                    const scalar mult = 0.5 * this->mu_s[ddi_pairs[ipair].i] * this->mu_s[ddi_pairs[ipair].j]
+                        * Utility::Constants::mu_0 * std::pow(Utility::Constants::mu_B, 2) / ( 4*Utility::Constants::Pi * 1e-30 );
+
+                    int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
+
+                    if (jspin >= 0)
+                    {
+                        Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
+                            (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
+                    }
+                }
+            }
+        }
+
+        // Quadruplets
+        if (this->idx_quadruplet >= 0) 
+        {
+            for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
+            {
+                auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
+                int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
+                int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+                int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+                int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
+                
+                if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                     check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                {
+                    Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                }
+            }
+        }
+
+        return Energy;
+    }
 
 
     void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)

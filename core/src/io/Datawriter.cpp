@@ -24,15 +24,25 @@ namespace IO
 {
     void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename )
     {
+        Engine::Hamiltonian_Heisenberg* ham = 
+            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
+        int n_neighbours = ham->exchange_pairs.size();
+
+        #if defined(SPIRIT_USE_OPENMP)
+        // When parallelising (cuda or openmp), all neighbours per spin are already there
+        const bool mirror_neighbours = false;
+        #else
+        // When running on a single thread, we need to re-create redundant neighbours
+        const bool mirror_neighbours = true;
+        n_neighbours *= 2;
+        #endif
+
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
 
-        Engine::Hamiltonian_Heisenberg* ham = 
-            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
-         
         output += "###    Interaction neighbours:\n";
-        output += fmt::format( "n_neighbours_exchange {}\n", 2 * ham->exchange_pairs.size() );
-        
+        output += fmt::format( "n_neighbours_exchange {}\n", n_neighbours );
+
         if (ham->exchange_pairs.size() > 0)
         {
             output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", 
@@ -43,13 +53,16 @@ namespace IO
                     ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
                     ham->exchange_pairs[i].translations[0], ham->exchange_pairs[i].translations[1], 
                     ham->exchange_pairs[i].translations[2], ham->exchange_magnitudes[i] );
-                // mirrored interactions 
-                output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
-                    ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
-                    (-1) * ham->exchange_pairs[i].translations[0], 
-                    (-1) * ham->exchange_pairs[i].translations[1], 
-                    (-1) * ham->exchange_pairs[i].translations[2], 
-                    ham->exchange_magnitudes[i] );
+                if( mirror_neighbours )
+                {
+                    // Mirrored interactions 
+                    output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
+                        ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
+                        (-1) * ham->exchange_pairs[i].translations[0], 
+                        (-1) * ham->exchange_pairs[i].translations[1], 
+                        (-1) * ham->exchange_pairs[i].translations[2], 
+                        ham->exchange_magnitudes[i] );
+                }
             }
         }
 
@@ -58,15 +71,25 @@ namespace IO
     
     void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ) 
     {
+        Engine::Hamiltonian_Heisenberg* ham = 
+            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
+        int n_neighbours = ham->dmi_pairs.size();
+
+        #if defined(SPIRIT_USE_OPENMP)
+        // When parallelising (cuda or openmp), all neighbours per spin are already there
+        const bool mirror_neighbours = false;
+        #else
+        // When running on a single thread, we need to re-create redundant neighbours
+        const bool mirror_neighbours = true;
+        n_neighbours *= 2;
+        #endif
+
         std::string output;
         output.reserve( int( 0x02000000 ) );  // reserve 32[MByte]
 
-        Engine::Hamiltonian_Heisenberg* ham = 
-            (Engine::Hamiltonian_Heisenberg *) system.hamiltonian.get();
-         
         output += "###    Interaction neighbours:\n";
-        output += fmt::format( "n_neighbours_dmi {}\n", 2 * ham->dmi_pairs.size() );
-        
+        output += fmt::format( "n_neighbours_dmi {}\n", n_neighbours );
+
         if (ham->dmi_pairs.size() > 0)
         {
             output += fmt::format( 
@@ -80,13 +103,16 @@ namespace IO
                     ham->dmi_pairs[i].translations[0], ham->dmi_pairs[i].translations[1], 
                     ham->dmi_pairs[i].translations[2], ham->dmi_magnitudes[i], 
                     ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2]);
-                // mirrored interactions 
-                output += fmt::format(
-                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                    ham->dmi_pairs[i].i, ham->dmi_pairs[i].j, (-1) * ham->dmi_pairs[i].translations[0], 
-                    (-1) * ham->dmi_pairs[i].translations[1], (-1) * ham->dmi_pairs[i].translations[2], 
-                    ham->dmi_magnitudes[i], (-1) * ham->dmi_normals[i][0], 
-                    (-1) * ham->dmi_normals[i][1], (-1) * ham->dmi_normals[i][2]);
+                if( mirror_neighbours )
+                {
+                    // Mirrored interactions 
+                    output += fmt::format(
+                        "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                        ham->dmi_pairs[i].i, ham->dmi_pairs[i].j, (-1) * ham->dmi_pairs[i].translations[0], 
+                        (-1) * ham->dmi_pairs[i].translations[1], (-1) * ham->dmi_pairs[i].translations[2], 
+                        ham->dmi_magnitudes[i], (-1) * ham->dmi_normals[i][0], 
+                        (-1) * ham->dmi_normals[i][1], (-1) * ham->dmi_normals[i][2]);
+                }
             }
         }
 

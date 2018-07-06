@@ -57,7 +57,7 @@ void HamiltonianHeisenbergWidget::updateData()
 void HamiltonianHeisenbergWidget::Load_Contents()
 {
 	float d, vd[3], jij[100], dij[100];
-	int n_neigh_shells_exchange, n_neigh_shells_dmi;
+	int n_neigh_shells_exchange, n_neigh_shells_dmi, dm_chirality;
 	int n_basis_atoms = Geometry_Get_N_Cell_Atoms(state.get());
 	std::vector<float> mu_s(n_basis_atoms);
 
@@ -97,7 +97,12 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 	for (int i = 0; i < n_neigh_shells_exchange; ++i) this->exchange_shells[i]->setValue(jij[i]);
 
 	// DMI
-	Hamiltonian_Get_DMI_Shells(state.get(), &n_neigh_shells_dmi, dij);
+	Hamiltonian_Get_DMI_Shells(state.get(), &n_neigh_shells_dmi, dij, &dm_chirality);
+	int index = 0;
+	if( dm_chirality == -1 ) index = 1;
+	else if( dm_chirality == 2 ) index = 2;
+	else if( dm_chirality == -2 ) index = 3;
+	this->comboBox_dmi_chirality->setCurrentIndex(index);
 	if (n_neigh_shells_dmi > 0) this->checkBox_dmi->setChecked(true);
 	this->spinBox_nshells_dmi->setValue(n_neigh_shells_dmi);
 	this->set_nshells_dmi();
