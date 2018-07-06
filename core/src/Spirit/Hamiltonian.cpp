@@ -222,33 +222,13 @@ void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int 
         {
             if (image->hamiltonian->Name() == "Heisenberg")
             {
-                #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
-                // When parallelising (cuda or openmp), we need all neighbours per spin
-                const bool remove_redundant = false;
-                #else
-                // When running on a single thread, we can ignore redundant neighbours
-                const bool remove_redundant = true;
-                #endif
-
-                // Get the necessary pairs list
-                pairfield neighbours(0);
-                intfield  shells(0);
-                Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells, neighbours, shells, remove_redundant);
-                scalarfield magnitudes(0);
-                for (int ineigh=0; ineigh<neighbours.size(); ++ineigh)
-                {
-                    magnitudes.push_back( { (scalar)jij[shells[ineigh]] } );
-                }
-                
-                // Set Hamiltonian's arrays
+                // Update the Hamiltonian
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
                 ham->exchange_shell_magnitudes = scalarfield(jij, jij + n_shells);
-                ham->exchange_pairs            = neighbours;
-                ham->exchange_magnitudes       = magnitudes;
-                
-                // Update the list of different contributions
-                ham->Update_Energy_Contributions();
-                
+                ham->exchange_pairs_in         = pairfield(0);
+                ham->exchange_magnitudes_in    = scalarfield(0);
+                ham->Update_Interactions();
+
                 std::string message = fmt::format("Set exchange to {} shells", n_shells);
                 if (n_shells > 0) message += fmt::format(" Jij[0] = {}", jij[0]);
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain);
@@ -285,35 +265,14 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chir
         {
             if (image->hamiltonian->Name() == "Heisenberg")
             {
-                #if defined SPIRIT_USE_CUDA || defined SPIRIT_USE_OPENMP
-                // When parallelising (cuda or openmp), we need all neighbours per spin
-                const bool remove_redundant = false;
-                #else
-                // When running on a single thread, we can ignore redundant neighbours
-                const bool remove_redundant = true;
-                #endif
-
-                // Get the necessary pairs list
-                intfield  shells(0);
-                pairfield neighbours(0);
-                Engine::Neighbours::Get_Neighbours_in_Shells(*image->geometry, n_shells, neighbours, shells, remove_redundant);
-                scalarfield magnitudes(0);
-                vectorfield normals(0);
-                for (int ineigh=0; ineigh<neighbours.size(); ++ineigh)
-                {
-                    magnitudes.push_back({ (scalar)dij[shells[ineigh]] });
-                    normals.push_back({ Engine::Neighbours::DMI_Normal_from_Pair( *image->geometry, neighbours[ineigh], chirality) } );
-                }
-
-                // Set Hamiltonian's arrays
+                // Update the Hamiltonian
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
                 ham->dmi_shell_magnitudes = scalarfield(dij, dij + n_shells);
-                ham->dmi_pairs            = neighbours;
-                ham->dmi_magnitudes       = magnitudes;
-                ham->dmi_normals          = normals;
-
-                // Update the list of different contributions
-                ham->Update_Energy_Contributions();
+                ham->dmi_shell_chirality  = chirality;
+                ham->dmi_pairs_in         = pairfield(0);
+                ham->dmi_magnitudes_in    = scalarfield(0);
+                ham->dmi_normals_in       = vectorfield(0);
+                ham->Update_Interactions();
 
                 std::string message = fmt::format("Set dmi to {} shells", n_shells);
                 if (n_shells > 0) message += fmt::format(" Dij[0] = {}", dij[0]);
@@ -603,7 +562,7 @@ void Hamiltonian_Get_Exchange_Pairs(State *state, float * idx[2], float * transl
     }
 }
 
-void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int * chirality, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -617,7 +576,8 @@ void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int i
         {
             auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
             
-            *n_shells = ham->dmi_shell_magnitudes.size();
+            *n_shells  = ham->dmi_shell_magnitudes.size();
+            *chirality = ham->dmi_shell_chirality;
             
             for (int i=0; i<*n_shells; ++i)
             {

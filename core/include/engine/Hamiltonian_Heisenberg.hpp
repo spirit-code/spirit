@@ -44,7 +44,7 @@ namespace Engine
             intfield boundary_conditions
         );
 
-        void Update_DDI_Pairs();
+        void Update_Interactions();
 
         void Update_Energy_Contributions() override;
 
@@ -77,10 +77,16 @@ namespace Engine
         // ------------ Pair Interactions ------------
         // Exchange interaction
         scalarfield exchange_shell_magnitudes;
+        pairfield   exchange_pairs_in;
+        scalarfield exchange_magnitudes_in;
         pairfield   exchange_pairs;
         scalarfield exchange_magnitudes;
         // DMI
         scalarfield dmi_shell_magnitudes;
+        int         dmi_shell_chirality;
+        pairfield   dmi_pairs_in;
+        scalarfield dmi_magnitudes_in;
+        vectorfield dmi_normals_in;
         pairfield   dmi_pairs;
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;

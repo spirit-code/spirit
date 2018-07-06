@@ -22,7 +22,7 @@ DLLEXPORT void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float
 DLLEXPORT void Hamiltonian_Get_Exchange_Shells(State *state, int * n_shells, float * jij, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT int  Hamiltonian_Get_Exchange_N_Pairs(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_Exchange_Pairs(State *state, float * idx[2], float * translations[3], float * Jij, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Hamiltonian_Get_DMI_Shells(State *state, int * n_shells, float * dij, int * chirality, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image=-1, int idx_chain=-1) noexcept;
 
