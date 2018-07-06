@@ -34,8 +34,8 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_n_shells(0),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_n_shells(0),
+        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_shell_magnitudes(0),
+        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_shell_magnitudes(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_cutoff_radius(ddi_radius)
     {
@@ -68,8 +68,8 @@ namespace Engine
         scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-        scalarfield exchange_magnitudes,
-        scalarfield dmi_magnitudes, int dm_chirality,
+        scalarfield exchange_shell_magnitudes,
+        scalarfield dmi_shell_magnitudes, int dm_chirality,
         scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
@@ -80,8 +80,8 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_n_shells(exchange_magnitudes.size()),
-        dmi_n_shells(dmi_magnitudes.size()),
+        exchange_shell_magnitudes(exchange_shell_magnitudes),
+        dmi_shell_magnitudes(dmi_shell_magnitudes),
         ddi_cutoff_radius(ddi_radius)
     {
         #if defined SPIRIT_USE_OPENMP
