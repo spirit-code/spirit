@@ -32,7 +32,7 @@ void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const
 
     // Heisenberg Hamiltonian
     if (system->hamiltonian->Name() == "Heisenberg")
-        std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>(system->hamiltonian)->Update_DDI_Pairs();
+        std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>(system->hamiltonian)->Update_Interactions();
 }
 
 void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry)
