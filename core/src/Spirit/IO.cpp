@@ -113,19 +113,9 @@ void IO_Positions_Write( State * state, const char *file, int format,
             
             switch( fileformat  )
             {
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                case IO::VF_FileFormat::GENERAL_TXT:
-                case IO::VF_FileFormat::GENERAL_CSV:
-                {
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                            "suported file format" ), idx_image, idx_chain );
-                    break;
-                }
-                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN:
                 case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
                 case IO::VF_FileFormat::OVF_TEXT:
                 case IO::VF_FileFormat::OVF_CSV:
                 {
@@ -292,19 +282,9 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
             
             switch( fileformat  )
             {
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                case IO::VF_FileFormat::GENERAL_TXT:
-                case IO::VF_FileFormat::GENERAL_CSV:
-                {
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                            "suported file format" ), idx_image, idx_chain );
-                    break;
-                }
-                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN:
                 case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
                 case IO::VF_FileFormat::OVF_TEXT:
                 case IO::VF_FileFormat::OVF_CSV:
                 {
@@ -361,19 +341,9 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
 
             switch( fileformat )
             {
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                case IO::VF_FileFormat::GENERAL_TXT:
-                case IO::VF_FileFormat::GENERAL_CSV:
-                {
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                            "suported file format" ), idx_image, idx_chain );
-                    break;
-                }
-                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN:
                 case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
                 case IO::VF_FileFormat::OVF_TEXT:
                 case IO::VF_FileFormat::OVF_CSV:
                 {
@@ -619,20 +589,9 @@ void IO_Chain_Write( State *state, const char *file, int format, const char* com
         
             switch( fileformat )
             {
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                case IO::VF_FileFormat::GENERAL_TXT:
-                case IO::VF_FileFormat::GENERAL_CSV:
-                { 
-                    // TODO: remove those enum
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                            "suported file format" ), idx_image, idx_chain );
-                    break;
-                }
-                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN:
                 case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
                 case IO::VF_FileFormat::OVF_TEXT:
                 case IO::VF_FileFormat::OVF_CSV:
                 {
@@ -696,20 +655,9 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
         
             switch( fileformat )
             {
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_SPIN:
-                case IO::VF_FileFormat::SPIRIT_WHITESPACE_POS_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_SPIN:
-                case IO::VF_FileFormat::SPIRIT_CSV_POS_SPIN:
-                case IO::VF_FileFormat::GENERAL_TXT:
-                case IO::VF_FileFormat::GENERAL_CSV:
-                { 
-                    // TODO: remove those enum
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                            "suported file format" ), idx_image, idx_chain );
-                    break;
-                }
-                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_BIN:
                 case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
                 case IO::VF_FileFormat::OVF_TEXT:
                 case IO::VF_FileFormat::OVF_CSV:
                 {

@@ -3,6 +3,7 @@
 #include <Spirit/System.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/Configurations.h>
+#include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Parameters.h>
@@ -41,7 +42,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
 
     // Make sure that mu_s is the same as the one define in input file
     float mu_s;
-    Hamiltonian_Get_mu_s( state.get(), &mu_s );
+    Geometry_Get_mu_s( state.get(), &mu_s );
     REQUIRE( mu_s == 2 );
 
     // Get the magnitude of the magnetic field ( it has only z-axis component )

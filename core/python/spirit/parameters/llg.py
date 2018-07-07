@@ -1,4 +1,5 @@
 import spirit.spiritlib as spiritlib
+from spirit.io import FILEFORMAT_OVF_TEXT
 import ctypes
 
 ### Load Library
@@ -49,7 +50,7 @@ _Set_LLG_Output_Configuration          = _spirit.Parameters_Set_LLG_Output_Confi
 _Set_LLG_Output_Configuration.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_bool,
                                             ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _Set_LLG_Output_Configuration.restype  = None
-def setOutputConfiguration(p_state, step=False, archive=True, filetype=6, idx_image=-1, idx_chain=-1):
+def setOutputConfiguration(p_state, step=False, archive=True, filetype=FILEFORMAT_OVF_TEXT, idx_image=-1, idx_chain=-1):
     _Set_LLG_Output_Configuration(ctypes.c_void_p(p_state), ctypes.c_bool(step), ctypes.c_bool(archive),
                         ctypes.c_int(filetype), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 

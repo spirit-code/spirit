@@ -578,16 +578,19 @@ namespace IO
 
 
     void Defects_from_File(const std::string defectsFile, int & n_defects,
-        intfield & defect_indices, intfield & defect_types)
+        intfield & da, intfield & db, intfield & dc, intfield & defect_types)
     {
         n_defects = 0;
+        da = intfield(0);
+        db = intfield(0);
+        dc = intfield(0);
+        defect_types = intfield(0);
 
-        int nod = 0;
-        intfield indices(0), types(0);
         try
         {
             Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
             Filter_File_Handle myfile(defectsFile);
+            int nod = 0;
 
             if (myfile.Find("n_defects"))
             {
@@ -604,19 +607,16 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
             }
 
-            int i_defect = 0;
-            while (myfile.GetLine() && i_defect < nod)
+            while (myfile.GetLine() && n_defects < nod)
             {
-                int index, type;
-                myfile.iss >> index >> type;
-                indices.push_back(index);
-                types.push_back(type);
-                ++i_defect;
+                int _da, _db, _dc, type;
+                myfile.iss >> _da >> _db >> _dc >> type;
+                da.push_back(_da);
+                db.push_back(_db);
+                dc.push_back(_dc);
+                defect_types.push_back(type);
+                ++n_defects;
             }
-
-            defect_indices = indices;
-            defect_types = types;
-            n_defects = i_defect;
 
             Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
         }
@@ -627,13 +627,14 @@ namespace IO
     } // End Defects_from_File
 
     void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
-        intfield & pinned_indices, vectorfield & pinned_spins)
+        intfield & da, intfield & db, intfield & dc, vectorfield & pinned_spins)
     {
-        n_pinned = 0;
-
         int nop = 0;
-        intfield indices(0);
-        vectorfield spins(0);
+        n_pinned = 0;
+        da = intfield(0);
+        db = intfield(0);
+        dc = intfield(0);
+        pinned_spins = vectorfield(0);
         try
         {
             Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
@@ -654,20 +655,17 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
             }
 
-            int i_pinned = 0;
-            while (myfile.GetLine() && i_pinned < nop)
+            while (myfile.GetLine() && n_pinned < nop)
             {
-                int index;
+                int _da, _db, _dc;
                 scalar sx, sy, sz;
-                myfile.iss >> index >> sx >> sy >> sz;
-                indices.push_back(index);
-                spins.push_back({sx, sy, sz});
-                ++i_pinned;
+                myfile.iss >> _da >> _db >> _dc >> sx >> sy >> sz;
+                da.push_back(_da);
+                db.push_back(_db);
+                dc.push_back(_dc);
+                pinned_spins.push_back({sx, sy, sz});
+                ++n_pinned;
             }
-
-            pinned_indices = indices;
-            pinned_spins = spins;
-            n_pinned = i_pinned;
 
             Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
         }

@@ -4,6 +4,12 @@ import ctypes
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 
+FILEFORMAT_OVF_BIN  = 0
+FILEFORMAT_OVF_BIN4 = 1
+FILEFORMAT_OVF_BIN8 = 2
+FILEFORMAT_OVF_TEXT = 3
+FILEFORMAT_OVF_CSV  = 4
+
 ### Get the number of images in a file
 _N_Images_In_File             = _spirit.IO_N_Images_In_File
 _N_Images_In_File.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
@@ -27,7 +33,7 @@ _Image_Write             = _spirit.IO_Image_Write
 _Image_Write.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
                             ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
 _Image_Write.restype     = None
-def Image_Write(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1):
+def Image_Write(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_image=-1, idx_chain=-1):
     _Image_Write(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')),
                  ctypes.c_int(fileformat), ctypes.c_char_p(comment.encode('utf-8')),
                  ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -37,7 +43,7 @@ _Image_Append             = _spirit.IO_Image_Append
 _Image_Append.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
                              ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
 _Image_Append.restype     = None
-def Image_Append(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1):
+def Image_Append(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_image=-1, idx_chain=-1):
     _Image_Append(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')),
                   ctypes.c_int(fileformat), ctypes.c_char_p(filename.encode('utf-8')),
                   ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -58,7 +64,7 @@ _Chain_Write             = _spirit.IO_Chain_Write
 _Chain_Write.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
                             ctypes.c_int]
 _Chain_Write.restype     = None
-def Chain_Write(p_state, filename, fileformat=6, comment=" ", idx_chain=-1):
+def Chain_Write(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_chain=-1):
     _Chain_Write(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')),
                  ctypes.c_int(fileformat), ctypes.c_char_p(comment.encode('utf-8')),
                  ctypes.c_int(idx_chain))
@@ -68,7 +74,7 @@ _Chain_Append             = _spirit.IO_Chain_Append
 _Chain_Append.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
                             ctypes.c_int]
 _Chain_Append.restype     = None
-def Chain_Append(p_state, filename, fileformat=6, comment=" ", idx_chain=-1):
+def Chain_Append(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_chain=-1):
     _Chain_Append(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')),
                  ctypes.c_int(fileformat), ctypes.c_char_p(comment.encode('utf-8')),
                  ctypes.c_int(idx_chain))

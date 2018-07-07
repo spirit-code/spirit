@@ -245,25 +245,22 @@ Note also, IO is still being re-written and only OVF will be supported as output
 | For Image                                                                                 | Description                          |
 | ----------------------------------------------------------------------------------------- | ------------------------------------ |
 | `Image_Read(p_state, filename, idx_image_infile=0, idx_image_inchain=-1, idx_chain=-1)`   | Read specified image from a file to specified image in the chain |
-| `Image_Write(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1)`   | Write an image to disk               |
-| `Image_Append(p_state, filename, fileformat=6, comment=" ", idx_image=-1, idx_chain=-1)`  | Append an image to an existing file  |
+| `Image_Write(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_image=-1, idx_chain=-1)`   | Write an image to disk               |
+| `Image_Append(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_image=-1, idx_chain=-1)`  | Append an image to an existing file  |
 
 | For Chain                                                                     | Description                          |
 | ----------------------------------------------------------------------------- | ------------------------------------ |
 | `Chain_Read(p_state, filename, starting_image=-1, ending_image=-1, insert_idx=-1, idx_chain=-1)` | Read some images from a file and insert them into the chain, starting at a specified index |
-| `Chain_Write(p_state, filename, fileformat=6, comment=" ", idx_chain=-1)`     | Write a chain of images to disk      |
-| `Chain_Append(p_state, filename, fileformat=6, comment=" ", idx_chain=-1)`    | Append a chain of images to disk     |
+| `Chain_Write(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_chain=-1)`     | Write a chain of images to disk      |
+| `Chain_Append(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=" ", idx_chain=-1)`    | Append a chain of images to disk     |
 
 | Macros of File Formats for Vector Fields | values  | Description                                       |
 | ---------------------------------------- | :-----: | --------------------------------------------------|
-| `IO_Fileformat_Regular`                  | 0       | sx sy sz (separated by whitespace)                |
-| `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
-| `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
-| `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
-| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary-8)  |
-| `IO_Fileformat_OVF_bin4`                 | 5       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary-4)  |
-| `IO_Fileformat_OVF_text`                 | 6       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (plaintext) |
-| `IO_Fileformat_OVF_csv`                  | 7       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (comma-separated plaintext) |
+| `FILEFORMAT_OVF_BIN`                     | 0       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary, automatically determined size)  |
+| `FILEFORMAT_OVF_BIN4`                    | 1       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 4)  |
+| `FILEFORMAT_OVF_BIN8`                    | 2       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 8)  |
+| `FILEFORMAT_OVF_TEXT`                    | 3       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (plaintext) |
+| `FILEFORMAT_OVF_CSV`                     | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (comma-separated plaintext) |
 
 
 ---

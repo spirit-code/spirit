@@ -31,9 +31,9 @@ namespace IO
     void Quadruplets_from_File( const std::string quadrupletsFile, 
                                 const std::shared_ptr<Data::Geometry> geometry, int& noq,
                                 quadrupletfield& quadruplets, scalarfield& quadruplet_magnitudes );
-    void Defects_from_File( const std::string defectsFile, int& n_defects,
-                            intfield& defect_indices, intfield & defect_types );
-    void Pinned_from_File( const std::string pinnedFile, int& n_pinned,
-                           intfield& pinned_indices, vectorfield& pinned_spins );
+    void Defects_from_File( const std::string defectsFile, int & n_defects, intfield & da,
+                            intfield & db, intfield & dc, intfield & defect_types);
+    void Pinned_from_File( const std::string pinnedFile, int & n_pinned, intfield & da,
+                           intfield & db, intfield & dc, vectorfield & pinned_spins);
 };// end namespace IO
 #endif

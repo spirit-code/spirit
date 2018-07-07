@@ -72,8 +72,10 @@ namespace IO
             config += "bravais_vectors\n";
             config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
         }
+
         // Number of cells
         config += fmt::format("n_basis_cells {} {} {}\n", geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]);
+
         // Optionally basis
         if (geometry->n_cell_atoms > 1)
         {
@@ -84,9 +86,17 @@ namespace IO
                 config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
             }
         }
+
+        // Magnetic moment
+        config += "mu_s                     ";
+        for (int i=0; i<geometry->n_cell_atoms; ++i)
+            config += fmt::format(" {}", geometry->mu_s[i]);
+        config += "\n";
+
         // Optionally lattice constant
         if (std::abs(geometry->lattice_constant-1) > 1e-6)
             config += fmt::format("lattice_constant {}\n", geometry->lattice_constant);
+
         config += "################## End Geometry ##################";
         Append_String_to_File(config, configFile);
     }// end Geometry_to_Config
@@ -203,12 +213,6 @@ namespace IO
         int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
         std::string config = "";
         Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
-        
-        // Magnetic moment
-        config += "mu_s                     ";
-        for (int i=0; i<geometry->n_cell_atoms; ++i)
-            config += fmt::format(" {}", ham->mu_s[i]);
-        config += "\n";
 
         // External Field
         config += "###    External Field:\n";

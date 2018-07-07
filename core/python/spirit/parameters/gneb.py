@@ -1,4 +1,5 @@
 import spirit.spiritlib as spiritlib
+from spirit.io import FILEFORMAT_OVF_TEXT
 import ctypes
 
 ### Load Library
@@ -47,7 +48,7 @@ def setOutputEnergy(p_state, step=True, interpolated=True, divide_by_nos=True, a
 _Set_GNEB_Output_Chain          = _spirit.Parameters_Set_GNEB_Output_Chain
 _Set_GNEB_Output_Chain.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _Set_GNEB_Output_Chain.restype  = None
-def setOutputConfiguration(p_state, step=False, filetype=6, idx_image=-1, idx_chain=-1):
+def setOutputConfiguration(p_state, step=False, filetype=FILEFORMAT_OVF_TEXT, idx_image=-1, idx_chain=-1):
     _Set_GNEB_Output_Chain(ctypes.c_void_p(p_state), ctypes.c_bool(step), ctypes.c_int(filetype),
                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 

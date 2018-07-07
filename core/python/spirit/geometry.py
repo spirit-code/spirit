@@ -10,6 +10,14 @@ from spirit import system
 
 import numpy as np
 
+Bravais_Lattice_Irregular   = 0
+Bravais_Lattice_Rectilinear = 1
+Bravais_Lattice_SC          = 2
+Bravais_Lattice_Hex2D       = 3
+Bravais_Lattice_HCP         = 4
+Bravais_Lattice_BCC         = 5
+Bravais_Lattice_FCC         = 6
+
 ### ---------------------------------- Set ----------------------------------
 
 ### Set the type of Bravais lattice. Can be e.g. "sc" or "bcc"
@@ -26,6 +34,15 @@ _Set_N_Cells.restype  = None
 def setNCells(p_state, n_cells=[1, 1, 1], idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_int * 3
     _Set_N_Cells(ctypes.c_void_p(p_state), vec3(*n_cells))
+
+### Set magnetic moment globally
+_Set_mu_s             = _spirit.Geometry_Set_mu_s
+_Set_mu_s.argtypes    = [ctypes.c_void_p, ctypes.c_float,
+                          ctypes.c_int, ctypes.c_int]
+_Set_mu_s.restype     = None
+def Set_mu_s(p_state, mu_s, idx_image=-1, idx_chain=-1):
+    _Set_mu_s(ctypes.c_void_p(p_state), ctypes.c_float(mu_s),
+              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set the types of the atoms in a basis cell
 _Set_Cell_Atom_Types          = _spirit.Geometry_Set_Cell_Atom_Types

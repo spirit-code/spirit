@@ -10,7 +10,7 @@
 #include <Spirit/Hamiltonian.h>
 
 // Small function for normalization of vectors
-#define Exception_Division_by_zero 666666666666
+#define Exception_Division_by_zero 6666
 template <typename T>
 void normalize(T v[3])
 {
@@ -69,7 +69,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 	this->checkBox_aniso_periodical_c->setChecked(boundary_conditions[2]);
 
 	// mu_s
-	Hamiltonian_Get_mu_s(state.get(), mu_s.data());
+	Geometry_Get_mu_s(state.get(), mu_s.data());
 	this->lineEdit_muSpin_aniso->setText(QString::number(mu_s[0]));
 
 	// External magnetic field
@@ -165,7 +165,7 @@ void HamiltonianHeisenbergWidget::set_mu_s()
 	{
 		// mu_s
 		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
-		Hamiltonian_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
+		Geometry_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")

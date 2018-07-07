@@ -39,8 +39,9 @@ namespace Data
     public:
         // ---------- Constructor
         //  Build a regular lattice from a defined basis cell and translations
-        Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms, intfield cell_atom_types,
-            scalar lattice_constant);
+        Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
+            std::vector<Vector3> cell_atoms, scalarfield mu_s,
+            intfield cell_atom_types, scalar lattice_constant);
 
 
         // ---------- Convenience functions
@@ -69,6 +70,8 @@ namespace Data
         int n_cell_atoms;
         // Array of basis atom positions
         std::vector<Vector3> cell_atoms;
+        // Spin moments of basis cell atoms
+        scalarfield mu_s;
         // Atom types of the atoms in a unit cell:
         // type index 0..n or or vacancy (type < 0)
         intfield cell_atom_types;

@@ -305,9 +305,11 @@ namespace Engine
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
                     
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
                     if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
                         format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin8)
+                        format = IO::VF_FileFormat::OVF_BIN8;
                     else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
                         format = IO::VF_FileFormat::OVF_TEXT;
                     else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)

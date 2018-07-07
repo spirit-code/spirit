@@ -300,9 +300,11 @@ namespace Engine
                     std::string chainFile = preChainFile + suffix + ".ovf";
 
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
                     if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin4)
                         format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin8)
+                        format = IO::VF_FileFormat::OVF_BIN8;
                     else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_text)
                         format = IO::VF_FileFormat::OVF_TEXT;
                     else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_csv)

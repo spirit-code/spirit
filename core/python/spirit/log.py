@@ -4,6 +4,22 @@ import ctypes
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 
+Level_All       = 0
+Level_Severe    = 1
+Level_Error     = 2
+Level_Warning   = 3
+Level_Parameter = 4
+Level_Info      = 5
+Level_Debug     = 6
+
+Sender_All  = 0
+Sender_IO   = 1
+Sender_GNEB = 2
+Sender_LLG  = 3
+Sender_MC   = 4
+Sender_MMF  = 5
+Sender_API  = 6
+Sender_UI   = 7
 
 ### Send a Log message
 _Send          = _spirit.Log_Send

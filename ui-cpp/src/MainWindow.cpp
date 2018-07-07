@@ -1251,13 +1251,18 @@ void MainWindow::save_Spin_Configuration()
 		tr("Save Spin Configuration"),
 		"./output",
 		tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
-			"OOMF Vector Field binary (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
+			"OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf)"
+			"OOMF Vector Field binary 4 (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
 		&selectedFilter);
 
 	if (!fileName.isEmpty())
 	{
 		int fileFormat = IO_Fileformat_OVF_text;
 		if (selectedFilter == "OOMF Vector Field binary (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_bin;
+		if (selectedFilter == "OOMF Vector Field binary 4 (*.ovf)")
+			fileFormat = IO_Fileformat_OVF_bin4;
+		if (selectedFilter == "OOMF Vector Field binary 8 (*.ovf)")
 			fileFormat = IO_Fileformat_OVF_bin8;
 		if (selectedFilter == "OOMF Vector Field csv (*.ovf)")
 			fileFormat = IO_Fileformat_OVF_csv;
@@ -1282,7 +1287,6 @@ void MainWindow::load_Spin_Configuration()
 	{
 		int noi = Chain_Get_NOI(this->state.get());
 		bool read_image = true;
-		int type = IO_Fileformat_Regular;
 
 		if ( fileName.isEmpty() ) read_image = false;
 

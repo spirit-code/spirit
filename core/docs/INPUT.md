@@ -409,12 +409,12 @@ pinning_cell
 To specify individual pinned sites (overriding the above pinning settings),
 insert a list into your input. For example:
 ```Python
-### Specify the number of pinned sites and then the directions
-### ispin S_x S_y S_z
+### Specify the number of pinned sites and then the sites (in terms of translations) and directions
+### da db dc  Sx Sy Sz
 n_pinned 3
-0 1.0 0.0 0.0
-1 0.0 1.0 0.0
-2 0.0 0.0 1.0
+0 0 0  1.0 0.0 0.0
+1 0 0  0.0 1.0 0.0
+0 1 0  0.0 0.0 1.0
 ```
 You may also place it into a separate file with the keyword `pinned_from_file`,
 e.g.
@@ -444,12 +444,12 @@ To specify defects, be it vacancies or impurities, you may fix atom types for
 sites of the whole lattice by inserting a list into your input. For example:
 ```Python
 ### Atom types: type index 0..n or or vacancy (type < 0)
-### Specify the number of defects and then the defects
-### ispin itype
+### Specify the number of defects and then the defects in terms of translations and type
+### da db dc  itype
 n_defects 3
-0 -1
-1 -1
-2 -1
+0 0 0  -1
+1 0 0  -1
+0 1 0  -1
 ```
 You may also place it into a separate file with the keyword `defects_from_file`,
 e.g.

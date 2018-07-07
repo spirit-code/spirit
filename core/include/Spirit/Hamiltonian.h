@@ -4,19 +4,23 @@
 #include "DLL_Define_Export.h"
 struct State;
 
+#define SPIRIT_CHIRALITY_BLOCH 1
+#define SPIRIT_CHIRALITY_NEEL  2
+#define SPIRIT_CHIRALITY_BLOCH_INVERSE -1
+#define SPIRIT_CHIRALITY_NEEL_INVERSE  -2
+
 // Set the Hamiltonian's parameters
 DLLEXPORT void Hamiltonian_Set_Boundary_Conditions(State *state, const bool* periodical, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image=-1, int idx_chain=-1) noexcept;
+
 DLLEXPORT void Hamiltonian_Set_Field(State *state, float magnitude, const float* normal, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Set_Anisotropy(State *state, float magnitude, const float* normal, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Set_Exchange(State *state, int n_shells, const float* jij, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chirality=1, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chirality=SPIRIT_CHIRALITY_BLOCH, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Set_DDI(State *state, float radius, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get the Hamiltonian's parameters
 DLLEXPORT const char * Hamiltonian_Get_Name(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Hamiltonian_Get_Exchange_Shells(State *state, int * n_shells, float * jij, int idx_image=-1, int idx_chain=-1) noexcept;

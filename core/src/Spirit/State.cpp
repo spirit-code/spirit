@@ -412,7 +412,7 @@ void Save_Initial_Final( State * state, bool initial )
              (Log.save_positions_final   && !initial) )
         {
             std::string file = folder + "/output/" + tag + "positions_" + suffix + ".txt";
-            IO_Positions_Write(state, file.c_str(), IO_Fileformat_Regular, state->config_file.c_str());
+            IO_Positions_Write(state, file.c_str(), IO_Fileformat_OVF_text, state->config_file.c_str());
         }
     }
     catch( ... )

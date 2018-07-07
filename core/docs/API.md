@@ -292,12 +292,11 @@ IO
 
 | Macros of File Formats for Vector Fields | values  | Description                                       |
 | ---------------------------------------- | :-----: | --------------------------------------------------|
-| `IO_Fileformat_Regular`                  | 0       | sx sy sz (separated by whitespace)                |
-| `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
-| `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
-| `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
-| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
-| `IO_Fileformat_OVF_text`                 | 6       |                                                   |
+| `IO_Fileformat_OVF_bin`                  | 0       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary, automatically determined size)  |
+| `IO_Fileformat_OVF_bin`                  | 1       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 4)  |
+| `IO_Fileformat_OVF_bin`                  | 2       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 8)  |
+| `IO_Fileformat_OVF_text`                 | 3       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (plaintext) |
+| `IO_Fileformat_OVF_csv`                  | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (comma-separated plaintext) |
 
 Read and Write functions
 

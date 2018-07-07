@@ -19,13 +19,17 @@ namespace IO
         this->n_segments = -1;
 
         // the datatype_out is used when writing an OVF file
-        if ( this->format == VF_FileFormat::OVF_BIN8 ) 
+        if ( this->format == VF_FileFormat::OVF_BIN && sizeof(scalar) == sizeof(double) )
             this->datatype_out = "Binary 8";
-        else if ( this->format == VF_FileFormat::OVF_BIN4 ) 
+        else if ( this->format == VF_FileFormat::OVF_BIN && sizeof(scalar) == sizeof(float) )
             this->datatype_out = "Binary 4";
-        else if( this->format == VF_FileFormat::OVF_TEXT ) 
+        else if ( this->format == VF_FileFormat::OVF_BIN4 )
+            this->datatype_out = "Binary 4";
+        else if ( this->format == VF_FileFormat::OVF_BIN8 )
+            this->datatype_out = "Binary 8";
+        else if( this->format == VF_FileFormat::OVF_TEXT )
             this->datatype_out = "Text";
-        else if( this->format == VF_FileFormat::OVF_CSV ) 
+        else if( this->format == VF_FileFormat::OVF_CSV )
             this->datatype_out = "CSV";
 
         this->ifile = NULL;
@@ -441,15 +445,15 @@ namespace IO
     {
         // float test value
         const float ref_4b = *reinterpret_cast<const float *>( &this->test_hex_4b );
-        
         // double test value
         const double ref_8b = *reinterpret_cast<const double *>( &this->test_hex_8b );
-        
-        if( format == VF_FileFormat::OVF_BIN8 )
+
+        if( (format == VF_FileFormat::OVF_BIN && sizeof(scalar) == sizeof(double)) ||
+             format == VF_FileFormat::OVF_BIN8 )
         {
             this->output_to_file += std::string( reinterpret_cast<const char *>(&ref_8b),
                 sizeof(double) );
-            
+
             // in case that scalar is 4bytes long
             if (sizeof(scalar) == sizeof(float))
             {
@@ -470,11 +474,12 @@ namespace IO
                         std::string( reinterpret_cast<const char *>(&vf[i]), 3*sizeof(double) );
             }
         }
-        else if( format == VF_FileFormat::OVF_BIN4 )
+        else if( (format == VF_FileFormat::OVF_BIN && sizeof(scalar) == sizeof(float)) ||
+                  format == VF_FileFormat::OVF_BIN4 )
         {
             this->output_to_file += std::string( reinterpret_cast<const char *>(&ref_4b),
                 sizeof(float) );
-            
+
             // in case that scalar is 8bytes long
             if (sizeof(scalar) == sizeof(double))
             {
@@ -513,10 +518,10 @@ namespace IO
         try
         {
             std::fstream file( this->filename ); 
-       
+
             // update n_segments
             this->n_segments++;
-            
+
             // convert updated n_segment into padded string
             std::string new_n_str = std::to_string( this->n_segments );
             std::string::size_type new_n_len = new_n_str.length();
@@ -526,7 +531,7 @@ namespace IO
 
             // n_segments_pos is the end of the line that contains '#segment count' (after '\n')
             std::ios::off_type offset = this->n_segments_str_digits + 1;
-            
+
             // go to the beginning '#segment count' value position
             file.seekg( this->n_segments_pos );
             file.seekg( (-1)*offset, std::ios::cur );
@@ -549,7 +554,7 @@ namespace IO
         {
             this->ifile = std::unique_ptr<Filter_File_Handle>( 
                                 new Filter_File_Handle( this->filename, this->comment_tag ) ); 
-           
+
             // get the number of segments from the initial keyword
             ifile->Require_Single( this->n_segments, "# segment count:" ); 
 
@@ -560,7 +565,7 @@ namespace IO
             this->n_segments_pos = this->ifile->GetPosition();
 
             // TODO: what will happen if the n_segments does not have padding?
-            
+
             // close the file
             this->ifile = NULL;
         }
@@ -582,7 +587,7 @@ namespace IO
             int n_begin_segment = 0;
             
             std::ios::pos_type end = this->ifile->GetPosition( std::ios::end ); 
-            
+
             // NOTE: the keyword to find must be lower case since the Filter File Handle 
             // converts the content of the input file to lower case automatically
             while( ifile->Find( "# begin: segment" ) )
@@ -649,7 +654,7 @@ namespace IO
                 // open the file
                 this->ifile = std::unique_ptr<Filter_File_Handle>( 
                                     new Filter_File_Handle( this->filename, this->comment_tag ) ); 
-                
+
                 // NOTE: seg_idx.max = segment_fpos.size - 2
                 if ( idx_seg >= ( this->segment_fpos.size() - 1 ) )
                     spirit_throw( Exception_Classifier::Input_parse_failed, Log_Level::Error,
@@ -657,7 +662,7 @@ namespace IO
 
                 this->ifile->SetLimits( this->segment_fpos[idx_seg], 
                                         this->segment_fpos[idx_seg+1] );
-           
+
                 read_header();
                 check_geometry( geometry );
                 read_data( vf, geometry );
@@ -756,7 +761,9 @@ namespace IO
             // Data
             this->output_to_file += fmt::format( "# Begin: Data {}\n", this->datatype_out );
 
-            if ( this->format == VF_FileFormat::OVF_BIN8 || format == VF_FileFormat::OVF_BIN4 )
+            if( this->format == VF_FileFormat::OVF_BIN  ||
+                this->format == VF_FileFormat::OVF_BIN4 ||
+                this->format == VF_FileFormat::OVF_BIN8 )
                 write_data_bin( vf );
             else if ( this->format == VF_FileFormat::OVF_TEXT )
                 write_data_txt( vf );

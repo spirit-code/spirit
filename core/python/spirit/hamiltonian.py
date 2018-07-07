@@ -4,6 +4,11 @@ import ctypes
 ### Load Library
 _spirit = spiritlib.LoadSpiritLibrary()
 
+CHIRALITY_BLOCH         =  1
+CHIRALITY_NEEL          =  2
+CHIRALITY_BLOCH_INVERSE = -1
+CHIRALITY_NEEL_INVERSE  = -2
+
 ### ---------------------------------- Set ----------------------------------
 
 ### Set boundary conditions
@@ -15,15 +20,6 @@ def Set_Boundary_Conditions(p_state, boundaries, idx_image=-1, idx_chain=-1):
     bool3 = ctypes.c_bool * 3
     _Set_Boundary_Conditions(ctypes.c_void_p(p_state), bool3(*boundaries),
                              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-
-### Set magnetic moment globally
-_Set_mu_s             = _spirit.Hamiltonian_Set_mu_s
-_Set_mu_s.argtypes    = [ctypes.c_void_p, ctypes.c_float,
-                          ctypes.c_int, ctypes.c_int]
-_Set_mu_s.restype     = None
-def Set_mu_s(p_state, mu_s, idx_image=-1, idx_chain=-1):
-    _Set_mu_s(ctypes.c_void_p(p_state), ctypes.c_float(mu_s),
-              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set global external magnetic field
 _Set_Field             = _spirit.Hamiltonian_Set_Field
@@ -60,7 +56,7 @@ _Set_DMI             = _spirit.Hamiltonian_Set_DMI
 _Set_DMI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
                         ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _Set_DMI.restype     = None
-def Set_DMI(p_state, n_shells, D_ij, chirality=1, idx_image=-1, idx_chain=-1):
+def Set_DMI(p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, idx_chain=-1):
     vec = ctypes.c_float * n_shells
     _Set_DMI(ctypes.c_void_p(p_state), ctypes.c_int(n_shells), vec(*D_ij),
              ctypes.c_int(chirality), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))

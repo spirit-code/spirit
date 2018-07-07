@@ -21,7 +21,6 @@ namespace Engine
     {
     public:
         Hamiltonian_Heisenberg(
-            scalarfield mu_s,
             scalar external_field_magnitude, Vector3 external_field_normal,
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
@@ -33,7 +32,6 @@ namespace Engine
         );
 
         Hamiltonian_Heisenberg(
-            scalarfield mu_s,
             scalar external_field_magnitude, Vector3 external_field_normal,
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             scalarfield exchange_shell_magnitudes,
@@ -59,8 +57,6 @@ namespace Engine
         const std::string& Name() override;
         
         // ------------ Single Spin Interactions ------------
-        // Spin moments of basis cell atoms
-        scalarfield mu_s;
         // External magnetic field across the sample
         scalar external_field_magnitude;
         Vector3 external_field_normal;

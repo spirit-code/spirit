@@ -9,7 +9,7 @@
 #include <Spirit/Log.h>
 
 // Small function for normalization of vectors
-#define Exception_Division_by_zero 666666666666
+#define Exception_Division_by_zero 6666
 template <typename T>
 void normalize(T v[3])
 {
@@ -263,7 +263,7 @@ void ParametersWidget::set_parameters_llg()
 		Parameters_Set_LLG_Output_Energy(state.get(), b1, b2, b3, b4, idx_image, idx_chain);
 		b1 = this->checkBox_llg_output_configuration_step->isChecked();
 		b2 = this->checkBox_llg_output_configuration_archive->isChecked();
-		Parameters_Set_LLG_Output_Configuration(state.get(), b1, b2, idx_image, idx_chain);
+		Parameters_Set_LLG_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image, idx_chain);
 	};
 
 	if (this->comboBox_LLG_ApplyTo->currentText() == "Current Image")
