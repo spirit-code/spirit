@@ -28,37 +28,18 @@ namespace Engine
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
     ) :
-        Hamiltonian(boundary_conditions), geometry(geometry),
+        Hamiltonian(boundary_conditions),
+        geometry(geometry),
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes), exchange_shell_magnitudes(0),
-        dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals), dmi_shell_magnitudes(0),
+        exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
+        dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_cutoff_radius(ddi_radius)
     {
-        #if defined SPIRIT_USE_OPENMP
-        for (int i = 0; i < exchange_pairs.size(); ++i)
-        {
-            auto& p = exchange_pairs[i];
-            auto& t = p.translations;
-            this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            this->exchange_magnitudes.push_back(exchange_magnitudes[i]);
-        }
-        for (int i = 0; i < dmi_pairs.size(); ++i)
-        {
-            auto& p = dmi_pairs[i];
-            auto& t = p.translations;
-            this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
-            this->dmi_magnitudes.push_back(dmi_magnitudes[i]);
-            this->dmi_normals.push_back(-dmi_normals[i]);
-        }
-        #endif
-
-        // Generate DDI pairs, magnitudes, normals
-        this->Update_DDI_Pairs();
-
-        this->Update_Energy_Contributions();
+        // Generate interaction pairs, constants etc.
+        this->Update_Interactions();
     }
 
     // Construct a Heisenberg Hamiltonian from shells
@@ -78,43 +59,90 @@ namespace Engine
         mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
-        exchange_shell_magnitudes(exchange_shell_magnitudes),
-        dmi_shell_magnitudes(dmi_shell_magnitudes),
+        exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
+        dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dm_chirality),
+        quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_cutoff_radius(ddi_radius)
     {
-        #if defined SPIRIT_USE_OPENMP
-        // When parallelising (cuda or openmp), we need all neighbours per spin
-        const bool remove_redundant = false;
-        #else
-        // When running on a single thread, we can ignore redundant neighbours
-        const bool remove_redundant = true;
-        #endif
-
-        // Generate Exchange neighbours
-        intfield exchange_shells(0);
-        Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_magnitudes.size(), exchange_pairs, exchange_shells, remove_redundant);
-        for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
-        {
-            this->exchange_magnitudes.push_back(exchange_magnitudes[exchange_shells[ipair]]);
-        }
-
-        // Generate DMI neighbours and normals
-        intfield dmi_shells(0);
-        Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_magnitudes.size(), dmi_pairs, dmi_shells, remove_redundant);
-        for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
-        {
-            this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
-            this->dmi_magnitudes.push_back(dmi_magnitudes[dmi_shells[ineigh]]);
-        }
-
-        // Generate DDI pairs, magnitudes, normals
-        this->Update_DDI_Pairs();
-
-        this->Update_Energy_Contributions();
+        // Generate interaction pairs, constants etc.
+        this->Update_Interactions();
     }
 
-    void Hamiltonian_Heisenberg::Update_DDI_Pairs()
+    void Hamiltonian_Heisenberg::Update_Interactions()
     {
+        #if defined(SPIRIT_USE_OPENMP)
+        // When parallelising (cuda or openmp), we need all neighbours per spin
+        const bool use_redundant_neighbours = true;
+        #else
+        // When running on a single thread, we can ignore redundant neighbours
+        const bool use_redundant_neighbours = false;
+        #endif
+
+        // Exchange
+        this->exchange_pairs      = pairfield(0);
+        this->exchange_magnitudes = scalarfield(0);
+        if( exchange_shell_magnitudes.size() > 0 )
+        {
+            // Generate Exchange neighbours
+            intfield exchange_shells(0);
+            Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours);
+            for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+            {
+                this->exchange_magnitudes.push_back(exchange_shell_magnitudes[exchange_shells[ipair]]);
+            }
+        }
+        else
+        {
+            // Use direct list of pairs
+            this->exchange_pairs      = this->exchange_pairs_in;
+            this->exchange_magnitudes = this->exchange_magnitudes_in;
+            if( use_redundant_neighbours )
+            {
+                for (int i = 0; i < exchange_pairs_in.size(); ++i)
+                {
+                    auto& p = exchange_pairs_in[i];
+                    auto& t = p.translations;
+                    this->exchange_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+                    this->exchange_magnitudes.push_back(exchange_magnitudes_in[i]);
+                }
+            }
+        }
+
+        // DMI
+        this->dmi_pairs      = pairfield(0);
+        this->dmi_magnitudes = scalarfield(0);
+        this->dmi_normals    = vectorfield(0);
+        if( dmi_shell_magnitudes.size() > 0 )
+        {
+            // Generate DMI neighbours and normals
+            intfield dmi_shells(0);
+            Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours);
+            for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
+            {
+                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], this->dmi_shell_chirality));
+                this->dmi_magnitudes.push_back(dmi_shell_magnitudes[dmi_shells[ineigh]]);
+            }
+        }
+        else
+        {
+            // Use direct list of pairs
+            this->dmi_pairs      = this->dmi_pairs_in;
+            this->dmi_magnitudes = this->dmi_magnitudes_in;
+            this->dmi_normals    = this->dmi_normals_in;
+            if( use_redundant_neighbours )
+            {
+                for (int i = 0; i < dmi_pairs_in.size(); ++i)
+                {
+                    auto& p = dmi_pairs_in[i];
+                    auto& t = p.translations;
+                    this->dmi_pairs.push_back(Pair{p.j, p.i, {-t[0], -t[1], -t[2]}});
+                    this->dmi_magnitudes.push_back(dmi_magnitudes_in[i]);
+                    this->dmi_normals.push_back(-dmi_normals_in[i]);
+                }
+            }
+        }
+
+        // Dipole-dipole
         this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
         this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
         this->ddi_normals    = vectorfield(this->ddi_pairs.size());
@@ -129,6 +157,9 @@ namespace Engine
                 { this->ddi_pairs[i].i, this->ddi_pairs[i].j, this->ddi_pairs[i].translations },
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
+
+        // Update, which terms still contribute
+        this->Update_Energy_Contributions();
     }
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
