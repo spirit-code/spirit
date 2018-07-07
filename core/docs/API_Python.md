@@ -93,12 +93,12 @@ Constants
 
 | Physical Constants                      | Returns        | Description                                        |
 | --------------------------------------- | -------------- | -------------------------------------------------- |
-| `mu_B()`                                | `float`        | The Bohr Magneton [meV / T]                        |
-| `k_B()`                                 | `float`        | The Boltzmann constant [meV / K]                   |
-| `hbar()`                                | `float`        | Planck's constant over 2pi [meV*ps / rad]          |
-| `mRy()`                                 | `float`        | Millirydberg [mRy / meV]                           |
-| `gamma()`                               | `float`        | The Gyromagnetic ratio of electron [rad / (ps*T)]  |
-| `g_e()`                                 | `float`        | The Electron g-factor [unitless]                   |
+| `mu_B`                                  | `float`        | The Bohr Magneton [meV / T]                        |
+| `k_B`                                   | `float`        | The Boltzmann constant [meV / K]                   |
+| `hbar`                                  | `float`        | Planck's constant over 2pi [meV*ps / rad]          |
+| `mRy`                                   | `float`        | Millirydberg [mRy / meV]                           |
+| `gamma`                                 | `float`        | The Gyromagnetic ratio of electron [rad / (ps*T)]  |
+| `g_e`                                   | `float`        | The Electron g-factor [unitless]                   |
 
 
 Geometry
