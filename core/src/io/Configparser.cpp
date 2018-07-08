@@ -153,12 +153,10 @@ namespace IO
             // ----------------------------------------------------------------------------------------------
             // Geometry
             auto geometry = Geometry_from_Config(configFile);
-            // Pinning configuration
-            auto pinning = Pinning_from_Config(configFile, geometry);
             // LLG Parameters
-            auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
+            auto llg_params = Parameters_Method_LLG_from_Config(configFile);
             // MC Parameters
-            auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
+            auto mc_params = Parameters_Method_MC_from_Config(configFile);
             // Hamiltonian
             auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
             // Spin System
@@ -288,8 +286,8 @@ namespace IO
             intfield n_cells = { 100, 100, 1 };
             // Atom types
             intfield atom_types;
-            intfield da(0), db(0), dc(0);
-            intfield defects(0);
+            field<Site> defect_sites(0);
+            intfield    defect_types(0);
 
             // Utility 1D array to build vectors and use Vectormath
             Vector3 build_array = { 0, 0, 0 };
@@ -344,7 +342,7 @@ namespace IO
                     if (defectsFile.length() > 0)
                     {
                         // The file name should be valid so we try to read it
-                        Defects_from_File(defectsFile, n_defects, da, db, dc, defects);
+                        Defects_from_File(defectsFile, n_defects, defect_sites, defect_types);
                     }
                     #endif
                 }// end try
@@ -398,12 +396,11 @@ namespace IO
 
             // Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
-            int n_defects = defect_indices.size();
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
-            for (int i = 0; i < n_defects; ++i)
-            {
-                if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
-            }
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10:", defect_sites.size()));
+            for (int i = 0; i < defect_sites.size(); ++i)
+                if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format(
+                    "  defect[{}]: translations=({} {} {}), type=",
+                    i, defect_sites[i].translations[0], defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i]));
             #endif
 
             // Log parameters
@@ -411,15 +408,14 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
-            
+
+            // Pinning configuration
+            auto pinning = Pinning_from_Config(configFile, cell_atoms.size());
+
             // Return geometry
             auto geometry = std::shared_ptr<Data::Geometry>(new
-                Data::Geometry( bravais_vectors, n_cells, cell_atoms, mu_s, atom_types, lattice_constant));
-
-            #ifdef SPIRIT_ENABLE_DEFECTS
-            for (int i = 0; i < n_defects; ++i)
-                geometry->atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
-            #endif
+                Data::Geometry( bravais_vectors, n_cells, cell_atoms, mu_s, atom_types, lattice_constant,
+                    pinning, {defect_sites, defect_types} ));
 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
@@ -434,15 +430,15 @@ namespace IO
         return nullptr;
     }// end Geometry from Config
 
-    std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
+    Data::Pinning Pinning_from_Config(const std::string configFile, int n_cell_atoms)
     {
         //-------------- Insert default values here -----------------------------
         int na = 0, na_left = 0, na_right = 0;
         int nb = 0, nb_left = 0, nb_right = 0;
         int nc = 0, nc_left = 0, nc_right = 0;
-        vectorfield pinned_cell(geometry->n_cell_atoms, Vector3{ 0,0,1 });
+        vectorfield pinned_cell(n_cell_atoms, Vector3{ 0,0,1 });
         // Additional pinned sites
-        intfield pinned_indices(0);
+        field<Site> pinned_sites(0);
         vectorfield pinned_spins(0);
         int n_pinned = 0;
 
@@ -495,7 +491,7 @@ namespace IO
                     {
                         if (myfile.Find("pinning_cell"))
                         {
-                            for (int i = 0; i < geometry->n_cell_atoms; ++i)
+                            for (int i = 0; i < n_cell_atoms; ++i)
                             {
                                 myfile.GetLine();
                                 myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
@@ -517,12 +513,13 @@ namespace IO
                     else if (myfile.Find("pinned_from_file"))
                         myfile.iss >> pinnedFile;
 
-                    if (pinnedFile.length() > 0)
+                    if(pinnedFile != "")
                     {
                         // The file name should be valid so we try to read it
-                        Pinned_from_File(pinnedFile, n_pinned,
-                            pinned_indices, pinned_spins);
+                        Pinned_from_File(pinnedFile, n_pinned, pinned_sites, pinned_spins);
                     }
+                    else Log(Log_Level::Parameter, Log_Sender::IO, "wtf no pinnedFile");
+
                 }// end try
                 catch (...)
                 {
@@ -533,30 +530,29 @@ namespace IO
             else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
 
             // Create Pinning
-            auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+            auto pinning = Data::Pinning{
                 na_left, na_right,
                 nb_left, nb_right,
                 nc_left, nc_right,
-                pinned_cell) );
+                pinned_cell,
+                pinned_sites, pinned_spins};
 
-            // Apply additional pinned sites
-            for (int i = 0; i < n_pinned; ++i)
-            {
-                int idx = pinned_indices[i];
-                pinning->mask_unpinned[idx] = 0;
-                pinning->mask_pinned_cells[idx] = pinned_spins[i];
-            }
 
             // Return Pinning
             Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={0}, right={1}", na_left, na_right));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={0}, right={1}", nb_left, nb_right));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={0}, right={1}", nc_left, nc_right));
-            for (int i = 0; i < geometry->n_cell_atoms; ++i)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[0]      = ({0})", pinned_cell[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites: ", n_pinned));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={}, right={}", na_left, na_right));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={}, right={}", nb_left, nb_right));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={}, right={}", nc_left, nc_right));
+            for (int i = 0; i < n_cell_atoms; ++i)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[{}]      = ({})", i, pinned_cell[0].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites. Showing the first 10:", n_pinned));
             for (int i = 0; i < n_pinned; ++i)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        pinned site[0]           = ({0})", pinned_spins[0].transpose()));
+            {
+                if( i<10 )
+                    Log(Log_Level::Parameter, Log_Sender::IO, fmt::format(
+                        "             pinned site[{}]: {} at ({} {} {}) = ({})",
+                        i, pinned_sites[i].i, pinned_sites[i].translations[0], pinned_sites[i].translations[1], pinned_sites[i].translations[2], pinned_spins[0].transpose()));
+            }
             Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
             return pinning;
         #else // SPIRIT_ENABLE_PINNING
@@ -575,14 +571,15 @@ namespace IO
                 }
             }
 
-            auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning(geometry,
-                intfield(geometry->nos, 1),
-                vectorfield(0)));
-            return pinning;
+            return Data::Pinning{ 
+                0, 0, 0, 0, 0, 0,
+                vectorfield(0),
+                field<Site>(0),
+                vectorfield(0) };
         #endif // SPIRIT_ENABLE_PINNING
     }
 
-    std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile)
     {
         //-------------- Insert default values here -----------------------------
         // Output folder for results
@@ -713,14 +710,14 @@ namespace IO
         auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(
             output_folder, output_file_tag,
             { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
-            output_configuration_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
+            output_configuration_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, seed,
             temperature, temperature_gradient_direction, temperature_gradient_inclination,
             damping, beta, dt, renorm_sd, stt_use_gradient, stt_magnitude, stt_polarisation_normal));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
         return llg_params;
     }// end Parameters_Method_LLG_from_Config
 
-    std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile)
     {
         //-------------- Insert default values here -----------------------------
         // Output folder for results
@@ -811,12 +808,12 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines }, output_configuration_filetype, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
+            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines }, output_configuration_filetype, n_iterations, n_iterations_log, max_walltime, seed, temperature, acceptance_ratio));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: built");
         return mc_params;
     }
 
-    std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile)
     {
         //-------------- Insert default values here -----------------------------
         // Output folder for results
@@ -897,12 +894,12 @@ namespace IO
 
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step, output_energies_add_readability_lines},
-            output_chain_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
+            output_chain_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, spring_constant, n_E_interpolations));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
         return gneb_params;
     }// end Parameters_Method_LLG_from_Config
 
-    std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile)
     {
         //-------------- Insert default values here -----------------------------
         // Output folder for results
@@ -974,7 +971,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
         auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, output_file_tag, {output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
+            force_convergence, n_iterations, n_iterations_log, max_walltime));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
         return mmf_params;
     }

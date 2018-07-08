@@ -156,7 +156,7 @@ namespace Engine
             }
             // Apply pinning mask
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, F_total[img], F_total[img], this->parameters->pinning->mask_unpinned);
+                Vectormath::set_c_a(1, F_total[img], F_total[img], chain->images[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
 
             // Copy out
@@ -186,7 +186,7 @@ namespace Engine
 
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-            Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
+            Vectormath::set_c_a(1, force_virtual, force_virtual, chain->images[i]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }

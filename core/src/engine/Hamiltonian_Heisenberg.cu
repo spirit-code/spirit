@@ -20,7 +20,6 @@ namespace Engine
 {
     // Construct a Heisenberg Hamiltonian with pairs
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
@@ -32,7 +31,6 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
@@ -46,7 +44,6 @@ namespace Engine
 
     // Construct a Heisenberg Hamiltonian from shells
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-        scalarfield mu_s,
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         scalarfield exchange_shell_magnitudes,
@@ -58,7 +55,6 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        mu_s(mu_s),
         external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
@@ -250,7 +246,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         int size = geometry->n_cells_total;
-        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
+        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->cell_mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
@@ -410,7 +406,7 @@ namespace Engine
         if (this->idx_zeeman >= 0)
         {
             if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                Energy -= this->mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+                Energy -= geometry->cell_mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
         }
 
         // Anisotropy
@@ -468,7 +464,7 @@ namespace Engine
                 if (ddi_pairs[ipair].i == ibasis)
                 {
                     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-                    const scalar mult = 0.5 * this->mu_s[ddi_pairs[ipair].i] * this->mu_s[ddi_pairs[ipair].j]
+                    const scalar mult = 0.5 * geometry->cell_mu_s[ddi_pairs[ipair].i] * geometry->cell_mu_s[ddi_pairs[ipair].j]
                         * Utility::Constants::mu_0 * std::pow(Utility::Constants::mu_B, 2) / ( 4*Utility::Constants::Pi * 1e-30 );
 
                     int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
@@ -546,7 +542,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         int size = geometry->n_cells_total;
-        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, this->mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
+        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->cell_mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 
@@ -821,7 +817,7 @@ namespace Engine
         //	int idx_2 = DD_indices[i_pair][1];
         //	// prefactor
         //	scalar prefactor = 0.0536814951168
-        //		* this->mu_s[idx_1] * this->mu_s[idx_2]
+        //		* geometry->cell_mu_s[idx_1] * geometry->cell_mu_s[idx_2]
         //		/ std::pow(DD_magnitude[i_pair], 3);
         //	// components
         //	for (int alpha = 0; alpha < 3; ++alpha)

@@ -127,8 +127,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Get parameters
         auto params_gneb = 
             std::shared_ptr<Data::Parameters_Method_GNEB>(
-                IO::Parameters_Method_GNEB_from_Config( state->config_file, 
-                                                        state->active_image->llg_parameters->pinning));
+                IO::Parameters_Method_GNEB_from_Config( state->config_file ));
         
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
@@ -148,8 +147,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Get parameters
         auto params_mmf = 
             std::shared_ptr<Data::Parameters_Method_MMF>(
-                IO::Parameters_Method_MMF_from_Config( state->config_file, 
-                                                        state->active_image->llg_parameters->pinning));
+                IO::Parameters_Method_MMF_from_Config( state->config_file ));
         
         // Create the collection
         auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();

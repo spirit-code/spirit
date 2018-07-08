@@ -33,6 +33,29 @@ namespace Data
         FCC         = Bravais_Lattice_FCC          // Face-centered cubic
     };
 
+
+    struct Pinning
+    {
+        // Boundary pinning
+        int na_left, na_right;
+        int nb_left, nb_right;
+        int nc_left, nc_right;
+        vectorfield pinned_cell;
+
+        // Individual pinned atoms
+        field<Site> sites;
+        // Their fixed orientation
+        vectorfield spins;
+    };
+
+
+    struct Defects
+    {
+        field<Site> sites;
+        intfield    types;
+    };
+
+
     // Geometry contains all geometric information of a system
     class Geometry
     {
@@ -40,9 +63,9 @@ namespace Data
         // ---------- Constructor
         //  Build a regular lattice from a defined basis cell and translations
         Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
-            std::vector<Vector3> cell_atoms, scalarfield mu_s,
-            intfield cell_atom_types, scalar lattice_constant);
-
+            std::vector<Vector3> cell_atoms, scalarfield cell_mu_s,
+            intfield cell_atom_types, scalar lattice_constant,
+            Pinning pinning, Defects defects);
 
         // ---------- Convenience functions
         // Retrieve triangulation, if 2D
@@ -56,10 +79,10 @@ namespace Data
         static std::vector<Vector3> BravaisVectorsBCC();
         static std::vector<Vector3> BravaisVectorsHex2D60();
         static std::vector<Vector3> BravaisVectorsHex2D120();
-
+        // Pinning
+        void Apply_Pinning(vectorfield & vf);
 
         // ---------- Basic information set, which (in theory) defines everything
-
         // Basis vectors {a, b, c} of the unit cell
         std::vector<Vector3> bravais_vectors;
         // Lattice Constant [Angstrom] (scales the translations)
@@ -71,26 +94,31 @@ namespace Data
         // Array of basis atom positions
         std::vector<Vector3> cell_atoms;
         // Spin moments of basis cell atoms
-        scalarfield mu_s;
+        scalarfield cell_mu_s;
         // Atom types of the atoms in a unit cell:
         // type index 0..n or or vacancy (type < 0)
         intfield cell_atom_types;
-
+        // Info on pinned spins
+        Pinning pinning;
+        // Info on defects
+        Defects defects;
 
         // ---------- Inferrable information
-
         // The kind of geometry
         BravaisLatticeType classifier;
-
         // Number of Spins total
         int nos;
         // Number of basis cells total
         int n_cells_total;
         // Positions of all the atoms
         vectorfield positions;
+        // Spin magnetic moments of the atoms
+        scalarfield mu_s;
         // Atom types of all the atoms: type index 0..n or or vacancy (type < 0)
         intfield atom_types;
-
+        // Pinning
+        intfield mask_unpinned;
+        vectorfield mask_pinned_cells;
         // Dimensionality of the points
         int dimensionality;
         // Center and Bounds
@@ -98,18 +126,17 @@ namespace Data
         // Unit Cell Bounds
         Vector3 cell_bounds_min, cell_bounds_max;
 
-        
     private:
         // Calculate and update the dimensionality of the points in this geometry
         void calculateDimensionality();
         // Calculate and update bounds of the System
         void calculateBounds();
-		// Calculate and update unit cell bounds
-		void calculateUnitCellBounds();
-		// Calculate and update the type lattice
-		void calculateGeometryType();
+        // Calculate and update unit cell bounds
+        void calculateUnitCellBounds();
+        // Calculate and update the type lattice
+        void calculateGeometryType();
 
-        // 
+        //
         std::vector<triangle_t>    _triangulation;
         std::vector<tetrahedron_t> _tetrahedra;
         

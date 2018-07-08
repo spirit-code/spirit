@@ -24,6 +24,13 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
     template<typename T>
     using field = std::vector<T, managed_allocator<T>>;
 
+    struct Site
+    {
+        // Basis index
+        int i;
+        // Translations of the basis cell
+        int translations[3];
+    };
     struct Pair
     {
         // Basis indices of first and second atom of pair
@@ -46,6 +53,13 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
     template<typename T>
     using field = std::vector<T>;
 
+    struct Site
+    {
+        // Basis index
+        int i;
+        // Translations of the basis cell
+        std::array<int,3> translations;
+    };
     struct Pair
     {
         int i, j;

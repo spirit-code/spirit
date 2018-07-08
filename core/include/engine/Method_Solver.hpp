@@ -67,7 +67,7 @@ namespace Engine
         // TODO: maybe rename to separate from deterministic and stochastic force functions
         virtual void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
         {
-
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::All, "Tried to use Method_Solver::Calculate_Force() of the Method_Solver class!", this->idx_image, this->idx_chain);
         }
 
         // Calculate virtual Forces onto Systems (can be precession and damping forces, correctly scaled)
@@ -75,27 +75,13 @@ namespace Engine
         //      precession and damping terms for the Hamiltonian, spin currents and
         //      temperature. This function is used in `the Solver_...` functions.
         // Default implementation: direct minimization
-        virtual void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual)
+        virtual void Calculate_Force_Virtual(
+            const std::vector<std::shared_ptr<vectorfield>> & configurations,
+            const std::vector<vectorfield> & forces,
+            std::vector<vectorfield> & forces_virtual)
         {
-            using namespace Utility;
-
-            // Calculate the cross product with the spin configuration to get direct minimization
-            for (unsigned int i=0; i<configurations.size(); ++i)
-            {
-                auto& image = *configurations[i];
-                auto& force = forces[i];
-                auto& force_virtual = forces_virtual[i];
-                auto& parameters = *this->systems[i]->llg_parameters;
-
-                // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-                scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
-
-                // Apply Pinning
-                #ifdef SPIRIT_ENABLE_PINNING
-                    Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
-                #endif // SPIRIT_ENABLE_PINNING
-            }
+            // Not Implemented!
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::All, "Tried to use Method_Solver::Calculate_Force_Virtual() of the Method_Solver class!", this->idx_image, this->idx_chain);
         }
 
 

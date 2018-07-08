@@ -27,10 +27,6 @@ void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const
     // Update the system geometry
     *system->geometry = new_geometry;
 
-    // Parameters
-    system->llg_parameters->pinning->mask_unpinned =
-        Engine::Vectormath::change_dimensions(system->llg_parameters->pinning->mask_unpinned, old_geometry, new_geometry, 1);
-
     // Heisenberg Hamiltonian
     if (system->hamiltonian->Name() == "Heisenberg")
         std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>(system->hamiltonian)->Update_Interactions();
@@ -129,7 +125,8 @@ try
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                        old_geometry.mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant);
+                        old_geometry.cell_mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -151,7 +148,8 @@ try
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms,
-                        old_geometry.mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant);
+                        old_geometry.cell_mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -175,14 +173,15 @@ try
     {
         cell_atoms.push_back({atoms[i][0], atoms[i][1], atoms[i][2]});
         if( i < old_geometry.n_cell_atoms )
-            mu_s.push_back(old_geometry.mu_s[i]);
+            mu_s.push_back(old_geometry.cell_mu_s[i]);
         else
-            mu_s.push_back(old_geometry.mu_s[0]);
+            mu_s.push_back(old_geometry.cell_mu_s[0]);
     }
 
     // The new geometry
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, cell_atoms,
-                        mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant);
+                        mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -211,7 +210,8 @@ try
 
     try
     {
-        for (auto& m : image->geometry->mu_s) m = mu_s;
+        for (auto& m : image->geometry->cell_mu_s) m = mu_s;
+        for (auto& m : image->geometry->mu_s)      m = mu_s;
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Set mu_s to {}", mu_s), idx_image, idx_chain);
     }
@@ -240,7 +240,8 @@ try
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                        old_geometry.mu_s, cell_atom_types, old_geometry.lattice_constant);
+                        old_geometry.cell_mu_s, cell_atom_types, old_geometry.lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -264,7 +265,8 @@ try
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                        old_geometry.mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant);
+                        old_geometry.cell_mu_s, old_geometry.cell_atom_types, old_geometry.lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -283,7 +285,8 @@ try
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                        old_geometry.mu_s, old_geometry.cell_atom_types, lattice_constant);
+                        old_geometry.cell_mu_s, old_geometry.cell_atom_types, lattice_constant,
+                        old_geometry.pinning, old_geometry.defects);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -505,7 +508,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     for (int i=0; i<image->geometry->n_cell_atoms; ++i)
-        mu_s[i] = (float)image->geometry->mu_s[i];
+        mu_s[i] = (float)image->geometry->cell_mu_s[i];
 }
 catch( ... )
 {

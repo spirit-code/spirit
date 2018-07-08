@@ -243,7 +243,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->mu_s;
+        auto& mu_s = this->geometry->cell_mu_s;
 
         #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
@@ -317,7 +317,7 @@ namespace Engine
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
-        auto& mu_s = this->geometry->mu_s;
+        auto& mu_s = this->geometry->cell_mu_s;
 
         scalar result = 0.0;
 
@@ -386,7 +386,7 @@ namespace Engine
     {
         int icell  = ispin_in / this->geometry->n_cell_atoms;
         int ibasis = ispin_in - icell*this->geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->mu_s;
+        auto& mu_s = this->geometry->cell_mu_s;
         scalar Energy = 0;
 
         // External field
@@ -550,7 +550,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->mu_s;
+        auto& mu_s = this->geometry->cell_mu_s;
 
         #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
@@ -624,7 +624,7 @@ namespace Engine
     {
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
-        auto& mu_s = this->geometry->mu_s;
+        auto& mu_s = this->geometry->cell_mu_s;
 
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
         {

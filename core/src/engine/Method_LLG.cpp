@@ -73,7 +73,7 @@ namespace Engine
             // Minus the gradient is the total Force here
             this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->parameters->pinning->mask_unpinned);
+                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
             
             // Copy out
@@ -178,7 +178,7 @@ namespace Engine
             }
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
+                Vectormath::set_c_a(1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }

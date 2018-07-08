@@ -15,17 +15,21 @@
 namespace Data
 {
     Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
-                        std::vector<Vector3> cell_atoms, scalarfield mu_s,
-                        intfield cell_atom_types, scalar lattice_constant) :
+                        std::vector<Vector3> cell_atoms, scalarfield cell_mu_s,
+                        intfield cell_atom_types, scalar lattice_constant,
+                        Pinning pinning, Defects defects) :
         bravais_vectors(bravais_vectors), n_cells(n_cells), n_cell_atoms(cell_atoms.size()),
-        mu_s(mu_s), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
+        cell_mu_s(cell_mu_s), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
         nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
-        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2])
+        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
+        pinning(pinning), defects(defects)
     {
         for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
         {
             // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-            Vector3 build_array = bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1] + bravais_vectors[2] * cell_atoms[iatom][2];
+            Vector3 build_array = bravais_vectors[0] * cell_atoms[iatom][0]
+                                + bravais_vectors[1] * cell_atoms[iatom][1]
+                                + bravais_vectors[2] * cell_atoms[iatom][2];
             cell_atoms[iatom] = lattice_constant * build_array;
         }
 
@@ -33,6 +37,64 @@ namespace Data
         this->positions = vectorfield(nos);
         this->atom_types = intfield(nos, 0);
         Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
+
+        // Generate mu_s and pinning masks
+        this->mu_s = scalarfield(this->nos, 1);
+        this->mask_unpinned = intfield(this->nos, 1);
+        this->mask_pinned_cells = vectorfield(this->nos, { 0,0,0 });
+        int N  = this->n_cell_atoms;
+        int Na = this->n_cells[0];
+        int Nb = this->n_cells[1];
+        int Nc = this->n_cells[2];
+        int ispin;
+
+        for (int iatom = 0; iatom < N; ++iatom)
+        {
+            for (int na = 0; na < Na; ++na)
+            {
+                for (int nb = 0; nb < Nb; ++nb)
+                {
+                    for (int nc = 0; nc < Nc; ++nc)
+                    {
+                        ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
+
+                        // Magnetic moment
+                        this->mu_s[ispin] = cell_mu_s[iatom];
+
+                        // Pinning
+                        if( (na < pinning.na_left || na >= Na - pinning.na_right) ||
+                            (nb < pinning.nb_left || nb >= Nb - pinning.nb_right) ||
+                            (nc < pinning.nc_left || nc >= Nc - pinning.nc_right) )
+                        {
+                            // Pinned cells
+                            this->mask_unpinned[ispin] = 0;
+                            this->mask_pinned_cells[ispin] = pinning.pinned_cell[iatom];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply additional pinned sites
+        for( int isite=0; isite < pinning.sites.size(); ++isite )
+        {
+            auto& site = pinning.sites[isite];
+            int ispin = site.i + Engine::Vectormath::idx_from_translations(
+                        this->n_cells, this->n_cell_atoms,
+                        {site.translations[0], site.translations[1], site.translations[2]} );
+            this->mask_unpinned[ispin] = 0;
+            this->mask_pinned_cells[ispin] = pinning.spins[isite];
+        }
+
+        // Apply defects
+        for (int i = 0; i < defects.sites.size(); ++i)
+        {
+            auto& defect = defects.sites[i];
+            int ispin = defects.sites[i].i + Engine::Vectormath::idx_from_translations(
+                        this->n_cells, this->n_cell_atoms,
+                        {defect.translations[0], defect.translations[1], defect.translations[2]} );
+            this->atom_types[ispin] = defects.types[i];
+        }
 
         // Calculate some info
         this->calculateBounds();
@@ -515,6 +577,33 @@ namespace Data
         {
             this->classifier = BravaisLatticeType::Irregular;
         }
+    }
+
+    void Geometry::Apply_Pinning(vectorfield & vf)
+    {
+        #if defined(SPIRIT_ENABLE_PINNING)
+        int N  = this->n_cell_atoms;
+        int Na = this->n_cells[0];
+        int Nb = this->n_cells[1];
+        int Nc = this->n_cells[2];
+        int ispin;
+
+        for (int iatom = 0; iatom < N; ++iatom)
+        {
+            for (int na = 0; na < Na; ++na)
+            {
+                for (int nb = 0; nb < Nb; ++nb)
+                {
+                    for (int nc = 0; nc < Nc; ++nc)
+                    {
+                        ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
+                        if (!this->mask_unpinned[ispin])
+                            vf[ispin] = this->mask_pinned_cells[ispin];
+                    }
+                }
+            }
+        }
+        #endif
     }
 }
 

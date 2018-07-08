@@ -29,7 +29,7 @@ void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain) n
             Utility::Configuration_Chain::Homogeneous_Rotation(chain, idx_1, idx_2);
             for (int img = 0; img < chain->noi; ++img)
             {
-                chain->gneb_parameters->pinning->Apply(*chain->images[img]->spins);
+                chain->images[img]->geometry->Apply_Pinning(*chain->images[img]->spins);
             }
         }
         catch( ... )
@@ -66,7 +66,7 @@ void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_
             Utility::Configuration_Chain::Add_Noise_Temperature(chain, idx_1, idx_2, temperature);
             for (int img = 0; img < chain->noi; ++img)
             {
-                chain->gneb_parameters->pinning->Apply(*chain->images[img]->spins);
+                chain->images[img]->geometry->Apply_Pinning(*chain->images[img]->spins);
             }
         }
         catch( ... )

@@ -18,7 +18,7 @@ namespace Data
         Parameters_Method_GNEB(std::string output_folder, std::string output_file_tag, 
             std::array<bool,8> output, int output_chain_filetype,
             scalar force_convergence, long int n_iterations, 
-            long int n_iterations_log, long int max_walltime_sec, std::shared_ptr<Pinning> pinning, 
+            long int n_iterations_log, long int max_walltime_sec,
             scalar spring_constant, int n_E_interpolations);
 
         // Strength of springs between images

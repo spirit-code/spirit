@@ -578,12 +578,10 @@ namespace IO
 
 
     void Defects_from_File(const std::string defectsFile, int & n_defects,
-        intfield & da, intfield & db, intfield & dc, intfield & defect_types)
+        field<Site> & defect_sites, intfield & defect_types)
     {
         n_defects = 0;
-        da = intfield(0);
-        db = intfield(0);
-        dc = intfield(0);
+        defect_sites = field<Site>(0);
         defect_types = intfield(0);
 
         try
@@ -609,16 +607,14 @@ namespace IO
 
             while (myfile.GetLine() && n_defects < nod)
             {
-                int _da, _db, _dc, type;
-                myfile.iss >> _da >> _db >> _dc >> type;
-                da.push_back(_da);
-                db.push_back(_db);
-                dc.push_back(_dc);
+                int _i, _da, _db, _dc, type;
+                myfile.iss >> _i >> _da >> _db >> _dc >> type;
+                defect_sites.push_back( {_i, {_da, _db, _dc}} );
                 defect_types.push_back(type);
                 ++n_defects;
             }
 
-            Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} defects", n_defects));
         }
         catch( ... )
         {
@@ -627,13 +623,11 @@ namespace IO
     } // End Defects_from_File
 
     void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
-        intfield & da, intfield & db, intfield & dc, vectorfield & pinned_spins)
+        field<Site> & pinned_sites, vectorfield & pinned_spins)
     {
         int nop = 0;
         n_pinned = 0;
-        da = intfield(0);
-        db = intfield(0);
-        dc = intfield(0);
+        pinned_sites = field<Site>(0);
         pinned_spins = vectorfield(0);
         try
         {
@@ -657,21 +651,19 @@ namespace IO
 
             while (myfile.GetLine() && n_pinned < nop)
             {
-                int _da, _db, _dc;
+                int _i, _da, _db, _dc;
                 scalar sx, sy, sz;
-                myfile.iss >> _da >> _db >> _dc >> sx >> sy >> sz;
-                da.push_back(_da);
-                db.push_back(_db);
-                dc.push_back(_dc);
+                myfile.iss >> _i >> _da >> _db >> _dc >> sx >> sy >> sz;
+                pinned_sites.push_back( {_i, {_da, _db, _dc}} );
                 pinned_spins.push_back({sx, sy, sz});
                 ++n_pinned;
             }
 
-            Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} pinned sites", n_pinned));
         }
         catch( ... )
         {
-            spirit_rethrow(    fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
+            spirit_rethrow( fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
         }
     } // End Pinned_from_File
 

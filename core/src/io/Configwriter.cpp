@@ -90,7 +90,7 @@ namespace IO
         // Magnetic moment
         config += "mu_s                     ";
         for (int i=0; i<geometry->n_cell_atoms; ++i)
-            config += fmt::format(" {}", geometry->mu_s[i]);
+            config += fmt::format(" {}", geometry->cell_mu_s[i]);
         config += "\n";
 
         // Optionally lattice constant
