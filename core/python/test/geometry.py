@@ -47,7 +47,7 @@ class Geometry(TestParameters):
         self.assertEqual(b[1], c[2])
         # Check also that the bravais lattice type matches simple cubic
         lattice_type = geometry.Get_Bravais_Type(self.p_state)
-        self.assertEqual(lattice_type, 2)
+        self.assertEqual(lattice_type, geometry.Bravais_Lattice_SC)
     
     def test_N_cells(self):
         ncells = geometry.Get_N_Cells(self.p_state)
@@ -63,8 +63,8 @@ class Geometry(TestParameters):
     
     
     def test_dimensionality(self):
-        dimen = geometry.Get_Dimensionality(self.p_state)
-        self.assertEqual(dimen, 2)
+        dim = geometry.Get_Dimensionality(self.p_state)
+        self.assertEqual(dim, 2)
     
     def test_positions(self):
         positions = geometry.Get_Positions(self.p_state)
