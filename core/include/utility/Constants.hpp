@@ -33,7 +33,10 @@ namespace Utility
         double const g_e = 2.00231930436182;
 
         // Pi [rad]
-        double const Pi = 3.14159265358979323846;
+        double const Pi = 3.141592653589793238462643383279502884197169399375105820974;
+
+        // Pi/2 [rad]
+        double const Pi_2 = 1.570796326794896619231321691639751442098584699687552910487;
     }
 
     // Constants_mRy by convention:
@@ -61,7 +64,10 @@ namespace Utility
         double const g_e = 2.00231930436182;
 
         // Pi [rad]
-        double const Pi = 3.14159265358979323846;
+        double const Pi = 3.141592653589793238462643383279502884197169399375105820974;
+
+        // Pi/2 [rad]
+        double const Pi_2 = 1.570796326794896619231321691639751442098584699687552910487;
     }
 }
 

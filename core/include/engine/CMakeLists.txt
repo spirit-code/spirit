@@ -4,6 +4,8 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp
@@ -15,6 +17,7 @@ set(HEADER_SPIRIT_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_EMA.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp

@@ -170,7 +170,7 @@ void Chain_Replace_Image( State * state, int idx_image, int idx_chain ) noexcept
 
             from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (state->clipboard_image.get())
+        if (state->clipboard_image)
         {
             // Copy the clipboard image
             state->clipboard_image->Lock();
@@ -239,8 +239,8 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain ) no
             chain->image_type.insert(chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal);
 
             // Add to state
-            state->method_image[idx_chain].insert(
-                state->method_image[idx_chain].begin() + 
+            state->method_image.insert(
+                state->method_image.begin() + 
                     idx_image, std::shared_ptr<Engine::Method>() );
 
             // Increment active image so that we don't switch between images
@@ -321,8 +321,8 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain ) noe
             // }
 
             // Add to state
-            state->method_image[idx_chain].insert(
-                state->method_image[idx_chain].begin() + idx_image + 1, 
+            state->method_image.insert(
+                state->method_image.begin() + idx_image + 1, 
                 std::shared_ptr<Engine::Method>() );
 
             chain->Unlock();
@@ -393,7 +393,7 @@ void Chain_Push_Back( State * state, int idx_chain ) noexcept
             chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
                 
             // Add to state
-            state->method_image[idx_chain].push_back(std::shared_ptr<Engine::Method>());
+            state->method_image.push_back(std::shared_ptr<Engine::Method>());
 
             chain->Unlock();
 
@@ -461,8 +461,8 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
                 chain->image_type.erase(chain->image_type.begin() + idx_image);
 
                 // Remove from state
-                state->method_image[idx_chain].erase(
-                    state->method_image[idx_chain].begin() + idx_image );
+                state->method_image.erase(
+                    state->method_image.begin() + idx_image );
             }
             catch( ... )
             {
@@ -541,7 +541,7 @@ bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
                 chain->image_type.pop_back();
                     
                 // Add to state
-                state->method_image[idx_chain].pop_back();
+                state->method_image.pop_back();
             }
             catch( ... )
             {

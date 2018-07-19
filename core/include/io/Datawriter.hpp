@@ -8,6 +8,12 @@
 
 namespace IO
 {
+    // Write Spin_System's eigenmodes to file
+    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues,
+                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                           const Data::Geometry& geometry, const std::string filename, 
+                           VF_FileFormat format, const std::string comment, bool append = false );
+
     // =========================== Saving Interactions =======================
     void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename ); 
     void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ); 

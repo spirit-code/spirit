@@ -19,6 +19,7 @@ namespace IO
                                            const std::string file, int start_image_infile, 
                                            int end_image_infile, const int insert_idx, 
                                            int& noi_to_add, int& noi_to_read, const int idx_chain );
+    void Read_Eigenmodes( std::shared_ptr<Data::Spin_System> image, const std::string filename );
     void Anisotropy_from_File( const std::string anisotropyFile, 
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
                                intfield& anisotropy_index, scalarfield& anisotropy_magnitude, 

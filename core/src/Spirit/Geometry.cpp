@@ -37,26 +37,22 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometr
     // This requires simulations to be stopped, as Methods' temporary arrays may have the wrong size afterwards
     Simulation_Stop_All(state);
 
-    // Deal with all systems in all chains
-    for (auto& chain : state->collection->chains)
+    // Lock to avoid memory errors
+    state->active_chain->Lock();
+    try
     {
-        // Lock to avoid memory errors
-        chain->Lock();
-        try
+        // Modify all systems in the chain
+        for (auto& system : state->active_chain->images)
         {
-            // Modify all systems in the chain
-            for (auto& system : chain->images)
-            {
-                Helper_System_Set_Geometry(system, new_geometry);
-            }
+            Helper_System_Set_Geometry(system, new_geometry);
         }
-        catch( ... )
-        {
-            spirit_handle_exception_api(-1, -1);
-        }
-        // Unlock again
-        chain->Unlock();
     }
+    catch( ... )
+    {
+        spirit_handle_exception_api(-1, -1);
+    }
+    // Unlock again
+    state->active_chain->Unlock();
 
     // Retrieve total number of spins
     int nos = state->active_image->nos;

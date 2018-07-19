@@ -64,13 +64,6 @@ _Running_Chain.restype    = ctypes.c_bool
 def Running_Chain(p_state, idx_chain=-1):
     return bool(_Running_Chain(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
 
-### Check if a simulation is running on across the collection
-_Running_Collection            = _spirit.Simulation_Running_Collection
-_Running_Collection.argtypes   = [ctypes.c_void_p]
-_Running_Collection.restype    = ctypes.c_bool
-def Running_Collection(p_state):
-    return bool(_Running_Collection(ctypes.c_void_p(p_state)))
-
 
 ### Check if any simulation running on any image of - or the entire - chain
 _Running_Anywhere_Chain           = _spirit.Simulation_Running_Anywhere_Chain
@@ -78,10 +71,3 @@ _Running_Anywhere_Chain.argtypes  = [ctypes.c_void_p, ctypes.c_int]
 _Running_Anywhere_Chain.restype   = ctypes.c_bool
 def Running_Anywhere_Chain(p_state, idx_chain=-1):
     return bool(_Running_Anywhere_Chain(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
-
-### Check if any simulation running on any image or chain of - or the entire - collection
-_Running_Anywhere_Collection            = _spirit.Simulation_Running_Anywhere_Collection
-_Running_Anywhere_Collection.argtypes   = [ctypes.c_void_p]
-_Running_Anywhere_Collection.restype    = ctypes.c_bool
-def Running_Anywhere_Collection(p_state):
-    return bool(_Running_Anywhere_Collection(ctypes.c_void_p(p_state)))

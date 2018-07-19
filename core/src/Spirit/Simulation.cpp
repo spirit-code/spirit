@@ -6,6 +6,7 @@
 #include <engine/Method_LLG.hpp>
 #include <engine/Method_MC.hpp>
 #include <engine/Method_GNEB.hpp>
+#include <engine/Method_EMA.hpp>
 #include <engine/Method_MMF.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -68,14 +69,6 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             chain->Unlock();
             return false;
         }
-        else if (state->collection->iteration_allowed)
-        {
-            // Currently iterating collection, so we stop
-            // collection->Lock();
-            state->collection->iteration_allowed = false;
-            // collection->Unlock();
-            return false;
-        }
         else
         {
             // ------ Nothing is iterating, so we could start a simulation ------
@@ -111,6 +104,15 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
                 image->iteration_allowed = true;
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_MC( image, idx_image, idx_chain ) );
+            }
+            else if (method_type == "EMA")
+            {
+                image->iteration_allowed = true;
+                if (n_iterations > 0) image->ema_parameters->n_iterations = n_iterations;
+                if (n_iterations_log > 0) image->ema_parameters->n_iterations_log = n_iterations_log;
+                
+                method = std::shared_ptr<Engine::Method>(
+                    new Engine::Method_EMA(image,idx_image,idx_chain));
             }
             else if (method_type == "GNEB")
             {
@@ -157,43 +159,27 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             }
             else if (method_type == "MMF")
             {
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                        "MMF is not yet implemented!" );
-                chain->Unlock();
-                return false;
-                
-                if (Simulation_Running_Anywhere_Collection(state))
-                {
-                    Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
-                            std::string( "There are still one or more simulations running on the collection!" ) +
-                            std::string( " Please stop them before starting a MMF calculation." ) );
-                    chain->Unlock();
-                    return false;
-                }
-                else
-                {
-                    state->collection->iteration_allowed = true;
-                    if (n_iterations > 0) 
-                        state->collection->parameters->n_iterations = n_iterations;
-                    if (n_iterations_log > 0) 
-                        state->collection->parameters->n_iterations_log = n_iterations_log;
+                image->iteration_allowed = true;
+                if (n_iterations > 0) 
+                    image->mmf_parameters->n_iterations = n_iterations;
+                if (n_iterations_log > 0) 
+                    image->mmf_parameters->n_iterations_log = n_iterations_log;
 
-                    if (solver == Engine::Solver::SIB)
-                        method = std::shared_ptr<Engine::Method>(
-                            new Engine::Method_MMF<Engine::Solver::SIB>( state->collection, idx_chain ) );
-                    else if (solver == Engine::Solver::Heun)
-                        method = std::shared_ptr<Engine::Method>(
-                            new Engine::Method_MMF<Engine::Solver::Heun>( state->collection, idx_chain ) );
-                    else if (solver == Engine::Solver::Depondt)
-                        method = std::shared_ptr<Engine::Method>(
-                            new Engine::Method_MMF<Engine::Solver::Depondt>( state->collection, idx_chain ) );
-                    else if (solver == Engine::Solver::NCG)
-                        method = std::shared_ptr<Engine::Method>(
-                            new Engine::Method_MMF<Engine::Solver::NCG>( state->collection, idx_chain ) );
-                    else if (solver == Engine::Solver::VP)
-                        method = std::shared_ptr<Engine::Method>(
-                            new Engine::Method_MMF<Engine::Solver::VP>( state->collection, idx_chain ) );
-                }
+                if (solver == Engine::Solver::SIB)
+                    method = std::shared_ptr<Engine::Method>(
+                        new Engine::Method_MMF<Engine::Solver::SIB>( image, idx_chain ) );
+                else if (solver == Engine::Solver::Heun)
+                    method = std::shared_ptr<Engine::Method>(
+                        new Engine::Method_MMF<Engine::Solver::Heun>( image, idx_chain ) );
+                else if (solver == Engine::Solver::Depondt)
+                    method = std::shared_ptr<Engine::Method>(
+                        new Engine::Method_MMF<Engine::Solver::Depondt>( image, idx_chain ) );
+                else if (solver == Engine::Solver::NCG)
+                    method = std::shared_ptr<Engine::Method>(
+                        new Engine::Method_MMF<Engine::Solver::NCG>( image, idx_chain ) );
+                else if (solver == Engine::Solver::VP)
+                    method = std::shared_ptr<Engine::Method>(
+                        new Engine::Method_MMF<Engine::Solver::VP>( image, idx_chain ) );
             }
             else
             {
@@ -209,15 +195,17 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
 
         // Add to correct list
         if (method_type == "LLG")
-            state->method_image[idx_chain][idx_image] = info;
+            state->method_image[idx_image] = info;
         else if (method_type == "MC")
         {
-            state->method_image[idx_chain][idx_image] = info;
+            state->method_image[idx_image] = info;
         }
+        else if (method_type == "EMA")
+            state->method_image[idx_image] = info;
         else if (method_type == "GNEB")
-            state->method_chain[idx_chain] = info;
+            state->method_chain = info;
         else if (method_type == "MMF")
-            state->method_collection = info;
+            state->method_image[idx_image] = info;
         
         // Unlock chain in order to be able to iterate
         chain->Unlock();
@@ -270,34 +258,26 @@ void Simulation_Stop_All(State *state) noexcept
 {
     try
     {
-        // MMF
-        // collection->Lock();
-        state->collection->iteration_allowed = false;
-        // collection->Unlock();
-
         // GNEB
         state->active_chain->Lock();
         state->active_chain->iteration_allowed = false;
         state->active_chain->Unlock();
         for (int i=0; i<state->noc; ++i)
         {
-            state->collection->chains[i]->Lock();
-            state->collection->chains[i]->iteration_allowed = false;
-            state->collection->chains[i]->Unlock();
+            state->active_chain->Lock();
+            state->active_chain->iteration_allowed = false;
+            state->active_chain->Unlock();
         }
 
-        // LLG
+        // LLG, MC, EMA, MMF
         state->active_image->Lock();
         state->active_image->iteration_allowed = false;
         state->active_image->Unlock();
-        for (int ichain=0; ichain<state->noc; ++ichain)
+        for (int img = 0; img < state->active_chain->noi; ++img)
         {
-            for (int img = 0; img < state->collection->chains[ichain]->noi; ++img)
-            {
-                state->collection->chains[ichain]->images[img]->Lock();
-                state->collection->chains[ichain]->images[img]->iteration_allowed = false;
-                state->collection->chains[ichain]->images[img]->Unlock();
-            }
+            state->active_chain->images[img]->Lock();
+            state->active_chain->images[img]->iteration_allowed = false;
+            state->active_chain->images[img]->Unlock();
         }
     }
     catch( ... )
@@ -319,18 +299,13 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
 
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return (float) state->method_image[idx_chain][idx_image]->getForceMaxAbsComponent();
+            if (state->method_image[idx_image])
+                return (float) state->method_image[idx_image]->getForceMaxAbsComponent();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return (float) state->method_chain[idx_chain]->getForceMaxAbsComponent();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return (float) state->method_collection->getForceMaxAbsComponent();
+            if (state->method_chain)
+                return (float) state->method_chain->getForceMaxAbsComponent();
         }
 
         return 0;
@@ -359,8 +334,8 @@ void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, in
         {
             std::vector<scalar> t(chain->noi, 0);
             
-            if (state->method_chain[idx_chain])
-                t = state->method_chain[idx_chain]->getForceMaxAbsComponent_All();
+            if (state->method_chain)
+                t = state->method_chain->getForceMaxAbsComponent_All();
 
             for (int i=0; i<chain->noi; ++i)
             {
@@ -388,18 +363,13 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return (float)state->method_image[idx_chain][idx_image]->getIterationsPerSecond();
+            if (state->method_image[idx_image])
+                return (float)state->method_image[idx_image]->getIterationsPerSecond();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return (float)state->method_chain[idx_chain]->getIterationsPerSecond();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return (float)state->method_collection->getIterationsPerSecond();
+            if (state->method_chain)
+                return (float)state->method_chain->getIterationsPerSecond();
         }
 
         return 0;
@@ -425,18 +395,13 @@ int Simulation_Get_Iteration(State *state, int idx_image, int idx_chain) noexcep
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return (float)state->method_image[idx_chain][idx_image]->getNIterations();
+            if (state->method_image[idx_image])
+                return (float)state->method_image[idx_image]->getNIterations();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return (float)state->method_chain[idx_chain]->getNIterations();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return (float)state->method_collection->getNIterations();
+            if (state->method_chain)
+                return (float)state->method_chain->getNIterations();
         }
 
         return 0;
@@ -464,10 +429,10 @@ float Simulation_Get_Time(State *state, int idx_image, int idx_chain) noexcept
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
+            if (state->method_image[idx_image])
             {
-                if (state->method_image[idx_chain][idx_image]->Name() == "LLG")
-                    return (float)state->method_image[idx_chain][idx_image]->getTime();
+                if (state->method_image[idx_image]->Name() == "LLG")
+                    return (float)state->method_image[idx_image]->getTime();
             }
             return 0;
         }
@@ -493,18 +458,13 @@ int Simulation_Get_Wall_Time(State *state, int idx_image, int idx_chain) noexcep
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return (float)state->method_image[idx_chain][idx_image]->getWallTime();
+            if (state->method_image[idx_image])
+                return (float)state->method_image[idx_image]->getWallTime();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return (float)state->method_chain[idx_chain]->getWallTime();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return (float)state->method_collection->getWallTime();
+            if (state->method_chain)
+                return (float)state->method_chain->getWallTime();
         }
 
         return 0;
@@ -530,18 +490,13 @@ const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_cha
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return state->method_image[idx_chain][idx_image]->SolverName().c_str();
+            if (state->method_image[idx_image])
+                return state->method_image[idx_image]->SolverName().c_str();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return state->method_chain[idx_chain]->SolverName().c_str();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return state->method_collection->SolverName().c_str();
+            if (state->method_chain)
+                return state->method_chain->SolverName().c_str();
         }
         
         return "";
@@ -566,18 +521,13 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
         
         if (Simulation_Running_Image(state, idx_image, idx_chain))
         {
-            if (state->method_image[idx_chain][idx_image])
-                return state->method_image[idx_chain][idx_image]->Name().c_str();
+            if (state->method_image[idx_image])
+                return state->method_image[idx_image]->Name().c_str();
         }
         else if (Simulation_Running_Chain(state, idx_chain))
         {
-            if (state->method_chain[idx_chain])
-                return state->method_chain[idx_chain]->Name().c_str();
-        }
-        else if (Simulation_Running_Collection(state))
-        {
-            if (state->method_collection)
-                return state->method_collection->Name().c_str();
+            if (state->method_chain)
+                return state->method_chain->Name().c_str();
         }
 
         return "";
@@ -625,7 +575,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
         // Fetch correct indices and pointers
             from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (state->collection->chains[idx_chain]->iteration_allowed)
+        if (state->active_chain->iteration_allowed)
             return true;
         else 
             return false;
@@ -636,23 +586,6 @@ bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
         return false;
     }
 }
-
-bool Simulation_Running_Collection(State *state) noexcept
-{
-    try
-    {
-        if (state->collection->iteration_allowed) 
-            return true;
-        else 
-            return false;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-        return false;
-    }
-}
-
 
 bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
 {
@@ -680,25 +613,5 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
     {
         spirit_handle_exception_api(idx_image, idx_chain);
         return false;
-    }
-}
-
-bool Simulation_Running_Anywhere_Collection(State *state) noexcept
-{
-    try
-    {
-        if (Simulation_Running_Collection(state)) 
-            return true;
-        
-        for (int ichain=0; ichain<state->collection->noc; ++ichain)
-            if (Simulation_Running_Anywhere_Chain(state, ichain)) 
-                return true;
-        
-        return false;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-        return false;        
     }
 }

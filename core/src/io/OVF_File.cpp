@@ -61,6 +61,7 @@ namespace IO
         if ( this->isOVF )
         {
             read_n_segments_from_top_header();
+            Log( Log_Level::Debug, this->sender, fmt::format( "OVF file header says it contains {} segments", this->n_segments ) );
 
             int n_seg = count_and_locate_segments();
             
@@ -154,9 +155,9 @@ namespace IO
                 
                 // Write to Log
                 Log( lvl, this->sender, fmt::format( "# OVF meshtype <{}>", this->meshtype ) );
-                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8}", this->base[0] ) );
-                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8}", this->base[1] ) );
-                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8}", this->base[2] ) );
+                Log( lvl, this->sender, fmt::format( "# xbase      = {:.8}", this->base[0].transpose() ) );
+                Log( lvl, this->sender, fmt::format( "# ybase      = {:.8}", this->base[1].transpose() ) );
+                Log( lvl, this->sender, fmt::format( "# zbase      = {:.8}", this->base[2].transpose() ) );
                 Log( lvl, this->sender, fmt::format( "# xstepsize  = {:.8f}", this->stepsize.x() ) );
                 Log( lvl, this->sender, fmt::format( "# ystepsize  = {:.8f}", this->stepsize.y() ) );
                 Log( lvl, this->sender, fmt::format( "# zstepsize  = {:.8f}", this->stepsize.z() ) );
@@ -236,7 +237,7 @@ namespace IO
             }
             
             if( this->datatype_in == "binary" && 
-                 this->binary_length != 4 && this->binary_length != 8  )
+                this->binary_length != 4 && this->binary_length != 8  )
             {
                 spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
                               "Binary representation can be either \"binary 8\" or \"binary 4\"");
@@ -330,21 +331,9 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
-                            
-                            if (vf[index].norm() < 1e-5)
-                            {
-                                vf[index] = {0, 0, 1};
-                                // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                                geometry.atom_types[index] = -1;
-                            #endif
-                            }
                         }
                     }
                 }
-                
-                // normalize read in spins 
-                Engine::Vectormath::normalize_vectors( vf );
             }
             else if (this->binary_length == 8)
             {
@@ -364,21 +353,9 @@ namespace IO
                             vf[index][0] = static_cast<scalar>(buffer[0]);
                             vf[index][1] = static_cast<scalar>(buffer[1]);
                             vf[index][2] = static_cast<scalar>(buffer[2]);
-                            
-                            if (vf[index].norm() < 1e-5)
-                            {
-                                vf[index] = {0, 0, 1};
-                                // in case of spin vector close to zero we have a vacancy
-                            #ifdef SPIRIT_ENABLE_DEFECTS
-                                geometry.atom_types[index] = -1;
-                            #endif
-                            }
                         }
                     }
                 }
-                
-                // normalize read in spins 
-                Engine::Vectormath::normalize_vectors( vf );
             }
         }
         catch (...)
@@ -393,27 +370,15 @@ namespace IO
         try
         { 
             int nos = this->nodes[0] * this->nodes[1] * this->nodes[2];
-            
+
             for (int i=0; i<nos; i++)
             {
                 this->ifile->GetLine( delimiter );
-                
+
                 this->ifile->iss >> vf[i][0];
                 this->ifile->iss >> vf[i][1];
                 this->ifile->iss >> vf[i][2];
-                
-                if (vf[i].norm() < 1e-5)
-                {
-                    vf[i] = {0, 0, 1};
-                    // in case of spin vector close to zero we have a vacancy
-                #ifdef SPIRIT_ENABLE_DEFECTS
-                    geometry.atom_types[i] = -1;
-                #endif
-                }
             }
-            
-            // normalize read in spins 
-            Engine::Vectormath::normalize_vectors( vf );
         }
         catch (...)
         {
@@ -786,6 +751,18 @@ namespace IO
         catch( ... )
         {
             spirit_rethrow( fmt::format("Failed to write OVF file \"{}\".", this->filename) );
+        }
+    }
+
+    void File_OVF::write_eigenmodes( const std::vector<scalar>& eigenvalues,
+                                      const std::vector<std::shared_ptr<vectorfield>>& modes,
+                                      const Data::Geometry& geometry )
+    {
+        this->write_top_header( );
+        for (int i=0; i<modes.size(); i++)
+        {
+            if ( modes[i] != NULL )
+                this->write_segment( *modes[i], geometry, fmt::format("eigenvalue = {}", eigenvalues[i]), true );
         }
     }
 } // end of namespace IO

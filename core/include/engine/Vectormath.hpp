@@ -18,6 +18,8 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Single Vector Math
 
+        // Angle between two vectors, assuming both are normalized
+        scalar angle(const Vector3 & v1, const Vector3 & v2);
         // Rotate a vector around an axis by a certain degree (Implemented with Rodrigue's formula)
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 

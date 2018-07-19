@@ -36,14 +36,14 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Create System (and lock it)
         std::shared_ptr<Data::Spin_System> system = IO::Spin_System_from_Config(std::string(file));
         system->Lock();
-        
+
         // Filter for unacceptable differences to other systems in the chain
         for (int i = 0; i < chain->noi; ++i)
         {
@@ -53,7 +53,7 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
             if (state->active_chain->images[i]->hamiltonian->Name() != system->hamiltonian->Name()) 
                 return 0;
         }
-        
+
         // Set System
         image->Lock();
         try
@@ -65,12 +65,12 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
             spirit_handle_exception_api(idx_image, idx_chain);
         }
         image->Unlock();
-        
+
         // Initial configuration
         float defaultPos[3] = {0,0,0}; 
         float defaultRect[3] = {-1,-1,-1};
         Configuration_Random(state, defaultPos, defaultRect, -1, -1, false, false, idx_image, idx_chain);
-        
+
         // Return success
         return 1;
     }
@@ -92,10 +92,10 @@ void IO_Positions_Write( State * state, const char *file, int format,
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         image->Lock();
         try
@@ -110,7 +110,7 @@ void IO_Positions_Write( State * state, const char *file, int format,
             auto& geometry = *image->geometry;
             auto fileformat = (IO::VF_FileFormat)format;
             auto filename = std::string( file ); 
-            
+
             switch( fileformat  )
             {
                 case IO::VF_FileFormat::OVF_BIN:
@@ -129,14 +129,14 @@ void IO_Positions_Write( State * state, const char *file, int format,
                     "existent file format" ), idx_image, idx_chain );
                     break;
                 }
-            }        
+            }
         }
         catch( ... )
         {
             spirit_handle_exception_api(idx_image, idx_chain);
         }
         image->Unlock();
-        
+
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote positions to file "
                 "{} with format {}", file, format ), idx_image, idx_chain );
     }
@@ -156,11 +156,11 @@ int IO_N_Images_In_File( State * state, const char *file, int idx_image, int idx
     try
     {   
         IO::File_OVF file_ovf( file );
-       
+
         if ( file_ovf.is_OVF() )
         {
             return file_ovf.get_n_segments();
-        } 
+        }
         else
         {
             // TODO: Calculate the N_Images for a columnd data file. This will be usefull for
@@ -186,10 +186,10 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image_inchain, idx_chain, image, chain );
-       
+
         image->Lock();
 
         try
@@ -199,7 +199,7 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
             // helper variables
             auto& spins = *image->spins;
             auto& geometry = *image->geometry;
-            
+
             if ( extension == ".ovf" || extension == ".txt" || extension == ".csv" || 
                  extension == "" )
             {
@@ -217,6 +217,20 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
                 if ( file_ovf.is_OVF() ) 
                 {
                     file_ovf.read_segment( spins, geometry, idx_image_infile );
+
+                    for (int ispin=0; ispin<spins.size(); ++ispin)
+                    {
+                        if (spins[ispin].norm() < 1e-5)
+                        {
+                            spins[ispin] = {0, 0, 1};
+                            // In case of spin vector close to zero we have a vacancy
+                            #ifdef SPIRIT_ENABLE_DEFECTS
+                            geometry.atom_types[ispin] = -1;
+                            #endif
+                        }
+                    }
+                    // Normalize read in spins 
+                    Engine::Vectormath::normalize_vectors( spins );
                 } 
                 else
                 {
@@ -242,9 +256,8 @@ void IO_Image_Read( State *state, const char *file, int idx_image_infile,
         {
             spirit_handle_exception_api(idx_image_inchain, idx_chain);
         }
-        
-        image->Unlock();
 
+        image->Unlock();
     }
     catch( ... )
     {
@@ -259,13 +272,13 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         image->Lock();
-        
+
         try
         {
             if ( Get_Extension(file) != ".ovf" )
@@ -279,7 +292,7 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
             auto& geometry = *image->geometry;
             auto fileformat = (IO::VF_FileFormat)format;
             auto filename = std::string( file ); 
-            
+
             switch( fileformat  )
             {
                 case IO::VF_FileFormat::OVF_BIN:
@@ -298,7 +311,7 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
                     "existent file format" ), idx_image, idx_chain );
                     break;
                 }
-            }        
+            }
             
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote spins "
                  "to file {} with format {}", file, format ), idx_image, idx_chain );
@@ -309,7 +322,6 @@ void IO_Image_Write( State *state, const char *file, int format, const char* com
         }
 
         image->Unlock();
-        
     }
     catch( ... )
     {
@@ -324,13 +336,13 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         image->Lock();
-        
+
         try
         {
             // helper variables
@@ -348,7 +360,7 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
                 case IO::VF_FileFormat::OVF_CSV:
                 {
                     IO::File_OVF file_ovf( filename, fileformat );
-                   
+
                     // check if the file was OVF
                     if ( file_ovf.is_OVF( ) )
                         file_ovf.write_segment( spins, geometry, comment, true ); 
@@ -364,7 +376,7 @@ void IO_Image_Append( State *state, const char *file, int format, const char * c
                     "existent file format" ), idx_image, idx_chain );
                     break;
                 }
-            }        
+            }
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Appended "
                  "spins to file {} with format {}", file, format ), idx_image, idx_chain );
         }
@@ -400,11 +412,11 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        // Read the data
         chain->Lock();
 
         bool success = false;
 
+        // Read the data
         try
         {
             const std::string extension = Get_Extension( file );  
@@ -463,7 +475,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         int noi_to_read = end_image_infile - start_image_infile + 1;
                        
                         int noi_to_add = noi_to_read - ( noi - insert_idx );
-       
+
                         // Add the images if you need that
                         if ( noi_to_add > 0 ) 
                         { 
@@ -476,11 +488,27 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         // Read the images
                         for (int i=insert_idx; i<noi_to_read; i++)
                         {
-                            file_ovf.read_segment( *images[i]->spins, *images[i]->geometry, 
-                                                   start_image_infile );
+                            auto& spins    = *images[i]->spins;
+                            auto& geometry = *images[i]->geometry;
+                            file_ovf.read_segment( spins, geometry, start_image_infile );
+
+                            for (int ispin=0; ispin<spins.size(); ++ispin)
+                            {
+                                if (spins[ispin].norm() < 1e-5)
+                                {
+                                    spins[ispin] = {0, 0, 1};
+                                    // In case of spin vector close to zero we have a vacancy
+                                    #ifdef SPIRIT_ENABLE_DEFECTS
+                                    geometry.atom_types[ispin] = -1;
+                                    #endif
+                                }
+                            }
+                            // Normalize read in spins 
+                            Engine::Vectormath::normalize_vectors( spins );
+
                             start_image_infile++;
                         }
-                        
+
                         success = true;
                     }
                     else
@@ -496,7 +524,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                     Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                          fmt::format( "IO_Chain_Read: File \"{}\" seems to not be OVF. Trying to read column data", file ), 
                          insert_idx, idx_chain );
-                
+
                     int noi_to_add = 0;
                     int noi_to_read = 0;
 
@@ -510,7 +538,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         Chain_Image_to_Clipboard( state, noi-1 );
                         for (int i=0; i<noi_to_add; i++) Chain_Push_Back( state );
                         chain->Lock(); 
-                    } 
+                    }
 
                     // Read the images
                     if ( noi_to_read > 0 )
@@ -544,12 +572,8 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
         if ( success )
         {
             // Update llg simulation information array size
-            if ((int)state->method_image[idx_chain].size() < chain->noi)
-            {
-                for (int i=state->method_image[idx_chain].size(); i < chain->noi; ++i)
-                    state->method_image[idx_chain].push_back( 
-                        std::shared_ptr<Engine::Method>( ) );
-            }
+            for (int i=state->method_image.size(); i < chain->noi; ++i)
+                state->method_image.push_back( std::shared_ptr<Engine::Method>( ) );
 
             // Update state
             State_Update(state);
@@ -586,7 +610,7 @@ void IO_Chain_Write( State *state, const char *file, int format, const char* com
         {
             auto fileformat = (IO::VF_FileFormat)format;
             auto filename = std::string( file ); 
-        
+
             switch( fileformat )
             {
                 case IO::VF_FileFormat::OVF_BIN:
@@ -614,8 +638,7 @@ void IO_Chain_Write( State *state, const char *file, int format, const char* com
                     "existent file format" ), -1, -1 );
                     break;
                 }
-            }        
-        
+            }
         }
         catch( ... )
         {
@@ -642,17 +665,17 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Read the data
         chain->Lock();
         try
         {
             auto fileformat = (IO::VF_FileFormat)format;
             auto filename = std::string( file ); 
-        
+
             switch( fileformat )
             {
                 case IO::VF_FileFormat::OVF_BIN:
@@ -682,8 +705,7 @@ void IO_Chain_Append( State *state, const char *file, int format, const char* co
                     "existent file format" ), -1, -1 );
                     break;
                 }
-            }        
-        
+            }
         }
         catch( ... )
         {
@@ -713,10 +735,10 @@ void IO_Image_Write_Neighbours_Exchange( State * state, const char * file,
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Neighbours_Exchange( *image, std::string(file) );
     }
@@ -733,10 +755,10 @@ void IO_Image_Write_Neighbours_DMI( State * state, const char * file,
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Neighbours_DMI( *image, std::string(file) );
     }
@@ -753,10 +775,10 @@ void IO_Image_Write_Energy_per_Spin(State * state, const char * file, int idx_im
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Image_Energy_per_Spin(*image, std::string(file));
     }
@@ -773,10 +795,10 @@ void IO_Image_Write_Energy(State * state, const char * file, int idx_image, int 
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Image_Energy(*image, std::string(file));
     }
@@ -795,10 +817,10 @@ void IO_Chain_Write_Energies(State * state, const char * file, int idx_chain) no
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Chain_Energies(*chain, idx_chain, std::string(file));
     }
@@ -817,12 +839,81 @@ void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int 
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // Write the data
         IO::Write_Chain_Energies_Interpolated(*chain, std::string(file));
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+/*----------------------------------------------------------------------------------------------- */
+/*-------------------------------------- Eigenmodes --------------------------------------------- */
+/*----------------------------------------------------------------------------------------------- */
+
+void IO_Eigenmodes_Read( State *state, const char *file, int idx_image_inchain, int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image_inchain, idx_chain, image, chain );
+
+        // Read the data
+        image->Lock();
+        try
+        {
+            IO::Read_Eigenmodes(image, std::string(file));
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format("Read eigenmodes from file {}", file),
+                idx_image_inchain, idx_chain );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image_inchain, idx_chain);
+        }
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image_inchain, idx_chain);
+    }
+}
+
+void IO_Eigenmodes_Write( State *state, const char *file, int format, const char* comment, 
+                     int idx_image, int idx_chain ) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        // Write the data
+        image->Lock();
+        try
+        {
+            IO::Write_Eigenmodes( image->eigenvalues, image->modes, *image->geometry, 
+                                  std::string( file ), (IO::VF_FileFormat)format, 
+                                  std::string( comment ), false );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api(idx_image, idx_chain);
+        }
+        image->Unlock();
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Wrote eigenmodes "
+            " to file {} with format {}", file, format ), idx_image, idx_chain );
     }
     catch( ... )
     {

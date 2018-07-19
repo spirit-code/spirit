@@ -29,6 +29,7 @@ namespace Utility
         else if(sender == Log_Sender::MC)   result.append("MC  ");
         else if(sender == Log_Sender::MMF)  result.append("MMF ");
         else if(sender == Log_Sender::UI)   result.append("UI  ");
+        else if(sender == Log_Sender::EMA)  result.append("EMA ");
         // Braces
         if (braces_separators) result.append("]");
         else result.append(" ");

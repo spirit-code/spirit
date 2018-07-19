@@ -25,6 +25,17 @@ namespace IO
         this->found = std::string::npos;
         this->myfile = std::unique_ptr<std::ifstream>( new std::ifstream( filename,
                                                         std::ios::in | std::ios::binary ) );
+        //this->position = this->myfile->tellg();
+      
+        // find begging and end positions of the file stream indicator
+        this->position_file_beg = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::end );
+        this->position_file_end = this->myfile->tellg();
+        this->myfile->seekg( 0, std::ios::beg );
+       
+        // set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
+        this->position_start = this->position_file_beg;
+        this->position_stop = this->position_file_end;
         
         // find begging and end positions of the file stream indicator
         this->position_file_beg = this->myfile->tellg();

@@ -33,9 +33,9 @@ DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fi
 // Chains
 DLLEXPORT void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, 
                               int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Chain_Write( State *state, const char *file, int format, 
+DLLEXPORT void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
                                const char* comment = "-", int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format, 
+DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
                                 const char* comment = "-", int idx_chain=-1 ) noexcept;
 
 // Save the interactions
@@ -56,6 +56,11 @@ DLLEXPORT void IO_Chain_Write_Energies( State *state, const char *file, int idx_
 // Save the interpolated energies of a chain of spin systems
 DLLEXPORT void IO_Chain_Write_Energies_Interpolated( State *state, const char *file, 
                                                      int idx_chain = -1 ) noexcept;
+
+// Eigenmodes
+DLLEXPORT void IO_Eigenmodes_Read( State *state, const char *file, int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
+DLLEXPORT void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
+                                    const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

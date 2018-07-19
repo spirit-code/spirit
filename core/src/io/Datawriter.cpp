@@ -343,4 +343,31 @@ namespace IO
         // }
         // Dump_to_File(output_to_file, filename);
     }
+
+    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues, 
+                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
+                           const Data::Geometry& geometry, const std::string filename, 
+                           VF_FileFormat format, const std::string comment, bool append )
+    {
+        int n_modes = modes.size(); 
+        switch( format )
+        {
+            case VF_FileFormat::OVF_BIN:
+            case VF_FileFormat::OVF_BIN8:
+            case VF_FileFormat::OVF_BIN4:
+            case VF_FileFormat::OVF_TEXT:
+            {   
+                File_OVF file_ovf( filename, format );
+                file_ovf.write_eigenmodes( eigenvalues, modes, geometry ); 
+                break;
+            }
+            default:
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
+                "existent file format {}", (int)format ), -1, -1 );
+            
+            // TODO: throw some exception to avoid logging "success" by API function
+            
+            break;
+        }        
+    }
 } 

@@ -157,10 +157,15 @@ namespace IO
             auto llg_params = Parameters_Method_LLG_from_Config(configFile);
             // MC Parameters
             auto mc_params = Parameters_Method_MC_from_Config(configFile);
+            // EMA Parameters
+            auto ema_params = Parameters_Method_EMA_from_Config(configFile);
+            // MMF Parameters
+            auto mmf_params = Parameters_Method_MMF_from_Config(configFile);
             // Hamiltonian
             auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
             // Spin System
-            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
+            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), 
+                std::move(geometry), std::move(llg_params), std::move(mc_params), std::move(ema_params), std::move(mmf_params), false));
             // ----------------------------------------------------------------------------------------------
             Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
@@ -467,7 +472,7 @@ namespace IO
                     // N_b
                     myfile.Read_Single(nb_left, "pin_nb_left", false);
                     myfile.Read_Single(nb_right, "pin_nb_right", false);
-                    myfile.Read_Single(nb, "pin_nb ",  false);
+                    myfile.Read_Single(nb, "pin_nb ", false);
                     if (nb > 0 && (nb_left == 0 || nb_right == 0))
                     {
                         nb_left = nb;
@@ -477,7 +482,7 @@ namespace IO
                     // N_c
                     myfile.Read_Single(nc_left, "pin_nc_left", false);
                     myfile.Read_Single(nc_right, "pin_nc_right", false);
-                    myfile.Read_Single(nc, "pin_nc ",  false);
+                    myfile.Read_Single(nc, "pin_nc ", false);
                     if (nc > 0 && (nc_left == 0 || nc_right == 0))
                     {
                         nc_left = nc;
@@ -585,16 +590,16 @@ namespace IO
         // Output folder for results
         std::string output_folder = "output_llg";
         // Save output when logging
-        std::string output_file_tag = ""; 
-        bool output_any = true, 
-             output_initial = true, 
+        std::string output_file_tag = "";
+        bool output_any = true,
+             output_initial = true,
              output_final = true;
-        bool output_energy_divide_by_nspins=true, 
-             output_energy_spin_resolved=true, 
-             output_energy_step=true, 
+        bool output_energy_divide_by_nspins=true,
+             output_energy_spin_resolved=true,
+             output_energy_step=true,
              output_energy_archive=true,
              output_energy_add_readability_lines=true;
-        bool output_configuration_step = false, 
+        bool output_configuration_step = false,
              output_configuration_archive = false;
         int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
@@ -716,6 +721,109 @@ namespace IO
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
         return llg_params;
     }// end Parameters_Method_LLG_from_Config
+
+    std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config(const std::string configFile)
+    {
+        //-------------- Insert default values here -----------------------------
+        // Output folder for results
+        std::string output_folder = "output_ema";
+        // Save output when logging
+        std::string output_file_tag; 
+        // Save output when logging
+        bool output_any = true, 
+                output_initial = true, 
+                output_final = true;
+        bool output_energy_divide_by_nspins = true, 
+                output_energy_spin_resolved = true, 
+                output_energy_step = true, 
+                output_energy_archive = true;
+        bool output_configuration_step = false, 
+                output_configuration_archive = false;
+        // Maximum walltime in seconds
+        long int max_walltime = 0;
+        std::string str_max_walltime;
+        // number of iterations carried out when pressing "play" or calling "iterate"
+        int n_iterations = (int)1E+9;
+        // Number of iterations after which the system is logged to file
+        int n_iterations_log = 1000;
+        // Number of eigenmodes to be calculated for a given image
+        int n_modes = 10;
+        // Which eigenmode to visualize
+        int n_mode_follow = 0;
+        // Frequency of the applied eigenmodes
+        scalar frequency = 1./50;
+        // Amplitude of the applied eigenmodes
+        scalar amplitude = 1;
+        // Snapshot mode option
+        bool snapshot = false;
+        
+        //------------------------------- Parser --------------------------------
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
+        
+        if (configFile != "")
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                myfile.Read_Single(output_folder,  "ema_output_folder");
+                myfile.Read_Single(output_file_tag,"output_file_tag");
+                myfile.Read_Single(output_any,     "ema_output_any");
+                myfile.Read_Single(output_initial, "ema_output_initial");
+                myfile.Read_Single(output_final,   "ema_output_final");
+                myfile.Read_Single(output_energy_divide_by_nspins, "ema_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_spin_resolved,    "ema_output_energy_spin_resolved");
+                myfile.Read_Single(output_energy_step,             "ema_output_energy_step");
+                myfile.Read_Single(output_energy_archive,          "ema_output_energy_archive");
+                myfile.Read_Single(output_configuration_step,    "ema_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive, "ema_output_configuration_archive");
+                myfile.Read_Single(str_max_walltime, "ema_max_walltime");
+                myfile.Read_Single(n_iterations, "ema_n_iterations");
+                myfile.Read_Single(n_iterations_log, "ema_n_iterations_log");
+                myfile.Read_Single(n_modes, "ema_n_modes");
+                myfile.Read_Single(n_mode_follow, "ema_n_mode_follow");
+                myfile.Read_Single(frequency, "ema_frequency");
+                myfile.Read_Single(amplitude, "ema_amplitude");
+            }// end try
+            catch (...)
+            {
+                spirit_handle_exception_core(fmt::format("Unable to parse EMA parameters from "
+                    "config file \"{}\"", configFile));
+            }
+        }
+        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters EMA: Using default configuration!");
+        
+        // Return
+        Log(Log_Level::Parameter, Log_Sender::IO, "Parameters EMA:");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_modes", n_modes));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_mode_follow", n_mode_follow));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "frequency", frequency));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "amplitude", amplitude));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
+        
+        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+        auto ema_params = std::unique_ptr<Data::Parameters_Method_EMA>(
+            new Data::Parameters_Method_EMA(output_folder, output_file_tag, { output_any, 
+                output_initial, output_final, output_energy_step, output_energy_archive, 
+                output_energy_spin_resolved, output_energy_divide_by_nspins, 
+                output_configuration_step, output_configuration_archive }, n_iterations, 
+                n_iterations_log, max_walltime, n_modes, n_mode_follow, frequency, 
+                amplitude, snapshot ));
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
+        return ema_params;
+    }
 
     std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile)
     {
@@ -906,14 +1014,17 @@ namespace IO
         std::string output_folder = "output_mmf";
         // Save output when logging
         std::string output_file_tag = "";
-        bool output_any = true, 
-                output_initial = false, 
-                output_final = true, 
-                output_energy_step = false, 
-                output_energy_archive = true, 
-                output_energy_divide_by_nspins = true, 
-                output_configuration_step = false, 
-                output_configuration_archive = true;
+        bool output_any = true,
+             output_initial = true,
+             output_final = true;
+        bool output_energy_divide_by_nspins=true,
+             output_energy_spin_resolved=true,
+             output_energy_step=true,
+             output_energy_archive=true,
+             output_energy_add_readability_lines=true;
+        bool output_configuration_step = false,
+             output_configuration_archive = false;
+        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
         // Maximum walltime in seconds
         long int max_walltime = 0;
         std::string str_max_walltime;
@@ -923,6 +1034,11 @@ namespace IO
         int n_iterations = (int)2E+6;
         // Number of iterations after which the system is logged to file
         int n_iterations_log = 100;
+
+        // Number of modes to calculate at each iteration
+        int n_modes = 1;
+        // Number of mode which to follow
+        int n_mode_follow = 0;
         
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: building");
@@ -932,20 +1048,26 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
+                // Output parameters
                 myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder, "mmf_output_folder");
-                myfile.Read_Single(output_any, "mmf_output_any");
-                myfile.Read_Single(output_initial, "mmf_output_initial");
-                myfile.Read_Single(output_final, "mmf_output_final");
-                myfile.Read_Single(output_energy_step, "mmf_output_energy_step");
-                myfile.Read_Single(output_energy_archive, "mmf_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins, "mmf_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step, "mmf_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "mmf_output_configuration_archive");
-                myfile.Read_Single(str_max_walltime, "mmf_max_walltime");
+                myfile.Read_Single(output_folder,   "mmf_output_folder");
+                myfile.Read_Single(output_any,      "mmf_output_any");
+                myfile.Read_Single(output_initial,  "mmf_output_initial");
+                myfile.Read_Single(output_final,    "mmf_output_final");
+                myfile.Read_Single(output_energy_step,                  "mmf_output_energy_step");
+                myfile.Read_Single(output_energy_archive,               "mmf_output_energy_archive");
+                myfile.Read_Single(output_energy_divide_by_nspins,      "mmf_output_energy_divide_by_nspins");
+                myfile.Read_Single(output_energy_add_readability_lines, "mmf_output_energy_add_readability_lines");
+                myfile.Read_Single(output_configuration_step,           "mmf_output_configuration_step");
+                myfile.Read_Single(output_configuration_archive,        "mmf_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,       "mmf_output_configuration_filetype");
+                // Simulation parameters
+                myfile.Read_Single(str_max_walltime,  "mmf_max_walltime");
                 myfile.Read_Single(force_convergence, "mmf_force_convergence");
-                myfile.Read_Single(n_iterations, "mmf_n_iterations");
-                myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
+                myfile.Read_Single(n_iterations,      "mmf_n_iterations");
+                myfile.Read_Single(n_iterations_log,  "mmf_n_iterations_log");
+                myfile.Read_Single(n_modes,           "mmf_n_modes");
+                myfile.Read_Single(n_mode_follow,     "mmf_n_mode_follow");
             }// end try
             catch (...)
             {
@@ -967,11 +1089,15 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
         max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, output_file_tag, {output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
-            force_convergence, n_iterations, n_iterations_log, max_walltime));
+        auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(
+            output_folder, output_file_tag,
+            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
+            output_configuration_filetype, n_modes, n_mode_follow, force_convergence, n_iterations, n_iterations_log, max_walltime));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
         return mmf_params;
     }

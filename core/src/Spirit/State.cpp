@@ -150,11 +150,8 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
                 IO::Parameters_Method_MMF_from_Config( state->config_file ));
         
         // Create the collection
-        auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
-        cv.push_back(state->active_chain);
-        state->collection = 
-            std::shared_ptr<Data::Spin_System_Chain_Collection>(
-                new Data::Spin_System_Chain_Collection( cv, params_mmf, false ) );
+        state->collection = std::shared_ptr<Data::Spin_System_Chain_Collection>(
+                new Data::Spin_System_Chain_Collection( {state->active_chain} ) );
     }
     catch (...)
     {
@@ -175,12 +172,8 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         state->nos = state->active_image->nos;
 
         // Methods
-        state->method_image = 
-            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
-                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
-        state->method_chain = 
-            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
-        state->method_collection = std::shared_ptr<Engine::Method>();
+        state->method_image = std::vector<std::shared_ptr<Engine::Method>>(state->noi);
+        state->method_chain = std::shared_ptr<Engine::Method>();
     }
     catch (...)
     {
@@ -196,7 +189,6 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             state->active_image->llg_parameters->output_any = false;
             state->active_image->mc_parameters->output_any = false;
             state->active_chain->gneb_parameters->output_any = false;
-            state->collection->parameters->output_any = false;
         }
     }
     catch (...)
@@ -323,7 +315,7 @@ void State_To_Config(State * state, const char * config_file, const char * comme
         IO::String_to_File(header, cfg);
         // Folders
         IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
-                               state->active_chain->gneb_parameters, state->collection->parameters );
+                               state->active_chain->gneb_parameters, state->active_image->mmf_parameters );
         // Log Parameters
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Log_Levels_to_Config(cfg);
@@ -341,7 +333,7 @@ void State_To_Config(State * state, const char * config_file, const char * comme
         IO::Parameters_Method_GNEB_to_Config(cfg, state->active_chain->gneb_parameters);
         // MMF
         IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_MMF_to_Config(cfg, state->collection->parameters);
+        IO::Parameters_Method_MMF_to_Config(cfg, state->active_image->mmf_parameters);
         // Hamiltonian
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);

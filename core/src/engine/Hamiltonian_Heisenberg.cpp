@@ -10,9 +10,7 @@
 
 using namespace Data;
 using namespace Utility;
-using Utility::Constants::mu_B;
-using Utility::Constants::mu_0;
-using Utility::Constants::Pi;
+namespace C = Utility::Constants;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
 
@@ -31,7 +29,7 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
@@ -55,7 +53,7 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
         dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dm_chirality),
@@ -315,9 +313,9 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
-        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-        const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
         auto& mu_s = this->geometry->cell_mu_s;
+        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        const scalar mult = C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
 
         scalar result = 0.0;
 
@@ -466,7 +464,7 @@ namespace Engine
                 {
                     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
                     const scalar mult = 0.5 * mu_s[ddi_pairs[ipair].i] * mu_s[ddi_pairs[ipair].j]
-                        * Utility::Constants::mu_0 * std::pow(Utility::Constants::mu_B, 2) / ( 4*Utility::Constants::Pi * 1e-30 );
+                        * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
 
                     int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
                     int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
@@ -622,10 +620,10 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
-        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-        const scalar mult = mu_0 * std::pow(mu_B, 2) / ( 4*Pi * 1e-30 );
         auto& mu_s = this->geometry->cell_mu_s;
-
+        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+        const scalar mult = C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+        
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
         {
             if (ddi_magnitudes[i_pair] > 0.0)
@@ -806,7 +804,7 @@ namespace Engine
         //	int idx_2 = DD_indices[i_pair][1];
         //	// prefactor
         //	scalar prefactor = 0.0536814951168
-        //		* this->mu_s[idx_1] * this->mu_s[idx_2]
+        //		* mu_s[idx_1] * mu_s[idx_2]
         //		/ std::pow(DD_magnitude[i_pair], 3);
         //	// components
         //	for (int alpha = 0; alpha < 3; ++alpha)

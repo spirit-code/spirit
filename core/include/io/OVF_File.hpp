@@ -90,6 +90,7 @@ namespace IO
         void read_n_segments_from_top_header();
         // Count the number of segments in the file. It also saves their file positions
         int count_and_locate_segments();
+
     public:
         // constructor
         File_OVF( std::string filename, VF_FileFormat format = VF_FileFormat::OVF_TEXT  );
@@ -104,8 +105,12 @@ namespace IO
                            const int idx_seg = 0 );
         // Write segment to file (if the file exists overwrite it)
         void write_segment( const vectorfield& vf, const Data::Geometry& geometry,
-                            const std::string comment = "", const bool append = false ); 
-    private: 
+                            const std::string comment = "", const bool append = false );
+
+        void write_eigenmodes( const std::vector<scalar>& eigenvalues,
+                               const std::vector<std::shared_ptr<vectorfield>>& modes,
+                               const Data::Geometry& geometry );
+ 
         // Read a variable from the comment section from the header of segment idx_seg
         template <typename T> void Read_Variable_from_Comment( T& var, const std::string name,
                                                                const int idx_seg = 0 )
@@ -119,10 +124,17 @@ namespace IO
                                   "OVF error while choosing segment to read - "
                                   "index out of bounds" );
 
+                // open the file
+                this->ifile = std::unique_ptr<Filter_File_Handle>( 
+                                    new Filter_File_Handle( this->filename, this->comment_tag ) );
+
                 this->ifile->SetLimits( this->segment_fpos[idx_seg], 
                                         this->segment_fpos[idx_seg+1] );
 
                 this->ifile->Read_Single( var, name );
+
+                // close the file
+                this->ifile = NULL;
 
                 Log( Utility::Log_Level::Debug, this->sender, fmt::format( "{}{}", name, var ) );
             }
