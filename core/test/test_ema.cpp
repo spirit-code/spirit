@@ -5,7 +5,6 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
-#include <Spirit/Parameters.h>
 #include <Spirit/IO.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>

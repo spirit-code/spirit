@@ -2,7 +2,7 @@ import spirit.spiritlib as spiritlib
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.LoadSpiritLibrary()
+_spirit = spiritlib.load_spirit_library()
 
 
 ### Domain (homogeneous) configuration
@@ -11,7 +11,7 @@ _Domain.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                        ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), 
                        ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Domain.restype     = None
-def Domain(p_state, dir, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
+def domain(p_state, dir, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
            border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     _Domain(ctypes.c_void_p(p_state) , vec3(*dir), vec3(*pos), vec3(*border_rectangular), 
@@ -25,7 +25,7 @@ _PlusZ.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                       ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
                       ctypes.c_int, ctypes.c_int]
 _PlusZ.restype     = None
-def PlusZ(p_state, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0, 
+def plus_z(p_state, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0, 
           border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     _PlusZ(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
@@ -39,7 +39,7 @@ _MinusZ.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                        ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, 
                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _MinusZ.restype     = None
-def MinusZ(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
+def minus_z(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
           border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     _MinusZ(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
@@ -52,7 +52,7 @@ _Random.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                        ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, 
                        ctypes.c_bool, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
 _Random.restype     = None
-def Random(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
+def random(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
            border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     _Random(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
@@ -67,7 +67,7 @@ _Add_Noise_Temperature.argtypes    = [ctypes.c_void_p, ctypes.c_float,
                                       ctypes.c_float, ctypes.c_float, ctypes.c_bool, ctypes.c_bool, 
                                       ctypes.c_int, ctypes.c_int]
 _Add_Noise_Temperature.restype     = None
-def Add_Noise_Temperature(p_state, temperature, pos=[0,0,0], border_rectangular=[-1,-1,-1], 
+def add_noise(p_state, temperature, pos=[0,0,0], border_rectangular=[-1,-1,-1], 
                           border_cylindrical=-1, border_spherical=-1, inverted=False, 
                           idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
@@ -84,7 +84,7 @@ _Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes
                          ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, 
                          ctypes.c_int, ctypes.c_int]
 _Skyrmion.restype     = None
-def Skyrmion(p_state, radius, order=1, phase=1, upDown=False, achiral=False, rightleft=False, 
+def skyrmion(p_state, radius, order=1, phase=1, upDown=False, achiral=False, rightleft=False, 
              pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, 
              inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
@@ -100,7 +100,7 @@ _Hopfion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.PO
                         ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool, 
                         ctypes.c_int, ctypes.c_int]
 _Hopfion.restype     = None
-def Hopfion(p_state, radius, order=1, pos=[0,0,0], border_rectangular=[-1,-1,-1], 
+def hopfion(p_state, radius, order=1, pos=[0,0,0], border_rectangular=[-1,-1,-1], 
             border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
     _Hopfion(ctypes.c_void_p(p_state) , ctypes.c_float(radius), ctypes.c_int(order), 
@@ -117,7 +117,7 @@ _SpinSpiral.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.POINTER(ctyp
                            ctypes.c_float, ctypes.c_float, ctypes.c_bool, 
                            ctypes.c_int, ctypes.c_int]
 _SpinSpiral.restype     = None
-def SpinSpiral(p_state, direction_type, q_vector, axis, theta, pos=[0,0,0], 
+def spin_spiral(p_state, direction_type, q_vector, axis, theta, pos=[0,0,0], 
                border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, 
                inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3

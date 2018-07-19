@@ -514,8 +514,8 @@ void SpinWidget::paintGL()
     if (this->m_suspended)
         return;
 
-    if ( Simulation_Running_Image(this->state.get()) ||
-         Simulation_Running_Chain(this->state.get()) ||
+    if ( Simulation_Running_On_Image(this->state.get()) ||
+         Simulation_Running_On_Chain(this->state.get()) ||
          this->m_dragging)
     {
         this->updateData();

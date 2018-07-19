@@ -8,7 +8,7 @@
 #include "Spirit/Chain.h"
 #include "Spirit/Configurations.h"
 #include "Spirit/Simulation.h"
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_EMA.h>
 #include "Spirit/IO.h"
 #include "Spirit/Log.h"
 
@@ -72,8 +72,8 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
 void ControlWidget::updateData()
     {
     // Check for running simulations - update Play/Pause Button
-    if ( Simulation_Running_Chain(state.get()) ||
-         Simulation_Running_Image(state.get()) )
+    if( Simulation_Running_On_Chain(state.get()) ||
+        Simulation_Running_On_Image(state.get()) )
     {
         this->pushButton_PlayPause->setText("Pause");
         this->spinWidget->updateData();
@@ -94,11 +94,11 @@ void ControlWidget::updateData()
         this->idx_image_last = idx_image;
     }
     // Update Mode number
-    this->lineEdit_ModeNumber->setText(QString::number(Parameters_Get_EMA_N_Mode_Follow(state.get())+1));
+    this->lineEdit_ModeNumber->setText(QString::number(Parameters_EMA_Get_N_Mode_Follow(state.get())+1));
     // Update NOI counter
     this->label_NOI->setText("/ " + QString::number(Chain_Get_NOI(state.get())));
     // Update NEM counter
-    this->label_NumberOfModes->setText("/ " + QString::number(Parameters_Get_EMA_N_Modes(state.get())));
+    this->label_NumberOfModes->setText("/ " + QString::number(Parameters_EMA_Get_N_Modes(state.get())));
 
     // Update thread arrays
     if (Chain_Get_NOI(state.get()) > (int)threads_image.size())
@@ -162,8 +162,8 @@ void ControlWidget::play_pause()
     auto c_method = s_method.c_str();
     auto c_solver = s_solver.c_str();
 
-    if ( Simulation_Running_Image(this->state.get()) ||
-         Simulation_Running_Chain(this->state.get()) )
+    if( Simulation_Running_On_Image(this->state.get()) ||
+        Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), c_method, c_solver);
@@ -235,8 +235,8 @@ void ControlWidget::stop_current()
 {
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
 
-    if ( Simulation_Running_Image(this->state.get()) ||
-         Simulation_Running_Chain(this->state.get()) )
+    if( Simulation_Running_On_Image(this->state.get()) ||
+        Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
@@ -245,8 +245,8 @@ void ControlWidget::stop_current()
         else if (thread_chain.joinable()) thread_chain.join();
     }
 
-    if ( Simulation_Running_Image(this->state.get()) ||
-            Simulation_Running_Chain(this->state.get()) )
+    if( Simulation_Running_On_Image(this->state.get()) ||
+        Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
@@ -378,10 +378,10 @@ void ControlWidget::next_mode()
 {
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: nextmode");
 
-    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    int following_mode = Parameters_EMA_Get_N_Mode_Follow(state.get());
 
     // Change mode
-    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode+1 );
+    Parameters_EMA_Set_N_Mode_Follow(this->state.get(), following_mode+1 );
 
     // Update
     this->updateData();
@@ -392,10 +392,10 @@ void ControlWidget::prev_mode()
 {
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: previousmode");
 
-    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    int following_mode = Parameters_EMA_Get_N_Mode_Follow(state.get());
         
     // Change mode
-    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), following_mode-1 );
+    Parameters_EMA_Set_N_Mode_Follow(this->state.get(), following_mode-1 );
 
     // Update
     this->updateData();
@@ -407,7 +407,7 @@ void ControlWidget::jump_to_mode()
     // Change active image
     int mode_idx = this->lineEdit_ModeNumber->text().toInt()-1;
 
-    Parameters_Set_EMA_N_Mode_Follow(this->state.get(), mode_idx-1 );	
+    Parameters_EMA_Set_N_Mode_Follow(this->state.get(), mode_idx-1 );	
 
     // Update
     this->updateData();
@@ -422,7 +422,7 @@ void ControlWidget::calculate()
 
     int idx = System_Get_Index(state.get());
     if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
-    if ( !Simulation_Running_Image(state.get()) )
+    if ( !Simulation_Running_On_Image(state.get()) )
         this->threads_image[System_Get_Index(state.get())] =
             std::thread(&System_Update_Eigenmodes, this->state.get(), -1, -1);
             
@@ -435,7 +435,7 @@ void ControlWidget::apply_mode()
 {
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: apply mode");
     
-    int following_mode = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    int following_mode = Parameters_EMA_Get_N_Mode_Follow(state.get());
     
     Configuration_Displace_Eigenmode( state.get(), following_mode );
 

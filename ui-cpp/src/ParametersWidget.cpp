@@ -2,7 +2,11 @@
 
 #include "ParametersWidget.hpp"
 
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_MC.h>
+#include <Spirit/Parameters_LLG.h>
+#include <Spirit/Parameters_GNEB.h>
+#include <Spirit/Parameters_MMF.h>
+#include <Spirit/Parameters_EMA.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
@@ -63,16 +67,16 @@ void ParametersWidget::Load_Parameters_Contents()
 
     //      LLG
     // Direct minimization
-    b1 = Parameters_Get_LLG_Direct_Minimization(state.get());
+    b1 = Parameters_LLG_Get_Direct_Minimization(state.get());
     this->checkBox_llg_direct->setChecked(b1);
     // Damping
-    d = Parameters_Get_LLG_Damping(state.get());
+    d = Parameters_LLG_Get_Damping(state.get());
     this->lineEdit_Damping->setText(QString::number(d));
     // Converto to PicoSeconds
-    d = Parameters_Get_LLG_Time_Step(state.get());
+    d = Parameters_LLG_Get_Time_Step(state.get());
     this->lineEdit_dt->setText(QString::number(d));
     // Spin polarized current
-    Parameters_Get_LLG_STT(state.get(), &b1, &d, vd);
+    Parameters_LLG_Get_STT(state.get(), &b1, &d, vd);
     this->radioButton_stt_gradient->setChecked(b1);
     this->doubleSpinBox_llg_stt_magnitude->setValue(d);
     this->doubleSpinBox_llg_stt_polarisation_x->setValue(vd[0]);
@@ -80,89 +84,89 @@ void ParametersWidget::Load_Parameters_Contents()
     this->doubleSpinBox_llg_stt_polarisation_z->setValue(vd[2]);
     if (d > 0.0) this->checkBox_llg_stt->setChecked(true);
     // Temperature
-    d = Parameters_Get_LLG_Temperature(state.get());
+    d = Parameters_LLG_Get_Temperature(state.get());
     this->doubleSpinBox_llg_temperature->setValue(d);
     if (d > 0.0) this->checkBox_llg_temperature->setChecked(true);
-    Parameters_Get_LLG_Temperature_Gradient(state.get(), &d, vd);
+    Parameters_LLG_Get_Temperature_Gradient(state.get(), &d, vd);
     this->lineEdit_llg_temperature_inclination->setText(QString::number(d));
     this->lineEdit_llg_temperature_dir_x->setText(QString::number(vd[0]));
     this->lineEdit_llg_temperature_dir_y->setText(QString::number(vd[1]));
     this->lineEdit_llg_temperature_dir_z->setText(QString::number(vd[2]));
     // Convergence
-    d = Parameters_Get_LLG_Convergence(state.get());
+    d = Parameters_LLG_Get_Convergence(state.get());
     this->spinBox_llg_convergence->setValue(std::log10(d));
     // Output
-    Parameters_Get_LLG_N_Iterations(state.get(), &i1, &i2);
+    Parameters_LLG_Get_N_Iterations(state.get(), &i1, &i2);
     this->lineEdit_llg_n_iterations->setText(QString::number(i1));
     this->lineEdit_llg_log_steps->setText(QString::number(i2));
-    auto folder = Parameters_Get_LLG_Output_Folder(state.get());
+    auto folder = Parameters_LLG_Get_Output_Folder(state.get());
     this->lineEdit_llg_output_folder->setText(folder);
-    Parameters_Get_LLG_Output_General(state.get(), &b1, &b2, &b3);
+    Parameters_LLG_Get_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_llg_output_any->setChecked(b1);
     this->checkBox_llg_output_initial->setChecked(b2);
     this->checkBox_llg_output_final->setChecked(b3);
-    Parameters_Get_LLG_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
+    Parameters_LLG_Get_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
     this->checkBox_llg_output_energy_step->setChecked(b1);
     this->checkBox_llg_output_energy_archive->setChecked(b2);
     this->checkBox_llg_output_energy_spin_resolved->setChecked(b3);
     this->checkBox_llg_output_energy_divide->setChecked(b4);
-    Parameters_Get_LLG_Output_Configuration(state.get(), &b1, &b2, &i1);
+    Parameters_LLG_Get_Output_Configuration(state.get(), &b1, &b2, &i1);
     this->checkBox_llg_output_configuration_step->setChecked(b1);
     this->checkBox_llg_output_configuration_archive->setChecked(b2);
 
     //      MC
     // Parameters
-    d = Parameters_Get_MC_Temperature(state.get());
+    d = Parameters_MC_Get_Temperature(state.get());
     this->doubleSpinBox_mc_temperature->setValue(d);
     if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
-    d = Parameters_Get_MC_Acceptance_Ratio(state.get());
+    d = Parameters_MC_Get_Acceptance_Ratio(state.get());
     this->doubleSpinBox_mc_acceptance->setValue(d);
     // Output
-    Parameters_Get_MC_N_Iterations(state.get(), &i1, &i2);
+    Parameters_MC_Get_N_Iterations(state.get(), &i1, &i2);
     this->spinBox_mc_n_iterations->setValue(i1);
     this->spinBox_mc_log_steps->setValue(i2);
-    folder = Parameters_Get_MC_Output_Folder(state.get());
+    folder = Parameters_MC_Get_Output_Folder(state.get());
     this->lineEdit_mc_output_folder->setText(folder);
-    Parameters_Get_MC_Output_General(state.get(), &b1, &b2, &b3);
+    Parameters_MC_Get_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_mc_output_any->setChecked(b1);
     this->checkBox_mc_output_initial->setChecked(b2);
     this->checkBox_mc_output_final->setChecked(b3);
-    Parameters_Get_MC_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
+    Parameters_MC_Get_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
     this->checkBox_mc_output_energy_step->setChecked(b1);
     this->checkBox_mc_output_energy_archive->setChecked(b2);
     this->checkBox_mc_output_energy_spin_resolved->setChecked(b3);
     this->checkBox_mc_output_energy_divide->setChecked(b4);
-    Parameters_Get_MC_Output_Configuration(state.get(), &b1, &b2, &i1);
+    Parameters_MC_Get_Output_Configuration(state.get(), &b1, &b2, &i1);
     this->checkBox_mc_output_configuration_step->setChecked(b1);
     this->checkBox_mc_output_configuration_archive->setChecked(b2);
 
     //      GNEB
     // Output
-    Parameters_Get_GNEB_N_Iterations(state.get(), &i1, &i2);
+    Parameters_GNEB_Get_N_Iterations(state.get(), &i1, &i2);
     this->lineEdit_gneb_n_iterations->setText(QString::number(i1));
     this->lineEdit_gneb_log_steps->setText(QString::number(i2));
-    folder = Parameters_Get_GNEB_Output_Folder(state.get());
+    folder = Parameters_GNEB_Get_Output_Folder(state.get());
     this->lineEdit_gneb_output_folder->setText(folder);
-    Parameters_Get_GNEB_Output_General(state.get(), &b1, &b2, &b3);
+    Parameters_GNEB_Get_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_gneb_output_any->setChecked(b1);
     this->checkBox_gneb_output_initial->setChecked(b2);
     this->checkBox_gneb_output_final->setChecked(b3);
-    Parameters_Get_GNEB_Output_Energies(state.get(), &b1, &b2, &b3, &b4);
+    Parameters_GNEB_Get_Output_Energies(state.get(), &b1, &b2, &b3, &b4);
     this->checkBox_gneb_output_energies_step->setChecked(b1);
     this->checkBox_gneb_output_energies_interpolated->setChecked(b2);
     this->checkBox_gneb_output_energies_divide->setChecked(b3);
-    Parameters_Get_GNEB_Output_Chain(state.get(), &b1, &i1);
+    Parameters_GNEB_Get_Output_Chain(state.get(), &b1, &i1);
     this->checkBox_gneb_output_chain_step->setChecked(b1);
 
     // Convergence
-    d = Parameters_Get_GNEB_Convergence(state.get());
+    d = Parameters_GNEB_Get_Convergence(state.get());
     this->spinBox_gneb_convergence->setValue(std::log10(d));
     // GNEB Spring Constant
-    d = Parameters_Get_GNEB_Spring_Constant(state.get());
+    d = Parameters_GNEB_Get_Spring_Constant(state.get());
     this->lineEdit_gneb_springconstant->setText(QString::number(d));
 
     // Normal/Climbing/Falling image radioButtons
-    image_type = Parameters_Get_GNEB_Climbing_Falling(state.get());
+    image_type = Parameters_GNEB_Get_Climbing_Falling(state.get());
     if (image_type == 0)
         this->radioButton_Normal->setChecked(true);
     else if (image_type == 1)
@@ -174,41 +178,41 @@ void ParametersWidget::Load_Parameters_Contents()
 
     //      EMA
     // modes to calculate and visualize
-    i1 = Parameters_Get_EMA_N_Modes(state.get());
+    i1 = Parameters_EMA_Get_N_Modes(state.get());
     this->spinBox_ema_n_modes->setValue(i1);
-    i2 = Parameters_Get_EMA_N_Mode_Follow(state.get());
+    i2 = Parameters_EMA_Get_N_Mode_Follow(state.get());
     this->spinBox_ema_n_mode_follow->setValue(i2+1);
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
-    d = Parameters_Get_EMA_Frequency(state.get());
+    d = Parameters_EMA_Get_Frequency(state.get());
     this->doubleSpinBox_ema_frequency->setValue(d);
-    d = Parameters_Get_EMA_Amplitude(state.get());
+    d = Parameters_EMA_Get_Amplitude(state.get());
     this->doubleSpinBox_ema_amplitude->setValue(d);
-    b1 = Parameters_Get_EMA_Snapshot(state.get());
+    b1 = Parameters_EMA_Get_Snapshot(state.get());
     this->checkBox_snapshot_mode->setChecked(b1);
 
    //       MMF
    // Parameters
-   i1 = Parameters_Get_MMF_N_Modes(state.get());
+   i1 = Parameters_MMF_Get_N_Modes(state.get());
    this->spinBox_mmf_n_modes->setValue(i1);
-   i2 = Parameters_Get_MMF_N_Mode_Follow(state.get());
+   i2 = Parameters_MMF_Get_N_Mode_Follow(state.get());
    this->spinBox_mmf_n_mode_follow->setValue(i2+1);
    this->spinBox_mmf_n_mode_follow->setMaximum(i1);
     // Output
-    Parameters_Get_MMF_N_Iterations(state.get(), &i1, &i2);
+    Parameters_MMF_Get_N_Iterations(state.get(), &i1, &i2);
     this->lineEdit_mmf_output_n_iterations->setText(QString::number(i1));
     this->lineEdit_mmf_output_log_steps->setText(QString::number(i2));
-    auto folder_mmf = Parameters_Get_MMF_Output_Folder(state.get());
+    auto folder_mmf = Parameters_MMF_Get_Output_Folder(state.get());
     this->lineEdit_mmf_output_folder->setText(folder_mmf);
-    Parameters_Get_MMF_Output_General(state.get(), &b1, &b2, &b3);
+    Parameters_MMF_Get_Output_General(state.get(), &b1, &b2, &b3);
     this->checkBox_mmf_output_any->setChecked(b1);
     this->checkBox_mmf_output_initial->setChecked(b2);
     this->checkBox_mmf_output_final->setChecked(b3);
-    Parameters_Get_MMF_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
+    Parameters_MMF_Get_Output_Energy(state.get(), &b1, &b2, &b3, &b4, &b5);
     this->checkBox_mmf_output_energy_step->setChecked(b1);
     this->checkBox_mmf_output_energy_archive->setChecked(b2);
     this->checkBox_mmf_output_energy_spin_resolved->setChecked(b3);
     this->checkBox_mmf_output_energy_divide->setChecked(b4);
-    Parameters_Get_MMF_Output_Configuration(state.get(), &b1, &b2, &i1);
+    Parameters_MMF_Get_Output_Configuration(state.get(), &b1, &b2, &i1);
     this->checkBox_mmf_output_configuration_step->setChecked(b1);
     this->checkBox_mmf_output_configuration_archive->setChecked(b2);
 }
@@ -225,20 +229,20 @@ void ParametersWidget::set_parameters_llg()
 
         // Direct minimization
         b1 = this->checkBox_llg_direct->isChecked();
-        Parameters_Set_LLG_Direct_Minimization(this->state.get(), b1, idx_image);
+        Parameters_LLG_Set_Direct_Minimization(this->state.get(), b1, idx_image);
 
         // Convergence
         d = std::pow(10, this->spinBox_llg_convergence->value());
-        Parameters_Set_LLG_Convergence(this->state.get(), d, idx_image);
+        Parameters_LLG_Set_Convergence(this->state.get(), d, idx_image);
 
         // Time step [ps]
         // dt = time_step [ps] * 10^-12 * gyromagnetic raio / mu_B  { / (1+damping^2)} <- not implemented
         d = this->lineEdit_dt->text().toFloat();
-        Parameters_Set_LLG_Time_Step(this->state.get(), d, idx_image);
+        Parameters_LLG_Set_Time_Step(this->state.get(), d, idx_image);
 
         // Damping
         d = this->lineEdit_Damping->text().toFloat();
-        Parameters_Set_LLG_Damping(this->state.get(), d, idx_image);
+        Parameters_LLG_Set_Damping(this->state.get(), d, idx_image);
 
 
         // Spin polarised current
@@ -265,7 +269,7 @@ void ParametersWidget::set_parameters_llg()
             }
             else { throw(ex); }
         }
-        Parameters_Set_LLG_STT(state.get(), b1, d, vd, idx_image);
+        Parameters_LLG_Set_STT(state.get(), b1, d, vd, idx_image);
 
         // Temperature
         if (this->checkBox_llg_temperature->isChecked())
@@ -284,27 +288,27 @@ void ParametersWidget::set_parameters_llg()
             vd[1] = 0;
             vd[2] = 0;
         }
-        Parameters_Set_LLG_Temperature(state.get(), d, idx_image);
-        Parameters_Set_LLG_Temperature_Gradient(state.get(), d2, vd, idx_image);
+        Parameters_LLG_Set_Temperature(state.get(), d, idx_image);
+        Parameters_LLG_Set_Temperature_Gradient(state.get(), d2, vd, idx_image);
 
         // Output
         i1 = this->lineEdit_llg_n_iterations->text().toInt();
         i2 = this->lineEdit_llg_log_steps->text().toInt();
-        Parameters_Set_LLG_N_Iterations(state.get(), i1, i2, idx_image);
+        Parameters_LLG_Set_N_Iterations(state.get(), i1, i2, idx_image);
         std::string folder = this->lineEdit_llg_output_folder->text().toStdString();
-        Parameters_Set_LLG_Output_Folder(state.get(), folder.c_str(), idx_image);
+        Parameters_LLG_Set_Output_Folder(state.get(), folder.c_str(), idx_image);
         b1 = this->checkBox_llg_output_any->isChecked();
         b2 = this->checkBox_llg_output_initial->isChecked();
         b3 = this->checkBox_llg_output_final->isChecked();
-        Parameters_Set_LLG_Output_General(state.get(), b1, b2, b3, idx_image);
+        Parameters_LLG_Set_Output_General(state.get(), b1, b2, b3, idx_image);
         b1 = this->checkBox_llg_output_energy_step->isChecked();
         b2 = this->checkBox_llg_output_energy_archive->isChecked();
         b3 = this->checkBox_llg_output_energy_spin_resolved->isChecked();
         b4 = this->checkBox_llg_output_energy_divide->isChecked();
-        Parameters_Set_LLG_Output_Energy(state.get(), b1, b2, b3, b4, idx_image);
+        Parameters_LLG_Set_Output_Energy(state.get(), b1, b2, b3, b4, idx_image);
         b1 = this->checkBox_llg_output_configuration_step->isChecked();
         b2 = this->checkBox_llg_output_configuration_archive->isChecked();
-        Parameters_Set_LLG_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image);
+        Parameters_LLG_Set_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image);
     };
 
     if (this->comboBox_LLG_ApplyTo->currentText() == "Current Image")
@@ -341,30 +345,30 @@ void ParametersWidget::set_parameters_mc()
             d = this->doubleSpinBox_mc_temperature->value();
         else
             d = 0.0;
-        Parameters_Set_MC_Temperature(state.get(), d, idx_image);
+        Parameters_MC_Set_Temperature(state.get(), d, idx_image);
 
         // Acceptance ratio
         d = this->doubleSpinBox_mc_acceptance->value();
-        Parameters_Set_MC_Acceptance_Ratio(state.get(), d, idx_image);
+        Parameters_MC_Set_Acceptance_Ratio(state.get(), d, idx_image);
 
         // Output
         i1 = this->spinBox_mc_n_iterations->value();
         i2 = this->spinBox_mc_log_steps->value();
-        Parameters_Set_MC_N_Iterations(state.get(), i1, i2, idx_image);
+        Parameters_MC_Set_N_Iterations(state.get(), i1, i2, idx_image);
         std::string folder = this->lineEdit_mc_output_folder->text().toStdString();
-        Parameters_Set_MC_Output_Folder(state.get(), folder.c_str(), idx_image);
+        Parameters_MC_Set_Output_Folder(state.get(), folder.c_str(), idx_image);
         b1 = this->checkBox_mc_output_any->isChecked();
         b2 = this->checkBox_mc_output_initial->isChecked();
         b3 = this->checkBox_mc_output_final->isChecked();
-        Parameters_Set_MC_Output_General(state.get(), b1, b2, b3, idx_image);
+        Parameters_MC_Set_Output_General(state.get(), b1, b2, b3, idx_image);
         b1 = this->checkBox_mc_output_energy_step->isChecked();
         b2 = this->checkBox_mc_output_energy_archive->isChecked();
         b3 = this->checkBox_mc_output_energy_spin_resolved->isChecked();
         b4 = this->checkBox_mc_output_energy_divide->isChecked();
-        Parameters_Set_MC_Output_Energy(state.get(), b1, b2, b3, b4, true, idx_image);
+        Parameters_MC_Set_Output_Energy(state.get(), b1, b2, b3, b4, true, idx_image);
         b1 = this->checkBox_mc_output_configuration_step->isChecked();
         b2 = this->checkBox_mc_output_configuration_archive->isChecked();
-        Parameters_Set_MC_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image);
+        Parameters_MC_Set_Output_Configuration(state.get(), b1, b2, IO_Fileformat_OVF_text, idx_image);
     };
 
     if (this->comboBox_MC_ApplyTo->currentText() == "Current Image")
@@ -394,10 +398,10 @@ void ParametersWidget::set_parameters_gneb()
 
     // Convergence
     d = std::pow(10, this->spinBox_gneb_convergence->value());
-    Parameters_Set_GNEB_Convergence(this->state.get(), d, -1);
+    Parameters_GNEB_Set_Convergence(this->state.get(), d, -1);
     // Spring Constant
     d = this->lineEdit_gneb_springconstant->text().toFloat();
-    Parameters_Set_GNEB_Spring_Constant(state.get(), d, -1);
+    Parameters_GNEB_Set_Spring_Constant(state.get(), d, -1);
     // Climbing/Falling Image
     int image_type = 0;
     if (this->radioButton_ClimbingImage->isChecked())
@@ -406,19 +410,19 @@ void ParametersWidget::set_parameters_gneb()
         image_type = 2;
     if (this->radioButton_Stationary->isChecked())
         image_type = 3;
-    Parameters_Set_GNEB_Climbing_Falling(state.get(), image_type, -1);
+    Parameters_GNEB_Set_Climbing_Falling(state.get(), image_type, -1);
 
     // Output
     i1 = this->lineEdit_gneb_n_iterations->text().toInt();
     i2 = this->lineEdit_gneb_log_steps->text().toInt();
-    Parameters_Set_GNEB_N_Iterations(state.get(), i1, i2);
+    Parameters_GNEB_Set_N_Iterations(state.get(), i1, i2);
     std::string folder = this->lineEdit_gneb_output_folder->text().toStdString();
-    Parameters_Set_GNEB_Output_Folder(state.get(), folder.c_str());
+    Parameters_GNEB_Set_Output_Folder(state.get(), folder.c_str());
 }
 
 void ParametersWidget::set_gneb_auto_image_type()
 {
-    Parameters_Set_GNEB_Image_Type_Automatically(state.get());
+    Parameters_GNEB_Set_Image_Type_Automatically(state.get());
     this->Load_Parameters_Contents();
 }
 
@@ -432,29 +436,29 @@ void ParametersWidget::set_parameters_mmf()
 
         // Parameters
         i1 = this->spinBox_mmf_n_modes->value();
-        Parameters_Set_MMF_N_Modes(state.get(), i1, idx_image);
+        Parameters_MMF_Set_N_Modes(state.get(), i1, idx_image);
         this->spinBox_mmf_n_mode_follow->setMaximum(i1);
         i1 = this->spinBox_mmf_n_mode_follow->value();
-        Parameters_Set_MMF_N_Mode_Follow(state.get(), i1-1, idx_image);
+        Parameters_MMF_Set_N_Mode_Follow(state.get(), i1-1, idx_image);
 
         // Output
         i1 = this->lineEdit_mmf_output_n_iterations->text().toInt();
         i2 = this->lineEdit_mmf_output_log_steps->text().toInt();
-        Parameters_Set_MMF_N_Iterations(state.get(), i1, i2, idx_image);
+        Parameters_MMF_Set_N_Iterations(state.get(), i1, i2, idx_image);
         std::string folder = this->lineEdit_mmf_output_folder->text().toStdString();
-        Parameters_Set_MMF_Output_Folder(state.get(), folder.c_str(), idx_image);
+        Parameters_MMF_Set_Output_Folder(state.get(), folder.c_str(), idx_image);
         b1 = this->checkBox_mmf_output_any->isChecked();
         b2 = this->checkBox_mmf_output_initial->isChecked();
         b3 = this->checkBox_mmf_output_final->isChecked();
-        Parameters_Set_MMF_Output_General(state.get(), b1, b2, b3, idx_image);
+        Parameters_MMF_Set_Output_General(state.get(), b1, b2, b3, idx_image);
         b1 = this->checkBox_mmf_output_energy_step->isChecked();
         b2 = this->checkBox_mmf_output_energy_archive->isChecked();
         b3 = this->checkBox_mmf_output_energy_spin_resolved->isChecked();
         b4 = this->checkBox_mmf_output_energy_divide->isChecked();
-        Parameters_Set_MMF_Output_Energy(state.get(), b1, b2, b3, b4, idx_image);
+        Parameters_MMF_Set_Output_Energy(state.get(), b1, b2, b3, b4, idx_image);
         b1 = this->checkBox_mmf_output_configuration_step->isChecked();
         b2 = this->checkBox_mmf_output_configuration_archive->isChecked();
-        Parameters_Set_MMF_Output_Configuration(state.get(), b1, b2, idx_image);
+        Parameters_MMF_Set_Output_Configuration(state.get(), b1, b2, idx_image);
     };
 
     for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
@@ -493,11 +497,11 @@ void ParametersWidget::set_parameters_ema()
     float d2 = this->doubleSpinBox_ema_amplitude->value();
     bool b1 = this->checkBox_snapshot_mode->isChecked();
 
-    Parameters_Set_EMA_N_Modes(state.get(), i1);
-    Parameters_Set_EMA_N_Mode_Follow(state.get(), i2-1);
-    Parameters_Set_EMA_Frequency(state.get(), d1);
-    Parameters_Set_EMA_Amplitude(state.get(), d2);
-    Parameters_Set_EMA_Snapshot(state.get(), b1);
+    Parameters_EMA_Set_N_Modes(state.get(), i1);
+    Parameters_EMA_Set_N_Mode_Follow(state.get(), i2-1);
+    Parameters_EMA_Set_Frequency(state.get(), d1);
+    Parameters_EMA_Set_Amplitude(state.get(), d2);
+    Parameters_EMA_Set_Snapshot(state.get(), b1);
 
     this->spinBox_ema_n_mode_follow->setMaximum(i1);
 }
@@ -549,7 +553,7 @@ void ParametersWidget::load_Spin_Configuration_Eigenmodes()
         IO_Eigenmodes_Read(this->state.get(), file.c_str(), type); 
 
         // n_modes parameter might be change by IO_Eigenmodes_Read so update that first
-        this->spinBox_ema_n_modes->setValue( Parameters_Get_EMA_N_Modes(state.get()) ); 
+        this->spinBox_ema_n_modes->setValue( Parameters_EMA_Get_N_Modes(state.get()) ); 
         
         // then pass widgets parameters to the core
         set_parameters_ema();

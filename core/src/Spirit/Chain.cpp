@@ -199,7 +199,7 @@ void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain ) no
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        bool running = Simulation_Running_Chain(state, idx_chain);
+        bool running = Simulation_Running_On_Chain(state, idx_chain);
         std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -271,7 +271,7 @@ void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain ) noe
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        bool running = Simulation_Running_Chain(state, idx_chain);
+        bool running = Simulation_Running_On_Chain(state, idx_chain);
         std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -353,7 +353,7 @@ void Chain_Push_Back( State * state, int idx_chain ) noexcept
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        bool running = Simulation_Running_Chain(state, idx_chain);
+        bool running = Simulation_Running_On_Chain(state, idx_chain);
         std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -420,7 +420,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        bool running = Simulation_Running_Chain(state, idx_chain);
+        bool running = Simulation_Running_On_Chain(state, idx_chain);
         std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
@@ -500,7 +500,7 @@ bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
 
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        bool running = Simulation_Running_Chain(state, idx_chain);
+        bool running = Simulation_Running_On_Chain(state, idx_chain);
         std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
         std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
         

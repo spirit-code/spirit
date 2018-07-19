@@ -2,7 +2,8 @@
 #include <Spirit/State.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Transitions.h>
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_LLG.h>
+#include <Spirit/Parameters_GNEB.h>
 #include <Spirit/Geometry.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
@@ -56,7 +57,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     }
 
     // Calculate energy and magnetization for every solvers with direct minimization
-    Parameters_Set_LLG_Direct_Minimization( state.get(), true );
+    Parameters_LLG_Set_Direct_Minimization( state.get(), true );
     for ( auto solver : solvers )
     {
         // Put a skyrmion in the center of the space
@@ -112,7 +113,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     
         // Do simulation
         Simulation_PlayPause( state.get(), method, solver, 2e4 );
-        Parameters_Set_GNEB_Image_Type_Automatically( state.get() );
+        Parameters_GNEB_Set_Image_Type_Automatically( state.get() );
         Simulation_PlayPause( state.get(), method, solver );
 
         // Get saddle point index

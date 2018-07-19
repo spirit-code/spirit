@@ -762,9 +762,9 @@ void MainWindow::createStatusBar()
 
     // Create IPS Labels and add them to the statusBar
     this->m_Labels_IPS = std::vector<QLabel*>(0);
-    if (Simulation_Running_Anywhere_Chain(state.get()))
+    if (Simulation_Running_Anywhere_On_Chain(state.get()))
     {
-        if (Simulation_Running_Chain(state.get()))
+        if (Simulation_Running_On_Chain(state.get()))
         {
             this->m_Labels_IPS.push_back(new QLabel);
             this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
@@ -774,7 +774,7 @@ void MainWindow::createStatusBar()
         {
             for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
             {
-                if (Simulation_Running_Image(state.get(), img))
+                if (Simulation_Running_On_Image(state.get(), img))
                 {
                     this->m_Labels_IPS.push_back(new QLabel);
                     this->m_Labels_IPS.back()->setText("IPS[-]: -  ");
@@ -881,7 +881,7 @@ void MainWindow::updateStatusBar()
     this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
     float F = Simulation_Get_MaxTorqueComponent(state.get());
-    if (!Simulation_Running_Chain(state.get()))
+    if (!Simulation_Running_On_Chain(state.get()))
         this->m_Label_Torque->setText(QString::fromLatin1("F_max: ") + QString::number(F, 'E', 2));
 
         double E = System_Get_Energy(state.get()) / System_Get_NOS(state.get());
@@ -897,7 +897,7 @@ void MainWindow::updateStatusBar()
     QString qstr_ips;
     std::vector<QString> v_str(0);
 
-    if (Simulation_Running_Chain(state.get()))
+    if (Simulation_Running_On_Chain(state.get()))
     {
         float * f = new float[Chain_Get_NOI(state.get())];
         Simulation_Get_Chain_MaxTorqueComponents(state.get(), f);
@@ -915,7 +915,7 @@ void MainWindow::updateStatusBar()
     {
         for (int img = 0; img < Chain_Get_NOI(state.get()); ++img)
         {
-            if (Simulation_Running_Image(state.get(), img))
+            if (Simulation_Running_On_Image(state.get(), img))
             {
                 ips = Simulation_Get_IterationsPerSecond(state.get(), img);
                 if (ips < 1) precision = 4;

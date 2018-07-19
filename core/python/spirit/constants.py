@@ -4,7 +4,7 @@ import ctypes
 from spirit.scalar import scalar
 
 # Load Library
-_spirit = spiritlib.LoadSpiritLibrary()
+_spirit = spiritlib.load_spirit_library()
 
 # The Bohr Magneton [meV / T]
 _mu_B           = _spirit.Constants_mu_B
@@ -52,4 +52,4 @@ g_e = _g_e()
 _Pi            = _spirit.Constants_Pi
 _Pi.argtypes   = None
 _Pi.restype    = scalar
-Pi = _Pi()
+pi = _Pi()

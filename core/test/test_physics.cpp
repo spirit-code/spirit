@@ -6,7 +6,7 @@
 #include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_LLG.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -52,8 +52,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
 
     // Get time step of method
     scalar damping = 0.3;
-    float tstep = Parameters_Get_LLG_Time_Step( state.get() );
-    Parameters_Set_LLG_Damping( state.get(), damping );
+    float tstep = Parameters_LLG_Get_Time_Step( state.get() );
+    Parameters_LLG_Set_Damping( state.get(), damping );
 
     scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping*damping );
 

@@ -116,7 +116,7 @@ bool Get_Method( State *state, const char * c_method_type, const char * c_solver
             }
             else if (method_type == "GNEB")
             {
-                if (Simulation_Running_Anywhere_Chain(state, idx_chain))
+                if (Simulation_Running_Anywhere_On_Chain(state, idx_chain))
                 {
                     Log( Utility::Log_Level::Error, Utility::Log_Sender::API, 
                             std::string( "There are still one or more simulations running on the specified chain!" ) +
@@ -291,12 +291,12 @@ float Simulation_Get_MaxTorqueComponent(State * state, int idx_image, int idx_ch
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return (float) state->method_image[idx_image]->getForceMaxAbsComponent();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return (float) state->method_chain->getForceMaxAbsComponent();
@@ -324,7 +324,7 @@ void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, in
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        if (Simulation_Running_Chain(state, idx_chain))
+        if (Simulation_Running_On_Chain(state, idx_chain))
         {
             std::vector<scalar> t(chain->noi, 0);
             
@@ -355,12 +355,12 @@ float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_ch
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return (float)state->method_image[idx_image]->getIterationsPerSecond();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return (float)state->method_chain->getIterationsPerSecond();
@@ -387,12 +387,12 @@ int Simulation_Get_Iteration(State *state, int idx_image, int idx_chain) noexcep
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return (float)state->method_image[idx_image]->getNIterations();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return (float)state->method_chain->getNIterations();
@@ -421,7 +421,7 @@ float Simulation_Get_Time(State *state, int idx_image, int idx_chain) noexcept
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
             {
@@ -450,12 +450,12 @@ int Simulation_Get_Wall_Time(State *state, int idx_image, int idx_chain) noexcep
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return (float)state->method_image[idx_image]->getWallTime();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return (float)state->method_chain->getWallTime();
@@ -482,12 +482,12 @@ const char * Simulation_Get_Solver_Name(State *state, int idx_image, int idx_cha
         from_indices( state, idx_image, idx_chain, image, chain );
         
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return state->method_image[idx_image]->SolverName().c_str();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return state->method_chain->SolverName().c_str();
@@ -513,12 +513,12 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Image(state, idx_image, idx_chain))
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
         {
             if (state->method_image[idx_image])
                 return state->method_image[idx_image]->Name().c_str();
         }
-        else if (Simulation_Running_Chain(state, idx_chain))
+        else if (Simulation_Running_On_Chain(state, idx_chain))
         {
             if (state->method_chain)
                 return state->method_chain->Name().c_str();
@@ -535,7 +535,7 @@ const char * Simulation_Get_Method_Name(State *state, int idx_image, int idx_cha
 
 
 
-bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexcept
+bool Simulation_Running_On_Image(State *state, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -556,7 +556,7 @@ bool Simulation_Running_Image(State *state, int idx_image, int idx_chain) noexce
     }
 }
 
-bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
+bool Simulation_Running_On_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -581,7 +581,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
     }
 }
 
-bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
+bool Simulation_Running_Anywhere_On_Chain(State *state, int idx_chain) noexcept
 {
     int idx_image=-1;
 
@@ -594,11 +594,11 @@ bool Simulation_Running_Anywhere_Chain(State *state, int idx_chain) noexcept
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (Simulation_Running_Chain(state, idx_chain)) 
+        if (Simulation_Running_On_Chain(state, idx_chain)) 
             return true;
         
         for (int i=0; i<chain->noi; ++i)
-            if (Simulation_Running_Image(state, i, idx_chain)) 
+            if (Simulation_Running_On_Image(state, i, idx_chain)) 
                 return true;
         
         return false;
