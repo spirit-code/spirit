@@ -5,7 +5,6 @@
 #include "Spirit_Defines.h"
 #include <engine/Method_Solver.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <data/Spin_System_Chain_Collection.hpp>
 
 namespace Engine
 {
@@ -37,7 +36,7 @@ namespace Engine
         // A hook into the Method after an Iteration of the Solver
         void Hook_Post_Iteration() override;
 
-        // Sets iteration_allowed to false for the collection
+        // Sets iteration_allowed to false
         void Finalize() override;
         
         std::shared_ptr<Data::Spin_System> system;

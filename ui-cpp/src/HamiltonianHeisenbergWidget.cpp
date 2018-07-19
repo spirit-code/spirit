@@ -5,7 +5,6 @@
 #include <Spirit/System.h>
 #include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
-#include <Spirit/Collection.h>
 #include <Spirit/Log.h>
 #include <Spirit/Hamiltonian.h>
 
@@ -124,35 +123,32 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 void HamiltonianHeisenbergWidget::set_boundary_conditions()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		// Boundary conditions
 		bool boundary_conditions[3];
 		boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
 		boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
 		boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
-		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image, idx_chain);
+		Hamiltonian_Set_Boundary_Conditions(state.get(), boundary_conditions, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 	this->spinWidget->updateBoundingBoxIndicators();
@@ -161,32 +157,29 @@ void HamiltonianHeisenbergWidget::set_boundary_conditions()
 void HamiltonianHeisenbergWidget::set_mu_s()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		// mu_s
 		float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
-		Geometry_Set_mu_s(state.get(), mu_s, idx_image, idx_chain);
+		Geometry_Set_mu_s(state.get(), mu_s, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }
@@ -194,7 +187,7 @@ void HamiltonianHeisenbergWidget::set_mu_s()
 void HamiltonianHeisenbergWidget::set_external_field()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		float d, vd[3];
 
@@ -221,28 +214,25 @@ void HamiltonianHeisenbergWidget::set_external_field()
 			}
 			else { throw(ex); }
 		}
-		Hamiltonian_Set_Field(state.get(), d, vd, idx_image, idx_chain);
+		Hamiltonian_Set_Field(state.get(), d, vd, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }
@@ -250,7 +240,7 @@ void HamiltonianHeisenbergWidget::set_external_field()
 void HamiltonianHeisenbergWidget::set_anisotropy()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		float d, vd[3];
 
@@ -277,28 +267,25 @@ void HamiltonianHeisenbergWidget::set_anisotropy()
 			}
 			else { throw(ex); }
 		}
-		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image, idx_chain);
+		Hamiltonian_Set_Anisotropy(state.get(), d, vd, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }
@@ -335,38 +322,35 @@ void HamiltonianHeisenbergWidget::set_nshells_exchange()
 void HamiltonianHeisenbergWidget::set_exchange()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		if (this->checkBox_exchange->isChecked())
 		{
 			int n_shells = this->exchange_shells.size();
 			std::vector<float> Jij(n_shells);
 			for (int i = 0; i < n_shells; ++i) Jij[i] = this->exchange_shells[i]->value();
-			Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data(), idx_image, idx_chain);
+			Hamiltonian_Set_Exchange(state.get(), n_shells, Jij.data(), idx_image);
 		}
 		else
-			Hamiltonian_Set_Exchange(state.get(), 0, nullptr, idx_image, idx_chain);
+			Hamiltonian_Set_Exchange(state.get(), 0, nullptr, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }
@@ -403,7 +387,7 @@ void HamiltonianHeisenbergWidget::set_nshells_dmi()
 void HamiltonianHeisenbergWidget::set_dmi()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		if (this->checkBox_dmi->isChecked())
 		{
@@ -419,31 +403,28 @@ void HamiltonianHeisenbergWidget::set_dmi()
 			else if (this->comboBox_dmi_chirality->currentIndex() == 3)
 				chirality = -2;
 
-			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data(), chirality, idx_image, idx_chain);
+			Hamiltonian_Set_DMI(state.get(), n_shells, Dij.data(), chirality, idx_image);
 		}
 		else
-			Hamiltonian_Set_DMI(state.get(), 0, nullptr, 1, idx_image, idx_chain);
+			Hamiltonian_Set_DMI(state.get(), 0, nullptr, 1, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }
@@ -451,33 +432,30 @@ void HamiltonianHeisenbergWidget::set_dmi()
 void HamiltonianHeisenbergWidget::set_ddi()
 {
 	// Closure to set the parameters of a specific spin system
-	auto apply = [this](int idx_image, int idx_chain) -> void
+	auto apply = [this](int idx_image) -> void
 	{
 		if (this->checkBox_ddi->isChecked())
-			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value(), idx_image, idx_chain);
+			Hamiltonian_Set_DDI(state.get(), this->doubleSpinBox_ddi->value(), idx_image);
 		else
-			Hamiltonian_Set_DDI(state.get(), 0, idx_image, idx_chain);
+			Hamiltonian_Set_DDI(state.get(), 0, idx_image);
 	};
 
 	if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
 	{
-		apply(System_Get_Index(state.get()), Chain_Get_Index(state.get()));
+		apply(System_Get_Index(state.get()));
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
 	{
 		for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
 		{
-			apply(i, Chain_Get_Index(state.get()));
+			apply(i);
 		}
 	}
 	else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
 	{
-		for (int ichain = 0; ichain<Collection_Get_NOC(state.get()); ++ichain)
+		for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
 		{
-			for (int img = 0; img<Chain_Get_NOI(state.get(), ichain); ++img)
-			{
-				apply(img, ichain);
-			}
+			apply(img);
 		}
 	}
 }

@@ -36,10 +36,6 @@ class TestChain(unittest.TestCase):
 
 class simpleTestChain(TestChain):
     
-    def test_chain_index(self):
-        ''' Must be always 0 since we have only one chain'''
-        self.assertEqual( chain.Get_Index( self.p_state ), 0 )  # 0th chain
-    
     def test_NOI(self):
         ''' NOI -> Number of images in that chain '''
         self.assertEqual( chain.Get_NOI( self.p_state ), 1 )    # total 1 image

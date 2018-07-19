@@ -220,9 +220,7 @@ Note that the VP and NCG Solvers are only meant for direct minimization and not 
 | `Stop_All(p_state)`                                                                                                       | `None`     |
 | `Running_Image(p_state, idx_image=-1, idx_chain=-1)`                                                                      | `Boolean`  |
 | `Running_Chain(p_state, idx_chain=-1)`                                                                                    | `Boolean`  |
-| `Running_Collection(p_state)`                                                                                             | `Boolean`  |
 | `Running_Anywhere_Chain(p_state, idx_chain=-1)`                                                                           | `Boolean`  |
-| `Running_Anywhere_Collection(p_state)`                                                                                    | `Boolean`  |
 
 
 Transition

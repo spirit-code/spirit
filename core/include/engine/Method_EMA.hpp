@@ -6,7 +6,6 @@
 #include <engine/Method_Solver.hpp>
 
 #include <data/Parameters_Method_LLG.hpp>
-#include <data/Spin_System_Chain_Collection.hpp>
 #include <data/Parameters_Method_EMA.hpp>
 
 namespace Engine

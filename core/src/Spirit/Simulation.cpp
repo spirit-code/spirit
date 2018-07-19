@@ -259,25 +259,19 @@ void Simulation_Stop_All(State *state) noexcept
     try
     {
         // GNEB
-        state->active_chain->Lock();
-        state->active_chain->iteration_allowed = false;
-        state->active_chain->Unlock();
-        for (int i=0; i<state->noc; ++i)
-        {
-            state->active_chain->Lock();
-            state->active_chain->iteration_allowed = false;
-            state->active_chain->Unlock();
-        }
+        state->chain->Lock();
+        state->chain->iteration_allowed = false;
+        state->chain->Unlock();
 
         // LLG, MC, EMA, MMF
         state->active_image->Lock();
         state->active_image->iteration_allowed = false;
         state->active_image->Unlock();
-        for (int img = 0; img < state->active_chain->noi; ++img)
+        for (int img = 0; img < state->chain->noi; ++img)
         {
-            state->active_chain->images[img]->Lock();
-            state->active_chain->images[img]->iteration_allowed = false;
-            state->active_chain->images[img]->Unlock();
+            state->chain->images[img]->Lock();
+            state->chain->images[img]->iteration_allowed = false;
+            state->chain->images[img]->Unlock();
         }
     }
     catch( ... )
@@ -575,7 +569,7 @@ bool Simulation_Running_Chain(State *state, int idx_chain) noexcept
         // Fetch correct indices and pointers
             from_indices( state, idx_image, idx_chain, image, chain );
         
-        if (state->active_chain->iteration_allowed)
+        if (state->chain->iteration_allowed)
             return true;
         else 
             return false;

@@ -6,7 +6,6 @@
 #include <Spirit/System.h>
 #include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
-#include <Spirit/Collection.h>
 #include <Spirit/Log.h>
 #include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
 

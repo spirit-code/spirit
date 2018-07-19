@@ -6,7 +6,6 @@
 struct State;
 
 // Info
-DLLEXPORT int Chain_Get_Index(State * state) noexcept;
 DLLEXPORT int Chain_Get_NOI(State * state, int idx_chain=-1) noexcept;
 
 // Move between images (change active_image)

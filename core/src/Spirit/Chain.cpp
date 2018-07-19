@@ -9,25 +9,11 @@
 
 #include <fmt/format.h>
 
-int Chain_Get_Index(State * state) noexcept
-{
-    try
-    {
-        return state->idx_active_chain;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-        return 0;
-    }
-}
-
 int Chain_Get_NOI(State * state, int idx_chain) noexcept
 {
     try
     {
-        if (idx_chain>=0) return state->collection->chains[idx_chain]->noi;
-        return state->active_chain->noi;
+        return state->chain->noi;
     }
     catch( ... )
     {
@@ -165,11 +151,10 @@ void Chain_Replace_Image( State * state, int idx_image, int idx_chain ) noexcept
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
 
-            from_indices( state, idx_image, idx_chain, image, chain );
-        
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
         if (state->clipboard_image)
         {
             // Copy the clipboard image
@@ -185,7 +170,7 @@ void Chain_Replace_Image( State * state, int idx_image, int idx_chain ) noexcept
             chain->images[idx_image] = copy;
             
             // Update state
-            state->active_image = state->active_chain->images[state->idx_active_image];
+            state->active_image = state->chain->images[state->idx_active_image];
 
             chain->Unlock();
 
@@ -454,7 +439,7 @@ bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
                 if (idx_image == chain->noi)
                     Chain_prev_Image(state, idx_chain);
 
-                state->noi = state->active_chain->noi;
+                state->noi = state->chain->noi;
                 
                 chain->images[idx_image]->Unlock();
                 chain->images.erase(chain->images.begin() + idx_image);
@@ -534,7 +519,7 @@ bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
                 if (idx_image == chain->noi)
                     Chain_prev_Image(state, idx_chain);
                     
-                state->noi = state->active_chain->noi;
+                state->noi = state->chain->noi;
 
                 chain->images.back()->Unlock();
                 chain->images.pop_back();

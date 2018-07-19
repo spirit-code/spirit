@@ -38,11 +38,11 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometr
     Simulation_Stop_All(state);
 
     // Lock to avoid memory errors
-    state->active_chain->Lock();
+    state->chain->Lock();
     try
     {
         // Modify all systems in the chain
-        for (auto& system : state->active_chain->images)
+        for (auto& system : state->chain->images)
         {
             Helper_System_Set_Geometry(system, new_geometry);
         }
@@ -52,7 +52,7 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometr
         spirit_handle_exception_api(-1, -1);
     }
     // Unlock again
-    state->active_chain->Unlock();
+    state->chain->Unlock();
 
     // Retrieve total number of spins
     int nos = state->active_image->nos;

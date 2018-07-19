@@ -4,7 +4,6 @@ set(HEADER_SPIRIT_DATA
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain_Collection.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_Solver.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.hpp

@@ -1,4 +1,3 @@
-#include <data/Spin_System_Chain_Collection.hpp>
 #include <engine/Method.hpp>
 #include <utility/Timing.hpp>
 
@@ -6,15 +5,13 @@
     State
         The State struct is passed around in an application to make the
         simulation's state available.
-        The State contains all necessary Spin Systems (via chain and collection)
+        The State contains all necessary Spin Systems (via chain)
         and provides a few utilities (pointers) to commonly used contents.
 */
 struct State
 {
-    // Main data container: a collection of chains
-    std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
     // Currently active chain
-    std::shared_ptr<Data::Spin_System_Chain> active_chain;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
     // Currently active image
     std::shared_ptr<Data::Spin_System> active_image;
     // Spin System instance in clipboard
@@ -24,8 +21,8 @@ struct State
     std::shared_ptr<vectorfield> clipboard_spins;
 
     // Info
-    int nos /*Number of Spins*/, noi /*Number of Images*/, noc /*Number of Chains*/;
-    int idx_active_image, idx_active_chain;
+    int nos /*Number of Spins*/, noi /*Number of Images*/;
+    int idx_active_image;
 
     // The Methods
     //    max. noi*noc methods on images [noc][noi]

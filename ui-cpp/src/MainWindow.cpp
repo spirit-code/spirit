@@ -320,8 +320,8 @@ void MainWindow::toggleInfoWidget()
 void MainWindow::keyPressEvent(QKeyEvent *k)
 {
     // Image index
-    auto str_image = [](int idx_img, int noi, int idx_chain) {
-        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    auto str_image = [](int idx_img, int noi) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi));
     };
 
     // Key Sequences
@@ -426,21 +426,21 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
                 break;
             // Up: ...
             case Qt::Key_Up:
-                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
                 break;
             // Left: switch to image left of current image
             case Qt::Key_Left:
                 this->controlWidget->prev_image();
-                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
                 break;
             // Left: switch to image left of current image
             case Qt::Key_Right:
                 this->controlWidget->next_image();
-                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
                 break;
             // Down: ...
             case Qt::Key_Down:
-                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+                Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
                 break;
             // Space: Play and Pause
             case Qt::Key_Space:
@@ -996,12 +996,12 @@ void MainWindow::takeScreenshot()
 
 void MainWindow::edit_cut()
 {
-    auto str_image = [](int idx_img, int noi, int idx_chain) {
-        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    auto str_image = [](int idx_img, int noi) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi));
     };
 
     this->controlWidget->cut_image();
-    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
     this->createStatusBar();
 }
 
@@ -1018,34 +1018,34 @@ void MainWindow::edit_paste()
 
 void MainWindow::edit_insert_right()
 {
-    auto str_image = [](int idx_img, int noi, int idx_chain) {
-        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    auto str_image = [](int idx_img, int noi) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi));
     };
 
     this->controlWidget->paste_image("right");
-    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
     this->createStatusBar();
 }
 
 void MainWindow::edit_insert_left()
 {
-    auto str_image = [](int idx_img, int noi, int idx_chain) {
-        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    auto str_image = [](int idx_img, int noi) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi));
     };
 
     this->controlWidget->paste_image("left");
-    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
     this->createStatusBar();
 }
 
 void MainWindow::edit_delete()
 {
-    auto str_image = [](int idx_img, int noi, int idx_chain) {
-        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi) + " of chain " + std::to_string(idx_chain + 1));
+    auto str_image = [](int idx_img, int noi) {
+        return std::string("Image " + std::to_string(idx_img + 1) + "/" + std::to_string(noi));
     };
 
     this->controlWidget->delete_image();
-    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get()), Chain_Get_Index(state.get())).c_str()), 5000);
+    Ui::MainWindow::statusBar->showMessage(tr(str_image(System_Get_Index(state.get()), Chain_Get_NOI(this->state.get())).c_str()), 5000);
     this->createStatusBar();
 }
 

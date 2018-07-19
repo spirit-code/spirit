@@ -47,10 +47,10 @@ int IO_System_From_Config(State * state, const char * file, int idx_image, int i
         // Filter for unacceptable differences to other systems in the chain
         for (int i = 0; i < chain->noi; ++i)
         {
-            if (state->active_chain->images[i]->nos != system->nos) return 0;
+            if (chain->images[i]->nos != system->nos) return 0;
             // Currently the SettingsWidget does not support different images being isotropic AND 
             // anisotropic at the same time
-            if (state->active_chain->images[i]->hamiltonian->Name() != system->hamiltonian->Name()) 
+            if (chain->images[i]->hamiltonian->Name() != system->hamiltonian->Name()) 
                 return 0;
         }
 
@@ -413,7 +413,6 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
         from_indices( state, idx_image, idx_chain, image, chain );
 
         chain->Lock();
-
         bool success = false;
 
         // Read the data

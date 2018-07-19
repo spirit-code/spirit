@@ -73,9 +73,8 @@ private:
     SettingsWidget *settingsWidget;
 
     // Method vectors
-    std::vector<std::thread> threads_llg;
-    std::vector<std::thread> threads_gneb;
-    std::thread thread_mmf;
+    std::vector<std::thread> threads_image;
+    std::thread thread_chain;
 
     // Temporary string storage
     std::string s_method;

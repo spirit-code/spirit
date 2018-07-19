@@ -132,26 +132,8 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
-        state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(
+        state->chain = std::shared_ptr<Data::Spin_System_Chain>(
             new Data::Spin_System_Chain(sv, params_gneb, false));
-    }
-    catch (...)
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
-    //-------------------------------------------------------------------------------
-
-    //----------------------- Initialize spin system chain collection ---------------
-    try
-    {
-        // Get parameters
-        auto params_mmf = 
-            std::shared_ptr<Data::Parameters_Method_MMF>(
-                IO::Parameters_Method_MMF_from_Config( state->config_file ));
-        
-        // Create the collection
-        state->collection = std::shared_ptr<Data::Spin_System_Chain_Collection>(
-                new Data::Spin_System_Chain_Collection( {state->active_chain} ) );
     }
     catch (...)
     {
@@ -163,11 +145,9 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     try
     {
         // active images
-        state->idx_active_chain = 0;
         state->idx_active_image = 0;
 
         // Info
-        state->noc = 1;
         state->noi = 1;
         state->nos = state->active_image->nos;
 
@@ -188,7 +168,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         {
             state->active_image->llg_parameters->output_any = false;
             state->active_image->mc_parameters->output_any = false;
-            state->active_chain->gneb_parameters->output_any = false;
+            state->chain->gneb_parameters->output_any = false;
         }
     }
     catch (...)
@@ -215,7 +195,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
-        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={} NOC={}", state->nos, state->noi, state->noc));
+        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={}", state->nos, state->noi));
         auto now = system_clock::now();
         auto diff = Timing::DateTimePassed(now - state->datetime_creation);
         Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
@@ -272,25 +252,16 @@ void State_Update(State * state) noexcept
 {
     try
     {
-        // Correct for removed chains - active_chain can maximally be noc-1
-        if ( state->collection->idx_active_chain >= state->collection->noc )
-            state->collection->idx_active_chain = state->collection->noc-1;
-            
-        // Update Chain
-        state->idx_active_chain = state->collection->idx_active_chain;
-        state->active_chain     = state->collection->chains[state->idx_active_chain];
-
         // Correct for removed images - active_image can maximally be noi-1
-        if ( state->active_chain->idx_active_image >= state->active_chain->noi )
-            state->active_chain->idx_active_image = state->active_chain->noi-1;
+        if( state->chain->idx_active_image >= state->chain->noi )
+            state->chain->idx_active_image = state->chain->noi-1;
 
         // Update Image
-        state->idx_active_image = state->active_chain->idx_active_image; 
-        state->active_image     = state->active_chain->images[state->idx_active_image];
+        state->idx_active_image = state->chain->idx_active_image; 
+        state->active_image     = state->chain->images[state->idx_active_image];
 
-        // Update NOS, NOI, NOC
-        state->noc = state->collection->noc;
-        state->noi = state->active_chain->noi;
+        // Update NOS, NOI
+        state->noi = state->chain->noi;
         state->nos = state->active_image->nos;
     }
     catch( ... )
@@ -315,7 +286,7 @@ void State_To_Config(State * state, const char * config_file, const char * comme
         IO::String_to_File(header, cfg);
         // Folders
         IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
-                               state->active_chain->gneb_parameters, state->active_image->mmf_parameters );
+                               state->chain->gneb_parameters, state->active_image->mmf_parameters );
         // Log Parameters
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Log_Levels_to_Config(cfg);
@@ -330,7 +301,7 @@ void State_To_Config(State * state, const char * config_file, const char * comme
         IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
         // GNEB
         IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_GNEB_to_Config(cfg, state->active_chain->gneb_parameters);
+        IO::Parameters_Method_GNEB_to_Config(cfg, state->chain->gneb_parameters);
         // MMF
         IO::Append_String_to_File("\n\n\n", cfg);
         IO::Parameters_Method_MMF_to_Config(cfg, state->active_image->mmf_parameters);
@@ -433,29 +404,17 @@ void from_indices( const State * state, int & idx_image, int & idx_chain,
                    std::shared_ptr<Data::Spin_System> & image, 
                    std::shared_ptr<Data::Spin_System_Chain> & chain )
 {
-    // In case of positive non-existing image_idx throw exception
-    if ( idx_chain >= state->collection->noc )
-        spirit_throw(Exception_Classifier::Non_existing_Chain, Log_Level::Warning, "Non existing chain. No action taken.");
-    
+    idx_chain = 0;
+
     // Chain
-    if ( idx_chain < 0 || idx_chain == state->idx_active_chain )
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
-    else
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
+    chain = state->chain;
 
     // In case of positive non-existing chain_idx throw exception
-    if (  idx_image >= state->active_chain->noi )
+    if( idx_image >= state->chain->noi )
         spirit_throw(Exception_Classifier::Non_existing_Image, Log_Level::Warning, "Non existing image. No action taken.");
     
     // Image
-    if ( idx_chain == state->idx_active_chain && 
-        (idx_image < 0 || idx_image == state->idx_active_image ) )
+    if( idx_image < 0 || idx_image == state->idx_active_image )
     {
         image = state->active_image;
         idx_image = state->idx_active_image;

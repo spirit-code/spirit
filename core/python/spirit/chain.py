@@ -6,14 +6,6 @@ import ctypes
 _spirit = spiritlib.LoadSpiritLibrary()
 
 
-### Get Chain index
-_Get_Index          = _spirit.Chain_Get_Index
-_Get_Index.argtypes = [ctypes.c_void_p]
-_Get_Index.restype  = ctypes.c_int
-def Get_Index(p_state):
-    return int(_Get_Index(ctypes.c_void_p(p_state)))
-
-
 ### Get Chain number of images
 _Get_NOI            = _spirit.Chain_Get_NOI
 _Get_NOI.argtypes   = [ctypes.c_void_p, ctypes.c_int]

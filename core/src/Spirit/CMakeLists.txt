@@ -10,7 +10,6 @@ set(SOURCE_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Transitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/System.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Chain.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Collection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Quantities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Constants.cpp

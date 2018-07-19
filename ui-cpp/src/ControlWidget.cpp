@@ -29,9 +29,7 @@ ControlWidget::ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidge
     this->idx_image_last = 0;
 
     // Create threads
-    threads_llg = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
-    threads_gneb = std::vector<std::thread>(1);
-    //threads_mmf
+    threads_image = std::vector<std::thread>(Chain_Get_NOI(this->state.get()));
 
     // Setup User Interface
     this->setupUi(this);
@@ -103,10 +101,10 @@ void ControlWidget::updateData()
     this->label_NumberOfModes->setText("/ " + QString::number(Parameters_Get_EMA_N_Modes(state.get())));
 
     // Update thread arrays
-    if (Chain_Get_NOI(state.get()) > (int)threads_llg.size())
+    if (Chain_Get_NOI(state.get()) > (int)threads_image.size())
     {
-        for (int i=threads_llg.size(); i < Chain_Get_NOI(state.get()); ++i)
-            this->threads_llg.push_back(std::thread());
+        for (int i=threads_image.size(); i < Chain_Get_NOI(state.get()); ++i)
+            this->threads_image.push_back(std::thread());
     }
 }
 
@@ -170,9 +168,8 @@ void ControlWidget::play_pause()
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), c_method, c_solver);
         // Join the thread of the stopped simulation
-        if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
-        else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-        else if (thread_mmf.joinable()) thread_mmf.join();
+        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable()) thread_chain.join();
         // New button text
         this->pushButton_PlayPause->setText("Play");
     }
@@ -182,34 +179,34 @@ void ControlWidget::play_pause()
         if (this->s_method == "LLG")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-            this->threads_llg[System_Get_Index(state.get())] =
+            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            this->threads_image[System_Get_Index(state.get())] =
                 std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "MC")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-            this->threads_llg[System_Get_Index(state.get())] =
+            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            this->threads_image[System_Get_Index(state.get())] =
+                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+        }
+        else if (this->s_method == "GNEB")
+        {
+            if (thread_chain.joinable()) thread_chain.join();
+            this->thread_chain = std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+        }
+        else if (this->s_method == "MMF")
+        {
+            int idx = System_Get_Index(state.get());
+            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            this->threads_image[System_Get_Index(state.get())] =
                 std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "EMA")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
-            this->threads_llg[System_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
-        }
-        else if (this->s_method == "GNEB")
-        {
-            if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-            this->threads_gneb[Chain_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
-        }
-        else if (this->s_method == "MMF")
-        {
-            if (thread_mmf.joinable()) thread_mmf.join();
-            this->thread_mmf =
+            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            this->threads_image[System_Get_Index(state.get())] =
                 std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         // New button text
@@ -224,15 +221,11 @@ void ControlWidget::stop_all()
 
     Simulation_Stop_All(state.get());
 
-    for (unsigned int i=0; i<threads_llg.size(); ++i)
+    for (unsigned int i=0; i<threads_image.size(); ++i)
     {
-        if (threads_llg[i].joinable()) threads_llg[i].join();
+        if (threads_image[i].joinable()) threads_image[i].join();
     }
-    for (unsigned int i=0; i<threads_gneb.size(); ++i)
-    {
-        if (threads_gneb[i].joinable()) threads_gneb[i].join();
-    }
-    if (thread_mmf.joinable()) thread_mmf.join();
+    if (thread_chain.joinable()) thread_chain.join();
 
     this->pushButton_PlayPause->setText("Play");
     // this->createStatusBar();
@@ -248,9 +241,8 @@ void ControlWidget::stop_current()
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
         // Join the thread of the stopped simulation
-        if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
-        else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-        else if (thread_mmf.joinable()) thread_mmf.join();
+        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable()) thread_chain.join();
     }
 
     if ( Simulation_Running_Image(this->state.get()) ||
@@ -259,9 +251,8 @@ void ControlWidget::stop_current()
         // Running, so we stop it
         Simulation_PlayPause(this->state.get(), "", "");
         // Join the thread of the stopped simulation
-        if (threads_llg[System_Get_Index(state.get())].joinable()) threads_llg[System_Get_Index(state.get())].join();
-        else if (threads_gneb[Chain_Get_Index(state.get())].joinable()) threads_gneb[Chain_Get_Index(state.get())].join();
-        else if (thread_mmf.joinable()) thread_mmf.join();
+        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable()) thread_chain.join();
     }
 
     this->pushButton_PlayPause->setText("Play");
@@ -319,8 +310,8 @@ void ControlWidget::cut_image()
         if (Chain_Delete_Image(state.get(), idx))
         {
             // Make the llg_threads vector smaller
-            if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
-            this->threads_llg.erase(threads_llg.begin() + idx);
+            if (this->threads_image[idx].joinable()) this->threads_image[idx].join();
+            this->threads_image.erase(threads_image.begin() + idx);
         }
     }
 
@@ -343,7 +334,7 @@ void ControlWidget::paste_image(std::string where)
         // Insert Image
         Chain_Insert_Image_Before(state.get());
         // Make the llg_threads vector larger
-        this->threads_llg.insert(threads_llg.begin()+idx, std::thread());
+        this->threads_image.insert(threads_image.begin()+idx, std::thread());
         // Switch to the inserted image
         Chain_prev_Image(this->state.get());
     }
@@ -353,7 +344,7 @@ void ControlWidget::paste_image(std::string where)
         // Insert Image
         Chain_Insert_Image_After(state.get());
         // Make the llg_threads vector larger
-        this->threads_llg.insert(threads_llg.begin()+idx+1, std::thread());
+        this->threads_image.insert(threads_image.begin()+idx+1, std::thread());
         // Switch to the inserted image
         Chain_next_Image(this->state.get());
     }
@@ -373,8 +364,8 @@ void ControlWidget::delete_image()
         if (Chain_Delete_Image(state.get()))
         {
             // Make the llg_threads vector smaller
-            if (this->threads_llg[idx].joinable()) this->threads_llg[idx].join();
-            this->threads_llg.erase(threads_llg.begin() + idx);
+            if (this->threads_image[idx].joinable()) this->threads_image[idx].join();
+            this->threads_image.erase(threads_image.begin() + idx);
         }
 
         // Update
@@ -430,13 +421,13 @@ void ControlWidget::calculate()
     calculate_disable_widget();
 
     int idx = System_Get_Index(state.get());
-    if (threads_llg[idx].joinable()) threads_llg[System_Get_Index(state.get())].join();
+    if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
     if ( !Simulation_Running_Image(state.get()) )
-        this->threads_llg[System_Get_Index(state.get())] =
+        this->threads_image[System_Get_Index(state.get())] =
             std::thread(&System_Update_Eigenmodes, this->state.get(), -1, -1);
             
     QFuture<void> future = QtConcurrent::run( 
-        &threads_llg[System_Get_Index(state.get())], &std::thread::join );
+        &threads_image[System_Get_Index(state.get())], &std::thread::join );
     this->watcher.setFuture(future);
 }
 
