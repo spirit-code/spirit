@@ -95,7 +95,7 @@ _Eigenmodes          = _spirit.System_Update_Eigenmodes
 _Eigenmodes.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Eigenmodes.restype  = None
 def update_eigenmodes(p_state, idx_image=-1, idx_chain=-1):
-    spiritlib.WrapFunction(_Eigenmodes, [ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+    spiritlib.wrap_function(_Eigenmodes, [ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
                                          ctypes.c_int(idx_chain)])
 
 ### Print Energy array

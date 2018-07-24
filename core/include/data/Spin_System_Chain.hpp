@@ -33,8 +33,9 @@ namespace Data
 		// Parameters for GNEB Iterations
 		std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters;
 
-		// Are we allowed to iterate on this chain?
+		// Are we allowed to iterate on this chain or do a singleshot?
 		bool iteration_allowed;
+		bool singleshot_allowed;
 
 		// Climbing and falling images
 		std::vector<GNEB_Image_Type> image_type;

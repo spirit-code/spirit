@@ -6,7 +6,6 @@
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Logging.hpp>
-#include <utility/Exception.hpp>
 
 #include <fmt/format.h>
 
@@ -218,114 +217,113 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
 }
 
 void State_Delete(State * state) noexcept
+try
 {
-    try
-    {
-        Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-        Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
-        
-        // Final file writing (input, positions, neighbours)
-        Save_Initial_Final( state, false );
+    check_state(state);
 
-        // Timing
-        auto now = system_clock::now();
-        auto diff = Timing::DateTimePassed(now - state->datetime_creation);
-        Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
+    
+    // Final file writing (input, positions, neighbours)
+    Save_Initial_Final( state, false );
 
-        // Delete
-        delete(state);
-        
-        Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
-        Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-        Log.Append_to_File();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    // Timing
+    auto now = system_clock::now();
+    auto diff = Timing::DateTimePassed(now - state->datetime_creation);
+    Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
+    Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
+    Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+
+    // Delete
+    delete(state);
+    
+    Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log.Append_to_File();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 
 void State_Update(State * state) noexcept
+try
 {
-    try
-    {
-        // Correct for removed images - active_image can maximally be noi-1
-        if( state->chain->idx_active_image >= state->chain->noi )
-            state->chain->idx_active_image = state->chain->noi-1;
+    check_state(state);
 
-        // Update Image
-        state->idx_active_image = state->chain->idx_active_image; 
-        state->active_image     = state->chain->images[state->idx_active_image];
+    // Correct for removed images - active_image can maximally be noi-1
+    if( state->chain->idx_active_image >= state->chain->noi )
+        state->chain->idx_active_image = state->chain->noi-1;
 
-        // Update NOS, NOI
-        state->noi = state->chain->noi;
-        state->nos = state->active_image->nos;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    // Update Image
+    state->idx_active_image = state->chain->idx_active_image; 
+    state->active_image     = state->chain->images[state->idx_active_image];
+
+    // Update NOS, NOI
+    state->noi = state->chain->noi;
+    state->nos = state->active_image->nos;
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 
 void State_To_Config(State * state, const char * config_file, const char * comment) noexcept
+try
 {
-    try
-    {
-        Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
+    check_state(state);
 
-        std::string cfg = std::string(config_file);
+    Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
 
-        // Header
-        std::string header = "";
-        if( std::string(comment) != "" )
-            header = std::string(comment)+"\n";
-        IO::String_to_File(header, cfg);
-        // Folders
-        IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
-                               state->chain->gneb_parameters, state->active_image->mmf_parameters );
-        // Log Parameters
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Log_Levels_to_Config(cfg);
-        // Geometry
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Geometry_to_Config(cfg, state->active_image->geometry);
-        // LLG
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
-        // MC
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
-        // GNEB
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_GNEB_to_Config(cfg, state->chain->gneb_parameters);
-        // MMF
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_MMF_to_Config(cfg, state->active_image->mmf_parameters);
-        // Hamiltonian
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    std::string cfg = std::string(config_file);
+
+    // Header
+    std::string header = "";
+    if( std::string(comment) != "" )
+        header = std::string(comment)+"\n";
+    IO::String_to_File(header, cfg);
+    // Folders
+    IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
+                            state->chain->gneb_parameters, state->active_image->mmf_parameters );
+    // Log Parameters
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Log_Levels_to_Config(cfg);
+    // Geometry
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Geometry_to_Config(cfg, state->active_image->geometry);
+    // LLG
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
+    // MC
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
+    // GNEB
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_GNEB_to_Config(cfg, state->chain->gneb_parameters);
+    // MMF
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_MMF_to_Config(cfg, state->active_image->mmf_parameters);
+    // Hamiltonian
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 const char * State_DateTime(State * state) noexcept
+try
 {
-    try
-    {
-        return state->datetime_creation_string.c_str();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-        return "00:00:00";
-    }
+    check_state(state);
+    return state->datetime_creation_string.c_str();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
+    return "00:00:00";
 }
 
 
@@ -396,32 +394,5 @@ void Save_Initial_Final( State * state, bool initial )
     catch( ... )
     {
         spirit_handle_exception_api(-1, -1);
-    }
-}
-
-
-void from_indices( const State * state, int & idx_image, int & idx_chain, 
-                   std::shared_ptr<Data::Spin_System> & image, 
-                   std::shared_ptr<Data::Spin_System_Chain> & chain )
-{
-    idx_chain = 0;
-
-    // Chain
-    chain = state->chain;
-
-    // In case of positive non-existing chain_idx throw exception
-    if( idx_image >= state->chain->noi )
-        spirit_throw(Exception_Classifier::Non_existing_Image, Log_Level::Warning, "Non existing image. No action taken.");
-    
-    // Image
-    if( idx_image < 0 || idx_image == state->idx_active_image )
-    {
-        image = state->active_image;
-        idx_image = state->idx_active_image;
-    }
-    else
-    {
-        image = chain->images[idx_image];
-        idx_image = idx_image;
     }
 }

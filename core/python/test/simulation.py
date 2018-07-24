@@ -20,18 +20,22 @@ class TestParameters(unittest.TestCase):
     def setUp(self):
         ''' Setup a p_state and copy it to Clipboard'''
         self.p_state = p_state
-    
+
 class Simulation_StartStop(TestParameters):
     
     def test_singleshot(self):
         configuration.plus_z(self.p_state)
-        simulation.single_shot(self.p_state, "LLG", "SIB", n_iterations=1)
-    
+        simulation.start_single_shot(self.p_state, "LLG", "SIB", n_iterations=1)
+        simulation.single_shot(self.p_state)
+        simulation.start_single_shot(self.p_state, "LLG", "SIB")
+        simulation.single_shot(self.p_state)
+        simulation.stop(self.p_state)
+
     def test_playpause(self):
         configuration.plus_z(self.p_state)
         configuration.skyrmion(p_state, 5)
-        simulation.play_pause(self.p_state, "LLG", "SIB")
-    
+        simulation.start(self.p_state, "LLG", "SIB")
+
     def test_stopall(self):
         simulation.stop_all(self.p_state)
 
@@ -39,10 +43,10 @@ class Simulation_Running(TestParameters):
     
     def test_running_image(self):
         self.assertFalse(simulation.running_on_image(self.p_state))
-    
+
     def test_running_chain(self):
         self.assertFalse(simulation.running_on_chain(self.p_state))
-    
+
     def test_running_anywhere_chain(self):
         self.assertFalse(simulation.running_anywhere_on_chain(self.p_state))
 

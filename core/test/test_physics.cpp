@@ -61,13 +61,14 @@ TEST_CASE( "Larmor Precession","[physics]" )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
+        Simulation_Start_SingleShot( state.get(), method, opt );
 
         for( int i=0; i<100; i++ )
         {
             INFO( std::string( opt ) << " failed spin trajectory test at iteration " << i );
 
             // A single iteration
-            Simulation_SingleShot( state.get(), method, opt );
+            Simulation_SingleShot( state.get() );
 
             // Expected spin orientation
             // TODO: the step size should not be scaled by mu_s
@@ -79,6 +80,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
             REQUIRE( Approx(direction[0]) == sx_expected );
             REQUIRE( Approx(direction[2]) == sz_expected );
         }
+
+        Simulation_Stop( state.get() );
     }
 }
 

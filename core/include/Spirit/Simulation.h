@@ -7,13 +7,21 @@ struct State;
 
 #include <vector>
 
-// Single Solver iteration with a Method
-DLLEXPORT void Simulation_SingleShot(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1) noexcept;
+// Start/Stop functionality
+DLLEXPORT void Simulation_Start(State *state, const char * c_method_type, const char * c_solver_type="", 
+    int n_iterations=-1, int n_iterations_log=-1, int idx_image=-1, int idx_chain=-1) noexcept;
 
-// Play/Pause functionality
-DLLEXPORT void Simulation_PlayPause(State *state, const char * c_method_type, const char * c_solver_type, 
-    int n_iterations = -1, int n_iterations_log = -1, int idx_image=-1, int idx_chain=-1) noexcept;
+// Start a simulation, where iterations will be called manually
+DLLEXPORT void Simulation_Start_SingleShot(State *state, const char * c_method_type, const char * c_solver_type="", 
+    int n_iterations=-1, int n_iterations_log=-1, int idx_image=-1, int idx_chain=-1) noexcept;
+
+// Single iteration of a Method
+//  If Simulation_Start_SingleShot was called before, this will be reasonably efficient.
+//  Otherwise, a Method will be instantiated and used, potentially also producing output.
+DLLEXPORT void Simulation_SingleShot(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+
+// Stop a simulation running on an image or chain
+DLLEXPORT void Simulation_Stop(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Stop all simulations
 DLLEXPORT void Simulation_Stop_All(State *state) noexcept;

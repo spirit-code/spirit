@@ -10,39 +10,56 @@ import threading
 ###     We might want to think about using PyDLL and about a signal handler in the core library
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
 
-### SingleShot Iteration
-_SingleShot          = _spirit.Simulation_SingleShot
-_SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
-                        ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_SingleShot.restype  = None
-def single_shot(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, 
-               idx_image=-1, idx_chain=-1):
-    spiritlib.wrap_function(_SingleShot, [ctypes.c_void_p(p_state), 
-                                         ctypes.c_char_p(method_type.encode('utf-8')), 
-                                         ctypes.c_char_p(solver_type.encode('utf-8')), 
-                                         ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), 
-                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _SingleShot(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
-    #             ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), 
-    #             ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-
-### Play/Pause
-_PlayPause          = _spirit.Simulation_PlayPause
-_PlayPause.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
+### Start
+_Start          = _spirit.Simulation_Start
+_Start.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
                        ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_PlayPause.restype  = None
-def play_pause(p_state, method_type, solver_type, n_iterations=-1, n_iterations_log=-1, 
+_Start.restype  = None
+def start(p_state, method_type, solver_type="", n_iterations=-1, n_iterations_log=-1, 
               idx_image=-1, idx_chain=-1):
-    spiritlib.wrap_function(_PlayPause, [ctypes.c_void_p(p_state), 
+    spiritlib.wrap_function(_Start, [ctypes.c_void_p(p_state), 
                                         ctypes.c_char_p(method_type.encode('utf-8')), 
                                         ctypes.c_char_p(solver_type.encode('utf-8')), 
                                         ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), 
                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _PlayPause(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
+    # _Start(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
     #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), 
     #            ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
-### Stop All
+
+### Start SingleShot
+_Start_SingleShot          = _spirit.Simulation_Start_SingleShot
+_Start_SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
+                       ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_Start_SingleShot.restype  = None
+def start_single_shot(p_state, method_type, solver_type="", n_iterations=-1, n_iterations_log=-1, 
+              idx_image=-1, idx_chain=-1):
+    spiritlib.wrap_function(_Start_SingleShot, [ctypes.c_void_p(p_state), 
+                                        ctypes.c_char_p(method_type.encode('utf-8')), 
+                                        ctypes.c_char_p(solver_type.encode('utf-8')), 
+                                        ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), 
+                                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    # _Start_SingleShot(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
+    #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), 
+    #            ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+### SingleShot Iteration
+_SingleShot          = _spirit.Simulation_SingleShot
+_SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_SingleShot.restype  = None
+def single_shot(p_state, idx_image=-1, idx_chain=-1):
+    spiritlib.wrap_function(_SingleShot, [ctypes.c_void_p(p_state),
+                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    # _SingleShot(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+### Stop current
+_Stop           = _spirit.Simulation_Stop
+_Stop.argtypes  = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Stop.restype   = None
+def stop(p_state, idx_image=-1, idx_chain=-1):
+    _Stop(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+### Stop all
 _Stop_All           = _spirit.Simulation_Stop_All
 _Stop_All.argtypes  = [ctypes.c_void_p]
 _Stop_All.restype   = None

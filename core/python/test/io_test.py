@@ -62,7 +62,7 @@ class Eigenmodes_IO(TestParameters):
     def test_write(self):
         configuration.plus_z(self.p_state)
         configuration.skyrmion(self.p_state,radius=5,phase=-90)
-        simulation.play_pause(self.p_state,"LLG","VP")
+        simulation.start(self.p_state,"LLG","VP")
         system.update_eigenmodes(self.p_state)
         io.eigenmodes_write(self.p_state,io_image_test,io.FILEFORMAT_OVF_TEXT)
 

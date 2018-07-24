@@ -41,7 +41,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
 
         // Do simulation
-        Simulation_PlayPause( state.get(), method, solver );
+        Simulation_Start( state.get(), method, solver );
 
         // Save energy and magnetization
         energy = System_Get_Energy( state.get() );
@@ -65,7 +65,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
 
         // Do simulation
-        Simulation_PlayPause( state.get(), method, solver );
+        Simulation_Start( state.get(), method, solver );
 
         // Save energy and magnetization
         energy = System_Get_Energy( state.get() );
@@ -112,9 +112,9 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         Transition_Homogeneous(state.get(), 0, noi-1);
     
         // Do simulation
-        Simulation_PlayPause( state.get(), method, solver, 2e4 );
+        Simulation_Start( state.get(), method, solver, 2e4 );
         Parameters_GNEB_Set_Image_Type_Automatically( state.get() );
-        Simulation_PlayPause( state.get(), method, solver );
+        Simulation_Start( state.get(), method, solver );
 
         // Get saddle point index
         int i_max = 1;

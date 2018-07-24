@@ -75,14 +75,14 @@ void ControlWidget::updateData()
     if( Simulation_Running_On_Chain(state.get()) ||
         Simulation_Running_On_Image(state.get()) )
     {
-        this->pushButton_PlayPause->setText("Pause");
+        this->pushButton_PlayPause->setText("Stop");
         this->spinWidget->updateData();
     }
     else
     {
-        if( this->pushButton_PlayPause->text() == "Pause" )
+        if( this->pushButton_PlayPause->text() == "Stop" )
             this->spinWidget->updateData();
-        this->pushButton_PlayPause->setText("Play");
+        this->pushButton_PlayPause->setText("Start");
     }
 
     // Update Image number
@@ -149,7 +149,7 @@ void ControlWidget::play_pause()
 {
     // this->return_focus();
 
-    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: playpause");
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: Start/Stop");
 
     Chain_Update_Data(this->state.get());
 
@@ -166,12 +166,14 @@ void ControlWidget::play_pause()
         Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
-        Simulation_PlayPause(this->state.get(), c_method, c_solver);
+        Simulation_Stop(this->state.get());
         // Join the thread of the stopped simulation
-        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
-        else if (thread_chain.joinable()) thread_chain.join();
+        if (threads_image[System_Get_Index(state.get())].joinable())
+            threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable())
+            thread_chain.join();
         // New button text
-        this->pushButton_PlayPause->setText("Play");
+        this->pushButton_PlayPause->setText("Start");
     }
     else
     {
@@ -179,83 +181,94 @@ void ControlWidget::play_pause()
         if (this->s_method == "LLG")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            if (threads_image[idx].joinable())
+                threads_image[System_Get_Index(state.get())].join();
             this->threads_image[System_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+                std::thread(&Simulation_Start, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "MC")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            if (threads_image[idx].joinable())
+                threads_image[System_Get_Index(state.get())].join();
             this->threads_image[System_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+                std::thread(&Simulation_Start, this->state.get(), c_method, "", -1, -1, -1, -1);
         }
         else if (this->s_method == "GNEB")
         {
-            if (thread_chain.joinable()) thread_chain.join();
-            this->thread_chain = std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+            if (thread_chain.joinable())
+                thread_chain.join();
+            this->thread_chain = std::thread(&Simulation_Start, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "MMF")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            if (threads_image[idx].joinable())
+                threads_image[System_Get_Index(state.get())].join();
             this->threads_image[System_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+                std::thread(&Simulation_Start, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
         }
         else if (this->s_method == "EMA")
         {
             int idx = System_Get_Index(state.get());
-            if (threads_image[idx].joinable()) threads_image[System_Get_Index(state.get())].join();
+            if (threads_image[idx].joinable())
+                threads_image[System_Get_Index(state.get())].join();
             this->threads_image[System_Get_Index(state.get())] =
-                std::thread(&Simulation_PlayPause, this->state.get(), c_method, c_solver, -1, -1, -1, -1);
+                std::thread(&Simulation_Start, this->state.get(), c_method, "", -1, -1, -1, -1);
         }
         // New button text
-        this->pushButton_PlayPause->setText("Pause");
+        this->pushButton_PlayPause->setText("Stop");
     }
     this->spinWidget->updateData();
 }
 
 void ControlWidget::stop_all()
 {
-    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: Stop All");
 
     Simulation_Stop_All(state.get());
 
     for (unsigned int i=0; i<threads_image.size(); ++i)
     {
-        if (threads_image[i].joinable()) threads_image[i].join();
+        if (threads_image[i].joinable())
+            threads_image[i].join();
     }
-    if (thread_chain.joinable()) thread_chain.join();
+    if (thread_chain.joinable())
+        thread_chain.join();
 
-    this->pushButton_PlayPause->setText("Play");
+    this->pushButton_PlayPause->setText("Start");
     // this->createStatusBar();
 }
 
 void ControlWidget::stop_current()
 {
-    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: stopall");
+    Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: Stop All");
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
-        Simulation_PlayPause(this->state.get(), "", "");
+        Simulation_Stop(this->state.get());
         // Join the thread of the stopped simulation
-        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
-        else if (thread_chain.joinable()) thread_chain.join();
+        if (threads_image[System_Get_Index(state.get())].joinable())
+            threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable())
+            thread_chain.join();
     }
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )
     {
         // Running, so we stop it
-        Simulation_PlayPause(this->state.get(), "", "");
+        Simulation_Stop(this->state.get());
         // Join the thread of the stopped simulation
-        if (threads_image[System_Get_Index(state.get())].joinable()) threads_image[System_Get_Index(state.get())].join();
-        else if (thread_chain.joinable()) thread_chain.join();
+        if (threads_image[System_Get_Index(state.get())].joinable())
+            threads_image[System_Get_Index(state.get())].join();
+        else if (thread_chain.joinable())
+            thread_chain.join();
     }
 
-    this->pushButton_PlayPause->setText("Play");
+    this->pushButton_PlayPause->setText("Start");
 }
 
 

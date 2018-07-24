@@ -66,8 +66,9 @@ namespace Data
         std::shared_ptr<Parameters_Method_EMA> ema_parameters;
         // Parameters for MMF
         std::shared_ptr<Parameters_Method_MMF> mmf_parameters;
-        // Is it allowed to iterate on this system?
+        // Is it allowed to iterate on this system or do a singleshot?
         bool iteration_allowed;
+        bool singleshot_allowed;
 
         // Total Energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
         scalar E;

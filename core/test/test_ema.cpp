@@ -28,7 +28,7 @@ TEST_CASE("Trivial", "[EMA]")
     // (Heun, Depondt etc). Or even an EgeinAnalysis might be appropriate.
     
     //Simulation_SingleShot( state.get(), method, "Heun" );
-    Simulation_PlayPause( state.get(), "EMA", "", 20 );
+    Simulation_Start( state.get(), "EMA", "", 20 );
     //IO_Image_Write( state.get(), testfile );
     
     // Configuration_MinusZ( state.get() );
