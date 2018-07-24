@@ -21,7 +21,7 @@ from scipy import special
 
 # Parameters
 n_thermalisation = 500
-n_steps          = 2 # decorrelation between samples
+n_decorrelation  = 2 # decorrelation between samples
 n_samples        = 25000
 
 n_temperatures   = 60
@@ -33,7 +33,7 @@ system_size      = 30
 # Expected Tc value (factor 0.5 due to unique pairs instead of neighbours)
 order = 3 # Number of unique pairs
 Jij = 1   # Exchange per unique pair
-Tc = 0.5 * order * Jij / (3 * constants.k_B())
+Tc = 0.5 * order * Jij / (3 * constants.k_B)
 
 T_step = (T_end-T_start) / n_temperatures
 sample_temperatures = np.linspace(T_start, 6-0.5*T_step, num=n_temperatures/4)
@@ -47,20 +47,20 @@ specific_heat_samples   = []
 binder_cumulant_samples = []
 
 cfgfile = "ui-python/input.cfg"                   # Input File
-with state.State(cfgfile, quiet=True) as p_state: # State setup
+with state.State(cfgfile) as p_state: # State setup
     # Set parameters
-    parameters.mc.setOutputGeneral(p_state, False)         # Disallow any output
-    geometry.setNCells(p_state, [system_size, system_size, system_size])
+    parameters.mc.set_output_general(p_state, False)         # Disallow any output
+    geometry.set_n_cells(p_state, [system_size, system_size, system_size])
 
-    NOS = system.Get_NOS(p_state)
+    NOS = system.get_nos(p_state)
     
     # Ferromagnet in z-direction
-    configuration.PlusZ(p_state)
+    configuration.plus_z(p_state)
     # configuration.Random(p_state)
 
     # Loop over temperatures
     for iT, T in enumerate(sample_temperatures):
-        parameters.mc.setTemperature(p_state, T)
+        parameters.mc.set_temperature(p_state, T)
 
         # Cumulative average variables
         E  = 0
@@ -70,17 +70,20 @@ with state.State(cfgfile, quiet=True) as p_state: # State setup
         M4 = 0
 
         # Thermalisation
-        parameters.mc.setIterations(p_state, n_thermalisation, n_thermalisation) # We want n_steps iterations and only a single log message
-        simulation.PlayPause(p_state, "MC", "") # Start a MC simulation
-        parameters.mc.setIterations(p_state, n_steps, n_steps) # We want n_steps iterations and only a single log message
+        parameters.mc.set_iterations(p_state, n_thermalisation, n_thermalisation) # We want n_thermalisation iterations and only a single log message
+        simulation.start(p_state, "MC") # Start a MC simulation
+
         # Sampling at given temperature
+        parameters.mc.set_iterations(p_state, n_decorrelation*n_samples, n_decorrelation*n_samples) # We want n_decorrelation iterations and only a single log message
+        simulation.start_single_shot(p_state, "MC") # Start a MC simulation
         for n in range(n_samples):
             # Run decorrelation
-            simulation.PlayPause(p_state, "MC", "") # Start a MC simulation
+            for i_decorr in range(n_decorrelation):
+                simulation.single_shot(p_state) # one MC iteration
             # Get energy
-            E_local = system.Get_Energy(p_state)/NOS
+            E_local = system.get_energy(p_state) / NOS
             # Get magnetization
-            M_local = np.array(quantities.Get_Magnetization(p_state))
+            M_local = np.array(quantities.get_magnetization(p_state))
             M_local_tot = np.linalg.norm(M_local)
             # Add to cumulative averages
             E   += E_local
@@ -88,6 +91,8 @@ with state.State(cfgfile, quiet=True) as p_state: # State setup
             M   += M_local_tot
             M2  += M_local_tot**2
             M4  += M_local_tot**4
+        # Make sure the MC simulation is not running anymore
+        simulation.stop(p_state)
 
         # Average over samples
         E  /= n_samples
@@ -97,8 +102,8 @@ with state.State(cfgfile, quiet=True) as p_state: # State setup
         M4 /= n_samples
 
         # Calculate observables
-        chi = (M2 - np.dot(M, M)) / (constants.k_B() * T)
-        c_v = (E2 - E**2) / (constants.k_B() * T**2)
+        chi = (M2 - np.dot(M, M)) / (constants.k_B * T)
+        c_v = (E2 - E**2) / (constants.k_B * T**2)
         cumulant = 1 - M4/(3 * M2**2)
 
         # Output
