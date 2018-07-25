@@ -10,38 +10,82 @@ import threading
 ###     We might want to think about using PyDLL and about a signal handler in the core library
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
 
-### Start
-_Start          = _spirit.Simulation_Start
-_Start.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
-                       ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Start.restype  = None
-def start(p_state, method_type, solver_type="", n_iterations=-1, n_iterations_log=-1, 
-              idx_image=-1, idx_chain=-1):
-    spiritlib.wrap_function(_Start, [ctypes.c_void_p(p_state), 
-                                        ctypes.c_char_p(method_type.encode('utf-8')), 
-                                        ctypes.c_char_p(solver_type.encode('utf-8')), 
-                                        ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), 
-                                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _Start(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
-    #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), 
+SOLVER_VP = 0
+SOLVER_SIB = 1
+SOLVER_DEPONDT = 2
+SOLVER_HEUN = 3
+
+METHOD_MC   = 0
+METHOD_LLG  = 1
+METHOD_GNEB = 2
+METHOD_MMF  = 3
+METHOD_EMA  = 4
+
+### ----- Start
+### MC
+_MC_Start          = _spirit.Simulation_MC_Start
+_MC_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_MC_Start.restype  = None
+### LLG
+_LLG_Start          = _spirit.Simulation_LLG_Start
+_LLG_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_LLG_Start.restype  = None
+### GNEB
+_GNEB_Start          = _spirit.Simulation_GNEB_Start
+_GNEB_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_int, ctypes.c_bool, ctypes.c_int]
+_GNEB_Start.restype  = None
+### MMF
+_MMF_Start          = _spirit.Simulation_MMF_Start
+_MMF_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_MMF_Start.restype  = None
+### EMA
+_EMA_Start          = _spirit.Simulation_EMA_Start
+_EMA_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_EMA_Start.restype  = None
+### Wrapper
+def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_log=-1,
+            single_shot=False, idx_image=-1, idx_chain=-1):
+
+    if method_type == METHOD_MC:
+        spiritlib.wrap_function(_MC_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    elif method_type == METHOD_LLG:
+        spiritlib.wrap_function(_LLG_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(solver_type),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    elif method_type == METHOD_GNEB:
+        spiritlib.wrap_function(_GNEB_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(solver_type),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    elif method_type == METHOD_MMF:
+        spiritlib.wrap_function(_MMF_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(solver_type),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    elif method_type == METHOD_EMA:
+        spiritlib.wrap_function(_EMA_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    else:
+        print("Invalid method_type passed to simulation.start...")
+
+    # _Start(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type),
+    #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations),
     #            ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
-
-### Start SingleShot
-_Start_SingleShot          = _spirit.Simulation_Start_SingleShot
-_Start_SingleShot.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, 
-                       ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Start_SingleShot.restype  = None
-def start_single_shot(p_state, method_type, solver_type="", n_iterations=-1, n_iterations_log=-1, 
-              idx_image=-1, idx_chain=-1):
-    spiritlib.wrap_function(_Start_SingleShot, [ctypes.c_void_p(p_state), 
-                                        ctypes.c_char_p(method_type.encode('utf-8')), 
-                                        ctypes.c_char_p(solver_type.encode('utf-8')), 
-                                        ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log), 
-                                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _Start_SingleShot(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type), 
-    #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations), 
-    #            ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### SingleShot Iteration
 _SingleShot          = _spirit.Simulation_SingleShot
@@ -71,7 +115,7 @@ _Running_On_Image            = _spirit.Simulation_Running_On_Image
 _Running_On_Image.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Running_On_Image.restype    = ctypes.c_bool
 def running_on_image(p_state, idx_image=-1, idx_chain=-1):
-    return bool(_Running_On_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), 
+    return bool(_Running_On_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),
                                ctypes.c_int(idx_chain)))
 
 ### Check if a simulation is running across a specific chain

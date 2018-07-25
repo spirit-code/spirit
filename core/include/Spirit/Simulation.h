@@ -7,17 +7,30 @@ struct State;
 
 #include <vector>
 
-// Start/Stop functionality
-DLLEXPORT void Simulation_Start(State *state, const char * c_method_type, const char * c_solver_type="", 
-    int n_iterations=-1, int n_iterations_log=-1, int idx_image=-1, int idx_chain=-1) noexcept;
+#define Solver_VP       0
+#define Solver_Depondt  1
+#define Solver_SIB      2
+#define Solver_Heun     3
 
-// Start a simulation, where iterations will be called manually
-DLLEXPORT void Simulation_Start_SingleShot(State *state, const char * c_method_type, const char * c_solver_type="", 
-    int n_iterations=-1, int n_iterations_log=-1, int idx_image=-1, int idx_chain=-1) noexcept;
+// Start a simulation
+DLLEXPORT void Simulation_MC_Start(State *state, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, int idx_image=-1, int idx_chain=-1) noexcept;
+
+DLLEXPORT void Simulation_LLG_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, int idx_image=-1, int idx_chain=-1) noexcept;
+
+DLLEXPORT void Simulation_GNEB_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, int idx_chain=-1) noexcept;
+
+DLLEXPORT void Simulation_MMF_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, int idx_image=-1, int idx_chain=-1) noexcept;
+
+DLLEXPORT void Simulation_EMA_Start(State *state, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Single iteration of a Method
-//  If Simulation_Start_SingleShot was called before, this will be reasonably efficient.
-//  Otherwise, a Method will be instantiated and used, potentially also producing output.
+//  If singleshot=true was passed to Simulation_..._Start before, this will perform one iteration.
+//  Otherwise, nothing will happen.
 DLLEXPORT void Simulation_SingleShot(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Stop a simulation running on an image or chain

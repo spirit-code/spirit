@@ -23,11 +23,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
     // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // Choose method
-    auto method = "LLG";
-
     // Solvers to be tested
-    std::vector<const char *>  solvers{ "Heun", "Depondt", "SIB" };
+    std::vector<int>  solvers{ Solver_Heun, Solver_Depondt, Solver_SIB };
 
     // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
@@ -61,11 +58,11 @@ TEST_CASE( "Larmor Precession","[physics]" )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
-        Simulation_Start_SingleShot( state.get(), method, opt );
+        Simulation_LLG_Start( state.get(), opt, -1, -1, true);
 
         for( int i=0; i<100; i++ )
         {
-            INFO( std::string( opt ) << " failed spin trajectory test at iteration " << i );
+            INFO( "solver " << opt << " failed spin trajectory test at iteration " << i );
 
             // A single iteration
             Simulation_SingleShot( state.get() );

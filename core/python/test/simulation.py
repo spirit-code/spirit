@@ -11,6 +11,11 @@ import unittest
 
 ##########
 
+LLG = simulation.METHOD_LLG
+SIB = simulation.SOLVER_SIB
+
+##########
+
 cfgfile = spirit_py_dir + "/../test/input/solvers.cfg"     # Input File
 
 p_state = state.setup(cfgfile)              # State setup
@@ -25,16 +30,16 @@ class Simulation_StartStop(TestParameters):
     
     def test_singleshot(self):
         configuration.plus_z(self.p_state)
-        simulation.start_single_shot(self.p_state, "LLG", "SIB", n_iterations=1)
+        simulation.start(self.p_state, LLG, SIB, n_iterations=1, single_shot=True)
         simulation.single_shot(self.p_state)
-        simulation.start_single_shot(self.p_state, "LLG", "SIB")
+        simulation.start(self.p_state, LLG, SIB, single_shot=True)
         simulation.single_shot(self.p_state)
         simulation.stop(self.p_state)
 
     def test_playpause(self):
         configuration.plus_z(self.p_state)
         configuration.skyrmion(p_state, 5)
-        simulation.start(self.p_state, "LLG", "SIB")
+        simulation.start(self.p_state, LLG, SIB)
 
     def test_stopall(self):
         simulation.stop_all(self.p_state)

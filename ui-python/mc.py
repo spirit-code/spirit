@@ -19,6 +19,8 @@ from spirit import constants
 import numpy as np
 from scipy import special
 
+MC = simulation.METHOD_MC
+
 # Parameters
 n_thermalisation = 500
 n_decorrelation  = 2 # decorrelation between samples
@@ -71,11 +73,11 @@ with state.State(cfgfile) as p_state: # State setup
 
         # Thermalisation
         parameters.mc.set_iterations(p_state, n_thermalisation, n_thermalisation) # We want n_thermalisation iterations and only a single log message
-        simulation.start(p_state, "MC") # Start a MC simulation
+        simulation.start(p_state, MC) # Start a MC simulation
 
         # Sampling at given temperature
         parameters.mc.set_iterations(p_state, n_decorrelation*n_samples, n_decorrelation*n_samples) # We want n_decorrelation iterations and only a single log message
-        simulation.start_single_shot(p_state, "MC") # Start a MC simulation
+        simulation.start(p_state, MC, single_shot=True) # Start a single-shot MC simulation
         for n in range(n_samples):
             # Run decorrelation
             for i_decorr in range(n_decorrelation):
