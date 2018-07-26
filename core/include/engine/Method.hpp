@@ -167,23 +167,6 @@ namespace Engine
 
         // Method Parameters
         std::shared_ptr<Data::Parameters_Method> parameters;
-        
-        // Actual Forces on the configurations
-        std::vector<vectorfield> forces;
-        std::vector<vectorfield> forces_predictor;
-        // Virtual Forces used in the Steps
-        std::vector<vectorfield> forces_virtual;
-        std::vector<vectorfield> forces_virtual_predictor;
-        // Random vector array
-        vectorfield xi;
-        
-        // Temporary Spins arrays
-        vectorfield temp1, temp2;
-
-        // Pointers to Configurations (for Solver methods)
-        std::vector<std::shared_ptr<vectorfield>> configurations;
-        std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 
         // Precision for the conversion of scalar to string
         int print_precision;
