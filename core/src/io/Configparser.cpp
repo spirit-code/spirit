@@ -394,7 +394,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
             for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s=", iatom, cell_atoms[iatom].transpose(), mu_s[iatom]));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), mu_s[iatom]));
 
             // Atom types (default: type 0, vacancy: < 0)
             atom_types = intfield(cell_atoms.size(), 0);

@@ -73,11 +73,12 @@ def set_temperature(p_state, temperature, idx_image=-1, idx_chain=-1):
                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set target acceptance ratio
-_MC_Set_Acceptance_Ratio             = _spirit.Parameters_MC_Set_Acceptance_Ratio
-_MC_Set_Acceptance_Ratio.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
-_MC_Set_Acceptance_Ratio.restype     = None
-def set_acceptance_ratio(p_state, ratio, idx_image=-1, idx_chain=-1):
-    _MC_Set_Acceptance_Ratio(p_state, ctypes.c_float(ratio), idx_image, idx_chain)
+_MC_Set_Metropolis_Cone             = _spirit.Parameters_MC_Set_Metropolis_Cone
+_MC_Set_Metropolis_Cone.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_float,
+                                            ctypes.c_bool, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_MC_Set_Metropolis_Cone.restype     = None
+def set_metropolis_cone(p_state, use_cone=True, cone_angle=40, use_adaptive_cone=True, target_acceptance_ratio=0.5, idx_image=-1, idx_chain=-1):
+    _MC_Set_Metropolis_Cone(p_state, ctypes.c_bool(use_cone), ctypes.c_float(cone_angle), ctypes.c_bool(use_adaptive_cone), ctypes.c_float(target_acceptance_ratio), idx_image, idx_chain)
 
 ## ---------------------------------- Get ----------------------------------
 
@@ -102,9 +103,19 @@ def get_temperature(p_state, idx_image=-1, idx_chain=-1):
                                              ctypes.c_int(idx_chain)))
 
 ### Get target acceptance ratio
-_MC_Get_Acceptance_Ratio             = _spirit.Parameters_MC_Get_Acceptance_Ratio
-_MC_Get_Acceptance_Ratio.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_MC_Get_Acceptance_Ratio.restype     = ctypes.c_float
-def get_acceptance_ratio(p_state, idx_image=-1, idx_chain=-1):
-    return float(_MC_Get_Acceptance_Ratio(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),
-                                    ctypes.c_int(idx_chain)))
+_MC_Get_Metropolis_Cone             = _spirit.Parameters_MC_Get_Metropolis_Cone
+_MC_Get_Metropolis_Cone.argtypes    = [ ctypes.c_void_p,
+                                        ctypes.POINTER(ctypes.c_bool), ctypes.POINTER(ctypes.c_float),
+                                        ctypes.POINTER(ctypes.c_bool), ctypes.POINTER(ctypes.c_float),
+                                        ctypes.c_int, ctypes.c_int ]
+_MC_Get_Metropolis_Cone.restype     = None
+def get_metropolis_cone(p_state, idx_image=-1, idx_chain=-1):
+    use_cone = ctypes.c_bool()
+    cone_angle = ctypes.c_float()
+    use_adaptive_cone = ctypes.c_bool()
+    target_acceptance_ratio = ctypes.c_float()
+    _MC_Get_Metropolis_Cone(ctypes.c_void_p(p_state),
+                ctypes.pointer(use_cone), ctypes.pointer(cone_angle),
+                ctypes.pointer(use_adaptive_cone), ctypes.pointer(target_acceptance_ratio), 
+                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return bool(use_cone), float(cone_angle), bool(use_adaptive_cone), float(target_acceptance_ratio)

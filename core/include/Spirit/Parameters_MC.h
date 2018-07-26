@@ -16,7 +16,8 @@ DLLEXPORT void Parameters_MC_Set_Output_Configuration(State *state, bool configu
 DLLEXPORT void Parameters_MC_Set_N_Iterations(State *state, int n_iterations, int n_iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT void Parameters_MC_Set_Temperature(State *state, float T, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT void Parameters_MC_Set_Acceptance_Ratio(State *state, float ratio, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_MC_Set_Metropolis_Cone(State *state, bool cone, float cone_angle, bool adaptive_cone, float target_acceptance_ratio, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_MC_Set_Random_Sample(State *state, bool random_sample, int idx_image=-1, int idx_chain=-1) noexcept;
 
 //      Get MC
 // Output
@@ -28,7 +29,8 @@ DLLEXPORT void Parameters_MC_Get_Output_Configuration(State *state, bool * confi
 DLLEXPORT void Parameters_MC_Get_N_Iterations(State *state, int * iterations, int * iterations_log, int idx_image=-1, int idx_chain=-1) noexcept;
 // Simulation Parameters
 DLLEXPORT float Parameters_MC_Get_Temperature(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
-DLLEXPORT float Parameters_MC_Get_Acceptance_Ratio(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_MC_Get_Metropolis_Cone(State *state, bool * cone, float * cone_angle, bool * adaptive_cone, float * target_acceptance_ratio, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT bool Parameters_MC_Get_Random_Sample(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

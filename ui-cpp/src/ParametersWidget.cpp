@@ -60,7 +60,7 @@ void ParametersWidget::updateData()
 
 void ParametersWidget::Load_Parameters_Contents()
 {
-    float d, vd[3];
+    float d, d2, vd[3];
     int image_type;
     int i1, i2;
     bool b1, b2, b3, b4, b5;
@@ -119,7 +119,7 @@ void ParametersWidget::Load_Parameters_Contents()
     d = Parameters_MC_Get_Temperature(state.get());
     this->doubleSpinBox_mc_temperature->setValue(d);
     if (d > 0.0) this->checkBox_mc_temperature->setChecked(true);
-    d = Parameters_MC_Get_Acceptance_Ratio(state.get());
+    Parameters_MC_Get_Metropolis_Cone(state.get(), &b1, &d2, &b2, &d);
     this->doubleSpinBox_mc_acceptance->setValue(d);
     // Output
     Parameters_MC_Get_N_Iterations(state.get(), &i1, &i2);
@@ -349,7 +349,7 @@ void ParametersWidget::set_parameters_mc()
 
         // Acceptance ratio
         d = this->doubleSpinBox_mc_acceptance->value();
-        Parameters_MC_Set_Acceptance_Ratio(state.get(), d, idx_image);
+        Parameters_MC_Set_Metropolis_Cone(state.get(), true, 40, true, d, idx_image);
 
         // Output
         i1 = this->spinBox_mc_n_iterations->value();

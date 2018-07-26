@@ -182,29 +182,62 @@ void Parameters_MC_Set_Temperature( State *state, float T, int idx_image, int id
     }
 }
 
-void Parameters_MC_Set_Acceptance_Ratio( State *state, float ratio, int idx_image, int idx_chain ) noexcept
+void Parameters_MC_Set_Metropolis_Cone(State *state, bool cone, float cone_angle, bool adaptive_cone, float target_acceptance_ratio, int idx_image, int idx_chain) noexcept
+try
 {
-    try
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+    
+    image->Lock();
+
+    image->mc_parameters->metropolis_step_cone     = cone;
+
+    if( cone )
     {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        image->Lock();
-
-        image->mc_parameters->acceptance_ratio_target = ratio;
-
+        image->mc_parameters->metropolis_cone_angle    = cone_angle;
+        image->mc_parameters->metropolis_cone_adaptive = adaptive_cone;
+        if( adaptive_cone )
+        {
+            image->mc_parameters->acceptance_ratio_target  = target_acceptance_ratio;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                "Set MC adaptive cone with a target acceptance ratio of {} (initial angle of {})",
+                target_acceptance_ratio, cone_angle), idx_image, idx_chain);
+        }
+        else
+        {
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                "Set MC conical random number generation with a cone angle of {}",
+                cone_angle), idx_image, idx_chain);
+        }
+    }
+    else
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            fmt::format("Set MC acceptance ratio to {}", ratio), idx_image, idx_chain);
+            "Deactivated MC conical random number generation.", idx_image, idx_chain);
 
-        image->Unlock();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
+    image->Unlock();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+}
+
+void Parameters_MC_Set_Random_Sample(State *state, bool random_sample, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    image->mc_parameters->metropolis_random_sample = random_sample;
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
 }
 
 
@@ -359,21 +392,38 @@ float Parameters_MC_Get_Temperature(State *state, int idx_image, int idx_chain) 
     }
 }
 
-float Parameters_MC_Get_Acceptance_Ratio(State *state, int idx_image, int idx_chain) noexcept
+void Parameters_MC_Get_Metropolis_Cone(State *state, bool * cone, float * cone_angle, bool * adaptive_cone, float * target_acceptance_ratio, int idx_image, int idx_chain) noexcept
+try
 {
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
 
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
 
-        return (float)image->mc_parameters->acceptance_ratio_target;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-        return 0;
-    }
+    *cone = image->mc_parameters->metropolis_step_cone;
+    *cone_angle = (float)image->mc_parameters->metropolis_cone_angle;
+    *adaptive_cone = (float)image->mc_parameters->metropolis_cone_adaptive;
+    *target_acceptance_ratio = (float)image->mc_parameters->acceptance_ratio_target;
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+}
+
+bool Parameters_MC_Get_Random_Sample(State *state, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    return image->mc_parameters->metropolis_random_sample;
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return false;
 }

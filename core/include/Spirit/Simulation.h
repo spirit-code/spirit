@@ -8,8 +8,8 @@ struct State;
 #include <vector>
 
 #define Solver_VP       0
-#define Solver_Depondt  1
-#define Solver_SIB      2
+#define Solver_SIB      1
+#define Solver_Depondt  2
 #define Solver_Heun     3
 
 // Start a simulation
