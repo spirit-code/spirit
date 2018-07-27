@@ -30,6 +30,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
     this->state = state;
     this->m_gl_initialized = false;
     this->m_suspended = false;
+    this->paste_atom_type = 0;
 
     // QT Widget Settings
     setFocusPolicy(Qt::StrongFocus);
@@ -203,7 +204,7 @@ void SpinWidget::defectpaste()
     float rect[3]{ -1, -1, -1 };
 
     float current_position[3]{ coords.x, coords.y, 0.0f };
-    Configuration_Atom_Type(state.get(), -1, current_position, rect, radius);
+    Configuration_Atom_Type(state.get(), this->paste_atom_type, current_position, rect, radius);
 }
 
 void SpinWidget::pinningpaste()
@@ -220,6 +221,11 @@ void SpinWidget::pinningpaste()
 
     float current_position[3]{ coords.x, coords.y, 0.0f };
     Configuration_Pin(state.get(), current_position, rect, radius);
+}
+
+void SpinWidget::setPasteAtomType(int type)
+{
+    this->paste_atom_type = type;
 }
 
 void SpinWidget::initializeGL()

@@ -165,38 +165,38 @@ bool Configuration_From_Clipboard_Shift( State *state, const float position_init
                                          int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-
-    // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
-
-    // Get relative position
-    Vector3 pos_initial{ position_initial[0], position_initial[1], position_initial[2] };
-    Vector3 pos_final{ position_final[0], position_final[1], position_final[2] };
-    Vector3 shift = pos_initial - pos_final;
-
-    Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->bravais_vectors);
-
-    int da = (int)std::round(decomposed[0]);
-    int db = (int)std::round(decomposed[1]);
-    int dc = (int)std::round(decomposed[2]);
-
-    if (da == 0 && db == 0 && dc == 0)
-        return false;
-
-    auto& geometry = *image->geometry;
-    int delta = geometry.n_cell_atoms * da +
-                geometry.n_cell_atoms * geometry.n_cells[0] * db +
-                geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
-
-    // Create position filter
-    auto filter = get_filter( pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
-                                inverted );
-
     // Apply configuration
     if (state->clipboard_spins.get())
     {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        // Get relative position
+        Vector3 pos_initial{ position_initial[0], position_initial[1], position_initial[2] };
+        Vector3 pos_final{ position_final[0], position_final[1], position_final[2] };
+        Vector3 shift = pos_initial - pos_final;
+
+        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->bravais_vectors);
+
+        int da = (int)std::round(decomposed[0]);
+        int db = (int)std::round(decomposed[1]);
+        int dc = (int)std::round(decomposed[2]);
+
+        if (da == 0 && db == 0 && dc == 0)
+            return false;
+
+        auto& geometry = *image->geometry;
+        int delta = geometry.n_cell_atoms * da +
+                    geometry.n_cell_atoms * geometry.n_cells[0] * db +
+                    geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
+
+        // Create position filter
+        auto filter = get_filter( pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
+                                    inverted );
+
         image->Lock();
         Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
         image->geometry->Apply_Pinning(*image->spins);

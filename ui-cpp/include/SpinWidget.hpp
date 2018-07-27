@@ -196,6 +196,8 @@ public:
   void setLightPosition(float theta, float phi);
   std::array<float,2> getLightPosition();
 
+  void setPasteAtomType(int type);
+
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
@@ -212,6 +214,7 @@ private:
   bool m_camera_rotate_free;
   bool m_camera_projection_perspective;
   float m_light_theta, m_light_phi;
+  int paste_atom_type;
 
   // temporaries for system cycle
   void setSystemCycle(SystemMode mode);

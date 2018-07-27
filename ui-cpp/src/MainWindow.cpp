@@ -1200,6 +1200,8 @@ void MainWindow::keyBindings()
             " - <b>F3</b>:      Toggle Plots<br>"
             " - <b>F4</b>:      Toggle Debug<br>"
             " - <b>F5</b>:      Toggle \"Dragging\" mode<br>"
+            " - <b>F6</b>:      Toggle \"Defects\" mode<br>"
+            " - <b>F7</b>:      Toggle \"Pinning\" mode<br>"
             " - <b>F10 and Ctrl+F</b>:        Toggle large visualisation<br>"
             " - <b>F11 and Ctrl+Shift+F</b>:  Toggle fullscreen window<br>"
             " - <b>F12 and Home</b>:          Screenshot of Visualization region<br>"
