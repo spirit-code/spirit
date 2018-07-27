@@ -14,7 +14,7 @@ _Domain.restype     = None
 def domain(p_state, dir, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
            border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Domain(ctypes.c_void_p(p_state) , vec3(*dir), vec3(*pos), vec3(*border_rectangular), 
+    _Domain(ctypes.c_void_p(p_state), vec3(*dir), vec3(*pos), vec3(*border_rectangular), 
             ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
             ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
@@ -28,7 +28,7 @@ _PlusZ.restype     = None
 def plus_z(p_state, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0, 
           border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _PlusZ(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
+    _PlusZ(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular), 
            ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
            ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
@@ -42,7 +42,7 @@ _MinusZ.restype     = None
 def minus_z(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
           border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _MinusZ(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
+    _MinusZ(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular), 
             ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
             ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
@@ -55,7 +55,7 @@ _Random.restype     = None
 def random(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, 
            border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Random(ctypes.c_void_p(p_state) , vec3(*pos), vec3(*border_rectangular), 
+    _Random(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular), 
             ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
             ctypes.c_bool(inverted), False, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
@@ -71,7 +71,7 @@ def add_noise(p_state, temperature, pos=[0,0,0], border_rectangular=[-1,-1,-1],
                           border_cylindrical=-1, border_spherical=-1, inverted=False, 
                           idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Add_Noise_Temperature(ctypes.c_void_p(p_state) , ctypes.c_float(temperature), vec3(*pos), 
+    _Add_Noise_Temperature(ctypes.c_void_p(p_state), ctypes.c_float(temperature), vec3(*pos), 
                            vec3(*border_rectangular), ctypes.c_float(border_cylindrical), 
                            ctypes.c_float(border_spherical), ctypes.c_bool(inverted), False, 
                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -88,7 +88,7 @@ def skyrmion(p_state, radius, order=1, phase=1, upDown=False, achiral=False, rig
              pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, 
              inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Skyrmion(ctypes.c_void_p(p_state) , ctypes.c_float(radius), ctypes.c_float(order), 
+    _Skyrmion(ctypes.c_void_p(p_state), ctypes.c_float(radius), ctypes.c_float(order), 
               ctypes.c_float(phase), ctypes.c_bool(upDown), ctypes.c_bool(achiral), 
               ctypes.c_bool(rightleft), vec3(*pos), vec3(*border_rectangular), 
               ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
@@ -103,7 +103,7 @@ _Hopfion.restype     = None
 def hopfion(p_state, radius, order=1, pos=[0,0,0], border_rectangular=[-1,-1,-1], 
             border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _Hopfion(ctypes.c_void_p(p_state) , ctypes.c_float(radius), ctypes.c_int(order), 
+    _Hopfion(ctypes.c_void_p(p_state), ctypes.c_float(radius), ctypes.c_int(order), 
              vec3(*pos), vec3(*border_rectangular), ctypes.c_float(border_cylindrical), 
              ctypes.c_float(border_spherical), ctypes.c_bool(inverted), 
              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -121,8 +121,36 @@ def spin_spiral(p_state, direction_type, q_vector, axis, theta, pos=[0,0,0],
                border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1, 
                inverted=False, idx_image=-1, idx_chain=-1):
     vec3 = ctypes.c_float * 3
-    _SpinSpiral(ctypes.c_void_p(p_state) , ctypes.c_char_p(direction_type.encode('utf-8')), 
+    _SpinSpiral(ctypes.c_void_p(p_state), ctypes.c_char_p(direction_type.encode('utf-8')), 
                 vec3(*q_vector), vec3(*axis), ctypes.c_float(theta), vec3(*pos), 
                 vec3(*border_rectangular), ctypes.c_float(border_cylindrical), 
                 ctypes.c_float(border_spherical), ctypes.c_bool(inverted), 
                 ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+
+### Pin spins in a selected area
+_Pin             = _spirit.Configuration_Pin
+_Pin.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), 
+                    ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
+                    ctypes.c_int, ctypes.c_int]
+_Pin.restype     = None
+def pin(p_state, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0, 
+          border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
+    _Pin(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular), 
+           ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
+           ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+
+### Set atom types in a selected area
+_Atom_Type             = _spirit.Configuration_Atom_Type
+_Atom_Type.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float), 
+                            ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
+                            ctypes.c_int, ctypes.c_int]
+_Atom_Type.restype     = None
+def atom_type(p_state, atom_type=0, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0, 
+          border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_float * 3
+    _Atom_Type(ctypes.c_void_p(p_state), ctypes.c_int(atom_type), vec3(*pos), vec3(*border_rectangular), 
+           ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical), 
+           ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
