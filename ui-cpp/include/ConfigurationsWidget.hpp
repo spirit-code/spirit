@@ -45,6 +45,9 @@ private slots:
 	void create_Hopfion();
 	void create_Skyrmion();
 	void create_SpinSpiral();
+	// Pinning and atom types
+	void set_atom_type_pressed();
+	void set_pinned_pressed();
 	// Transitions
 	void homogeneousTransitionPressed();
 	void homogeneousTransitionFirstLastPressed();

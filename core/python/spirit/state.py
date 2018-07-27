@@ -2,7 +2,7 @@ import spirit.spiritlib as spiritlib
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.LoadSpiritLibrary()
+_spirit = spiritlib.load_spirit_library()
 
 ### State wrapper class to be used in 'with' statement
 class State:

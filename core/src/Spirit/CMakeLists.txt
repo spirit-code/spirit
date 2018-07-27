@@ -5,7 +5,11 @@ set(SOURCE_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Simulation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_MC.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_LLG.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_GNEB.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_MMF.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_EMA.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Transitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/System.cpp

@@ -97,24 +97,46 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometr
     // }
 }
 
-void Geometry_Set_Bravais_Lattice(State *state, const char * c_bravais_lattice) noexcept
+void Geometry_Set_Bravais_Lattice_Type(State *state, Bravais_Lattice_Type lattice_type) noexcept
 try
 {
-    std::string bravais_lattice = c_bravais_lattice;
+    std::string lattice_name;
+    if( lattice_type == Bravais_Lattice_Irregular )
+        lattice_name = "Irregular";
+    else if( lattice_type == Bravais_Lattice_Rectilinear )
+        lattice_name = "Rectilinear";
+    else if( lattice_type == Bravais_Lattice_SC )
+        lattice_name = "Simple Cubic";
+    else if( lattice_type == Bravais_Lattice_Hex2D )
+        lattice_name = "2D Hexagonal";
+    else if( lattice_type == Bravais_Lattice_Hex2D_60 )
+        lattice_name = "2D Hexagonal (60deg)";
+    else if( lattice_type == Bravais_Lattice_Hex2D_120 )
+        lattice_name = "2D Hexagonal (120deg)";
+    else if( lattice_type == Bravais_Lattice_HCP )
+        lattice_name = "HCP";
+    else if( lattice_type == Bravais_Lattice_BCC )
+        lattice_name = "Body-Centered Cubic";
+    else if( lattice_type == Bravais_Lattice_FCC )
+        lattice_name = "Face-Centered Cubic";
+    else
+        lattice_name = fmt::format("<unknown index: {}>", lattice_type);
+
     std::vector<Vector3> bravais_vectors;
-    if (bravais_lattice == "sc")
+    if (lattice_type      == Bravais_Lattice_SC)
         bravais_vectors = Data::Geometry::BravaisVectorsSC();
-    else if (bravais_lattice == "fcc")
+    else if (lattice_type == Bravais_Lattice_FCC)
         bravais_vectors = Data::Geometry::BravaisVectorsFCC();
-    else if (bravais_lattice == "bcc")
+    else if (lattice_type == Bravais_Lattice_BCC)
         bravais_vectors = Data::Geometry::BravaisVectorsBCC();
-    else if (bravais_lattice == "hex2d60")
+    else if (lattice_type == Bravais_Lattice_Hex2D || Bravais_Lattice_Hex2D_60)
         bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
-    else if (bravais_lattice == "hex2d120")
+    else if (lattice_type == Bravais_Lattice_Hex2D_120)
         bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
     else
     {
-        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format("Invalid input to Geometry_Set_Bravais_Lattice: '{}'", bravais_lattice), -1, -1);
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format(
+            "Geometry_Set_Bravais_Lattice_Type: cannot set type to '{}'", lattice_name), -1, -1);
         return;
     }
     
@@ -128,7 +150,7 @@ try
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
-        fmt::format("Set Bravais lattice type to {} for all Systems", bravais_lattice), -1, -1);
+        fmt::format("Set Bravais lattice type to {} for all Systems", lattice_name), -1, -1);
 }
 catch( ... )
 {
@@ -409,7 +431,7 @@ catch( ... )
 }
 
 // Get bravais lattice type
-Bravais_Lattice_Type Geometry_Get_Bravais_Type(State *state, int idx_image, int idx_chain) noexcept
+Bravais_Lattice_Type Geometry_Get_Bravais_Lattice_Type(State *state, int idx_image, int idx_chain) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;

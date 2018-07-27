@@ -5,7 +5,6 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
-#include <Spirit/Parameters.h>
 #include <Spirit/IO.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
@@ -29,7 +28,7 @@ TEST_CASE("Trivial", "[EMA]")
     // (Heun, Depondt etc). Or even an EgeinAnalysis might be appropriate.
     
     //Simulation_SingleShot( state.get(), method, "Heun" );
-    Simulation_PlayPause( state.get(), "EMA", "", 20 );
+    Simulation_EMA_Start( state.get(), 20 );
     //IO_Image_Write( state.get(), testfile );
     
     // Configuration_MinusZ( state.get() );

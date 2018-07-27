@@ -13,15 +13,17 @@ typedef enum
     Bravais_Lattice_Rectilinear = 1,
     Bravais_Lattice_SC          = 2,
     Bravais_Lattice_Hex2D       = 3,
-    Bravais_Lattice_HCP         = 4,
-    Bravais_Lattice_BCC         = 5,
-    Bravais_Lattice_FCC         = 6
+    Bravais_Lattice_Hex2D_60    = 4,
+    Bravais_Lattice_Hex2D_120   = 5,
+    Bravais_Lattice_HCP         = 6,
+    Bravais_Lattice_BCC         = 7,
+    Bravais_Lattice_FCC         = 8
 } Bravais_Lattice_Type;
 
 // ---------------------------------- Set ----------------------------------
 
 // Set the type of Bravais lattice. Can be e.g. "sc" or "bcc"
-DLLEXPORT void Geometry_Set_Bravais_Lattice(State *state, const char * bravais_lattice) noexcept;
+DLLEXPORT void Geometry_Set_Bravais_Lattice_Type(State *state, Bravais_Lattice_Type lattice_type) noexcept;
 // Set the number of basis cells in the three translation directions
 DLLEXPORT void Geometry_Set_N_Cells(State * state, int n_cells[3]) noexcept;
 // Set the number and positions of atoms in a basis cell
@@ -54,7 +56,7 @@ DLLEXPORT void Geometry_Get_Center(State *state, float center[3], int idx_image=
 DLLEXPORT void Geometry_Get_Cell_Bounds(State *state, float min[3], float max[3], int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Get bravais lattice type
-DLLEXPORT Bravais_Lattice_Type Geometry_Get_Bravais_Type(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT Bravais_Lattice_Type Geometry_Get_Bravais_Lattice_Type(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 // Get bravais vectors ta, tb, tc
 DLLEXPORT void Geometry_Get_Bravais_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image=-1, int idx_chain=-1) noexcept;
 // Get number of atoms in a basis cell

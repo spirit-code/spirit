@@ -6,7 +6,7 @@
 #include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_LLG.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -23,11 +23,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
     // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // Choose method
-    auto method = "LLG";
-
     // Solvers to be tested
-    std::vector<const char *>  solvers{ "Heun", "Depondt", "SIB" };
+    std::vector<int>  solvers{ Solver_Heun, Solver_Depondt, Solver_SIB };
 
     // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
@@ -52,8 +49,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
 
     // Get time step of method
     scalar damping = 0.3;
-    float tstep = Parameters_Get_LLG_Time_Step( state.get() );
-    Parameters_Set_LLG_Damping( state.get(), damping );
+    float tstep = Parameters_LLG_Get_Time_Step( state.get() );
+    Parameters_LLG_Set_Damping( state.get(), damping );
 
     scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping*damping );
 
@@ -61,13 +58,14 @@ TEST_CASE( "Larmor Precession","[physics]" )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
+        Simulation_LLG_Start( state.get(), opt, -1, -1, true);
 
         for( int i=0; i<100; i++ )
         {
-            INFO( std::string( opt ) << " failed spin trajectory test at iteration " << i );
+            INFO( "solver " << opt << " failed spin trajectory test at iteration " << i );
 
             // A single iteration
-            Simulation_SingleShot( state.get(), method, opt );
+            Simulation_SingleShot( state.get() );
 
             // Expected spin orientation
             // TODO: the step size should not be scaled by mu_s
@@ -79,6 +77,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
             REQUIRE( Approx(direction[0]) == sx_expected );
             REQUIRE( Approx(direction[2]) == sz_expected );
         }
+
+        Simulation_Stop( state.get() );
     }
 }
 

@@ -3,6 +3,7 @@
 #define Method_Solver_H
 
 #include "Spirit_Defines.h"
+#include <Spirit/Simulation.h>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>
@@ -25,13 +26,13 @@ namespace Engine
 {
     enum class Solver
     {
-        None,
-        SIB,
-        Heun,
-        Depondt,
-        NCG,
-        BFGS,
-        VP
+        None = -1,
+        SIB = Solver_SIB,
+        Heun = Solver_Heun,
+        Depondt = Solver_Depondt,
+        NCG = -2,
+        BFGS = -3,
+        VP = Solver_VP
     };
 
     /*
@@ -158,6 +159,24 @@ namespace Engine
         std::vector<scalar> projection;
         // |force|^2
         std::vector<scalar> force_norm2;
+
+        // Temporary Spins arrays
+        vectorfield temp1, temp2;
+
+        // Actual Forces on the configurations
+        std::vector<vectorfield> forces;
+        std::vector<vectorfield> forces_predictor;
+        // Virtual Forces used in the Steps
+        std::vector<vectorfield> forces_virtual;
+        std::vector<vectorfield> forces_virtual_predictor;
+
+        // Random vector array
+        vectorfield xi;
+
+        // Pointers to Configurations (for Solver methods)
+        std::vector<std::shared_ptr<vectorfield>> configurations;
+        std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
     };
 
 

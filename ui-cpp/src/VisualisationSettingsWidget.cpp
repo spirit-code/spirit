@@ -2,12 +2,9 @@
 
 #include "VisualisationSettingsWidget.hpp"
 
-#include <Spirit/Parameters.h>
 #include <Spirit/System.h>
 #include <Spirit/Geometry.h>
-#include <Spirit/Chain.h>
 #include <Spirit/Log.h>
-#include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
 
 // Small function for normalization of vectors
 #define Exception_Division_by_zero 6666

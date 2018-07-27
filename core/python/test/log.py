@@ -16,7 +16,7 @@ class TestLog(unittest.TestCase):
 
     def test_log_message(self):
         with state.State() as p_state:
-            log.Send(p_state, 1, 0, "Test Message")
+            log.send(p_state, log.LEVEL_SEVERE, log.SENDER_ALL, "Test Message")
 
 ##########
 

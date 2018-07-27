@@ -19,12 +19,12 @@ TEST_CASE( "State", "[state]" )
         // Test the default config explicitly
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup(), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
-        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+        CHECK_NOTHROW( Simulation_LLG_Start(state.get(), Solver_VP, 1) );
 
         // Test the default config with a nonexistent file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup("__surely__nonexistent__file__.cfg"), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
-        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+        CHECK_NOTHROW( Simulation_LLG_Start(state.get(), Solver_VP, 1) );
 
         // Test the default input file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );

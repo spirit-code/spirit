@@ -57,7 +57,7 @@ void InfoWidget::updateData()
     double f_max = Simulation_Get_MaxTorqueComponent(state.get());
     this->m_Label_Force_Max->setText(QString::fromLatin1("F (max): ") + QString::number(f_max, 'f', 12));
     
-    if (Simulation_Running_Chain(state.get()))
+    if (Simulation_Running_On_Chain(state.get()))
     {
         float * forces = new float[Chain_Get_NOI(state.get())];
         Simulation_Get_Chain_MaxTorqueComponents(state.get(), forces);
