@@ -11,6 +11,7 @@ public:
 	MouseDecoratorWidget(float radius);
 	void paintEvent(QPaintEvent *);
 	void setRadius(float radius);
+	void setColors(Qt::GlobalColor one, Qt::GlobalColor two);
 private slots:
 	void incrementRotation();
 private:
@@ -20,6 +21,8 @@ private:
 	int m_rotation_angle;
 	int m_rpm;
 	int m_rotation_updates_per_second;
+	Qt::GlobalColor color_one;
+	Qt::GlobalColor color_two;
 };
 
 #endif

@@ -62,7 +62,7 @@ private slots:
 	void view_toggle_fullscreen();
 	void toggleSpinWidget();
 	void toggleInfoWidget();
-	void view_toggleDragMode();
+	void view_togglePasteMode(SpinWidget::InteractionMode mode);
     void about();
 	void keyBindings();
 	void load_Configuration();

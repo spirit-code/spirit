@@ -92,7 +92,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
     connect(this->actionCycle_Method, SIGNAL(triggered()), this, SLOT(control_cycle_method()));
     connect(this->actionCycle_Solver, SIGNAL(triggered()), this, SLOT(control_cycle_solver()));
-    connect(this->actionToggle_Dragging_mode, SIGNAL(triggered()), this, SLOT(view_toggleDragMode()));
+    connect(this->actionToggle_Dragging_mode, &QAction::triggered, this, [this]{ view_togglePasteMode(SpinWidget::InteractionMode::DRAG); });
+    connect(this->actionToggle_Defect_mode,   &QAction::triggered, this, [this]{ view_togglePasteMode(SpinWidget::InteractionMode::DEFECT); });
+    connect(this->actionToggle_Pinning_mode,  &QAction::triggered, this, [this]{ view_togglePasteMode(SpinWidget::InteractionMode::PIN); });
 
     // View Menu
     connect(this->actionShow_Settings, SIGNAL(triggered()), this, SLOT(view_toggleSettings()));
@@ -122,6 +124,9 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     connect(this->actionToggle_large_visualisation, SIGNAL(triggered()), this, SLOT(updateMenuBar()));
     connect(this->actionToggle_fullscreen_window,   SIGNAL(triggered()), this, SLOT(updateMenuBar()));
     connect(this->actionToggle_infowidget,          SIGNAL(triggered()), this, SLOT(toggleInfoWidget()));
+    connect(this->actionToggle_Dragging_mode,       SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+    connect(this->actionToggle_Defect_mode,         SIGNAL(triggered()), this, SLOT(updateMenuBar()));
+    connect(this->actionToggle_Pinning_mode,        SIGNAL(triggered()), this, SLOT(updateMenuBar()));
     connect(this->dockWidget_Settings, SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
     connect(this->dockWidget_Plots,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
     connect(this->dockWidget_Debug,    SIGNAL(visibilityChanged(bool)), this, SLOT(updateMenuBar()));
@@ -514,7 +519,18 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
                 break;
             // F5: Toggle drag mode
             case Qt::Key_F5:
-                this->view_toggleDragMode();
+                this->view_togglePasteMode(SpinWidget::InteractionMode::DRAG);
+                this->updateMenuBar();
+                break;
+            // F6: Toggle defect mode
+            case Qt::Key_F6:
+                this->view_togglePasteMode(SpinWidget::InteractionMode::DEFECT);
+                this->updateMenuBar();
+                break;
+            // F7: Toggle pinning mode
+            case Qt::Key_F7:
+                this->view_togglePasteMode(SpinWidget::InteractionMode::PIN);
+                this->updateMenuBar();
                 break;
             case Qt::Key_Equal:
             case Qt::Key_Plus:
@@ -732,17 +748,40 @@ void MainWindow::view_toggleSettings()
     else this->dockWidget_Settings->show();
 }
 
-void MainWindow::view_toggleDragMode()
+void MainWindow::view_togglePasteMode(SpinWidget::InteractionMode mode)
 {
-    if (this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG)
+    if( this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG &&
+        mode == SpinWidget::InteractionMode::DRAG )
     {
         this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
         Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Regular"), 5000);
     }
-    else
+    else if( this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DEFECT &&
+        mode == SpinWidget::InteractionMode::DEFECT )
+    {
+        this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
+        Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Regular"), 5000);
+    }
+    else if( this->spinWidget->interactionMode() == SpinWidget::InteractionMode::PIN &&
+        mode == SpinWidget::InteractionMode::PIN )
+    {
+        this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::REGULAR);
+        Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Regular"), 5000);
+    }
+    else if( mode == SpinWidget::InteractionMode::DRAG )
     {
         this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DRAG);
         Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Drag"), 5000);
+    }
+    else if( mode == SpinWidget::InteractionMode::DEFECT )
+    {
+        this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::DEFECT);
+        Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Defect"), 5000);
+    }
+    else if( mode == SpinWidget::InteractionMode::PIN )
+    {
+        this->spinWidget->setInteractionMode(SpinWidget::InteractionMode::PIN);
+        Ui::MainWindow::statusBar->showMessage(tr("Interaction Mode: Pinning"), 5000);
     }
     this->settingsWidget->updateData();
 }
@@ -975,6 +1014,14 @@ void MainWindow::updateMenuBar()
         this->actionShow_Debug->setChecked(true);
     else
         this->actionShow_Debug->setChecked(false);
+
+    // Controls
+    this->actionToggle_Dragging_mode->setChecked(
+        this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DRAG );
+    this->actionToggle_Defect_mode->setChecked(
+        this->spinWidget->interactionMode() == SpinWidget::InteractionMode::DEFECT );
+    this->actionToggle_Pinning_mode->setChecked(
+        this->spinWidget->interactionMode() == SpinWidget::InteractionMode::PIN );
 
     // Info Widget
     this->actionToggle_infowidget->setChecked(this->m_InfoWidgetActive);

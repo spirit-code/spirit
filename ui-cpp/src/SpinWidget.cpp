@@ -184,13 +184,43 @@ void SpinWidget::dragpaste()
     glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
     float radius = system_radius_from_relative(this->drag_radius, size);
     float rect[3]{ -1, -1, -1 };
-    // std::cerr << "--- r = " << radius << " pos = " << coords.x << "  " << coords.y << std::endl;
 
     float last_position[3]{ last_drag_coords.x, last_drag_coords.y, 0.0f };
     float current_position[3]{ coords.x, coords.y, 0.0f };
     Configuration_From_Clipboard_Shift(state.get(), last_position, current_position, rect, radius);
 }
 
+void SpinWidget::defectpaste()
+{
+    QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+    QSize  widgetSize = this->size();
+
+    glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+    glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+
+    glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
+    float radius = system_radius_from_relative(this->drag_radius, size);
+    float rect[3]{ -1, -1, -1 };
+
+    float current_position[3]{ coords.x, coords.y, 0.0f };
+    Configuration_Atom_Type(state.get(), -1, current_position, rect, radius);
+}
+
+void SpinWidget::pinningpaste()
+{
+    QPoint localCursorPos = this->mapFromGlobal(cursor().pos());
+    QSize  widgetSize = this->size();
+
+    glm::vec2 mouse_pos{ localCursorPos.x(), localCursorPos.y() };
+    glm::vec2 size{ widgetSize.width(),  widgetSize.height() };
+
+    glm::vec2 coords = system_coords_from_mouse(mouse_pos, size);
+    float radius = system_radius_from_relative(this->drag_radius, size);
+    float rect[3]{ -1, -1, -1 };
+
+    float current_position[3]{ coords.x, coords.y, 0.0f };
+    Configuration_Pin(state.get(), current_position, rect, radius);
+}
 
 void SpinWidget::initializeGL()
 {
@@ -536,7 +566,9 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
 
     m_previous_mouse_position = event->pos();
 
-    if (m_interactionmode == InteractionMode::DRAG)
+    if( m_interactionmode == InteractionMode::DRAG   ||
+        m_interactionmode == InteractionMode::DEFECT ||
+        m_interactionmode == InteractionMode::PIN    )
     {
         if (event->button() == Qt::LeftButton)
         {
@@ -550,7 +582,12 @@ void SpinWidget::mousePressEvent(QMouseEvent *event)
             // Copy spin configuration
             Configuration_To_Clipboard(state.get());
             // Set up Update Timers
-            connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+            if (m_interactionmode == InteractionMode::DRAG)
+                connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::dragpaste);
+            else if (m_interactionmode == InteractionMode::DEFECT)
+                connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::defectpaste);
+            else if (m_interactionmode == InteractionMode::PIN)
+                connect(m_timer_drag, &QTimer::timeout, this, &SpinWidget::pinningpaste);
             float ips = Simulation_Get_IterationsPerSecond(state.get());
             if (ips > 1000)
             {
@@ -570,7 +607,9 @@ void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
     if (this->m_suspended)
         return;
 
-    if (m_interactionmode == InteractionMode::DRAG)
+    if( m_interactionmode == InteractionMode::DRAG   ||
+        m_interactionmode == InteractionMode::DEFECT ||
+        m_interactionmode == InteractionMode::PIN    )
     {
         if (event->button() == Qt::LeftButton)
         {
@@ -579,7 +618,12 @@ void SpinWidget::mouseReleaseEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
         {
-            dragpaste();
+            if (m_interactionmode == InteractionMode::DRAG)
+                dragpaste();
+            else if (m_interactionmode == InteractionMode::DEFECT)
+                defectpaste();
+            else if (m_interactionmode == InteractionMode::PIN)
+                pinningpaste();
             this->updateData();
         }
     }
@@ -598,9 +642,11 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (m_interactionmode == InteractionMode::DRAG)
-    {
         dragpaste();
-    }
+    else if (m_interactionmode == InteractionMode::DEFECT)
+        defectpaste();
+    else if (m_interactionmode == InteractionMode::PIN)
+        pinningpaste();
     else
     {
         glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
@@ -739,7 +785,9 @@ SpinWidget::VisualizationMode SpinWidget::visualizationMode()
 
 void SpinWidget::setInteractionMode(InteractionMode mode)
 {
-    if (mode == InteractionMode::DRAG)
+    if( mode == InteractionMode::DRAG   ||
+        mode == InteractionMode::DEFECT ||
+        mode == InteractionMode::PIN    )
     {
         // Save latest regular mode settings
         this->regular_mode_perspective = this->cameraProjection();
@@ -748,6 +796,12 @@ void SpinWidget::setInteractionMode(InteractionMode mode)
         this->regular_mode_cam_up    = this->getCameraUpVector();
         // Set cursor
         this->setCursor(Qt::BlankCursor);
+        if( mode == InteractionMode::DRAG )
+            this->mouse_decoration->setColors(Qt::white, Qt::black);
+        else if( mode == InteractionMode::DEFECT )
+            this->mouse_decoration->setColors(Qt::white, Qt::darkRed);
+        else if( mode == InteractionMode::PIN )
+            this->mouse_decoration->setColors(Qt::white, Qt::darkBlue);
         this->mouse_decoration->show();
         // Apply camera changes
         this->setCameraToZ();
@@ -757,7 +811,7 @@ void SpinWidget::setInteractionMode(InteractionMode mode)
         // Set up update timers
         m_timer_drag_decoration->stop();
         connect(m_timer_drag_decoration, &QTimer::timeout, this, &SpinWidget::updateMouseDecoration);
-        m_timer_drag_decoration->start(10);
+        m_timer_drag_decoration->start(5);
     }
     else
     {
