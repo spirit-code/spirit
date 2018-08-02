@@ -88,14 +88,7 @@ namespace Engine
                 kmax = std::min(tMax, geometry.n_cells[2]-1);
             int imin, jmin, kmin, jatommin;
             // If redundant neighbours should not be used, we restrict the search to half of the space
-            if( use_redundant_neighbours )
-            {
-                imin=-imax; jmin=-jmax; kmin=-kmax;
-            }
-            else
-            {
-                imin=0; jmin=-jmax; kmin=-kmax;
-            }
+            imin=-imax; jmin=-jmax; kmin=-kmax;
 
             // Abort condidions for all 3 vectors
             if (a.norm() == 0.0) imax = 0;
@@ -126,7 +119,9 @@ namespace Engine
                             {
                                 for (jatom = jatommin; jatom < geometry.n_cell_atoms; ++jatom)
                                 {
-                                    if ((jatom > iatom) || (i>0 || (i==0 && j>0) || (i==0 && j==0 && k>0)) || use_redundant_neighbours)
+                                    if( (jatom > iatom)                                 ||
+                                        (i>0 || (i==0 && j>0) || (i==0 && j==0 && k>0)) ||
+                                        use_redundant_neighbours                        )
                                     {
                                         x1 =  geometry.cell_atoms[jatom][0] * a
                                             + geometry.cell_atoms[jatom][1] * b

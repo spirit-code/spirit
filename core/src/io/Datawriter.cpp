@@ -57,7 +57,7 @@ namespace IO
                 {
                     // Mirrored interactions 
                     output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
-                        ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
+                        ham->exchange_pairs[i].j, ham->exchange_pairs[i].i,
                         (-1) * ham->exchange_pairs[i].translations[0], 
                         (-1) * ham->exchange_pairs[i].translations[1], 
                         (-1) * ham->exchange_pairs[i].translations[2], 
@@ -108,7 +108,7 @@ namespace IO
                     // Mirrored interactions 
                     output += fmt::format(
                         "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                        ham->dmi_pairs[i].i, ham->dmi_pairs[i].j, (-1) * ham->dmi_pairs[i].translations[0], 
+                        ham->dmi_pairs[i].j, ham->dmi_pairs[i].i, (-1) * ham->dmi_pairs[i].translations[0], 
                         (-1) * ham->dmi_pairs[i].translations[1], (-1) * ham->dmi_pairs[i].translations[2], 
                         ham->dmi_magnitudes[i], (-1) * ham->dmi_normals[i][0], 
                         (-1) * ham->dmi_normals[i][1], (-1) * ham->dmi_normals[i][2]);
