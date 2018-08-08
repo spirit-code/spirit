@@ -279,7 +279,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
         // If the lowest eigenvalue is negative, we follow the minimum mode
         if (eigenvalues[0] < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
         {
-            std::cerr << fmt::format("negative region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+            std::cerr << fmt::format("negative region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
 
             // Invert the gradient force along the minimum mode
             Manifoldmath::invert_parallel(grad, minimum_mode);
@@ -290,7 +290,7 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
         // Otherwise we follow some chosen mode, as long as it is not orthogonal to the gradient
         else if (mode_grad_angle > 1e-8)
         {
-            std::cerr << fmt::format("positive region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+            std::cerr << fmt::format("positive region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
 
             int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
 
@@ -304,9 +304,9 @@ void Quantity_Get_Grad_Force_MinimumMode(State * state, float * f_grad, float * 
         else
         {
             if (std::abs(eigenvalues[0]) > 1e-8)
-                std::cerr << fmt::format("bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                std::cerr << fmt::format("bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
             else
-                std::cerr << fmt::format("zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                std::cerr << fmt::format("zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
 
             // Copy out the forces
             Vectormath::set_c_a(1, grad, force, system->geometry->mask_unpinned);

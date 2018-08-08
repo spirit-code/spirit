@@ -10,11 +10,11 @@
 
 using namespace Data;
 using namespace Utility;
-using Utility::Constants::mu_B;
-using Utility::Constants::mu_0;
-using Utility::Constants::Pi;
+namespace C = Utility::Constants;
 using Engine::Vectormath::cu_check_atom_type;
 using Engine::Vectormath::cu_idx_from_pair;
+using Engine::Vectormath::check_atom_type;
+using Engine::Vectormath::idx_from_pair;
 
 namespace Engine
 {
@@ -31,7 +31,7 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
@@ -47,7 +47,7 @@ namespace Engine
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         scalarfield exchange_shell_magnitudes,
-        scalarfield dmi_shell_magnitudes, int dm_chirality,
+        scalarfield dmi_shell_magnitudes, int dmi_shell_chirality,
         scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
@@ -55,10 +55,10 @@ namespace Engine
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
-        external_field_magnitude(external_field_magnitude * mu_B), external_field_normal(external_field_normal),
+        external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
-        dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dm_chirality),
+        dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dmi_shell_chirality),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_cutoff_radius(ddi_radius)
     {
@@ -113,7 +113,7 @@ namespace Engine
             Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours);
             for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
             {
-                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], this->dmi_shell_chirality));
                 this->dmi_magnitudes.push_back(dmi_shell_magnitudes[dmi_shells[ineigh]]);
             }
         }
@@ -138,9 +138,6 @@ namespace Engine
         this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
         this->ddi_normals    = vectorfield(this->ddi_pairs.size());
 
-        scalar magnitude;
-        Vector3 normal;
-
         for (unsigned int i = 0; i < this->ddi_pairs.size(); ++i)
         {
             Engine::Neighbours::DDI_from_Pair(
@@ -148,6 +145,9 @@ namespace Engine
                 { this->ddi_pairs[i].i, this->ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} },
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
+
+        // Update, which terms still contribute
+        this->Update_Energy_Contributions();
     }
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
@@ -465,7 +465,7 @@ namespace Engine
                 {
                     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
                     const scalar mult = 0.5 * geometry->cell_mu_s[ddi_pairs[ipair].i] * geometry->cell_mu_s[ddi_pairs[ipair].j]
-                        * Utility::Constants::mu_0 * std::pow(Utility::Constants::mu_B, 2) / ( 4*Utility::Constants::Pi * 1e-30 );
+                        * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
 
                     int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
                     int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);

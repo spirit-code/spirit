@@ -289,21 +289,21 @@ namespace Engine
             // Some debugging prints
             if (mode_evalue < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
             {
-                std::cerr << fmt::format("negative region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                std::cerr << fmt::format("negative region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
             }
             else if (mode_grad_angle > 1e-8)
             {
-                std::cerr << fmt::format("positive region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                std::cerr << fmt::format("positive region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
             }
             else
             {
                 if (std::abs(mode_evalue) > 1e-8)
                 {
-                    std::cerr << fmt::format("bad region:      {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                    std::cerr << fmt::format("bad region:      {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
                 }
                 else
                 {
-                    std::cerr << fmt::format("zero region:     {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle,1.0))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                    std::cerr << fmt::format("zero region:     {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
                 }
             }
 
