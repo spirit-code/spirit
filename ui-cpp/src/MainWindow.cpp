@@ -1264,7 +1264,7 @@ void MainWindow::save_Spin_Configuration()
         tr("Save Spin Configuration"),
         "./output",
         tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
-            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf)"
+            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf);;"
             "OOMF Vector Field binary 4 (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
         &selectedFilter);
 
@@ -1335,7 +1335,7 @@ void MainWindow::save_Spin_Configuration_Eigenmodes()
     auto fileName = QFileDialog::getSaveFileName(this,
         tr("Save Spin Configuration Eigenmodes"), "./output",
         tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
-            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf)"
+            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf);;"
             "OOMF Vector Field binary 4 (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
         &selectedFilter);
 
@@ -1376,7 +1376,7 @@ void MainWindow::save_Spin_Configuration_Chain()
         tr("Save SpinChain Configuration"),
         "./output",
         tr( "Any (*);;OOMF Vector Field text (*.ovf);;"
-            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf)"
+            "OOMF Vector Field binary (*.ovf);;OOMF Vector Field binary 8 (*.ovf);;"
             "OOMF Vector Field binary 4 (*.ovf);;OOMF Vector Field csv (*.ovf)" ),
         &selectedFilter);
 
